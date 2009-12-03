@@ -1,0 +1,7 @@
+Source repository is organized as follows:
+
+lsh/		locally sensitive hashing
+proxy/ 		seeks' proxy
+plugins/	default set of plugins for seeks
+dht/		distributed hashtable
+utils/		useful code throughout the project

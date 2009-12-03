@@ -1,0 +1,10 @@
+        <h2>Warning:</h2>
+        <p>
+          <strong>This version of Seeks is based on <em class="warning">@code-status@</em> code.
+          <br>Use at your own risk. </strong>
+        </p>
+	<p>
+		Seeks websearch proxy is based on <a href="http://www.privoxy.org">Privoxy</a>. If you are looking for a stable web proxy
+		with no websearch capabilities or dedicated plugins, please consider using <a href="http://www.privoxy.org">Privoxy</a> 
+		instead, as a very much more mature software for ad-blocking and other smart protective measures. 
+	</p>

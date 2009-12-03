@@ -1,0 +1,17 @@
+# websearch language of preference.
+search-language en
+
+# max number of websearch results on a single page.
+# default: 10
+search-results-page 10
+
+# one or more enabled search engines
+# google, yahoo, bing
+search-engine google
+search-engine bing
+search-engine cuil
+
+# minimum number of seconds search results are kept in
+# the system cache, for reuse, update, etc...
+# default: 300
+query-context-delay 300
