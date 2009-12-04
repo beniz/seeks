@@ -1,2 +1,60 @@
 Seeks is a websearch proxy and collaborative distributed tool for websearch.
 Visit http://www.seeks-projec.info for more information on the project.
+
+----------------------------------------------------------------------------
+1. Content
+
+Seeks code provides:
+- a web proxy,
+- a websearch meta search engine that aggregates results and ranks them
+  based on consensus.
+- a plugin system and a set of default plugins, including websearch and
+  ad blocking plugins.
+
+----------------------------------------------------------------------------
+2. Installation
+
+From the root directory, run
+./autogen.sh
+./configure
+make
+
+Compilation options can be listed with ./configure --help
+
+----------------------------------------------------------------------------
+3. Running Seeks
+
+This is an early version of Seeks, it is recommended your run it from the
+repository you compiled it from.
+
+do ./seeks
+see ./seeks --help
+for options.
+
+For example, by default seeks does not run as a daemon. If you would like
+to have it so, run ./seeks --daemon
+
+Other important options can be modified in the configuration file, src/config
+
+By default, seeks runs as proxy on the local machine (127.0.0.1) on port 8118.
+If you would like to change it, do it in the configuration file, src/config
+
+Once started, to use seeks, tell your web browser to connect to the Internet
+through seeks' web proxy.
+
+----------------------------------------------------------------------------
+4. Troubleshooting
+
+Seeks is young, so it is likely there are bugs. However, before all, be
+sure to read the faq and user manuals, respectively at:
+
+http://www.seeks-project.info/FAQ
+http://www.seeks-project.info/user-manual
+
+To report bugs, please use the interface here :
+https://sourceforge.net/apps/trac/seeks/wiki
+
+For discussion and getting more immediate help, join us on irc,
+channel #seeks on irc.freenode.net
+
+
