@@ -166,7 +166,7 @@ confdir .
 #
 #      templates
 #
-templdir templates
+templdir proxy/templates
 #
 #
 #  2.3. logdir
@@ -271,6 +271,7 @@ logfile logfile
 #	last is the one remaining available under that name.
 #
 #activated-plugin websearch
+activated-plugin privoxy-block
 #
 #
 #  3. DEBUGGING
