@@ -120,8 +120,15 @@ namespace seeks_plugins
 		       const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
 		       if (a_link)
 			 {
-			    _links_to_pages.push_back(std::string(a_link));
-			    //std::cout << "added page link: " << a_link << std::endl;
+			    std::string a_link_str = std::string(a_link);
+			    size_t ppos = a_link_str.find("&p=");
+			    size_t epos = a_link_str.find("_");
+			    std::string pnum_str = a_link_str.substr(ppos+3,epos-ppos-3);
+			    int pnum = atoi(pnum_str.c_str());
+			    _links_to_pages.insert(std::pair<int,std::string>(pnum,a_link_str.substr(ppos)));
+			    
+			    /* std::cout << "added page link: " << a_link_str.substr(ppos) << std::endl;
+			     std::cout << "pnum_str: " << pnum_str << std::endl; */
 			 }
 		    }
 	       }
@@ -157,7 +164,7 @@ namespace seeks_plugins
 	     std::string a_chars = std::string((char*)chars);
 	     miscutil::replace_in_string(a_chars,"\n"," ");
 	     miscutil::replace_in_string(a_chars,"\r"," ");
-	     miscutil::replace_in_string(a_chars,"-"," ");
+	     //miscutil::replace_in_string(a_chars,"-"," ");
 	     _summary += a_chars;
 	  }
 	else if (_cite_flag)

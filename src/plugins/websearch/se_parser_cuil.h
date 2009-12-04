@@ -62,9 +62,10 @@ namespace seeks_plugins
 	std::string _summary;
 	std::string _cite;
 	
-	std::vector<std::string> _links_to_pages; // links to other result pages are embedded and
-	                                          // generated automatically. Until it is reversed
-						  // engineered, we grab them from the html page. 
+      public:
+	hash_map<int,std::string> _links_to_pages; // links to other result pages are embedded and
+	                                           // generated automatically. Until it is reversed
+						   // engineered, we grab them from the html page. 
      };
    
 } /* end of namespace. */

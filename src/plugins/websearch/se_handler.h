@@ -32,6 +32,7 @@ namespace seeks_plugins
 {
    class se_parser;
    class search_snippet;
+   class query_context;
    
 #define NSEs 3  // number of supported search engines.
    
@@ -108,13 +109,14 @@ namespace seeks_plugins
 	
 	static sp_err parse_ses_output(char **outputs, const int &nresults,
 				       std::vector<search_snippet*> &snippets,
-				       const int &count_offset);
+				       const int &count_offset,
+				       query_context *qr);
 
 	// arguments to a threaded parser.
 	struct ps_thread_arg
 	  {
 	     ps_thread_arg()
-	       :_se((SE)0),_output(NULL),_snippets(NULL)
+	       :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
 	     {};
 	
 	     ~ps_thread_arg()
@@ -127,6 +129,7 @@ namespace seeks_plugins
 	     char *_output; // page content, to be parsed into snippets.
 	     std::vector<search_snippet*> *_snippets; // websearch result snippets. 
 	     int _offset; // offset to snippets rank (when asking page x, with x > 1).
+	     query_context *_qr; // pointer to the current query context.
 	  };
 		
 	static void parse_output(const ps_thread_arg &args);

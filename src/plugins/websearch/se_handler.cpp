@@ -24,6 +24,7 @@
 #include "errlog.h"
 #include "seeks_proxy.h" // for configuration.
 #include "proxy_configuration.h"
+#include "query_context.h"
 
 #include "se_parser_ggle.h"
 #include "se_parser_cuil.h"
@@ -160,8 +161,18 @@ namespace seeks_plugins
 	// language.
 	miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
 
-	// TODO: expansion.
-	
+	// expansion + hack for getting Cuil's next pages.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	if (pp > 1)
+	  {
+	     const char *cuil_npage = miscutil::lookup(parameters,"cuil_npage");
+	     if (cuil_npage)
+	       {
+		  q_cuil.append(std::string(cuil_npage));
+	       }
+	  }
+		
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying cuil: %s", q_cuil.c_str());
 	url = q_cuil;
@@ -272,7 +283,8 @@ namespace seeks_plugins
   /*-- parsing. --*/
   sp_err se_handler::parse_ses_output(char **outputs, const int &nresults,
 				      std::vector<search_snippet*> &snippets,
-				      const int &count_offset)
+				      const int &count_offset,
+				      query_context *qr)
   {
      // use multiple threads unless told otherwise.
      int j = 0;
@@ -293,6 +305,7 @@ namespace seeks_plugins
 		    args->_output = outputs[j++];
 		    args->_snippets = new std::vector<search_snippet*>();
 		    args->_offset = count_offset;
+		    args->_qr = qr;
 		    parser_args[k] = args;
 		    
 		    pthread_t ps_thread;
@@ -339,12 +352,28 @@ namespace seeks_plugins
      {
 	se_parser *se = create_se_parser(args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
+
+	// hack for cuil.
+	if (args._se == CUIL)
+	  {
+	     se_parser_cuil *se_p_cuil = static_cast<se_parser_cuil*>(se);
+	     hash_map<int,std::string>::const_iterator hit = se_p_cuil->_links_to_pages.begin();
+	     hash_map<int,std::string>::const_iterator hit1;
+	     while(hit!=se_p_cuil->_links_to_pages.end())
+	       {
+		  if ((hit1=args._qr->_cuil_pages.find((*hit).first))==args._qr->_cuil_pages.end())
+		    args._qr->_cuil_pages.insert(std::pair<int,std::string>((*hit).first,(*hit).second));
+		  ++hit;
+	       }
+	  }
+	// hack
+	
 	delete se;
      }
    
   se_parser* se_handler::create_se_parser(const SE &se)
   {
-    se_parser *sep;
+    se_parser *sep = NULL;
     switch(se)
       {
       case GOOGLE:
