@@ -135,10 +135,10 @@ int main(int argc, const char *argv[])
 	  }
 
 # if defined(unix)
-	else if (strcmp(argv[argc_pos], "--no-daemon" ) == 0)
+	else if (strcmp(argv[argc_pos], "--daemon" ) == 0)
 	  {
 	     errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
-	     seeks_proxy::_no_daemon = 1;
+	     seeks_proxy::_no_daemon = 0;
 	  }
 	else if (strcmp(argv[argc_pos], "--pidfile" ) == 0)
 	  {

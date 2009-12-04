@@ -55,7 +55,7 @@ namespace sp
    /* initialize all static (global) variables... */
    const char* seeks_proxy::_basedir = NULL;
    int seeks_proxy::_received_hup_signal = 0;
-   int seeks_proxy::_no_daemon = 1;  // To be turned back off after debuggin phase...
+   int seeks_proxy::_no_daemon = 1;  // To be turned back off after debugging phase...
    const char* seeks_proxy::_pidfile = NULL;
    client_state seeks_proxy::_clients = client_state();
    std::vector<sweepable*> seeks_proxy::_memory_dust = std::vector<sweepable*>();
@@ -2336,7 +2336,7 @@ namespace sp
 # endif /* defined(unix) */
 	       "[--help] "
 # if defined(unix)
-	       "[--no-daemon] [--pidfile pidfile] [--pre-chroot-nslookup hostname] [--user user[.group]] "
+	       "[--daemon] [--pidfile pidfile] [--pre-chroot-nslookup hostname] [--user user[.group]] "
 # endif /* defined(unix) */
 	       "[--version] [configfile]\n"
 	       "Aborting\n", myname);
