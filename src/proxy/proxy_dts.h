@@ -1163,8 +1163,11 @@ class access_control_list
  */
 #define CGI_SITE_1_HOST "s.s"
 #define CGI_SITE_2_HOST "config.seeks.info"
-#define CGI_SITE_2_PATH ""
+#define CGI_SITE_2_PATH ""  // repository to serve files from.
 
+#define CGI_SITE_FILE_SERVER "public"
+#define CGI_SITE_PLUGIN_FILE_SERVER "plugins"
+   
 /**
  * The prefix for CGI pages.  Written out in generated HTML.
  * INCLUDES the trailing slash.
