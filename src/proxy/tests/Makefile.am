@@ -9,8 +9,8 @@ if USE_PERL
 AM_CPPFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
-AM_LDFLAGS=-L. -L../
+AM_LDFLAGS=-L. -L../ -L../../utils
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD = @CURL_LDADD@ -lseeksproxy -lseeksplugins -lnsl -lpcre -lpcreposix -lpthread -lz -ldl
+LDADD = @CURL_LDADD@ -lseeksutils -lseeksproxy -lseeksplugins -lnsl -lpcre -lpcreposix -lpthread -lz -ldl
