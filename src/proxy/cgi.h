@@ -60,6 +60,10 @@ namespace sp
 	
 	static cgi_dispatcher _cgi_dispatchers[];
 	
+	static cgi_dispatcher _cgi_file_server; /* cgi for file service ('public' repository). */
+	
+	static cgi_dispatcher _cgi_plugin_file_server; /* cgi for every plugin file service. */
+	
 	/* Not exactly a CGI */
 	static http_response* error_response(client_state *csp,
 					     const char *templatename);

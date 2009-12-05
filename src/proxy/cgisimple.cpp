@@ -887,7 +887,7 @@ sp_err cgisimple::cgi_show_status(client_state *csp,
    }
    if (!err) err = miscutil::add_map_entry(exports, "invocation", 1, s, 0);
 
-   std::cerr << "config args: " << seeks_proxy::_config->_config_args << std::endl;
+   //std::cerr << "config args: " << seeks_proxy::_config->_config_args << std::endl;
    
    if (!err) err = miscutil::add_map_entry(exports, "options", 1, csp->_config->_config_args, 1);
    if (!err) err = show_defines(exports);
@@ -1167,70 +1167,8 @@ sp_err cgisimple::cgi_show_url_info(client_state *csp,
 	   ++sit;
 	}
       
-      
-/*      for (i = 0; i < MAX_AF_FILES; i++)
-      {
-         if (NULL == csp->_config->_actions_file_short[i]
-             || !strcmp(csp->_config->_actions_file_short[i], "standard.action")) continue;
-
-         b = NULL;
-         hits = 1;
-         if ((fl = csp->_actions_list[i]) != NULL)
-         {
-            if ((b = (url_actions*)fl->_f) != NULL)
-            {
-               miscutil::string_append(&matches, "<tr><th>In file: ");
-               miscutil::string_join  (&matches, encode::html_encode(csp->_config->_actions_file_short[i]));
-               snprintf(buf, sizeof(buf), " <a class=\"cmd\" href=\"/show-status?file=actions&amp;index=%d\">", i);
-               miscutil::string_append(&matches, buf);
-               miscutil::string_append(&matches, "View</a>");
-
-               miscutil::string_append(&matches, "</th></tr>\n");
-
-               hits = 0;
-               b = b->_next;
-            }
-         }
-
-         for (; (b != NULL) && (matches != NULL); b = b->_next)
-         {
-            if (urlmatch::url_match(b->_url, &url_to_query))
-            {
-               miscutil::string_append(&matches, "<tr><td>{");
-               miscutil::string_join  (&matches, actions::actions_to_html(csp, b->_action));
-               miscutil::string_append(&matches, " }<br>\n<code>");
-               miscutil::string_join  (&matches, encode::html_encode(b->_url->_spec));
-               miscutil::string_append(&matches, "</code></td></tr>\n");
-
-               if (actions::merge_current_action(&action, b->_action))
-               {
-                  freez(matches);
-		  miscutil::free_map(exports);
-                  return SP_ERR_MEMORY;
-               }
-               hits++;
-            }
-         }
-
-         if (!hits)
-         {
-            miscutil::string_append(&matches, "<tr><td>(no matches in this file)</td></tr>\n");
-         }
-      } */
       miscutil::string_append(&matches, "</table>\n");
-
-      /*
-       * XXX: Kludge to make sure the "Forward settings" section
-       * shows what forward-override{} would do with the requested URL.
-       * No one really cares how the CGI request would be forwarded
-       * if it wasn't intercepted as CGI request in the first place.
-       *
-       * From here on the action bitmask will no longer reflect
-       * the real url (http://config.privoxy.org/show-url-info?url=.*),
-       * but luckily it's no longer required later on anyway.
-       */
-      //filters::get_url_actions(csp, &url_to_query);
-
+      
       /*
        * Fill in forwarding settings.
        *
@@ -1711,5 +1649,57 @@ sp_err cgisimple::cgi_toggle(client_state *csp,
 					     exports, rsp);
 	}
 #endif /* def FEATURE_TOGGLE */
+
+sp_err cgisimple::cgi_file_server(client_state *csp,
+				  http_response *rsp,
+				  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+{
+   const char *path_file = miscutil::lookup(parameters,"file");
+   if (!path_file)
+     {
+	errlog::log_error(LOG_LEVEL_ERROR, "Could not find path to public file.");
+     }
+   
+   std::string path_file_str = std::string(seeks_proxy::_basedir) + "/" + std::string(CGI_SITE_FILE_SERVER)
+                               + "/" + std::string(path_file);
+      
+   sp_err err = cgisimple::load_file(path_file_str.c_str(),&rsp->_body,&rsp->_content_length);
+   
+   if (err != SP_ERR_OK)
+     {
+	errlog::log_error(LOG_LEVEL_ERROR, "Could not load %s in public repository.",
+			  path_file_str.c_str());
+     }
+   
+   rsp->_is_static = 1;
+   
+   return SP_ERR_OK;
+}
+   
+sp_err cgisimple::cgi_plugin_file_server(client_state *csp,
+					 http_response *rsp,
+					 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+{
+   const char *path_file = miscutil::lookup(parameters,"file");
+   if (!path_file)
+     {
+	errlog::log_error(LOG_LEVEL_ERROR, "Could not find path to public file.");
+     }
+   
+   std::string path_file_str = plugin_manager::_plugin_repository + "/" + std::string(path_file);
+   
+   sp_err err = cgisimple::load_file(path_file_str.c_str(),&rsp->_body,&rsp->_content_length);
+   
+   if (err != SP_ERR_OK)
+     {
+	errlog::log_error(LOG_LEVEL_ERROR, "Could not load %s in public repository.",
+			  path_file_str.c_str());
+     }
+   
+   rsp->_is_static = 1;
+   
+   return SP_ERR_OK;
+}
+   
    
 } /* end of namespace. */

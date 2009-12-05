@@ -149,6 +149,18 @@ namespace sp
 	  NULL, TRUE /* Unknown CGI page */ 
      )
 };
+
+   cgi_dispatcher cgi::_cgi_file_server 
+     = cgi_dispatcher("",
+		      &cgisimple::cgi_file_server,
+		      NULL, TRUE /* public generic file server */
+		      );
+   
+   cgi_dispatcher cgi::_cgi_plugin_file_server
+     = cgi_dispatcher("",
+		      &cgisimple::cgi_plugin_file_server,
+		      NULL, TRUE /* public plugin file server */
+		      );
    
    /**
     * Built-in images for ad replacement
@@ -212,7 +224,7 @@ http_response cgi::_cgi_error_memory_response; // beware.
  * Function    :  dispatch_cgi
  *
  * Description :  Checks if a request URL has either the magical
- *                hostname CGI_SITE_1_HOST (usually http://p.p/) or
+ *                hostname CGI_SITE_1_HOST (usually http://s.s/) or
  *                matches CGI_SITE_2_HOST CGI_SITE_2_PATH (usually
  *                http://config.seeks.org/). If so, it passes
  *                the (rest of the) path onto dispatch_known_cgi, which
@@ -382,6 +394,18 @@ http_response* cgi::dispatch_known_cgi(client_state *csp, const char *path)
 	return cgi_error_memory();
      }
    
+   /**
+    * Two special cgi calls for serving files from a built-in directory.
+    * - public for seeks generic files.
+    * - plugins/<plugin_name>/public for every plugin's files.
+    */
+   bool cgi_file_server = false;
+   bool cgi_plugin_file_server = false;
+   if (strncmpic(path_copy,CGI_SITE_FILE_SERVER,strlen(CGI_SITE_FILE_SERVER)) == 0)
+     cgi_file_server = true;
+   else if (strncmpic(path_copy,CGI_SITE_PLUGIN_FILE_SERVER,strlen(CGI_SITE_PLUGIN_FILE_SERVER)) == 0)
+     cgi_plugin_file_server = true; // plugin name check comes further down.
+   
    query_args_start = path_copy;
    while (*query_args_start && *query_args_start != '?' && *query_args_start != '/')
      {
@@ -425,8 +449,31 @@ http_response* cgi::dispatch_known_cgi(client_state *csp, const char *path)
 	return cgi::cgi_error_memory();
      }
    
-   /*
-    * Find and start the right generic CGI function.
+   /**
+    * Is it a call to the public file service.
+    */
+   if (cgi_file_server)
+     {
+	return cgi::dispatch(&cgi::_cgi_file_server, path_copy, csp, param_list, rsp);
+     }
+      
+   /**
+    * Else is it a call to a plugin's file service.
+    */
+   if (cgi_plugin_file_server)
+     {
+	std::vector<plugin*>::const_iterator sit = plugin_manager::_plugins.begin();
+	while(sit!=plugin_manager::_plugins.end())
+	  {
+	     std::string pname_public = (*sit)->get_name() + "/public";
+	     if (strncmpic(query_args_start,pname_public.c_str(),strlen(pname_public.c_str())) == 0)
+	       return cgi::dispatch(&cgi::_cgi_plugin_file_server, path_copy, csp, param_list, rsp);
+	     ++sit;
+	  }
+     }
+      
+   /**
+    *  Else find and start the right generic CGI function.
     */
    d = cgi::_cgi_dispatchers;
    for (;;)
@@ -434,10 +481,11 @@ http_response* cgi::dispatch_known_cgi(client_state *csp, const char *path)
 	if (d->_name == NULL)
 	  break;
 	
-	if ((strcmp(path_copy, d->_name) == 0)) // d->_name == NULL, weird.
+	if ((strcmp(path_copy, d->_name) == 0))
 	  {
 	     return cgi::dispatch(d, path_copy, csp, param_list, rsp);
 	  }
+	
 	d++;
      }
    
@@ -1672,7 +1720,6 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
 	templates_dir_path = miscutil::make_path(csp->_config->_confdir, "templates");
      } */
    
-   //templates_dir_path = plugin_manager::_plugin_repository.c_str();
    templates_dir_path = strdup(templatedir);
    
    if (templates_dir_path == NULL)
@@ -2293,8 +2340,6 @@ char* cgi::make_plugins_list()
 	++k;
 	++sit;
      }
-   
-   //std::cerr << "plugins_list: s: " << s << std::endl;
    
    if (s[0] == '\0')
      {

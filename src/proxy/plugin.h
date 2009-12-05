@@ -81,8 +81,6 @@ namespace sp
       public:
 	std::vector<cgi_dispatcher*> _cgi_dispatchers;
 	
-	// TODO: dependencies.
-     
       public:
 	// interception, parsing & filtering.
 	interceptor_plugin *_interceptor_plugin;

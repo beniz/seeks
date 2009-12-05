@@ -105,7 +105,12 @@ static sp_err cgi_send_url_info_osd(client_state *csp,
 static sp_err cgi_send_user_manual(client_state *csp,
                                    http_response *rsp,
                                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-
+static sp_err cgi_file_server(client_state *csp,
+			      http_response *rsp,
+			      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+static sp_err cgi_plugin_file_server(client_state *csp,
+				     http_response *rsp,
+				     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
 #ifdef FEATURE_GRACEFUL_TERMINATION
 static sp_err cgi_die (client_state *csp,
