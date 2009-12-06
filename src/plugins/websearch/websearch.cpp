@@ -88,18 +88,10 @@ namespace seeks_plugins
 	assert(rsp);
 	assert(parameters);
 	
-	if (parameters->empty())
-	  {
-	     // redirection to local file is forbidden by most browsers. Let's read the file instead.
-	     std::string seeks_ws_hp_str = plugin_manager::_plugin_repository + "websearch/html/seeks_ws_hp.html";
-	     sp_err err = cgisimple::load_file(seeks_ws_hp_str.c_str(), &rsp->_body, &rsp->_content_length);
-	     return err;
-	  }
-	else
-	  {
-	     //TODO.
-	     return SP_ERR_OK;
-	  }
+	// redirection to local file is forbidden by most browsers. Let's read the file instead.
+	std::string seeks_ws_hp_str = plugin_manager::_plugin_repository + "websearch/html/seeks_ws_hp.html";
+	sp_err err = cgisimple::load_file(seeks_ws_hp_str.c_str(), &rsp->_body, &rsp->_content_length);
+	return err;
      }
 
    sp_err websearch::cgi_websearch_search_hp_css(client_state *csp,
@@ -128,35 +120,19 @@ namespace seeks_plugins
    sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
-	// debug
-       //std::cout << "parameters size: " << parameters->size() << std::endl;
-	// debug
-	
 	if (!parameters->empty())
 	  {
-	     // debug
-	     /* std::cerr << "parameters:\n";
-	     hash_map<const char*, const char*, hash<const char*>, eqstr>::const_iterator hit 
-	       = parameters->begin();
-	     while(hit!=parameters->end())
-	       {
-		  std::cerr << (*hit).first << " --> " << (*hit).second << std::endl;
-		  ++hit;
-	       } */
-	     // debug
-	      
 	     const char *query = miscutil::lookup(parameters,"q"); // grab the query.
 	     if (strlen(query) == 0)
 	       {
-		  errlog::log_error(LOG_LEVEL_ERROR,"No query found.");
-		  return cgi::cgi_error_bad_param(csp,rsp);
+		  // return websearch homepage instead.
+		  return websearch::cgi_websearch_hp(csp,rsp,parameters);
 	       }
 	     else se_handler::preprocess_parameters(parameters); // preprocess the query...
 	     
 	     // perform websearch.
 	     sp_err err = websearch::perform_websearch(csp,rsp,parameters);
 	     
-	     // TODO: catch errors.
 	     return err;
 	  }
 	else 
