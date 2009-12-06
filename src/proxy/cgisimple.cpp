@@ -1650,6 +1650,29 @@ sp_err cgisimple::cgi_toggle(client_state *csp,
 	}
 #endif /* def FEATURE_TOGGLE */
 
+/**
+* This could be automated for a wider set of content by
+* using a dedicated library.
+*/
+void cgisimple::file_response_content_type(const std::string &ext_str, http_response *rsp)
+{     
+   if (strcmpic(ext_str.c_str(),"css") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/css", 13);
+   else if (strcmpic(ext_str.c_str(),"jpg") == 0
+	    || strcmpic(ext_str.c_str(),"jpeg") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/jpeg", 13);
+   else if (strcmpic(ext_str.c_str(),"png") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/png", 13);
+   else if (strcmpic(ext_str.c_str(),"gif") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/gif", 13);
+   else if (strcmpic(ext_str.c_str(),"js") == 0)
+     // should be application/javascript but IE8 and earlier wouldn't eat it.
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/javascript", 13);
+   else if (strcmpic(ext_str.c_str(),"jso") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: application/json", 13);
+   else miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/html; charset=UTF-8", 13);
+}   
+   
 sp_err cgisimple::cgi_file_server(client_state *csp,
 				  http_response *rsp,
 				  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
@@ -1664,7 +1687,17 @@ sp_err cgisimple::cgi_file_server(client_state *csp,
                                + "/" + std::string(path_file);
       
    sp_err err = cgisimple::load_file(path_file_str.c_str(),&rsp->_body,&rsp->_content_length);
-   
+
+   /**
+    * Lookup file extention for setting content-type.
+    */
+   if (!err)
+     {
+	size_t epos = path_file_str.find_last_of(".");
+	std::string ext_str = path_file_str.substr(epos+1);
+	cgisimple::file_response_content_type(ext_str,rsp);
+     }
+      
    if (err != SP_ERR_OK)
      {
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not load %s in public repository.",
@@ -1690,6 +1723,16 @@ sp_err cgisimple::cgi_plugin_file_server(client_state *csp,
    
    sp_err err = cgisimple::load_file(path_file_str.c_str(),&rsp->_body,&rsp->_content_length);
    
+   /**
+    * Lookup file extention for setting content-type.
+    */
+   if (!err)
+     {
+	size_t epos = path_file_str.find_last_of(".");
+	std::string ext_str = path_file_str.substr(epos+1);
+	cgisimple::file_response_content_type(ext_str,rsp);
+     }
+        
    if (err != SP_ERR_OK)
      {
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not load %s in public repository.",

@@ -130,7 +130,7 @@ static sp_err cgi_die (client_state *csp,
    static sp_err cgi_show_plugin(client_state *csp, http_response *rsp,
 				 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
    static sp_err load_file(const char *filename, char **buffer, size_t *length);
-   
+   static void file_response_content_type(const std::string &ext_str, http_response *rsp);
 };
 
 } /* end of namespace. */
