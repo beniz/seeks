@@ -45,6 +45,9 @@ namespace seeks_plugins
    void search_snippet::highlight_query(std::vector<std::string> &words,
 					std::string &str)
      {
+	if (words.empty())
+	  return;
+	
 	// sort words by size.
 	std::sort(words.begin(),words.end(),std::greater<std::string>());
 	
@@ -83,32 +86,8 @@ namespace seeks_plugins
      
    std::string search_snippet::to_html() const
      {
-	std::string html_content = "<li class=g><h3 class=r><a href=\"";
-	html_content += _url;
-	html_content += "\" class=\"l\"><em>";
-	html_content += _title;
-	html_content += "</em></a></h3>";
-	
-	if (_summary != "")
-	  {
-	     html_content += "<div class=\"s\">";
-	     html_content += _summary;
-	  }
-	if (_cite != "")
-	  {
-	     html_content += "<br><cite>";
-	     html_content += _cite;
-	     html_content += "</cite>";
-	  }
-	if (_cached != "")
-	  {
-	     html_content += "<span class=\"gl\"><a href=\"";
-	     html_content += _cached;
-	     html_content += "\">Cached</a></span>";
-	  }
-	html_content += "</div></li>\n";
-	
-	return html_content;
+	std::vector<std::string> words;
+	return to_html_with_highlight(words);
      }
 
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words) const
@@ -164,12 +143,18 @@ namespace seeks_plugins
 	     html_content += "</cite>";
 	  }
 	
-	if (_cached != "")
+	html_content += "<span class=\"gl\"><a href=\"";
+	if (!_cached.empty())
 	  {
-	     html_content += "<span class=\"gl\"><a href=\"";
 	     html_content += _cached;
 	     html_content += " \">Cached</a></span>";
 	  }
+	else if (!_archive.empty()) // should not be empty if cached is.
+	  {
+	     html_content += _archive;
+	     html_content += " \">Archive</a></span>";
+	  }
+			 
 	html_content += "</div></li>\n";
 		
 	/* std::cout << "html_content:\n";
@@ -210,7 +195,13 @@ namespace seeks_plugins
 	_summary = std::string(str);
 	free(str);
      }
-		   
+   
+   void search_snippet::set_archive_link()
+     {
+	if (_cached.empty())
+	  _archive = "http://web.archive.org/web/*/" + _url;
+     }
+   		   
    // static.
    void search_snippet::delete_snippets(std::vector<search_snippet*> &snippets)
      {
@@ -230,6 +221,10 @@ namespace seeks_plugins
 	// search engine.
 	s1->_engine |= s2->_engine;
      
+	// cached link.
+	if (s1->_cached.empty())
+	  s1->_cached = s2->_cached;
+	
 	// summary.
 	if (s1->_summary.length() < s2->_summary.length())
 	  s1->_summary = s2->_summary;

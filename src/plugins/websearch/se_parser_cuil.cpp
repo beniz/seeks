@@ -59,7 +59,11 @@ namespace seeks_plugins
 		  if (pc->_current_snippet)
 		    {
 		       if (pc->_current_snippet->_title != "")
-			 pc->_snippets->push_back(pc->_current_snippet);
+			 {
+			    // no cache on cuil, so we give a link to an archived page.
+			    pc->_current_snippet->set_archive_link();
+			    pc->_snippets->push_back(pc->_current_snippet);
+			 }
 		       else
 			 {
 			    delete pc->_current_snippet;

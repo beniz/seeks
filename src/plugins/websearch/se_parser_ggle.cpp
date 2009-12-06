@@ -302,7 +302,9 @@ namespace seeks_plugins
 	  {
 	     _span_cached_flag = false; // no need to catch the /span tag.
 	     _cached_flag = false;
-	     pc->_current_snippet->_cached = _cached;
+	     if (!_cached.empty())
+	       pc->_current_snippet->_cached = _cached;
+	     else pc->_current_snippet->set_archive_link();
 	     _cached = "";
 	  }
      }

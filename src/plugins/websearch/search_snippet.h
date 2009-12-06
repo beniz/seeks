@@ -85,8 +85,12 @@ namespace seeks_plugins
 	// set_url with url preprocessing for later comparison.
 	void set_url(const std::string &url);
 	void set_url(const char *url);
+	
 	void set_summary(const std::string &summary);
 	void set_summary(const char *summary);
+	
+	// sets a link to the archived url at archive.org (e.g. in case we'no cached link).
+	void set_archive_link();
 	
 	// xml output.
 	
@@ -117,6 +121,7 @@ namespace seeks_plugins
 	std::string _file_format;
 	std::string _date;
 	std::string _lang;
+	std::string _archive; // if no cached link, a link to archive.org
 	
 	short _rank;  // search engine rank.
 	double _seeks_ir; // IR score computed locally.
