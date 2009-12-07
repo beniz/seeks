@@ -233,13 +233,14 @@ namespace seeks_plugins
 
     // query.
     const char *query = miscutil::lookup(parameters,"q");
+    std::string query_str = std::string(query);
+    miscutil::replace_in_string(query_str,"\"","&quot;");
     miscutil::add_map_entry(exports,"$fullquery",1,query,1);
 
     // clean query.
-    std::string query_clean = std::string(query);
+    std::string query_clean = query_str;
     miscutil::replace_in_string(query_clean,"+"," ");
-     miscutil::replace_in_string(query_clean,"\"","&quot;");
-     miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
+    miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
     std::vector<std::string> words;
     miscutil::tokenize(query_clean,words," "); // tokenize query for highlighting keywords.
      
@@ -276,7 +277,7 @@ namespace seeks_plugins
        {
 	  std::string np_str = miscutil::to_string(cp+1);
 	  std::string np_link = "<a href=\"http://s.s/search?page=" + np_str + "&q="
-	    + query + "&expansion=" + std::string(expansion) + "&action=page\">Next</a>\n";
+	    + query_str + "&expansion=" + std::string(expansion) + "&action=page\">Next</a>\n";
 	  miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -286,7 +287,7 @@ namespace seeks_plugins
        {
 	  std::string pp_str = miscutil::to_string(cp-1);
 	  std::string pp_link = "<a href=\"http://s.s/search?page=" + pp_str + "&q=" 
-	    + query + "&expansion=" + std::string(expansion) + "&action=page\">Prev</a>\n";
+	    + query_str + "&expansion=" + std::string(expansion) + "&action=page\">Prev</a>\n";
 	  miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);

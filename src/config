@@ -272,6 +272,7 @@ logfile logfile
 #
 #activated-plugin websearch
 activated-plugin privoxy-block
+#activated-plugin privoxy-filters
 #
 #
 #  3. DEBUGGING

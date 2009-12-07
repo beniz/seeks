@@ -63,7 +63,7 @@ AC_ARG_ENABLE(pthread,
   # Disable pthreads                                                                                                                      
   if test $have_pthread = yes; then
      AC_MSG_WARN([pthreads seem to be available but you are using --disable-pthread.])
-     AC_MSG_WARN([This is almost always a mistake and can render Privoxy unacceptable slow.])
+     AC_MSG_WARN([This is almost always a mistake and can render Seeks' proxy unacceptable slow.])
   fi
   have_pthread=no
 fi])
@@ -355,6 +355,7 @@ src/proxy/tests/Makefile \
 src/plugins/Makefile \
 src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
+src/plugins/privoxy/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
