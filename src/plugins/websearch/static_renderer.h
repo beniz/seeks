@@ -62,7 +62,7 @@ namespace seeks_plugins
 	static sp_err render_result_page_static(const std::vector<search_snippet*> &snippets,
 						client_state *csp, http_response *rsp,
 						const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
-	
+					
      };
    
 } /* end of namespace. */

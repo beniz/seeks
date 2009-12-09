@@ -98,9 +98,9 @@ namespace seeks_plugins
 	html_content += _url;
 	html_content += "\" class=\"l\"><em>";
 	
-	std::string title = _title;
-	
-	html_content += title;
+	const char *title_enc = encode::html_encode(_title.c_str());
+	html_content += title_enc;
+	free_const(title_enc);
 	html_content += "</em></a>";
 	
 	if (_engine.to_ulong()&SE_GOOGLE)

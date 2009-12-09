@@ -21,6 +21,7 @@
 #include "miscutil.h"
 #include "websearch.h" // for configuration.
 #include "curl_mget.h"
+#include "encode.h"
 #include "errlog.h"
 #include "seeks_proxy.h" // for configuration.
 #include "proxy_configuration.h"
@@ -202,13 +203,10 @@ namespace seeks_plugins
 	const char *q = "q";
 	const char *query = miscutil::lookup(parameters,q);
 	std::string query_str = std::string(query);
-	size_t p = miscutil::replace_in_string(query_str," ","+"); //TODO: improve... (e.g. c++).
-	if (p>0)
-	  {
-	     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
-	     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				     q,1,query_str.c_str(),1);
-	  }
+	miscutil::replace_in_string(query_str," ","+");
+	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+				q,1,query_str.c_str(),1);
      }
       
   /*-- queries to the search engines. */  

@@ -22,6 +22,7 @@
 #include "cgi.h"
 #include "cgisimple.h"
 #include "miscutil.h"
+#include "encode.h"
 #include "errlog.h"
 
 #include <assert.h>
@@ -33,6 +34,7 @@ using sp::cgi;
 using sp::cgisimple;
 using sp::plugin_manager;
 using sp::cgi_dispatcher;
+using sp::encode;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -226,23 +228,21 @@ namespace seeks_plugins
 						    client_state *csp, http_response *rsp,
 						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
+     static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
      
-    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-      = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
-
-    // query.
-    const char *query = miscutil::lookup(parameters,"q");
-    std::string query_str = std::string(query);
-    miscutil::replace_in_string(query_str,"\"","&quot;");
-    miscutil::add_map_entry(exports,"$fullquery",1,query,1);
-
-    // clean query.
-    std::string query_clean = query_str;
-    miscutil::replace_in_string(query_clean,"+"," ");
-    miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
-    std::vector<std::string> words;
-    miscutil::tokenize(query_clean,words," "); // tokenize query for highlighting keywords.
+     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+       = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+     
+     // query.
+     const char *query = encode::html_encode(miscutil::lookup(parameters,"q"));
+     miscutil::add_map_entry(exports,"$fullquery",1,query,1);
+     
+     // clean query.
+     std::string query_clean = std::string(query);
+     miscutil::replace_in_string(query_clean,"+"," "); // TODO: fix '+' problem here.
+     miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
+     std::vector<std::string> words;
+     miscutil::tokenize(query_clean,words," "); // tokenize query for highlighting keywords.
      
      const char *current_page = miscutil::lookup(parameters,"page");
      int cp = atoi(current_page);
@@ -277,7 +277,7 @@ namespace seeks_plugins
        {
 	  std::string np_str = miscutil::to_string(cp+1);
 	  std::string np_link = "<a href=\"http://s.s/search?page=" + np_str + "&q="
-	    + query_str + "&expansion=" + std::string(expansion) + "&action=page\">Next</a>\n";
+	    + query + "&expansion=" + std::string(expansion) + "&action=page\" id=\"search_page_next\" title=\"Next\">&nbsp;</a>";
 	  miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -287,7 +287,7 @@ namespace seeks_plugins
        {
 	  std::string pp_str = miscutil::to_string(cp-1);
 	  std::string pp_link = "<a href=\"http://s.s/search?page=" + pp_str + "&q=" 
-	    + query_str + "&expansion=" + std::string(expansion) + "&action=page\">Prev</a>\n";
+	    + query + "&expansion=" + std::string(expansion) + "&action=page\"  id=\"search_page_prev\" title=\"Previous\">&nbsp;</a>";
 	  miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
