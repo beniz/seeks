@@ -355,7 +355,6 @@ src/proxy/tests/Makefile \
 src/plugins/Makefile \
 src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
-src/plugins/privoxy/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
