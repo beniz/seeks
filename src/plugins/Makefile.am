@@ -1,1 +1,1 @@
-SUBDIRS=websearch privoxy
+SUBDIRS=websearch
