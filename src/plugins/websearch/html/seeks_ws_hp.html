@@ -1,34 +1,24 @@
 <!DOCTYPE HTML>
 <html><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8"><title>qclean - Seeks Search</title>
-<link rel="stylesheet" href="yui-reset-fonts-grids.css" type="text/css">
-<link rel="stylesheet" href="seeks_hp_search.css" type="text/css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Seeks Search</title>
+<link rel="stylesheet" href="/public/yui/3.0.0/cssreset/reset-min.css" type="text/css" />
+<link rel="stylesheet" href="/public/css/base.css" type="text/css" />
+<link rel="stylesheet" href="/plugins/websearch/public/css/seeks_hp_search.css" type="text/css" />
 <link rel="shortcut icon" type="image/png" href="seeks_favicon_32.png" />
 </head>
 
-<div id="search_top">
-Web
-Images
-Videos
-</div>
+<body>
 
-<div class="yui-gc" id="main">
+<div id="main">
 
-<div id="seeks_logo">
-</div>
-
-<div id="search_bar">
-<form method="GET" action="/search">
-<input id="search_input" autocomplete="off" name="q" size="41" maxlength="2048" title="Search" value="" type="text" />
+<form method="GET" action="/search" id="search_form">
+<input id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="" type="text" />
 <input name="expansion" value="1" type="hidden" />
-<input name="action" value="expand" type="hidden" /><br>
+<input name="action" value="expand" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
-<!-- <a href="http://s.s/advanced_search?q=fullquery">Advanced seeks</a> -->
-</div>
 
 </div>
-
-<body>
 
 </body></html>
