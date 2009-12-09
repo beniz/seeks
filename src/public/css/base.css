@@ -1,0 +1,40 @@
+body {
+	font-size: 85%;
+	font-size: 9pt;
+	line-height: 145%;
+	font-family: sans-serif;
+	padding: 20px;
+	text-align: left;
+}
+
+h1,h2,h3,h4,h5,h6 {
+	font-weight: bold;
+}
+
+h6 { font-size: 105%; }
+h5 { font-size: 110%; }
+h4 { font-size: 125%; }
+h3 { font-size: 130%; }
+h2 { font-size: 145%; }
+h1 { font-size: 150%; }
+
+a {
+	color: #256611;
+}
+
+#search_input, #search_button {
+	border-width: 0px;
+	background-color: transparent;
+}
+
+#search_button {
+	height: 30px;
+}
+
+#search_input {
+	height: 26px;
+	padding: 2px;
+	width: 329px;
+	font-size: 22px;
+	vertical-align: -2px;
+}
