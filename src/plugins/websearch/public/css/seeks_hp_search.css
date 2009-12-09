@@ -1,0 +1,20 @@
+#main {
+	margin-top: 100px;
+}
+
+#search_form {
+	margin-right: auto;
+	margin-left: auto;
+	width: 394px;
+	height: 177px;
+	background-image: url(/plugins/websearch/public/images/search_form_hp.png);
+}
+
+#search_input {
+	margin-top: 135px;
+	margin-left: 12px;
+}
+
+#search_button {
+	width: 36px;
+}

@@ -1,0 +1,113 @@
+body {
+	width: 600px;
+}
+
+#main {
+	margin-top: 90px;
+}
+
+#search_bar {
+	position: fixed;
+	padding: 5px 10px 5px 20px;
+	top: 0px;
+	left: 0px;
+	height: 90px;
+	width: 100%;
+	background-color: white;
+	border: 1px solid #256611;
+	border-width: 0px 0px 1px 0px;
+}
+
+#search_form {
+	margin-top : 10px;
+	width: 444px;
+	height: 66px;
+	background-image: url(/plugins/websearch/public/images/search_form.png);
+	float: left;
+}
+
+#search_input {
+	margin-top: 24px;
+	margin-left: 12px;
+}
+
+#search_button {
+	width: 84px;
+}
+
+#search_results {
+	padding-left: 10px;
+}
+
+#search_results .hd, #search_results li {
+	padding-bottom: 10px;
+}
+
+#search_results cite {
+	color: blue;
+}
+
+#search_results .gl a {
+	color: gray;
+}
+
+#search_results h3 {
+	font-weight: normal;
+}
+
+#search_pages {
+	position: absolute;
+	font-size: 200%;
+	left: 644px;
+	padding-top: 38px;
+}
+
+#search_pages small {
+	font-size: 50%;
+	display: block;
+	text-align: center;
+	margin-top: 7px;
+}
+
+#search_page_prev, #search_page_next {
+	font-size: 36px;
+	width: 18px;
+	height: 36px;
+	text-decoration: none;
+	background-repeat: no-repeat;
+	background-position: center center;
+	padding: 5px;
+}
+
+#search_page_prev {
+	background-image: url(/plugins/websearch/public/images/search_page_prev.png);
+}
+
+#search_page_next {
+	background-image: url(/plugins/websearch/public/images/search_page_next.png);
+}
+
+#search_page_current {
+	padding: 10px;
+}
+
+#expansion {
+	font-size: 160%;
+	padding-top: 5px;
+	padding-right: 15px;
+	text-align: right;
+	text-decoration: none;
+	display: block;
+	position: absolute;
+	width: 98px;
+	height: 85px;
+	left: 500px;
+	background-image: url(/plugins/websearch/public/images/search_expansion_6.png);
+}
+
+.expansion_, .expansion_1 { background-image: url(/plugins/websearch/public/images/search_expansion_1.png) !important; }
+.expansion_2 { background-image: url(/plugins/websearch/public/images/search_expansion_2.png) !important; }
+.expansion_3 { background-image: url(/plugins/websearch/public/images/search_expansion_3.png) !important; }
+.expansion_4 { background-image: url(/plugins/websearch/public/images/search_expansion_4.png) !important; }
+.expansion_5 { background-image: url(/plugins/websearch/public/images/search_expansion_5.png) !important; }
+.expansion_6 { background-image: url(/plugins/websearch/public/images/search_expansion_6.png) !important; }
