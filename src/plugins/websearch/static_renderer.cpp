@@ -226,7 +226,8 @@ namespace seeks_plugins
   /*- rendering. -*/
   sp_err static_renderer::render_result_page_static(const std::vector<search_snippet*> &snippets,
 						    client_state *csp, http_response *rsp,
-						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+						    const query_context *qc)
   {
      static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
      
@@ -247,6 +248,23 @@ namespace seeks_plugins
      const char *current_page = miscutil::lookup(parameters,"page");
      int cp = atoi(current_page);
      if (cp == 0) cp = 1;
+
+     // suggestions.
+     if (!qc->_suggestions.empty())
+       {
+	  std::string suggestion_str = "<li class=\"g\"><h3 class=\"r\"><font color=\"#800080\">Suggestion: </font><a href=\"";
+	  // for now, let's grab the first suggestion only.
+	  std::string suggested_q_str = qc->_suggestions[0];
+	  miscutil::replace_in_string(suggested_q_str," ","+");
+	  suggestion_str += "http://s.s/search?q=" + suggested_q_str + "&expansion=1&action=expand";
+	  suggestion_str += "\" class=\"l\"><em>";
+	  const char *sugg_enc = encode::html_encode(qc->_suggestions[0].c_str());
+	  suggestion_str += std::string(sugg_enc);
+	  free_const(sugg_enc);
+	  suggestion_str += "</em></a></li>";
+	  miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
+       }
+     else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
      
      // search snippets.
      std::string snippets_str;

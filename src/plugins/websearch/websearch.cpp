@@ -167,10 +167,6 @@ namespace seeks_plugins
      	  
      // grab (updated) set of cached search result snippets.
      std::vector<search_snippet*> snippets = qc->_cached_snippets;
-    
-     //debug
-     //std::cerr << "[Debug]:websearch: (cached) snippets size: " << snippets.size() << std::endl;
-     //debug
      
      // sort and rank search snippets !                                                                                 
      // TODO: strategies and configuration.                                                                                     
@@ -179,7 +175,8 @@ namespace seeks_plugins
      
      // render the page.                                                                                                
      // TODO: dynamic renderer.                                                                                                 
-     sp_err err = static_renderer::render_result_page_static(unique_ranked_snippets,csp,rsp,parameters);
+     sp_err err = static_renderer::render_result_page_static(unique_ranked_snippets,
+							     csp,rsp,parameters,qc);
 
     // clear snippets.                                                                                                       
      unique_ranked_snippets.clear();

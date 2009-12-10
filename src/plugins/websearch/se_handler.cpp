@@ -338,6 +338,7 @@ namespace seeks_plugins
 		    args._output = outputs[j++];
 		    args._snippets = &snippets;
 		    args._offset = count_offset;
+		    args._qr = qr;
 		    parse_output(args);
 		 }
 	    }
@@ -365,7 +366,15 @@ namespace seeks_plugins
 	       }
 	  }
 	// hack
-	
+	else if (args._se == GOOGLE)
+	  {
+	     // get more stuff from the parser.
+	     se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
+	     // suggestions (later on, we expect to do improve this with shared queries).
+	     if (!se_p_ggle->_suggestion.empty())
+	       args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
+	  }
+		
 	delete se;
      }
    

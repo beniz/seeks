@@ -100,6 +100,8 @@ namespace seeks_plugins
 	hash_map<int,std::string> _cuil_pages; // hack to grab the next pages for a search query
 	                                       // on cuil. No other way that I know but to grab
 					       // them from the webpage and store them here.
+
+	std::vector<std::string> _suggestions; // suggered related queries.
      };
       
 } /* end of namespace. */

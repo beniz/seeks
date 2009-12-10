@@ -53,7 +53,7 @@ namespace seeks_plugins
 			       const xmlChar *chars,
 			       int length);
 
-	void post_process_snippet(search_snippet *se);
+	void post_process_snippet(search_snippet *&se);
 	
       private:
 	bool _body_flag;
@@ -72,6 +72,8 @@ namespace seeks_plugins
 	bool _ff_flag;
 	bool _new_link_flag;
 	bool _spell_flag;
+	bool _sgg_spell_flag;
+	bool _end_sgg_spell_flag;
 	
 	std::string _link;
 	std::string _cached;
@@ -84,6 +86,9 @@ namespace seeks_plugins
 	static std::string _sr_string_en;
 	static std::string _sr_string_fr;
 	static std::string _cached_string;
+	
+      public:
+	std::string _suggestion;
      };
    
 } /* end of namespace. */

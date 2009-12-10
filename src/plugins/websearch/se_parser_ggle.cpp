@@ -38,7 +38,8 @@ namespace seeks_plugins
       _div_flag_summary(false),_div_flag_forum(false),_sum_flag(false),
       _link_flag(false),_cite_flag(false),
       _cached_flag(false),_span_cached_flag(false),
-      _ff_flag(false),_new_link_flag(false),_spell_flag(false)
+      _ff_flag(false),_new_link_flag(false),_spell_flag(false),_sgg_spell_flag(false),
+      _end_sgg_spell_flag(false)
        {
        }
    
@@ -52,14 +53,12 @@ namespace seeks_plugins
      {
 	const char *tag = (const char*)name;
 	
-	//std::cout << "tag: " << tag << std::endl;
-	
 	if (strcasecmp(tag, "body") == 0)
 	  {
 	     _body_flag = true;
 	  }
 	// check for h3 flag -> snippet's title.
-	else if (_h2_sr_flag && _li_flag && strcasecmp(tag, "h3") == 0)
+	else if (_h2_sr_flag && _li_flag && strcasecmp(tag,"h3") == 0)
 	  {
 	     _h3_flag = true;
 	     _new_link_flag = true;
@@ -67,15 +66,14 @@ namespace seeks_plugins
 	// check for h2 flag -> search results 'title'.
 	else if (_body_flag && !_h2_sr_flag && strcasecmp(tag,"h2") == 0)
 	  {
-	     //std::cout << "h2 flag detected\n";
-	     
 	     _h2_flag = true;
+	     const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
+	     if (a_class && strcasecmp(a_class,"hd") == 0)
+	       _h2_sr_flag = true;
 	  }
 	else if (_h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
-	     
-	     //std::cout << "a_link: " << a_link << std::endl;
 	     
 	     if (a_link)
 	       {
@@ -96,15 +94,14 @@ namespace seeks_plugins
 	  }
 	else if (_h2_sr_flag && strcasecmp(tag,"li") == 0)
 	  {
-	     //std::cout << "creating new snippet!\n";
-	     
 	     // assert previous snippet, if any.
 	     if (pc->_current_snippet)
 	       {
 		  if (pc->_current_snippet->_title != "")
 		    {
-		       pc->_snippets->push_back(pc->_current_snippet);
 		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
+		       if (pc->_current_snippet)
+			 pc->_snippets->push_back(pc->_current_snippet);
 		    }
 		  else // no title, throw the snippet away.
 		    {
@@ -182,6 +179,15 @@ namespace seeks_plugins
 	     _ff = ""; // TODO: file format.
 	     // TODO: store in search snippet and reset.
 	  }	
+	else if (!_end_sgg_spell_flag && _count <= 1 && strcasecmp(tag,"a") == 0)
+	  {
+	     
+	     const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
+	     if (a_class && strcasecmp(a_class,"spell") == 0)
+	       {
+		  _sgg_spell_flag = true;
+	       }
+	  }
      }
    
    void se_parser_ggle::characters(parser_context *pc,
@@ -208,16 +214,6 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(a_chars,"\n"," ");
 	     miscutil::replace_in_string(a_chars,"\r"," ");
 	     _h3 += a_chars;	     
-	  }
-	else if (_h2_flag)
-	  {
-	     std::string a_chars = std::string((char*)chars);
-	     miscutil::replace_in_string(a_chars,"\n"," ");
-	     miscutil::replace_in_string(a_chars,"\r"," ");
-	     
-	     if (strcasecmp(a_chars.c_str(),_sr_string_en.c_str()) == 0
-		 || strcasecmp(a_chars.c_str(),_sr_string_fr.c_str()) == 0)
-	       _h2_sr_flag = true;
 	  }
 	else if (_cite_flag)
 	  {
@@ -250,19 +246,23 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(a_chars,"-"," ");
 	     _summary += a_chars;
 	  }
+	else if (_sgg_spell_flag)
+	  {
+	     std::string a_chars = std::string((char*)chars);
+	     miscutil::replace_in_string(a_chars,"\n"," ");
+	     miscutil::replace_in_string(a_chars,"\r"," ");
+	     miscutil::replace_in_string(a_chars,"-"," ");
+	     _suggestion += a_chars;
+	  }
      }
    
    void se_parser_ggle::end_element(parser_context *pc,
 				    const xmlChar *name)
      {
 	const char *tag = (const char*) name;
-
-	// std::cout << "end tag: " << tag << std::endl;
 	
 	if (_li_flag && strcasecmp(tag,"h3")==0)
 	  {
-	     //std::cout << "storing h3!\n";
-	     
 	     _h3_flag = false;
 	     pc->_current_snippet->_title = _h3;
 	     _h3 = "";
@@ -270,10 +270,6 @@ namespace seeks_plugins
 	else if (strcasecmp(tag,"h2") == 0)
 	  {
 	     _h2_flag = false;
-	  }
-	else if (_ol_flag && strcasecmp(tag,"ol") == 0)
-	  {
-	     //_ol_flag = false;  // conflicts with some results (similar queries, ...).
 	  }
 	else if ((_div_flag_summary || _div_flag_forum) && strcasecmp(tag,"div") == 0)
 	  {
@@ -307,18 +303,47 @@ namespace seeks_plugins
 	     else pc->_current_snippet->set_archive_link();
 	     _cached = "";
 	  }
+	else if (_sgg_spell_flag && strcasecmp(tag,"a") == 0)
+	  {
+	     _sgg_spell_flag = false;
+	     _end_sgg_spell_flag = true;
+	  }
+	else if (_h2_sr_flag && strcasecmp(tag,"ol") == 0)
+	  {
+	     if (pc->_current_snippet)
+	       {
+		  if (pc->_current_snippet->_title.empty())
+		    delete pc->_current_snippet;
+		  else 
+		    {
+		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
+		       if (pc->_current_snippet)
+			 pc->_snippets->push_back(pc->_current_snippet);
+		    }
+	       }
+	  }
      }
    
-   void se_parser_ggle::post_process_snippet(search_snippet *se)
+   void se_parser_ggle::post_process_snippet(search_snippet *&se)
      {
 	// fix to summary (others are to be added here accordingly).
 	size_t r = miscutil::replace_in_string(se->_summary,"Your browser may not have a PDF reader available. Google recommends visiting our text version of this document.",					       "");
 	size_t s = miscutil::replace_in_string(se->_summary,"Quick View","");
-	if (r > 0 || s > 0)
-	  se->_file_format = "pdf";
+	/* if (r > 0 || s > 0)
+	  se->_file_format = "pdf"; */
 	
 	r = miscutil::replace_in_string(se->_summary,"View as HTML","");
 	// TODO: check the file type (probably a M$ doc type).
+
+	// remove certain unwanted results (ggle image, video & shopping).
+	if ((r = se->_url.find("/products?q="))!=std::string::npos
+	    || (r = se->_url.find("/videosearch?q="))!=std::string::npos
+	    || (r = se->_url.find("/images?q="))!=std::string::npos)
+	  {
+	     delete se;
+	     se = NULL;
+	     _count--;
+	  }
      }
    
 } /* end of namespace. */
