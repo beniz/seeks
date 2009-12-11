@@ -145,12 +145,13 @@ namespace seeks_plugins
 	
 	if (!_cached.empty())
 	  {
-	      html_content += "<span class=\"gl\"><a href=\"";
+	     html_content += "<span class=\"gl\"><a href=\"";
 	     html_content += _cached;
 	     html_content += " \">Cached</a></span>";
 	  }
 	else if (!_archive.empty())
 	  {
+	     html_content += "<span class=\"gl\"><a href=\"";
 	     html_content += _archive;
 	     html_content += " \">Archive</a></span>";
 	  }
