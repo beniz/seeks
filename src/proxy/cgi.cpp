@@ -34,6 +34,7 @@
  
 #include "config.h"
 
+#include "mem_utils.h"
 #include "cgi.h"
 
 #include <stdio.h>
@@ -1729,7 +1730,7 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
 	return SP_ERR_MEMORY;
      }
    
-   full_path = miscutil::make_path(templates_dir_path, templatename);
+   full_path = seeks_proxy::make_path(templates_dir_path, templatename);
    
    if (full_path == NULL)
      {

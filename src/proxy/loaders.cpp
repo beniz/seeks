@@ -52,6 +52,7 @@
 
 #include <iostream>
 
+#include "mem_utils.h"
 #include "loaders.h"
 #include "filters.h"
 #include "parsers.h"
