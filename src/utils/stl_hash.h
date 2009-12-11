@@ -43,6 +43,8 @@ using std::hash;
 using std::hash_map;
 #endif
 
+#include <string.h>
+
 #ifndef STRUCT_EQSTR
 #define STRUCT_EQSTR
 struct eqstr
