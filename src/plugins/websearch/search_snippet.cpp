@@ -127,11 +127,9 @@ namespace seeks_plugins
 		
 	if (_summary != "")
 	  {
-	     html_content += "<div class=\"s\">";
-	     
+	     html_content += "<div>";
 	     std::string summary = _summary;
 	     search_snippet::highlight_query(words,summary);
-	     
 	     html_content += summary;
 	  }
 	else html_content += "<div>";
