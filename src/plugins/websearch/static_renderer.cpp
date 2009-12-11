@@ -253,16 +253,16 @@ namespace seeks_plugins
      // suggestions.
      if (!qc->_suggestions.empty())
        {
-	  std::string suggestion_str = "<li class=\"g\"><h3 class=\"r\"><font color=\"#800080\">Suggestion: </font><a href=\"";
+	  std::string suggestion_str = "Suggestion:&nbsp;<a href=\"";
 	  // for now, let's grab the first suggestion only.
 	  std::string suggested_q_str = qc->_suggestions[0];
 	  miscutil::replace_in_string(suggested_q_str," ","+");
 	  suggestion_str += "http://s.s/search?q=" + suggested_q_str + "&expansion=1&action=expand";
-	  suggestion_str += "\" class=\"l\"><em>";
+	  suggestion_str += "\">";
 	  const char *sugg_enc = encode::html_encode(qc->_suggestions[0].c_str());
 	  suggestion_str += std::string(sugg_enc);
 	  free_const(sugg_enc);
-	  suggestion_str += "</em></a></li>";
+	  suggestion_str += "</a>";
 	  miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);

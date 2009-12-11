@@ -21,20 +21,3 @@ h1 { font-size: 150%; }
 a {
 	color: #256611;
 }
-
-#search_input, #search_button {
-	border-width: 0px;
-	background-color: transparent;
-}
-
-#search_button {
-	height: 30px;
-}
-
-#search_input {
-	height: 26px;
-	padding: 2px;
-	width: 329px;
-	font-size: 22px;
-	vertical-align: -2px;
-}
