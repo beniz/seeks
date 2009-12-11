@@ -94,7 +94,7 @@ namespace seeks_plugins
      {
 	static std::string se_icon = "<img src=\"icon.png\" alt=\"icon\" width=\"12\" height=\"12\" hspace=\"2\" vspace=\"0\" align=\"\" border=\"0\" />";
 	
-	std::string html_content = "<li class=\"g\"><h3 class=\"r\"><a href=\"";
+	std::string html_content = "<li><h3><a href=\"";
 	html_content += _url;
 	html_content += "\" class=\"l\"><em>";
 	
@@ -138,18 +138,20 @@ namespace seeks_plugins
 	
 	if (_cite != "")
 	  {
+	     const char *cite_enc = encode::html_encode(_cite.c_str());
 	     html_content += "<br><cite>";
-	     html_content += _cite;
+	     html_content += cite_enc;
+	     free_const(cite_enc);
 	     html_content += "</cite>";
 	  }
 	
-	html_content += "<span class=\"gl\"><a href=\"";
 	if (!_cached.empty())
 	  {
+	      html_content += "<span class=\"gl\"><a href=\"";
 	     html_content += _cached;
 	     html_content += " \">Cached</a></span>";
 	  }
-	else if (!_archive.empty()) // should not be empty if cached is.
+	else if (!_archive.empty())
 	  {
 	     html_content += _archive;
 	     html_content += " \">Archive</a></span>";
