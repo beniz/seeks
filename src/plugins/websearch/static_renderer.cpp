@@ -266,6 +266,15 @@ namespace seeks_plugins
        }
      else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
      
+     // TODO: check whether we have some results.
+     /* if (snippets->empty())
+       {
+	  // no results found.
+	  std::string no_results = "";
+	  return SP_ERR_OK;
+       } */
+	   
+     	  
      // search snippets.
      std::string snippets_str;
      size_t snisize = std::min(cp*websearch::_wconfig->_N,(int)snippets.size());
@@ -278,7 +287,8 @@ namespace seeks_plugins
      miscutil::add_map_entry(exports,"$search_snippets",1,snippets_str.c_str(),1);
      
      // current page.
-     miscutil::add_map_entry(exports,"$xxpage",1,current_page,1);
+     std::string cp_str = miscutil::to_string(cp);
+     miscutil::add_map_entry(exports,"$xxpage",1,cp_str.c_str(),1);
      
      // expand button.
      const char *expansion = miscutil::lookup(parameters,"expansion");
