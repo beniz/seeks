@@ -18,6 +18,7 @@
  */
  
 #include "plugin_element.h"
+#include "mem_utils.h"
 #include "loaders.h"
 #include "urlmatch.h"
 #include "errlog.h"

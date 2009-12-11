@@ -18,6 +18,7 @@
  **/
  
 #include "search_snippet.h"
+#include "mem_utils.h"
 #include "miscutil.h"
 #include "encode.h"
 

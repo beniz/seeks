@@ -18,6 +18,7 @@
  */
  
 #include "plugin.h"
+#include "mem_utils.h"
 #include "interceptor_plugin.h"
 #include "action_plugin.h"
 #include "filter_plugin.h"

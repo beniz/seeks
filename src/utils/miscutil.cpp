@@ -30,16 +30,19 @@
  *********************************************************************/
  
 #include "miscutil.h"
-#include "seeks_proxy.h"
-#include "errlog.h"
+#include "mem_utils.h"
 
 #include <ctype.h>
+#include <stdio.h>
 #include <assert.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <algorithm>
 #include <iostream>
+
+#define TRUE 1
+#define FALSE 0
 
 namespace sp
 {
@@ -896,88 +899,6 @@ namespace sp
    
    /*********************************************************************
     *
-    * Function    :  make_path
-    *
-    * Description :  Takes a directory name and a file name, returns
-    *                the complete path.  Handles windows/unix differences.
-    *                If the file name is already an absolute path, or if
-    *                the directory name is NULL or empty, it returns
-    *                the filename.
-    *
-    * Parameters  :
-    *          1  :  dir: Name of directory or NULL for none.
-    *          2  :  file: Name of file.  Should not be NULL or empty.
-    *
-    * Returns     :  "dir/file" (Or on windows, "dir\file").
-    *                It allocates the string on the heap.  Caller frees.
-    *                Returns NULL in error (i.e. NULL file or out of
-    *                memory)
-    *
-    *********************************************************************/
-   char* miscutil::make_path(const char *dir, const char *file)
-     {
-	if ((file == NULL) || (*file == '\0'))
-	  {
-	     return NULL; /* Error */
-	  }
-	
-	if ((dir == NULL) || (*dir == '\0') /* No directory specified */
-#if defined(_WIN32) || defined(__OS2__)
-	    || (*file == '\\') || (file[1] == ':') /* Absolute path (DOS) */
-#else /* ifndef _WIN32 || __OS2__ */
-	    || (*file == '/') /* Absolute path (U*ix) */
-#endif /* ifndef _WIN32 || __OS2__  */
-	    )
-	  {
-	     return strdup(file);
-	  }
-	else
-	  {
-	     char * path;
-	     size_t path_size = strlen(dir) + strlen(file) + 2; /* +2 for trailing (back)slash and \0 */
-	           
-#if defined(unix)
-	     if ( *dir != '/' && seeks_proxy::_basedir && *seeks_proxy::_basedir )
-	       {
-		  /*
-		   * Relative path, so start with the base directory.
-		   */
-		  path_size += strlen(seeks_proxy::_basedir) + 1; /* +1 for the slash */
-		  path = (char*) zalloc(path_size);
-		  if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
-		  miscutil::strlcpy(path, seeks_proxy::_basedir, path_size);
-		  miscutil::strlcat(path, "/", path_size);
-		  miscutil::strlcat(path, dir, path_size);
-	       }
-	     else
-#endif /* defined unix */
-	       {
-		  path = (char*) zalloc(path_size);
-		  if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
-		  miscutil::strlcpy(path, dir, path_size);
-	       }
-	     	     
-	     assert(NULL != path);
-#if defined(_WIN32) || defined(__OS2__)
-	     if(path[strlen(path)-1] != '\\')
-	       {
-		  miscutil::strlcat(path, "\\", path_size);
-	       }
-	     
-#else /* ifndef _WIN32 || __OS2__ */
-	     if(path[strlen(path)-1] != '/')
-	       {
-		  miscutil::strlcat(path, "/", path_size);
-	       }
-#endif /* ifndef _WIN32 || __OS2__ */
-	     miscutil::strlcat(path, file, path_size);
-	     
-	     return path;
-	  }
-     }
-
-   /*********************************************************************
-    *
     * Function    :  bindup
     *
     * Description :  Duplicate the first n characters of a string that may
@@ -1126,99 +1047,8 @@ namespace sp
 	  }
      }
    
-#if defined(unix)
-   /*********************************************************************
-    *
-    * Function    :  write_pid_file
-    *
-    * Description :  Writes a pid file with the pid of the main process
-    *
-    * Parameters  :  None
-    *    
-    * Returns     :  N/A
-    *
-    *********************************************************************/
-   void miscutil::write_pid_file(void)
-     {
-	FILE   *fp;
-	
-	/*
-	 * If no --pidfile option was given,
-	 * we can live without one.
-	 */
-	if (seeks_proxy::_pidfile == NULL) return;
-	
-	if ((fp = fopen(seeks_proxy::_pidfile, "w")) == NULL)
-	  {
-	     errlog::log_error(LOG_LEVEL_INFO, "can't open pidfile '%s': %E", 
-			       seeks_proxy::_pidfile);
-	  }
-	else
-	  {
-	     fprintf(fp, "%u\n", (unsigned int) getpid());
-	     fclose (fp);
-	  }
-	return;	
-     }
-#endif /* def unix */
-
-   /*********************************************************************
-    *
-    * Function    :  pick_from_range
-    *
-    * Description :  Pick a positive number out of a given range.
-    *                Should only be used if randomness would be nice,
-    *                but isn't really necessary.
-    *
-    * Parameters  :
-    *          1  :  range: Highest possible number to pick.
-    *
-    * Returns     :  Picked number. 
-    *
-    *********************************************************************/
-   long int miscutil::pick_from_range(long int range)
-     {
-	long int number;
-#ifdef _WIN32
-	static unsigned long seed = 0;
-#endif /* def _WIN32 */
-	
-	assert(range != 0);
-	assert(range > 0);
-	
-	if (range <= 0) return 0;
-	
-#ifdef HAVE_RANDOM
-	number = random() % range + 1;
-#elif defined(MUTEX_LOCKS_AVAILABLE)
-	seeks_proxy::mutex_lock(&rand_mutex);
-# ifdef _WIN32
-	if (!seed)
-	  {
-	     seed = (unsigned long)(GetCurrentThreadId()+GetTickCount());
-	  }
-	srand(seed);
-	seed = (unsigned long)((rand() << 16) + rand());
-# endif /* def _WIN32 */
-	number = (unsigned long)((rand() << 16) + (rand())) % (unsigned long)(range + 1);
-	seeks_proxy::mutex_unlock(&rand_mutex);
-#else
-	/*
-	 * XXX: Which platforms reach this and are there
-	 * better options than just using rand() and hoping
-	 * that it's safe?
-	 */
-	errlog::log_error(LOG_LEVEL_INFO, "No thread-safe PRNG available? Header time randomization "
-			  "might cause crashes, predictable results or even combine these fine options.");
-	number = rand() % (long int)(range + 1);
-	
-#endif /* (def HAVE_RANDOM) */
-	
-	return number;
-     }
-
-   // Paul Hsieh's super fast hash function.
-   //   
+// Paul Hsieh's super fast hash function.
+//   
 #include "stdint.h"    
 #undef get16bits
 #if (defined(__GNUC__) && defined(__i386__)) || defined(__WATCOMC__) \

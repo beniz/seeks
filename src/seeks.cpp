@@ -20,6 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
+#include "mem_utils.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
 #include "miscutil.h"
@@ -353,7 +354,7 @@ int main(int argc, const char *argv[])
 	 * As soon as we have written the PID file, we can switch
 	 * to the user and group ID indicated by the --user option
 	 */
-	miscutil::write_pid_file();
+	seeks_proxy::write_pid_file();
 	
 	 if (NULL != pw)
 	  {

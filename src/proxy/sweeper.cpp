@@ -18,7 +18,7 @@
  */
 
 #include "sweeper.h"
-#include "proxy_dts.h"
+#include "mem_utils.h"
 #include "seeks_proxy.h"
 #include "miscutil.h"
 

@@ -18,6 +18,7 @@
  */
 
 #include "configuration_spec.h"
+#include "mem_utils.h"
 #include "errlog.h"
 #include "loaders.h"
 #include "miscutil.h"

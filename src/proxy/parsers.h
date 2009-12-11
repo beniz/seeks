@@ -134,7 +134,9 @@ namespace sp
 	
 	static void string_move(char *ds, char *src);
 	static void normalize_lws(char *header);
-		
+
+	static long int pick_from_range(long int range);
+	
 	/* variables. */
 	static parsers_list _client_patterns[];
 	static parsers_list _server_patterns[];

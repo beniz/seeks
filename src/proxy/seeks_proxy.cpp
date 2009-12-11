@@ -33,6 +33,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "mem_utils.h"
 #include "errlog.h"
 #include "miscutil.h"
 #include "gateway.h"
@@ -2858,5 +2859,122 @@ namespace sp
 	config->_need_bind = 0;
 	return bfd;
      }
+
+#if defined(unix)
+   /*********************************************************************
+    *
+    * Function    :  write_pid_file
+    *
+    * Description :  Writes a pid file with the pid of the main process
+    *
+    * Parameters  :  None
+    *
+    * Returns     :  N/A
+    *
+    *********************************************************************/
+   void seeks_proxy::write_pid_file(void)
+     {
+	FILE   *fp;
+	
+	/*
+	 * If no --pidfile option was given,
+	 * we can live without one.
+	 */
+	if (seeks_proxy::_pidfile == NULL) return;
+	
+	if ((fp = fopen(seeks_proxy::_pidfile, "w")) == NULL)
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO, "can't open pidfile '%s': %E",
+			       seeks_proxy::_pidfile);
+	  }
+	else
+	  {
+	     fprintf(fp, "%u\n", (unsigned int) getpid());
+	     fclose (fp);
+	  }
+	
+	return;
+     }
+#endif /* def unix */
+
+/*********************************************************************
+ *
+ * Function    :  make_path
+ *
+ * Description :  Takes a directory name and a file name, returns
+ *                the complete path.  Handles windows/unix differences.
+ *                If the file name is already an absolute path, or if
+ *                the directory name is NULL or empty, it returns
+ *                the filename.
+ *
+ * Parameters  :
+ *          1  :  dir: Name of directory or NULL for none.
+ *          2  :  file: Name of file.  Should not be NULL or empty.
+ *
+ * Returns     :  "dir/file" (Or on windows, "dir\file").
+ *                It allocates the string on the heap.  Caller frees.
+ *                Returns NULL in error (i.e. NULL file or out of
+ *                memory)
+ *
+ *********************************************************************/
+char* seeks_proxy::make_path(const char *dir, const char *file)
+{
+   if ((file == NULL) || (*file == '\0'))
+     {
+	return NULL; /* Error */
+     }
+   
+   if ((dir == NULL) || (*dir == '\0') /* No directory specified */
+#if defined(_WIN32) || defined(__OS2__)
+       || (*file == '\\') || (file[1] == ':') /* Absolute path (DOS) */
+#else /* ifndef _WIN32 || __OS2__ */
+       || (*file == '/') /* Absolute path (U*ix) */
+#endif /* ifndef _WIN32 || __OS2__  */
+       )
+     {
+	return strdup(file);
+     }
+   else
+     {
+	char * path;
+	size_t path_size = strlen(dir) + strlen(file) + 2; /* +2 for trailing (back)slash and \0 */
+	
+#if defined(unix)
+	if ( *dir != '/' && seeks_proxy::_basedir && *seeks_proxy::_basedir )
+	  {
+	     /*
+	      * Relative path, so start with the base directory.
+	      */
+	     path_size += strlen(seeks_proxy::_basedir) + 1; /* +1 for the slash */
+	     path = (char*) zalloc(path_size);
+	     if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
+	     miscutil::strlcpy(path, seeks_proxy::_basedir, path_size);
+	     miscutil::strlcat(path, "/", path_size);
+	     miscutil::strlcat(path, dir, path_size);
+	  }	
+	else
+#endif /* defined unix */
+	  {
+	     path = (char*) zalloc(path_size);
+	     if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
+	     miscutil::strlcpy(path, dir, path_size);
+	  }
+	assert(NULL != path);
+#if defined(_WIN32) || defined(__OS2__)
+	if(path[strlen(path)-1] != '\\')
+	  {
+	     miscutil::strlcat(path, "\\", path_size);
+	  }
+#else /* ifndef _WIN32 || __OS2__ */
+	if(path[strlen(path)-1] != '/')
+	  {
+	     miscutil::strlcat(path, "/", path_size);
+	  }
+#endif /* ifndef _WIN32 || __OS2__ */
+	miscutil::strlcat(path, file, path_size);
+	
+	return path;
+     }
+}
    
 } /* end of namespace. */

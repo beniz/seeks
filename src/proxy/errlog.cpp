@@ -35,7 +35,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
- 
+
+#include "mem_utils.h"
 #include "config.h"
 #include "miscutil.h"
  

@@ -32,15 +32,16 @@
 #ifndef MISCUTIL_H
 #define MISCUTIL_H
 
-#include "proxy_dts.h"
+#include "sp_err.h"
 #include "stl_hash.h"
 #include <inttypes.h>
-
+#include <list>
 #include <string>
 #include <sstream>
 
 namespace sp
 {
+   
    class miscutil
      {
       public:
@@ -99,7 +100,6 @@ namespace sp
 										       
 	static sp_err string_join(char **target_string, char *text_to_append);
 	static char* string_toupper(const char *string);
-	static char* make_path(const char *dir, const char *file);
 	static char* bindup(const char *string, size_t len);
 	static char* chomp(char *string);
 
@@ -132,9 +132,6 @@ namespace sp
 					   const std::string &repl);
 	
 	/* others. */
-	static void write_pid_file();
-	static long int pick_from_range(long int range);
-
 	static uint32_t hash_string(const char *data, uint32_t len);
      };
     

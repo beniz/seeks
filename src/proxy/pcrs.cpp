@@ -41,11 +41,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include <pcre.h>
 
-/* For snprintf only */
-#include "miscutil.h"
+#include "mem_utils.h"
 /* For xtoi */
 #include "encode.h"
 

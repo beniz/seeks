@@ -22,6 +22,8 @@
   
 #include "proxy_dts.h"
 
+#include "mem_utils.h"
+
 #include "interceptor_plugin.h"
 #include "action_plugin.h"
 #include "filter_plugin.h"
@@ -33,28 +35,6 @@
 #include "proxy_configuration.h"
 
 #include <iostream>
-
-void free_const(const void *p)
-{
-   std::free((void *) p);
-   p = NULL;
-};
-
-void freez(void *p)
-{
-   std::free(p);
-   p = NULL;
-}
-
-void *zalloc(size_t size)
-{
-   void * ret;
-   if ((ret = (void *)std::malloc(size)) != NULL)
-     {
-	std::memset(ret, 0, size);
-     }
-   return(ret);
-}
 
 namespace sp
 {

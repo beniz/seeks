@@ -21,6 +21,7 @@
  */
 
 #include "proxy_configuration.h"
+#include "mem_utils.h"
 #include "errlog.h"
 #include "miscutil.h"
 #include "urlmatch.h"
@@ -210,7 +211,7 @@ namespace sp
 	      **************************************************************************/
 	   case hash_confdir :
 	     free_const(_confdir);
-	     _confdir = miscutil::make_path( NULL, arg);
+	     _confdir = seeks_proxy::make_path( NULL, arg);
 	     break;
 	     
 	     /**************************************************************************
@@ -514,7 +515,7 @@ namespace sp
 	      *************************************************************************/
 	   case hash_logdir :
 	     free_const(_logdir);
-	     _logdir = miscutil::make_path(NULL, arg);
+	     _logdir = seeks_proxy::make_path(NULL, arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"The log file to use");
 	     break;
@@ -529,7 +530,7 @@ namespace sp
 		  // TODO: check on seeks_proxy daemon flag.
 		  if (!seeks_proxy::_no_daemon)
 		    {
-		       _logfile = miscutil::make_path(_logdir, arg);
+		       _logfile = seeks_proxy::make_path(_logdir, arg);
 		        if (NULL == _logfile)
 			 {
 			    errlog::log_error(LOG_LEVEL_FATAL, "Out of memory while creating logfile path");
@@ -615,7 +616,7 @@ namespace sp
 	      *************************************************************************/
 	   case hash_templdir :
 	     free_const(_templdir);
-	     _templdir = miscutil::make_path(NULL, arg);
+	     _templdir = seeks_proxy::make_path(NULL, arg);
 	     break;
 	     
 	     //TODO: seeks, toggle on/off from a local webpage.

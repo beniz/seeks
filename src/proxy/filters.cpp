@@ -41,6 +41,7 @@
 
 #include "config.h"
 #include "filters.h"
+#include "mem_utils.h"
 
 #include <stdio.h>
 #include <sys/types.h>

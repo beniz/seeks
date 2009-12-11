@@ -35,6 +35,7 @@
 #include "encode.h"
 #include "config.h"
 #include "miscutil.h"
+#include "mem_utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>

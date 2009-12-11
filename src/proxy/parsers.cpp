@@ -45,6 +45,7 @@
 
 #include "config.h"
 #include "parsers.h"
+#include "mem_utils.h"
 #include "proxy_configuration.h"
 
 #ifndef _WIN32
@@ -2424,7 +2425,7 @@ sp_err parsers::server_last_modified(client_state *csp, char **header)
                rtime *= -1; 
                errlog::log_error(LOG_LEVEL_HEADER, "Server time in the future.");
             }
-            rtime = miscutil::pick_from_range(rtime);
+            rtime = parsers::pick_from_range(rtime);
             if (negative_delta)
             {
                rtime *= -1;
@@ -3166,7 +3167,7 @@ sp_err parsers::client_if_modified_since(client_state *csp, char **header)
                   rtime *= -1; 
                }
                rtime *= 60;
-               rtime = miscutil::pick_from_range(rtime);
+               rtime = parsers::pick_from_range(rtime);
             }
             else
             {
@@ -4153,4 +4154,60 @@ void parsers::create_content_length_header(unsigned long long content_length,
    snprintf(header, buffer_length, "Content-Length: %llu", content_length);
 }
 
+/*********************************************************************
+ *
+ * Function    :  pick_from_range
+ *
+ * Description :  Pick a positive number out of a given range.
+ *                Should only be used if randomness would be nice,
+ *                but isn't really necessary.
+ *
+ * Parameters  :
+ *          1  :  range: Highest possible number to pick.
+ *
+ * Returns     :  Picked number.
+ *
+ *********************************************************************/
+long int parsers::pick_from_range(long int range)
+{
+   long int number;
+#ifdef _WIN32
+   static unsigned long seed = 0;
+#endif /* def _WIN32 */
+   
+   assert(range != 0);
+   assert(range > 0);
+   
+   if (range <= 0) return 0;
+   
+#ifdef HAVE_RANDOM
+   number = random() % range + 1;
+#elif defined(MUTEX_LOCKS_AVAILABLE)
+   seeks_proxy::mutex_lock(&rand_mutex);
+# ifdef _WIN32
+   if (!seed)
+     {
+	seed = (unsigned long)(GetCurrentThreadId()+GetTickCount());
+     }
+   srand(seed);
+   seed = (unsigned long)((rand() << 16) + rand());
+# endif /* def _WIN32 */
+   number = (unsigned long)((rand() << 16) + (rand())) % (unsigned long)(range + 1);
+   seeks_proxy::mutex_unlock(&rand_mutex);
+#else
+   /*
+    * XXX: Which platforms reach this and are there
+    * better options than just using rand() and hoping
+    * that it's safe?
+    */
+   errlog::log_error(LOG_LEVEL_INFO, "No thread-safe PRNG available? Header time randomization "
+		     "might cause crashes, predictable results or even combine these fine options.");
+   number = rand() % (long int)(range + 1);   
+#endif /* (def HAVE_RANDOM) */
+   
+   return number;
+}
+
+   
+   
 } /* end of namespace. */

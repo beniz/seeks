@@ -172,6 +172,12 @@ namespace sp
 	static sp_err parse_client_request(client_state *csp);
 	static void serve(client_state *csp);
 
+#if defined(unix)
+	static void write_pid_file(void);
+#endif
+	
+	static char* make_path(const char *dir, const char *file);
+	
       private:
 	static const cruncher _crunchers_all[];
 	static const cruncher _crunchers_light[];

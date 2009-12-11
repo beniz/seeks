@@ -48,6 +48,7 @@
 #include <unistd.h>
 #endif
 
+#include "mem_utils.h"
 #include "urlmatch.h"
 #include "miscutil.h"
 #include "errlog.h"

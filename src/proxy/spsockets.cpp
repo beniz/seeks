@@ -36,6 +36,7 @@
 
 #include "config.h"
 #include "spsockets.h"
+#include "mem_utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>

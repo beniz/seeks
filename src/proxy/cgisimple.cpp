@@ -33,6 +33,7 @@
  **********************************************************************/
 
 #include "config.h"
+#include "mem_utils.h"
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -738,7 +739,7 @@ sp_err cgisimple::cgi_send_user_manual(client_state *csp,
       return SP_ERR_CGI_PARAMS;
    }
 
-   full_path = miscutil::make_path(csp->_config->_usermanual, filename ? filename : "index.html");
+   full_path = seeks_proxy::make_path(csp->_config->_usermanual, filename ? filename : "index.html");
    if (full_path == NULL)
    {
       return SP_ERR_MEMORY;

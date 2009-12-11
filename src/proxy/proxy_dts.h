@@ -28,8 +28,6 @@
 #include <list>
 #include <map>
 #include <set>
-#include <cstdlib>
-#include <cstring>
 
 #include "stl_hash.h"
 
@@ -44,20 +42,6 @@
 #include <pcreposix.h> // for regex_t
 #include <pcre.h>
 #include "pcrs.h"
-
-#ifndef FREE_CONST
-#define FREE_CONST
-void free_const(const void *p);
-#endif
-
-#ifndef FREEZ
-#define FREEZ
-void freez(void *p);
-#endif
-
-#ifndef ZALLOC
-void* zalloc(size_t size);
-#endif
 
 #ifdef _WIN32
 /*
@@ -94,20 +78,7 @@ typedef int sp_socket;
 namespace sp
 {
    
-/**
- * A standard error code.  This should be SP_ERR_OK or one of the SP_ERR_xxx
- * series of errors.
- */
-typedef int sp_err;
-
-#define SP_ERR_OK         0 /**< Success, no error                        */
-#define SP_ERR_MEMORY     1 /**< Out of memory                            */
-#define SP_ERR_CGI_PARAMS 2 /**< Missing or corrupt CGI parameters        */
-#define SP_ERR_FILE       3 /**< Error opening, reading or writing a file */
-#define SP_ERR_PARSE      4 /**< Error parsing file                       */
-#define SP_ERR_MODIFIED   5 /**< File has been modified outside of the
-			         CGI actions editor.                      */
-#define SP_ERR_COMPRESS   6 /**< Error on decompression                   */
+#include "sp_err.h"
 
 /**
  * Use for statically allocated buffers if you have no other choice.

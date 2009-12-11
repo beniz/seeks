@@ -18,6 +18,7 @@
  **/
 
 #include "static_renderer.h"
+#include "mem_utils.h"
 #include "plugin_manager.h"
 #include "cgi.h"
 #include "cgisimple.h"
