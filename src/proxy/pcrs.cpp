@@ -282,10 +282,18 @@ pcrs_substitute* pcrs::pcrs_compile_replacement(const char *replacement, int tri
                    * character with the sequence's ascii value.
                    * e.g.: '\x7e' => '~'
                    */
-                  const int ascii_value = encode::xtoi(&replacement[i+2]);
+                  //const 
+		  int ascii_value = encode::xtoi(&replacement[i+2]);
 		  
-                  assert(ascii_value > 0);
-                  assert(ascii_value < 256);
+                  /* assert(ascii_value > 0);
+		   assert(ascii_value < 256); */
+		  
+		  //hack: we don't want the proxy to exit on a substitution error,
+		  //      I prefer to return garbage (and file a bug).
+		  if (ascii_value < 0 || ascii_value > 256)
+		    ascii_value = 1;
+		  //hack
+		  
                   text[k++] = (char)ascii_value;
                   i += 4;
                }               

@@ -1128,10 +1128,7 @@ namespace sp
 	else
 #endif /* ndef FEATURE_TOGGLE */
 	  {
-	     //filters::get_url_actions(csp, http);
 	     plugin_manager::get_url_plugins(csp, http);
-	     
-	     //std::cout << "[Debug]:get_url_plugins: OK\n";
 	  }
 	
 	/* 
@@ -1386,7 +1383,7 @@ namespace sp
 	while(lit!=csp->_interceptor_plugins.end())
 	  {
 	     /*
-	      * BEWARE: we keep the last's non-NULL interceptor plugin response!
+	      * BEWARE: we keep the first non-NULL interceptor plugin response!
 	      * This is because there can be many purposes for interception,
 	      * but room for one response only.
 	      */
@@ -1396,6 +1393,7 @@ namespace sp
 		  if (rsp)
 		    delete rsp;
 		  rsp = crsp;
+		  break;
 	       }
 	     ++lit;
 	  }

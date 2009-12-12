@@ -88,11 +88,18 @@ namespace sp
 				    int recursive);
 	static sp_err template_fill(char ** template_ptr, 
 				    const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
+	static sp_err template_fill_str(char **template_ptr,
+					const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	static sp_err template_fill_for_cgi(const client_state *csp,
 					    const char *templatename,
 					    const char *templatedir,
 					    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					    http_response *rsp);
+	 static sp_err template_fill_for_cgi_str(const client_state *csp,
+						 const char *templatename,
+						 const char *templatedir,
+						 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+						 http_response *rsp);
      
 	static void cgi_init_error_messages();
 	static http_response* cgi_error_memory();
