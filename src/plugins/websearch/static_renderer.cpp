@@ -321,8 +321,8 @@ namespace seeks_plugins
        }
      else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
      
-     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
-					     exports,rsp);
+     sp_err err = cgi::template_fill_for_cgi_str(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+						 exports,rsp);
      
      return err;
   }

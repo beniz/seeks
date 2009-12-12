@@ -1952,6 +1952,33 @@ sp_err cgi::template_fill(char **template_ptr,
    return SP_ERR_OK;
 }
 
+
+   
+sp_err cgi::template_fill_str(char **template_ptr,
+			      const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+{     
+   std::string buffer_str = std::string(*template_ptr);
+   freez(*template_ptr); // beware.
+   
+   hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator mit = exports->begin();
+   while(mit!=exports->end())
+     {
+	const char *name = (*mit).first;
+	const char *value = (*mit).second;
+	
+	std::string name_str = std::string(name);
+	if (*name == '$')
+	  {
+	     name_str = name_str.substr(1);
+	  }
+	miscutil::replace_in_string(buffer_str,name_str,std::string(value));
+	++mit;
+     }
+   
+   *template_ptr = strdup(buffer_str.c_str());
+   return SP_ERR_OK;
+}   
+   
 /*********************************************************************
  *
  * Function    :  template_fill_for_cgi
@@ -2001,6 +2028,36 @@ sp_err cgi::template_fill_for_cgi(const client_state *csp,
    return err;
 }
 
+sp_err cgi::template_fill_for_cgi_str(const client_state *csp,
+				      const char *templatename,
+				      const char *templatedir,
+				      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+				      http_response *rsp)
+{
+   sp_err err;
+   
+   assert(csp);
+   assert(templatename);
+   assert(exports);
+   assert(rsp);
+   
+   err = cgi::template_load(csp, &rsp->_body, templatename, templatedir, 0);
+   if (err == SP_ERR_FILE)
+     {
+	miscutil::free_map(exports);
+	return cgi::cgi_error_no_template(csp, rsp, templatename);
+     }
+   else if (err)
+     {
+	miscutil::free_map(exports);
+	return err; /* SP_ERR_MEMORY */
+     }
+	
+   err = cgi::template_fill_str(&rsp->_body,exports);
+   miscutil::free_map(exports);
+   return err;
+}   
+   
 /*********************************************************************
  *
  * Function    :  default_exports
