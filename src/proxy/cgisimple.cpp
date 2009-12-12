@@ -519,7 +519,7 @@ sp_err cgisimple::cgi_send_default_favicon(client_state *csp,
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks favicon");
      }
    
-   if (miscutil::enlist(&rsp->_headers, "Content-Type: image/x-icon"))
+   if (miscutil::enlist(&rsp->_headers, "Content-Type: image/x-iconn"))
    {
       return SP_ERR_MEMORY;
    }
@@ -579,7 +579,7 @@ sp_err cgisimple::cgi_send_error_favicon(client_state *csp,
       return SP_ERR_MEMORY;
    }
 
-   if (miscutil::enlist(&rsp->_headers, "Content-Type: image/x-icon"))
+   if (miscutil::enlist(&rsp->_headers, "Content-Type: image/x-iconn"))
    {
       return SP_ERR_MEMORY;
    }
@@ -776,6 +776,14 @@ sp_err cgisimple::cgi_send_user_manual(client_state *csp,
    else if((length>=4) && !strcmp(&filename[length-4], ".jpg"))
    {
       err = miscutil::enlist(&rsp->_headers, "Content-Type: image/jpeg");
+   }
+   else if((length>=4) && !strcmp(&filename[length-4], ".ico"))
+   {
+      err = miscutil::enlist(&rsp->_headers, "Content-Type: image/x-icon");
+   }
+   else if((length>=4) && !strcmp(&filename[length-4], ".xml"))
+   {
+      err = miscutil::enlist(&rsp->_headers, "Content-Type: text/xml");
    }
    else
    {
@@ -1664,6 +1672,8 @@ void cgisimple::file_response_content_type(const std::string &ext_str, http_resp
      miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/jpeg", 13);
    else if (strcmpic(ext_str.c_str(),"png") == 0)
      miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/png", 13);
+   else if (strcmpic(ext_str.c_str(),"ico") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/x-icon", 13);
    else if (strcmpic(ext_str.c_str(),"gif") == 0)
      miscutil::enlist_unique(&rsp->_headers, "Content-Type: image/gif", 13);
    else if (strcmpic(ext_str.c_str(),"js") == 0)
@@ -1671,6 +1681,8 @@ void cgisimple::file_response_content_type(const std::string &ext_str, http_resp
      miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/javascript", 13);
    else if (strcmpic(ext_str.c_str(),"jso") == 0)
      miscutil::enlist_unique(&rsp->_headers, "Content-Type: application/json", 13);
+   else if (strcmpic(ext_str.c_str(),"xml") == 0)
+     miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/xml", 13);
    else miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/html; charset=UTF-8", 13);
 }   
    
