@@ -93,34 +93,34 @@ namespace seeks_plugins
 
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words) const
      {
-	static std::string se_icon = "<img src=\"icon.png\" alt=\"icon\" width=\"12\" height=\"12\" hspace=\"2\" vspace=\"0\" align=\"\" border=\"0\" />";
+	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
 	
 	std::string html_content = "<li><h3><a href=\"";
 	html_content += _url;
-	html_content += "\" class=\"l\"><em>";
+	html_content += "\">";
 	
 	const char *title_enc = encode::html_encode(_title.c_str());
 	html_content += title_enc;
 	free_const(title_enc);
-	html_content += "</em></a>";
+	html_content += "</a>";
 	
 	if (_engine.to_ulong()&SE_GOOGLE)
 	  {
 	     std::string ggle_se_icon = se_icon;
-	     miscutil::replace_in_string(ggle_se_icon,"icon","seeks_wb_google");
+	     miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
 	     miscutil::replace_in_string(ggle_se_icon,"hspace=\"2\"","hspace=\"5\"");
 	     html_content += ggle_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_CUIL)
 	  {
 	     std::string cuil_se_icon = se_icon;
-	     miscutil::replace_in_string(cuil_se_icon,"icon","seeks_wb_cuil");
+	     miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
 	     html_content += cuil_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_BING)
 	  {
 	     std::string bing_se_icon = se_icon;
-	     miscutil::replace_in_string(bing_se_icon,"icon","seeks_wb_bing");
+	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
 	     html_content += bing_se_icon;
 	  }
 	

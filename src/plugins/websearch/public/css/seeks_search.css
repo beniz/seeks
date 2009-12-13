@@ -53,6 +53,26 @@ body {
 	padding-bottom: 10px;
 }
 
+#search_results .hd, #search_results li .search_engine {
+	font-size: 12px;
+	padding: 0px 5px;
+	margin-left: 3px;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+#search_results .hd, #search_results li .search_engine_bing {
+	background-image: url(/plugins/websearch/public/images/search_engines/bing_12x12_transparent.png);
+}
+
+#search_results .hd, #search_results li .search_engine_google {
+	background-image: url(/plugins/websearch/public/images/search_engines/google_12x12.png);
+}
+
+#search_results .hd, #search_results li .search_engine_cuil {
+	background-image: url(/plugins/websearch/public/images/search_engines/cuil_12x12_transparent.png);
+}
+
 #search_results cite {
 	color: blue;
 }

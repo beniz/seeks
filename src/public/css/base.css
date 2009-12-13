@@ -21,3 +21,7 @@ h1 { font-size: 150%; }
 a {
 	color: #256611;
 }
+
+em {
+	font-style: italic;
+}
