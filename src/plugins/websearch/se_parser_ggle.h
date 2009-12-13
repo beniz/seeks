@@ -74,6 +74,7 @@ namespace seeks_plugins
 	bool _spell_flag;
 	bool _sgg_spell_flag;
 	bool _end_sgg_spell_flag;
+	bool _rt_flag;
 	
 	std::string _link;
 	std::string _cached;
