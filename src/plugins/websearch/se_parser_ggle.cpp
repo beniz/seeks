@@ -39,7 +39,7 @@ namespace seeks_plugins
       _link_flag(false),_cite_flag(false),
       _cached_flag(false),_span_cached_flag(false),
       _ff_flag(false),_new_link_flag(false),_spell_flag(false),_sgg_spell_flag(false),
-      _end_sgg_spell_flag(false)
+      _end_sgg_spell_flag(false),_rt_flag(false)
        {
        }
    
@@ -77,6 +77,7 @@ namespace seeks_plugins
 	     const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
 	     if (a_id && strcasecmp(a_id,"rth") == 0)
 	       {
+		  _rt_flag = true;
 		  pc->_current_snippet->_title = "";  // scheduled for removal.
 		  _li_flag = false;
 		  _h3_flag = false;
@@ -328,7 +329,11 @@ namespace seeks_plugins
 	  }
 	else if (_h2_sr_flag && _li_flag && strcasecmp(tag,"ol") == 0)
 	  {
-	     if (pc->_current_snippet)
+	     if (_rt_flag)
+	       {
+		  _rt_flag =false;
+	       }
+	     else if (pc->_current_snippet)
 	       {
 		  if (pc->_current_snippet->_title.empty())
 		    delete pc->_current_snippet;
