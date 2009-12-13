@@ -71,6 +71,17 @@ namespace seeks_plugins
 	     if (a_class && strcasecmp(a_class,"hd") == 0)
 	       _h2_sr_flag = true;
 	  }
+	// real time results avoidance.
+	else if (_h2_sr_flag && strcasecmp(tag,"span") == 0)
+	  {
+	     const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
+	     if (a_id && strcasecmp(a_id,"rth") == 0)
+	       {
+		  pc->_current_snippet->_title = "";  // scheduled for removal.
+		  _li_flag = false;
+		  _h3_flag = false;
+	       }
+	  }
 	else if (_h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
@@ -94,6 +105,11 @@ namespace seeks_plugins
 	  }
 	else if (_h2_sr_flag && strcasecmp(tag,"li") == 0)
 	  {
+	     const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
+	     
+	     if (!a_class || strcasecmp(a_class,"g") != 0)
+	       return;
+	     
 	     // assert previous snippet, if any.
 	     if (pc->_current_snippet)
 	       {
@@ -101,7 +117,9 @@ namespace seeks_plugins
 		    {
 		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
 		       if (pc->_current_snippet)
-			 pc->_snippets->push_back(pc->_current_snippet);
+			 {
+			    pc->_snippets->push_back(pc->_current_snippet);
+			 }
 		    }
 		  else // no title, throw the snippet away.
 		    {
@@ -308,7 +326,7 @@ namespace seeks_plugins
 	     _sgg_spell_flag = false;
 	     _end_sgg_spell_flag = true;
 	  }
-	else if (_h2_sr_flag && strcasecmp(tag,"ol") == 0)
+	else if (_h2_sr_flag && _li_flag && strcasecmp(tag,"ol") == 0)
 	  {
 	     if (pc->_current_snippet)
 	       {
@@ -335,9 +353,10 @@ namespace seeks_plugins
 	r = miscutil::replace_in_string(se->_summary,"View as HTML","");
 	// TODO: check the file type (probably a M$ doc type).
 
-	// remove certain unwanted results (ggle image, video & shopping).
+	// remove certain unwanted results (ggle image, video, news & shopping).
 	if ((r = se->_url.find("/products?q="))!=std::string::npos
 	    || (r = se->_url.find("/videosearch?q="))!=std::string::npos
+	    || (r = se->_url.find("news.google"))!=std::string::npos
 	    || (r = se->_url.find("/images?q="))!=std::string::npos)
 	  {
 	     delete se;

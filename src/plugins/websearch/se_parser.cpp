@@ -18,9 +18,12 @@
  **/
  
 #include "se_parser.h"
+#include "errlog.h"
 
 #include <string.h>
 #include <iostream>
+
+using sp::errlog;
 
 void start_element_wrapper(void *context,
 			   const xmlChar *name,
@@ -110,10 +113,18 @@ namespace seeks_plugins
 	       cdata_wrapper,
 	       NULL
 	  };
-	
-	ctxt = htmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "",
-					XML_CHAR_ENCODING_UTF8); // encoding here.
-	
+
+	try 
+	  {
+	     ctxt = htmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "",
+					     XML_CHAR_ENCODING_UTF8); // encoding here.
+	  }
+	catch (std::exception e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s in parsing html search results.",
+			       e.what());
+	  }
+		
 	//std::cout << "parsing chunk...\n";
 	
 	htmlParseChunk(ctxt,output,strlen(output),0);
