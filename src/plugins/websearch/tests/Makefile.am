@@ -10,7 +10,7 @@ AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy
 if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-test_ggle_parser_LDADD=../search_snippet.o ../se_parser.o ../se_parser_ggle.o -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
-test_bing_parser_LDADD=../search_snippet.o ../se_parser.o ../se_parser_bing.o -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
-test_cuil_parser_LDADD=../search_snippet.o ../se_parser.o ../se_parser_cuil.o -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
-test_html_txt_parser_LDADD=../search_snippet.o ../se_parser.o ../html_txt_parser.o -lseeksutils -lseeksproxy -lseeksplugins  @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
+test_ggle_parser_LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
+test_bing_parser_LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
+test_cuil_parser_LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
+test_html_txt_parser_LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins  @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lnsl -lz
