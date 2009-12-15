@@ -25,6 +25,7 @@
 #include "errlog.h"
 #include "query_interceptor.h"
 #include "proxy_configuration.h"
+#include "se_parser.h"
 #include "se_handler.h"
 #include "static_renderer.h"
 #include "sort_rank.h"
@@ -73,6 +74,9 @@ namespace seeks_plugins
 	  
 	  // interceptor plugins.
 	  _interceptor_plugin = new query_interceptor(this);
+
+	  // initializes the libxml for multithreaded usage.
+	  se_parser::libxml_init();
        }
 
    websearch::~websearch()

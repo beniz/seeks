@@ -150,5 +150,10 @@ namespace seeks_plugins
 	  }
 	return NULL;
      }
+
+   void se_parser::libxml_init()
+     {
+	xmlInitParser();
+     }
       
 } /* end of namespace. */

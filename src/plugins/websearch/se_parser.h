@@ -64,6 +64,10 @@ namespace seeks_plugins
 	static const char* get_attribute(const char **attributes,
 					 const char *name);
 	
+
+	// multithreaded use requires initialization.
+	static void libxml_init();
+	
       protected:
 	int _count; // number of snippets.
      };
