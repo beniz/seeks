@@ -120,6 +120,7 @@ namespace seeks_plugins
 		       if (pc->_current_snippet)
 			 {
 			    pc->_snippets->push_back(pc->_current_snippet);
+			    pc->_current_snippet = NULL;
 			 }
 		    }
 		  else // no title, throw the snippet away.
@@ -341,7 +342,10 @@ namespace seeks_plugins
 		    {
 		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
 		       if (pc->_current_snippet)
-			 pc->_snippets->push_back(pc->_current_snippet);
+			 {
+			    pc->_snippets->push_back(pc->_current_snippet);
+			    pc->_current_snippet = NULL;
+			 }
 		    }
 	       }
 	  }
