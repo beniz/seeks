@@ -165,18 +165,26 @@ namespace seeks_plugins
 	return html_content;
      }
 
-   void search_snippet::set_url(const std::string &url)
+   char* search_snippet::url_preprocessing(const char *url)
      {
 	// decode url.
-	char* str = encode::url_decode(url.c_str());
+	char* str = encode::url_decode(url);
+	if (str[strlen(str)-1] == '/')
+	  str[strlen(str)-1] = '\0';
+	return str;
+     }
+      
+   void search_snippet::set_url(const std::string &url)
+     {
+	const char *url_str = url.c_str();
+	char* str = search_snippet::url_preprocessing(url_str);
 	_url = std::string(str);
 	free(str);
      }
    
    void search_snippet::set_url(const char *url)
      {
-	// decode url.
-	char *str = encode::url_decode(url);
+	char *str = search_snippet::url_preprocessing(url);
 	_url = std::string(str);
 	free(str);
      }
@@ -218,7 +226,8 @@ namespace seeks_plugins
      {
 	// seeks_rank is updated after merging.
 	// search engine rank.
-	s1->_rank = std::min(s1->_rank,s2->_rank);
+	//s1->_rank = std::min(s1->_rank,s2->_rank);
+	s1->_rank = 0.5*(s1->_rank + s2->_rank);
 	
 	// search engine.
 	s1->_engine |= s2->_engine;

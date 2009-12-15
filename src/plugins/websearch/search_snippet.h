@@ -20,7 +20,7 @@
 #ifndef SEARCH_SNIPPET_H
 #define SEARCH_SNIPPET_H
 
-#include "websearch_configuration.h"
+#include "websearch_configuration.h" // for NSEs.
 
 #include <string>
 #include <vector>
@@ -83,6 +83,7 @@ namespace seeks_plugins
 	~search_snippet();
 	
 	// set_url with url preprocessing for later comparison.
+	char* url_preprocessing(const char *url);
 	void set_url(const std::string &url);
 	void set_url(const char *url);
 	
@@ -123,9 +124,9 @@ namespace seeks_plugins
 	std::string _lang;
 	std::string _archive; // if no cached link, a link to archive.org
 	
-	short _rank;  // search engine rank.
+	double _rank;  // search engine rank.
 	double _seeks_ir; // IR score computed locally.
-	short _seeks_rank; // rank computed locally.
+	double _seeks_rank; // rank computed locally.
 	
 	std::bitset<NSEs> _engine;  // engines from which it was created (if not directly published).
 	enum DOC_TYPE _doc_type;
