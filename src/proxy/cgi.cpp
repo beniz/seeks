@@ -113,6 +113,11 @@ namespace sp
 	  &cgisimple::cgi_send_error_favicon,
 	  NULL, TRUE /* Sends the favicon image for error pages. */ 
      ),
+     cgi_dispatcher(
+	  "favicon.ico",
+	  &cgisimple::cgi_send_old_school_favicon,
+	  NULL, TRUE /* Sends the favicon image for old school navigators, IE? . */
+     ),
      cgi_dispatcher( "seeks_favicon_32.png",
 	  &cgisimple::cgi_send_default_favicon,
 	  NULL, TRUE /* Sends the default favicon image. */ 
