@@ -15,3 +15,5 @@ search-engine cuil
 # the system cache, for reuse, update, etc...
 # default: 300
 query-context-delay 300
+
+enable-thumbs 0

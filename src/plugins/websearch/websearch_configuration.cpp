@@ -28,6 +28,7 @@ namespace seeks_plugins
 #define hash_n                       578814699ul /* "search-results-page" */  
 #define hash_se                     1635576913ul /* "search-engine" */
 #define hash_qcd                    4118649627ul /* "query-context-delay" */
+#define hash_thumbs                  793242781ul /* "thumbs" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -44,6 +45,7 @@ namespace seeks_plugins
      {
 	_lang = "en";
 	_N = 10;
+	_thumbs = 0;
 	_se_enabled = std::bitset<NSEs>(000); // ggle only, TODO: change to all...
 	_query_context_delay = 300; // in seconds, 5 minutes.
      }
@@ -74,6 +76,11 @@ namespace seeks_plugins
 	       _se_enabled |= std::bitset<NSEs>(SE_BING);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
+	     break;
+	   case hash_thumbs:
+	      _thumbs = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enable thumbs");
 	     break;
 	   case hash_qcd :
 	     _query_context_delay = strtod(arg,NULL);

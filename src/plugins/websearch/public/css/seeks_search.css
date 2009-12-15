@@ -1,5 +1,5 @@
 body {
-	width: 600px;
+	width: 700px;
 }
 
 #main {
@@ -49,11 +49,24 @@ body {
 	padding-left: 10px;
 }
 
-#search_results .hd, #search_results li {
+#search_results .search_snippet {
 	padding-bottom: 10px;
+	clear:both;
 }
 
-#search_results .hd, #search_results li .search_engine {
+#search_results .search_snippet .preview {
+	width: 0px;
+	display: none;
+	float: left;
+	padding: 0px 7px 7px 0px;
+	margin-bottom: 30px;
+}
+
+#search_results .focused .preview {
+	display: inline;
+}
+
+#search_results .search_snippet .search_engine {
 	font-size: 12px;
 	padding: 0px 5px;
 	margin-left: 3px;
@@ -61,15 +74,15 @@ body {
 	background-position: center center;
 }
 
-#search_results .hd, #search_results li .search_engine_bing {
+#search_results .search_snippet .search_engine_bing {
 	background-image: url(/plugins/websearch/public/images/search_engines/bing_12x12_transparent.png);
 }
 
-#search_results .hd, #search_results li .search_engine_google {
+#search_results .search_snippet .search_engine_google {
 	background-image: url(/plugins/websearch/public/images/search_engines/google_12x12.png);
 }
 
-#search_results .hd, #search_results li .search_engine_cuil {
+#search_results .search_snippet .search_engine_cuil {
 	background-image: url(/plugins/websearch/public/images/search_engines/cuil_12x12_transparent.png);
 }
 
@@ -77,8 +90,9 @@ body {
 	color: blue;
 }
 
-#search_results .gl a {
+#search_results .search_cache {
 	color: gray;
+	margin-left: 3px;
 }
 
 #search_results h3 {
