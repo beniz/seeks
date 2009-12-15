@@ -53,6 +53,7 @@ namespace seeks_plugins
 	std::string _lang; /**< langage of the search results. */	
 	int _N; /**< max number of search results per page. */
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
+	bool _thumbs; /**< enabled thumbs */
 	
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */

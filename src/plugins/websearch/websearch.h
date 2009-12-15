@@ -26,6 +26,7 @@
 #include "search_snippet.h"
 #include "query_context.h"
 #include "websearch_configuration.h"
+#include "websearch.h" // for configuration.
 
 #include <string>
 

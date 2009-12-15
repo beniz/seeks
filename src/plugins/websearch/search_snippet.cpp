@@ -18,6 +18,7 @@
  **/
  
 #include "search_snippet.h"
+#include "websearch.h" // for configuration.
 #include "mem_utils.h"
 #include "miscutil.h"
 #include "encode.h"
@@ -94,8 +95,16 @@ namespace seeks_plugins
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words) const
      {
 	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
-	
-	std::string html_content = "<li><h3><a href=\"";
+	std::string html_content = "<li class=\"search_snippet\"";
+	if ( websearch::_wconfig->_thumbs )	
+		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\"";
+	html_content += ">";
+	if ( websearch::_wconfig->_thumbs ){
+		html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
+		html_content += _url;
+		html_content += "\" />";
+	}
+	html_content += "<h3><a href=\"";
 	html_content += _url;
 	html_content += "\">";
 	
@@ -146,15 +155,15 @@ namespace seeks_plugins
 	
 	if (!_cached.empty())
 	  {
-	     html_content += "<span class=\"gl\"><a href=\"";
+	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += _cached;
-	     html_content += " \">Cached</a></span>";
+	     html_content += " \">Cached</a>";
 	  }
 	else if (!_archive.empty())
 	  {
-	     html_content += "<span class=\"gl\"><a href=\"";
+	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += _archive;
-	     html_content += " \">Archive</a></span>";
+	     html_content += " \">Archive</a>";
 	  }
 			 
 	html_content += "</div></li>\n";
