@@ -40,14 +40,7 @@ search_snippets
 <script type="text/javascript" src="/public/yui/3.0.0/yui/yui-min.js"></script>
 <script type="text/javascript">
 
-YUI().use('event-key', function(Y) {
-    var handle = Y.on('key', function(e) {
-        e.halt();
-        document.location = Y.one('#expansion').getAttribute('href');
-    }, document, 'press:101+ctrl');
-
-});
-
+// Shortcut for search, ctrl+s
 YUI().use('event-key', function(Y) {
     var handle = Y.on('key', function(e) {
         e.halt();
@@ -56,6 +49,16 @@ YUI().use('event-key', function(Y) {
 
 });
 
+// Shortcut for expansion, ctrl+e
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#expansion').getAttribute('href');
+    }, document, 'press:101+ctrl');
+
+});
+
+// Shortcut for previous page, ctrl+<
 YUI().use('event-key', function(Y) {
     var handle = Y.on('key', function(e) {
         e.halt();
@@ -64,6 +67,7 @@ YUI().use('event-key', function(Y) {
 
 });
 
+// Shortcut for previous page, ctrl+>
 YUI().use('event-key', function(Y) {
     var handle = Y.on('key', function(e) {
         e.halt();
@@ -72,29 +76,6 @@ YUI().use('event-key', function(Y) {
 
 });
 
-/* function snippet_focus(e, on_off) {
-  YUI().use('anim', function(Y) {
-     if(on_off == 'on') {
-       if(e.hasClass('focused')) return;
-       e.addClass('focused');
-       var a = new Y.Anim({'node': e.one('.preview'),
-                           'from': {'width': '0px', 'height': '90px;'},
-                           'to': {'width': '120px', 'height': '90px;'}});
-       a.set('duration', 2);
-a.on('end', function() {Y.log('fini');});
-a.on('start', function() {Y.log('start');});
-       a.run();
-    } else if(on_off == 'off') {
-        e.removeClass('focused');
-    }
-  });
-}
-
-YUI().use("node", "event-mouseenter", function(Y) {
-  var snippets = Y.all('.search_snippet');
-  snippets.on("mouseenter", function(e){snippet_focus(e.currentTarget, 'on')});
-  snippets.on("mouseleave", function(e){snippet_focus(e.currentTarget, 'off')});
-});*/
 </script>
 
 </div> 
