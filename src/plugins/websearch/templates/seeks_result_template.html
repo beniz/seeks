@@ -15,13 +15,13 @@
 
 <div id="search_bar">
 <form method="GET" action="/search" id="search_form">
-<input id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
+<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn" id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e)" id="expansion" class="expansion_xxexp">xxexp</a>
 
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 
@@ -36,6 +36,66 @@
 search_snippets
 </ol>
 </div>
+
+<script type="text/javascript" src="/public/yui/3.0.0/yui/yui-min.js"></script>
+<script type="text/javascript">
+
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#expansion').getAttribute('href');
+    }, document, 'press:101+ctrl');
+
+});
+
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        Y.one('#search_input').select();
+    }, document, 'press:102+ctrl');
+
+});
+
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_page_prev').getAttribute('href');
+    }, document, 'press:37+ctrl');
+
+});
+
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_page_next').getAttribute('href');
+    }, document, 'press:39+ctrl');
+
+});
+
+/* function snippet_focus(e, on_off) {
+  YUI().use('anim', function(Y) {
+     if(on_off == 'on') {
+       if(e.hasClass('focused')) return;
+       e.addClass('focused');
+       var a = new Y.Anim({'node': e.one('.preview'),
+                           'from': {'width': '0px', 'height': '90px;'},
+                           'to': {'width': '120px', 'height': '90px;'}});
+       a.set('duration', 2);
+a.on('end', function() {Y.log('fini');});
+a.on('start', function() {Y.log('start');});
+       a.run();
+    } else if(on_off == 'off') {
+        e.removeClass('focused');
+    }
+  });
+}
+
+YUI().use("node", "event-mouseenter", function(Y) {
+  var snippets = Y.all('.search_snippet');
+  snippets.on("mouseenter", function(e){snippet_focus(e.currentTarget, 'on')});
+  snippets.on("mouseleave", function(e){snippet_focus(e.currentTarget, 'off')});
+});*/
+</script>
 
 </div> 
 

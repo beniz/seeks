@@ -306,7 +306,7 @@ namespace seeks_plugins
        {
 	  std::string np_str = miscutil::to_string(cp+1);
 	  std::string np_link = "<a href=\"http://s.s/search?page=" + np_str + "&q="
-	    + query + "&expansion=" + std::string(expansion) + "&action=page\" id=\"search_page_next\" title=\"Next\">&nbsp;</a>";
+	    + query + "&expansion=" + std::string(expansion) + "&action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	  miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -316,7 +316,7 @@ namespace seeks_plugins
        {
 	  std::string pp_str = miscutil::to_string(cp-1);
 	  std::string pp_link = "<a href=\"http://s.s/search?page=" + pp_str + "&q=" 
-	    + query + "&expansion=" + std::string(expansion) + "&action=page\"  id=\"search_page_prev\" title=\"Previous\">&nbsp;</a>";
+	    + query + "&expansion=" + std::string(expansion) + "&action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	  miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
        }
      else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);

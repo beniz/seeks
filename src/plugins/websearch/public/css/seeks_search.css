@@ -1,5 +1,5 @@
 body {
-	width: 800px;
+	width: 700px;
 }
 
 #main {
@@ -51,19 +51,19 @@ body {
 
 #search_results .search_snippet {
 	padding-bottom: 10px;
-	padding-right: 130px;
 }
 
 #search_results .search_snippet .preview {
 	position: absolute;
-	left: 700px;
+	left: 730px;
 	width: 120px;
-	height: 00px;
+	height: 0px;
 }
 
 #search_results .search_snippet:hover .preview {
 	width: 120px;
 	height: 90px;
+	border: 1px solid #ececec;
 }
 
 #search_results .search_snippet .search_engine {
