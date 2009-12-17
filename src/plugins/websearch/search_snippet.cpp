@@ -96,8 +96,8 @@ namespace seeks_plugins
      {
 	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
-	if ( websearch::_wconfig->_thumbs )	
-		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\"";
+/*	if ( websearch::_wconfig->_thumbs )	
+		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
 	html_content += ">";
 	if ( websearch::_wconfig->_thumbs ){
 		html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";

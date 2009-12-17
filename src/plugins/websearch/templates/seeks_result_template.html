@@ -13,25 +13,6 @@
 
 <body>
 
-<script type="text/javascript" src="/public/yui/3.0.0/yui/yui-min.js"></script>
-<script type="text/javascript">
-function snippet_focus(e, on_off) {
-  YUI().use('anim', function(Y) {
-     var Y_e = Y.one(e);
-     if(on_off == 'on') {
-       Y_e.addClass('focused');
-       var a = new Y.Anim({'node': Y.one(e).one('img'),
-                           'from': {'width': '0px'},
-                           'to': {'width': '120px'}});
-       a.set('duration', 0.2);
-       a.run();
-    } else {
-       Y_e.removeClass('focused');
-    }
-  });
-}
-</script>
-
 <div id="search_bar">
 <form method="GET" action="/search" id="search_form">
 <input id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
@@ -55,6 +36,7 @@ function snippet_focus(e, on_off) {
 search_snippets
 </ol>
 </div>
+
 </div> 
 
 </body></html>
