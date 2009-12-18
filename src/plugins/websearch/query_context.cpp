@@ -19,6 +19,7 @@
 
 #include "query_context.h"
 #include "websearch.h"
+#include "stl_hash.h"
 #include "miscutil.h"
 #include "mrf.h"
 #include "errlog.h"
@@ -173,6 +174,53 @@ namespace seeks_plugins
 	if (cached_pages < requested_page)
 	  return generate(csp,rsp,parameters);
 	else return SP_ERR_OK;
+     }
+
+   void query_context::cache_url(const std::string &url, const std::string &url_content)
+     {
+	hash_map<const char*,std::string,hash<const char*>,eqstr>::iterator hit;
+	if ((hit = _cached_urls.find(url.c_str())) != _cached_urls.end())
+	  {
+	     if (url_content.size() > (*hit).second.size())
+	       (*hit).second = url_content;
+	  }
+	else _cached_urls.insert(std::pair<const char*,std::string>(url.c_str(),url_content));
+     }
+   
+   bool query_context::is_cached(const std::string &url)
+     {
+	hash_map<const char*,std::string,hash<const char*>,eqstr>::const_iterator hit;
+	if ((hit = _cached_urls.find(url.c_str())) != _cached_urls.end())
+	  return true;
+	else return false;
+     }
+
+   void query_context::update_unordered_cache()
+     {
+	size_t cs_size = _cached_snippets.size();
+	for (size_t i=0;i<cs_size;i++)
+	  {
+	     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	     if ((hit=_unordered_snippets.find(_cached_snippets[i]->_url.c_str()))!=_unordered_snippets.end())
+	       {
+		  // for now, do nothing. TODO: may merge snippets here.
+	       }
+	     else
+	       _unordered_snippets.insert(std::pair<const char*,search_snippet*>(_cached_snippets[i]->_url.c_str(),
+										 _cached_snippets[i]));
+	  }
+     }
+   
+   void query_context::update_snippet_seeks_rank(const char *url,
+						 const double &rank)
+     {
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit = _unordered_snippets.find(url))==_unordered_snippets.end())
+	  {
+	     // don't have this url in cache ? let's do nothing.
+	  }
+	else (*hit).second->_seeks_rank = rank;  // BEWARE: we may want to set up a proper formula here
+	                                         //         with proper weighting by the consensus rank...
      }
    
 } /* end of namespace. */

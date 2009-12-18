@@ -76,12 +76,35 @@ namespace seeks_plugins
 	void update_last_time();
 	
 	/**
-	 * query hashing, based on mrf in lsh.
+	 * \brief query hashing, based on mrf in lsh.
 	 * grabs query from parameters, stores it into query and hashes it.
 	 * the 32 bit hash is returned.
 	 */
 	static uint32_t hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       std::string &query);
+	
+	/**
+	 * \brief cache a url's content for fast access by user.
+	 * Ties are reduced by keeping the content with largest size.
+	 */
+	void cache_url(const std::string &url, const std::string &url_content);
+	
+	/**
+	 * \brief checks whether a url is already cached.
+	 */
+	bool is_cached(const std::string &url);
+
+	/**
+	 * \brief updates unordered cached snippets. This set is for fast access
+	 * and update to the snippets in the cache.
+	 */
+	void update_unordered_cache();
+	
+	/**
+	 * \brief finds and updates a search snippet's seeks rank.
+	 */
+	void update_snippet_seeks_rank(const char *url,
+				       const double &rank);
 	
       public:
 	std::string _query;
@@ -90,7 +113,8 @@ namespace seeks_plugins
 		
 	/* cache. */
 	std::vector<search_snippet*> _cached_snippets;
-	hash_map<const char*,const char*,hash<const char*>,eqstr> _cached_urls;
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr> _unordered_snippets; // cached snippets ptr, url is the key.
+	hash_map<const char*,std::string,hash<const char*>,eqstr> _cached_urls; // cached content, url is the key.
 	
 	/* timer. */
 	time_t _creation_time;

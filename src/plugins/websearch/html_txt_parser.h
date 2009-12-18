@@ -54,8 +54,10 @@ namespace seeks_plugins
 			       int length);
 	
 	std::string& get_txt_nocopy() { return _txt; };  
+
+	std::string get_txt() const { return _txt; };
 	
-      private:
+      public:
 	std::string _txt;
      };
    

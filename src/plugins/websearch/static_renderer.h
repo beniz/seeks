@@ -30,7 +30,7 @@ namespace seeks_plugins
 	/*- cgi. -*/
 	static void register_cgi(websearch *wbs);
 	
-	static sp_err cgi_websearch_search_css(client_state *csp,
+	/* static sp_err cgi_websearch_search_css(client_state *csp,
 					       http_response *rsp,
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
@@ -57,6 +57,7 @@ namespace seeks_plugins
 	static sp_err cgi_websearch_seeks_wb_bing_icon(client_state *csp,
 						       http_response *rsp,
 						       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	*/
 	
 	/*- renderer. -*/
 	static sp_err render_result_page_static(const std::vector<search_snippet*> &snippets,

@@ -28,7 +28,9 @@ namespace seeks_plugins
 #define hash_n                       578814699ul /* "search-results-page" */  
 #define hash_se                     1635576913ul /* "search-engine" */
 #define hash_qcd                    4118649627ul /* "query-context-delay" */
-#define hash_thumbs                  793242781ul /* "thumbs" */
+#define hash_thumbs                  793242781ul /* "enable-thumbs" */
+#define hash_js                     3171705030ul /* "enable-js" */
+#define hash_advanced_ranking       1140424120ul /* "enable-advanced-ranking" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -48,6 +50,8 @@ namespace seeks_plugins
 	_thumbs = 0;
 	_se_enabled = std::bitset<NSEs>(000); // ggle only, TODO: change to all...
 	_query_context_delay = 300; // in seconds, 5 minutes.
+	_js = 0; // default is no javascript, this may change later on.
+	_advanced_ranking = 0;
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -77,16 +81,31 @@ namespace seeks_plugins
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
 	     break;
+	     
 	   case hash_thumbs:
-	      _thumbs = atoi(arg);
+	      _thumbs = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable thumbs");
+						"Enable search results webpage thumbnails");
 	     break;
+	   
 	   case hash_qcd :
 	     _query_context_delay = strtod(arg,NULL);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Delay in seconds before deletion of cached websearches and results");
 	     break;
+	   
+	   case hash_js:
+	     _js = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enable javascript use on the websearch result page");
+	     break;
+	     
+	   case hash_advanced_ranking:
+	     _advanced_ranking = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enable the advanced ranking system with background download of webpages pointed to by websearch results");
+	     break;
+	     
 	   default :
 	     break;
 	     

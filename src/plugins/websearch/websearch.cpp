@@ -177,6 +177,12 @@ namespace seeks_plugins
      std::vector<search_snippet*> unique_ranked_snippets;
      sort_rank::sort_merge_and_rank_snippets(snippets,unique_ranked_snippets);
      
+     // update unordered set.
+     qc->update_unordered_cache();
+     
+     // TODO: additional processing comes here.
+     
+     
      // render the page.                                                                                                
      // TODO: dynamic renderer.                                                                                                 
      sp_err err = static_renderer::render_result_page_static(unique_ranked_snippets,

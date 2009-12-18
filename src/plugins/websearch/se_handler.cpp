@@ -31,6 +31,7 @@
 #include "se_parser_cuil.h"
 #include "se_parser_bing.h"
 
+#include <pthread.h>
 #include <algorithm>
 #include <iterator>
 #include <bitset>
@@ -209,6 +210,24 @@ namespace seeks_plugins
 				q,1,query_str.c_str(),1);
      }
       
+   // could be moved elsewhere...
+   std::string se_handler::cleanup_query(const std::string &oquery)
+     {
+	// non interpreted '+' should be deduced.
+	std::string cquery = oquery;
+	size_t end_pos = cquery.size();
+	size_t pos = 0;
+	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
+	  {
+	     cquery.replace(pos,1," ");
+	     while(cquery[--pos] == '+') // deal with multiple pluses.
+	       {
+	       }
+	     end_pos = pos;
+	  }
+	return cquery;
+     }
+   
   /*-- queries to the search engines. */  
   char** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				  int &nresults)
@@ -308,7 +327,7 @@ namespace seeks_plugins
 		    
 		    pthread_t ps_thread;
 		    int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
-					     (void * (*)(void *))parse_output, args);
+					     (void * (*)(void *))se_handler::parse_output, args);
 		    parser_threads[k++] = ps_thread;
 		 }
 	    }
@@ -349,7 +368,7 @@ namespace seeks_plugins
 
    void se_handler::parse_output(const ps_thread_arg &args)
      {
-	se_parser *se = create_se_parser(args._se);
+	se_parser *se = se_handler::create_se_parser(args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
 	// hack for cuil.

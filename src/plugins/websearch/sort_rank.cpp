@@ -18,6 +18,7 @@
  **/
 
 #include "sort_rank.h"
+#include "content_handler.h"
 
 #include <algorithm>
 #include <iterator>
@@ -47,7 +48,6 @@ namespace seeks_plugins
 	std::sort(unique_ranked_snippets.begin(),unique_ranked_snippets.end(),
 		  search_snippet::less_url);
 	
-	//std::vector<std::vector<search_snippet*>::iterator> dead_iterators;
 	std::vector<search_snippet*>::iterator it = unique_ranked_snippets.begin();
 	std::string c_url = "";
 	search_snippet *c_sp = NULL;
@@ -89,6 +89,31 @@ namespace seeks_plugins
 	     it++;
 	  } */
 	//debug
+     }
+
+   /* advanced sorting and scoring, based on webpages content. */
+   void sort_rank::retrieve_and_score(query_context *qc)
+     {
+	// fetch content.
+	size_t ncontents = 0;
+	std::vector<std::string> urls;
+	char **outputs = content_handler::fetch_snippets_content(qc,ncontents,urls);
+		
+	// parse content and keep text only.
+	std::string *txt_contents = content_handler::parse_snippets_txt_content(ncontents,
+										outputs);
+	delete[] outputs;
+	
+	// extract features from fetched text.
+	hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> features;
+	content_handler::extract_features_from_snippets(qc,txt_contents,ncontents,urls,
+							features);
+	
+	// compute score using the extracted features.
+	content_handler::feature_based_scoring(qc,features);
+     
+	// destroy feature sets.
+	content_handler::delete_features(features);
      }
    
 } /* end of namespace. */

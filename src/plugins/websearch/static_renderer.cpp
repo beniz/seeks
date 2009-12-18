@@ -42,7 +42,7 @@ namespace seeks_plugins
 {
    void static_renderer::register_cgi(websearch *wbs)
      {
-	cgi_dispatcher *cgid_wb_search_css      
+	/* cgi_dispatcher *cgid_wb_search_css      
 	  = new cgi_dispatcher("seeks_search.css", &static_renderer::cgi_websearch_search_css, NULL, TRUE);
 	wbs->_cgi_dispatchers.push_back(cgid_wb_search_css);
 	
@@ -68,10 +68,10 @@ namespace seeks_plugins
 	
 	cgi_dispatcher *cgid_wb_seeks_wb_bing_icon
 	  = new cgi_dispatcher("seeks_wb_bing.png", &static_renderer::cgi_websearch_seeks_wb_bing_icon, NULL, TRUE);
-	wbs->_cgi_dispatchers.push_back(cgid_wb_seeks_wb_bing_icon);
+	wbs->_cgi_dispatchers.push_back(cgid_wb_seeks_wb_bing_icon); */
      }
    
-  sp_err static_renderer::cgi_websearch_search_css(client_state *csp,
+/*  sp_err static_renderer::cgi_websearch_search_css(client_state *csp,
 						   http_response *rsp,
 						   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
@@ -223,7 +223,8 @@ namespace seeks_plugins
 	
 	return SP_ERR_OK;
      }
-   
+ */
+ 
   /*- rendering. -*/
   sp_err static_renderer::render_result_page_static(const std::vector<search_snippet*> &snippets,
 						    client_state *csp, http_response *rsp,
@@ -240,8 +241,9 @@ namespace seeks_plugins
      miscutil::add_map_entry(exports,"$fullquery",1,query,1);
      
      // clean query.
-     std::string query_clean = std::string(query);
-     miscutil::replace_in_string(query_clean,"+"," "); // TODO: fix '+' problem here.
+     //std::string query_clean = std::string(query);
+     //miscutil::replace_in_string(query_clean,"+"," "); // TODO: fix '+' problem here.
+     std::string query_clean = se_handler::cleanup_query(std::string(query));
      miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
      std::vector<std::string> words;
      miscutil::tokenize(query_clean,words," "); // tokenize query for highlighting keywords.
