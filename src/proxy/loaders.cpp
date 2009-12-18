@@ -92,7 +92,7 @@ namespace sp
  *                On error: 1 and sets newfl == NULL
  *
  *********************************************************************/
-int loaders::check_file_changed(const file_list * current,
+/* int loaders::check_file_changed(const file_list * current,
 				const char * filename,
 				file_list ** newfl)
 {
@@ -102,9 +102,9 @@ int loaders::check_file_changed(const file_list * current,
    *newfl = NULL;
 
    if (stat(filename, statbuf) < 0)
-   {
+   { */
       /* Error, probably file not found. */
-      return 1;
+ /*     return 1;
    }
 
    if (current
@@ -116,9 +116,9 @@ int loaders::check_file_changed(const file_list * current,
 
    fs = new file_list();
    if (fs == NULL)
-   {
+   { */
       /* Out of memory error */
-      return 1;
+    /*  return 1;
    }
 
 
@@ -126,16 +126,15 @@ int loaders::check_file_changed(const file_list * current,
    fs->_lastmodified = statbuf->st_mtime;
 
    if (fs->_filename == NULL)
-   {
+   { */
       /* Out of memory error */
-      freez(fs);
+    /*  freez(fs);
       fs = NULL;
       return 1;
    }
    *newfl = fs;
    return 1;
-}
-
+} */
 
 /*********************************************************************
  *

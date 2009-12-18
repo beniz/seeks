@@ -2512,6 +2512,9 @@ namespace sp
 	unsigned int active_threads = 0;
 	
 	// loads main configuration file (seeks + proxy configuration).
+#ifdef unix
+	configuration_spec::init_file_notification(); // init inotify, Linux only.
+#endif
 	if (seeks_proxy::_config)
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
@@ -2790,14 +2793,14 @@ namespace sp
 	
 	sweeper::sweep();
 	
-# if defined(unix)
+#if defined(unix)
 	freez(seeks_proxy::_basedir);
-# endif
+#endif
 	freez(seeks_proxy::_configfile);
-# if defined(_WIN32) && !defined(_WIN_CONSOLE)
+#if defined(_WIN32) && !defined(_WIN_CONSOLE)
 	/* Cleanup - remove taskbar icon etc. */
 	TermLogWindow();
-# endif
+#endif
 	exit(0);
 #endif /* FEATURE_GRACEFUL_TERMINATION */
      }

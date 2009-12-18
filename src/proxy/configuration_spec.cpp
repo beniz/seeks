@@ -26,6 +26,11 @@
 #include <sys/stat.h>
 #include <iostream>
 
+#ifdef unix // linux only.
+#include <sys/select.h>
+#include <sys/inotify.h>
+#endif
+
 /*
  * Fix a problem with Solaris.  There should be no effect on other
  * platforms.
@@ -39,8 +44,13 @@
 
 namespace sp
 {
+   int configuration_spec::_fd = -1;
+   
    configuration_spec::configuration_spec(const std::string &filename)
      :_filename(filename),_lastmodified(0)
+#ifdef unix
+       ,_wd(-1)
+#endif
      {
 	_config_args = strdup("");
      }
@@ -181,6 +191,40 @@ namespace sp
 	  }
      }
 
+#ifdef unix
+   int configuration_spec::init_file_notification()
+     {
+	configuration_spec::_fd = inotify_init();  // new instance, could be system wide ?
+	if (configuration_spec::_fd < 0) 
+	  errlog::log_error(LOG_LEVEL_ERROR, "Error initializing the inotify service");
+	return configuration_spec::_fd;
+     }
+   
+   int configuration_spec::stop_file_notification()
+     {
+	int c = close(configuration_spec::_fd);
+	if (c < 0)
+	  errlog::log_error(LOG_LEVEL_ERROR, "Error closing the inotify service descriptor");
+	return c;
+     }
+   
+   int configuration_spec::watch_file()
+     {
+	_wd = inotify_add_watch(configuration_spec::_fd,_filename.c_str(),IN_MODIFY);
+	if (_wd < 0)
+	  errlog::log_error(LOG_LEVEL_ERROR, "Error setting up a watch on configuration file %s",
+			    _filename.c_str());
+	return _wd;
+     }
+   
+   void configuration_spec::unwatch_file()
+     {
+	if (inotify_rm_watch(configuration_spec::_fd,_wd))
+	  errlog::log_error(LOG_LEVEL_ERROR, "Error removing watch from configuration file %s",
+			    _filename.c_str());
+     }
+#endif
+   
    void configuration_spec::html_table_row(char *&args, char *option, char *value,
 					   const char *description)
      {
