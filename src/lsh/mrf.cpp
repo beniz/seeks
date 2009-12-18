@@ -350,7 +350,6 @@ namespace lsh
     return 0;
   }
   
-  // for convenience only.
   double mrf::radiance(const std::string &query1,
 		       const std::string &query2)
   {
