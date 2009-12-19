@@ -366,6 +366,8 @@ namespace seeks_plugins
 	if ((r = se->_url.find("/products?q="))!=std::string::npos
 	    || (r = se->_url.find("/videosearch?q="))!=std::string::npos
 	    || (r = se->_url.find("news.google"))!=std::string::npos
+	    || (r = se->_url.find("maps.google"))!=std::string::npos
+	    || (r = se->_url.find("books.google"))!=std::string::npos
 	    || (r = se->_url.find("/images?q="))!=std::string::npos)
 	  {
 	     delete se;
