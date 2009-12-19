@@ -135,7 +135,7 @@ sp_err cgisimple::cgi_error_404(client_state *csp,
       return SP_ERR_MEMORY;
    }
 
-   rsp->_status = strdup("404 Seeks proxy configuration page not found");
+   rsp->_status = strdup("404 Seeks proxy page not found");
    if (rsp->_status == NULL)
    {
       miscutil::free_map(exports);
@@ -1124,7 +1124,7 @@ sp_err cgisimple::cgi_show_url_info(client_state *csp,
       int hits = 0;
       http_request url_to_query;
       current_action_spec action;
-      int i;
+      int i = 0;
       
       if (miscutil::add_map_entry(exports, "url", 1, encode::html_encode(url_param), 0))
       {
@@ -1182,14 +1182,13 @@ sp_err cgisimple::cgi_show_url_info(client_state *csp,
 
       matches = strdup("<table summary=\"\" class=\"transparent\">");
 
-      //int k=0;
       std::vector<plugin*>::const_iterator sit = plugin_manager::_plugins.begin();
       while(sit!=plugin_manager::_plugins.end())
 	{
 	   plugin *p = (*sit);
 	   miscutil::string_append(&matches, "<tr><th>By plugin: ");
 	   miscutil::string_join  (&matches, encode::html_encode(p->get_name_cstr()));
-	   snprintf(buf, sizeof(buf), " <a class=\"cmd\" href=\"/show-status?index=%d\">", i);
+	   snprintf(buf, sizeof(buf), " <a class=\"cmd\" href=\"/show-status?index=%d\">", i); // TODO.
 	   miscutil::string_append(&matches, buf);
 	   miscutil::string_append(&matches, "View</a>");
 	   miscutil::string_append(&matches, "</th></tr>\n");
@@ -1731,6 +1730,7 @@ sp_err cgisimple::cgi_file_server(client_state *csp,
    if (!path_file)
      {
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not find path to public file.");
+	return cgisimple::cgi_error_404(csp,rsp,parameters);
      }
    
    std::string path_file_str = std::string(seeks_proxy::_basedir) + "/" + std::string(CGI_SITE_FILE_SERVER)
@@ -1752,6 +1752,7 @@ sp_err cgisimple::cgi_file_server(client_state *csp,
      {
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not load %s in public repository.",
 			  path_file_str.c_str());
+	return cgisimple::cgi_error_404(csp,rsp,parameters);
      }
    
    rsp->_is_static = 1;
@@ -1767,6 +1768,7 @@ sp_err cgisimple::cgi_plugin_file_server(client_state *csp,
    if (!path_file)
      {
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not find path to public file.");
+	return cgisimple::cgi_error_404(csp,rsp,parameters);
      }
    
    std::string path_file_str = plugin_manager::_plugin_repository + "/" + std::string(path_file);
@@ -1787,6 +1789,7 @@ sp_err cgisimple::cgi_plugin_file_server(client_state *csp,
      {
 	errlog::log_error(LOG_LEVEL_ERROR, "Could not load %s in public repository.",
 			  path_file_str.c_str());
+	return cgisimple::cgi_error_404(csp,rsp,parameters);
      }
    
    rsp->_is_static = 1;
