@@ -39,6 +39,8 @@ namespace sp
 	
 	int _buffer_len;
 	int _buffer_pos;
+	
+	long _timeout;
      } cbget;
    
     void* pull_one_url(void *arg_cbget);
@@ -46,7 +48,8 @@ namespace sp
    class curl_mget
      {
       public:
-	curl_mget(const int &nrequests);
+	curl_mget(const int &nrequests,
+		  const long &timeout);
 	~curl_mget();
 	
 	// direct connection.
@@ -54,6 +57,7 @@ namespace sp
      
       public:
 	int _nrequests;
+	long _timeout;
 	char **_outputs;
 	cbget **_cbgets;
      };

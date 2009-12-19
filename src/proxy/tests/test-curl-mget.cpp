@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	std::cout << "addr #" << i << ": " << argv[i+2] << std::endl;
      }
    
-   curl_mget cmg(n_requests);
+   curl_mget cmg(n_requests,60); // 60 seconds connection timeout.
    char **outputs = cmg.www_mget(addr,n_requests);
 
    std::cout << "outputs:\n";

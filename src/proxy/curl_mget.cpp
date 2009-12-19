@@ -64,8 +64,8 @@ namespace sp
 	return size;
      }
 
-   curl_mget::curl_mget(const int &nrequests)
-     :_nrequests(nrequests)
+   curl_mget::curl_mget(const int &nrequests, const long &timeout)
+     :_nrequests(nrequests),_timeout(timeout)
      {
 	_outputs = new char*[_nrequests];
 	_cbgets = new cbget*[_nrequests];
@@ -86,6 +86,8 @@ namespace sp
 	curl = curl_easy_init();
 	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, arg->_timeout);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, arg);
 	curl_easy_perform(curl); /* ignores error */ 
@@ -107,7 +109,8 @@ namespace sp
 	  {
 	     cbget *arg_cbget = new cbget();
 	     arg_cbget->_url = urls[i].c_str();
-	     	     
+	     arg_cbget->_timeout = _timeout;	     
+	     
 	     _cbgets[i] = arg_cbget;
 	     
 	     int error = pthread_create(&tid[i],
