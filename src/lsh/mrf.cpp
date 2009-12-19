@@ -81,8 +81,8 @@ namespace lsh
 
   std::string mrf::_default_delims = " ";
   uint32_t mrf::_skip_token = 0xDEADBEEF;
-  uint32_t mrf::_window_length_default = 8;
-  uint32_t mrf::_window_length = 8;
+  uint32_t mrf::_window_length_default = 5;
+  uint32_t mrf::_window_length = 5;
   uint32_t mrf::_hctable[] = { 1, 3, 5, 11, 23, 47, 97, 197, 397, 797 };
   double mrf::_epsilon = 1e-6;  // infinitesimal. 
 
@@ -113,26 +113,41 @@ namespace lsh
 	return mrf::mrf_hash(tokens);
      }
       
-  void mrf::mrf_features(const std::string &str,
-			 std::vector<uint32_t> &features,
-			 const int &min_radius,
-			 const int &max_radius)
+  void mrf::mrf_features_query(const std::string &str,
+			       std::vector<uint32_t> &features,
+			       const int &min_radius,
+			       const int &max_radius)
   {
-	std::vector<std::string> tokens;
-	mrf::tokenize(str,tokens,mrf::_default_delims);
-	
-	int gen_radius = 0;
-	while(!tokens.empty())
-	  {
+     std::vector<std::string> tokens;
+     mrf::tokenize(str,tokens,mrf::_default_delims);
+     
+     int gen_radius = 0;
+     while(!tokens.empty())
+       {
 	    mrf::mrf_build(tokens,features,
 			   min_radius,max_radius,
 			   gen_radius);
-	    tokens.erase(tokens.begin());
-	    ++gen_radius;
-	  }
-	std::sort(features.begin(),features.end());
+	  tokens.erase(tokens.begin());
+	  ++gen_radius;
+       }
+     std::sort(features.begin(),features.end());
   }
 
+   void mrf::mrf_features(std::vector<std::string> &tokens,
+			  std::vector<uint32_t> &features,
+			  const int &step)
+     {
+	while(!tokens.empty())
+	  {
+	     mrf::mrf_build(tokens,features,
+			    0, mrf::_window_length_default,0);
+	     if ((int)tokens.size()>step)
+	       tokens.erase(tokens.begin(),tokens.begin()+step);
+	     else tokens.clear();
+	  }
+	std::sort(features.begin(),features.end());
+     }
+      
   void mrf::mrf_build(const std::vector<std::string> &tokens,
 		      std::vector<uint32_t> &features,
 		      const int &min_radius,
@@ -161,9 +176,14 @@ namespace lsh
   {
     if (chains.empty())
       {
-	 int radius_chain = gen_radius+tokens.size()-1;
+	 int radius_chain = gen_radius+std::min(tokens.size(),mrf::_window_length_default)-1;
 	 str_chain chain(tokens.at(tok),radius_chain);
-	
+
+#ifdef DEBUG	 
+	 std::cout << "gen_radius: " << gen_radius << std::endl;
+	 std::cout << "radius_chain: " << radius_chain << std::endl;
+#endif	 
+	 
 	if (radius_chain >= min_radius
 	    && radius_chain <= max_radius)
 	  {
@@ -175,6 +195,7 @@ namespace lsh
 	    //debug
 	    std::cout << tokens.at(tok) << std::endl;
 	    std::cout << std::hex << h << std::endl;
+	     std::cout << "radius: " << radius_chain << std::endl;
 	    std::cout << std::endl;
 	    //debug
 #endif
@@ -213,7 +234,8 @@ namespace lsh
 		    //debug
 		    chain1.print(std::cout);
 		    std::cout << std::hex << h << std::endl;
-		    std::cout << std::endl;
+		     std::cout << "radius: " << chain1.get_radius() << std::endl;
+		     std::cout << std::endl;
 		    //debug
 #endif
 		  }
@@ -363,19 +385,21 @@ namespace lsh
   {
     // mrf call.
     std::vector<uint32_t> features1;
-    mrf::mrf_features(query1,features1,min_radius,max_radius);
+    mrf::mrf_features_query(query1,features1,min_radius,max_radius);
     
     std::vector<uint32_t> features2;
-    mrf::mrf_features(query2,features2,min_radius,max_radius);
-      
-    return mrf::radiance(features1,features2);
+    mrf::mrf_features_query(query2,features2,min_radius,max_radius);
+
+    uint32_t common_features = 0;
+    return mrf::radiance(features1,features2,common_features);
   }
 
   double mrf::radiance(const std::vector<uint32_t> &sorted_features1,
-		       const std::vector<uint32_t> &sorted_features2)
+		       const std::vector<uint32_t> &sorted_features2,
+		       uint32_t &common_features)
   {
     // distance computation.
-    int common_features = 0;
+    common_features = 0;
     int nsf1 = sorted_features1.size();
     int nsf2 = sorted_features2.size();
     int cfeat1 = 0;  // feature counter.

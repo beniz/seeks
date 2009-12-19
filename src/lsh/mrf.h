@@ -72,11 +72,15 @@ namespace lsh
     // straight hash of a query string.
     static uint32_t mrf_single_feature(const std::string &str);
      
-    static void mrf_features(const std::string &str,
-			     std::vector<uint32_t> &features,
-			     const int &min_radius,
-			     const int &max_radius);
-  
+    static void mrf_features_query(const std::string &str,
+				   std::vector<uint32_t> &features,
+				   const int &min_radius,
+				   const int &max_radius);
+    
+     static void mrf_features(std::vector<std::string> &tokens,
+			      std::vector<uint32_t> &features,
+			      const int &step);
+     
     static void mrf_build(const std::vector<std::string> &tokens,
 			  std::vector<uint32_t> &features,
 			  const int &min_radius,
@@ -110,16 +114,19 @@ namespace lsh
 			   const int &max_radius);
     
     static double radiance(const std::vector<uint32_t> &sorted_features1,
-			   const std::vector<uint32_t> &sorted_features2);
+			   const std::vector<uint32_t> &sorted_features2,
+			   uint32_t &common_features);
 
-  private:
+  public:
     static std::string _default_delims;
+   private:
     static uint32_t _skip_token;
   public:
     static uint32_t _window_length_default;
   private:
     static uint32_t _window_length;
     static uint32_t _hctable[];
+   public:
     static double _epsilon;
   };
 
