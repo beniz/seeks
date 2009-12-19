@@ -195,6 +195,14 @@ namespace seeks_plugins
 	else return false;
      }
 
+   std::string query_context::has_cached(const char *url)
+     {
+	hash_map<const char*,std::string,hash<const char*>,eqstr>::const_iterator hit;
+	if ((hit = _cached_urls.find(url)) != _cached_urls.end())
+	  return (*hit).second;
+	else return std::string("");
+     }
+   
    void query_context::update_unordered_cache()
      {
 	size_t cs_size = _cached_snippets.size();

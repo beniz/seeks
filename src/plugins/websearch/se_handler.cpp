@@ -191,12 +191,12 @@ namespace seeks_plugins
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang"
     };
 
-   short se_handler::_results_lookahead_factor = 1;  // beware: do not know how to do with Bing for example.
-   
    se_ggle se_handler::_ggle = se_ggle();
    se_cuil se_handler::_cuil = se_cuil();
    se_bing se_handler::_bing = se_bing();
 
+   long se_handler::_se_connect_timeout = 5; // 5 seconds.
+   
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -253,7 +253,7 @@ namespace seeks_plugins
     else nresults = urls.size();
     
     // get content.
-    curl_mget cmg(urls.size());
+    curl_mget cmg(urls.size(),se_handler::_se_connect_timeout);
     cmg.www_mget(urls,urls.size());
     
     char **outputs = new char*[urls.size()];
@@ -371,6 +371,10 @@ namespace seeks_plugins
 	se_parser *se = se_handler::create_se_parser(args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
+	// link the snippets to the query context.
+	for (size_t i=0;i<args._snippets->size();i++)
+	  args._snippets->at(i)->_qc = args._qr;
+	
 	// hack for cuil.
 	if (args._se == CUIL)
 	  {

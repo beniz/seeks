@@ -160,15 +160,13 @@ namespace seeks_plugins
 	/*-- variables. --*/
       public:
 	static std::string _se_strings[NSEs];
-	static short _results_lookahead_factor; // we fetch x * the requested number of results.
-	                                      // this is because reranking may move to the top/bottom
-					      // more results from certain search engines, and less from
-					      // others.
 	
 	/* search engine objects. */
 	static se_ggle _ggle;
 	static se_cuil _cuil;
 	static se_bing _bing;
+
+	static long _se_connect_timeout; // connection timeout to a search engine.
      };
       
 } /* end of namespace. */

@@ -68,6 +68,10 @@ namespace seeks_plugins
 	  cgi_dispatcher *cgid_wb_search
 	    = new cgi_dispatcher("search", &websearch::cgi_websearch_search, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_search);
+
+	  cgi_dispatcher *cgid_wb_search_cache
+	    = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
+	  _cgi_dispatchers.push_back(cgid_wb_search_cache);
 	  
 	  // external cgi.
 	  static_renderer::register_cgi(this);
@@ -146,6 +150,45 @@ namespace seeks_plugins
 	  }
      }
 
+   sp_err websearch::cgi_websearch_search_cache(client_state *csp, http_response *rsp,
+						const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!parameters->empty())
+	  {
+	     const char *url = miscutil::lookup(parameters,"url"); // grab the url.
+	     query_context *qc = websearch::lookup_qc(parameters);
+	     
+	     if (!qc)
+	       {
+		  // redirect to the url.
+		  cgi::cgi_redirect(rsp,url);
+		  return SP_ERR_OK;
+	       }
+	     
+	     std::string content_str;
+	     if ((content_str = qc->has_cached(url))!="")
+	       {
+		  std::cerr << "[Debug]: found cached url: " << url << std::endl;
+		  
+		  rsp->_body = strdup(content_str.c_str());
+		  rsp->_is_static = 1;
+		  
+		  return SP_ERR_OK;
+	       }
+	     else
+	       {
+		  // redirect to the url.
+		  cgi::cgi_redirect(rsp,url);
+		  return SP_ERR_OK;
+	       }
+	  }
+	else
+	  {
+	     // do nothing. beware.
+	     return SP_ERR_OK;
+	  }
+     }
+   
   sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
 				      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
@@ -156,40 +199,54 @@ namespace seeks_plugins
      const char *action = miscutil::lookup(parameters,"action");
      
      // expansion: we fetch more pages from every search engine.
+     bool expanded = false;
      if (qc) // we already had a context for this query.
        {
 	  if (strcmp(action,"expand") == 0)
-	    qc->generate(csp,rsp,parameters);
+	    {
+	       expanded = true;
+	       qc->generate(csp,rsp,parameters);
+	    }
        }
      else 
        {
 	  // new context, whether we're expanding or not doesn't matter, we need
 	  // to generate snippets first.
+	  expanded = true;
 	  qc = new query_context(parameters);
 	  qc->generate(csp,rsp,parameters);
        }
      	  
      // grab (updated) set of cached search result snippets.
-     std::vector<search_snippet*> snippets = qc->_cached_snippets;
+     //std::vector<search_snippet*> snippets = qc->_cached_snippets;
      
      // sort and rank search snippets !                                                                                 
-     // TODO: strategies and configuration.                                                                                     
-     std::vector<search_snippet*> unique_ranked_snippets;
-     sort_rank::sort_merge_and_rank_snippets(snippets,unique_ranked_snippets);
-     
-     // update unordered set.
-     qc->update_unordered_cache();
+     // TODO: strategies and configuration.                                                           
+     //std::vector<search_snippet*> unique_ranked_snippets;
+     if (expanded)
+       {
+	  sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);//,unique_ranked_snippets);
+	  
+	  // update unordered set.
+	  qc->update_unordered_cache();
+       }
      
      // TODO: additional processing comes here.
+     /* if (websearch::_wconfig->_advanced_ranking)
+       {
+	  sort_rank::retrieve_and_score(qc);
      
+	  std::sort(unique_ranked_snippets.begin(),unique_ranked_snippets.end(),
+		    search_snippet::max_seeks_rank);
+       } */
      
      // render the page.                                                                                                
      // TODO: dynamic renderer.                                                                                                 
-     sp_err err = static_renderer::render_result_page_static(unique_ranked_snippets,
+     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							     csp,rsp,parameters,qc);
 
     // clear snippets.                                                                                                       
-     unique_ranked_snippets.clear();
+     //unique_ranked_snippets.clear();
 
     // TODO: catch errors.                                                                                                      
      return err;

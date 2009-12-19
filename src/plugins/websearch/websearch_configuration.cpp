@@ -30,7 +30,7 @@ namespace seeks_plugins
 #define hash_qcd                    4118649627ul /* "query-context-delay" */
 #define hash_thumbs                  793242781ul /* "enable-thumbs" */
 #define hash_js                     3171705030ul /* "enable-js" */
-#define hash_advanced_ranking       1140424120ul /* "enable-advanced-ranking" */
+#define hash_content_analysis       1483831511ul /* "enable-content-analysis" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -51,7 +51,7 @@ namespace seeks_plugins
 	_se_enabled = std::bitset<NSEs>(000); // ggle only, TODO: change to all...
 	_query_context_delay = 300; // in seconds, 5 minutes.
 	_js = 0; // default is no javascript, this may change later on.
-	_advanced_ranking = 0;
+	_content_analysis = 0;
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -100,10 +100,10 @@ namespace seeks_plugins
 						"Enable javascript use on the websearch result page");
 	     break;
 	     
-	   case hash_advanced_ranking:
-	     _advanced_ranking = static_cast<bool>(atoi(arg));
+	   case hash_content_analysis:
+	     _content_analysis = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable the advanced ranking system with background download of webpages pointed to by websearch results");
+						"Enable the background download of webpages pointed to by websearch results and content analysis");
 	     break;
 	     
 	   default :

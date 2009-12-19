@@ -95,6 +95,11 @@ namespace seeks_plugins
 	bool is_cached(const std::string &url);
 
 	/**
+	 * \brief returns the cached content, if any.
+	 */
+	std::string has_cached(const char *url);
+	
+	/**
 	 * \brief updates unordered cached snippets. This set is for fast access
 	 * and update to the snippets in the cache.
 	 */

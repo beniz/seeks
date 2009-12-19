@@ -18,6 +18,7 @@
  **/
 
 #include "sort_rank.h"
+#include "websearch.h"
 #include "content_handler.h"
 
 #include <algorithm>
@@ -38,52 +39,71 @@ namespace seeks_plugins
 			 std::back_inserter(unique_snippets),search_snippet::equal_url);
      }
    
-   void sort_rank::sort_merge_and_rank_snippets(const std::vector<search_snippet*> &snippets,
-						std::vector<search_snippet*> &unique_ranked_snippets)
+   void sort_rank::sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets)
+						//std::vector<search_snippet*> &unique_ranked_snippets)
      {
+	static double st = 0.9; // similarity threshold.
+	
 	// copy original vector.
-	std::copy(snippets.begin(),snippets.end(),std::back_inserter(unique_ranked_snippets));
+	//std::copy(snippets.begin(),snippets.end(),std::back_inserter(unique_ranked_snippets));
 	
 	// sort snippets by url.
-	std::sort(unique_ranked_snippets.begin(),unique_ranked_snippets.end(),
+	std::sort(snippets.begin(),snippets.end(),
 		  search_snippet::less_url);
 	
-	std::vector<search_snippet*>::iterator it = unique_ranked_snippets.begin();
+	std::vector<search_snippet*>::iterator it = snippets.begin();
 	std::string c_url = "";
+	std::string c_title = "";
 	search_snippet *c_sp = NULL;
 	
-	while(it != unique_ranked_snippets.end())
+	while(it != snippets.end())
 	  {
 	     search_snippet *sp = (*it);
-	     if (sp->_url.compare(c_url) != 0)
-	       {
-		  //debug
-		  //std::cerr << "new url scanned: " << sp->_url << std::endl;
-		  //debug
-		  
-		  c_url = sp->_url;
-		  c_sp = sp;
-		  c_sp->_seeks_rank = c_sp->_engine.count();
-		  
-		  ++it;
-	       }
-	     else  // same url as before.
+	     if (sp->_url.compare(c_url) == 0)  // same url as before.
 	       {
 		  // merging snippets.
 		  search_snippet::merge_snippets(c_sp,sp);
 		  c_sp->_seeks_rank = c_sp->_engine.count();
-		  it = unique_ranked_snippets.erase(it);
+		  it = snippets.erase(it);
+		  delete sp;
+		  sp = NULL;
+		  continue;
 	       }
-	  }
-	
+	     else if (websearch::_wconfig->_content_analysis
+		      && sp->_title.compare(c_title) == 0) // same title as before.
+	       {
+		  bool same = content_handler::has_same_content(qc,sp->_url,c_sp->_url,st);
+		  if (same)
+		    {
+		       search_snippet::merge_snippets(c_sp,sp);
+		       c_sp->_seeks_rank = c_sp->_engine.count();
+		       it = snippets.erase(it);
+		       delete sp;
+		       sp = NULL;
+		       continue;
+		    }
+	       }
+	     
+	     //debug
+	     //std::cerr << "new url scanned: " << sp->_url << std::endl;
+	     //debug
+	     
+	     c_url = sp->_url;
+	     c_title = sp->_title;
+	     c_sp = sp;
+	     c_sp->_seeks_rank = c_sp->_engine.count();
+	     
+	     ++it;
+	  } // end while.
+		
 	// sort by rank.
-	std::sort(unique_ranked_snippets.begin(),unique_ranked_snippets.end(),
+	std::sort(snippets.begin(),snippets.end(),
 		  search_snippet::max_seeks_rank);
 	
 	//debug
 	/* std::cerr << "[Debug]: sorted result snippets:\n";
-	it = unique_ranked_snippets.begin();
-	while(it!=unique_ranked_snippets.end())
+	it = snippets.begin();
+	while(it!=snippets.end())
 	  {
 	     (*it)->print(std::cerr);
 	     it++;
@@ -92,11 +112,18 @@ namespace seeks_plugins
      }
 
    /* advanced sorting and scoring, based on webpages content. */
-   void sort_rank::retrieve_and_score(query_context *qc)
+   /* void sort_rank::retrieve_and_score(query_context *qc)
      {
 	// fetch content.
-	size_t ncontents = 0;
+	size_t ncontents = websearch::_wconfig->_N;
 	std::vector<std::string> urls;
+	for (size_t i=0;i<ncontents;i++)
+	  {
+	     if (!qc->is_cached(qc->_cached_snippets.at(i)->_url))
+	       urls.push_back(qc->_cached_snippets.at(i)->_url);
+	  }
+	ncontents = urls.size();
+	
 	char **outputs = content_handler::fetch_snippets_content(qc,ncontents,urls);
 		
 	// parse content and keep text only.
@@ -114,6 +141,6 @@ namespace seeks_plugins
      
 	// destroy feature sets.
 	content_handler::delete_features(features);
-     }
+     } */
    
 } /* end of namespace. */

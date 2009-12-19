@@ -30,6 +30,7 @@
 
 namespace seeks_plugins
 {
+   class query_context;
    
    enum DOC_TYPE
      {
@@ -114,6 +115,8 @@ namespace seeks_plugins
 	std::ostream& print(std::ostream &output);
 	
       public:
+	query_context *_qc; // query context the snippet belongs to.
+	
 	std::string _title;
 	std::string _url;
 	std::string _cite;

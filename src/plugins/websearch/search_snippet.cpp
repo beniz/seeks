@@ -31,12 +31,12 @@ using sp::encode;
 namespace seeks_plugins
 {
    search_snippet::search_snippet()
-     :_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
+     :_qc(NULL),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
-     :_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
+     :_qc(NULL),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
        {
        }
       
@@ -165,7 +165,14 @@ namespace seeks_plugins
 	     html_content += _archive;
 	     html_content += " \">Archive</a>";
 	  }
-			 
+	if (_qc->is_cached(_url))
+	  {
+	     html_content += "<a class=\"search_cache\" href=\"";
+	     html_content += "http://s.s/search_cache?url="
+	                  + _url + "&q=" + _qc->_query;
+	     html_content += " \">Quick link</a>";
+	  }
+	
 	html_content += "</div></li>\n";
 		
 	/* std::cout << "html_content:\n";
@@ -244,6 +251,10 @@ namespace seeks_plugins
 	// cached link.
 	if (s1->_cached.empty())
 	  s1->_cached = s2->_cached;
+	
+	// archive link.
+	if (s1->_archive.empty())
+	  s1->_archive = s2->_archive;
 	
 	// summary.
 	if (s1->_summary.length() < s2->_summary.length())

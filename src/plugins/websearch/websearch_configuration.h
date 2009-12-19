@@ -55,7 +55,7 @@ namespace seeks_plugins
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
 	bool _thumbs; /**< enabled thumbs */
 	bool _js; /**< enabled js */
-	bool _advanced_ranking; /**< enables advanced ranking with background fetch of webpage content. */
+	bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */
 	
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */

@@ -241,8 +241,6 @@ namespace seeks_plugins
      miscutil::add_map_entry(exports,"$fullquery",1,query,1);
      
      // clean query.
-     //std::string query_clean = std::string(query);
-     //miscutil::replace_in_string(query_clean,"+"," "); // TODO: fix '+' problem here.
      std::string query_clean = se_handler::cleanup_query(std::string(query));
      miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
      std::vector<std::string> words;
@@ -276,8 +274,7 @@ namespace seeks_plugins
 	  std::string no_results = "";
 	  return SP_ERR_OK;
        } */
-	   
-     	  
+     
      // search snippets.
      std::string snippets_str;
      size_t snisize = std::min(cp*websearch::_wconfig->_N,(int)snippets.size());

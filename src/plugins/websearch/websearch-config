@@ -25,13 +25,14 @@ enable-thumbs 0
 # default: 0
 enable-js 0
 
-# enables advanced ranking with background dowload of the content
+# enables background download of the content
 # pointed to by websearch results.
 # Expected to be both slower and more bandwith demanding than the
 # default ranking system.
 # However, the advanced system has more features, such as better
 # aggregation of websearch snippets from multiple search engines,
-# more accurate ranking, preemptive caching of webpages pointed
+# preemptive caching of webpages pointed
 # to by websearch results and automated similarity analysis and
 # clustering of the content pointed to by websearch results.
-enable-advanced-ranking
+# default: 0
+enable-content-analysis 1
