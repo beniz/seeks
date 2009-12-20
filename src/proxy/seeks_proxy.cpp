@@ -1286,7 +1286,6 @@ namespace sp
 	long len = 0; /* for buffer sizes (and negative error codes) */
 	
 	/* Function that does the content filtering for the current request */
-	//filter_function_ptr content_filter = NULL;
 	bool content_filter = false;
 	
 	/* Skeleton for HTTP response, if we should intercept the request */
@@ -1353,20 +1352,6 @@ namespace sp
 	   *
 	   */
 	
-	
-	// seeks: deactivated, requires an interceptor plugin.
-	/* if (http->_ssl && filters::connect_port_is_forbidden(csp))
-	  {
-	     const char *acceptable_connect_ports =
-	       csp->_action._string[ACTION_STRING_LIMIT_CONNECT];
-	     assert(NULL != acceptable_connect_ports);
-	     errlog::log_error(LOG_LEVEL_INFO, "Request from %s marked for blocking. "
-			       "limit-connect{%s} doesn't allow CONNECT requests to port %d.",
-			       csp->_ip_addr_str, acceptable_connect_ports, csp->_http._port);
-	     csp->_action._flags |= ACTION_BLOCK;
-	     http->_ssl = 0;
-	  } */
-	
 	if (http->_ssl == 0)
 	  {
 	     free_const((*csp->_headers.begin()));  // beware !!!
@@ -1403,7 +1388,7 @@ namespace sp
 	// seeks: dispatch_cgi and redirection only.
 	/*
 	 * We have a request. Check if one of the crunchers wants it.
-	 * That is, block url, distrust url, redirect url, known cgi call (e.g. local config page),
+	 * That is, block url, redirect url, known cgi call (e.g. local config page),
 	 * so-called 'direct response' which truely is a check of max forwards.
 	 */
 	if (seeks_proxy::crunch_response_triggered(csp, seeks_proxy::_crunchers_all))
@@ -1416,9 +1401,8 @@ namespace sp
 	     return;
 	  }
 	
-	// TODO: seeks: action (i.e. cruncher) plugins come into action here.
-	// Typically, the websearch query interceptor...
-	
+	// Plugins come into action here.
+	// Typically, the websearch query interceptor.
 	errlog::log_error(LOG_LEVEL_GPC, "%s%s", http->_hostport, http->_path);
 	
 	if (fwd->_forward_host)

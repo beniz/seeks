@@ -1,4 +1,5 @@
-*.google.*/search?
-*.google.*/custom?
-*.bing.*/search?
-*.cuil.com/search?
+*.google.*/m\?
+*.google.*/search\?
+*.google.*/custom\?
+*.bing.*/search\?
+*.cuil.com/search\?

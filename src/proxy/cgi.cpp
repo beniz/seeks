@@ -608,7 +608,7 @@ hash_map<const char*,const char*,hash<const char*>,eqstr>* cgi::parse_cgi_parame
 	*p = '\0';
      }
    
-   pairs = miscutil::ssplit(argstring, "&", vector, SZ(vector), 1, 1);
+   pairs = miscutil::ssplit(argstring, "?&", vector, SZ(vector), 1, 1);
    
    for (i = 0; i < pairs; i++)
      {
