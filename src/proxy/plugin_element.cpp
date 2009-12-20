@@ -102,6 +102,7 @@ namespace sp
      freez(_pattern_filename);
      freez(_code_filename);
   
+#if defined(HAVE_PERL) && !defined(NO_PERL)
      if (_perl)
        {
 	  if (_perl_interpreter)
@@ -109,9 +110,8 @@ namespace sp
 	       perl_destruct(_perl_interpreter);
 	       perl_free(_perl_interpreter);
 	    }
-	  
        }
-     
+#endif
   }
    
    void plugin_element::clear_patterns()
@@ -198,8 +198,10 @@ namespace sp
 	  {
 	     if (_pcrs)
 	       return pcrs_load_code_file();
+#if defined(HAVE_PERL) && !defined(NO_PERL)
 	     else if (_perl)
 	       return perl_load_code_file();
+#endif
 	     return 1;
 	  }
 	return 0;
@@ -466,6 +468,7 @@ pcrs_job* plugin_element::compile_dynamic_pcrs_job_list(const client_state *csp)
 	return(newstr);
      }
 
+#if defined(HAVE_PERL) && !defined(NO_PERL)
    // 2- Perl
    EXTERN_C void xs_init(pTHX);
    
@@ -527,5 +530,6 @@ pcrs_job* plugin_element::compile_dynamic_pcrs_job_list(const client_state *csp)
 	
 	return output;
      }
+#endif   
    
 } /* end of namespace. */

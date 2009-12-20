@@ -247,6 +247,23 @@ if test x$debug = xtrue; then
         AC_DEFINE(HAVE_DEBUG,1,"debug output")
 fi
 
+#- perl flag
+AC_ARG_ENABLE(perl,
+AC_HELP_STRING([--enable-perl],[Enable uses of the Perl interpreter (default is NO)]),
+[case "${enableval}" in
+        yes) perl=true ;;
+                no) perl=false ;;
+                        *) AC_MSG_ERROR(bad_value ${enableval} for
+--enable-perl) ;;
+esac],[perl=false])
+if test x$perl = xtrue; then
+AC_PATH_PROG([PERL],[perl])
+AS_IF([test -n "$PERL"],[
+  AC_DEFINE(HAVE_PERL,1,Perl)
+  AM_CONDITIONAL(USE_PERL,true)
+  ],[])
+fi
+
 #==========================================================================
 # Finding curl
 #==========================================================================
