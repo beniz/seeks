@@ -176,7 +176,7 @@ namespace lsh
   {
     if (chains.empty())
       {
-	 int radius_chain = gen_radius+std::min(tokens.size(),mrf::_window_length_default)-1;
+	 int radius_chain = gen_radius+std::min((uint32_t)tokens.size(),mrf::_window_length_default)-1;
 	 str_chain chain(tokens.at(tok),radius_chain);
 
 #ifdef DEBUG	 
