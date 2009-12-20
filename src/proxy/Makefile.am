@@ -11,12 +11,12 @@ libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp
 
-libseeksproxy_la_CXXFLAGS=
-libseeksplugins_la_CXXFLAGS=
+libseeksproxy_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
+libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
 if USE_PERL
 libseeksplugins_la_SOURCES += perl_std_filter.cpp xsinit.cpp
-libseeksplugins_la_CXXFLAGS +=`perl -MExtUtils::Embed -e ccopts` -Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
-libseeksproxy_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts` -Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
+libseeksplugins_la_CXXFLAGS +=`perl -MExtUtils::Embed -e ccopts`
+libseeksproxy_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 xsinit.cpp:
         perl -MExtUtils::Embed -e xsinit -- -o xsinit.cpp
 endif
