@@ -30,35 +30,6 @@ namespace seeks_plugins
 	/*- cgi. -*/
 	static void register_cgi(websearch *wbs);
 	
-	/* static sp_err cgi_websearch_search_css(client_state *csp,
-					       http_response *rsp,
-					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
-	static sp_err cgi_websearch_yui_reset_fonts_grids_css(client_state *csp,
-							      http_response *rsp,
-							      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-							      
-	static sp_err cgi_websearch_search_button(client_state *csp,
-						  http_response *rsp,
-						  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-
-	static sp_err cgi_websearch_search_expand(client_state *csp,
-						  http_response *rsp,
-						  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
-	static sp_err cgi_websearch_seeks_wb_google_icon(client_state *csp,
-							 http_response *rsp,
-							 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
-	static sp_err cgi_websearch_seeks_wb_cuil_icon(client_state *csp,
-						       http_response *rsp,
-						       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
-	static sp_err cgi_websearch_seeks_wb_bing_icon(client_state *csp,
-						       http_response *rsp,
-						       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	*/
-	
 	/*- renderer. -*/
 	static sp_err render_result_page_static(const std::vector<search_snippet*> &snippets,
 						client_state *csp, http_response *rsp,
