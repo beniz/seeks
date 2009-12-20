@@ -38,13 +38,6 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
-# Perl
-AC_PATH_PROG([PERL],[perl])
-AS_IF([test -n "$PERL"],[
-  AC_DEFINE(HAVE_PERL,1,Perl)
-  AM_CONDITIONAL(USE_PERL,true)
-  ],[])
-
 # Set the language.
 AC_LANG(C++)
 
@@ -262,6 +255,8 @@ AS_IF([test -n "$PERL"],[
   AC_DEFINE(HAVE_PERL,1,Perl)
   AM_CONDITIONAL(USE_PERL,true)
   ],[])
+else
+  AM_CONDITIONAL(USE_PERL,false)
 fi
 
 #==========================================================================
