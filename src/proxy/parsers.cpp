@@ -938,29 +938,29 @@ char* parsers::get_header_value(const std::list<const char*> *header_list, const
  * Returns     :  SP_ERR_OK
  *
  *********************************************************************/
-/* sp_err parsers::scan_headers(client_state *csp)
+sp_err parsers::scan_headers(client_state *csp)
 {
    sp_err err = SP_ERR_OK;
 
    std::list<const char*>::const_iterator lit = csp->_headers.begin();
    while(lit!=csp->_headers.end())
      {
-	const char *str = (*lit); */
+	const char *str = (*lit);
 	
 	/* Header crunch()ed in previous run? -> ignore */
-	/* if (str == NULL) 
+	if (str == NULL) 
 	  {
 	     ++lit;
 	     continue;
 	  }
 	
 	errlog::log_error(LOG_LEVEL_HEADER, "scan: %s", str);
-	err = parsers::header_tagger(csp, (char*)str); // beware.
+	//err = parsers::header_tagger(csp, (char*)str); // beware.
 	++lit;
      }
    
    return err;
-} */
+}
 
 //seeks: deprecated, should be turned into a plugin.
 /*********************************************************************
@@ -1002,7 +1002,7 @@ sp_err parsers::sed(client_state *csp, int filter_server_headers)
       f = parsers::_add_client_headers;
    }
 
-   //parsers::scan_headers(csp);
+   parsers::scan_headers(csp);
 
    while ((err == SP_ERR_OK) && (v->_str != NULL))
    {
@@ -1164,7 +1164,7 @@ sp_err parsers::update_server_headers(client_state *csp)
  * Returns     :  SP_ERR_OK on success and always succeeds
  *
  *********************************************************************/
-/* sp_err parsers::header_tagger(client_state *csp, char *header)
+/*sp_err parsers::header_tagger(client_state *csp, char *header)
 {
    int wanted_filter_type;
    int multi_action_index;

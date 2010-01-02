@@ -529,12 +529,12 @@ int filters::acl_addr(const char *aspec, access_control_addr *aca)
  * Returns     :  True if yes, false otherwise.
  *
  *********************************************************************/
-int filters::connect_port_is_forbidden(const client_state *csp)
+/*int filters::connect_port_is_forbidden(const client_state *csp)
 {
    return ((csp->_action._flags & ACTION_LIMIT_CONNECT) &&
 	   !urlmatch::match_portlist(csp->_action._string[ACTION_STRING_LIMIT_CONNECT],
 				     csp->_http._port));
-}
+}*/
 
 /*********************************************************************
  *
@@ -705,24 +705,24 @@ char* filters::get_last_url(char *subject, const char *redirect_mode)
  * Returns     :  NULL if the request can pass, HTTP redirect otherwise.
  *
  *********************************************************************/
-http_response* filters::redirect_url(client_state *csp)
+/*http_response* filters::redirect_url(client_state *csp)
 {
    http_response *rsp;
-#ifdef FEATURE_FAST_REDIRECTS
+#ifdef FEATURE_FAST_REDIRECTS */
    /*
     * XXX: Do we still need FEATURE_FAST_REDIRECTS
     * as compile-time option? The user can easily disable
     * it in his action file.
     */
-   char * redirect_mode;
-#endif /* def FEATURE_FAST_REDIRECTS */
-   char *old_url = NULL;
+/*   char * redirect_mode;
+#endif*/ /* def FEATURE_FAST_REDIRECTS */
+/*   char *old_url = NULL;
    char *new_url = NULL;
    char *redirection_string;
 
    if ((csp->_action._flags & ACTION_REDIRECT))
    {
-      redirection_string = csp->_action._string[ACTION_STRING_REDIRECT];
+      redirection_string = csp->_action._string[ACTION_STRING_REDIRECT]; */
 
       /*
        * If the redirection string begins with 's',
@@ -736,7 +736,7 @@ http_response* filters::redirect_url(client_state *csp)
        * she would get undefined results anyway.
        *
        */
-      if (*redirection_string == 's')
+/*      if (*redirection_string == 's')
       {
          old_url = csp->_http._url;
          new_url = filters::rewrite_url(old_url, redirection_string);
@@ -753,16 +753,16 @@ http_response* filters::redirect_url(client_state *csp)
 #ifdef FEATURE_FAST_REDIRECTS
    if ((csp->_action._flags & ACTION_FAST_REDIRECTS))
    {
-      redirect_mode = csp->_action._string[ACTION_STRING_FAST_REDIRECTS];
+      redirect_mode = csp->_action._string[ACTION_STRING_FAST_REDIRECTS]; */
 
       /*
        * If it exists, use the previously rewritten URL as input
        * otherwise just use the old path.
        */
-      old_url = (new_url != NULL) ? new_url : strdup(csp->_http._path);
+/*      old_url = (new_url != NULL) ? new_url : strdup(csp->_http._path);
       new_url = get_last_url(old_url, redirect_mode);
       freez(old_url);
-   }
+   } */
    
    /*
     * Disable redirect checkers, so that they
@@ -773,12 +773,12 @@ http_response* filters::redirect_url(client_state *csp)
     * it doesn't matter, but the duplicated
     * log messages are annoying.
     */
-   csp->_action._flags &= ~ACTION_FAST_REDIRECTS;
-#endif /* def FEATURE_FAST_REDIRECTS */
-   csp->_action._flags &= ~ACTION_REDIRECT;
+/*   csp->_action._flags &= ~ACTION_FAST_REDIRECTS;
+#endif*/ /* def FEATURE_FAST_REDIRECTS */
+   //csp->_action._flags &= ~ACTION_REDIRECT;
 
    /* Did any redirect action trigger? */   
-   if (new_url)
+   /* if (new_url)
    {
       if (0 == miscutil::strcmpic(new_url, csp->_http._url))
       {
@@ -809,11 +809,11 @@ http_response* filters::redirect_url(client_state *csp)
 	 
          return cgi::finish_http_response(csp, rsp);
       }
-   }
+   } */
 
    /* Only reached if no redirect is required */
-   return NULL;
-}
+   /* return NULL;
+} */
 
 
 #ifdef FEATURE_IMAGE_BLOCKING
@@ -1075,54 +1075,54 @@ sp_err filters::prepare_for_filtering(client_state *csp)
  *                Invalid syntax is fatal.
  *
  *********************************************************************/
-forward_spec* filters::get_forward_override_settings(client_state *csp)
+/*forward_spec* filters::get_forward_override_settings(client_state *csp)
 {
    const char *forward_override_line = csp->_action._string[ACTION_STRING_FORWARD_OVERRIDE];
    char forward_settings[BUFFER_SIZE];
-   char *http_parent = NULL;
+   char *http_parent = NULL; */
    
    /* variable names were chosen for consistency reasons. */
-   forward_spec *fwd = NULL;
+/*   forward_spec *fwd = NULL;
    int vec_count;
    char *vec[3];
 
-   assert(csp->_action._flags & ACTION_FORWARD_OVERRIDE);
+   assert(csp->_action._flags & ACTION_FORWARD_OVERRIDE); */
    /* Should be enforced by load_one_actions_file() */
-   assert(strlen(forward_override_line) < sizeof(forward_settings) - 1);
+/*   assert(strlen(forward_override_line) < sizeof(forward_settings) - 1); */
 
    /* Create a copy ssplit can modify */
-   strlcpy(forward_settings, forward_override_line, sizeof(forward_settings));
+/*   strlcpy(forward_settings, forward_override_line, sizeof(forward_settings));
 
    if (NULL != csp->_fwd)
-   {
+   { */
       /*
        * XXX: Currently necessary to prevent memory
        * leaks when the show-url-info cgi page is visited.
        */
-      delete csp->_fwd;
-   }
+/*      delete csp->_fwd;
+   } */
 
    /*
     * allocate a new forward node, valid only for
     * the lifetime of this request. Save its location
     * in csp as well, so sweep() can free it later on.
     */
-   fwd = csp->_fwd = new forward_spec();
+/*   fwd = csp->_fwd = new forward_spec();
    if (NULL == fwd)
      {
 	errlog::log_error(LOG_LEVEL_FATAL,
-			  "can't allocate memory for forward-override{%s}", forward_override_line);
+			  "can't allocate memory for forward-override{%s}", forward_override_line); */
 	/* Never get here - LOG_LEVEL_FATAL causes program exit */
-	return NULL;
+/*	return NULL;
      }
 
    vec_count = miscutil::ssplit(forward_settings, " \t", vec, SZ(vec), 1, 1);
    if ((vec_count == 2) && !strcasecmp(vec[0], "forward"))
    {
-      fwd->_type = SOCKS_NONE;
+      fwd->_type = SOCKS_NONE; */
 
       /* Parse the parent HTTP proxy host:port */
-      http_parent = vec[1];
+/*      http_parent = vec[1];
 
    }
    else if (vec_count == 3)
@@ -1146,9 +1146,9 @@ forward_spec* filters::get_forward_override_settings(client_state *csp)
       }
 
       if (NULL != socks_proxy)
-      {
+      { */
          /* Parse the SOCKS proxy host[:port] */
-         fwd->_gateway_port = 1080;
+/*         fwd->_gateway_port = 1080;
          urlmatch::parse_forwarder_address(socks_proxy,
 					   &fwd->_gateway_host, &fwd->_gateway_port);
 
@@ -1159,12 +1159,12 @@ forward_spec* filters::get_forward_override_settings(client_state *csp)
    if (NULL == http_parent)
    {
       errlog::log_error(LOG_LEVEL_FATAL,
-			"Invalid forward-override syntax in: %s", forward_override_line);
+			"Invalid forward-override syntax in: %s", forward_override_line); */
       /* Never get here - LOG_LEVEL_FATAL causes program exit */
-   }
+/*   } */
 
    /* Parse http forwarding settings */
-   if (strcmp(http_parent, ".") != 0)
+/*   if (strcmp(http_parent, ".") != 0)
    {
       fwd->_forward_port = 8000;
       urlmatch::parse_forwarder_address(http_parent,
@@ -1177,7 +1177,7 @@ forward_spec* filters::get_forward_override_settings(client_state *csp)
 		     "Overriding forwarding settings based on \'%s\'", forward_override_line);
 
    return fwd;
-}
+} */
 
 
 /*********************************************************************
@@ -1199,10 +1199,10 @@ const forward_spec* filters::forward_url(client_state *csp,
    static const forward_spec fwd_default[1] = { forward_spec() };
    forward_spec *fwd = csp->_config->_forward;
 
-   if (csp->_action._flags & ACTION_FORWARD_OVERRIDE)
+   /*if (csp->_action._flags & ACTION_FORWARD_OVERRIDE)  // DEPRECATED
    {
       return filters::get_forward_override_settings(csp);
-   }
+   } */
 
    if (fwd == NULL)
    {

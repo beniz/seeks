@@ -115,7 +115,7 @@ namespace sp
  *          3  :  csp = Current client state (buffers, headers, etc...)
  *                      Not modified, only used for source IP and ACL.
  *
- * Returns     :  JB_INVALID_SOCKET => failure, else it is the socket
+ * Returns     :  SP_INVALID_SOCKET => failure, else it is the socket
  *                file descriptor.
  *
  *********************************************************************/
@@ -551,16 +551,11 @@ int spsockets::data_is_available(sp_socket fd, int seconds_to_wait)
  *********************************************************************/
 void spsockets::close_socket(sp_socket fd)
 {
-#if defined(_WIN32) || defined(__BEOS__)
+#if defined(_WIN32)
    closesocket(fd);
-#elif defined(AMIGA)
-   CloseSocket(fd); 
-#elif defined(__OS2__)
-   soclose(fd);
 #else
    close(fd);
 #endif
-
 }
 
 
@@ -986,7 +981,7 @@ int spsockets::accept_connection(client_state *csp, sp_socket fd)
    if (!csp->_ip_addr_str || retval)
    {
       errlog::log_error(LOG_LEVEL_ERROR, "Can not save csp->ip_addr_str: %s",
-			(csp->_ip_addr_str) ? gai_strerror(retval) : "Insuffcient memory");
+			(csp->_ip_addr_str) ? gai_strerror(retval) : "Insufficient memory");
       freez(csp->_ip_addr_str);
       csp->_ip_addr_str = NULL;
    }

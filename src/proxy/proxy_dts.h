@@ -772,6 +772,7 @@ class client_state
    proxy_configuration *_config;
    
    /** The actions to perform on the current request */
+   // DEPRECATED: used in header parsing, can't be removed. 
    current_action_spec _action;
    
    /** socket to talk to client (web browser) */

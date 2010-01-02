@@ -1227,7 +1227,7 @@ sp_err cgisimple::cgi_show_url_info(client_state *csp,
        * "forwarding-failed" template which currently doesn't
        * display the proxy port and an eventual second forwarder.
        */
-      {
+     /* {
          const forward_spec *fwd = filters::forward_url(csp, &url_to_query);
 
          if ((fwd->_gateway_host == NULL) && (fwd->_forward_host == NULL))
@@ -1237,9 +1237,9 @@ sp_err cgisimple::cgi_show_url_info(client_state *csp,
          }
          else
          {
-            char port[10]; /* We save proxy ports as int but need a string here */
+            char port[10]; */ /* We save proxy ports as int but need a string here */
 
-            if (!err) err = cgi::map_block_killer(exports, "no-forwarder");
+/*            if (!err) err = cgi::map_block_killer(exports, "no-forwarder");
 
             if (fwd->_gateway_host != NULL)
             {
@@ -1281,8 +1281,8 @@ sp_err cgisimple::cgi_show_url_info(client_state *csp,
                if (!err) err = cgi::map_block_killer(exports, "http-forwarder");
             }
          }
-      }
-
+      } */
+      
       if (err || matches == NULL)
       {
 	 miscutil::free_map(exports);
