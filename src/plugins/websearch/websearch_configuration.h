@@ -59,6 +59,12 @@ namespace seeks_plugins
 	
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */
+
+	long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
+	long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
+
+	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
+	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
      };
    
 } /* end of namespace. */

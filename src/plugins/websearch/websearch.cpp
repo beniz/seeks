@@ -165,12 +165,13 @@ namespace seeks_plugins
 		  return SP_ERR_OK;
 	       }
 	     
-	     std::string content_str;
-	     if ((content_str = qc->has_cached(url))!="")
+	     search_snippet *sp = NULL;
+	     if ((sp = qc->get_cached_snippet(url))!=NULL 
+		 && (sp->_cached_content!=NULL))
 	       {
-		  std::cerr << "[Debug]: found cached url: " << url << std::endl;
+		  errlog::log_error(LOG_LEVEL_INFO,"found cached url %s",url);
 		  
-		  rsp->_body = strdup(content_str.c_str());
+		  rsp->_body = strdup(sp->_cached_content);
 		  rsp->_is_static = 1;
 		  
 		  return SP_ERR_OK;
@@ -205,6 +206,7 @@ namespace seeks_plugins
 	  if (strcmp(action,"expand") == 0)
 	    {
 	       expanded = true;
+	       qc->_lock = true;
 	       qc->generate(csp,rsp,parameters);
 	    }
        }
@@ -214,6 +216,7 @@ namespace seeks_plugins
 	  // to generate snippets first.
 	  expanded = true;
 	  qc = new query_context(parameters);
+	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
        }
      	  
@@ -222,13 +225,9 @@ namespace seeks_plugins
      
      // sort and rank search snippets !                                                                                 
      // TODO: strategies and configuration.                                                           
-     //std::vector<search_snippet*> unique_ranked_snippets;
      if (expanded)
        {
-	  sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);//,unique_ranked_snippets);
-	  
-	  // update unordered set.
-	  qc->update_unordered_cache();
+	  sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
        }
      
      // TODO: additional processing comes here.
@@ -245,10 +244,10 @@ namespace seeks_plugins
      sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							     csp,rsp,parameters,qc);
 
-    // clear snippets.                                                                                                       
-     //unique_ranked_snippets.clear();
+     // unlock the query context.
+     qc->_lock = false;
 
-    // TODO: catch errors.                                                                                                      
+    // TODO: catch errors.                                                                                                 
      return err;
   }
 

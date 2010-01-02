@@ -22,7 +22,7 @@
 namespace seeks_plugins
 {
    html_txt_parser::html_txt_parser()
-     : se_parser()
+     : se_parser(),_txt("")
        {
        }
    
@@ -47,7 +47,8 @@ namespace seeks_plugins
 					   const xmlChar *chars,
 					   int length)
      {
-	_txt += std::string((char*)chars);
+	if (chars)
+	  _txt += std::string((char*)chars);
      }
    
    

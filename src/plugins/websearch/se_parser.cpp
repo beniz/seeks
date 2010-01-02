@@ -18,11 +18,13 @@
  **/
  
 #include "se_parser.h"
+#include "seeks_proxy.h" // mutex_lock
 #include "errlog.h"
 
 #include <string.h>
 #include <iostream>
 
+using sp::seeks_proxy;
 using sp::errlog;
 
 void start_element_wrapper(void *context,
@@ -62,6 +64,8 @@ void cdata_wrapper(void *context,
   
 namespace seeks_plugins
 {
+   sp_mutex_t se_parser::_se_parser_mutex;
+   
    se_parser::se_parser()
      :_count(0)
      {
@@ -114,6 +118,8 @@ namespace seeks_plugins
 	       NULL
 	  };
 
+	seeks_proxy::mutex_lock(&se_parser::_se_parser_mutex);
+	
 	try 
 	  {
 	     ctxt = htmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "",
@@ -121,17 +127,34 @@ namespace seeks_plugins
 	  }
 	catch (std::exception e)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s in parsing html search results.",
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s at xml/html parser creation search results.",
 			       e.what());
 	  }
+	
+	int status = htmlParseChunk(ctxt,output,strlen(output),0);
+	if (status != 0) // an error occurred.
+	  {
+	     xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
+	     if (xep)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "html level parsing error (libxml2): %s",
+				    xep->message);
+	       
+		  // check on error level.
+		  if (xep->level == 3) // fatal or recoverable error.
+		    {
+		       std::cerr << "[Error]:libxml2 fatal error.\n";
+		    }
+		  else if (xep->level == 2)
+		    {
+		       std::cerr << "[Error]:libxml2 recoverable error\n";
+		    }
+	       }
+	  }
 		
-	//std::cout << "parsing chunk...\n";
-	
-	htmlParseChunk(ctxt,output,strlen(output),0);
-	
-	//std::cout << "parsing done...\n";
-	
 	htmlFreeParserCtxt(ctxt);
+	
+	seeks_proxy::mutex_unlock(&se_parser::_se_parser_mutex);	
      }
    
    // static.

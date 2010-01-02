@@ -35,4 +35,29 @@ enable-js 0
 # to by websearch results and automated similarity analysis and
 # clustering of the content pointed to by websearch results.
 # default: 0
-enable-content-analysis 1
+enable-content-analysis 0
+
+## Technical configuration:
+# only modify settings below this point if you know what you are
+# doing.
+
+# Connection timeout when connecting to a search engine.
+# In seconds.
+# default: 5
+se-connect-timeout 3
+
+# Transfer timeout when connecting to a search engine.
+# In seconds.
+# default: 3
+se-transfer-timeout 5
+
+# Connection timeout when fetching content for analysis & caching.
+# In seconds.
+# default: 1
+ct-connect-timeout 1
+
+# Transfer timeout when fetching content for analysis & caching.
+# In seconds.
+# default: 3
+ct-transfer-timeout 3
+

@@ -72,7 +72,7 @@ namespace seeks_plugins
 	~ps_thread_arg()
 	  {
 	     // we do not delete the output, this is handled by the client.
-	     // we do delete snippets outside the destructor (depends on whethe we're using threads).
+	     // we do delete snippets outside the destructor (depends on whether we're using threads).
 	  }
 	
 	SE _se; // search engine (ggle, bing, ...).
@@ -165,8 +165,6 @@ namespace seeks_plugins
 	static se_ggle _ggle;
 	static se_cuil _cuil;
 	static se_bing _bing;
-
-	static long _se_connect_timeout; // connection timeout to a search engine.
      };
       
 } /* end of namespace. */

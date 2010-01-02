@@ -18,6 +18,7 @@
  **/
 
 #include "content_handler.h"
+#include "mem_utils.h"
 #include "curl_mget.h"
 #include "html_txt_parser.h"
 #include "mrf.h"
@@ -26,38 +27,41 @@
 #include <pthread.h>
 #include <iostream>
 
+#include <assert.h>
+
 using sp::curl_mget;
 using lsh::mrf;
 
 namespace seeks_plugins
 {
-   int content_handler::_mrf_step = 2;
+   int content_handler::_mrf_step = 5;
    
    char** content_handler::fetch_snippets_content(query_context *qc,
-						  const size_t &ncontents,
-						  const std::vector<std::string> &urls,
-						  const bool &have_outputs)
+						  const std::vector<std::string> &urls)
      {
-	// fetch content.
-	curl_mget cmg(urls.size(),3); // 3 seconds timeout.
-	cmg.www_mget(urls,urls.size());  // TODO: what if we fail to connect to some sites ?
+	// just in case.
+	if (urls.empty())
+	  return NULL;
 	
-	char **outputs = new char*[urls.size()];
+	// fetch content.
+	curl_mget cmg(urls.size(),1,0,3,0); // 1 second connect timeout, 3 seconds transfer timeout.
+	cmg.www_mget(urls,urls.size(),true);
+	
+	char **outputs = (char**)std::malloc(urls.size()*sizeof(char*));
 	int k = 0;
 	for (size_t i=0;i<urls.size();i++)
 	  {
+	     outputs[i] = NULL;
 	     if (cmg._outputs[i])
 	       {
-		  outputs[i] = strdup(cmg._outputs[i]);
+		  outputs[i] = cmg._outputs[i];
 		  k++;
-		  
-		  // cache output for fast user access.
-		  qc->cache_url(urls[i],std::string(outputs[i]));
 	       }
+	     else outputs[i] = NULL;
 	  }
-	if (!have_outputs || k == 0)
+	if (k == 0)
 	  {
-	     delete[] outputs;
+	     freez(outputs); // beware.
 	     outputs = NULL;
 	  }
 	return outputs;
@@ -105,21 +109,26 @@ namespace seeks_plugins
 	txt_parser->parse_output(args._output,NULL,0);
 	args._txt_content = txt_parser->_txt;
 	delete txt_parser;
+	pthread_exit(NULL);
      }
    
-   void content_handler::extract_features_from_snippets(query_context *qc, std::vector<std::vector<std::string>*> &tokens,
+   void content_handler::extract_features_from_snippets(query_context *qc,
+							std::string *txt_contents,
 							const size_t &ncontents,
-							const std::vector<std::string> &urls,
-							hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features)
+							search_snippet **sps)
      {
+	// TODO: threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
-	     std::vector<uint32_t> *vf = new std::vector<uint32_t>();
-	     mrf::mrf_features(*tokens[i],*vf,1);
+	     std::vector<uint32_t> *vf = sps[i]->_features;
+	     if (!vf)
+	       {
+		  vf = new std::vector<uint32_t>();
+		  mrf::tokenize_and_mrf_features(txt_contents[i],mrf::_default_delims,*vf,0,5,5); // radius:0, step:5, window_length:5
+		  sps[i]->_features =  vf;
+	       }
 	     
-	     //std::cerr << "[Debug]: url: " << urls[i] << " --> " << vf->size() << " features.\n";
-	     
-	     features.insert(std::pair<const char*,std::vector<uint32_t>*>(urls[i].c_str(),vf));
+	     std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << vf->size() << " features.\n";
 	  }
      }
    
@@ -150,110 +159,113 @@ namespace seeks_plugins
      } */
    
    bool content_handler::has_same_content(query_context *qc, 
-					  const std::string &url1, const std::string &url2,
+					  search_snippet *sp1, search_snippet *sp2,
 					  const double &similarity_threshold)
      {
-	//std::cerr << "[Debug]: comparing urls: " << url1 << std::endl << url2 <<std::endl;
+	static std::string token_delims = " \t\n";
 	
 	// we may already have some content in cache, let's check to not fetch it more than once.
+	std::string url1 = sp1->_url;
+	std::string url2 = sp2->_url;
 	std::vector<std::string> urls;
-	std::string urlc;
-	if (!qc->is_cached(url1))
-	  {
-	     urls.push_back(url1);
-	     urlc = url2;
-	  }
-	if (!qc->is_cached(url2))
-	  {
-	     urls.push_back(url2);
-	     urlc = url1;
-	  }
+	urls.reserve(2);
+	
+	const char *content1 = sp1->_cached_content;
+	const char *content2 = sp2->_cached_content;
 	
 	char **outputs = NULL;
-	if (!urls.empty())
-	  outputs = content_handler::fetch_snippets_content(qc,2,urls,true);
-	else
+	if (!content1 && !content2)
 	  {
-	     outputs = new char*[2];
-	     outputs[0] = strdup(qc->has_cached(url1.c_str()).c_str());
-	     outputs[1] = strdup(qc->has_cached(url2.c_str()).c_str());
 	     urls.push_back(url1); urls.push_back(url2);
+	     outputs = content_handler::fetch_snippets_content(qc,urls);
+	     if (outputs)
+	       {
+		  sp1->_cached_content = outputs[0];
+		  sp2->_cached_content = outputs[1];
+	       }
 	  }
-	
-	if (outputs == NULL)  // error handling.
-	  return false;
-	
-	if (urls.size() < 2)
+	else if (!content1)
 	  {
-	     char **outputs_tmp = new char*[2];
-	     outputs_tmp[0] = outputs[0];
-	     outputs_tmp[1] = strdup(qc->has_cached(urlc.c_str()).c_str());
-	     outputs = outputs_tmp;
-	     urls.push_back(urlc);
+	     outputs = (char**)malloc(2*sizeof(char*));
+	     urls.push_back(url1);
+	     char **output1 = content_handler::fetch_snippets_content(qc,urls);
+	     
+	     if (output1)
+	       {
+		  outputs[0] = *output1;
+		  free(output1);
+		  outputs[1] = (char*)content2;
+		  urls.push_back(url2);
+		  sp1->_cached_content = outputs[0];
+	       }
+	  }
+	else if (!content2)
+	  {
+	     outputs = (char**)malloc(2*sizeof(char*));
+	     urls.push_back(url2);
+	     char **output2 = content_handler::fetch_snippets_content(qc,urls);
+	     outputs[0] = (char*)content1;
+	     if (output2)
+	       {
+		  outputs[1] = *output2;
+		  free(output2);
+		  urls.push_back(url1);
+		  sp2->_cached_content = outputs[1];
+	       }
+	  }
+			
+	if (outputs == NULL
+	    || outputs[0] == NULL || outputs[1] == NULL)  // error handling.
+	  {
+	     // cleanup.
+	     if (outputs)
+	       free(outputs);
+	     return false;
 	  }
 		
 	// parse content and keep text only.
 	std::string *txt_contents = content_handler::parse_snippets_txt_content(2,outputs);
-	delete[] outputs;
+	freez(outputs); // beware.
+	outputs = NULL;
 	
-	// tokenize & extract features from fetched text.
-	std::vector<std::string> tokens1;
-	mrf::tokenize(txt_contents[0],tokens1,mrf::_default_delims);
-	if (tokens1.empty())
-	  return false;
-	std::vector<std::string> tokens2;
-	mrf::tokenize(txt_contents[1],tokens2,mrf::_default_delims);
-	if (tokens2.empty())
+	//debug
+	std::cout << "[Debug]: #txt_content0: " << txt_contents[0].size()
+	  << " -- #txt_contents1: " << txt_contents[1].size() << std::endl;
+	//debug
+	
+	if (txt_contents[0].empty() || txt_contents[1].empty())
 	  return false;
 	
 	// quick check for similarity.
-	double rad = static_cast<double>(std::min(tokens1.size(),tokens2.size()))
-	  / static_cast<double>(std::max(tokens1.size(),tokens2.size()));
+	double rad = static_cast<double>(std::min(txt_contents[0].size(),txt_contents[1].size())) 
+	  / static_cast<double>(std::max(txt_contents[0].size(),txt_contents[1].size()));
 	if (rad < similarity_threshold)
-	  return false;
-	
-	delete[] txt_contents;
-	std::vector<std::vector<std::string>*> tokens;
-	tokens.push_back(&tokens1); tokens.push_back(&tokens2);
-	
-	hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> features;
-	content_handler::extract_features_from_snippets(qc,tokens,2,urls,features);
-	
-	// check for similarity.
-	uint32_t common_features = 0;
-	std::vector<uint32_t> *f1 = features[url1.c_str()];
-	std::vector<uint32_t> *f2 = features[url2.c_str()];
-	if (f1->empty() || f2->empty())
 	  {
-	     content_handler::delete_features(features);
 	     return false;
 	  }
 	
+	search_snippet* sps[2] = {sp1,sp2};
+	content_handler::extract_features_from_snippets(qc,txt_contents,2,sps);
+	delete[] txt_contents;
+	
+	// check for similarity.
+	uint32_t common_features = 0;
+	std::vector<uint32_t> *f1 = sp1->_features;
+	std::vector<uint32_t> *f2 = sp2->_features;
+	assert(f1!=NULL);assert(f2!=NULL);
+	
 	rad = mrf::radiance(*f1,*f2,common_features);
 	double threshold = (common_features*common_features) 
-	  / ((1.0-similarity_threshold)*static_cast<double>(f1->size()+f2->size())+mrf::_epsilon);
+	  / ((1.0+similarity_threshold)*static_cast<double>(f1->size()+f2->size()-2*common_features)+mrf::_epsilon);
 	bool result = false;
 	if (rad >= threshold)
 	  result = true;
 	
-	// destroy feature sets.
-	content_handler::delete_features(features);
-
-	//std::cerr << "[Debug]: comparison result: " << result << std::endl;
+	std::cerr << "Radiance: " << rad << " -- threshold: " << threshold << " -- result: " << result << std::endl;
+	
+	std::cerr << "[Debug]: comparison result: " << result << std::endl;
 	
 	return result;
      }
       
-   void content_handler::delete_features(hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features)
-     {
-	hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr>::iterator hit
-	  = features.begin();
-	while(hit!=features.end())
-	  {
-	     delete (*hit).second;
-	     ++hit;
-	  }
-     }
-   
-   
 } /* end of namespace. */

@@ -116,6 +116,7 @@ namespace seeks_plugins
 	
       public:
 	query_context *_qc; // query context the snippet belongs to.
+	bool _new; // true before snippet is processed.
 	
 	std::string _title;
 	std::string _url;
@@ -136,6 +137,10 @@ namespace seeks_plugins
 	
 	// type-dependent information.
 	std::string _forum_thread_info;
+
+	// cache.
+	const char *_cached_content;
+	std::vector<uint32_t> *_features;
      };
    
 } /* end of namespace. */

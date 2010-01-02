@@ -32,7 +32,7 @@ namespace seeks_plugins
    struct html_txt_thread_arg
      {
 	html_txt_thread_arg()
-	  :_output(NULL)
+	  :_output(NULL),_qc(NULL)
 	    {
 	    };
 	
@@ -48,28 +48,25 @@ namespace seeks_plugins
    class content_handler
      {
       public:
-	static char** fetch_snippets_content(query_context *qc, const size_t &ncontents,
-					     const std::vector<std::string> &urls,
-					     const bool &have_outputs);
+	static char** fetch_snippets_content(query_context *qc,
+					     const std::vector<std::string> &urls);
 	
 	static std::string* parse_snippets_txt_content(const size_t &ncontents,
 						       char **outputs);
 
 	static void parse_output(html_txt_thread_arg &args);
 	
-	static void extract_features_from_snippets(query_context *qc, std::vector<std::vector<std::string>*> &tokens,
+	static void extract_features_from_snippets(query_context *qc,
+						   std::string *txt_contents,
 						   const size_t &ncontents,
-						   const std::vector<std::string> &urls,
-						   hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features);
+						   search_snippet **sps);
 	
 	/* static void feature_based_scoring(query_context *qc, 
 					  const hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features); */
 
 	static bool has_same_content(query_context *qc,
-				     const std::string &url1, const std::string &url2,
+				     search_snippet *sp1, search_snippet *sp2,
 				     const double &similarity_threshold);
-	
-	static void delete_features(hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features);
 	
       private:
 	static int _mrf_step;

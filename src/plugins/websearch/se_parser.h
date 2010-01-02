@@ -21,6 +21,7 @@
 #define SE_PARSER_H
 
 #include "search_snippet.h"
+#include "seeks_proxy.h" // sp_mutex_t
 #include <libxml/HTMLparser.h>
 
 namespace seeks_plugins
@@ -67,6 +68,9 @@ namespace seeks_plugins
 
 	// multithreaded use requires initialization.
 	static void libxml_init();
+
+	// parser mutex.
+	static sp_mutex_t _se_parser_mutex;
 	
       protected:
 	int _count; // number of snippets.
