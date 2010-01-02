@@ -320,7 +320,7 @@ namespace seeks_plugins
 	     _cached_flag = false;
 	     if (!_cached.empty())
 	       pc->_current_snippet->_cached = _cached;
-	     else pc->_current_snippet->set_archive_link();
+	     pc->_current_snippet->set_archive_link();
 	     _cached = "";
 	  }
 	else if (_sgg_spell_flag && strcasecmp(tag,"a") == 0)
