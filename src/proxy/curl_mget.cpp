@@ -18,6 +18,10 @@
  */
 
 #include "curl_mget.h"
+#include "seeks_proxy.h"
+#include "proxy_configuration.h"
+#include "miscutil.h"
+#include "errlog.h"
 
 #include <pthread.h>
 #include <curl/curl.h>
@@ -45,7 +49,7 @@ namespace sp
 	     newbuff = (char*)realloc(arg->_output,arg->_buffer_len + (size - rembuff));
 	     if (newbuff == NULL)
 	       {
-		  std::cerr << "Failed to grow buffer in Curl callback.\n";
+		  errlog::log_error(LOG_LEVEL_ERROR, "Failed to grow buffer in Curl callback");
 		  size = rembuff;
 		  exit(0);
 	       }
@@ -64,16 +68,24 @@ namespace sp
 	return size;
      }
 
-   curl_mget::curl_mget(const int &nrequests, const long &timeout)
-     :_nrequests(nrequests),_timeout(timeout)
+   curl_mget::curl_mget(const int &nrequests, 
+			const long &connect_timeout_sec,
+			const long &connect_timeout_ms,
+			const long &transfer_timeout_sec,
+			const long &transfer_timeout_ms)
+     :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
+      _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
+      _transfer_timeout_ms(transfer_timeout_ms)
      {
-	_outputs = new char*[_nrequests];
+	_outputs = (char**) malloc(_nrequests*sizeof(char*));
+	for (int i=0;i<_nrequests;i++)
+	  _outputs[i] = NULL;
 	_cbgets = new cbget*[_nrequests];
      }
    
    curl_mget::~curl_mget()
      {
-	delete[] _outputs;
+	//free(_outputs); // beware.
 	delete[] _cbgets;
      }
       
@@ -87,16 +99,46 @@ namespace sp
 	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, arg->_timeout);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, arg->_connect_timeout_sec);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, arg->_transfer_timeout_sec);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, arg);
-	curl_easy_perform(curl); /* ignores error */ 
+	
+	if (arg->_proxy)
+	  {
+	     std::string proxy_str = seeks_proxy::_config->_haddr;
+	     proxy_str += ":" + miscutil::to_string(seeks_proxy::_config->_hport);
+	     curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
+	  }
+	
+	/* struct curl_slist *slist=NULL;
+	 slist = curl_slist_append(slist, "Expect:"); 
+	 curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist); */
+	
+	char errorbuffer[CURL_ERROR_SIZE];
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorbuffer);
+	
+	int status = curl_easy_perform(curl);
+	if (status != 0)  // an error occurred.
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "curl error: %s", errorbuffer);
+	     
+	     if (arg->_output)
+	       {
+		  free(arg->_output);
+		  arg->_output = NULL;
+	       }
+	  }
+	
 	curl_easy_cleanup(curl);
+	//curl_slist_free_all(slist);
 	
 	return NULL;
      }
    
-   char** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests)
+   char** curl_mget::www_mget(const std::vector<std::string> &urls, 
+			      const int &nrequests, const bool &proxy)
      {
 	assert((int)urls.size() == nrequests);
 	
@@ -109,7 +151,9 @@ namespace sp
 	  {
 	     cbget *arg_cbget = new cbget();
 	     arg_cbget->_url = urls[i].c_str();
-	     arg_cbget->_timeout = _timeout;	     
+	     arg_cbget->_transfer_timeout_sec = _transfer_timeout_sec;
+	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
+	     arg_cbget->_proxy = proxy;
 	     
 	     _cbgets[i] = arg_cbget;
 	     

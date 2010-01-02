@@ -40,8 +40,8 @@ int main(int argc, char **argv)
 	std::cout << "addr #" << i << ": " << argv[i+2] << std::endl;
      }
    
-   curl_mget cmg(n_requests,60); // 60 seconds connection timeout.
-   char **outputs = cmg.www_mget(addr,n_requests);
+   curl_mget cmg(n_requests,60,0,60,0); // 60 seconds connection & transfer timeout.
+   char **outputs = cmg.www_mget(addr,n_requests,false); // don't use a proxy.
 
    std::cout << "outputs:\n";
    for (int i=0;i<n_requests;i++)
