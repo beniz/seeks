@@ -89,15 +89,18 @@ namespace seeks_plugins
 	     
 	     if (a_link)
 	       {
-		  if (_spell_flag)  // the spell section provides links as queries.
+		  /* if (_spell_flag)  // the spell section provides links as queries.
+		    { */
+		  std::string a_link_str = std::string(a_link);
+		  size_t p = miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
+		  if (p != 0)
 		    {
-		       std::string a_link_str = std::string(a_link);
-		       miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
 		       size_t pos = a_link_str.find("&");
 		       a_link_str = a_link_str.substr(0,pos);
-		       pc->_current_snippet->set_url(a_link_str);
 		    }
-		  else pc->_current_snippet->set_url(a_link);
+		  pc->_current_snippet->set_url(a_link_str);
+	       //}
+	     //	  else pc->_current_snippet->set_url(a_link);
 	       }
 	  }
 	else if (_h2_sr_flag && strcasecmp(tag,"ol") == 0)
