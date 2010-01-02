@@ -31,17 +31,23 @@ using sp::encode;
 namespace seeks_plugins
 {
    search_snippet::search_snippet()
-     :_qc(NULL),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
+     :_qc(NULL),_new(true),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+      _cached_content(NULL),_features(NULL)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
-     :_qc(NULL),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
+     :_qc(NULL),_new(true),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+      _cached_content(NULL),_features(NULL)
        {
        }
       
    search_snippet::~search_snippet()
      {
+	if (_cached_content)
+	  free_const(_cached_content);
+	if (_features)
+	  delete _features;
      }
 
    void search_snippet::highlight_query(std::vector<std::string> &words,
@@ -159,13 +165,13 @@ namespace seeks_plugins
 	     html_content += _cached;
 	     html_content += " \">Cached</a>";
 	  }
-	else if (!_archive.empty())
+	if (!_archive.empty())
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += _archive;
 	     html_content += " \">Archive</a>";
 	  }
-	if (_qc->is_cached(_url))
+	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += "http://s.s/search_cache?url="
@@ -185,6 +191,7 @@ namespace seeks_plugins
      {
 	// decode url.
 	char* str = encode::url_decode(url);
+	miscutil::chomp(str);
 	if (str[strlen(str)-1] == '/')
 	  str[strlen(str)-1] = '\0';
 	return str;
