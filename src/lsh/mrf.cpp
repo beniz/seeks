@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <assert.h>
+
 //#define DEBUG
 
 namespace lsh
@@ -81,8 +83,8 @@ namespace lsh
 
   std::string mrf::_default_delims = " ";
   uint32_t mrf::_skip_token = 0xDEADBEEF;
-  uint32_t mrf::_window_length_default = 5;
-  uint32_t mrf::_window_length = 5;
+   /* uint32_t mrf::_window_length_default = 5;
+    uint32_t mrf::_window_length = 5; */
   uint32_t mrf::_hctable[] = { 1, 3, 5, 11, 23, 47, 97, 197, 397, 797 };
   double mrf::_epsilon = 1e-6;  // infinitesimal. 
 
@@ -98,10 +100,16 @@ namespace lsh
     while (std::string::npos != pos || std::string::npos != lastPos)
       {
         // Found a token, add it to the vector.
-        tokens.push_back(str.substr(lastPos, pos - lastPos));
+	tokens.push_back(str.substr(lastPos, pos - lastPos));
         // Skip delimiters.  Note the "not_of"
         lastPos = str.find_first_not_of(delim, pos);
-        // Find next "non-delimiter"
+	 
+	 // debug
+	 /* if (lastPos != std::string::npos)
+	   assert(lastPos <= str.size()); */
+	 // debug
+	 
+	 // Find next "non-delimiter"
         pos = str.find_first_of(delim, lastPos);
       }
   }
@@ -116,7 +124,8 @@ namespace lsh
   void mrf::mrf_features_query(const std::string &str,
 			       std::vector<uint32_t> &features,
 			       const int &min_radius,
-			       const int &max_radius)
+			       const int &max_radius,
+			       const uint32_t &window_length_default)
   {
      std::vector<std::string> tokens;
      mrf::tokenize(str,tokens,mrf::_default_delims);
@@ -124,9 +133,9 @@ namespace lsh
      int gen_radius = 0;
      while(!tokens.empty())
        {
-	    mrf::mrf_build(tokens,features,
-			   min_radius,max_radius,
-			   gen_radius);
+	  mrf::mrf_build(tokens,features,
+			 min_radius,max_radius,
+			 gen_radius, window_length_default);
 	  tokens.erase(tokens.begin());
 	  ++gen_radius;
        }
@@ -135,12 +144,14 @@ namespace lsh
 
    void mrf::mrf_features(std::vector<std::string> &tokens,
 			  std::vector<uint32_t> &features,
-			  const int &step)
+			  const int &max_radius,
+			  const int &step,
+			  const uint32_t &window_length_default)
      {
 	while(!tokens.empty())
 	  {
 	     mrf::mrf_build(tokens,features,
-			    0, mrf::_window_length_default,0);
+			    0, max_radius,0,window_length_default);
 	     if ((int)tokens.size()>step)
 	       tokens.erase(tokens.begin(),tokens.begin()+step);
 	     else tokens.clear();
@@ -148,23 +159,62 @@ namespace lsh
 	std::sort(features.begin(),features.end());
      }
       
+   void mrf::tokenize_and_mrf_features(const std::string &str,
+				       const std::string &delim,
+				       std::vector<uint32_t> &features,
+				       const int &max_radius,
+				       const int &step,
+				       const uint32_t &window_length_default)
+     {
+	// Skip delimiters at beginning.
+	std::string::size_type lastPos = str.find_first_not_of(delim, 0);
+	// Find first "non-delimiter".
+	std::string::size_type pos = str.find_first_of(delim, lastPos);
+	std::vector<std::string> tokens;
+		
+	while(true)
+	  {
+	     while((std::string::npos != pos || std::string::npos != lastPos)
+		   && tokens.size() < window_length_default)
+	       {
+		  // Found a toke, add it to the vector.
+		  tokens.push_back(str.substr(lastPos, pos - lastPos));
+		  // Skip the delimiters.
+		  lastPos = str.find_first_not_of(delim,pos);
+		  // Find next "non-delimiter".
+		  pos = str.find_first_of(delim, lastPos);
+	       }
+	
+	     if (tokens.empty())
+	       break;
+	     
+	     // produce the features out of the tokens.
+	     mrf::mrf_build(tokens,features,0,max_radius,0,window_length_default);
+	     
+	     // move the mrf forward, according to step.
+	     if ((int)tokens.size()>step)
+	       tokens.erase(tokens.begin(),tokens.begin()+step);
+	     else tokens.clear();
+	  }
+	std::sort(features.begin(),features.end());
+     }
+   
   void mrf::mrf_build(const std::vector<std::string> &tokens,
 		      std::vector<uint32_t> &features,
 		      const int &min_radius,
 		      const int &max_radius,
-		      const int &gen_radius)
+		      const int &gen_radius,
+		      const uint32_t &window_length_default)
   {
     // scale the field's window size.
-    if (tokens.size() < mrf::_window_length_default)
-      mrf::_window_length = tokens.size();
+    uint32_t window_length = window_length_default;
+     if (tokens.size() < window_length_default)
+       window_length = tokens.size();
 
     int tok = 0;
     std::queue<str_chain> chains;
     mrf::mrf_build(tokens,tok,chains,features,
-		   min_radius,max_radius,gen_radius);
-  
-    // reset the field's window size.
-    mrf::_window_length = mrf::_window_length_default;
+		   min_radius,max_radius,gen_radius,window_length);
   }
 
   void mrf::mrf_build(const std::vector<std::string> &tokens,
@@ -172,11 +222,11 @@ namespace lsh
 		      std::queue<str_chain> &chains,
 		      std::vector<uint32_t> &features,
 		      const int &min_radius, const int &max_radius,
-		      const int &gen_radius)
+		      const int &gen_radius, const uint32_t &window_length)
   {
     if (chains.empty())
       {
-	 int radius_chain = gen_radius+std::min((uint32_t)tokens.size(),mrf::_window_length_default)-1;
+	 int radius_chain = gen_radius+std::min((uint32_t)tokens.size(),window_length)-1;
 	 str_chain chain(tokens.at(tok),radius_chain);
 
 #ifdef DEBUG	 
@@ -204,7 +254,7 @@ namespace lsh
 	chains.push(chain);
 
 	mrf::mrf_build(tokens,tok,chains,features,
-		       min_radius,max_radius,gen_radius);
+		       min_radius,max_radius,gen_radius,window_length);
       }
     else 
       {
@@ -216,7 +266,7 @@ namespace lsh
 	    str_chain chain = chains.front();
 	    chains.pop();
 	
-	    if (chain.size() < mrf::_window_length)
+	    if (chain.size() < window_length)
 	      {
 		// first generated chain: add a token.
 		str_chain chain1(chain);
@@ -252,7 +302,7 @@ namespace lsh
 
 	if (!nchains.empty())
 	  mrf::mrf_build(tokens,tok,nchains,features,
-			 min_radius,max_radius,gen_radius);
+			 min_radius,max_radius,gen_radius,window_length);
       }
   }
 
@@ -373,9 +423,10 @@ namespace lsh
   }
   
   double mrf::radiance(const std::string &query1,
-		       const std::string &query2)
+		       const std::string &query2,
+		       const uint32_t &window_length_default)
   {
-    return mrf::radiance(query1,query2,0,mrf::_window_length_default);
+    return mrf::radiance(query1,query2,0,window_length_default);
   }
   
   double mrf::radiance(const std::string &query1,
