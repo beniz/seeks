@@ -38,7 +38,7 @@ namespace seeks_plugins
 {
    
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(true)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false)
        {
 	  _query_hash = query_context::hash_query_for_context(parameters,_query);
 	  struct timeval tv_now;

@@ -205,9 +205,12 @@ namespace seeks_plugins
        {
 	  if (strcmp(action,"expand") == 0)
 	    {
-	       expanded = true;
-	       qc->_lock = true;
-	       qc->generate(csp,rsp,parameters);
+	       if (!qc->_lock)
+		 {
+		    expanded = true;
+		    qc->_lock = true;
+		    qc->generate(csp,rsp,parameters);
+		 }
 	    }
        }
      else 
@@ -219,7 +222,7 @@ namespace seeks_plugins
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
        }
-     	  
+     
      // grab (updated) set of cached search result snippets.
      //std::vector<search_snippet*> snippets = qc->_cached_snippets;
      
