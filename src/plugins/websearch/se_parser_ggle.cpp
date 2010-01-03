@@ -72,7 +72,7 @@ namespace seeks_plugins
 	       _h2_sr_flag = true;
 	  }
 	// real time results avoidance.
-	else if (_h2_sr_flag && strcasecmp(tag,"span") == 0)
+	else if (pc->_current_snippet && _h2_sr_flag && strcasecmp(tag,"span") == 0)
 	  {
 	     const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
 	     if (a_id && strcasecmp(a_id,"rth") == 0)
@@ -83,7 +83,7 @@ namespace seeks_plugins
 		  _h3_flag = false;
 	       }
 	  }
-	else if (_h3_flag && strcasecmp(tag,"a") == 0)
+	else if (pc->_current_snippet && _h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
 	     
@@ -154,7 +154,7 @@ namespace seeks_plugins
 	     else if (d_class && d_class[0] == 's')
 	       _div_flag_summary = true;
 	  }
-	else if (_li_flag && strcasecmp(tag,"cite") == 0)
+	else if (pc->_current_snippet && _li_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = true;
 	     
@@ -284,7 +284,7 @@ namespace seeks_plugins
      {
 	const char *tag = (const char*) name;
 	
-	if (_li_flag && strcasecmp(tag,"h3")==0)
+	if (pc->_current_snippet && _li_flag && strcasecmp(tag,"h3")==0)
 	  {
 	     _h3_flag = false;
 	     pc->_current_snippet->_title = _h3;
@@ -297,7 +297,7 @@ namespace seeks_plugins
 	else if ((_div_flag_summary || _div_flag_forum) && strcasecmp(tag,"div") == 0)
 	  {
 	     // beware: order matters.
-	     if (_div_flag_forum)
+	     if (pc->_current_snippet && _div_flag_forum)
 	       {
 		  _div_flag_forum = false;
 		  pc->_current_snippet->_forum_thread_info = _forum;
@@ -310,14 +310,14 @@ namespace seeks_plugins
 		  _div_flag_summary = false;
 	       }
 	  }
-	else if (_cite_flag && strcasecmp(tag,"cite") == 0)
+	else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = false;
 	     pc->_current_snippet->_cite = _cite;
 	     _cite = "";
 	     _new_link_flag = false;
 	  }
-	else if (_cached_flag && strcasecmp(tag,"a") == 0)
+	else if (pc->_current_snippet && _cached_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     _span_cached_flag = false; // no need to catch the /span tag.
 	     _cached_flag = false;
