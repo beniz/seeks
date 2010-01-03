@@ -109,7 +109,6 @@ namespace seeks_plugins
 	txt_parser->parse_output(args._output,NULL,0);
 	args._txt_content = txt_parser->_txt;
 	delete txt_parser;
-	pthread_exit(NULL);
      }
    
    void content_handler::extract_features_from_snippets(query_context *qc,
