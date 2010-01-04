@@ -72,11 +72,6 @@ namespace seeks_plugins
 	     search_snippet *sp = (*it);
 	     if (sp->_new)
 	       {
-		  // sometimes, the snippets was not correctly associated to a query context
-		  // (e.g. after failure during fetching or parsing). So we make sure here that
-		  // it is set correctly.
-		  //sp->_qc = qc;
-		  
 		  if ((c_sp = qc->get_cached_snippet(sp->_url.c_str()))!=NULL)
 		    {
 		       // merging snippets.
@@ -100,31 +95,25 @@ namespace seeks_plugins
 			    mres.insert(std::pair<double,const std::string>((*mit).first,(*mit).second)); // we could do better than this merging...
 			    ++mit;
 			 }
-		       		       
-		       // TODO: verify that neighbors are sorted with probabilities!
 		       
 		       if (!mres.empty())
 			 {
-			    std::cerr << "[Debug]: found " << mres.size() << " neighbors.\n";
-			    
 			    // iterate results and merge as possible.
 			    mit = mres.begin();
 			    while(mit!=mres.end())
 			      {
-				 std::cerr << "[Debug]: neighbor: " << (*mit).second << std::endl;
-				 
 				 search_snippet *comp_sp = qc->get_cached_snippet((*mit).second.c_str());
 				 if (!comp_sp)
 				   comp_sp = qc->get_cached_snippet_title((*mit).second.c_str());
 				 assert(comp_sp != NULL);
 				 
-				 std::cout << "url: " << sp->_url << std::endl;
-				 std::cout << "url2 (neighbor): " << comp_sp->_url << std::endl;
+				 /* std::cout << "url: " << sp->_url << std::endl;
+				  std::cout << "url2 (neighbor): " << comp_sp->_url << std::endl; */
 				 
 				 // Beware: second url (from sp) is the one to be possibly deleted!
 				 bool same = content_handler::has_same_content(qc,comp_sp,sp,st);
 				 
-				 std::cerr << "[Debug]: same: " << same << std::endl;
+				 //std::cerr << "[Debug]: same: " << same << std::endl;
 				 
 				 if (same)
 				   {
@@ -156,7 +145,6 @@ namespace seeks_plugins
 		  // lsh.
 		  if (websearch::_wconfig->_content_analysis)
 		    {
-		       std::cerr << "[Debug]: adding to lsh uniform hashtable: " << sp->_url << std::endl;
 		       qc->_ulsh_ham->add(sp->_url,qc->_lsh_ham->_L);
 		       qc->_ulsh_ham->add(sp->_title,qc->_lsh_ham->_L);
 		    }
