@@ -92,13 +92,13 @@ namespace seeks_plugins
 	return output;
      }
      
-   std::string search_snippet::to_html() const
+   std::string search_snippet::to_html()
      {
 	std::vector<std::string> words;
 	return to_html_with_highlight(words);
      }
 
-   std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words) const
+   std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words)
      {
 	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
@@ -165,12 +165,14 @@ namespace seeks_plugins
 	     html_content += _cached;
 	     html_content += " \">Cached</a>";
 	  }
-	if (!_archive.empty())
+	if (_archive.empty())
 	  {
-	     html_content += "<a class=\"search_cache\" href=\"";
-	     html_content += _archive;
-	     html_content += " \">Archive</a>";
+	     set_archive_link();  
 	  }
+	html_content += "<a class=\"search_cache\" href=\"";
+	html_content += _archive;
+	html_content += " \">Archive</a>";
+	
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
@@ -231,8 +233,7 @@ namespace seeks_plugins
    
    void search_snippet::set_archive_link()
      {
-	if (_cached.empty())
-	  _archive = "http://web.archive.org/web/*/" + _url;
+	_archive = "http://web.archive.org/web/*/" + _url;
      }
    		   
    // static.
@@ -258,10 +259,6 @@ namespace seeks_plugins
 	// cached link.
 	if (s1->_cached.empty())
 	  s1->_cached = s2->_cached;
-	
-	// archive link.
-	if (s1->_archive.empty())
-	  s1->_archive = s2->_archive;
 	
 	// summary.
 	if (s1->_summary.length() < s2->_summary.length())
