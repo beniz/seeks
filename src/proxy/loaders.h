@@ -46,10 +46,7 @@ namespace sp
      {
       public:
 	static char *read_config_line(char *buf, size_t buflen, FILE *fp, unsigned long *linenum);
-	static int check_file_changed(const file_list * current,
-				      const char * filename,
-				      file_list ** newfl);
-	
+		
 	static sp_err edit_read_line(FILE *fp,
 				     char **raw_out,
 				     char **prefix_out,

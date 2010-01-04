@@ -31,17 +31,23 @@ using sp::encode;
 namespace seeks_plugins
 {
    search_snippet::search_snippet()
-     :_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
+     :_qc(NULL),_new(true),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+      _cached_content(NULL),_features(NULL)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
-     :_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE)
+     :_qc(NULL),_new(true),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+      _cached_content(NULL),_features(NULL)
        {
        }
       
    search_snippet::~search_snippet()
      {
+	if (_cached_content)
+	  free_const(_cached_content);
+	if (_features)
+	  delete _features;
      }
 
    void search_snippet::highlight_query(std::vector<std::string> &words,
@@ -86,13 +92,13 @@ namespace seeks_plugins
 	return output;
      }
      
-   std::string search_snippet::to_html() const
+   std::string search_snippet::to_html()
      {
 	std::vector<std::string> words;
 	return to_html_with_highlight(words);
      }
 
-   std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words) const
+   std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words)
      {
 	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
@@ -159,13 +165,22 @@ namespace seeks_plugins
 	     html_content += _cached;
 	     html_content += " \">Cached</a>";
 	  }
-	else if (!_archive.empty())
+	if (_archive.empty())
+	  {
+	     set_archive_link();  
+	  }
+	html_content += "<a class=\"search_cache\" href=\"";
+	html_content += _archive;
+	html_content += " \">Archive</a>";
+	
+	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
-	     html_content += _archive;
-	     html_content += " \">Archive</a>";
+	     html_content += "http://s.s/search_cache?url="
+	                  + _url + "&q=" + _qc->_query;
+	     html_content += " \">Quick link</a>";
 	  }
-			 
+	
 	html_content += "</div></li>\n";
 		
 	/* std::cout << "html_content:\n";
@@ -178,6 +193,7 @@ namespace seeks_plugins
      {
 	// decode url.
 	char* str = encode::url_decode(url);
+	miscutil::chomp(str);
 	if (str[strlen(str)-1] == '/')
 	  str[strlen(str)-1] = '\0';
 	return str;
@@ -217,8 +233,7 @@ namespace seeks_plugins
    
    void search_snippet::set_archive_link()
      {
-	if (_cached.empty())
-	  _archive = "http://web.archive.org/web/*/" + _url;
+	_archive = "http://web.archive.org/web/*/" + _url;
      }
    		   
    // static.

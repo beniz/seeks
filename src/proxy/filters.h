@@ -73,7 +73,7 @@ class filters
 	/*
 	 * Interceptors
 	 */
-	static http_response* redirect_url(client_state *csp);
+	// static http_response* redirect_url(client_state *csp);
 	
 	/*
 	 * Request inspectors
@@ -81,16 +81,16 @@ class filters
 #ifdef FEATURE_IMAGE_BLOCKING
 	static int is_imageurl(const client_state *csp);
 #endif /* def FEATURE_IMAGE_BLOCKING */
-	static int connect_port_is_forbidden(const client_state *csp);
+//	static int connect_port_is_forbidden(const client_state *csp);
 	
 	/*
 	 * Determining applicable actions
 	 */
-	static void get_url_actions(client_state *csp,
+	/* static void get_url_actions(client_state *csp,
 				    http_request *http);
 	static void apply_url_actions(current_action_spec *action, 
 				      http_request *http, 
-				      url_actions *b);
+				      url_actions *b); */
 	/*
 	 * Determining parent proxies
 	 */
@@ -134,7 +134,7 @@ class filters
       private:
 	static char* pcrs_filter_response(client_state *csp);
 
-	static forward_spec* get_forward_override_settings(client_state *csp);
+	//static forward_spec* get_forward_override_settings(client_state *csp);
 	
 	/*
 	 * Solaris fix:

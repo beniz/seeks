@@ -573,7 +573,7 @@ sp_socket gateway::forwarded_connect(const forward_spec * fwd,
 #endif /* def FEATURE_CONNECTION_KEEP_ALIVE */
 
    /* Figure out if we need to connect to the web server or a HTTP proxy. */
-   if (fwd->_forward_host)
+   if (fwd && fwd->_forward_host)
    {
       /* HTTP proxy */
       dest_host = fwd->_forward_host;

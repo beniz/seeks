@@ -19,6 +19,8 @@
 
 #include "query_context.h"
 #include "websearch.h"
+#include "stl_hash.h"
+#include "mem_utils.h"
 #include "miscutil.h"
 #include "mrf.h"
 #include "errlog.h"
@@ -36,7 +38,7 @@ namespace seeks_plugins
 {
    
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-     :sweepable(),_page_expansion(0)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false)
        {
 	  _query_hash = query_context::hash_query_for_context(parameters,_query);
 	  struct timeval tv_now;
@@ -49,8 +51,20 @@ namespace seeks_plugins
    
    query_context::~query_context()
      {
-       unregister(); // unregister from websearch plugin.
-       search_snippet::delete_snippets(_cached_snippets);
+	unregister(); // unregister from websearch plugin.
+       
+	_unordered_snippets.clear();
+	_unordered_snippets_title.clear();
+	
+	/* clear_cached_features();
+	 clear_cached_contents(); */
+	
+	search_snippet::delete_snippets(_cached_snippets);
+			
+	// clears the LSH hashtable.
+	// the LSH is cleared automatically as well.
+	if (_ulsh_ham)
+	  delete _ulsh_ham;
      }
    
    uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -62,6 +76,10 @@ namespace seeks_plugins
       
    bool query_context::sweep_me()
      {
+	// don't delete if locked.
+	if (_lock)
+	  return false;
+	
 	// check last_time_of_use + delay against current time.
 	struct timeval tv_now;
 	gettimeofday(&tv_now, NULL);
@@ -144,11 +162,15 @@ namespace seeks_plugins
 	    }
 	  
 	  // parse the output and create result search snippets.   
-	  int rank_offset = (i_str == "") ? (atoi(i_str.c_str())-1) * websearch::_wconfig->_N : 0;
+	  int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
 	  
 	  //std::cerr << "[Debug]: rank_offset: " << rank_offset << std::endl;
 	  
 	  se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this);
+	  for (int j=0;j<nresults;j++)
+	    if (outputs[j])
+	      free(outputs[j]);
+	  free(outputs); // beware
        }
      
      // update horizon.
@@ -173,6 +195,70 @@ namespace seeks_plugins
 	if (cached_pages < requested_page)
 	  return generate(csp,rsp,parameters);
 	else return SP_ERR_OK;
+     }
+
+   void query_context::add_to_unordered_cache(search_snippet *sr)
+     {
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit=_unordered_snippets.find(sr->_url.c_str()))!=_unordered_snippets.end())
+	  {
+	     // do nothing.
+	  }
+	else _unordered_snippets.insert(std::pair<const char*,search_snippet*>(sr->_url.c_str(),sr));
+     }
+      
+   void query_context::update_unordered_cache()
+     {
+	size_t cs_size = _cached_snippets.size();
+	for (size_t i=0;i<cs_size;i++)
+	  {
+	     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	     if ((hit=_unordered_snippets.find(_cached_snippets[i]->_url.c_str()))!=_unordered_snippets.end())
+	       {
+		  // for now, do nothing. TODO: may merge snippets here.
+	       }
+	     else
+	       _unordered_snippets.insert(std::pair<const char*,search_snippet*>(_cached_snippets[i]->_url.c_str(),
+										 _cached_snippets[i]));
+	  }
+     }
+   
+   void query_context::update_snippet_seeks_rank(const char *url,
+						 const double &rank)
+     {
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit = _unordered_snippets.find(url))==_unordered_snippets.end())
+	  {
+	     // don't have this url in cache ? let's do nothing.
+	  }
+	else (*hit).second->_seeks_rank = rank;  // BEWARE: we may want to set up a proper formula here
+	                                         //         with proper weighting by the consensus rank...
+     }
+
+   search_snippet* query_context::get_cached_snippet(const char *url)
+     {
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit = _unordered_snippets.find(url))==_unordered_snippets.end())
+	  return NULL;
+	else return (*hit).second;
+     }
+      
+   void query_context::add_to_unordered_cache_title(search_snippet *sr)
+     {
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit=_unordered_snippets_title.find(sr->_title.c_str()))!=_unordered_snippets.end())
+	  {
+	     // do nothing.
+	  }
+	else _unordered_snippets_title.insert(std::pair<const char*,search_snippet*>(sr->_title.c_str(),sr));
+     }
+			     
+   search_snippet* query_context::get_cached_snippet_title(const char *title)
+     {
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit = _unordered_snippets_title.find(title))==_unordered_snippets_title.end())
+	  return NULL;
+	else return (*hit).second;    
      }
    
 } /* end of namespace. */

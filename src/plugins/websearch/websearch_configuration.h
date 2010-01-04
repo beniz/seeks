@@ -54,9 +54,17 @@ namespace seeks_plugins
 	int _N; /**< max number of search results per page. */
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
 	bool _thumbs; /**< enabled thumbs */
+	bool _js; /**< enabled js */
+	bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */
 	
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */
+
+	long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
+	long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
+
+	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
+	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
      };
    
 } /* end of namespace. */

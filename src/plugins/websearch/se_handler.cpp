@@ -31,6 +31,7 @@
 #include "se_parser_cuil.h"
 #include "se_parser_bing.h"
 
+#include <pthread.h>
 #include <algorithm>
 #include <iterator>
 #include <bitset>
@@ -190,12 +191,10 @@ namespace seeks_plugins
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang"
     };
 
-   short se_handler::_results_lookahead_factor = 1;  // beware: do not know how to do with Bing for example.
-   
    se_ggle se_handler::_ggle = se_ggle();
    se_cuil se_handler::_cuil = se_cuil();
    se_bing se_handler::_bing = se_bing();
-
+   
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -209,6 +208,26 @@ namespace seeks_plugins
 				q,1,query_str.c_str(),1);
      }
       
+   // could be moved elsewhere...
+   std::string se_handler::cleanup_query(const std::string &oquery)
+     {
+	// non interpreted '+' should be deduced.
+	std::string cquery = oquery;
+	size_t end_pos = cquery.size()-1;
+	size_t pos = 0;
+	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
+	  {
+	     // TODO: this is buggy in certain cases, such as "x++" in quotes.
+	     if (pos != end_pos)
+	       cquery.replace(pos,1," ");
+	     while(cquery[--pos] == '+') // deal with multiple pluses.
+	       {
+	       }
+	     end_pos = pos;	     
+	  }
+	return cquery;
+     }
+   
   /*-- queries to the search engines. */  
   char** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				  int &nresults)
@@ -234,26 +253,28 @@ namespace seeks_plugins
     else nresults = urls.size();
     
     // get content.
-    curl_mget cmg(urls.size());
-    cmg.www_mget(urls,urls.size());
+     curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
+		   websearch::_wconfig->_se_connect_timeout,0);
+     cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
     
-    char **outputs = new char*[urls.size()];
-    bool have_outputs = false;
-    for (size_t i=0;i<urls.size();i++)
-      {
-	if (cmg._outputs[i])
-	  {
-	    outputs[i] = strdup(cmg._outputs[i]);
-	    have_outputs = true;
-	  }
-      }
-    
-    if (!have_outputs)
-      {
-	delete[] outputs;
-	outputs = NULL;
-      }
-    
+     char **outputs = (char**)malloc(urls.size()*sizeof(char*));
+     bool have_outputs = false;
+     for (size_t i=0;i<urls.size();i++)
+       {
+	  outputs[i] = NULL;
+	  if (cmg._outputs[i])
+	    {
+	       outputs[i] = cmg._outputs[i];
+	       have_outputs = true;
+	    }
+       }
+     
+     if (!have_outputs)
+       {
+	  free(outputs);
+	  outputs = NULL;
+       }
+     
      /* std::cout << "outputs:\n";
       std::cout << outputs[0] << std::endl; */
     
@@ -291,40 +312,53 @@ namespace seeks_plugins
 	  size_t active_ses = websearch::_wconfig->_se_enabled.count();
 	  pthread_t parser_threads[active_ses];
 	  ps_thread_arg* parser_args[active_ses];
+	  for (size_t i=0;i<active_ses;i++)
+	    parser_args[i] = NULL;
 	  
 	  // threads, one per parser.
+	  bool active_threads[active_ses];
 	  int k = 0;
 	  for (int i=0;i<NSEs;i++)
 	    {
 	       if (websearch::_wconfig->_se_enabled[i])
 		 {
-		    ps_thread_arg *args = new ps_thread_arg();
-		    args->_se = (SE)i;
-		    args->_output = outputs[j++];
-		    args->_snippets = new std::vector<search_snippet*>();
-		    args->_offset = count_offset;
-		    args->_qr = qr;
-		    parser_args[k] = args;
-		    
-		    pthread_t ps_thread;
-		    int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
-					     (void * (*)(void *))parse_output, args);
-		    parser_threads[k++] = ps_thread;
+		    if (outputs[j])
+		      {
+			 ps_thread_arg *args = new ps_thread_arg();
+			 args->_se = (SE)i;
+			 args->_output = outputs[j];
+			 args->_snippets = new std::vector<search_snippet*>();
+			 args->_offset = count_offset;
+			 args->_qr = qr;
+			 parser_args[k] = args;
+			 
+			 pthread_t ps_thread;
+			 int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
+						  (void * (*)(void *))se_handler::parse_output, args);
+			 parser_threads[k++] = ps_thread;
+		      }
+		    else parser_threads[k++] = 0;
+		    j++;
 		 }
 	    }
 	       
 	  // join and merge results.
        	 for (size_t i=0;i<active_ses;i++)
 	    {
-	       pthread_join(parser_threads[i],NULL);
+	       if (parser_threads[i]!=0)
+		 pthread_join(parser_threads[i],NULL);
 	    }
 	  
 	  for (size_t i=0;i<active_ses;i++)
 	    {
-	       std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
-			 std::back_inserter(snippets));
-	       delete parser_args[i]->_snippets;
-               delete parser_args[i];
+	       if (parser_args[i])
+		 {
+		    std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
+			      std::back_inserter(snippets));
+		    parser_args[i]->_snippets->clear();
+		    delete parser_args[i]->_snippets;
+		    delete parser_args[i];
+		 }
 	    }
        }
      else
@@ -333,13 +367,17 @@ namespace seeks_plugins
 	    {
 	       if (websearch::_wconfig->_se_enabled[i])
 		 {
-		    ps_thread_arg args;
-		    args._se = (SE)i;
-		    args._output = outputs[j++];
-		    args._snippets = &snippets;
-		    args._offset = count_offset;
-		    args._qr = qr;
-		    parse_output(args);
+		    if (outputs[j])
+		      {
+			 ps_thread_arg args;
+			 args._se = (SE)i;
+			 args._output = outputs[j];
+			 args._snippets = &snippets;
+			 args._offset = count_offset;
+			 args._qr = qr;
+			 parse_output(args);
+		      }
+		    j++;
 		 }
 	    }
        }
@@ -349,9 +387,13 @@ namespace seeks_plugins
 
    void se_handler::parse_output(const ps_thread_arg &args)
      {
-	se_parser *se = create_se_parser(args._se);
+	se_parser *se = se_handler::create_se_parser(args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
+	// link the snippets to the query context.
+	for (size_t i=0;i<args._snippets->size();i++)
+	  args._snippets->at(i)->_qc = args._qr;
+	
 	// hack for cuil.
 	if (args._se == CUIL)
 	  {

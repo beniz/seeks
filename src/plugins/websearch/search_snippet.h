@@ -30,6 +30,7 @@
 
 namespace seeks_plugins
 {
+   class query_context;
    
    enum DOC_TYPE
      {
@@ -96,8 +97,8 @@ namespace seeks_plugins
 	// xml output.
 	
 	// html output for inclusion in search result template page.
-	std::string to_html() const;
-	std::string to_html_with_highlight(std::vector<std::string> &words) const;
+	std::string to_html();
+	std::string to_html_with_highlight(std::vector<std::string> &words);
 
 	// static functions.
 	// highlights terms within the argument string.
@@ -114,6 +115,9 @@ namespace seeks_plugins
 	std::ostream& print(std::ostream &output);
 	
       public:
+	query_context *_qc; // query context the snippet belongs to.
+	bool _new; // true before snippet is processed.
+	
 	std::string _title;
 	std::string _url;
 	std::string _cite;
@@ -133,6 +137,10 @@ namespace seeks_plugins
 	
 	// type-dependent information.
 	std::string _forum_thread_info;
+
+	// cache.
+	const char *_cached_content;
+	std::vector<uint32_t> *_features;
      };
    
 } /* end of namespace. */

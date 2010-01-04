@@ -188,7 +188,7 @@ sp_err urlmatch::parse_http_url(const char *url, http_request *http, int require
       {
          return SP_ERR_MEMORY;
       }
-
+      
       /* Find the start of the URL in our scratch space */
       url_noproto = buf;
       if (miscutil::strncmpic(url_noproto, "http://",  7) == 0)
@@ -208,7 +208,7 @@ sp_err urlmatch::parse_http_url(const char *url, http_request *http, int require
         /*
          * Short request line without protocol and host.
          * Most likely because the client's request
-         * was intercepted and redirected into Privoxy.
+         * was intercepted and redirected into the proxy.
          */
          http->_host = NULL;
          host_available = 0;
@@ -353,7 +353,21 @@ sp_err urlmatch::parse_http_url(const char *url, http_request *http, int require
 #endif /* def FEATURE_EXTENDED_HOST_PATTERNS */
 }
 
-
+std::string urlmatch::parse_url_host(const std::string &url)
+{
+   size_t p1 = 0;
+   if ((p1=url.find("http://"))!=std::string::npos)
+     p1 += 7;
+   else if ((p1=url.find("https://"))!=std::string::npos)
+     p1 += 8;
+   size_t p2 = 0;
+   if ((p2 = url.find("/",p1))!=std::string::npos)
+     {
+	return url.substr(p1,p2-p1);
+     }
+   else return url; // can't determine the host, returns the full url.
+}
+   
 /*********************************************************************
  *
  * Function    :  unknown_method
@@ -472,7 +486,7 @@ sp_err urlmatch::parse_http_request(const char *req, http_request *&http)
 
    http->_ssl = !miscutil::strcmpic(v[0], "CONNECT");
 
-   err = parse_http_url(v[1], http, !http->_ssl);
+   err = urlmatch::parse_http_url(v[1], http, !http->_ssl);
    if (err)
    {
       freez(buf);
@@ -497,7 +511,7 @@ sp_err urlmatch::parse_http_request(const char *req, http_request *&http)
       return SP_ERR_MEMORY;
    }
 
-   //std::cout << "parse_http_request: cmd: " << http->_cmd << std::endl;
+   //std::cerr << "parse_http_request: cmd: " << http->_cmd << std::endl;
    
    return SP_ERR_OK;
 }

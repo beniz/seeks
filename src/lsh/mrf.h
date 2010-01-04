@@ -65,23 +65,39 @@ namespace lsh
   class mrf
   {
   public:
-    static void tokenize(const std::string &str,
-			 std::vector<std::string> &tokens,
-			 const std::string &delim);
-
-    // straight hash of a query string.
-    static uint32_t mrf_single_feature(const std::string &str);
+     static void tokenize(const std::string &str,
+			  std::vector<std::string> &tokens,
+			  const std::string &delim);
      
-    static void mrf_features(const std::string &str,
-			     std::vector<uint32_t> &features,
-			     const int &min_radius,
-			     const int &max_radius);
-  
+     // straight hash of a query string.
+     static uint32_t mrf_single_feature(const std::string &str);
+     
+     static void mrf_features_query(const std::string &str,
+				    std::vector<uint32_t> &features,
+				    const int &min_radius,
+				    const int &max_radius,
+				    const uint32_t &window_length_default=5);
+    
+     static void mrf_features(std::vector<std::string> &tokens,
+			      std::vector<uint32_t> &features,
+			      const int &radius,
+			      const int &step,
+			      const uint32_t &window_length_default=5);
+     
+     // TODO.
+     static void tokenize_and_mrf_features(const std::string &str,
+					   const std::string &delim,
+					   std::vector<uint32_t> &features,
+					   const int &radius,
+					   const int &step,
+					   const uint32_t &window_length_default=5);
+     
     static void mrf_build(const std::vector<std::string> &tokens,
 			  std::vector<uint32_t> &features,
 			  const int &min_radius,
 			  const int &max_radius,
-			  const int &gen_radius);
+			  const int &gen_radius,
+			  const uint32_t &window_length_default);
 
     static void mrf_build(const std::vector<std::string> &tokens,
 			 int &tok,
@@ -89,7 +105,8 @@ namespace lsh
 			  std::vector<uint32_t> &features,
 			  const int &min_radius,
 			  const int &max_radius,
-			  const int &gen_radius);
+			  const int &gen_radius,
+			  const uint32_t &window_length);
 
     /* hashing. */
     static uint32_t mrf_hash(const str_chain &chain);
@@ -102,7 +119,8 @@ namespace lsh
     static int hash_compare(const uint32_t &a, const uint32_t &b);
     
     static double radiance(const std::string &query1,
-			   const std::string &query2);
+			   const std::string &query2,
+			   const uint32_t &window_length_default = 5);
 
     static double radiance(const std::string &query1, 
 			   const std::string &query2,
@@ -110,16 +128,19 @@ namespace lsh
 			   const int &max_radius);
     
     static double radiance(const std::vector<uint32_t> &sorted_features1,
-			   const std::vector<uint32_t> &sorted_features2);
+			   const std::vector<uint32_t> &sorted_features2,
+			   uint32_t &common_features);
 
-  private:
+  public:
     static std::string _default_delims;
+   private:
     static uint32_t _skip_token;
   public:
-    static uint32_t _window_length_default;
+    //static uint32_t _window_length_default;
   private:
-    static uint32_t _window_length;
+    //static uint32_t _window_length;
     static uint32_t _hctable[];
+   public:
     static double _epsilon;
   };
 

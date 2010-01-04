@@ -128,14 +128,9 @@ namespace sp
 	       {
 		  delete spable;
 		  vit = seeks_proxy::_memory_dust.erase(vit);
-		  //dead_iterators.push_back(vit);
 	       }
 	     else ++vit;
 	  }
-	
-	/* for (std::vector<std::vector<sweepable*>::iterator>::iterator it = dead_iterators.begin();
-	     it != dead_iterators.end();it++)
-	  seeks_proxy::_memory_dust.erase((*it)); */
 	
 	//debug
 	//std::cerr << "[Debug]:sweeper: removed " << dead_iterators.size() << " items\n";

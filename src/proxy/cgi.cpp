@@ -608,7 +608,7 @@ hash_map<const char*,const char*,hash<const char*>,eqstr>* cgi::parse_cgi_parame
 	*p = '\0';
      }
    
-   pairs = miscutil::ssplit(argstring, "&", vector, SZ(vector), 1, 1);
+   pairs = miscutil::ssplit(argstring, "?&", vector, SZ(vector), 1, 1);
    
    for (i = 0; i < pairs; i++)
      {
@@ -878,43 +878,43 @@ http_response* cgi::error_response(client_state *csp,
 	rsp->_status = strdup("404 No such domain");
 	rsp->_reason = RSP_REASON_NO_SUCH_DOMAIN;
      }
-   else if (!strcmp(templatename, "forwarding-failed"))
+/*   else if (!strcmp(templatename, "forwarding-failed"))
      {
 	const forward_spec *fwd = filters::forward_url(csp, &csp->_http);
 	char *socks_type = NULL;
 	if (fwd == NULL)
 	  {
-	     errlog::log_error(LOG_LEVEL_FATAL, "gateway spec is NULL. This shouldn't happen!");
+	     errlog::log_error(LOG_LEVEL_FATAL, "gateway spec is NULL. This shouldn't happen!"); */
 	     /* Never get here - LOG_LEVEL_FATAL causes program exit */
-	  }
+/*	  } */
 		
 	/*
 	 * XXX: While the template is called forwarding-failed,
 	 * it currently only handles socks forwarding failures.
 	 */
-	assert(fwd != NULL);
-	assert(fwd->_type != SOCKS_NONE);
+/*	assert(fwd != NULL);
+	assert(fwd->_type != SOCKS_NONE); */
 	
 	/*
 	 * Map failure reason, forwarding type and forwarder.
 	 */
-	if (NULL == csp->_error_message)
-	  {
+/*	if (NULL == csp->_error_message)
+	  { */
 	     /*
 	      * Either we forgot to record the failure reason,
 	      * or the memory allocation failed.
 	      */
-	     errlog::log_error(LOG_LEVEL_ERROR, "Socks failure reason missing.");
+/*	     errlog::log_error(LOG_LEVEL_ERROR, "Socks failure reason missing.");
 	     csp->_error_message = strdup("Failure reason missing. Check the log file for details.");
 	  }
 	
-	if (!err) err = miscutil::add_map_entry(exports, "gateway", 1, fwd->_gateway_host, 1);
+	if (!err) err = miscutil::add_map_entry(exports, "gateway", 1, fwd->_gateway_host, 1); */
 	// below: in cgisimple
 	/*
 	 * XXX: this is almost the same code as in cgi_show_url_info()
 	 * and thus should be factored out and shared.
 	 */
-	switch (fwd->_type)
+/*	switch (fwd->_type)
 	  {
 	   case SOCKS_4:
 	     socks_type = (char*)"socks4-";
@@ -942,7 +942,7 @@ http_response* cgi::error_response(client_state *csp,
 		
 	rsp->_status = strdup("503 Forwarding failure");
 	rsp->_reason = RSP_REASON_FORWARDING_FAILED;
-     }
+     } */
    else if (!strcmp(templatename, "connect-failed"))
      {
 	rsp->_status = strdup("503 Connect failed");

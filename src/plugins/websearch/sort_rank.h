@@ -33,9 +33,11 @@ namespace seeks_plugins
 	static void sort_and_merge_snippets(std::vector<search_snippet*> &snippets,
 					    std::vector<search_snippet*> &unique_snippets);
 	
-	static void sort_merge_and_rank_snippets(const std::vector<search_snippet*> &snippets,
-						 std::vector<search_snippet*> &unique_ranked_snippets);
-	
+	static void sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets);
+		
+	// advanced sorting, based on webpages content.
+	//static void retrieve_and_score(query_context *qc);
+     
      };
    
 } /* end of namespace. */

@@ -94,7 +94,6 @@ namespace seeks_plugins
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
 	     if (a_link)
 	       pc->_current_snippet->_cached = std::string(a_link);
-	     else pc->_current_snippet->set_archive_link();
 	  }
      }
    

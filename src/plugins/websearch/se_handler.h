@@ -60,6 +60,27 @@ namespace seeks_plugins
 	bool _anonymous;  // false by default.
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *_param_translation;
      };
+
+   // arguments to a threaded parser. (TODO: move it down).
+   struct ps_thread_arg
+     {
+	ps_thread_arg()
+	  :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
+	    {
+	    };
+	   
+	~ps_thread_arg()
+	  {
+	     // we do not delete the output, this is handled by the client.
+	     // we do delete snippets outside the destructor (depends on whether we're using threads).
+	  }
+	
+	SE _se; // search engine (ggle, bing, ...).
+	char *_output; // page content, to be parsed into snippets.
+	std::vector<search_snippet*> *_snippets; // websearch result snippets.
+	int _offset; // offset to snippets rank (when asking page x, with x > 1).
+	query_context *_qr; // pointer to the current query context.
+     };
    
    class se_ggle : public search_engine
      {
@@ -97,6 +118,8 @@ namespace seeks_plugins
 	/*-- query preprocessing --*/
 	static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
+	static std::string cleanup_query(const std::string &oquery);
+	
 	/*-- querying the search engines. --*/
 	static char** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				                                      int &nresults);
@@ -113,7 +136,7 @@ namespace seeks_plugins
 				       query_context *qr);
 
 	// arguments to a threaded parser.
-	struct ps_thread_arg
+	/* struct ps_thread_arg
 	  {
 	     ps_thread_arg()
 	       :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
@@ -130,17 +153,13 @@ namespace seeks_plugins
 	     std::vector<search_snippet*> *_snippets; // websearch result snippets. 
 	     int _offset; // offset to snippets rank (when asking page x, with x > 1).
 	     query_context *_qr; // pointer to the current query context.
-	  };
+	  }; */
 		
 	static void parse_output(const ps_thread_arg &args);
 	
 	/*-- variables. --*/
       public:
 	static std::string _se_strings[NSEs];
-	static short _results_lookahead_factor; // we fetch x * the requested number of results.
-	                                      // this is because reranking may move to the top/bottom
-					      // more results from certain search engines, and less from
-					      // others.
 	
 	/* search engine objects. */
 	static se_ggle _ggle;

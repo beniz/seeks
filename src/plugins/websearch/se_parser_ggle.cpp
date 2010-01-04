@@ -72,7 +72,7 @@ namespace seeks_plugins
 	       _h2_sr_flag = true;
 	  }
 	// real time results avoidance.
-	else if (_h2_sr_flag && strcasecmp(tag,"span") == 0)
+	else if (pc->_current_snippet && _h2_sr_flag && strcasecmp(tag,"span") == 0)
 	  {
 	     const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
 	     if (a_id && strcasecmp(a_id,"rth") == 0)
@@ -83,21 +83,24 @@ namespace seeks_plugins
 		  _h3_flag = false;
 	       }
 	  }
-	else if (_h3_flag && strcasecmp(tag,"a") == 0)
+	else if (pc->_current_snippet && _h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
 	     
 	     if (a_link)
 	       {
-		  if (_spell_flag)  // the spell section provides links as queries.
+		  /* if (_spell_flag)  // the spell section provides links as queries.
+		    { */
+		  std::string a_link_str = std::string(a_link);
+		  size_t p = miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
+		  if (p != 0)
 		    {
-		       std::string a_link_str = std::string(a_link);
-		       miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
 		       size_t pos = a_link_str.find("&");
 		       a_link_str = a_link_str.substr(0,pos);
-		       pc->_current_snippet->set_url(a_link_str);
 		    }
-		  else pc->_current_snippet->set_url(a_link);
+		  pc->_current_snippet->set_url(a_link_str);
+	       //}
+	     //	  else pc->_current_snippet->set_url(a_link);
 	       }
 	  }
 	else if (_h2_sr_flag && strcasecmp(tag,"ol") == 0)
@@ -151,7 +154,7 @@ namespace seeks_plugins
 	     else if (d_class && d_class[0] == 's')
 	       _div_flag_summary = true;
 	  }
-	else if (_li_flag && strcasecmp(tag,"cite") == 0)
+	else if (pc->_current_snippet && _li_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = true;
 	     
@@ -281,7 +284,7 @@ namespace seeks_plugins
      {
 	const char *tag = (const char*) name;
 	
-	if (_li_flag && strcasecmp(tag,"h3")==0)
+	if (pc->_current_snippet && _li_flag && strcasecmp(tag,"h3")==0)
 	  {
 	     _h3_flag = false;
 	     pc->_current_snippet->_title = _h3;
@@ -294,7 +297,7 @@ namespace seeks_plugins
 	else if ((_div_flag_summary || _div_flag_forum) && strcasecmp(tag,"div") == 0)
 	  {
 	     // beware: order matters.
-	     if (_div_flag_forum)
+	     if (pc->_current_snippet && _div_flag_forum)
 	       {
 		  _div_flag_forum = false;
 		  pc->_current_snippet->_forum_thread_info = _forum;
@@ -307,20 +310,19 @@ namespace seeks_plugins
 		  _div_flag_summary = false;
 	       }
 	  }
-	else if (_cite_flag && strcasecmp(tag,"cite") == 0)
+	else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = false;
 	     pc->_current_snippet->_cite = _cite;
 	     _cite = "";
 	     _new_link_flag = false;
 	  }
-	else if (_cached_flag && strcasecmp(tag,"a") == 0)
+	else if (pc->_current_snippet && _cached_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     _span_cached_flag = false; // no need to catch the /span tag.
 	     _cached_flag = false;
 	     if (!_cached.empty())
 	       pc->_current_snippet->_cached = _cached;
-	     else pc->_current_snippet->set_archive_link();
 	     _cached = "";
 	  }
 	else if (_sgg_spell_flag && strcasecmp(tag,"a") == 0)
@@ -366,6 +368,8 @@ namespace seeks_plugins
 	if ((r = se->_url.find("/products?q="))!=std::string::npos
 	    || (r = se->_url.find("/videosearch?q="))!=std::string::npos
 	    || (r = se->_url.find("news.google"))!=std::string::npos
+	    || (r = se->_url.find("maps.google"))!=std::string::npos
+	    || (r = se->_url.find("books.google"))!=std::string::npos
 	    || (r = se->_url.find("/images?q="))!=std::string::npos)
 	  {
 	     delete se;

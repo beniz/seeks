@@ -182,7 +182,7 @@ namespace sp
    /* Complete list of cruncher functions */
    const cruncher seeks_proxy::_crunchers_all[] = 
      {
-	cruncher( &filters::redirect_url,    CF_NO_FLAGS  ),
+	// cruncher( &filters::redirect_url,    CF_NO_FLAGS  ),
 	cruncher( &cgi::dispatch_cgi,    CF_IGNORE_FORCE),
 	cruncher( NULL,            0 )
      };
@@ -191,7 +191,7 @@ namespace sp
    const cruncher seeks_proxy::_crunchers_light[] = 
      {
 //	cruncher( &filters::block_url,       CF_COUNT_AS_REJECT ),
-	cruncher( &filters::redirect_url,    CF_NO_FLAGS ),
+	//cruncher( &filters::redirect_url,    CF_NO_FLAGS ),
 	cruncher( NULL,            0 )
      };
    
@@ -671,7 +671,7 @@ namespace sp
 	 * Downgrade http version from 1.1 to 1.0
 	 * if +downgrade action applies.
 	 */
-	if ( (csp->_action._flags & ACTION_DOWNGRADE)
+	/* if ( (csp->_action._flags & ACTION_DOWNGRADE)
 	     && (!miscutil::strcmpic(http->_ver, "HTTP/1.1")))
 	  {
 	     freez(http->_ver);
@@ -680,7 +680,7 @@ namespace sp
 	       {
 		  errlog::log_error(LOG_LEVEL_FATAL, "Out of memory downgrading HTTP version");
 	       }
-	  }
+	  } */
 		
 	/*
 	 * Rebuild the request line.
@@ -689,7 +689,7 @@ namespace sp
 	*request_line = strdup(http->_gpc);
 	miscutil::string_append(request_line, " ");
 	
-	if (fwd->_forward_host)
+	if (fwd && fwd->_forward_host)
 	  {
 	     miscutil::string_append(request_line, http->_url);
 	  }
@@ -1123,7 +1123,7 @@ namespace sp
 	if (!(csp->_flags & CSP_FLAG_TOGGLED_ON))
 	  {
 	     /* Most compatible set of actions (i.e. none) */
-	     csp->_action = current_action_spec();
+	     //csp->_action = current_action_spec();
 	  }
 	else
 #endif /* ndef FEATURE_TOGGLE */
@@ -1180,13 +1180,13 @@ namespace sp
 #endif /* def FEATURE_CONNECTION_KEEP_ALIVE */
 	
 	//seeks: deprecated, requires a set of filter plugins instead.
-	/* err = parsers::sed(csp, FILTER_CLIENT_HEADERS); // fixes and set client headers.
+	sp_err err = parsers::sed(csp, FILTER_CLIENT_HEADERS); // fixes and set client headers.
 	if (SP_ERR_OK != err)
-	  { */
+	  {
 	     /* XXX: Should be handled in sed(). */
-	     /* assert(err == SP_ERR_PARSE);
+	     assert(err == SP_ERR_PARSE);
 	     errlog::log_error(LOG_LEVEL_FATAL, "Failed to parse client headers.");
-	  } */
+	  }
 	csp->_flags |= CSP_FLAG_CLIENT_HEADER_PARSING_DONE;
 	
 	/* Check request line for rewrites. */
@@ -1281,12 +1281,11 @@ namespace sp
 	unsigned long long byte_count = 0;
 	int forwarded_connect_retries = 0;
 	int max_forwarded_connect_retries = csp->_config->_forwarded_connect_retries;
-	const forward_spec *fwd;
+	const forward_spec *fwd = NULL;
 	http_request *http;
 	long len = 0; /* for buffer sizes (and negative error codes) */
 	
 	/* Function that does the content filtering for the current request */
-	//filter_function_ptr content_filter = NULL;
 	bool content_filter = false;
 	
 	/* Skeleton for HTTP response, if we should intercept the request */
@@ -1307,7 +1306,8 @@ namespace sp
 	     return;
 	  }
 	
-	/* decide how to route the HTTP request (i.e. to another proxy) */
+	/* decide how to route the HTTP request (i.e. to another proxy),
+	   sets default forward settings instead, mandatory. */
 	fwd = filters::forward_url(csp, http);
 	if (NULL == fwd)
 	  {
@@ -1353,20 +1353,6 @@ namespace sp
 	   *
 	   */
 	
-	
-	// seeks: deactivated, requires an interceptor plugin.
-	/* if (http->_ssl && filters::connect_port_is_forbidden(csp))
-	  {
-	     const char *acceptable_connect_ports =
-	       csp->_action._string[ACTION_STRING_LIMIT_CONNECT];
-	     assert(NULL != acceptable_connect_ports);
-	     errlog::log_error(LOG_LEVEL_INFO, "Request from %s marked for blocking. "
-			       "limit-connect{%s} doesn't allow CONNECT requests to port %d.",
-			       csp->_ip_addr_str, acceptable_connect_ports, csp->_http._port);
-	     csp->_action._flags |= ACTION_BLOCK;
-	     http->_ssl = 0;
-	  } */
-	
 	if (http->_ssl == 0)
 	  {
 	     free_const((*csp->_headers.begin()));  // beware !!!
@@ -1403,7 +1389,7 @@ namespace sp
 	// seeks: dispatch_cgi and redirection only.
 	/*
 	 * We have a request. Check if one of the crunchers wants it.
-	 * That is, block url, distrust url, redirect url, known cgi call (e.g. local config page),
+	 * That is, block url, redirect url, known cgi call (e.g. local config page),
 	 * so-called 'direct response' which truely is a check of max forwards.
 	 */
 	if (seeks_proxy::crunch_response_triggered(csp, seeks_proxy::_crunchers_all))
@@ -1416,12 +1402,11 @@ namespace sp
 	     return;
 	  }
 	
-	// TODO: seeks: action (i.e. cruncher) plugins come into action here.
-	// Typically, the websearch query interceptor...
-	
+	// Plugins come into action here.
+	// Typically, the websearch query interceptor.
 	errlog::log_error(LOG_LEVEL_GPC, "%s%s", http->_hostport, http->_path);
 	
-	if (fwd->_forward_host)
+	if (fwd && fwd->_forward_host)
 	  {
 	     errlog::log_error(LOG_LEVEL_CONNECT, "via [%s]:%d to: %s",
 			       fwd->_forward_host, fwd->_forward_port, http->_hostport);
@@ -1629,8 +1614,6 @@ namespace sp
 		  
 		  if (len <= 0)
 		    {
-		       //std::cout << "game over\n";
-		       
 		       /* XXX: not sure if this is necessary. */
 		       seeks_proxy::mark_server_socket_tainted(csp);
 		       break; /* "game over, man" */
@@ -2512,6 +2495,9 @@ namespace sp
 	unsigned int active_threads = 0;
 	
 	// loads main configuration file (seeks + proxy configuration).
+#ifdef unix
+	configuration_spec::init_file_notification(); // init inotify, Linux only.
+#endif
 	if (seeks_proxy::_config)
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
@@ -2790,14 +2776,14 @@ namespace sp
 	
 	sweeper::sweep();
 	
-# if defined(unix)
+#if defined(unix)
 	freez(seeks_proxy::_basedir);
-# endif
+#endif
 	freez(seeks_proxy::_configfile);
-# if defined(_WIN32) && !defined(_WIN_CONSOLE)
+#if defined(_WIN32) && !defined(_WIN_CONSOLE)
 	/* Cleanup - remove taskbar icon etc. */
 	TermLogWindow();
-# endif
+#endif
 	exit(0);
 #endif /* FEATURE_GRACEFUL_TERMINATION */
      }

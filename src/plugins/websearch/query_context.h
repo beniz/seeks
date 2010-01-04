@@ -23,6 +23,7 @@
 #include "sweeper.h"
 #include "proxy_dts.h"
 #include "search_snippet.h"
+#include "LSHUniformHashTableHamming.h" // for regrouping urls, titles and other text snippets.
 
 #include <time.h>
 
@@ -30,6 +31,8 @@ using sp::sweepable;
 using sp::sp_err;
 using sp::client_state;
 using sp::http_response;
+using lsh::LSHSystemHamming;
+using lsh::LSHUniformHashTableHamming;
 
 namespace seeks_plugins
 {   
@@ -76,13 +79,45 @@ namespace seeks_plugins
 	void update_last_time();
 	
 	/**
-	 * query hashing, based on mrf in lsh.
+	 * \brief query hashing, based on mrf in lsh.
 	 * grabs query from parameters, stores it into query and hashes it.
 	 * the 32 bit hash is returned.
 	 */
 	static uint32_t hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       std::string &query);
 	
+	/**
+	 * \brief adds a snippet to the unordered cache set.
+	 */
+	void add_to_unordered_cache(search_snippet *sr);
+	
+	/**
+	 * \brief updates unordered cached snippets. This set is for fast access
+	 * and update to the snippets in the cache.
+	 */
+	void update_unordered_cache();
+	
+	/**
+	 * \brief finds and updates a search snippet's seeks rank.
+	 */
+	void update_snippet_seeks_rank(const char *url,
+				       const double &rank);
+
+	/**
+	 * \brief returns a cached snippet if it knows it, NULL otherwise.
+	 */
+	search_snippet* get_cached_snippet(const char *url);
+	
+	/**
+	 * \brief adds a snippet to the unordered cache set.
+	 */
+	void add_to_unordered_cache_title(search_snippet *sr);
+	
+	/**
+	 * \brief returns a cached snippet if it knows it, NULL otherwise.
+	 */
+	search_snippet* get_cached_snippet_title(const char *title);
+
       public:
 	std::string _query;
 	uint32_t _query_hash;
@@ -90,7 +125,10 @@ namespace seeks_plugins
 		
 	/* cache. */
 	std::vector<search_snippet*> _cached_snippets;
-	hash_map<const char*,const char*,hash<const char*>,eqstr> _cached_urls;
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr> _unordered_snippets; // cached snippets ptr, url is the key.
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr> _unordered_snippets_title; // cached snippets ptr, title is the key.
+	hash_map<const char*,const char*,hash<const char*>,eqstr> _cached_urls; // cached content, url is the key.
+	//hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> _cached_features; // cached extracted features.
 	
 	/* timer. */
 	time_t _creation_time;
@@ -102,6 +140,13 @@ namespace seeks_plugins
 					       // them from the webpage and store them here.
 
 	std::vector<std::string> _suggestions; // suggered related queries.
+
+	/* LSH subsystem for regrouping textual elements. */
+	LSHSystemHamming *_lsh_ham;
+	LSHUniformHashTableHamming *_ulsh_ham;
+
+	/* locking. */
+	bool _lock;
      };
       
 } /* end of namespace. */

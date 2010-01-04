@@ -80,7 +80,7 @@ namespace sp
 	  }
 	if (_head)
 	  {
-	     delete _head; 
+	     freez(_head); 
 	     _head = NULL;
 	  }
 	if (_body)

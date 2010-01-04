@@ -28,7 +28,7 @@ namespace sp
    typedef struct _cbget
      {
 	_cbget()
-	  :_url(NULL),_output(NULL),_buffer_len(0),_buffer_pos(0)
+	  :_url(NULL),_output(NULL),_buffer_len(0),_buffer_pos(0),_proxy(false)
 	    {};
 	
 	~_cbget()
@@ -39,6 +39,10 @@ namespace sp
 	
 	int _buffer_len;
 	int _buffer_pos;
+	
+	long _connect_timeout_sec;
+	long _transfer_timeout_sec;
+	bool _proxy;
      } cbget;
    
     void* pull_one_url(void *arg_cbget);
@@ -46,14 +50,23 @@ namespace sp
    class curl_mget
      {
       public:
-	curl_mget(const int &nrequests);
+	curl_mget(const int &nrequests,
+		  const long &connect_timeout_sec,
+		  const long &connect_timeout_ms,
+		  const long &transfer_timeout_sec,
+		  const long &transfer_timeout_ms);
 	~curl_mget();
 	
 	// direct connection.
-	char** www_mget(const std::vector<std::string> &urls, const int &nrequests);
+	char** www_mget(const std::vector<std::string> &urls, const int &nrequests,
+			const bool &proxy);
      
       public:
 	int _nrequests;
+	long _connect_timeout_sec;
+	long _connect_timeout_ms;
+	long _transfer_timeout_sec;
+	long _transfer_timeout_ms;
 	char **_outputs;
 	cbget **_cbgets;
      };
