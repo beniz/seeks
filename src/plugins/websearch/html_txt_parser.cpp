@@ -41,6 +41,7 @@ namespace seeks_plugins
 			       const xmlChar *chars,
 			       int length)
      {
+	return;
      }
    
    void html_txt_parser::handle_characters(parser_context *pc,
