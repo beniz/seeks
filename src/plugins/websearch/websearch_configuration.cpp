@@ -59,7 +59,7 @@ namespace seeks_plugins
 	_se_connect_timeout = 3;  // in seconds.
 	_se_transfer_timeout = 5; // in seconds.
 	_ct_connect_timeout = 1; // in seconds.
-	_ct_connect_timeout = 3; // in seconds.
+	_ct_transfer_timeout = 3; // in seconds.
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
