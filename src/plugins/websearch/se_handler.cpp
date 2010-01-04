@@ -217,12 +217,13 @@ namespace seeks_plugins
 	size_t pos = 0;
 	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
 	  {
+	     // TODO: this is buggy in certain cases, such as "x++" in quotes.
 	     if (pos != end_pos)
 	       cquery.replace(pos,1," ");
 	     while(cquery[--pos] == '+') // deal with multiple pluses.
 	       {
 	       }
-	     end_pos = pos;
+	     end_pos = pos;	     
 	  }
 	return cquery;
      }
@@ -315,6 +316,7 @@ namespace seeks_plugins
 	    parser_args[i] = NULL;
 	  
 	  // threads, one per parser.
+	  bool active_threads[active_ses];
 	  int k = 0;
 	  for (int i=0;i<NSEs;i++)
 	    {
@@ -335,6 +337,7 @@ namespace seeks_plugins
 						  (void * (*)(void *))se_handler::parse_output, args);
 			 parser_threads[k++] = ps_thread;
 		      }
+		    else parser_threads[k++] = 0;
 		    j++;
 		 }
 	    }
@@ -342,7 +345,8 @@ namespace seeks_plugins
 	  // join and merge results.
        	 for (size_t i=0;i<active_ses;i++)
 	    {
-	       pthread_join(parser_threads[i],NULL);
+	       if (parser_threads[i]!=0)
+		 pthread_join(parser_threads[i],NULL);
 	    }
 	  
 	  for (size_t i=0;i<active_ses;i++)

@@ -19,12 +19,14 @@
  
 #include "se_parser.h"
 #include "seeks_proxy.h" // mutex_lock
+#include "miscutil.h"
 #include "errlog.h"
 
 #include <string.h>
 #include <iostream>
 
 using sp::seeks_proxy;
+using sp::miscutil;
 using sp::errlog;
 
 void start_element_wrapper(void *context,
@@ -137,17 +139,19 @@ namespace seeks_plugins
 	     xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
 	     if (xep)
 	       {
+		  std::string err_msg = std::string(xep->message);
+		  miscutil::replace_in_string(err_msg,"\n","");
 		  errlog::log_error(LOG_LEVEL_ERROR, "html level parsing error (libxml2): %s",
-				    xep->message);
+				    err_msg.c_str());
 	       
 		  // check on error level.
 		  if (xep->level == 3) // fatal or recoverable error.
 		    {
-		       std::cerr << "[Error]:libxml2 fatal error.\n";
+		       errlog::log_error(LOG_LEVEL_ERROR,"libxml2 fatal error.");
 		    }
 		  else if (xep->level == 2)
 		    {
-		       std::cerr << "[Error]:libxml2 recoverable error\n";
+		       errlog::log_error(LOG_LEVEL_ERROR,"libxml2 recoverable error");
 		    }
 	       }
 	  }
