@@ -22,9 +22,12 @@
 
 #include "query_context.h"
 #include "search_snippet.h"
+#include "mrf.h"
 
 #include <string>
 #include <stdint.h>
+
+using lsh::mrf;
 
 namespace seeks_plugins
 {
@@ -41,15 +44,38 @@ namespace seeks_plugins
 	  };
 	
 	std::string _txt_content; // parsed content.
-	char *_output; // page content, to be parsed.
+	char *_output; // content, to be parsed.
 	query_context *_qc;
      };
-   
+
+   struct feature_thread_arg
+     {
+	feature_thread_arg(std::string *txt_content,
+			   std::vector<uint32_t> *vf)
+	  :_txt_content(txt_content),_vf(vf)
+	    {
+	    };
+	     
+	~feature_thread_arg()
+	  {
+	  };
+	
+	std::string *_txt_content;
+	std::vector<uint32_t> *_vf;
+	
+	static std::string _delims;
+	static int _radius;
+	static int _step;
+	static uint32_t _window_length;
+     };
+      
    class content_handler
      {
       public:
 	static char** fetch_snippets_content(query_context *qc,
 					     const std::vector<std::string> &urls);
+
+	static void generate_features(feature_thread_arg &args);
 	
 	static std::string* parse_snippets_txt_content(const size_t &ncontents,
 						       char **outputs);

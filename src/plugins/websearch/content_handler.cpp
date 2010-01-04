@@ -21,7 +21,6 @@
 #include "mem_utils.h"
 #include "curl_mget.h"
 #include "html_txt_parser.h"
-#include "mrf.h"
 #include "websearch.h"
 
 #include <pthread.h>
@@ -30,11 +29,15 @@
 #include <assert.h>
 
 using sp::curl_mget;
-using lsh::mrf;
 
 namespace seeks_plugins
 {
    int content_handler::_mrf_step = 5;
+   
+   std::string feature_thread_arg::_delims = mrf::_default_delims;
+   int feature_thread_arg::_radius = 0;
+   int feature_thread_arg::_step = 5;
+   uint32_t feature_thread_arg::_window_length=5;
    
    char** content_handler::fetch_snippets_content(query_context *qc,
 						  const std::vector<std::string> &urls)
@@ -75,7 +78,7 @@ namespace seeks_plugins
 	pthread_t parser_threads[ncontents];
 	html_txt_thread_arg* parser_args[ncontents];
 	
-	// threads, one per parser. TODO: beware, put a limit and run several passes.
+	// threads, one per parser.
 	for (size_t i=0;i<ncontents;i++)
 	  {
 	     html_txt_thread_arg *args = new html_txt_thread_arg();
@@ -116,21 +119,56 @@ namespace seeks_plugins
 							const size_t &ncontents,
 							search_snippet **sps)
      {
-	// TODO: threads.
+	pthread_t feature_threads[ncontents];
+	feature_thread_arg* feature_args[ncontents];
+	
+	// TODO: limits the number of threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
 	     std::vector<uint32_t> *vf = sps[i]->_features;
 	     if (!vf)
 	       {
 		  vf = new std::vector<uint32_t>();
-		  mrf::tokenize_and_mrf_features(txt_contents[i],mrf::_default_delims,*vf,0,5,5); // radius:0, step:5, window_length:5
-		  sps[i]->_features =  vf;
+		  feature_thread_arg *args = new feature_thread_arg(&txt_contents[i],vf);
+		  feature_args[i] = args;
+	
+		  pthread_t f_thread;
+		  int err = pthread_create(&f_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
+					   (void*(*)(void*))content_handler::generate_features,args);
+		  feature_threads[i] = f_thread;
 	       }
-	     
-	     std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << vf->size() << " features.\n";
+	     else 
+	       {
+		  feature_threads[i] = 0;
+		  feature_args[i] = NULL;
+	       }
+	  }
+	
+	// join threads.
+	for (size_t i=0;i<ncontents;i++)
+	  {
+	     if (feature_threads[i] != 0)
+	       pthread_join(feature_threads[i],NULL);
+	  }
+	
+	for (size_t i=0;i<ncontents;i++)
+	  {
+	     if (feature_threads[i] != 0)
+	       {
+		  sps[i]->_features = feature_args[i]->_vf;
+		  //std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features->size() << " features.\n";
+		  delete feature_args[i];
+	       }
 	  }
      }
    
+   void content_handler::generate_features(feature_thread_arg &args)
+     {
+	mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
+				       feature_thread_arg::_radius,feature_thread_arg::_step,
+				       feature_thread_arg::_window_length);
+     }
+      
    /* void content_handler::feature_based_scoring(query_context *qc, 
 					       const hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features)
      {
@@ -227,11 +265,6 @@ namespace seeks_plugins
 	freez(outputs); // beware.
 	outputs = NULL;
 	
-	//debug
-	std::cout << "[Debug]: #txt_content0: " << txt_contents[0].size()
-	  << " -- #txt_contents1: " << txt_contents[1].size() << std::endl;
-	//debug
-	
 	if (txt_contents[0].empty() || txt_contents[1].empty())
 	  return false;
 	
@@ -260,9 +293,8 @@ namespace seeks_plugins
 	if (rad >= threshold)
 	  result = true;
 	
-	std::cerr << "Radiance: " << rad << " -- threshold: " << threshold << " -- result: " << result << std::endl;
-	
-	std::cerr << "[Debug]: comparison result: " << result << std::endl;
+	/* std::cerr << "Radiance: " << rad << " -- threshold: " << threshold << " -- result: " << result << std::endl;
+	 std::cerr << "[Debug]: comparison result: " << result << std::endl; */
 	
 	return result;
      }
