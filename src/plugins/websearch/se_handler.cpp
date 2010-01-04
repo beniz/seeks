@@ -316,7 +316,6 @@ namespace seeks_plugins
 	    parser_args[i] = NULL;
 	  
 	  // threads, one per parser.
-	  bool active_threads[active_ses];
 	  int k = 0;
 	  for (int i=0;i<NSEs;i++)
 	    {
