@@ -174,14 +174,16 @@ namespace seeks_plugins
 	html_content += " \">Archive</a>";
 	if (websearch::_wconfig->_content_analysis)
 	  {
-	     if (_sim_link.empty())
+	     if (!_sim_back)
 	       {
 		  set_similarity_link();
+		  html_content += "<a class=\"search_cache\" href=\"";
 	       }
-	     if (!_sim_back)
-	       html_content += "<a class=\"search_cache\" href=\"";
 	     else
-	       html_content += "<a class=\"search_similarity\" href=\"";
+	       {
+		  set_back_similarity_link();
+		  html_content += "<a class=\"search_similarity\" href=\"";
+	       }
 	     html_content += _sim_link;
 	     if (!_sim_back)
 	       html_content += " \">Similar</a>";
