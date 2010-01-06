@@ -31,13 +31,13 @@ using sp::encode;
 namespace seeks_plugins
 {
    search_snippet::search_snippet()
-     :_qc(NULL),_new(true),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+     :_qc(NULL),_new(true),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
       _cached_content(NULL),_features(NULL)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
-     :_qc(NULL),_new(true),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+     :_qc(NULL),_new(true),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
       _cached_content(NULL),_features(NULL)
        {
        }
@@ -172,7 +172,21 @@ namespace seeks_plugins
 	html_content += "<a class=\"search_cache\" href=\"";
 	html_content += _archive;
 	html_content += " \">Archive</a>";
-	
+	if (websearch::_wconfig->_content_analysis)
+	  {
+	     if (_sim_link.empty())
+	       {
+		  set_similarity_link();
+	       }
+	     if (!_sim_back)
+	       html_content += "<a class=\"search_cache\" href=\"";
+	     else
+	       html_content += "<a class=\"search_similarity\" href=\"";
+	     html_content += _sim_link;
+	     if (!_sim_back)
+	       html_content += " \">Similar</a>";
+	     else html_content += "\">Back</a>";
+	  }
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
@@ -235,7 +249,23 @@ namespace seeks_plugins
      {
 	_archive = "http://web.archive.org/web/*/" + _url;
      }
-   		   
+   	
+   void search_snippet::set_similarity_link()
+     {
+	_sim_link = "http://s.s/search_similarity?q=" + _qc->_query 
+	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
+	    + "&action=expand&url=" + _url;
+	_sim_back = false;
+     }
+      
+   void search_snippet::set_back_similarity_link()
+     {
+	_sim_link = "http://s.s/search?q=" + _qc->_query
+	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
+	    + "&action=expand";
+	_sim_back = true;
+     }
+      
    // static.
    void search_snippet::delete_snippets(std::vector<search_snippet*> &snippets)
      {

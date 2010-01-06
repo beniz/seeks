@@ -87,6 +87,11 @@ namespace seeks_plugins
 						   const size_t &ncontents,
 						   search_snippet **sps);
 	
+	static void feature_based_similarity_scoring(query_context *qc,
+						     const size_t &nsps,
+						     search_snippet **sps,
+						     const char *url);
+	
 	/* static void feature_based_scoring(query_context *qc, 
 					  const hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features); */
 
@@ -95,7 +100,6 @@ namespace seeks_plugins
 				     const double &similarity_threshold);
 	
       private:
-	static int _mrf_step;
      };
    
 }; /* end of namespace. */

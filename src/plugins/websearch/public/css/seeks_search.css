@@ -95,6 +95,11 @@ body {
 	margin-left: 3px;
 }
 
+#search_results .search_similarity {
+        color: olive;
+	margin-left: 3px;
+}
+
 #search_results h3 {
 	font-weight: normal;
 }

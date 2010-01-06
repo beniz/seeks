@@ -53,12 +53,12 @@ namespace seeks_plugins
 	  {
 	     return std::lexicographical_compare(s1->_url.begin(),s1->_url.end(),
 						 s2->_url.begin(),s2->_url.end());
-	  }
+	  };
 	
 	static bool equal_url(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     return s1->_url == s2->_url;
-	  }
+	  };
 	
 	static bool less_seeks_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
@@ -66,7 +66,7 @@ namespace seeks_plugins
 	       return s1->_rank < s2->_rank;
 	     else
 	       return s1->_seeks_rank < s2->_seeks_rank;
-	  }
+	  };
 
 	static bool max_seeks_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
@@ -74,7 +74,14 @@ namespace seeks_plugins
 	       return s1->_rank < s2->_rank;  // beware: min rank is still better.
 	     else
 	       return s1->_seeks_rank > s2->_seeks_rank;  // max seeks rank is better.
-	  }
+	  };
+
+	static bool max_seeks_ir(const search_snippet *s1, const search_snippet *s2)
+	  {
+	     if (s1->_seeks_ir == s2->_seeks_ir)
+	       return search_snippet::max_seeks_rank(s1,s2);
+	     else return s1->_seeks_ir > s2->_seeks_ir;
+	  };
 	
 	// constructors.
       public:
@@ -93,6 +100,12 @@ namespace seeks_plugins
 	
 	// sets a link to the archived url at archive.org (e.g. in case we'no cached link).
 	void set_archive_link();
+
+	// sets a link to a sorting of snippets wrt. to their similarity to this snippet.
+	void set_similarity_link();
+
+	// sets a back link when similarity is engaged.
+	void set_back_similarity_link();
 	
 	// xml output.
 	
@@ -126,7 +139,9 @@ namespace seeks_plugins
 	std::string _file_format;
 	std::string _date;
 	std::string _lang;
-	std::string _archive; // if no cached link, a link to archive.org
+	std::string _archive; // a link to archive.org
+	std::string _sim_link; // call to similarity sorting.
+	bool _sim_back; // whether the back 'button' to similarity is present.
 	
 	double _rank;  // search engine rank.
 	double _seeks_ir; // IR score computed locally.

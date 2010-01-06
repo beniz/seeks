@@ -34,10 +34,13 @@ namespace seeks_plugins
 					    std::vector<search_snippet*> &unique_snippets);
 	
 	static void sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets);
-		
+	
+	static void score_and_sort_by_similarity(query_context *qc, const char *url);
+	
 	// advanced sorting, based on webpages content.
 	//static void retrieve_and_score(query_context *qc);
-     
+	
+	
      };
    
 } /* end of namespace. */

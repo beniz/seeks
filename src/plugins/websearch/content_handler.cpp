@@ -32,11 +32,9 @@ using sp::curl_mget;
 
 namespace seeks_plugins
 {
-   int content_handler::_mrf_step = 5;
-   
    std::string feature_thread_arg::_delims = mrf::_default_delims;
-   int feature_thread_arg::_radius = 0;
-   int feature_thread_arg::_step = 5;
+   int feature_thread_arg::_radius = 4;
+   int feature_thread_arg::_step = 1;
    uint32_t feature_thread_arg::_window_length=5;
    
    char** content_handler::fetch_snippets_content(query_context *qc,
@@ -81,28 +79,40 @@ namespace seeks_plugins
 	// threads, one per parser.
 	for (size_t i=0;i<ncontents;i++)
 	  {
-	     html_txt_thread_arg *args = new html_txt_thread_arg();
-	     args->_output = outputs[i];
-	     parser_args[i] = args;
-	     
-	     pthread_t ps_thread;
-	     int err = pthread_create(&ps_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
-				      (void * (*)(void *))content_handler::parse_output, args);
-	     parser_threads[i] = ps_thread;
+	     if (outputs[i])
+	       {
+		  html_txt_thread_arg *args = new html_txt_thread_arg();
+		  args->_output = outputs[i];
+		  parser_args[i] = args;
+		  
+		  pthread_t ps_thread;
+		  int err = pthread_create(&ps_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
+					   (void * (*)(void *))content_handler::parse_output, args);
+		  parser_threads[i] = ps_thread;
+	       }
+	     else 
+	       {
+		  parser_threads[i] = 0;
+		  parser_args[i] = NULL;
+	       }
 	  }
-	
+		
 	// join threads.
 	for (size_t i=0;i<ncontents;i++)
 	  {
-	     pthread_join(parser_threads[i],NULL);
+	     if (parser_threads[i] != 0)
+	       pthread_join(parser_threads[i],NULL);
 	  }
 	
 	for (size_t i=0;i<ncontents;i++)
 	  {
-	     txt_outputs[i] = parser_args[i]->_txt_content;
-	     delete parser_args[i];
+	     if (parser_threads[i] != 0)
+	       {
+		  txt_outputs[i] = parser_args[i]->_txt_content;
+		  delete parser_args[i];
+	       }
 	  }
-
+	
 	return txt_outputs;
      }
    
@@ -169,10 +179,41 @@ namespace seeks_plugins
 				       feature_thread_arg::_window_length);
      }
       
-   /* void content_handler::feature_based_scoring(query_context *qc, 
-					       const hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features)
+   void content_handler::feature_based_similarity_scoring(query_context *qc,
+							  const size_t &nsps,
+							  search_snippet **sps,
+							  const char *url)
      {
-	// compute query's features. 
+	search_snippet *sp = qc->get_cached_snippet(url);
+	if (!sp)
+	  {
+	     return; // we should never reach here.
+	  }
+	// reference features.
+	std::vector<uint32_t> *ref_features = sp->_features;
+	if (!ref_features) // sometimes the content wasn't fetched, and features are not there.
+	  return; 
+	
+	// compute scores.
+	for (size_t i=0;i<nsps;i++)
+	  {
+	     if (sps[i]->_features)
+	       {
+		  uint32_t common_features = 0;
+		  sps[i]->_seeks_ir = mrf::radiance(*ref_features,*sps[i]->_features,common_features);
+		  
+		  std::cerr << "[Debug]: url: " << sps[i]->_url 
+		    << " -- score: " << sps[i]->_seeks_ir 
+		    << " -- common features: " << common_features << std::endl;
+	       }
+	  }
+     }   
+   
+   /* void content_handler::feature_based_scoring(query_context *qc, 
+					       search_snippet **sps,
+					       const char *str)
+     {
+	// compute str's features. 
 	// TODO: with collaboration enabled this could go / be fetched from the query context.
 	std::vector<uint32_t> query_features;
 	mrf::mrf_features(qc->_query,query_features,content_handler::_mrf_horizon);
@@ -183,7 +224,7 @@ namespace seeks_plugins
 	while(hit!=features.end())
 	  {
 	     // TODO: check whether we do have features... just in case.
-	     
+
 	     uint32_t common_features = 0;
 	     double score = mrf::radiance(query_features,*(*hit).second,common_features);
 	     

@@ -61,6 +61,12 @@ namespace seeks_plugins
 	static sp_err cgi_websearch_search_cache(client_state *csp,
 						 http_response *rsp,
 						 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+	static sp_err cgi_websearch_neighbors_url(client_state *csp, http_response *rsp,
+						  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+	
+	static sp_err cgi_websearch_similarity(client_state *csp, http_response *rsp,
+					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
 	/* websearch. */
 	static sp_err perform_websearch(client_state *csp,

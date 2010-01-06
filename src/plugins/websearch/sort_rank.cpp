@@ -170,6 +170,74 @@ namespace seeks_plugins
 	//debug
      }
 
+   void sort_rank::score_and_sort_by_similarity(query_context *qc, const char *url)
+     {
+	search_snippet *usp = qc->get_cached_snippet(url);
+	usp->set_back_similarity_link();
+	
+	// grab all urls content that might be needed. 
+	// XXX: should look into solutions for lowering this number.
+	// for now, grab content for urls on the first 3 pages.
+	size_t ncontents = websearch::_wconfig->_N * 3;
+	std::vector<std::string> urls;
+	std::vector<search_snippet*> snippets;
+	size_t nurls = std::min(qc->_cached_snippets.size(),ncontents);
+	bool url_added = false;
+	for (size_t i=0;i<nurls;i++)
+	  {
+	     search_snippet *sp = qc->_cached_snippets.at(i);
+	     
+	     if (!sp->_cached_content)
+	       {
+		  if (sp == usp)
+		    {
+		       url_added = true;
+		    }
+		  urls.push_back(sp->_url);
+		  snippets.push_back(sp);
+	       }
+	  }
+	if (!url_added)
+	  {
+	     urls.push_back(url);
+	     snippets.push_back(usp);
+	  }
+	
+	nurls = urls.size();
+	char **outputs = content_handler::fetch_snippets_content(qc,urls);
+	for (size_t i=0;i<nurls;i++)	
+	  if (outputs[i])
+	    {
+	       search_snippet *sp = qc->get_cached_snippet(urls[i].c_str());
+	       sp->_cached_content = outputs[i];
+	    }
+		
+	// parse fetched content.
+	std::string *txt_contents = content_handler::parse_snippets_txt_content(nurls,outputs);
+	free(outputs); // contents still lives as cache within snippets.
+	
+	// compute features.
+	std::vector<search_snippet*> sps;
+	std::vector<std::string> valid_contents;
+	for (size_t i=0;i<nurls;i++)
+	  if (!txt_contents[i].empty())
+	    {
+	       valid_contents.push_back(txt_contents[i]);
+	       sps.push_back(snippets.at(i));
+	    }
+	content_handler::extract_features_from_snippets(qc,&valid_contents.at(0),sps.size(),&sps.at(0));    
+	
+	// run similarity analysis and compute scores.
+	content_handler::feature_based_similarity_scoring(qc,qc->_cached_snippets.size(),&qc->_cached_snippets.at(0),url);
+	
+	// sort snippets according to computed scores.
+	std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),search_snippet::max_seeks_ir);
+
+	// reset scores.
+	for (size_t i=0;i<sps.size();i++)
+	  sps[i]->_seeks_ir = 0;
+     }
+   
    /* advanced sorting and scoring, based on webpages content. */
    /* void sort_rank::retrieve_and_score(query_context *qc)
      {

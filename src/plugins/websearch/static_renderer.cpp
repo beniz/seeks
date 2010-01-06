@@ -144,5 +144,14 @@ namespace seeks_plugins
      
      return err;
   }
-  
+
+   /* sp_err static_renderer::render_neighbors_result_page(const std::vector<search_snippet*> &snippets,
+							client_state *csp, http_response *rsp,
+							const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+							const query_context *qc, const int &mode)
+     {
+	
+     } */
+   
+   
 } /* end of namespace. */

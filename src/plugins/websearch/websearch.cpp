@@ -72,6 +72,10 @@ namespace seeks_plugins
 	  cgi_dispatcher *cgid_wb_search_cache
 	    = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_search_cache);
+
+	  cgi_dispatcher *cgid_wb_search_similarity
+	    = new cgi_dispatcher("search_similarity", &websearch::cgi_websearch_similarity, NULL, TRUE);
+	  _cgi_dispatchers.push_back(cgid_wb_search_similarity);
 	  
 	  // external cgi.
 	  static_renderer::register_cgi(this);
@@ -189,8 +193,70 @@ namespace seeks_plugins
 	     return SP_ERR_OK;
 	  }
      }
-   
-  sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
+
+   sp_err websearch::cgi_websearch_neighbors_url(client_state *csp, http_response *rsp,
+						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!parameters->empty())
+	  {
+	     query_context *qc = websearch::lookup_qc(parameters);
+	     
+	     if (!qc)
+	       {
+		  // no cache, (re)do the websearch first.
+		  sp_err err = websearch::cgi_websearch_search(csp,rsp,parameters);
+		  qc = websearch::lookup_qc(parameters);
+		  if (err != SP_ERR_OK)
+		    return err;
+	       }
+	   
+	     qc->_lock = true;
+	     
+	     // TODO: sort and rank 'clusters' of neighbors.
+	     
+	     
+	     // TODO: render result page.
+	     /* sp_err err = static_renderer::render_neighbors_result_page(qc->_cached_snippets, csp,rsp,parameters,qc,0); */ // 0: urls.
+	     
+	     qc->_lock = false;
+	     
+	     //return err;
+	     return SP_ERR_OK;
+	  }
+	else return SP_ERR_OK;
+     }
+      
+   sp_err websearch::cgi_websearch_similarity(client_state *csp, http_response *rsp,
+					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!parameters->empty())
+	  {
+	     query_context *qc = websearch::lookup_qc(parameters);
+	     
+	     if (!qc)
+	       {
+		  // no cache, (re)do the websearch first.
+		  sp_err err = websearch::cgi_websearch_search(csp,rsp,parameters);
+		  qc = websearch::lookup_qc(parameters);
+		  if (err != SP_ERR_OK)
+		    return err;
+	       }
+	     const char *url = miscutil::lookup(parameters,"url");
+	     
+	     qc->_lock = true;
+	     sort_rank::score_and_sort_by_similarity(qc,url);
+	     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
+								     csp,rsp,parameters,qc);
+	     qc->get_cached_snippet(url)->set_similarity_link(); // reset sim_link.
+	     qc->_lock = false;
+	     
+	     return err;
+	  }
+	else return SP_ERR_OK;	
+     }
+      
+   /*- internal functions. -*/
+   sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
 				      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
      // lookup a cached context for the incoming query.
@@ -222,9 +288,6 @@ namespace seeks_plugins
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
        }
-     
-     // grab (updated) set of cached search result snippets.
-     //std::vector<search_snippet*> snippets = qc->_cached_snippets;
      
      // sort and rank search snippets !                                                                                 
      // TODO: strategies and configuration.                                                           
