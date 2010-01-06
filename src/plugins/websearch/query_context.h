@@ -24,6 +24,7 @@
 #include "proxy_dts.h"
 #include "search_snippet.h"
 #include "LSHUniformHashTableHamming.h" // for regrouping urls, titles and other text snippets.
+#include "stl_hash.h"
 
 #include <time.h>
 
@@ -100,13 +101,18 @@ namespace seeks_plugins
 	/**
 	 * \brief finds and updates a search snippet's seeks rank.
 	 */
-	void update_snippet_seeks_rank(const char *url,
+	void update_snippet_seeks_rank(const uint32_t &id,
 				       const double &rank);
 
 	/**
 	 * \brief returns a cached snippet if it knows it, NULL otherwise.
 	 */
-	search_snippet* get_cached_snippet(const char *url);
+	search_snippet* get_cached_snippet(const std::string &url);
+	
+	/**
+	 * \brief returns a cached snippet if it knows it, NULL otherwise.
+	 */
+	search_snippet* get_cached_snippet(const uint32_t &id);
 	
 	/**
 	 * \brief adds a snippet to the unordered cache set.
@@ -125,7 +131,7 @@ namespace seeks_plugins
 		
 	/* cache. */
 	std::vector<search_snippet*> _cached_snippets;
-	hash_map<const char*,search_snippet*,hash<const char*>,eqstr> _unordered_snippets; // cached snippets ptr, url is the key.
+	hash_map<uint32_t,search_snippet*,id_hash_uint> _unordered_snippets; // cached snippets ptr, key is the hashed url = snippet id.
 	hash_map<const char*,search_snippet*,hash<const char*>,eqstr> _unordered_snippets_title; // cached snippets ptr, title is the key.
 	hash_map<const char*,const char*,hash<const char*>,eqstr> _cached_urls; // cached content, url is the key.
 	//hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> _cached_features; // cached extracted features.

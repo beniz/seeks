@@ -22,22 +22,24 @@
 #include "mem_utils.h"
 #include "miscutil.h"
 #include "encode.h"
+#include "mrf.h"
 
 #include <iostream>
 
 using sp::miscutil;
 using sp::encode;
+using lsh::mrf;
 
 namespace seeks_plugins
 {
    search_snippet::search_snippet()
-     :_qc(NULL),_new(true),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+     :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
       _cached_content(NULL),_features(NULL)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
-     :_qc(NULL),_new(true),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+     :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
       _cached_content(NULL),_features(NULL)
        {
        }
@@ -221,6 +223,7 @@ namespace seeks_plugins
 	char* str = search_snippet::url_preprocessing(url_str);
 	_url = std::string(str);
 	free(str);
+	_id = mrf::mrf_single_feature(_url);
      }
    
    void search_snippet::set_url(const char *url)
@@ -228,6 +231,7 @@ namespace seeks_plugins
 	char *str = search_snippet::url_preprocessing(url);
 	_url = std::string(str);
 	free(str);
+	_id = mrf::mrf_single_feature(_url);
      }
    
    void search_snippet::set_summary(const char *summary)
@@ -256,7 +260,7 @@ namespace seeks_plugins
      {
 	_sim_link = "http://s.s/search_similarity?q=" + _qc->_query 
 	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
-	    + "&action=expand&url=" + _url;
+	    + "&action=expand&id=" + miscutil::to_string(_id);
 	_sim_back = false;
      }
       

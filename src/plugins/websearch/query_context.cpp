@@ -199,12 +199,12 @@ namespace seeks_plugins
 
    void query_context::add_to_unordered_cache(search_snippet *sr)
      {
-	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	if ((hit=_unordered_snippets.find(sr->_url.c_str()))!=_unordered_snippets.end())
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	if ((hit=_unordered_snippets.find(sr->_id))!=_unordered_snippets.end())
 	  {
 	     // do nothing.
 	  }
-	else _unordered_snippets.insert(std::pair<const char*,search_snippet*>(sr->_url.c_str(),sr));
+	else _unordered_snippets.insert(std::pair<uint32_t,search_snippet*>(sr->_id,sr));
      }
       
    void query_context::update_unordered_cache()
@@ -212,22 +212,22 @@ namespace seeks_plugins
 	size_t cs_size = _cached_snippets.size();
 	for (size_t i=0;i<cs_size;i++)
 	  {
-	     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	     if ((hit=_unordered_snippets.find(_cached_snippets[i]->_url.c_str()))!=_unordered_snippets.end())
+	     hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	     if ((hit=_unordered_snippets.find(_cached_snippets[i]->_id))!=_unordered_snippets.end())
 	       {
 		  // for now, do nothing. TODO: may merge snippets here.
 	       }
 	     else
-	       _unordered_snippets.insert(std::pair<const char*,search_snippet*>(_cached_snippets[i]->_url.c_str(),
-										 _cached_snippets[i]));
+	       _unordered_snippets.insert(std::pair<uint32_t,search_snippet*>(_cached_snippets[i]->_id,
+									      _cached_snippets[i]));
 	  }
      }
    
-   void query_context::update_snippet_seeks_rank(const char *url,
+   void query_context::update_snippet_seeks_rank(const uint32_t &id,
 						 const double &rank)
      {
-	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	if ((hit = _unordered_snippets.find(url))==_unordered_snippets.end())
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	if ((hit = _unordered_snippets.find(id))==_unordered_snippets.end())
 	  {
 	     // don't have this url in cache ? let's do nothing.
 	  }
@@ -235,10 +235,16 @@ namespace seeks_plugins
 	                                         //         with proper weighting by the consensus rank...
      }
 
-   search_snippet* query_context::get_cached_snippet(const char *url)
+   search_snippet* query_context::get_cached_snippet(const std::string &url)
      {
-	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	if ((hit = _unordered_snippets.find(url))==_unordered_snippets.end())
+	uint32_t id = mrf::mrf_single_feature(url);
+	return get_cached_snippet(id);
+     }
+      
+   search_snippet* query_context::get_cached_snippet(const uint32_t &id)
+     {
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	if ((hit = _unordered_snippets.find(id))==_unordered_snippets.end())
 	  return NULL;
 	else return (*hit).second;
      }
@@ -246,7 +252,7 @@ namespace seeks_plugins
    void query_context::add_to_unordered_cache_title(search_snippet *sr)
      {
 	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	if ((hit=_unordered_snippets_title.find(sr->_title.c_str()))!=_unordered_snippets.end())
+	if ((hit=_unordered_snippets_title.find(sr->_title.c_str()))!=_unordered_snippets_title.end())
 	  {
 	     // do nothing.
 	  }
