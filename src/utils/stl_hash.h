@@ -55,3 +55,18 @@ struct eqstr
      }
 };
 #endif
+
+#include <stdint.h>
+#ifndef STRUCT_ID_HASH_UINT
+#define STRUCT_ID_HASH_UINT
+/**
+ * \brief id hash function, returns the element in input.
+ */
+struct id_hash_uint : public std::unary_function<uint32_t,uint32_t>
+{
+   uint32_t operator()(const uint32_t &k) const
+     {
+	return k;
+     }
+};
+#endif

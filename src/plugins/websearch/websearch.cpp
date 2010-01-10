@@ -241,13 +241,14 @@ namespace seeks_plugins
 		  if (err != SP_ERR_OK)
 		    return err;
 	       }
-	     const char *url = miscutil::lookup(parameters,"url");
+	     const char *id = miscutil::lookup(parameters,"id");
 	     
 	     qc->_lock = true;
-	     sort_rank::score_and_sort_by_similarity(qc,url);
+	     search_snippet *ref_sp = NULL;
+	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp);
 	     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 								     csp,rsp,parameters,qc);
-	     qc->get_cached_snippet(url)->set_similarity_link(); // reset sim_link.
+	     ref_sp->set_similarity_link(); // reset sim_link.
 	     qc->_lock = false;
 	     
 	     return err;

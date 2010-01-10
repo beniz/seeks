@@ -182,15 +182,14 @@ namespace seeks_plugins
    void content_handler::feature_based_similarity_scoring(query_context *qc,
 							  const size_t &nsps,
 							  search_snippet **sps,
-							  const char *url)
+							  search_snippet *ref_sp)
      {
-	search_snippet *sp = qc->get_cached_snippet(url);
-	if (!sp)
+	if (!ref_sp)
 	  {
 	     return; // we should never reach here.
 	  }
 	// reference features.
-	std::vector<uint32_t> *ref_features = sp->_features;
+	std::vector<uint32_t> *ref_features = ref_sp->_features;
 	if (!ref_features) // sometimes the content wasn't fetched, and features are not there.
 	  return; 
 	

@@ -90,7 +90,7 @@ namespace seeks_plugins
 	static void feature_based_similarity_scoring(query_context *qc,
 						     const size_t &nsps,
 						     search_snippet **sps,
-						     const char *url);
+						     search_snippet *ref_sp);
 	
 	/* static void feature_based_scoring(query_context *qc, 
 					  const hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features); */

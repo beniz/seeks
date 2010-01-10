@@ -72,7 +72,7 @@ namespace seeks_plugins
 	     search_snippet *sp = (*it);
 	     if (sp->_new)
 	       {
-		  if ((c_sp = qc->get_cached_snippet(sp->_url.c_str()))!=NULL)
+		  if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
 		    {
 		       // merging snippets.
 		       search_snippet::merge_snippets(c_sp,sp);
@@ -102,7 +102,7 @@ namespace seeks_plugins
 			    mit = mres.begin();
 			    while(mit!=mres.end())
 			      {
-				 search_snippet *comp_sp = qc->get_cached_snippet((*mit).second.c_str());
+				 search_snippet *comp_sp = qc->get_cached_snippet((*mit).second);
 				 if (!comp_sp)
 				   comp_sp = qc->get_cached_snippet_title((*mit).second.c_str());
 				 assert(comp_sp != NULL);
@@ -170,10 +170,12 @@ namespace seeks_plugins
 	//debug
      }
 
-   void sort_rank::score_and_sort_by_similarity(query_context *qc, const char *url)
+   void sort_rank::score_and_sort_by_similarity(query_context *qc, const char *id_str,
+						search_snippet *&ref_sp)
      {
-	search_snippet *usp = qc->get_cached_snippet(url);
-	usp->set_back_similarity_link();
+	uint32_t id = (uint32_t)strtod(id_str,NULL);
+	ref_sp = qc->get_cached_snippet(id);
+	ref_sp->set_back_similarity_link();
 	
 	// grab all urls content that might be needed. 
 	// XXX: should look into solutions for lowering this number.
@@ -189,7 +191,7 @@ namespace seeks_plugins
 	     
 	     if (!sp->_cached_content)
 	       {
-		  if (sp == usp)
+		  if (sp == ref_sp)
 		    {
 		       url_added = true;
 		    }
@@ -199,43 +201,47 @@ namespace seeks_plugins
 	  }
 	if (!url_added)
 	  {
-	     urls.push_back(url);
-	     snippets.push_back(usp);
+	     urls.push_back(ref_sp->_url);
+	     snippets.push_back(ref_sp);
 	  }
 	
 	nurls = urls.size();
 	char **outputs = content_handler::fetch_snippets_content(qc,urls);
-	for (size_t i=0;i<nurls;i++)	
-	  if (outputs[i])
-	    {
-	       search_snippet *sp = qc->get_cached_snippet(urls[i].c_str());
-	       sp->_cached_content = outputs[i];
-	    }
+	if (outputs)
+	  {
+	     for (size_t i=0;i<nurls;i++)	
+	       if (outputs[i])
+		 {
+		    search_snippet *sp = qc->get_cached_snippet(urls[i]);
+		    sp->_cached_content = outputs[i];
+		 }
 		
-	// parse fetched content.
-	std::string *txt_contents = content_handler::parse_snippets_txt_content(nurls,outputs);
-	free(outputs); // contents still lives as cache within snippets.
-	
-	// compute features.
-	std::vector<search_snippet*> sps;
-	std::vector<std::string> valid_contents;
-	for (size_t i=0;i<nurls;i++)
-	  if (!txt_contents[i].empty())
-	    {
-	       valid_contents.push_back(txt_contents[i]);
-	       sps.push_back(snippets.at(i));
-	    }
-	content_handler::extract_features_from_snippets(qc,&valid_contents.at(0),sps.size(),&sps.at(0));    
-	
+	     // parse fetched content.
+	     std::string *txt_contents = content_handler::parse_snippets_txt_content(nurls,outputs);
+	     free(outputs); // contents still lives as cache within snippets.
+	     
+	     // compute features.
+	     std::vector<search_snippet*> sps;
+	     std::vector<std::string> valid_contents;
+	     for (size_t i=0;i<nurls;i++)
+	       if (!txt_contents[i].empty())
+		 {
+		    valid_contents.push_back(txt_contents[i]);
+		    sps.push_back(snippets.at(i));
+		 }
+	     content_handler::extract_features_from_snippets(qc,&valid_contents.at(0),sps.size(),&sps.at(0));    
+	  }
+		     
 	// run similarity analysis and compute scores.
-	content_handler::feature_based_similarity_scoring(qc,qc->_cached_snippets.size(),&qc->_cached_snippets.at(0),url);
+	content_handler::feature_based_similarity_scoring(qc,qc->_cached_snippets.size(),
+							  &qc->_cached_snippets.at(0),ref_sp);
 	
 	// sort snippets according to computed scores.
 	std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),search_snippet::max_seeks_ir);
 
 	// reset scores.
-	for (size_t i=0;i<sps.size();i++)
-	  sps[i]->_seeks_ir = 0;
+	for (size_t i=0;i<qc->_cached_snippets.size();i++)
+	  qc->_cached_snippets.at(i)->_seeks_ir = 0;
      }
    
    /* advanced sorting and scoring, based on webpages content. */

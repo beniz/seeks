@@ -130,6 +130,7 @@ namespace seeks_plugins
       public:
 	query_context *_qc; // query context the snippet belongs to.
 	bool _new; // true before snippet is processed.
+	uint32_t _id; // snippet id as hashed url.
 	
 	std::string _title;
 	std::string _url;
