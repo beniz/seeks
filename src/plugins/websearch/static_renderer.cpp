@@ -53,7 +53,7 @@ namespace seeks_plugins
      static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
      
      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-       = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+       = cgi::default_exports(csp,"");
      
      // query.
      const char *query = encode::html_encode(miscutil::lookup(parameters,"q"));
@@ -139,8 +139,8 @@ namespace seeks_plugins
        }
      else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
      
-     sp_err err = cgi::template_fill_for_cgi_str(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
-						 exports,rsp);
+     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+					     exports,rsp);
      
      return err;
   }
