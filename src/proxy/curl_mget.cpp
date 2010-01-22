@@ -34,18 +34,18 @@
 
 namespace sp
 {
-   static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
+ /*   static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
      {
 	char *buffer = static_cast<char*>(ptr);
 	cbget *arg = static_cast<cbget*>(userp);
 	size *= nmemb;
 	
-	int rembuff = arg->_buffer_len - arg->_buffer_pos; /* remaining space in buffer. */
+	int rembuff = arg->_buffer_len - arg->_buffer_pos; // remaining space in buffer.
 	
 	char *newbuff = NULL;
 	if (size > (size_t)rembuff)
 	  {
-	     /* not enough space in buffer. */
+	     // not enough space in buffer.
 	     newbuff = (char*)realloc(arg->_output,arg->_buffer_len + (size - rembuff));
 	     if (newbuff == NULL)
 	       {
@@ -55,7 +55,7 @@ namespace sp
 	       }
 	     else
 	       {
-		  /* realloc succeeded. */
+		  // realloc succeeded.
 		  arg->_buffer_len += size - rembuff;
 		  arg->_output = newbuff;
 	       }
@@ -66,8 +66,23 @@ namespace sp
 	//std::cerr << "output: " << arg->output << std::endl;
 	
 	return size;
-     }
+     } */
 
+   static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
+     {
+	char *buffer = static_cast<char*>(ptr);
+	cbget *arg = static_cast<cbget*>(userp);
+	size *= nmemb;
+     
+	if (!arg->_output)
+	  arg->_output = new std::string();
+	
+	*arg->_output += buffer;
+	
+	return size;
+     }
+   
+   
    curl_mget::curl_mget(const int &nrequests, 
 			const long &connect_timeout_sec,
 			const long &connect_timeout_ms,
@@ -77,7 +92,8 @@ namespace sp
       _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
       _transfer_timeout_ms(transfer_timeout_ms)
      {
-	_outputs = (char**) malloc(_nrequests*sizeof(char*));
+	//_outputs = (char**) malloc(_nrequests*sizeof(char*));
+	_outputs = new std::string*[_nrequests];
 	for (int i=0;i<_nrequests;i++)
 	  _outputs[i] = NULL;
 	_cbgets = new cbget*[_nrequests];
@@ -85,7 +101,6 @@ namespace sp
    
    curl_mget::~curl_mget()
      {
-	//free(_outputs); // beware.
 	delete[] _cbgets;
      }
       
@@ -137,8 +152,8 @@ namespace sp
 	return NULL;
      }
    
-   char** curl_mget::www_mget(const std::vector<std::string> &urls, 
-			      const int &nrequests, const bool &proxy)
+   std::string** curl_mget::www_mget(const std::vector<std::string> &urls, 
+				     const int &nrequests, const bool &proxy)
      {
 	assert((int)urls.size() == nrequests);
 	
