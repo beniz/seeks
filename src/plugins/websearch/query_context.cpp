@@ -38,7 +38,7 @@ namespace seeks_plugins
 {
    
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
 	  _query_hash = query_context::hash_query_for_context(parameters,_query);
 	  struct timeval tv_now;
@@ -153,7 +153,7 @@ namespace seeks_plugins
 	  
 	  // query SEs.                                                                                                 
 	  int nresults = 0;
-	  char **outputs = se_handler::query_to_ses(parameters,nresults);
+	  std::string **outputs = se_handler::query_to_ses(parameters,nresults);
 	  
 	  // test for failed connection to the SEs comes here.    
 	  if (!outputs)
@@ -169,8 +169,8 @@ namespace seeks_plugins
 	  se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this);
 	  for (int j=0;j<nresults;j++)
 	    if (outputs[j])
-	      free(outputs[j]);
-	  free(outputs); // beware
+	      delete outputs[j];
+	  delete[] outputs;
        }
      
      // update horizon.
@@ -235,15 +235,15 @@ namespace seeks_plugins
 	                                         //         with proper weighting by the consensus rank...
      }
 
-   search_snippet* query_context::get_cached_snippet(const std::string &url)
+   search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
 	uint32_t id = mrf::mrf_single_feature(url);
 	return get_cached_snippet(id);
      }
       
-   search_snippet* query_context::get_cached_snippet(const uint32_t &id)
+   search_snippet* query_context::get_cached_snippet(const uint32_t &id) const
      {
-	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit;
 	if ((hit = _unordered_snippets.find(id))==_unordered_snippets.end())
 	  return NULL;
 	else return (*hit).second;

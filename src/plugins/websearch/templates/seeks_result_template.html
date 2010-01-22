@@ -4,7 +4,6 @@
 <title>qclean - Seeks Search</title>
 <link rel="search" href="/plugins/websearch/public/opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
 <link rel="stylesheet" href="/public/yui/3.0.0/cssreset/reset-min.css" type="text/css">
-<!-- <link rel="stylesheet" href="/public/yui/3.0.0/cssbase/base-min.css" type="text/css"> -->
 <link rel="stylesheet" href="/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css">
 <link rel="stylesheet" href="/public/css/base.css" type="text/css" />
 <link rel="stylesheet" href="/plugins/websearch/public/css/seeks_search.css" type="text/css">
@@ -21,13 +20,17 @@
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e)" id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+
+<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=clusterize&clusters=xxnclust" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
 
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 
-<a id="search_home" title="Home" href="/websearch-hp/">&nbsp;</a>
+<a id="search_home" title="Home (ctrl+h)" href="/websearch-hp/">&nbsp;</a>
 
-<p id="search_sugg">xxsugg</p>
+<div id="search_sugg">xxsugg</div>
+<div id="sort_urls">Sort by <a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=urls" title="Sort by urls">urls</a></div>
+<div id="sort_titles"><a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=titles" title="Sort by titles">titles</a></div>
 
 <!-- <a href="http://s.s/advanced_search?q=fullquery">Advanced seeks</a> -->
 </div>
@@ -60,6 +63,15 @@ YUI().use('event-key', function(Y) {
 
 });
 
+// Shortcut for clustering, ctrl+c
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#cluster').getAttribute('href');
+    }, document, 'press:99+ctrl');
+
+});
+
 // Shortcut for previous page, ctrl+<
 YUI().use('event-key', function(Y) {
     var handle = Y.on('key', function(e) {
@@ -78,8 +90,15 @@ YUI().use('event-key', function(Y) {
 
 });
 
+// Shortcut for home page, ctrl+h
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_home').getAttribute('href');
+    }, document, 'press:104+ctrl');
+
+});
+
 </script>
-
 </div> 
-
 </body></html>

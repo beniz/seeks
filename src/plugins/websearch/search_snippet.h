@@ -155,8 +155,10 @@ namespace seeks_plugins
 	std::string _forum_thread_info;
 
 	// cache.
-	const char *_cached_content;
-	std::vector<uint32_t> *_features;
+	std::string *_cached_content;
+	std::vector<uint32_t> *_features; // temporary set of features, used for fast similarity check between snippets.
+	hash_map<uint32_t,float,id_hash_uint> *_features_tfidf; // tf-idf feature set for this snippet.
+	hash_map<uint32_t,std::string,id_hash_uint> *_bag_of_words;	
      };
    
 } /* end of namespace. */

@@ -27,20 +27,25 @@ using namespace seeks_plugins;
 
 int main(int argc, char **argv)
 {
+   if (argc < 2)
+     {
+	std::cout << "Usage: test_html-text_parser <html_page>\n";
+	exit(0);
+     }
+   
+   const char *htmlpage = argv[1];
+   
    char *buffer;
    std::ifstream ifs;
    long offset = 0;
    long length = -1;
-   ifs.open("bing_markov_chain.html",std::ios::binary);
-   
+   ifs.open(htmlpage,std::ios::binary);
    if (!ifs.is_open())
-     {
-	std::cout << "[Error]: can't find file.\n";
-	return -1;
-     }
-      
+     return -1;
+   
    ifs.seekg (0, std::ios::end);
    length = ((long)ifs.tellg()) - offset;
+   
    if(length==0)
      {
 	ifs.close();

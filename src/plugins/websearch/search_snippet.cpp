@@ -34,13 +34,13 @@ namespace seeks_plugins
 {
    search_snippet::search_snippet()
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
-      _cached_content(NULL),_features(NULL)
+      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
-      _cached_content(NULL),_features(NULL)
+      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
        {
        }
       
@@ -50,6 +50,10 @@ namespace seeks_plugins
 	  free_const(_cached_content);
 	if (_features)
 	  delete _features;
+	if (_features_tfidf)
+	  delete _features_tfidf;
+	if (_bag_of_words)
+	  delete _bag_of_words;
      }
 
    void search_snippet::highlight_query(std::vector<std::string> &words,
@@ -152,14 +156,19 @@ namespace seeks_plugins
 	  }
 	else html_content += "<div>";
 	
+	const char *cite_enc = NULL;
 	if (_cite != "")
 	  {
-	     const char *cite_enc = encode::html_encode(_cite.c_str());
-	     html_content += "<br><cite>";
-	     html_content += cite_enc;
-	     free_const(cite_enc);
-	     html_content += "</cite>";
+	     cite_enc = encode::html_encode(_cite.c_str());
 	  }
+	else 
+	  {
+	     cite_enc = encode::html_encode(_url.c_str());
+	  }
+	html_content += "<br><cite>";
+	html_content += cite_enc;
+	free_const(cite_enc);
+	html_content += "</cite>";
 	
 	if (!_cached.empty())
 	  {
@@ -258,9 +267,9 @@ namespace seeks_plugins
    	
    void search_snippet::set_similarity_link()
      {
-	_sim_link = "http://s.s/search_similarity?q=" + _qc->_query 
+	_sim_link = "http://s.s/search?q=" + _qc->_query 
 	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
-	    + "&action=expand&id=" + miscutil::to_string(_id);
+	    + "&action=similarity&id=" + miscutil::to_string(_id);
 	_sim_back = false;
      }
       

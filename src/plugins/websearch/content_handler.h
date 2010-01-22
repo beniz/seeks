@@ -68,24 +68,62 @@ namespace seeks_plugins
 	static int _step;
 	static uint32_t _window_length;
      };
-      
+
+   struct feature_tfidf_thread_arg
+     {
+	feature_tfidf_thread_arg(std::string *txt_content,
+				 hash_map<uint32_t,float,id_hash_uint> *vf)
+	  :_txt_content(txt_content),_vf(vf),_bow(NULL)
+	    {
+	    };
+	 
+	feature_tfidf_thread_arg(std::string *txt_content,
+				 hash_map<uint32_t,float,id_hash_uint> *vf,
+				 hash_map<uint32_t,std::string,id_hash_uint> *bow)
+	  :_txt_content(txt_content),_vf(vf),_bow(bow)
+	    {
+	    };
+	
+	~feature_tfidf_thread_arg()
+	  {
+	  };
+	                                       
+	std::string *_txt_content;
+	hash_map<uint32_t,float,id_hash_uint> *_vf;
+	hash_map<uint32_t,std::string,id_hash_uint> *_bow;
+	
+	static std::string _delims;
+	static int _radius;
+	static int _step;
+	static uint32_t _window_length;                   
+     };
+   
    class content_handler
      {
       public:
-	static char** fetch_snippets_content(query_context *qc,
-					     const std::vector<std::string> &urls);
+	static std::string** fetch_snippets_content(const std::vector<std::string> &urls,
+						    const bool &proxy);
 
+	static void fetch_all_snippets_summary_and_features(query_context *qc);
+	
+	static void fetch_all_snippets_content_and_features(query_context *qc);
+	
 	static void generate_features(feature_thread_arg &args);
 	
+	static void generate_features_tfidf(feature_tfidf_thread_arg &args);
+	
 	static std::string* parse_snippets_txt_content(const size_t &ncontents,
-						       char **outputs);
+						       std::string **outputs);
 
 	static void parse_output(html_txt_thread_arg &args);
 	
 	static void extract_features_from_snippets(query_context *qc,
-						   std::string *txt_contents,
-						   const size_t &ncontents,
-						   search_snippet **sps);
+						   const std::vector<std::string*> &txt_contents,
+						   const std::vector<search_snippet*> &sps);
+	
+	static void extract_tfidf_features_from_snippets(query_context *qc,
+							 const std::vector<std::string*> &txt_contents,
+							 const std::vector<search_snippet*> &sps);
 	
 	static void feature_based_similarity_scoring(query_context *qc,
 						     const size_t &nsps,

@@ -22,6 +22,8 @@
 #include "curl_mget.h"
 #include "html_txt_parser.h"
 #include "websearch.h"
+#include "oskmeans.h"
+#include "miscutil.h"
 
 #include <pthread.h>
 #include <iostream>
@@ -29,26 +31,33 @@
 #include <assert.h>
 
 using sp::curl_mget;
+using sp::miscutil;
 
 namespace seeks_plugins
 {
    std::string feature_thread_arg::_delims = mrf::_default_delims;
-   int feature_thread_arg::_radius = 4;
+   int feature_thread_arg::_radius = 2;
    int feature_thread_arg::_step = 1;
-   uint32_t feature_thread_arg::_window_length=5;
+   uint32_t feature_thread_arg::_window_length=2;
    
-   char** content_handler::fetch_snippets_content(query_context *qc,
-						  const std::vector<std::string> &urls)
+   std::string feature_tfidf_thread_arg::_delims = mrf::_default_delims;
+   int feature_tfidf_thread_arg::_radius = 1;
+   int feature_tfidf_thread_arg::_step = 1;
+   uint32_t feature_tfidf_thread_arg::_window_length=1;
+   
+   std::string** content_handler::fetch_snippets_content(const std::vector<std::string> &urls,
+							 const bool &proxy)
      {
 	// just in case.
 	if (urls.empty())
 	  return NULL;
 	
 	// fetch content.
-	curl_mget cmg(urls.size(),1,0,3,0); // 1 second connect timeout, 3 seconds transfer timeout.
-	cmg.www_mget(urls,urls.size(),true);
+	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
+		      websearch::_wconfig->_ct_transfer_timeout,0);
+	cmg.www_mget(urls,urls.size(),proxy);
 	
-	char **outputs = (char**)std::malloc(urls.size()*sizeof(char*));
+	std::string **outputs = new std::string*[urls.size()];
 	int k = 0;
 	for (size_t i=0;i<urls.size();i++)
 	  {
@@ -62,14 +71,75 @@ namespace seeks_plugins
 	  }
 	if (k == 0)
 	  {
-	     freez(outputs); // beware.
+	     delete[] outputs;
 	     outputs = NULL;
 	  }
 	return outputs;
      }
    
+   void content_handler::fetch_all_snippets_summary_and_features(query_context *qc)
+     {
+	size_t nsnippets = qc->_cached_snippets.size();
+	std::vector<std::string*> txt_contents;
+	for (size_t i=0;i<nsnippets;i++)
+	  {
+	     std::string *str = new std::string(qc->_cached_snippets.at(i)->_title + "\n" 
+						+ qc->_cached_snippets.at(i)->_summary);
+	     txt_contents.push_back(str);
+	  }
+	content_handler::extract_tfidf_features_from_snippets(qc,txt_contents,qc->_cached_snippets);
+	for (size_t i=0;i<nsnippets;i++)
+	  if (txt_contents.at(i))
+	    delete txt_contents.at(i);
+     }
+      
+   void content_handler::fetch_all_snippets_content_and_features(query_context *qc)
+     {
+	// prepare urls to fetch.
+	std::vector<std::string> urls;
+	std::vector<search_snippet*> snippets;
+	size_t ns = qc->_cached_snippets.size();
+	for (size_t i=0;i<ns;i++)
+	  {
+	     search_snippet *sp = qc->_cached_snippets.at(i);
+	     if (sp->_cached_content)
+	       continue;
+	     urls.push_back(sp->_url);
+	     snippets.push_back(sp);
+	  }
+	
+	// fetch content.
+	std::string **outputs = content_handler::fetch_snippets_content(urls,true);
+	if (!outputs)
+	  return;
+	
+	size_t nurls = urls.size();
+	for (size_t i=0;i<nurls;i++)
+	  if (outputs[i])
+	    {
+	       search_snippet *sp = qc->get_cached_snippet(urls[i]);
+	       sp->_cached_content = outputs[i]; // cache fetched content.
+	    }
+	
+	// parse fetched content.
+	std::string *txt_contents = content_handler::parse_snippets_txt_content(nurls,outputs);
+	delete[] outputs; // contents still lives as cache within snippets.
+	
+	// compute features.
+	std::vector<search_snippet*> sps;
+	std::vector<std::string*> valid_contents;
+	for (size_t i=0;i<nurls;i++)
+	  if (!txt_contents[i].empty())
+	    {
+	       valid_contents.push_back(&txt_contents[i]);
+	       sps.push_back(snippets.at(i));
+	    }
+	content_handler::extract_tfidf_features_from_snippets(qc,valid_contents,sps);
+	delete[] txt_contents;
+     }
+      
    std::string* content_handler::parse_snippets_txt_content(const size_t &ncontents,
-							    char **outputs)
+							    std::string **outputs)
      {
 	std::string *txt_outputs = new std::string[ncontents];
 	
@@ -82,7 +152,15 @@ namespace seeks_plugins
 	     if (outputs[i])
 	       {
 		  html_txt_thread_arg *args = new html_txt_thread_arg();
-		  args->_output = outputs[i];
+		  args->_output = (char*)outputs[i]->c_str();
+		  if (!args->_output) // security check.
+		    {
+		       delete args;
+		       parser_threads[i] = 0;
+		       parser_args[i] = NULL;
+		       continue;
+		    }
+		  		  
 		  parser_args[i] = args;
 		  
 		  pthread_t ps_thread;
@@ -108,6 +186,12 @@ namespace seeks_plugins
 	  {
 	     if (parser_threads[i] != 0)
 	       {
+		  // debug: should go elsewhere, and be done more efficiently.
+		  miscutil::replace_in_string(parser_args[i]->_txt_content,"\t"," ");
+		  miscutil::replace_in_string(parser_args[i]->_txt_content,"\n"," ");
+		  miscutil::replace_in_string(parser_args[i]->_txt_content,"\r"," ");
+		  miscutil::replace_in_string(parser_args[i]->_txt_content,"\f"," ");
+		  miscutil::replace_in_string(parser_args[i]->_txt_content,"\v"," ");
 		  txt_outputs[i] = parser_args[i]->_txt_content;
 		  delete parser_args[i];
 	       }
@@ -118,28 +202,103 @@ namespace seeks_plugins
    
    void content_handler::parse_output(html_txt_thread_arg &args)
      {
+	// security check...
+	if (!args._output)
+	  return;
+	
 	html_txt_parser *txt_parser = new html_txt_parser();
 	txt_parser->parse_output(args._output,NULL,0);
 	args._txt_content = txt_parser->_txt;
 	delete txt_parser;
      }
    
-   void content_handler::extract_features_from_snippets(query_context *qc,
-							std::string *txt_contents,
-							const size_t &ncontents,
-							search_snippet **sps)
+   void content_handler::extract_tfidf_features_from_snippets(query_context *qc,
+							      const std::vector<std::string*> &txt_contents,
+							      const std::vector<search_snippet*> &sps)
      {
+	size_t ncontents = txt_contents.size();
+	pthread_t feature_threads[ncontents];
+	feature_tfidf_thread_arg* feature_args[ncontents];
+	                    
+	// XXX: limits the number of threads.
+	for  (size_t i=0;i<ncontents;i++)
+	  {
+	     hash_map<uint32_t,float,id_hash_uint> *vf = sps[i]->_features_tfidf;
+	     hash_map<uint32_t,std::string,id_hash_uint> *bow = sps[i]->_bag_of_words;
+	     //if (qc->_compute_tfidf_features && vf)
+	     if (vf)
+	       {
+		  delete sps[i]->_features_tfidf;
+		  sps[i]->_features_tfidf = NULL;
+		  if (sps[i]->_bag_of_words)
+		    {
+		       delete sps[i]->_bag_of_words;
+		       sps[i]->_bag_of_words = NULL;
+		    }
+		  vf = NULL;
+	       }
+	     
+	     if (!vf)
+	       {
+		  vf = new hash_map<uint32_t,float,id_hash_uint>();
+		  bow = new hash_map<uint32_t,std::string,id_hash_uint>();
+		  feature_tfidf_thread_arg *args = new feature_tfidf_thread_arg(txt_contents[i],vf,bow);
+		  feature_args[i] = args;
+		  
+		  pthread_t f_thread;
+		  int err = pthread_create(&f_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
+					   (void*(*)(void*))content_handler::generate_features_tfidf,args);
+		  feature_threads[i] = f_thread;
+	       }
+	     else
+	       {
+		  feature_threads[i] = 0;
+		  feature_args[i] = NULL;
+	       }
+	  }
+	
+	// join threads.
+	std::vector<hash_map<uint32_t,float,id_hash_uint>*> bags;
+	for (size_t i=0;i<ncontents;i++)
+	  {
+	     if (feature_threads[i] != 0)
+	       {
+		  pthread_join(feature_threads[i],NULL);
+		  bags.push_back(feature_args[i]->_vf);
+	       }
+	  }
+		
+	mrf::compute_tf_idf(bags);
+	
+	for (size_t i=0;i<ncontents;i++)
+	  {
+	     if (feature_threads[i] != 0)
+	       {
+		  sps[i]->_features_tfidf = feature_args[i]->_vf; // cache features.
+		  sps[i]->_bag_of_words = feature_args[i]->_bow; // cache words.
+		  std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
+		  delete feature_args[i];
+	       }
+	  }
+	qc->_compute_tfidf_features = false;
+     }
+      
+   void content_handler::extract_features_from_snippets(query_context *qc,
+							const std::vector<std::string*> &txt_contents,
+							const std::vector<search_snippet*> &sps)
+     {
+	size_t ncontents = txt_contents.size();
 	pthread_t feature_threads[ncontents];
 	feature_thread_arg* feature_args[ncontents];
 	
-	// TODO: limits the number of threads.
+	// XXX: limits the number of threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
 	     std::vector<uint32_t> *vf = sps[i]->_features;
 	     if (!vf)
 	       {
 		  vf = new std::vector<uint32_t>();
-		  feature_thread_arg *args = new feature_thread_arg(&txt_contents[i],vf);
+		  feature_thread_arg *args = new feature_thread_arg(txt_contents[i],vf);
 		  feature_args[i] = args;
 	
 		  pthread_t f_thread;
@@ -165,7 +324,7 @@ namespace seeks_plugins
 	  {
 	     if (feature_threads[i] != 0)
 	       {
-		  sps[i]->_features = feature_args[i]->_vf;
+		  sps[i]->_features = feature_args[i]->_vf; // cache features.
 		  //std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features->size() << " features.\n";
 		  delete feature_args[i];
 	       }
@@ -177,8 +336,16 @@ namespace seeks_plugins
 	mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
 				       feature_thread_arg::_radius,feature_thread_arg::_step,
 				       feature_thread_arg::_window_length);
+	mrf::unique_features(*args._vf);
      }
       
+   void content_handler::generate_features_tfidf(feature_tfidf_thread_arg &args)
+     {
+	mrf::tokenize_and_mrf_features(*args._txt_content,feature_tfidf_thread_arg::_delims,*args._vf,args._bow,
+				       feature_tfidf_thread_arg::_radius,feature_tfidf_thread_arg::_step,
+				       feature_tfidf_thread_arg::_window_length);
+     }
+   
    void content_handler::feature_based_similarity_scoring(query_context *qc,
 							  const size_t &nsps,
 							  search_snippet **sps,
@@ -186,54 +353,29 @@ namespace seeks_plugins
      {
 	if (!ref_sp)
 	  {
+	     std::cerr << "no ref_sp!\n";
 	     return; // we should never reach here.
 	  }
 	// reference features.
-	std::vector<uint32_t> *ref_features = ref_sp->_features;
+	hash_map<uint32_t,float,id_hash_uint> *ref_features = ref_sp->_features_tfidf;
 	if (!ref_features) // sometimes the content wasn't fetched, and features are not there.
-	  return; 
-	
+	  {
+	     std::cerr << "no ref features!\n";
+	     return; 
+	  }
+		
 	// compute scores.
 	for (size_t i=0;i<nsps;i++)
 	  {
-	     if (sps[i]->_features)
+	     if (sps[i]->_features_tfidf)
 	       {
-		  uint32_t common_features = 0;
-		  sps[i]->_seeks_ir = mrf::radiance(*ref_features,*sps[i]->_features,common_features);
+		  sps[i]->_seeks_ir = oskmeans::distance_normed_points(*ref_features,*sps[i]->_features_tfidf);
 		  
 		  std::cerr << "[Debug]: url: " << sps[i]->_url 
-		    << " -- score: " << sps[i]->_seeks_ir 
-		    << " -- common features: " << common_features << std::endl;
+		    << " -- score: " << sps[i]->_seeks_ir << std::endl;
 	       }
 	  }
      }   
-   
-   /* void content_handler::feature_based_scoring(query_context *qc, 
-					       search_snippet **sps,
-					       const char *str)
-     {
-	// compute str's features. 
-	// TODO: with collaboration enabled this could go / be fetched from the query context.
-	std::vector<uint32_t> query_features;
-	mrf::mrf_features(qc->_query,query_features,content_handler::_mrf_horizon);
-	
-	// compute scores.
-	hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr>::const_iterator hit 
-	  = features.begin();
-	while(hit!=features.end())
-	  {
-	     // TODO: check whether we do have features... just in case.
-
-	     uint32_t common_features = 0;
-	     double score = mrf::radiance(query_features,*(*hit).second,common_features);
-	     
-	     // update query context's snippets' ranks.
-	     // TODO: delete snippets whose feature-based rank is 0 ?
-	     qc->update_snippet_seeks_rank((*hit).first,score);
-	     
-	     ++hit;
-	  }
-     } */
    
    bool content_handler::has_same_content(query_context *qc, 
 					  search_snippet *sp1, search_snippet *sp2,
@@ -247,14 +389,14 @@ namespace seeks_plugins
 	std::vector<std::string> urls;
 	urls.reserve(2);
 	
-	const char *content1 = sp1->_cached_content;
-	const char *content2 = sp2->_cached_content;
+	std::string *content1 = sp1->_cached_content;
+	std::string *content2 = sp2->_cached_content;
 	
-	char **outputs = NULL;
+	std::string **outputs = NULL;
 	if (!content1 && !content2)
 	  {
 	     urls.push_back(url1); urls.push_back(url2);
-	     outputs = content_handler::fetch_snippets_content(qc,urls);
+	     outputs = content_handler::fetch_snippets_content(urls,true);
 	     if (outputs)
 	       {
 		  sp1->_cached_content = outputs[0];
@@ -263,29 +405,29 @@ namespace seeks_plugins
 	  }
 	else if (!content1)
 	  {
-	     outputs = (char**)malloc(2*sizeof(char*));
+	     outputs = new std::string*[2];
 	     urls.push_back(url1);
-	     char **output1 = content_handler::fetch_snippets_content(qc,urls);
+	     std::string **output1 = content_handler::fetch_snippets_content(urls,true);
 	     
 	     if (output1)
 	       {
 		  outputs[0] = *output1;
-		  free(output1);
-		  outputs[1] = (char*)content2;
+		  delete output1;
+		  outputs[1] = content2;
 		  urls.push_back(url2);
 		  sp1->_cached_content = outputs[0];
 	       }
 	  }
 	else if (!content2)
 	  {
-	     outputs = (char**)malloc(2*sizeof(char*));
+	     outputs = new std::string*[2];
 	     urls.push_back(url2);
-	     char **output2 = content_handler::fetch_snippets_content(qc,urls);
-	     outputs[0] = (char*)content1;
+	     std::string **output2 = content_handler::fetch_snippets_content(urls,true);
+	     outputs[0] = content1;
 	     if (output2)
 	       {
 		  outputs[1] = *output2;
-		  free(output2);
+		  delete[] output2;
 		  urls.push_back(url1);
 		  sp2->_cached_content = outputs[1];
 	       }
@@ -294,15 +436,15 @@ namespace seeks_plugins
 	if (outputs == NULL
 	    || outputs[0] == NULL || outputs[1] == NULL)  // error handling.
 	  {
-	     // cleanup.
+	     // cleanup the shell, existing content remains in cache in the snippets.
 	     if (outputs)
-	       free(outputs);
+	       delete[] outputs;
 	     return false;
 	  }
 		
 	// parse content and keep text only.
 	std::string *txt_contents = content_handler::parse_snippets_txt_content(2,outputs);
-	freez(outputs); // beware.
+	delete[] outputs;
 	outputs = NULL;
 	
 	if (txt_contents[0].empty() || txt_contents[1].empty())
@@ -316,8 +458,12 @@ namespace seeks_plugins
 	     return false;
 	  }
 	
-	search_snippet* sps[2] = {sp1,sp2};
-	content_handler::extract_features_from_snippets(qc,txt_contents,2,sps);
+	std::vector<search_snippet*> sps;
+	sps.push_back(sp1);sps.push_back(sp2);
+	std::vector<std::string*> valid_content;
+	valid_content.push_back(&txt_contents[0]);
+	valid_content.push_back(&txt_contents[1]);
+	content_handler::extract_features_from_snippets(qc,valid_content,sps);
 	delete[] txt_contents;
 	
 	// check for similarity.
@@ -332,6 +478,10 @@ namespace seeks_plugins
 	bool result = false;
 	if (rad >= threshold)
 	  result = true;
+
+	// we don't need simple features anymore.
+	delete sp1->_features; sp1->_features = NULL;
+	delete sp2->_features; sp2->_features = NULL;
 	
 	/* std::cerr << "Radiance: " << rad << " -- threshold: " << threshold << " -- result: " << result << std::endl;
 	 std::cerr << "[Debug]: comparison result: " << result << std::endl; */

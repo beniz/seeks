@@ -121,8 +121,8 @@ namespace seeks_plugins
 	static std::string cleanup_query(const std::string &oquery);
 	
 	/*-- querying the search engines. --*/
-	static char** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				                                      int &nresults);
+	static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					  int &nresults);
 	
 	static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				const SE &se, std::string &url);
@@ -130,7 +130,7 @@ namespace seeks_plugins
 	/*-- parsing --*/
 	static se_parser* create_se_parser(const SE &se);
 	
-	static sp_err parse_ses_output(char **outputs, const int &nresults,
+	static sp_err parse_ses_output(std::string **outputs, const int &nresults,
 				       std::vector<search_snippet*> &snippets,
 				       const int &count_offset,
 				       query_context *qr);

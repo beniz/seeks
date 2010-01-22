@@ -123,7 +123,7 @@ namespace seeks_plugins
 	   case hash_se_connect_timeout:
 	     _se_connect_timeout = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Sets the connection timeout in seconds for connectinos to a search engine");
+						"Sets the connection timeout in seconds for connections to a search engine");
 	     break;
 	     
 	   case hash_ct_transfer_timeout:

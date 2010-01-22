@@ -107,12 +107,12 @@ namespace seeks_plugins
 	/**
 	 * \brief returns a cached snippet if it knows it, NULL otherwise.
 	 */
-	search_snippet* get_cached_snippet(const std::string &url);
+	search_snippet* get_cached_snippet(const std::string &url) const;
 	
 	/**
 	 * \brief returns a cached snippet if it knows it, NULL otherwise.
 	 */
-	search_snippet* get_cached_snippet(const uint32_t &id);
+	search_snippet* get_cached_snippet(const uint32_t &id)  const;
 	
 	/**
 	 * \brief adds a snippet to the unordered cache set.
@@ -134,8 +134,7 @@ namespace seeks_plugins
 	hash_map<uint32_t,search_snippet*,id_hash_uint> _unordered_snippets; // cached snippets ptr, key is the hashed url = snippet id.
 	hash_map<const char*,search_snippet*,hash<const char*>,eqstr> _unordered_snippets_title; // cached snippets ptr, title is the key.
 	hash_map<const char*,const char*,hash<const char*>,eqstr> _cached_urls; // cached content, url is the key.
-	//hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> _cached_features; // cached extracted features.
-	
+		
 	/* timer. */
 	time_t _creation_time;
 	time_t _last_time_of_use;
@@ -153,6 +152,9 @@ namespace seeks_plugins
 
 	/* locking. */
 	bool _lock;
+
+	/* tfidf feature computation flag. */
+	bool _compute_tfidf_features;
      };
       
 } /* end of namespace. */

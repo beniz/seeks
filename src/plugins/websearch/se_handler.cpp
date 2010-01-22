@@ -229,8 +229,8 @@ namespace seeks_plugins
      }
    
   /*-- queries to the search engines. */  
-  char** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				  int &nresults)
+   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					  int &nresults)
   {
     std::vector<std::string> urls;
     
@@ -257,7 +257,8 @@ namespace seeks_plugins
 		   websearch::_wconfig->_se_connect_timeout,0);
      cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
     
-     char **outputs = (char**)malloc(urls.size()*sizeof(char*));
+     //char **outputs = (char**)malloc(urls.size()*sizeof(char*));
+     std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;
      for (size_t i=0;i<urls.size();i++)
        {
@@ -271,7 +272,7 @@ namespace seeks_plugins
      
      if (!have_outputs)
        {
-	  free(outputs);
+	  delete[] outputs;
 	  outputs = NULL;
        }
      
@@ -300,7 +301,7 @@ namespace seeks_plugins
   }
    
   /*-- parsing. --*/
-  sp_err se_handler::parse_ses_output(char **outputs, const int &nresults,
+  sp_err se_handler::parse_ses_output(std::string **outputs, const int &nresults,
 				      std::vector<search_snippet*> &snippets,
 				      const int &count_offset,
 				      query_context *qr)
@@ -325,7 +326,7 @@ namespace seeks_plugins
 		      {
 			 ps_thread_arg *args = new ps_thread_arg();
 			 args->_se = (SE)i;
-			 args->_output = outputs[j];
+			 args->_output = (char*) outputs[j]->c_str();  // XXX: sad cast.
 			 args->_snippets = new std::vector<search_snippet*>();
 			 args->_offset = count_offset;
 			 args->_qr = qr;
@@ -370,7 +371,7 @@ namespace seeks_plugins
 		      {
 			 ps_thread_arg args;
 			 args._se = (SE)i;
-			 args._output = outputs[j];
+			 args._output = (char*)outputs[j]->c_str(); // XXX: sad cast.
 			 args._snippets = &snippets;
 			 args._offset = count_offset;
 			 args._qr = qr;
