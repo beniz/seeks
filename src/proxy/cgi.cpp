@@ -1122,12 +1122,12 @@ sp_err cgi::cgi_error_no_template(const client_state *csp, http_response *rsp,
      "location of the <code><i>(confdir)</i></code> directory "
      "is specified in the main Seeks' <code>config</code> "
      "file.  (It's typically the Seeks install directory"
-     #ifndef _WIN32
-           ", or <code>/etc/seeks/</code>"
-     #endif /* ndef _WIN32 */
-           ").</p>\r\n"
-           "</body>\r\n"
-           "</html>\r\n";
+#ifndef _WIN32
+     ", or <code>/etc/seeks/</code>"
+#endif /* ndef _WIN32 */
+     ").</p>\r\n"
+     "</body>\r\n"
+     "</html>\r\n";
    const size_t body_size = strlen(body_prefix) + strlen(template_name) + strlen(body_suffix) + 1;
    
    assert(csp);
