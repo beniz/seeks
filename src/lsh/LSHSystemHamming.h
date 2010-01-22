@@ -53,7 +53,7 @@ namespace lsh
        static const unsigned int _char_bit = 8; /**< 8 bits, as on most systems,
 						   otherwise, we'll have to provide a proper conversion. */
 
-       static const unsigned int _fixed_str_size = 50;  /**< fixed string size. 
+       static const unsigned int _fixed_str_size = 100;  /**< fixed string size. 
 							 Static because we're using bitsets...*/
 	
 
