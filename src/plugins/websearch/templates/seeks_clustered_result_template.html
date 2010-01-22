@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>qclean - Seeks Search</title>
+<link rel="search" href="/plugins/websearch/public/opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
+<!-- <link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css"> -->
+<link rel="stylesheet" href="/public/yui/3.0.0/cssreset/reset-min.css" type="text/css">
+<link rel="stylesheet" href="/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css">
+<link rel="stylesheet" href="/public/css/base.css" type="text/css" />
+<link rel="stylesheet" href="/plugins/websearch/public/css/seeks_search.css" type="text/css">
+<link rel="stylesheet" href="public/yui/3.0.0/cssgrids/grids-min.css" type="text/css">
+<link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
+</head>
+<body>
+
+<div id="search_bar">
+<form method="GET" action="/search" id="search_form">
+<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
+<input name="expansion" value="1" type="hidden" />
+<input name="action" value="expand" type="hidden" />
+<input id="search_button" value="" type="submit" />
+</form>
+
+<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e). Deeper search."\
+ id="expansion" class="expansion_xxexp">xxexp</a>
+
+<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=clusterize&clusters=xxnclust" title="Cluster (ctrl+c)" id="cluster" class="cluster_on">&nbsp;</a>
+
+<!-- <div id="search_pages"><a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=expand" title="Back to search results"\
+ id="expansion">Back</a><span id="search_page_current">xxclust</span></div> -->
+
+<a id="search_home" title="Home (ctrl+h)" href="/websearch-hp/">&nbsp;</a>
+
+<p id="search_sugg">xxsugg</p>
+</div>
+
+<div id="main">
+<div id="doc" class="yui-t7">
+  <div id="bd" role="main">
+     <div class="yui-g">
+    <div class="yui-u first" id="search_results">
+      <ol>
+	cluster0
+      </ol>
+    </div>
+    <div class="yui-u" id="search_results">
+      <ol>      
+	cluster1
+      </ol>
+    </div>
+</div>
+<div class="yui-g">
+    <div class="yui-u first" id="search_results">
+      <ol>
+	cluster2
+      </ol>
+    </div>
+    <div class="yui-u" id="search_results">
+      <ol>      
+	cluster3
+      </ol>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript" src="/public/yui/3.0.0/yui/yui-min.js"></script>
+<script type="text/javascript">
+
+// Shortcut for search, ctrl+s
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        Y.one('#search_input').select();
+    }, document, 'press:102+ctrl');
+
+});
+
+// Shortcut for expansion, ctrl+e
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#expansion').getAttribute('href');
+    }, document, 'press:101+ctrl');
+
+});
+
+// Shortcut for clustering, ctrl+c
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#cluster').getAttribute('href');
+    }, document, 'press:99+ctrl');
+
+});
+
+
+// Shortcut for previous page, ctrl+<
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_page_prev').getAttribute('href');
+    }, document, 'press:37+ctrl');
+
+});
+
+// Shortcut for previous page, ctrl+>
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_page_next').getAttribute('href');
+    }, document, 'press:39+ctrl');
+
+});
+
+// Shortcut for home page, ctrl+h
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_home').getAttribute('href');
+    }, document, 'press:104+ctrl');
+
+});
+
+</script>
+
+</div>
+</body></html>
