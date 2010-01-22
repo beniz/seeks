@@ -22,6 +22,8 @@
 #ifndef MRF_H
 #define MRF_H
 
+#include "stl_hash.h"
+
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -68,6 +70,8 @@ namespace lsh
      static void tokenize(const std::string &str,
 			  std::vector<std::string> &tokens,
 			  const std::string &delim);
+
+     static void unique_features(std::vector<uint32_t> &sorted_features);
      
      // straight hash of a query string.
      static uint32_t mrf_single_feature(const std::string &str);
@@ -84,7 +88,6 @@ namespace lsh
 			      const int &step,
 			      const uint32_t &window_length_default=5);
      
-     // TODO.
      static void tokenize_and_mrf_features(const std::string &str,
 					   const std::string &delim,
 					   std::vector<uint32_t> &features,
@@ -100,14 +103,43 @@ namespace lsh
 			  const uint32_t &window_length_default);
 
     static void mrf_build(const std::vector<std::string> &tokens,
-			 int &tok,
-			 std::queue<str_chain> &chains,
+			  int &tok,
+			  std::queue<str_chain> &chains,
 			  std::vector<uint32_t> &features,
 			  const int &min_radius,
 			  const int &max_radius,
 			  const int &gen_radius,
 			  const uint32_t &window_length);
-
+     
+     /*- tf/idf -*/
+     static void tokenize_and_mrf_features(const std::string &str,
+					   const std::string &delim,
+					   hash_map<uint32_t,float,id_hash_uint> &wfeatures,
+					   hash_map<uint32_t,std::string,id_hash_uint> *bow,
+					   const int &radius,
+					   const int &step,
+					   const uint32_t &window_length_default=5);
+     
+     static void mrf_build(const std::vector<std::string> &tokens,
+			   hash_map<uint32_t,float,id_hash_uint> &wfeatures,
+			   hash_map<uint32_t,std::string,id_hash_uint> *bow,
+			   const int &min_radius,
+			   const int &max_radius,
+			   const int &gen_radius,
+			   const uint32_t &window_length_default);
+     
+     static void mrf_build(const std::vector<std::string> &tokens,
+			   int &tok,
+			   std::queue<str_chain> &chains,
+			   hash_map<uint32_t,float,id_hash_uint> &wfeatures,
+			   hash_map<uint32_t,std::string,id_hash_uint> *bow,
+			   const int &min_radius,
+			   const int &max_radius,
+			   const int &gen_radius,
+			   const uint32_t &window_length);
+    
+    static void compute_tf_idf(std::vector<hash_map<uint32_t,float,id_hash_uint>*> &bags);
+     
     /* hashing. */
     static uint32_t mrf_hash(const str_chain &chain);
 
@@ -131,6 +163,11 @@ namespace lsh
 			   const std::vector<uint32_t> &sorted_features2,
 			   uint32_t &common_features);
 
+    static double distance(const std::vector<uint32_t> &sorted_features1,
+			   const std::vector<uint32_t> &sorted_features2,
+			   uint32_t &common_features);
+     
+     
   public:
     static std::string _default_delims;
    private:
@@ -140,8 +177,11 @@ namespace lsh
   private:
     //static uint32_t _window_length;
     static uint32_t _hctable[];
-   public:
+  public:
     static double _epsilon;
+  private:
+    static float _feature_weights[];
+    static short _array_size;
   };
 
 } /* end of namespace. */

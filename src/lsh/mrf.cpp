@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include <math.h>
 #include <assert.h>
 
 //#define DEBUG
@@ -81,13 +82,14 @@ namespace lsh
 
   /*-- mrf --*/
 
-  std::string mrf::_default_delims = " ";
+  std::string mrf::_default_delims = " ,.;!?)(";//\\n\\t\\f\\r";
   uint32_t mrf::_skip_token = 0xDEADBEEF;
-   /* uint32_t mrf::_window_length_default = 5;
-    uint32_t mrf::_window_length = 5; */
   uint32_t mrf::_hctable[] = { 1, 3, 5, 11, 23, 47, 97, 197, 397, 797 };
   double mrf::_epsilon = 1e-6;  // infinitesimal. 
-
+  //float mrf::_feature_weights[] = {16384, 8192, 4096, 2048, 1024, 256, 64, 16, 4, 1};
+  short mrf::_array_size = 10;
+  float mrf::_feature_weights[] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+   
   void mrf::tokenize(const std::string &str,
 		     std::vector<std::string> &tokens,
 		     const std::string &delim)
@@ -114,6 +116,30 @@ namespace lsh
       }
   }
 
+   void mrf::unique_features(std::vector<uint32_t> &sorted_features)
+     {
+	if (sorted_features.size() == 1)
+	  return;
+	
+	std::vector<uint32_t> unique_features;
+	std::vector<uint32_t>::const_iterator vit = sorted_features.begin();
+	while(vit!=sorted_features.end())
+	  {
+	     uint32_t feat = (*vit);
+	     unique_features.push_back(feat);
+	     
+	     ++vit;
+	     while(vit != sorted_features.end()
+		   && ((*vit) == feat))
+	       {
+		  ++vit;
+	       }
+	  }
+	
+	sorted_features.clear();
+	sorted_features = unique_features;
+     }
+   
    uint32_t mrf::mrf_single_feature(const std::string &str)
      {
 	std::vector<std::string> tokens;
@@ -174,10 +200,16 @@ namespace lsh
 		
 	while(true)
 	  {
+	     if ((int)tokens.size()>step)
+	       {
+		  tokens.erase(tokens.begin(),tokens.begin()+step);
+	       }
+	     else tokens.clear();
+	     
 	     while((std::string::npos != pos || std::string::npos != lastPos)
 		   && tokens.size() < window_length_default)
 	       {
-		  // Found a toke, add it to the vector.
+		  // Found a token, add it to the vector.
 		  tokens.push_back(str.substr(lastPos, pos - lastPos));
 		  // Skip the delimiters.
 		  lastPos = str.find_first_not_of(delim,pos);
@@ -185,16 +217,11 @@ namespace lsh
 		  pos = str.find_first_of(delim, lastPos);
 	       }
 	
-	     if (tokens.empty())
+	     if (tokens.empty() || tokens.size()<window_length_default-max_radius)
 	       break;
 	     
 	     // produce the features out of the tokens.
 	     mrf::mrf_build(tokens,features,0,max_radius,0,window_length_default);
-	     
-	     // move the mrf forward, according to step.
-	     if ((int)tokens.size()>step)
-	       tokens.erase(tokens.begin(),tokens.begin()+step);
-	     else tokens.clear();
 	  }
 	std::sort(features.begin(),features.end());
      }
@@ -206,15 +233,10 @@ namespace lsh
 		      const int &gen_radius,
 		      const uint32_t &window_length_default)
   {
-    // scale the field's window size.
-    uint32_t window_length = window_length_default;
-     if (tokens.size() < window_length_default)
-       window_length = tokens.size();
-
     int tok = 0;
     std::queue<str_chain> chains;
     mrf::mrf_build(tokens,tok,chains,features,
-		   min_radius,max_radius,gen_radius,window_length);
+		   min_radius,max_radius,gen_radius,window_length_default);
   }
 
   void mrf::mrf_build(const std::vector<std::string> &tokens,
@@ -226,7 +248,7 @@ namespace lsh
   {
     if (chains.empty())
       {
-	 int radius_chain = gen_radius+std::min((uint32_t)tokens.size(),window_length)-1;
+	 int radius_chain = window_length - std::max(1,(int)(window_length-tokens.size()));
 	 str_chain chain(tokens.at(tok),radius_chain);
 
 #ifdef DEBUG	 
@@ -266,8 +288,8 @@ namespace lsh
 	    str_chain chain = chains.front();
 	    chains.pop();
 	
-	    if (chain.size() < window_length)
-	      {
+	     if (chain.size() <  std::min((uint32_t)tokens.size(),window_length))
+	       {
 		// first generated chain: add a token.
 		str_chain chain1(chain);
 		chain1.add_token(tokens.at(tok));
@@ -306,6 +328,221 @@ namespace lsh
       }
   }
 
+  /*- tf / idf. -*/
+    void mrf::tokenize_and_mrf_features(const std::string &str,
+					const std::string &delim,
+					hash_map<uint32_t,float,id_hash_uint> &wfeatures,
+					hash_map<uint32_t,std::string,id_hash_uint> *bow,
+					const int &max_radius,
+					const int &step,
+					const uint32_t &window_length_default)
+    {
+      // Skip delimiters at beginning.
+      std::string::size_type lastPos = str.find_first_not_of(delim, 0);
+      // Find first "non-delimiter".
+      std::string::size_type pos = str.find_first_of(delim, lastPos);
+      std::vector<std::string> tokens;
+
+       while(true)
+	{
+	   if ((int)tokens.size()>step)
+	     {
+		tokens.erase(tokens.begin(),tokens.begin()+step);
+	     }
+	   else tokens.clear();
+	   
+	  while((std::string::npos != pos || std::string::npos != lastPos)
+		&& tokens.size() < window_length_default)
+	    {
+	      // Found a token, add it to the vector.  
+	       tokens.push_back(str.substr(lastPos, pos - lastPos));
+	      // Skip the delimiters.
+	      lastPos = str.find_first_not_of(delim,pos);
+	      // Find next "non-delimiter".                          
+	       pos = str.find_first_of(delim, lastPos);
+	    }
+	   	   
+	   if (tokens.empty() || tokens.size()<window_length_default-max_radius)
+	     break;
+
+	  // produce the features out of the tokens.                                                               
+	  mrf::mrf_build(tokens,wfeatures,bow,0,max_radius,0,
+			 window_length_default);
+	}
+    }
+
+  void mrf::mrf_build(const std::vector<std::string> &tokens,
+                      hash_map<uint32_t,float,id_hash_uint> &wfeatures,
+                      hash_map<uint32_t,std::string,id_hash_uint> *bow,
+		      const int &min_radius,
+                      const int &max_radius,
+                      const int &gen_radius,
+                      const uint32_t &window_length_default)
+  {
+    int tok = 0;
+    std::queue<str_chain> chains;
+    mrf::mrf_build(tokens,tok,chains,wfeatures,bow,
+                   min_radius,max_radius,gen_radius,window_length_default);
+  }
+
+  void mrf::mrf_build(const std::vector<std::string> &tokens,
+                      int &tok,
+                      std::queue<str_chain> &chains,
+                      hash_map<uint32_t,float,id_hash_uint> &wfeatures,
+		      hash_map<uint32_t,std::string,id_hash_uint> *bow,
+                      const int &min_radius, const int &max_radius,
+                      const int &gen_radius, const uint32_t &window_length)
+  {
+     short offset = mrf::_array_size-window_length;
+     if (chains.empty())
+      {
+	 int radius_chain = window_length - std::max(1,(int)(window_length-tokens.size()));
+	 str_chain chain(tokens.at(tok),radius_chain);
+
+#ifdef DEBUG
+	 std::cout << "gen_radius: " << gen_radius << std::endl;
+	 std::cout << "radius_chain: " << radius_chain << std::endl;
+#endif
+
+        if (radius_chain >= min_radius
+            && radius_chain <= max_radius)
+          {
+	    //hash chain and add it to features set.
+            uint32_t h = mrf::mrf_hash(chain);
+            
+#ifdef DEBUG
+	     std::cout << "h: " << h << std::endl;
+	     chain.print(std::cout);
+	     std::cout << "radius: " << chain.get_radius() << std::endl;
+#endif
+	     
+	    // count features, increment total, and sets an exponential weight.
+	    short rad_offset = chain.get_radius()+offset;
+	    hash_map<uint32_t,float,id_hash_uint>::iterator hit;
+	    if((hit=wfeatures.find(h))!=wfeatures.end())
+	       (*hit).second += mrf::_feature_weights[rad_offset];
+	     else wfeatures.insert(std::pair<uint32_t,float>(h,mrf::_feature_weights[rad_offset]));
+	     	     
+	     // populate the words, if required.
+	     if (bow && chain.size() == 1)
+	       {
+		  hash_map<uint32_t,std::string,id_hash_uint>::iterator bit;
+		  if ((bit=bow->find(h))==bow->end())
+		    bow->insert(std::pair<uint32_t,std::string>(h,chain.at(0)));
+	       }
+	  }
+	 chains.push(chain);
+	 mrf::mrf_build(tokens,tok,chains,wfeatures,bow,
+			min_radius,max_radius,gen_radius,window_length);
+      }
+    else
+      {
+	++tok;
+	std::queue<str_chain> nchains;
+	
+	while(!chains.empty())
+	  {
+	    str_chain chain = chains.front();
+	    chains.pop();
+	    
+	     if (chain.size() < std::min((uint32_t)tokens.size(),window_length))
+	      {
+		// first generated chain: add a token.
+		str_chain chain1(chain);
+		chain1.add_token(tokens.at(tok));
+		chain1.decr_radius();
+		
+		if (chain1.get_radius() >= min_radius
+		    && chain1.get_radius() <= max_radius)
+		  {
+		     // hash it and add it to features. 
+		     uint32_t h = mrf::mrf_hash(chain1);
+#ifdef DEBUG
+		     std::cout << "h: " << h << std::endl;
+		     chain1.print(std::cout);
+		     std::cout << "radius: " << chain1.get_radius() << std::endl;
+#endif
+		     
+		     // count features, increment total, and sets an exponential weight.
+		     hash_map<uint32_t,float,id_hash_uint>::iterator hit;
+		     if((hit=wfeatures.find(h))!=wfeatures.end())
+		       (*hit).second += mrf::_feature_weights[chain1.get_radius()+offset];
+		     else wfeatures.insert(std::pair<uint32_t,float>(h,mrf::_feature_weights[chain1.get_radius()+offset]));
+		     		  
+		     // populate the words, if required.
+		     if (bow && chain.size() == 1)
+		       {
+			  hash_map<uint32_t,std::string,id_hash_uint>::iterator bit;
+			  if ((bit=bow->find(h))==bow->end())
+			    bow->insert(std::pair<uint32_t,std::string>(h,chain.at(0)));
+			 }
+		  }
+		// second generated chain: add a 'skip' token.
+		str_chain chain2 = chain;
+		chain2.add_token("<skip>");
+		chain2.set_skip();
+		
+		nchains.push(chain1);
+		nchains.push(chain2);
+	      }
+	  }
+	if (!nchains.empty())
+	  mrf::mrf_build(tokens,tok,nchains,wfeatures,bow,
+			 min_radius,max_radius,gen_radius,window_length);
+      }
+  }
+
+   void mrf::compute_tf_idf(std::vector<hash_map<uint32_t,float,id_hash_uint>*> &bags)
+     {
+	size_t nbags = bags.size();
+	hash_map<uint32_t,uint32_t,id_hash_uint> cached_df;
+	hash_map<uint32_t,uint32_t,id_hash_uint>::const_iterator cache_hit;
+	hash_map<uint32_t,float,id_hash_uint>::const_iterator chit;
+	for (size_t i=0;i<nbags;i++)
+	  {
+	     float norm = 0.0;
+	     hash_map<uint32_t,float,id_hash_uint>::iterator hit = bags.at(i)->begin();
+	     while(hit!=bags.at(i)->end())
+	       {
+		  // compute df.
+		  uint32_t df = 0;
+		  if ((cache_hit = cached_df.find((*hit).first))!=cached_df.end())
+		    df = (*cache_hit).second;
+		  else
+		    {
+		       for (size_t j=0;j<nbags;j++)
+			 {
+			    if ((chit=bags.at(j)->find((*hit).first))!=bags.at(j)->end())
+			      if ((*chit).second != 0.0) // secure...
+				df++;
+			 }
+		       cached_df.insert(std::pair<uint32_t,uint32_t>((*hit).first,df)); // df in cache.
+		    }
+		  
+		  // idf.
+		  float idf = logf(static_cast<float>(nbags) / (static_cast<float>(df)));
+		  		  
+		  // tf-idf.
+		  (*hit).second *= idf;
+		  
+		  // norm.
+		  norm += (*hit).second * (*hit).second;
+		  
+		  ++hit;
+	       }
+	     // normalize.
+	     if (norm == 0.0)
+	       continue;
+	     hit = bags.at(i)->begin();
+	     while(hit!=bags.at(i)->end())
+	       {
+		  (*hit).second /= sqrt(norm);
+		  ++hit;
+	       }
+	  }
+     }
+      
+  /*- hashing. -*/ 
   uint32_t mrf::mrf_hash(const str_chain &chain)
   {
     // rank chains which do not contain any skipped token (i.e. no 
@@ -445,7 +682,7 @@ namespace lsh
     return mrf::radiance(features1,features2,common_features);
   }
 
-  double mrf::radiance(const std::vector<uint32_t> &sorted_features1,
+  double mrf::distance(const std::vector<uint32_t> &sorted_features1,
 		       const std::vector<uint32_t> &sorted_features2,
 		       uint32_t &common_features)
   {
@@ -494,11 +731,21 @@ namespace lsh
     std::cout << "found only in set2: " << found_only_in_set2 << std::endl;
     //debug
 #endif
-
-    // radiance.
-    double radiance = (common_features * common_features) / (distance + mrf::_epsilon);
-
-    return radiance;
+     
+     return distance;
   }
+   
+  double mrf::radiance(const std::vector<uint32_t> &sorted_features1,
+		       const std::vector<uint32_t> &sorted_features2,
+		       uint32_t &common_features)
+     {
+	// distance.
+	double dist = mrf::distance(sorted_features1,sorted_features2,common_features);
+	
+	// radiance.
+	double radiance = (common_features * common_features) / (dist + mrf::_epsilon);
+	
+	return radiance;
+     }
 
 } /* end of namespace. */
