@@ -253,7 +253,7 @@ namespace sp
 	hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator mit;
 	if ((mit = the_map->find(name)) != the_map->end())
 	  return (*mit).second;
-	else return "";  // beware: leak ?
+	else return NULL;
      }
    
    /* operations on lists. */
