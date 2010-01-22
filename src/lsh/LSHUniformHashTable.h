@@ -171,7 +171,7 @@ namespace lsh
       void freeUnusedAllocatedBuckets ();
 
       /**
-       * Counting. TODO.
+       * Counting.
        */
       int countBuckets() const;
 
@@ -196,13 +196,7 @@ namespace lsh
       virtual void LcomputeMCKey (T te,
 				  unsigned long int *Lmkeys,
 				  unsigned long int *Lckeys) { std::cout << "[Warning]:Using undefined virtual root function LSHUniformHashTable::LcomputeMCKey !\n";}
-
-      /* virtual unsigned long int computeMKey (const T &te,
-	 const unsigned int &l) { return 0; }
-	 
-	 virtual unsigned long int computeCKey (const T &te,
-	 const unsigned int &l) { return 0; } */
-
+       
     protected:
       /**
        * Hashtable size. This number is a constant for each instance.
