@@ -24,7 +24,7 @@
 namespace seeks_plugins
 {
 
-#define hash_lang                   1526909359ul /* "search-langage" */
+#define hash_lang                   3579134231ul /* "search-langage" */
 #define hash_n                       578814699ul /* "search-results-page" */  
 #define hash_se                     1635576913ul /* "search-engine" */
 #define hash_qcd                    4118649627ul /* "query-context-delay" */
@@ -35,6 +35,7 @@ namespace seeks_plugins
 #define hash_se_connect_timeout     1026838950ul /* "se-connect-timeout" */
 #define hash_ct_transfer_timeout    3371661146ul /* "ct-transfer-timeout" */
 #define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
+#define hash_clustering             2382120344ul /* "enable-clustering" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -51,11 +52,12 @@ namespace seeks_plugins
      {
 	_lang = "en";
 	_N = 10;
-	_thumbs = 0;
+	_thumbs = false;
 	_se_enabled = std::bitset<NSEs>(000); // ggle only, TODO: change to all...
 	_query_context_delay = 300; // in seconds, 5 minutes.
-	_js = 0; // default is no javascript, this may change later on.
-	_content_analysis = 0;
+	_js = false; // default is no javascript, this may change later on.
+	_content_analysis = false;
+	_clustering = false;
 	_se_connect_timeout = 3;  // in seconds.
 	_se_transfer_timeout = 5; // in seconds.
 	_ct_connect_timeout = 1; // in seconds.
@@ -138,6 +140,12 @@ namespace seeks_plugins
 						"Sets the connection timeout in seconds when fetching content for analysis and caching");
 	     break;
 	     
+	   case hash_clustering:
+	     _clustering = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enables the clustering from the UI");
+	     break;
+	     
 	   default :
 	     break;
 	     
@@ -146,7 +154,6 @@ namespace seeks_plugins
    
    void websearch_configuration::finalize_configuration()
      {
-	// TODO.
      }
    
 } /* end of namespace. */

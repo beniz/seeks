@@ -49,13 +49,14 @@ namespace seeks_plugins
 	
 	virtual void finalize_configuration();
 	
-	// variables.
+	// main options.
 	std::string _lang; /**< langage of the search results. */	
 	int _N; /**< max number of search results per page. */
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
 	bool _thumbs; /**< enabled thumbs */
 	bool _js; /**< enabled js */
 	bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */
+	bool _clustering; /**< whether to enable clustering in the UI. XXX: probably always on when dev is finished. */
 	
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */

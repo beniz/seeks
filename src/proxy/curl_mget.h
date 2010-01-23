@@ -28,7 +28,6 @@ namespace sp
    typedef struct _cbget
      {
 	_cbget()
-	  //:_url(NULL),_output(NULL),_buffer_len(0),_buffer_pos(0),_proxy(false)
 	  :_url(NULL),_output(NULL),_proxy(false)  
 	  {};
 	
@@ -44,6 +43,7 @@ namespace sp
 	long _connect_timeout_sec;
 	long _transfer_timeout_sec;
 	bool _proxy;
+	std::string _lang;
      } cbget;
    
     void* pull_one_url(void *arg_cbget);
@@ -56,6 +56,14 @@ namespace sp
 		  const long &connect_timeout_ms,
 		  const long &transfer_timeout_sec,
 		  const long &transfer_timeout_ms);
+	
+	curl_mget(const int &nrequests,
+		  const long &connect_timeout_sec,
+		  const long &connect_timeout_ms,
+		  const long &transfer_timeout_sec,
+		  const long &transfer_timeout_ms,
+		  const std::string &lang);
+	
 	~curl_mget();
 	
 	// direct connection.
@@ -68,6 +76,7 @@ namespace sp
 	long _connect_timeout_ms;
 	long _transfer_timeout_sec;
 	long _transfer_timeout_ms;
+	std::string _lang;
 	std::string **_outputs;
 	cbget **_cbgets;
      };

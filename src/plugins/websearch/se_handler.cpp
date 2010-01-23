@@ -254,7 +254,7 @@ namespace seeks_plugins
     
     // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-		   websearch::_wconfig->_se_connect_timeout,0);
+		   websearch::_wconfig->_se_connect_timeout,0,websearch::_wconfig->_lang);
      cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
     
      //char **outputs = (char**)malloc(urls.size()*sizeof(char*));

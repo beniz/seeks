@@ -81,8 +81,7 @@ namespace sp
 	
 	return size;
      }
-   
-   
+      
    curl_mget::curl_mget(const int &nrequests, 
 			const long &connect_timeout_sec,
 			const long &connect_timeout_ms,
@@ -92,13 +91,28 @@ namespace sp
       _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
       _transfer_timeout_ms(transfer_timeout_ms)
      {
-	//_outputs = (char**) malloc(_nrequests*sizeof(char*));
 	_outputs = new std::string*[_nrequests];
 	for (int i=0;i<_nrequests;i++)
 	  _outputs[i] = NULL;
 	_cbgets = new cbget*[_nrequests];
      }
    
+   curl_mget::curl_mget(const int &nrequests,
+			const long &connect_timeout_sec,
+			const long &connect_timeout_ms,
+			const long &transfer_timeout_sec,
+			const long &transfer_timeout_ms,
+			const std::string &lang)
+     :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
+         _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
+         _transfer_timeout_ms(transfer_timeout_ms),_lang(lang)
+     {
+	_outputs = new std::string*[_nrequests];
+	for (int i=0;i<_nrequests;i++)
+	  _outputs[i] = NULL;
+	_cbgets = new cbget*[_nrequests];
+     }
+      
    curl_mget::~curl_mget()
      {
 	delete[] _cbgets;
@@ -127,9 +141,13 @@ namespace sp
 	     curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
 	  }
 	
-	/* struct curl_slist *slist=NULL;
-	 slist = curl_slist_append(slist, "Expect:"); 
-	 curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist); */
+	struct curl_slist *slist=NULL;
+	if (arg->_lang == "en")
+	  slist = curl_slist_append(slist, "Accept-Language: en-us,en;q=0.5");
+	else if (arg->_lang == "fr")
+	  slist = curl_slist_append(slist, "Accept-Language: fr-fr,fr;q=0.5");
+	// TODO: other languages here.
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorbuffer);
@@ -147,7 +165,7 @@ namespace sp
 	  }
 	
 	curl_easy_cleanup(curl);
-	//curl_slist_free_all(slist);
+	curl_slist_free_all(slist);
 	
 	return NULL;
      }
@@ -169,6 +187,7 @@ namespace sp
 	     arg_cbget->_transfer_timeout_sec = _transfer_timeout_sec;
 	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
 	     arg_cbget->_proxy = proxy;
+	     arg_cbget->_lang = _lang;
 	     
 	     _cbgets[i] = arg_cbget;
 	     
