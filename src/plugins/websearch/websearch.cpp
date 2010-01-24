@@ -380,7 +380,7 @@ namespace seeks_plugins
 	  // new context, whether we're expanding or not doesn't matter, we need
 	  // to generate snippets first.
 	  expanded = true;
-	  qc = new query_context(parameters);
+	  qc = new query_context(parameters,csp->_headers);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
        }
