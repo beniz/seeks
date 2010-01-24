@@ -56,8 +56,8 @@ body {
 }
 
 #search_results .search_snippet .preview {
-	width: 0px;
-	display: none;
+	# width: 0px;
+	# display: none;
 	float: left;
 	padding: 0px 7px 7px 0px;
 	margin-bottom: 30px;
