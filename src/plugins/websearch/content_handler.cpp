@@ -46,7 +46,7 @@ namespace seeks_plugins
    uint32_t feature_tfidf_thread_arg::_window_length=1;
    
    std::string** content_handler::fetch_snippets_content(const std::vector<std::string> &urls,
-							 const bool &proxy)
+							 const bool &proxy, const query_context *qc)
      {
 	// just in case.
 	if (urls.empty())
@@ -54,7 +54,7 @@ namespace seeks_plugins
 	
 	// fetch content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
-		      websearch::_wconfig->_ct_transfer_timeout,0);
+		      websearch::_wconfig->_ct_transfer_timeout,0,"",&qc->_useful_http_headers);
 	cmg.www_mget(urls,urls.size(),proxy);
 	
 	std::string **outputs = new std::string*[urls.size()];
@@ -109,7 +109,7 @@ namespace seeks_plugins
 	  }
 	
 	// fetch content.
-	std::string **outputs = content_handler::fetch_snippets_content(urls,true);
+	std::string **outputs = content_handler::fetch_snippets_content(urls,true,qc);
 	if (!outputs)
 	  return;
 	
@@ -396,7 +396,7 @@ namespace seeks_plugins
 	if (!content1 && !content2)
 	  {
 	     urls.push_back(url1); urls.push_back(url2);
-	     outputs = content_handler::fetch_snippets_content(urls,true);
+	     outputs = content_handler::fetch_snippets_content(urls,true,qc);
 	     if (outputs)
 	       {
 		  sp1->_cached_content = outputs[0];
@@ -407,7 +407,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url1);
-	     std::string **output1 = content_handler::fetch_snippets_content(urls,true);
+	     std::string **output1 = content_handler::fetch_snippets_content(urls,true,qc);
 	     
 	     if (output1)
 	       {
@@ -422,7 +422,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url2);
-	     std::string **output2 = content_handler::fetch_snippets_content(urls,true);
+	     std::string **output2 = content_handler::fetch_snippets_content(urls,true,qc);
 	     outputs[0] = content1;
 	     if (output2)
 	       {

@@ -22,13 +22,14 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 namespace sp
 {
    typedef struct _cbget
      {
 	_cbget()
-	  :_url(NULL),_output(NULL),_proxy(false)  
+	  :_url(NULL),_output(NULL),_proxy(false),_headers(NULL)
 	  {};
 	
 	~_cbget()
@@ -37,13 +38,11 @@ namespace sp
 	const char *_url;
 	std::string *_output;
 	
-	/* int _buffer_len;
-	int _buffer_pos; */
-	
 	long _connect_timeout_sec;
 	long _transfer_timeout_sec;
 	bool _proxy;
 	std::string _lang;
+	const std::list<const char*> *_headers; // forced http headers
      } cbget;
    
     void* pull_one_url(void *arg_cbget);
@@ -62,7 +61,8 @@ namespace sp
 		  const long &connect_timeout_ms,
 		  const long &transfer_timeout_sec,
 		  const long &transfer_timeout_ms,
-		  const std::string &lang);
+		  const std::string &lang,
+		  const std::list<const char*> *headers);
 	
 	~curl_mget();
 	
@@ -77,6 +77,8 @@ namespace sp
 	long _transfer_timeout_sec;
 	long _transfer_timeout_ms;
 	std::string _lang;
+	const std::list<const char*> *_headers; // forced http headers.
+	
 	std::string **_outputs;
 	cbget **_cbgets;
      };

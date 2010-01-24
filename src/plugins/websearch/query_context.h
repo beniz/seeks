@@ -41,6 +41,11 @@ namespace seeks_plugins
      {
       public:
 	/**
+	 * \brief Dummy constructor. Testing purposes.
+	 */
+	query_context();
+	
+	/**
 	 * \brief Constructor.
 	 */
 	query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -141,6 +146,11 @@ namespace seeks_plugins
 	 */
 	static std::string detect_query_lang_http(const std::list<const char*> &http_headers);
 	
+	/**
+	 * \brief grab useful HTTP headers from the client.
+	 */
+	void grab_useful_headers(const std::list<const char*> &http_headers);
+	
       public:
 	std::string _query;
 	uint32_t _query_hash;
@@ -175,6 +185,9 @@ namespace seeks_plugins
 
 	/* automatic language detection. */
 	std::string _auto_lang;
+
+	/* other HTTP headers, useful when interrogating search engines. */
+	std::list<const char*> _useful_http_headers;
      };
       
 } /* end of namespace. */

@@ -91,9 +91,6 @@ namespace seeks_plugins
 	  miscutil::replace_in_string(q_ggle,"%lang",qc->_auto_lang);
 	else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
 	
-	// client version. TODO: grab parameter from http request ?
-	miscutil::replace_in_string(q_ggle,"%client","firefox-a"); // beware: may use something else, seeks-a.
-	
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying ggle: %s", q_ggle.c_str());
 	
@@ -187,7 +184,7 @@ namespace seeks_plugins
    std::string se_handler::_se_strings[NSEs] =
     {
       // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
-      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding&client=%client",
+      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
       "http://www.cuil.com/search?q=%query",
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
@@ -257,10 +254,10 @@ namespace seeks_plugins
     
     // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-		   websearch::_wconfig->_se_connect_timeout,0,qc->_auto_lang);//websearch::_wconfig->_lang);
+		   websearch::_wconfig->_se_connect_timeout,0,qc->_auto_lang,
+		   &qc->_useful_http_headers);
      cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
     
-     //char **outputs = (char**)malloc(urls.size()*sizeof(char*));
      std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;
      for (size_t i=0;i<urls.size();i++)

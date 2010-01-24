@@ -36,7 +36,11 @@ using lsh::mrf;
 
 namespace seeks_plugins
 {
-   
+   query_context::query_context()
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
+       {
+       }
+      
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				const std::list<const char*> &http_headers)
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
@@ -49,6 +53,8 @@ namespace seeks_plugins
 	  if (websearch::_wconfig->_lang == "auto")
 	    _auto_lang = query_context::detect_query_lang_http(http_headers);
 	  else _auto_lang = websearch::_wconfig->_lang;
+	  
+	  grab_useful_headers(http_headers);
 	  
 	  sweeper::register_sweepable(this);
 	  register_qc(); // register with websearch plugin.
@@ -67,6 +73,10 @@ namespace seeks_plugins
 	// the LSH is cleared automatically as well.
 	if (_ulsh_ham)
 	  delete _ulsh_ham;
+
+	for (std::list<const char*>::iterator lit=_useful_http_headers.begin();
+	     lit!=_useful_http_headers.end();lit++)
+	  free_const((*lit));
      }
    
    std::string query_context::sort_query(const std::string &query)
@@ -286,7 +296,7 @@ namespace seeks_plugins
 	std::list<const char*>::const_iterator sit = http_headers.begin();
 	while(sit!=http_headers.end())
 	  {
-	     if (strncmp((*sit),"Accept-Language:",16) == 0)
+	     if (miscutil::strncmpic((*sit),"Accept-Language:",16) == 0)
 	       {
 		  // detect language.
 		  std::string lang_head = (*sit);
@@ -299,6 +309,28 @@ namespace seeks_plugins
 	     ++sit;
 	  }
 	return "en"; // beware, returning hardcoded default (since config value is most likely "auto").
+     }
+
+   void query_context::grab_useful_headers(const std::list<const char*> &http_headers)
+     {
+	std::list<const char*>::const_iterator sit = http_headers.begin();
+	while(sit!=http_headers.end())
+	  {
+	     // user-agent
+	     if (miscutil::strncmpic((*sit),"user-agent:",11) == 0)
+	       {
+		  const char *ua = strdup((*sit));
+		  _useful_http_headers.push_back(ua);
+	       }
+	     // accept-language, this one can be overriden by the configuration specified language.
+	     else if (miscutil::strncmpic((*sit),"accept-language:",16) == 0)
+	       {
+		  const char *al = strdup((*sit));
+		  _useful_http_headers.push_back(al);
+	       }
+	     // other useful headers should be detected and stored here.
+	     ++sit;
+	  }
      }
       
 } /* end of namespace. */

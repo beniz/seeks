@@ -55,7 +55,7 @@ namespace sp
 			const long &transfer_timeout_ms)
      :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
       _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
-      _transfer_timeout_ms(transfer_timeout_ms)
+      _transfer_timeout_ms(transfer_timeout_ms),_headers(NULL)
      {
 	_outputs = new std::string*[_nrequests];
 	for (int i=0;i<_nrequests;i++)
@@ -68,10 +68,11 @@ namespace sp
 			const long &connect_timeout_ms,
 			const long &transfer_timeout_sec,
 			const long &transfer_timeout_ms,
-			const std::string &lang)
+			const std::string &lang,
+			const std::list<const char*> *headers)
      :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
          _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
-         _transfer_timeout_ms(transfer_timeout_ms),_lang(lang)
+         _transfer_timeout_ms(transfer_timeout_ms),_lang(lang),_headers(headers)
      {
 	_outputs = new std::string*[_nrequests];
 	for (int i=0;i<_nrequests;i++)
@@ -108,14 +109,24 @@ namespace sp
 	  }
 	
 	struct curl_slist *slist=NULL;
+	// useful headers.
+	if (arg->_headers)
+	  {
+	     std::list<const char*>::const_iterator sit = arg->_headers->begin();
+	     while(sit!=arg->_headers->end())
+	       {
+		  curl_slist_append(slist,(*sit));
+		  ++sit;
+		 }
+	  }
+	
 	if (arg->_lang == "en")
 	  slist = curl_slist_append(slist, "Accept-Language: en-us,en;q=0.5");
 	else if (arg->_lang == "fr")
 	  slist = curl_slist_append(slist, "Accept-Language: fr-fr,fr;q=0.5");
-	// TODO: other languages here.
-	
-	if (arg->_lang != "auto")
-	  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
+	// XXX: other languages here.
+			
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorbuffer);
@@ -134,7 +145,7 @@ namespace sp
 	
 	curl_easy_cleanup(curl);
 	
-	if (arg->_lang != "auto")
+	if (slist)
 	  curl_slist_free_all(slist);
 	
 	return NULL;
@@ -158,6 +169,7 @@ namespace sp
 	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
 	     arg_cbget->_proxy = proxy;
 	     arg_cbget->_lang = _lang;
+	     arg_cbget->_headers = _headers;
 	     
 	     _cbgets[i] = arg_cbget;
 	     

@@ -102,7 +102,7 @@ namespace seeks_plugins
      {
       public:
 	static std::string** fetch_snippets_content(const std::vector<std::string> &urls,
-						    const bool &proxy);
+						    const bool &proxy, const query_context *qc);
 
 	static void fetch_all_snippets_summary_and_features(query_context *qc);
 	
