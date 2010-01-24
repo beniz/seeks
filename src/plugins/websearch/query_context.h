@@ -142,6 +142,12 @@ namespace seeks_plugins
 	search_snippet* get_cached_snippet_title(const char *title);
 
 	/**
+	 * \brief detect query language from the query special keywords, :en, :fr, ...
+	 * @return true if the language could be detected that way, false otherwise.
+	 */
+	bool detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
+	/**
 	 * \brief detect query language, using http headers.
 	 */
 	static std::string detect_query_lang_http(const std::list<const char*> &http_headers);

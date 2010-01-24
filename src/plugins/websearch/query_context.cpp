@@ -45,12 +45,15 @@ namespace seeks_plugins
 				const std::list<const char*> &http_headers)
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
-	  _query_hash = query_context::hash_query_for_context(parameters,_query);
+	  _query_hash = query_context::hash_query_for_context(parameters,_query); // hashing may contain the language command...
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;
 	  
-	  if (websearch::_wconfig->_lang == "auto")
+	  if (detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)))
+	    {
+	    }
+	  else if (websearch::_wconfig->_lang == "auto")
 	    _auto_lang = query_context::detect_query_lang_http(http_headers);
 	  else _auto_lang = websearch::_wconfig->_lang;
 	  
@@ -291,6 +294,27 @@ namespace seeks_plugins
 	else return (*hit).second;    
      }
 
+   bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	std::string query = std::string(miscutil::lookup(parameters,"q"));
+	if (query[0] != ':')
+	  return false;
+	std::string qlang = query.substr(1,2); // : + 2 characters for the language.
+	
+	// TODO: check that the language is known ! -> language table...
+       	if (qlang == "en" || qlang == "fr")
+	  {
+	     // strip the keyword language command from the query.
+	     miscutil::unmap(parameters,"q");
+	     miscutil::add_map_entry(parameters,"q",1,query.substr(3).c_str(),1);
+	     
+	     _auto_lang = qlang;
+	     return true;
+	  }
+	else return false;
+     }
+   
+   // static.
    std::string query_context::detect_query_lang_http(const std::list<const char*> &http_headers)
      {
 	std::list<const char*>::const_iterator sit = http_headers.begin();

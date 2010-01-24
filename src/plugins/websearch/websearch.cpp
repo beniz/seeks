@@ -392,14 +392,14 @@ namespace seeks_plugins
 	  qc->_compute_tfidf_features = true;
        }
      
-     // render the page (static).                                                                                                
+     // render the page (static).
      sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							     csp,rsp,parameters,qc);
 
      // unlock the query context.
      qc->_lock = false;
 
-    // XXX: catch errors.                                                                                                 
+    // XXX: catch errors.
      return err;
   }
 
