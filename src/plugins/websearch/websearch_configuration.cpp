@@ -50,10 +50,10 @@ namespace seeks_plugins
    
    void websearch_configuration::set_default_config()
      {
-	_lang = "en";
+	_lang = "auto";
 	_N = 10;
 	_thumbs = false;
-	_se_enabled = std::bitset<NSEs>(000); // ggle only, TODO: change to all...
+	_se_enabled = std::bitset<NSEs>(111); // all engines.
 	_query_context_delay = 300; // in seconds, 5 minutes.
 	_js = false; // default is no javascript, this may change later on.
 	_content_analysis = false;

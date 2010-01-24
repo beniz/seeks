@@ -1,5 +1,7 @@
 # websearch language of preference.
-search-language en
+# automatic detection is based on http headers.
+# default: auto
+search-language auto
 
 # max number of websearch results on a single page.
 # default: 10

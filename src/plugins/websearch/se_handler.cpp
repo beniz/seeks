@@ -80,8 +80,6 @@ namespace seeks_plugins
 	
 	// number of results.
 	int num = websearch::_wconfig->_N; // by default.
-	/* if (pp == 0)
-	  num *= se_handler::_results_lookahead_factor; */ 
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_ggle,"%num",num_str);
 	
@@ -89,7 +87,9 @@ namespace seeks_plugins
 	miscutil::replace_in_string(q_ggle,"%encoding","utf-8");
 	
 	// language.
-	miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
+	if (websearch::_wconfig->_lang == "auto")
+	  miscutil::replace_in_string(q_ggle,"%lang","");
+	else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
 	
 	// client version. TODO: grab parameter from http request ?
 	miscutil::replace_in_string(q_ggle,"%client","firefox-a"); // beware: may use something else, seeks-a.
@@ -130,7 +130,9 @@ namespace seeks_plugins
 		
 	// language.
 	// TODO: translation table.
-	if (websearch::_wconfig->_lang == "en")
+	if (websearch::_wconfig->_lang == "auto")
+	  miscutil::replace_in_string(q_bing,"%lang","");
+	else if (websearch::_wconfig->_lang == "en")
 	  miscutil::replace_in_string(q_bing,"%lang","en-US");
 	else if (websearch::_wconfig->_lang == "fr")
 	  miscutil::replace_in_string(q_bing,"%lang","fr-FR");
@@ -160,8 +162,8 @@ namespace seeks_plugins
 	int p = 29;
 	q_cuil.replace(p,6,std::string(query));
 
-	// language.
-	miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
+	// language detection is done through headers.
+	//miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
 
 	// expansion + hack for getting Cuil's next pages.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -186,7 +188,7 @@ namespace seeks_plugins
       // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
       "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding&client=%client",
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
-      "http://www.cuil.com/search?q=%query&lang=%lang",
+      "http://www.cuil.com/search?q=%query",
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang"
     };
@@ -230,7 +232,7 @@ namespace seeks_plugins
    
   /*-- queries to the search engines. */  
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults)
+					  int &nresults, const query_context *qc)
   {
     std::vector<std::string> urls;
     
@@ -254,7 +256,7 @@ namespace seeks_plugins
     
     // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-		   websearch::_wconfig->_se_connect_timeout,0,websearch::_wconfig->_lang);
+		   websearch::_wconfig->_se_connect_timeout,0,qc->_auto_lang);//websearch::_wconfig->_lang);
      cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
     
      //char **outputs = (char**)malloc(urls.size()*sizeof(char*));

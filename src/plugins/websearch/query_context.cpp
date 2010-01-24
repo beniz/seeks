@@ -37,13 +37,18 @@ using lsh::mrf;
 namespace seeks_plugins
 {
    
-   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				const std::list<const char*> &http_headers)
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
 	  _query_hash = query_context::hash_query_for_context(parameters,_query);
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;
+	  
+	  if (websearch::_wconfig->_lang == "auto")
+	    _auto_lang = query_context::detect_query_lang_http(http_headers);
+	  else _auto_lang = websearch::_wconfig->_lang;
 	  
 	  sweeper::register_sweepable(this);
 	  register_qc(); // register with websearch plugin.
@@ -164,7 +169,7 @@ namespace seeks_plugins
 	  
 	  // query SEs.                                                                                                 
 	  int nresults = 0;
-	  std::string **outputs = se_handler::query_to_ses(parameters,nresults);
+	  std::string **outputs = se_handler::query_to_ses(parameters,nresults,this);
 	  
 	  // test for failed connection to the SEs comes here.    
 	  if (!outputs)
@@ -275,5 +280,25 @@ namespace seeks_plugins
 	  return NULL;
 	else return (*hit).second;    
      }
-   
+
+   std::string query_context::detect_query_lang_http(const std::list<const char*> &http_headers)
+     {
+	std::list<const char*>::const_iterator sit = http_headers.begin();
+	while(sit!=http_headers.end())
+	  {
+	     if (strncmp((*sit),"Accept-Language:",16) == 0)
+	       {
+		  // detect language.
+		  std::string lang_head = (*sit);
+		  size_t pos = lang_head.find_first_of(" ");
+		  std::string lang = lang_head.substr(pos+1,2);
+		  
+		  errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang.c_str());
+		  return lang;
+	       }
+	     ++sit;
+	  }
+	return "en"; // beware, returning hardcoded default (since config value is most likely "auto").
+     }
+      
 } /* end of namespace. */

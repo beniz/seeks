@@ -823,12 +823,6 @@ class client_state
    /** MIME-Type key, see CT_* above */
    unsigned int _content_type;
    
-   /** Actions files associated with this client */
-   //file_list *_actions_list[MAX_AF_FILES];
-   
-   /** pcrs job files. */
-   //file_list *_rlist[MAX_AF_FILES];
-
    std::set<plugin*> _plugins;
    
    std::list<interceptor_plugin*> _interceptor_plugins;

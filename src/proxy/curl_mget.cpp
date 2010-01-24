@@ -34,40 +34,6 @@
 
 namespace sp
 {
- /*   static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
-     {
-	char *buffer = static_cast<char*>(ptr);
-	cbget *arg = static_cast<cbget*>(userp);
-	size *= nmemb;
-	
-	int rembuff = arg->_buffer_len - arg->_buffer_pos; // remaining space in buffer.
-	
-	char *newbuff = NULL;
-	if (size > (size_t)rembuff)
-	  {
-	     // not enough space in buffer.
-	     newbuff = (char*)realloc(arg->_output,arg->_buffer_len + (size - rembuff));
-	     if (newbuff == NULL)
-	       {
-		  errlog::log_error(LOG_LEVEL_ERROR, "Failed to grow buffer in Curl callback");
-		  size = rembuff;
-		  exit(0);
-	       }
-	     else
-	       {
-		  // realloc succeeded.
-		  arg->_buffer_len += size - rembuff;
-		  arg->_output = newbuff;
-	       }
-	  }
-	memcpy(&arg->_output[arg->_buffer_pos],buffer,size);
-	arg->_buffer_pos += size;
-
-	//std::cerr << "output: " << arg->output << std::endl;
-	
-	return size;
-     } */
-
    static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
      {
 	char *buffer = static_cast<char*>(ptr);
@@ -147,7 +113,9 @@ namespace sp
 	else if (arg->_lang == "fr")
 	  slist = curl_slist_append(slist, "Accept-Language: fr-fr,fr;q=0.5");
 	// TODO: other languages here.
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
+	
+	if (arg->_lang != "auto")
+	  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorbuffer);
@@ -165,7 +133,9 @@ namespace sp
 	  }
 	
 	curl_easy_cleanup(curl);
-	curl_slist_free_all(slist);
+	
+	if (arg->_lang != "auto")
+	  curl_slist_free_all(slist);
 	
 	return NULL;
      }

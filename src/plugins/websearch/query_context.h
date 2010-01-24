@@ -40,8 +40,15 @@ namespace seeks_plugins
    class query_context : public sweepable
      {
       public:
-	query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	/**
+	 * \brief Constructor.
+	 */
+	query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+		      const std::list<const char*> &http_headers);
 	
+	/**
+	 * \brief destructor.
+	 */
 	virtual ~query_context();
      
 	/**
@@ -129,6 +136,11 @@ namespace seeks_plugins
 	 */
 	search_snippet* get_cached_snippet_title(const char *title);
 
+	/**
+	 * \brief detect query language, using http headers.
+	 */
+	static std::string detect_query_lang_http(const std::list<const char*> &http_headers);
+	
       public:
 	std::string _query;
 	uint32_t _query_hash;
@@ -160,6 +172,9 @@ namespace seeks_plugins
 
 	/* tfidf feature computation flag. */
 	bool _compute_tfidf_features;
+
+	/* automatic language detection. */
+	std::string _auto_lang;
      };
       
 } /* end of namespace. */

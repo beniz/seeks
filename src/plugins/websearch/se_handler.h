@@ -122,7 +122,7 @@ namespace seeks_plugins
 	
 	/*-- querying the search engines. --*/
 	static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults);
+					  int &nresults, const query_context *qc);
 	
 	static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				const SE &se, std::string &url);
