@@ -56,9 +56,6 @@ namespace seeks_plugins
 	_unordered_snippets.clear();
 	_unordered_snippets_title.clear();
 	
-	/* clear_cached_features();
-	 clear_cached_contents(); */
-	
 	search_snippet::delete_snippets(_cached_snippets);
 			
 	// clears the LSH hashtable.
@@ -67,11 +64,25 @@ namespace seeks_plugins
 	  delete _ulsh_ham;
      }
    
+   std::string query_context::sort_query(const std::string &query)
+     {
+	std::string clean_query = se_handler::cleanup_query(query);
+	std::vector<std::string> tokens;
+	mrf::tokenize(clean_query,tokens," ");
+	std::sort(tokens.begin(),tokens.end(),std::less<std::string>());
+	std::string sorted_query;
+	size_t ntokens = tokens.size();
+	for (size_t i=0;i<ntokens;i++)
+	  sorted_query += tokens.at(i);
+	return sorted_query;
+     }
+      
    uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 						  std::string &query)
      {
 	query = std::string(miscutil::lookup(parameters,"q"));
-	return mrf::mrf_single_feature(query);
+	std::string sorted_query = query_context::sort_query(query);
+	return mrf::mrf_single_feature(sorted_query);
      }
       
    bool query_context::sweep_me()
@@ -163,8 +174,6 @@ namespace seeks_plugins
 	  
 	  // parse the output and create result search snippets.   
 	  int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
-	  
-	  //std::cerr << "[Debug]: rank_offset: " << rank_offset << std::endl;
 	  
 	  se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this);
 	  for (int j=0;j<nresults;j++)

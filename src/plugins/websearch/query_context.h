@@ -80,6 +80,11 @@ namespace seeks_plugins
 	void update_last_time();
 	
 	/**
+	 * sorts query words so that this context is query word order independent.
+	 */
+	static std::string sort_query(const std::string &query);
+	
+	/**
 	 * \brief query hashing, based on mrf in lsh.
 	 * grabs query from parameters, stores it into query and hashes it.
 	 * the 32 bit hash is returned.
