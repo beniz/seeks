@@ -201,8 +201,11 @@ namespace seeks_plugins
 	     while(hit!=_points.end())
 	       {
 		  float learning_rate = oskmeans::_nu0*pow((oskmeans::_nuf/oskmeans::_nu0),_t/static_cast<float>(_points.size()*oskmeans::_niterations));
+		  
+#ifdef DEBUG
 		  std::cerr << "learning rate: " << learning_rate << std::endl;
-		  		  
+#endif
+		  
 		  // find closest cluster to this point.
 		  short cl = assign_cluster((*hit).first,(*hit).second);
 		     	     
