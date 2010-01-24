@@ -339,7 +339,10 @@ namespace seeks_plugins
 	     else if (pc->_current_snippet)
 	       {
 		  if (pc->_current_snippet->_title.empty())
-		    delete pc->_current_snippet;
+		    {
+		       delete pc->_current_snippet;
+		       pc->_current_snippet = NULL;
+		    }
 		  else 
 		    {
 		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
