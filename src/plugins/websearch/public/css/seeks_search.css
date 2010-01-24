@@ -210,6 +210,10 @@ body {
 	background-image: url(/plugins/websearch/public/images/search_cluster_on.png);
 }
 
+.cluster_inactive {
+        background-image: url(/plugins/websearch/public/images/search_cluster_inactive.png);
+}
+
 #expansion {
 	padding-top: 13px;
 	padding-right: 16px;

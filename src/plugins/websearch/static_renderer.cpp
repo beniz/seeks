@@ -208,6 +208,7 @@ namespace seeks_plugins
 	     cgi::map_block_killer(exports,"have-clustering");
 	     return;
 	  }
+	else cgi::map_block_killer(exports,"not-have-clustering");
 		
 	const char *nclusters_str = miscutil::lookup(parameters,"clusters");
 	
