@@ -63,7 +63,7 @@ namespace seeks_plugins
      }
    
    void se_ggle::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     std::string &url)
+			     std::string &url, const query_context *qc)
      {
 	std::string q_ggle = se_handler::_se_strings[0]; // query to ggle.
 	const char *query = miscutil::lookup(parameters,"q");
@@ -88,7 +88,7 @@ namespace seeks_plugins
 	
 	// language.
 	if (websearch::_wconfig->_lang == "auto")
-	  miscutil::replace_in_string(q_ggle,"%lang","");
+	  miscutil::replace_in_string(q_ggle,"%lang",qc->_auto_lang);
 	else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
 	
 	// client version. TODO: grab parameter from http request ?
@@ -110,7 +110,7 @@ namespace seeks_plugins
      }
       
    void se_bing::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     std::string &url)
+			     std::string &url, const query_context *qc)
      {
 	std::string q_bing = se_handler::_se_strings[2]; // query to bing.
 	const char *query = miscutil::lookup(parameters,"q");
@@ -130,11 +130,12 @@ namespace seeks_plugins
 		
 	// language.
 	// TODO: translation table.
+	std::string lang = websearch::_wconfig->_lang;
 	if (websearch::_wconfig->_lang == "auto")
-	  miscutil::replace_in_string(q_bing,"%lang","");
-	else if (websearch::_wconfig->_lang == "en")
+	  lang = qc->_auto_lang;
+	if (lang == "en")
 	  miscutil::replace_in_string(q_bing,"%lang","en-US");
-	else if (websearch::_wconfig->_lang == "fr")
+	else if (lang == "fr")
 	  miscutil::replace_in_string(q_bing,"%lang","fr-FR");
 	
 	// log the query.
@@ -153,7 +154,7 @@ namespace seeks_plugins
      }
    
    void se_cuil::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     std::string &url)
+			     std::string &url, const query_context *qc)
      {
 	std::string q_cuil = se_handler::_se_strings[1];
 	const char *query = miscutil::lookup(parameters,"q");
@@ -242,7 +243,7 @@ namespace seeks_plugins
 	 if (websearch::_wconfig->_se_enabled[i])
 	  {
 	    std::string url;
-	    se_handler::query_to_se(parameters,(SE)i,url);
+	    se_handler::query_to_se(parameters,(SE)i,url,qc);
 	    urls.push_back(url);
 	  }
       }
@@ -285,18 +286,18 @@ namespace seeks_plugins
   }
    
   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			       const SE &se, std::string &url)
+			       const SE &se, std::string &url, const query_context *qc)
   {
      switch(se)
       {
       case GOOGLE:
-	 _ggle.query_to_se(parameters,url);
+	 _ggle.query_to_se(parameters,url,qc);
 	 break;
       case CUIL:
-	 _cuil.query_to_se(parameters,url);
+	 _cuil.query_to_se(parameters,url,qc);
 	break;
       case BING:
-	 _bing.query_to_se(parameters,url);
+	 _bing.query_to_se(parameters,url,qc);
 	break;
       }
 

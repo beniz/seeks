@@ -53,7 +53,7 @@ namespace seeks_plugins
 	virtual ~search_engine();
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url) {};
+				 std::string &url, const query_context *qc) {};
 	
 	/*- variables. -*/
 	std::string _description;
@@ -89,7 +89,7 @@ namespace seeks_plugins
 	~se_ggle();
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url);
+				 std::string &url, const query_context *qc);
      };
    
    class se_bing : public search_engine
@@ -99,7 +99,7 @@ namespace seeks_plugins
 	~se_bing();
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url);
+				 std::string &url, const query_context *qc);
      };
 
    class se_cuil : public search_engine
@@ -109,7 +109,7 @@ namespace seeks_plugins
 	~se_cuil();
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url);
+				 std::string &url, const query_context *qc);
      };
    
    class se_handler
@@ -125,7 +125,7 @@ namespace seeks_plugins
 					  int &nresults, const query_context *qc);
 	
 	static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				const SE &se, std::string &url);
+				const SE &se, std::string &url, const query_context *qc);
 	
 	/*-- parsing --*/
 	static se_parser* create_se_parser(const SE &se);
