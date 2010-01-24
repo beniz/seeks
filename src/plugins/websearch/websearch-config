@@ -25,17 +25,19 @@ enable-thumbs 0
 # default: 0
 enable-js 0
 
-# enables background download of the content
-# pointed to by websearch results.
+# enables background download of the content pointed to by websearch results.
 # Expected to be both slower and more bandwith demanding than the
 # default ranking system.
 # However, the advanced system has more features, such as better
 # aggregation of websearch snippets from multiple search engines,
-# preemptive caching of webpages pointed
-# to by websearch results and automated similarity analysis and
-# clustering of the content pointed to by websearch results.
+# preemptive caching of webpages pointed to by websearch results and automated 
+# similarity analysis and clustering of the websearch results.
 # default: 0
 enable-content-analysis 0
+
+# enables the clustering button on the interface.
+# default: 0
+enable-clustering 0
 
 ## Technical configuration:
 # only modify settings below this point if you know what you are

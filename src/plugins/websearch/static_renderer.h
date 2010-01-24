@@ -78,6 +78,8 @@ namespace seeks_plugins
 	static void render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	  
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* websearch_exports(client_state *csp);
+	
 	/*- renderer. -*/
 	static sp_err render_hp(client_state *csp, http_response *rsp);
 	

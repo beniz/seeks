@@ -22,7 +22,9 @@
 
 <a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
+<!-- @if-have-clustering-start -->
 <a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=clusterize&clusters=xxnclust" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- if-have-clustering-end@ -->
 
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 
@@ -42,6 +44,7 @@ search_snippets
 </ol>
 </div>
 
+<!-- @if-have-js-start -->
 <script type="text/javascript" src="/public/yui/3.0.0/yui/yui-min.js"></script>
 <script type="text/javascript">
 
@@ -100,5 +103,6 @@ YUI().use('event-key', function(Y) {
 });
 
 </script>
+<!-- if-have-js-end@ -->
 </div> 
 </body></html>

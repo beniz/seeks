@@ -113,8 +113,6 @@ namespace seeks_plugins
 						   const query_context *qc,
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
-	// !! TODO: use the current page later. !!
-
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 		
@@ -134,7 +132,6 @@ namespace seeks_plugins
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
 	     std::string cluster_str;
-	     //size_t nsps = std::min(3,(int)snippets.size());
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
@@ -206,6 +203,12 @@ namespace seeks_plugins
    void static_renderer::render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
+	if (!websearch::_wconfig->_clustering)
+	  {
+	     cgi::map_block_killer(exports,"have-clustering");
+	     return;
+	  }
+		
 	const char *nclusters_str = miscutil::lookup(parameters,"clusters");
 	
 	if (!nclusters_str)
@@ -219,13 +222,25 @@ namespace seeks_plugins
 	  }
      }
 
+   hash_map<const char*,const char*,hash<const char*>,eqstr>* static_renderer::websearch_exports(client_state *csp)
+     {
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = cgi::default_exports(csp,"");
+	
+	if (!websearch::_wconfig->_js) // no javascript required
+	  {
+	     cgi::map_block_killer(exports,"have-js");
+	  }
+	return exports;
+     }
+      
   /*- rendering. -*/
   sp_err static_renderer::render_hp(client_state *csp,http_response *rsp)
      {
 	static const char *hp_tmpl_name = "websearch/html/seeks_ws_hp.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-	  = cgi::default_exports(csp,"");
+	  = static_renderer::websearch_exports(csp);
 		
 	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,plugin_manager::_plugin_repository.c_str(),
 						exports,rsp);
@@ -241,7 +256,7 @@ namespace seeks_plugins
      static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
      
      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-       = cgi::default_exports(csp,"");
+       = static_renderer::websearch_exports(csp);
      
      // query.
      std::string html_encoded_query;
@@ -301,7 +316,7 @@ namespace seeks_plugins
 	static const char *result_tmpl_name = "websearch/templates/seeks_clustered_result_template.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+	  = static_renderer::websearch_exports(csp);
 	
 	// query.
 	std::string html_encoded_query;
