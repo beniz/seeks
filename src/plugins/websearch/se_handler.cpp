@@ -211,8 +211,9 @@ namespace seeks_plugins
    // could be moved elsewhere...
    std::string se_handler::cleanup_query(const std::string &oquery)
      {
-	// non interpreted '+' should be deduced.
 	std::string cquery = oquery;
+	
+	// non interpreted '+' should be deduced.
 	size_t end_pos = cquery.size()-1;
 	size_t pos = 0;
 	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
@@ -228,6 +229,15 @@ namespace seeks_plugins
 	return cquery;
      }
    
+   std::string se_handler::no_command_query(const std::string &oquery)
+     {
+	std::string cquery = oquery;
+	// remove any command from the query.
+	if (cquery[0] == ':')
+	  cquery = cquery.substr(4);
+	return cquery;
+     }
+      
   /*-- queries to the search engines. */  
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  int &nresults, const query_context *qc)
@@ -416,7 +426,6 @@ namespace seeks_plugins
 	     if (!se_p_ggle->_suggestion.empty())
 	       args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
 	  }
-		
 	delete se;
      }
    

@@ -64,7 +64,8 @@ namespace seeks_plugins
 					    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					    std::string &query_clean)
      {
-	query_clean = se_handler::cleanup_query(html_encoded_query);
+	query_clean = se_handler::no_command_query(html_encoded_query);
+	query_clean = se_handler::cleanup_query(query_clean);
 	miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
      }
    
@@ -302,8 +303,8 @@ namespace seeks_plugins
      static_renderer::render_nclusters(parameters,exports);
      
      // rendering.
-     sp_err err = cgi::template_fill_for_cgi_str(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
-						 exports,rsp);
+     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+					     exports,rsp);
      
      return err;
   }

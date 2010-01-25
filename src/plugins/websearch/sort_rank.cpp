@@ -193,12 +193,8 @@ namespace seeks_plugins
 	std::vector<search_snippet*>::iterator vit = sorted_snippets.begin();
 	while(vit!=sorted_snippets.end())
 	  {
-	     /* if ((*vit)->_seeks_ir != 0)
-	       { */
-		  (*vit)->_seeks_ir = 0;
-		  ++vit;
-	      /* }
-	     else vit = sorted_snippets.erase(vit); */
+	     (*vit)->_seeks_ir = 0;
+	     ++vit;
 	  }
      }
    

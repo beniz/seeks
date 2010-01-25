@@ -293,9 +293,11 @@ namespace seeks_plugins
 	       {
 		  // no cache, (re)do the websearch first.
 		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
-		  qc = websearch::lookup_qc(parameters);
 		  if (err != SP_ERR_OK)
 		    return err;
+		  qc = websearch::lookup_qc(parameters);
+		  if (!qc)
+		    return SP_ERR_MEMORY;
 	       }
 	     const char *id = miscutil::lookup(parameters,"id");
 	     

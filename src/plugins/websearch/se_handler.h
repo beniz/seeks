@@ -120,6 +120,8 @@ namespace seeks_plugins
 	
 	static std::string cleanup_query(const std::string &oquery);
 	
+	static std::string no_command_query(const std::string &oquery);
+	
 	/*-- querying the search engines. --*/
 	static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  int &nresults, const query_context *qc);
