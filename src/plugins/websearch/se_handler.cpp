@@ -70,7 +70,7 @@ namespace seeks_plugins
 	
 	// query.
 	int p = 31;
-	q_ggle.replace(p,6,std::string(query));
+	q_ggle.replace(p,6,se_handler::no_command_query(std::string(query)));
 	
 	// expansion = result page called...
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -114,7 +114,7 @@ namespace seeks_plugins
 	        
 	// query.
 	int p = 29;
-	q_bing.replace(p,6,std::string(query));
+	q_bing.replace(p,6,se_handler::no_command_query(std::string(query)));
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -158,7 +158,7 @@ namespace seeks_plugins
 	
 	// query.
 	int p = 29;
-	q_cuil.replace(p,6,std::string(query));
+	q_cuil.replace(p,6,se_handler::no_command_query(std::string(query)));
 
 	// language detection is done through headers.
 	//miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
