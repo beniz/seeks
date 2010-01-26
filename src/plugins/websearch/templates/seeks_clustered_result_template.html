@@ -6,9 +6,9 @@
 <!-- <link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css"> -->
 <link rel="stylesheet" href="/public/yui/3.0.0/cssreset/reset-min.css" type="text/css">
 <link rel="stylesheet" href="/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css">
+<link rel="stylesheet" href="/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css">
 <link rel="stylesheet" href="/public/css/base.css" type="text/css" />
 <link rel="stylesheet" href="/plugins/websearch/public/css/seeks_search.css" type="text/css">
-<link rel="stylesheet" href="public/yui/3.0.0/cssgrids/grids-min.css" type="text/css">
 <link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
 </head>
 <body>
@@ -35,31 +35,35 @@
 </div>
 
 <div id="main">
-<div id="doc" class="yui-t7">
-  <div id="bd" role="main">
-     <div class="yui-g">
-    <div class="yui-u first" id="search_results">
-      <ol>
+
+<div id="search_results" class="yui-g clustered">
+
+    <div class="yui-u first">
+      <div class="cluster">
+        <ol>
 	cluster0
-      </ol>
-    </div>
-    <div class="yui-u" id="search_results">
-      <ol>      
-	cluster1
-      </ol>
-    </div>
-</div>
-<div class="yui-g">
-    <div class="yui-u first" id="search_results">
-      <ol>
+        </ol>
+      </div>
+      <div class="cluster">
+        <ol>
 	cluster2
-      </ol>
+        </ol>
+      </div>
     </div>
-    <div class="yui-u" id="search_results">
-      <ol>      
+
+    <div class="yui-u">
+      <div class="cluster">
+        <ol>
+	cluster1
+        </ol>
+      </div>
+      <div class="cluster">
+        <ol>
 	cluster3
-      </ol>
+        </ol>
+      </div>
     </div>
+
 </div>
 </div>
 

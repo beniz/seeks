@@ -1,5 +1,7 @@
 body {
 	width: 700px;
+	left: 0px;
+	position: absolute;
 }
 
 #main {
@@ -19,7 +21,7 @@ body {
 }
 
 #search_form {
-	margin-top : 8px;
+	margin-top: 8px;
 	width: 364px;
 	height: 47px;
 	background-image: url(/plugins/websearch/public/images/search_form.png);
@@ -196,7 +198,6 @@ body {
 
 #cluster {
 	margin-top: 5px;
-
 	width: 62px;
 	height: 60px;
 	left: 504px;
@@ -212,6 +213,12 @@ body {
 
 .cluster_inactive {
         background-image: url(/plugins/websearch/public/images/search_cluster_inactive.png);
+}
+
+.clustered .cluster {
+	border: 1px solid gray;
+	padding: 8px;
+	margin-bottom: 10px;
 }
 
 #expansion {
