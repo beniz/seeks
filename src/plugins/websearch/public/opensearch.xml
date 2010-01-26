@@ -7,5 +7,5 @@
     <InputEncoding>UTF-8</InputEncoding>
     <SyndicationRight>open</SyndicationRight>
     <Image width="16" height="16" type="image/png">http://s.s/public/images/seek_icon_16x16_transparent.png</Image>
-    <Url type="text/html" template="http://s.s/search?q={searchTerms}&amp;expansion=1"/>
+    <Url type="text/html" template="http://s.s/search?q={searchTerms}&amp;expansion=1&amp;action=expand"/>
 </OpenSearchDescription>
