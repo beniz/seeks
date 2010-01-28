@@ -2105,6 +2105,7 @@ hash_map<const char*,const char*,hash<const char*>,eqstr>* cgi::default_exports(
      }
    
    err = miscutil::add_map_entry(exports, "version", 1, encode::html_encode(VERSION), 0);
+   if (!err) err = miscutil::add_map_entry(exports, "package-version", 1, encode::html_encode(PACKAGE_VERSION), 0);
    cgi::get_locale_time(buf, sizeof(buf));
    if (!err) err = miscutil::add_map_entry(exports, "time",          1, encode::html_encode(buf), 0);
    if (!err) err = miscutil::add_map_entry(exports, "my-ip-address", 1, 

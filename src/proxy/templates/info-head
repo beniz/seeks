@@ -1,6 +1,10 @@
 <p id="info-head">
-<strong>Seeks version:</strong><span>Bubs</span>
-<strong>Node name:</strong><span>Coucou</span>
-<strong>IP:</strong><span>127.0.0.1</span>
-<strong>Options:</strong><span>blabla</span>
+<strong>Seeks version:</strong><span>@package-version@-@code-status@</span>
+<strong>Node host:</strong><span>@my-hostname@</span>
+<strong>IP:</strong><span>@my-ip-address@</span>
+<strong>Options:</strong><span>@websearch-content-analysis@ @websearch-thumbs@ @websearch-clustering@</span>
+<!-- @if-have-admin-address-start -->
+<strong>Admin:</strong><span>@admin-address@</span>
+<!-- if-have-admin-address-end@ -->
+<strong></strong><span>@time@</span>
 </p>

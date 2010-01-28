@@ -269,8 +269,21 @@ namespace seeks_plugins
 	
 	if (!websearch::_wconfig->_js) // no javascript required
 	  {
-	     cgi::map_block_killer(exports,"have-js");
+	     cgi::map_block_killer(exports,"websearch-have-js");
 	  }
+	
+	if (websearch::_wconfig->_content_analysis)
+	  miscutil::add_map_entry(exports,"websearch-content-analysis",1,"content_analysis",1);
+	else miscutil::add_map_entry(exports,"websearch-content-analysis",1,strdup(""),0);
+	
+	if (websearch::_wconfig->_thumbs)
+	  miscutil::add_map_entry(exports,"websearch-thumbs",1,"thumbs",1);
+	else miscutil::add_map_entry(exports,"websearch-thumbs",1,strdup(""),0);
+	
+	if (websearch::_wconfig->_clustering)
+	  miscutil::add_map_entry(exports,"websearch-clustering",1,"clustering",1);
+	else miscutil::add_map_entry(exports,"websearch-clustering",1,strdup(""),0);
+	
 	return exports;
      }
       
