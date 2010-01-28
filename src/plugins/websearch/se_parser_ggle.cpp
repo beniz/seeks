@@ -268,7 +268,7 @@ namespace seeks_plugins
 	     std::string a_chars = std::string((char*)chars);
 	     miscutil::replace_in_string(a_chars,"\n"," ");
 	     miscutil::replace_in_string(a_chars,"\r"," ");
-	     miscutil::replace_in_string(a_chars,"-"," ");
+	     //miscutil::replace_in_string(a_chars,"-"," ");
 	     _summary += a_chars;
 	  }
 	else if (_sgg_spell_flag)
