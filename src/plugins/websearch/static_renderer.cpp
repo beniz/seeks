@@ -273,7 +273,7 @@ namespace seeks_plugins
 	std::list<const char*>::const_iterator sit = csp->_headers.begin();
 	while(sit!=csp->_headers.end())
 	  {
-	     if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",23) == 0)
+	     if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
 	       {
 		  base_url = (*sit);
 		  size_t pos = base_url.find_first_of(" ");
