@@ -11,7 +11,7 @@ body {
 #search_bar {
 	position: fixed;
 	padding: 5px 10px 5px 20px;
-	top: 0px;
+	top: 16px;
 	left: 0px;
 	height: 90px;
 	width: 100%;
