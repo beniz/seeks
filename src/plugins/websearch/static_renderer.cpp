@@ -267,6 +267,23 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = cgi::default_exports(csp,"");
 	
+	// we need to inject a remote base location for remote web access.
+	// the injected header, if it exists is Seeks-Remote-Location
+	std::string base_url = "";
+	std::list<const char*>::const_iterator sit = csp->_headers.begin();
+	while(sit!=csp->_headers.end())
+	  {
+	     if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",23) == 0)
+	       {
+		  base_url = (*sit);
+		  size_t pos = base_url.find_first_of(" ");
+		  base_url = base_url.substr(pos+1);
+		  break;
+	       }
+	     ++sit;
+	  }
+	miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
+		
 	if (!websearch::_wconfig->_js) // no javascript required
 	  {
 	     cgi::map_block_killer(exports,"websearch-have-js");
