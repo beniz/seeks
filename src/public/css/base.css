@@ -25,3 +25,29 @@ a {
 em {
 	font-style: italic;
 }
+
+strong {
+	font-weight: bold;
+}
+
+#info-head {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	height: 16px;
+	font-size: 10px;
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+	text-align: right;
+	background-color: #dddddd;
+	color: white;
+}
+
+#info-head strong {
+	margin-right: 3px;
+}
+
+#info-head span {
+	margin-right: 10px;
+}
