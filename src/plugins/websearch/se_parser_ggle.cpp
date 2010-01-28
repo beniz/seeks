@@ -99,6 +99,8 @@ namespace seeks_plugins
 		       a_link_str = a_link_str.substr(0,pos);
 		    }
 		  pc->_current_snippet->set_url(a_link_str);
+		  std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id 
+		    << " -- url: " << pc->_current_snippet->_url << std::endl;
 	       //}
 	     //	  else pc->_current_snippet->set_url(a_link);
 	       }
@@ -360,13 +362,9 @@ namespace seeks_plugins
      {
 	// fix to summary (others are to be added here accordingly).
 	size_t r = miscutil::replace_in_string(se->_summary,"Your browser may not have a PDF reader available. Google recommends visiting our text version of this document.",					       "");
-	size_t s = miscutil::replace_in_string(se->_summary,"Quick View","");
-	/* if (r > 0 || s > 0)
-	  se->_file_format = "pdf"; */
-	
+	r = miscutil::replace_in_string(se->_summary,"Quick View","");
 	r = miscutil::replace_in_string(se->_summary,"View as HTML","");
-	// TODO: check the file type (probably a M$ doc type).
-
+			
 	// remove certain unwanted results (ggle image, video, news & shopping).
 	if ((r = se->_url.find("/products?q="))!=std::string::npos
 	    || (r = se->_url.find("/videosearch?q="))!=std::string::npos

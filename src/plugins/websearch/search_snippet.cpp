@@ -22,16 +22,29 @@
 #include "mem_utils.h"
 #include "miscutil.h"
 #include "encode.h"
+#include "loaders.h"
+#include "urlmatch.h"
+#include "plugin_manager.h" // for _plugin_repository.
 #include "mrf.h"
 
 #include <iostream>
 
 using sp::miscutil;
 using sp::encode;
+using sp::loaders;
+using sp::urlmatch;
+using sp::plugin_manager;
 using lsh::mrf;
 
 namespace seeks_plugins
 {
+   // loaded tagging patterns.
+   std::vector<url_spec*> search_snippet::_pdf_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_file_doc_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_audio_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_video_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_forum_pos_patterns = std::vector<url_spec*>();
+   
    search_snippet::search_snippet()
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
       _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
@@ -281,7 +294,114 @@ namespace seeks_plugins
 	_sim_back = true;
      }
       
+   void search_snippet::tag()
+     {
+	// detect extension, if any, and if not already tagged.
+	/* if (_doc_type == WEBPAGE && _url.size()>4 && _url[_url.size()-4] == '.')
+	  {
+	     std::string file_ext = _url.substr(_url.size()-3);
+	     if (file_ext == "pdf" || file_ext == "doc" || file_ext == "pps" 
+		      || file_ext == "ppt") // XXX: other doc file extensions here.
+	       {
+		  _doc_type = FILE_DOC;
+		  _file_format = file_ext;
+	       }
+	     else if (file_ext == "mp3" || file_ext == "ogg" || file_ext == "wav")
+	       {
+		  _doc_type = AUDIO;
+		  _file_format = file_ext;
+	       }
+	     else if (file_ext == "avi" || file_ext == "mkv" || file_ext == "swf" || file_ext == "mpg")
+	       {
+		  _doc_type = VIDEO;
+		  _file_format = file_ext;
+	       }
+	  } */
+	
+	if (_doc_type == WEBPAGE) // not already tagged.
+	  {
+	     // grab the 3 char long extension, if any.
+	     std::string file_ext;
+	     if (_url.size()>4 && _url[_url.size()-4] == '.')
+	       {
+		  file_ext = _url.substr(_url.size()-3);
+		  _file_format = file_ext;
+	       }
+	     		  
+	     if (search_snippet::match_tag(_url,search_snippet::_pdf_pos_patterns))
+	       _doc_type = FILE_DOC;
+	     else if(search_snippet::match_tag(_url,search_snippet::_file_doc_pos_patterns))
+	       _doc_type = FILE_DOC;
+	     else if (search_snippet::match_tag(_url,search_snippet::_audio_pos_patterns))
+	       _doc_type = AUDIO;
+	     else if (search_snippet::match_tag(_url,search_snippet::_video_pos_patterns))
+	       _doc_type = VIDEO;
+	     else if (search_snippet::match_tag(_url,search_snippet::_forum_pos_patterns))
+	       _doc_type = FORUM;
+	  }
+		
+	// detect wikis. XXX: could be put into a pattern file if more complex patterns are needed.
+	size_t pos = 0;
+	std::string wiki_pattern = "wiki";
+	std::string::const_iterator sit = _url.begin();
+	if ((pos = miscutil::ci_find(_url,wiki_pattern,sit))!=std::string::npos)
+	  {
+	     _doc_type = WIKI;
+	  }
+     }
+   
    // static.
+   sp_err search_snippet::load_patterns()
+     {
+	static std::string pdf_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/pdf";
+	static std::string file_doc_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/file_doc";
+	static std::string audio_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/audio";
+	static std::string video_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/video";
+	static std::string forum_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/forum";
+		
+	std::vector<url_spec*> fake_neg_patterns; // XXX: maybe to be supported in the future, if needed.
+	
+	sp_err err;
+	err = loaders::load_pattern_file(pdf_patterns_filename.c_str(),search_snippet::_pdf_pos_patterns,
+					 fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(file_doc_patterns_filename.c_str(),search_snippet::_file_doc_pos_patterns,
+					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(audio_patterns_filename.c_str(),search_snippet::_audio_pos_patterns,
+					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(video_patterns_filename.c_str(),search_snippet::_video_pos_patterns,
+					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(forum_patterns_filename.c_str(),search_snippet::_forum_pos_patterns,
+					   fake_neg_patterns);
+	return err;
+     }
+      
+   bool search_snippet::match_tag(const std::string &url,
+				  const std::vector<url_spec*> &patterns)
+     {
+	std::string host;
+	std::string path;
+	urlmatch::parse_url_host_and_path(url,host,path);
+	
+	size_t psize = patterns.size();
+	for (size_t i=0;i<psize;i++)
+	  {
+	     url_spec *pattern = patterns.at(i);
+	     int host_match = host.empty() ? 0 : ((NULL == pattern->_host_regex)
+						  || (0 == regexec(pattern->_host_regex, host.c_str(), 0, NULL, 0)));
+	     if (host_match == 0)
+	       continue;
+	     
+	     int path_match = path.empty() ? 0 : urlmatch::path_matches(path.c_str(),pattern);
+	     if (path_match)
+	       return true;
+	  }
+	return false;
+     }
+         
    void search_snippet::delete_snippets(std::vector<search_snippet*> &snippets)
      {
 	size_t snippets_size = snippets.size();
@@ -305,10 +425,12 @@ namespace seeks_plugins
 	if (s1->_cached.empty())
 	  s1->_cached = s2->_cached;
 	
-	// summary.
+	// summary. TODO: max size for garbage detection.
 	if (s1->_summary.length() < s2->_summary.length())
 	  s1->_summary = s2->_summary;
      
+	// TODO: snippet type.
+	
 	// file format.
 	if (s1->_file_format.length() < s2->_file_format.length())  // we could do better here, ok enough for now.
 	  s1->_file_format = s2->_file_format;

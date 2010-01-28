@@ -285,10 +285,7 @@ namespace seeks_plugins
 	  delete[] outputs;
 	  outputs = NULL;
        }
-     
-     /* std::cout << "outputs:\n";
-      std::cout << outputs[0] << std::endl; */
-    
+         
     return outputs;
   }
    
@@ -400,9 +397,13 @@ namespace seeks_plugins
 	se_parser *se = se_handler::create_se_parser(args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
-	// link the snippets to the query context.
+	// link the snippets to the query context
+	// and post-process them.
 	for (size_t i=0;i<args._snippets->size();i++)
-	  args._snippets->at(i)->_qc = args._qr;
+	  {
+	     args._snippets->at(i)->_qc = args._qr;
+	     args._snippets->at(i)->tag();
+	  }
 	
 	// hack for cuil.
 	if (args._se == CUIL)
@@ -417,7 +418,7 @@ namespace seeks_plugins
 		  ++hit;
 	       }
 	  }
-	// hack
+	// hack for getting stuff out of ggle.
 	else if (args._se == GOOGLE)
 	  {
 	     // get more stuff from the parser.

@@ -70,6 +70,7 @@ namespace seeks_plugins
 	centroid _c; /**< cluster's centroid. */
 	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint> _cpoints; /**< points associated to this cluster. */
 	double _rank; /**< cluster's rank among clusters. */
+	std::string _label; /**< cluster's label. */
      };
       
    class clustering
@@ -87,7 +88,7 @@ namespace seeks_plugins
 	
 	virtual void clusterize() {};
 	
-	virtual void rank_elements(cluster &cl) {};
+	virtual void rank_elements(cluster &cl);
 	
 	void post_processing();
 	

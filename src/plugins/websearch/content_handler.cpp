@@ -103,7 +103,10 @@ namespace seeks_plugins
 	  {
 	     search_snippet *sp = qc->_cached_snippets.at(i);
 	     if (sp->_cached_content)
-	       continue;
+	       {
+		  std::cerr << "[Debug]: already in cache: " << sp->_url << std::endl;
+		  continue;
+	       }
 	     urls.push_back(sp->_url);
 	     snippets.push_back(sp);
 	  }

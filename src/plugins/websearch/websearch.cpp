@@ -57,6 +57,9 @@ namespace seeks_plugins
 	  if (websearch::_wconfig == NULL)
 	    websearch::_wconfig = new websearch_configuration(_config_filename);
 	  _configuration = websearch::_wconfig;
+	
+	  // load tagging patterns.
+	  search_snippet::load_patterns();
 	  
 	  // cgi dispatchers.
 	  cgi_dispatcher *cgid_wb_hp
@@ -176,6 +179,8 @@ namespace seeks_plugins
 	       err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
 	     else if (strcmp(action,"titles") == 0)
 	       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
+	     else if (strcmp(action,"types") == 0)
+	       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
 	     else return websearch::cgi_websearch_hp(csp,rsp,parameters);
 	     
 	     return err;
@@ -281,7 +286,39 @@ namespace seeks_plugins
 	  }
 	else return SP_ERR_OK;
      }
-	     	        
+
+   sp_err websearch::cgi_websearch_clustered_types(client_state *csp, http_response *rsp,
+						   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!parameters->empty())
+	  {
+	     query_context *qc = websearch::lookup_qc(parameters);
+	     if (!qc)
+	       {
+		  // no cache, (re)do the websearch first.
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
+		  qc = websearch::lookup_qc(parameters);
+		  if (err != SP_ERR_OK)
+		    return err;
+	       }
+	     qc->_lock = true;
+	     
+	     // regroup search snippets by types.
+	     cluster *clusters;
+	     short K = 0;
+	     sort_rank::group_by_types(qc,clusters,K);
+	     
+	     // render result page.
+	     sp_err err = static_renderer::render_clustered_result_page_static(clusters,K,
+									       csp,rsp,parameters,qc);
+	     
+	     qc->_lock = false;
+	     
+	     return err;
+	  }
+	else return SP_ERR_OK;
+     }
+      
    sp_err websearch::cgi_websearch_similarity(client_state *csp, http_response *rsp,
 					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -342,7 +379,7 @@ namespace seeks_plugins
 	       nclust = atoi(nclust_str);
 	     oskmeans km(qc,qc->_cached_snippets,nclust); // nclust clusters+ 1 garbage for now...
 	     km.clusterize();
-	     //km.post_processing();
+	     km.post_processing();
 	     
 	     sp_err err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
 									       csp,rsp,parameters,qc);

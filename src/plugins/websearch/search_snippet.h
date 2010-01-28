@@ -21,12 +21,15 @@
 #define SEARCH_SNIPPET_H
 
 #include "websearch_configuration.h" // for NSEs.
+#include "proxy_dts.h" // for url_spec.
 
 #include <string>
 #include <vector>
 #include <bitset>
 #include <algorithm>
 #include <ostream>
+
+using sp::url_spec;
 
 namespace seeks_plugins
 {
@@ -40,9 +43,11 @@ namespace seeks_plugins
 	FILE_DOC,
 	SOFTWARE,
 	VIDEO,
+	AUDIO,
 	CODE,
 	NEWS,
-	REAL_TIME
+	REAL_TIME,
+	WIKI
      };
    
    class search_snippet
@@ -118,6 +123,16 @@ namespace seeks_plugins
 	static void highlight_query(std::vector<std::string> &words,
 				    std::string &str);
 	
+	// tag snippet, i.e. detect its type if not already done by the parsers.
+	void tag();
+
+	// load tagging patterns from files.
+	static sp_err load_patterns();
+
+	// match url against tags.
+	static bool match_tag(const std::string &url,
+			      const std::vector<url_spec*> &patterns);
+	
 	// delete snippets.
 	static void delete_snippets(std::vector<search_snippet*> &snippets);
 	
@@ -159,6 +174,13 @@ namespace seeks_plugins
 	std::vector<uint32_t> *_features; // temporary set of features, used for fast similarity check between snippets.
 	hash_map<uint32_t,float,id_hash_uint> *_features_tfidf; // tf-idf feature set for this snippet.
 	hash_map<uint32_t,std::string,id_hash_uint> *_bag_of_words;	
+     
+	// patterns for snippets tagging (positive patterns for now only).
+	static std::vector<url_spec*> _pdf_pos_patterns;
+	static std::vector<url_spec*> _file_doc_pos_patterns;
+	static std::vector<url_spec*> _audio_pos_patterns;
+	static std::vector<url_spec*> _video_pos_patterns;
+	static std::vector<url_spec*> _forum_pos_patterns;
      };
    
 } /* end of namespace. */

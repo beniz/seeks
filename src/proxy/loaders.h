@@ -56,6 +56,10 @@ namespace sp
 	
 	static sp_err simple_read_line(FILE *fp, char **dest, int *newline);
 	
+	static sp_err load_pattern_file(const char *pattern_filename,
+					std::vector<url_spec*> &pos_patterns,
+					std::vector<url_spec*> &neg_patterns);
+	
 	/*
 	 * Various types of newlines that a file may contain.
 	 */

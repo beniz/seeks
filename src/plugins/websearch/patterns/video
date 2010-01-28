@@ -1,0 +1,6 @@
+# websites
+.youtube.com/watch?
+.dailymotion./video*
+
+# file extensions
+/.*.(avi|mkv|swf|mpg)$

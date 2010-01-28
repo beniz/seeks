@@ -175,6 +175,12 @@ namespace seeks_plugins
 						std::vector<search_snippet*> &sorted_snippets)
      {
 	uint32_t id = (uint32_t)strtod(id_str,NULL);
+	
+	std::cerr << "[Debug]: id_str: " << id_str << std::endl;
+	std::cerr << "[Debug]: double id: " << strtod(id_str,NULL) << std::endl;
+	
+	std::cerr << "[Debug]: id: " << id << std::endl;
+	
 	ref_sp = qc->get_cached_snippet(id);
 	ref_sp->set_back_similarity_link();
 	
@@ -195,6 +201,66 @@ namespace seeks_plugins
 	  {
 	     (*vit)->_seeks_ir = 0;
 	     ++vit;
+	  }
+     }
+
+   void sort_rank::group_by_types(query_context *qc, cluster *&clusters, short &K)
+     {
+	/**
+	 * grouping is done per file type, the most common being:
+	 * 0 - html / html aka webpages (but no wikis)
+	 * 1 - wiki
+	 * 2 - pdf
+	 * 3 - .doc, .pps, & so on aka other types of documents.
+	 * 4 - forums
+	 * 5 - video file
+	 * 6 - audio file
+	 * So for now, K is set to 7.
+	 */
+	K = 7;
+	clusters = new cluster[K];
+	
+	size_t nsnippets = qc->_cached_snippets.size();
+	for (size_t i=0;i<nsnippets;i++)
+	  {
+	     search_snippet *se = qc->_cached_snippets.at(i);
+	     
+	     if (se->_doc_type == WEBPAGE)
+	       {
+		  clusters[0].add_point(se->_id,NULL);
+		  clusters[0]._label = "Webpages";  // TODO: languages...
+	       }
+	     else if (se->_doc_type == WIKI)
+	       {
+		  clusters[1].add_point(se->_id,NULL);
+		  clusters[1]._label = "Wikis";
+	       }
+	     else if (se->_doc_type == FILE_DOC
+		      && se->_file_format == "pdf")
+	       {
+		  clusters[2].add_point(se->_id,NULL);
+		  clusters[2]._label = "PDFs";
+	       }
+	     else if (se->_doc_type == FILE_DOC)
+	       {
+		  clusters[3].add_point(se->_id,NULL);
+		  clusters[3]._label = "Other files";
+	       }
+	     else if (se->_doc_type == FORUM)
+	       {
+		  clusters[4].add_point(se->_id,NULL);
+		  clusters[4]._label = "Forums";
+	       }
+	     else if (se->_doc_type == VIDEO)
+	       {
+		  clusters[5].add_point(se->_id,NULL);
+		  clusters[5]._label = "Videos";
+	       }
+	     else if (se->_doc_type == AUDIO)
+	       {
+		  clusters[6].add_point(se->_id,NULL);
+		  clusters[6]._label = "Audio";
+	       }
 	  }
      }
    

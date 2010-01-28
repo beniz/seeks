@@ -114,12 +114,35 @@ namespace seeks_plugins
 						   const query_context *qc,
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
+	static short template_K=7; // max number of clusters available in the template.
+	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 		
-	// renders every cluster and snippets within.
+	// check for empty cluster, and determine which rendering to use.
+	short k = 0;
 	for (short c=0;c<K;c++)
 	  {
+	     if (!clusters[c]._cpoints.empty())
+	       k++;
+	     if (k>2)
+	       break;
+	  }
+		     
+	if (k>1)
+	  cgi::map_block_killer(exports,"have-one-column-results");
+	else cgi::map_block_killer(exports,"have-clustered-results");
+	
+	
+	// renders every cluster and snippets within.
+	k = 0;
+	for (short c=0;c<K;c++)
+	  {
+	     if (clusters[c]._cpoints.empty())
+	       {
+		  continue;
+	       }
+	     
 	     std::vector<search_snippet*> snippets;
 	     hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit 
 	       = clusters[c]._cpoints.begin();
@@ -132,16 +155,31 @@ namespace seeks_plugins
 
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
-	     std::string cluster_str;
+	     std::string cluster_str = static_renderer::render_cluster_label(clusters[c]._label);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
 	     
-	     std::string cl = "$cluster" + miscutil::to_string(c);
+	     std::string cl = "$cluster" + miscutil::to_string(k++);
 	     miscutil::add_map_entry(exports,cl.c_str(),1,cluster_str.c_str(),1);
 	  }
+	
+	// kill remaining cluster slots.
+	for (short c=k;c<=template_K;c++)
+	  {
+	     std::string hcl = "have-cluster" + miscutil::to_string(c);
+	     cgi::map_block_killer(exports,hcl.c_str());
+	  }
      }
-        
+   
+   std::string static_renderer::render_cluster_label(const std::string &label)
+     {
+	const char *label_encoded = encode::html_encode(label.c_str());
+	std::string html_label = "<h2>" + std::string(label_encoded) + "</h2><br>";
+	free_const(label_encoded);
+	return html_label;
+     }
+      
    void static_renderer::render_current_page(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					     int &current_page)
@@ -223,7 +261,7 @@ namespace seeks_plugins
 	     miscutil::add_map_entry(exports,"$xxnclust",1,nclust_str.c_str(),1);
 	  }
      }
-
+   
    hash_map<const char*,const char*,hash<const char*>,eqstr>* static_renderer::websearch_exports(client_state *csp)
      {
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
@@ -259,6 +297,9 @@ namespace seeks_plugins
      
      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
        = static_renderer::websearch_exports(csp);
+
+     // one-column results.
+     cgi::map_block_killer(exports,"have-clustered-results");
      
      // query.
      std::string html_encoded_query;
@@ -315,7 +356,7 @@ namespace seeks_plugins
 							       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 							       const query_context *qc)
      {
-	static const char *result_tmpl_name = "websearch/templates/seeks_clustered_result_template.html";
+	static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
@@ -367,8 +408,6 @@ namespace seeks_plugins
 							const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 							query_context *qc, const int &mode)
      {
-	//std::cerr << "mode: " << mode << std::endl;
-	
 	if (mode > 1)
 	  return SP_ERR_OK; // wrong mode, do nothing.
 	
@@ -444,6 +483,49 @@ namespace seeks_plugins
 	// static rendering.
 	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc);
      }
-   
-   
+
+/*   sp_err websearch::render_clustered_types_page(client_state *csp, http_response *rsp,
+						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	static const char *result_tmpl_name = "websearch/templates/seeks_clustered_result_template.html";
+	
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
+	
+	// query.
+	std::string html_encoded_query;
+	static_renderer::render_query(parameters,exports,html_encoded_query);
+	
+	// clean query.
+	std::string query_clean;
+	static_renderer::render_clean_query(html_encoded_query,
+					    exports,query_clean);
+	
+	// current page.
+	int current_page = -1;
+	static_renderer::render_current_page(parameters,exports,current_page);
+	
+	// suggestions.
+	static_renderer::render_suggestions(qc,exports);
+     
+	// search snippets.
+	static_renderer::render_clustered_snippets(query_clean,current_page,
+						   clusters,K,qc,exports);
+     
+	// expand button.
+	std::string expansion;
+	static_renderer::render_expansion(parameters,exports,expansion);
+	
+	// TODO: prev & next links.
+	 
+	// cluster link.
+	static_renderer::render_nclusters(parameters,exports);
+	
+	// rendering.
+	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+						exports,rsp);
+     
+	return err;
+     } */
+         
 } /* end of namespace. */
