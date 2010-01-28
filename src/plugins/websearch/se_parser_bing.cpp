@@ -56,11 +56,24 @@ namespace seeks_plugins
 	     
 	     if (a_class && strcasecmp(a_class,"sb_tlst") == 0)
 	       {
+		  // assert previous snippet if any.
+		  if (pc->_current_snippet)
+		    {
+		       if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
+			   || pc->_current_snippet->_summary.empty()
+			   || pc->_current_snippet->_cite.empty())
+			 {
+			    delete pc->_current_snippet;
+			    pc->_current_snippet = NULL;
+			    _count--;
+			 }
+		       else pc->_snippets->push_back(pc->_current_snippet);
+		    }
+		  		  
 		  // create new snippet.
 		  search_snippet *sp = new search_snippet(_count+1);
 		  _count++;
 		  sp->_engine |= std::bitset<NSEs>(SE_BING);
-		  pc->_snippets->push_back(sp);
 		  pc->_current_snippet = sp;
 		  
 		  _cached_flag = false; // in case previous snippet did not close the cached flag.
