@@ -170,7 +170,7 @@ body {
 
 #sort_urls {
         position: absolute;
-	left: 395px;
+	left: 546px;
 	top: 77px;
 	font-size: 90%;
 }
@@ -181,13 +181,24 @@ body {
 
 #sort_titles {
         position: absolute;
-        left: 480px;
+        left: 638px;
 	top: 77px;
         font-size: 90%;
 }
 
 #sort_titles a {
         font-weight: bold;
+}
+
+#sort_types {
+       position: absolute;
+       left: 678px;
+       top: 77px;
+       font-sizez: 90%;
+}
+
+#sort_types a {
+      font-weight: bold;
 }
 
 #cluster, #expansion {
@@ -201,6 +212,10 @@ body {
 	width: 62px;
 	height: 60px;
 	left: 504px;
+}
+
+#search_results h2 {
+    color: gray;
 }
 
 .cluster_off, .cluster_on:hover {
