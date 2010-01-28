@@ -88,7 +88,6 @@ fi
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS ([stdlib.h string.h strings.h unistd.h sys/time.h sstream])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -358,10 +357,12 @@ AC_DEFINE(STATIC_PCRS,1,"using internal pcrs")
 AC_DEFINE(FEATURE_STATISTICS,1,"Enables statistics function)
 AC_DEFINE(FEATURE_FAST_REDIRECTS,1,"Supports fast redirects")
 # AC_DEFINE(FEATURE_FORCE_LOAD,1,"Bypass filtering for 1 page only")
+AC_DEFINE(FEATURE_EXTENDED_HOST_PATTERNS,1,"Support for extended host regexp, mandatory")
 AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 
 AC_CONFIG_FILES(Makefile src/Makefile \
 src/lsh/Makefile \
+src/lsh/tests/Makefile \
 src/proxy/Makefile \
 src/proxy/tests/Makefile \
 src/plugins/Makefile \
