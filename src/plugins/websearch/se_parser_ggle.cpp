@@ -99,10 +99,9 @@ namespace seeks_plugins
 		       a_link_str = a_link_str.substr(0,pos);
 		    }
 		  pc->_current_snippet->set_url(a_link_str);
-		  std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id 
-		    << " -- url: " << pc->_current_snippet->_url << std::endl;
-	       //}
-	     //	  else pc->_current_snippet->set_url(a_link);
+		  
+		  /* std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id 
+		    << " -- url: " << pc->_current_snippet->_url << std::endl; */
 	       }
 	  }
 	else if (_h2_sr_flag && strcasecmp(tag,"ol") == 0)
