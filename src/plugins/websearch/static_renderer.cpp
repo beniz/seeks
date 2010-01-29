@@ -96,7 +96,10 @@ namespace seeks_plugins
      {
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
-		
+	
+	cgi::map_block_killer(exports,"have-clustered-results-head");
+	cgi::map_block_killer(exports,"have-clustered-results");
+	
 	std::string snippets_str;
 	size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)snippets.size());
 	size_t snistart = (current_page-1) * websearch::_wconfig->_N;
@@ -129,13 +132,18 @@ namespace seeks_plugins
 	       break;
 	  }
 		     
+	std::string rplcnt = "$cluster";
+	cgi::map_block_killer(exports,"have-one-column-results-head");
 	if (k>1)
 	  cgi::map_block_killer(exports,"have-one-column-results");
-	else cgi::map_block_killer(exports,"have-clustered-results");
-	
-	
+	else 
+	  {
+	     cgi::map_block_killer(exports,"have-clustered-results");
+	     rplcnt = "$search_snippets";
+	  }
+		
 	// renders every cluster and snippets within.
-	k = 0;
+	int l = 0;
 	for (short c=0;c<K;c++)
 	  {
 	     if (clusters[c]._cpoints.empty())
@@ -160,12 +168,14 @@ namespace seeks_plugins
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
 	     
-	     std::string cl = "$cluster" + miscutil::to_string(k++);
+	     std::string cl = rplcnt;
+	     if (k>1)
+	       cl += miscutil::to_string(l++);
 	     miscutil::add_map_entry(exports,cl.c_str(),1,cluster_str.c_str(),1);
 	  }
 	
 	// kill remaining cluster slots.
-	for (short c=k;c<=template_K;c++)
+	for (short c=l;c<=template_K;c++)
 	  {
 	     std::string hcl = "have-cluster" + miscutil::to_string(c);
 	     cgi::map_block_killer(exports,hcl.c_str());
