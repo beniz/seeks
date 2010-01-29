@@ -307,7 +307,7 @@ namespace seeks_plugins
   /*- rendering. -*/
   sp_err static_renderer::render_hp(client_state *csp,http_response *rsp)
      {
-	static const char *hp_tmpl_name = "websearch/html/seeks_ws_hp.html";
+	static const char *hp_tmpl_name = "websearch/templates/seeks_ws_hp.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);

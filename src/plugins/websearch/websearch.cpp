@@ -70,6 +70,10 @@ namespace seeks_plugins
 	    = new cgi_dispatcher("seeks_hp_search.css", &websearch::cgi_websearch_search_hp_css, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_seeks_hp_search_css);
 	  	  
+	  cgi_dispatcher *cgid_wb_seeks_search_css
+	    = new cgi_dispatcher("seeks_search.css", &websearch::cgi_websearch_search_css, NULL, TRUE);
+	  _cgi_dispatchers.push_back(cgid_wb_seeks_search_css);
+	  
 	  cgi_dispatcher *cgid_wb_search
 	    = new cgi_dispatcher("search", &websearch::cgi_websearch_search, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_search);
@@ -123,21 +127,48 @@ namespace seeks_plugins
 	assert(rsp);
 	assert(parameters);
 	
-	std::string seeks_search_css_str = plugin_manager::_plugin_repository + "websearch/css/seeks_hp_search.css";
-	sp_err err = cgisimple::load_file(seeks_search_css_str.c_str(),&rsp->_body,&rsp->_content_length);
-	
+	std::string seeks_search_css_str = "websearch/templates/css/seeks_hp_search.css";
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
 	csp->_content_type = CT_CSS;
-	
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),plugin_manager::_plugin_repository.c_str(),
+						    exports,rsp);
+		
 	if (err != SP_ERR_OK)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks_hp_search.css");
 	  }
-		
+	
 	rsp->_is_static = 1;
 	
 	return SP_ERR_OK;
      }
       
+   sp_err websearch::cgi_websearch_search_css(client_state *csp,
+					      http_response *rsp,
+					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	assert(csp);
+	assert(rsp);
+	assert(parameters);
+	
+	std::string seeks_search_css_str = plugin_manager::_plugin_repository + "websearch/templates/css/seeks_search.css";
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
+	csp->_content_type = CT_CSS;
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),plugin_manager::_plugin_repository.c_str(),
+						    exports,rsp);
+	
+	if (err != SP_ERR_OK)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks_search.css");
+	  }
+	
+	rsp->_is_static = 1;
+	
+	return SP_ERR_OK;
+     }
+   
    sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {

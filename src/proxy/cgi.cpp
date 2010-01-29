@@ -1803,10 +1803,13 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
 	     continue;
 	  }
 	
-	/* skip lines starting with '#' */
-	if (*buf == '#')
+	/* skip lines starting with '#' for certain file types */
+	if (csp->_content_type != CT_CSS) // other types with # comments come here.
 	  {
-	     continue;
+	     if (*buf == '#')
+	       {
+		  continue;
+	       }
 	  }
 	
 	if (miscutil::string_append(&file_buffer, buf))
@@ -1957,8 +1960,6 @@ sp_err cgi::template_fill(char **template_ptr,
    return SP_ERR_OK;
 }
 
-
-   
 sp_err cgi::template_fill_str(char **template_ptr,
 			      const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
 {     
