@@ -369,8 +369,8 @@ void urlmatch::parse_url_host_and_path(const std::string &url,
      }
    else 
      {
-	host = ""; // can't determine the host.
-	path = url;
+	host = url.substr(p1);
+	path = "";
      }
 }
    

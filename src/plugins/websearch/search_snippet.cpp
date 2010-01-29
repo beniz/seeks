@@ -25,6 +25,11 @@
 #include "loaders.h"
 #include "urlmatch.h"
 #include "plugin_manager.h" // for _plugin_repository.
+
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+#include "proxy_dts.h" // for http_request.
+#endif
+
 #include "mrf.h"
 
 #include <iostream>
@@ -34,6 +39,7 @@ using sp::encode;
 using sp::loaders;
 using sp::urlmatch;
 using sp::plugin_manager;
+using sp::http_request;
 using lsh::mrf;
 
 namespace seeks_plugins
@@ -297,27 +303,6 @@ namespace seeks_plugins
    void search_snippet::tag()
      {
 	// detect extension, if any, and if not already tagged.
-	/* if (_doc_type == WEBPAGE && _url.size()>4 && _url[_url.size()-4] == '.')
-	  {
-	     std::string file_ext = _url.substr(_url.size()-3);
-	     if (file_ext == "pdf" || file_ext == "doc" || file_ext == "pps" 
-		      || file_ext == "ppt") // XXX: other doc file extensions here.
-	       {
-		  _doc_type = FILE_DOC;
-		  _file_format = file_ext;
-	       }
-	     else if (file_ext == "mp3" || file_ext == "ogg" || file_ext == "wav")
-	       {
-		  _doc_type = AUDIO;
-		  _file_format = file_ext;
-	       }
-	     else if (file_ext == "avi" || file_ext == "mkv" || file_ext == "swf" || file_ext == "mpg")
-	       {
-		  _doc_type = VIDEO;
-		  _file_format = file_ext;
-	       }
-	  } */
-	
 	if (_doc_type == WEBPAGE) // not already tagged.
 	  {
 	     // grab the 3 char long extension, if any.
@@ -338,6 +323,9 @@ namespace seeks_plugins
 	       _doc_type = VIDEO;
 	     else if (search_snippet::match_tag(_url,search_snippet::_forum_pos_patterns))
 	       _doc_type = FORUM;
+	  
+	     /* std::cerr << "[Debug]: tagged snippet: url: " << _url 
+	       << " -- tag: " << (int)_doc_type << std::endl; */
 	  }
 		
 	// detect wikis. XXX: could be put into a pattern file if more complex patterns are needed.
@@ -386,19 +374,43 @@ namespace seeks_plugins
 	std::string path;
 	urlmatch::parse_url_host_and_path(url,host,path);
 	
+	/* std::cerr << "[Debug]: host: " << host << " -- path: " << path 
+	  << " -- pattern size: " << patterns.size() << std::endl; */
+	
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+	http_request http;
+	http._host = (char*)host.c_str();
+	urlmatch::init_domain_components(&http);
+#endif
+	
 	size_t psize = patterns.size();
 	for (size_t i=0;i<psize;i++)
 	  {
 	     url_spec *pattern = patterns.at(i);
+	     
+	     // host matching.
+#ifdef FEATURE_EXTENDED_HOST_PATTERNS
 	     int host_match = host.empty() ? 0 : ((NULL == pattern->_host_regex)
 						  || (0 == regexec(pattern->_host_regex, host.c_str(), 0, NULL, 0)));
+#else
+	     int host_match = urlmatch::host_matches(&http,pattern);
+#endif
 	     if (host_match == 0)
 	       continue;
-	     
-	     int path_match = path.empty() ? 0 : urlmatch::path_matches(path.c_str(),pattern);
+	     	     
+	     // path matching.
+	     int path_match = urlmatch::path_matches(path.c_str(),pattern);
 	     if (path_match)
-	       return true;
+	       {
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+		  http._host = NULL;
+#endif
+		  return true;
+	       }
 	  }
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+	http._host = NULL;
+#endif
 	return false;
      }
          

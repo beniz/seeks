@@ -1,6 +1,8 @@
 # websites
 .youtube.com/watch?
 .dailymotion./video*
+www.vimeo.com/\d+
+www.metacafe.com/watch/\d+
 
 # file extensions
 /.*.(avi|mkv|swf|mpg)$

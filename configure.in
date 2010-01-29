@@ -352,12 +352,17 @@ if test x$keepalive = xtrue; then
    AC_DEFINE(FEATURE_CONNECTION_KEEP_ALIVE,1,"Keep outgoing connections alive if possible")
 fi
 
+AC_ARG_ENABLE(extended-host-patterns,
+AC_HELP_STRING([--enable-extended-host-patterns Allow extended regular expressions in host patterns (default is NO)]),
+[if test $enableval = yes; then
+  AC_DEFINE(FEATURE_EXTENDED_HOST_PATTERNS,1,"Allow extended regular expressions in host patterns")
+fi])
+
 # remaining configuration flags.
 AC_DEFINE(STATIC_PCRS,1,"using internal pcrs")
 AC_DEFINE(FEATURE_STATISTICS,1,"Enables statistics function)
 AC_DEFINE(FEATURE_FAST_REDIRECTS,1,"Supports fast redirects")
 # AC_DEFINE(FEATURE_FORCE_LOAD,1,"Bypass filtering for 1 page only")
-AC_DEFINE(FEATURE_EXTENDED_HOST_PATTERNS,1,"Support for extended host regexp, mandatory")
 AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 
 AC_CONFIG_FILES(Makefile src/Makefile \
