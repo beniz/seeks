@@ -50,7 +50,14 @@ namespace seeks_plugins
 	       return true;
 	     else return false;
 	  };
-	
+
+	static bool max_size_cluster(const cluster &c1, const cluster &c2)
+	  {
+	     if (c1._cpoints.size() > c2._cpoints.size())
+	       return true;
+	     else return false;
+	  };
+		
       public:
 	cluster();
 	

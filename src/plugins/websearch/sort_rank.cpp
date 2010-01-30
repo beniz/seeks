@@ -262,6 +262,9 @@ namespace seeks_plugins
 		  clusters[6]._label = "Audio";
 	       }
 	  }
+	
+	// sort groups by decreasing sizes.
+	std::stable_sort(clusters,clusters+K,cluster::max_size_cluster);
      }
    
 } /* end of namespace. */
