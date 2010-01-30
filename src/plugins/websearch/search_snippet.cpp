@@ -242,7 +242,11 @@ namespace seeks_plugins
 	miscutil::chomp(str);
 	if (str[strlen(str)-1] == '/')
 	  str[strlen(str)-1] = '\0';
-	return str;
+	std::string nstr = std::string(str);
+	freez(str);
+	miscutil::replace_in_string(nstr,"\n","");
+	miscutil::replace_in_string(nstr,"\r","");
+	return strdup(nstr.c_str());
      }
       
    void search_snippet::set_url(const std::string &url)

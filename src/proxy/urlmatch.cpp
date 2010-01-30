@@ -361,6 +361,12 @@ void urlmatch::parse_url_host_and_path(const std::string &url,
      p1 += 7;
    else if ((p1=url.find("https://"))!=std::string::npos)
      p1 += 8;
+   else if (p1 == std::string::npos) // malformed url.
+     {
+	host = "";
+	path = "";
+	return;
+     }
    size_t p2 = 0;
    if ((p2 = url.find("/",p1))!=std::string::npos)
      {
