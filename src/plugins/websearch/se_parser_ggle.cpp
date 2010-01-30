@@ -118,7 +118,7 @@ namespace seeks_plugins
 	     // assert previous snippet, if any.
 	     if (pc->_current_snippet)
 	       {
-		  if (pc->_current_snippet->_title != "")
+		  if (!pc->_current_snippet->_title.empty() && !pc->_current_snippet->_url.empty())
 		    {
 		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
 		       if (pc->_current_snippet)

@@ -60,6 +60,7 @@ namespace seeks_plugins
 		  if (pc->_current_snippet)
 		    {
 		       if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
+			   || pc->_current_snippet->_url.empty()
 			   || pc->_current_snippet->_summary.empty()
 			   || pc->_current_snippet->_cite.empty())
 			 {
