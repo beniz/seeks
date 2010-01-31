@@ -55,7 +55,7 @@ namespace seeks_plugins
 					      const query_context *qc,
 					      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
-	static std::string render_cluster_label(const std::string &label);
+	static std::string render_cluster_label(const cluster &cl);
 	
 	static void render_current_page(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,

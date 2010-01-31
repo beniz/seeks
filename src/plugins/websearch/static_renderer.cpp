@@ -163,7 +163,7 @@ namespace seeks_plugins
 
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
-	     std::string cluster_str = static_renderer::render_cluster_label(clusters[c]._label);
+	     std::string cluster_str = static_renderer::render_cluster_label(clusters[c]);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
@@ -182,11 +182,15 @@ namespace seeks_plugins
 	  }
      }
    
-   std::string static_renderer::render_cluster_label(const std::string &label)
+   std::string static_renderer::render_cluster_label(const cluster &cl)
      {
-	const char *label_encoded = encode::html_encode(label.c_str());
-	std::string html_label = "<h2>" + std::string(label_encoded) + "</h2><br>";
-	free_const(label_encoded);
+	const char *clabel_encoded = encode::html_encode(cl._label.c_str());
+	std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
+	const char *slabel_encoded = encode::html_encode(slabel.c_str());
+	std::string html_label = "<h2>" + std::string(clabel_encoded) 
+	  + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
+	free_const(clabel_encoded);
+	free_const(slabel_encoded);
 	return html_label;
      }
       
