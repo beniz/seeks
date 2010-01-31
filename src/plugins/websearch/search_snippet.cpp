@@ -268,9 +268,11 @@ namespace seeks_plugins
    
    void search_snippet::set_summary(const char *summary)
      {
+	static size_t summary_max_size = 1000; // characters.
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
-	_summary = std::string(str);
+	_summary = (strlen(str)<summary_max_size) ? std::string(str) 
+	  : std::string(str).substr(0,summary_max_size-3) + "...";
 	free(str);
      }
       
