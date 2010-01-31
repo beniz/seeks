@@ -202,6 +202,25 @@ namespace seeks_plugins
 	const char *q = "q";
 	const char *query = miscutil::lookup(parameters,q);
 	std::string query_str = std::string(query);
+	
+	// known query.
+	const char *query_known = miscutil::lookup(parameters,"qknown");
+	
+	// if the current query is the same as before, let's apply the current language to it
+	// (i.e. the in-query language command, if any).
+	if (query_known)
+	  {
+	     std::string query_known_str = std::string(query_known);
+	     if (query_known_str != query_str)
+	       {
+		  // look for in-query commands.
+		  std::string no_command_query = se_handler::no_command_query(query_known_str);
+		  if (no_command_query == query_str)
+		    query_str = query_known_str; // replace query with query + in-query command.
+	       }
+	  }
+		
+	// clean up the 'pluses'.
 	miscutil::replace_in_string(query_str," ","+");
 	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
 	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),

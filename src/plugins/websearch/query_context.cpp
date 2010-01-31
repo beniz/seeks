@@ -304,12 +304,6 @@ namespace seeks_plugins
 	// check that the language is known ! -> XXX: language table...
        	if (qlang == "en" || qlang == "fr")
 	  {
-	     // strip the keyword language command from the query.
-	     /* miscutil::unmap(parameters,"q");
-	     miscutil::add_map_entry(parameters,"q",1,query.substr(3).c_str(),1);*/
-	     
-	     std::cerr << "detected query language: " << qlang << std::endl;
-	     
 	     _auto_lang = qlang;
 	     return true;
 	  }
