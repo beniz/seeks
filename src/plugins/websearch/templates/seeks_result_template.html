@@ -17,7 +17,8 @@
 
 <div id="search_bar">
 <form method="GET" action="@base-url@/search" id="search_form">
-<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
+<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="qc" maxlength="2048" title="Search" value="qclean" type="text" />
+<input name="q" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
 <input id="search_button" value="" type="submit" />
