@@ -1672,7 +1672,7 @@ http_response* cgi::finish_http_response(const client_state *csp, http_response 
  *                               template text.
  *          3  :  templatename = name of the HTML template to be used
  *          4  :  recursive = Flag set if this function calls itself
- *                            following an #include statament
+ *                            following an #include statement
  *
  * Returns     :  SP_ERR_OK on success
  *                SP_ERR_MEMORY on out-of-memory error.
@@ -1756,7 +1756,8 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
    /* Open template file */
    if (NULL == (fp = fopen(full_path, "r")))
      {
-	errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path);
+	if (!recursive)
+	  errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path);
 	freez(full_path);
 	freez(file_buffer);
 	return SP_ERR_FILE;
@@ -1787,6 +1788,7 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
 							     csp->_config->_templdir,
 							     1)))
 		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Cannot open included template file %s: %E", full_path);
 		       freez(file_buffer);
 		       fclose(fp);
 		       return err;
