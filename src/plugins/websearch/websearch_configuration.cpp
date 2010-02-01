@@ -53,7 +53,7 @@ namespace seeks_plugins
 	_lang = "auto";
 	_N = 10;
 	_thumbs = false;
-	_se_enabled = std::bitset<NSEs>(111); // all engines.
+	_se_enabled = std::bitset<NSEs>(1111); // all engines.
 	_query_context_delay = 300; // in seconds, 5 minutes.
 	_js = false; // default is no javascript, this may change later on.
 	_content_analysis = false;
@@ -88,6 +88,8 @@ namespace seeks_plugins
 	       _se_enabled |= std::bitset<NSEs>(SE_CUIL);
 	     else if (strcasecmp(arg,"bing") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_BING);
+	     else if (strcasecmp(arg,"yahoo") == 0)
+	       _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
 	     break;

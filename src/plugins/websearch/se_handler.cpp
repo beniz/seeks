@@ -30,6 +30,7 @@
 #include "se_parser_ggle.h"
 #include "se_parser_cuil.h"
 #include "se_parser_bing.h"
+#include "se_parser_yahoo.h"
 
 #include <pthread.h>
 #include <algorithm>
@@ -179,7 +180,52 @@ namespace seeks_plugins
 	errlog::log_error(LOG_LEVEL_INFO, "Querying cuil: %s", q_cuil.c_str());
 	url = q_cuil;
      }
+
+   se_yahoo::se_yahoo()
+     : search_engine()
+       {
+       }
    
+   se_yahoo::~se_yahoo()
+     {
+     }
+  
+   void se_yahoo::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			      std::string &url, const query_context *qc)
+     {
+	std::string q_yahoo = se_handler::_se_strings[3];
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// page.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp =  (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	if (pp>1) pp++;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
+	
+	// language.
+	if (websearch::_wconfig->_lang == "auto")
+	  {
+	     if (qc->_auto_lang == "en")
+	       miscutil::replace_in_string(q_yahoo,"%lang","us");
+	     else miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
+	  }
+	else 
+	  {
+	     if (websearch::_wconfig->_lang == "en")
+	       miscutil::replace_in_string(q_yahoo,"%lang","us");
+	     else miscutil::replace_in_string(q_yahoo,"%lang",websearch::_wconfig->_lang);
+	  }
+	
+	// query (don't move it, depends on domain name, which is language dependent).
+	miscutil::replace_in_string(q_yahoo,"%query",se_handler::no_command_query(std::string(query)));
+	
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_yahoo.c_str());
+	
+	url = q_yahoo;
+     }
+      
    /*- se_handler. -*/
    std::string se_handler::_se_strings[NSEs] =
     {
@@ -188,12 +234,15 @@ namespace seeks_plugins
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
       "http://www.cuil.com/search?q=%query",
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
-      "http://www.bing.com/search?q=%query&first=%start&mkt=%lang"
+      "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
+      // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
+      "http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
     };
 
    se_ggle se_handler::_ggle = se_ggle();
    se_cuil se_handler::_cuil = se_cuil();
    se_bing se_handler::_bing = se_bing();
+   se_yahoo se_handler::_yahoo = se_yahoo();
    
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
@@ -237,7 +286,7 @@ namespace seeks_plugins
 	size_t pos = 0;
 	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
 	  {
-	     // TODO: this is buggy in certain cases, such as "x++" in quotes.
+	     // XXX: this is buggy in certain cases, such as "x++" in quotes.
 	     if (pos != end_pos)
 	       cquery.replace(pos,1," ");
 	     while(cquery[--pos] == '+') // deal with multiple pluses.
@@ -321,7 +370,10 @@ namespace seeks_plugins
 	break;
       case BING:
 	 _bing.query_to_se(parameters,url,qc);
-	break;
+       break;
+      case YAHOO:
+	 _yahoo.query_to_se(parameters,url,qc);
+       break;
       }
 
   }
@@ -462,6 +514,9 @@ namespace seeks_plugins
 	break;
       case BING:
 	sep = new se_parser_bing();
+	break;
+      case YAHOO:
+        sep = new se_parser_yahoo();
 	break;
       }
     return sep;

@@ -163,7 +163,13 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
 	     html_content += bing_se_icon;
 	  }
-	
+	if (_engine.to_ulong()&SE_YAHOO)
+	  {
+	     std::string yahoo_se_icon = se_icon;
+	     miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
+	     html_content += yahoo_se_icon;
+	  }
+		
 	html_content += "</h3>";
 		
 	if (_summary != "")

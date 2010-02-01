@@ -34,15 +34,16 @@ namespace seeks_plugins
    class search_snippet;
    class query_context;
    
-#define NSEs 3  // number of supported search engines.
+#define NSEs 4  // number of supported search engines.
    
 #ifndef ENUM_SE
 #define ENUM_SE
    enum SE
      {
-	GOOGLE,  // 0
+	GOOGLE, // 0
 	CUIL,   // 1
-	BING     // 2
+	BING,   // 2
+	YAHOO   // 3
      };
 #endif
    
@@ -111,7 +112,17 @@ namespace seeks_plugins
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
      };
-   
+
+   class se_yahoo : public search_engine
+     {
+      public:
+	se_yahoo();
+	~se_yahoo();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+      
    class se_handler
      {
       public:
@@ -137,26 +148,6 @@ namespace seeks_plugins
 				       const int &count_offset,
 				       query_context *qr);
 
-	// arguments to a threaded parser.
-	/* struct ps_thread_arg
-	  {
-	     ps_thread_arg()
-	       :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
-	     {};
-	
-	     ~ps_thread_arg()
-	       {
-		  // we do not delete the output, this is handled by the client.
-		  // we do delete snippets outside the destructor (depends on whethe we're using threads).
-	       }
-	     	     
-	     SE _se; // search engine (ggle, bing, ...).
-	     char *_output; // page content, to be parsed into snippets.
-	     std::vector<search_snippet*> *_snippets; // websearch result snippets. 
-	     int _offset; // offset to snippets rank (when asking page x, with x > 1).
-	     query_context *_qr; // pointer to the current query context.
-	  }; */
-		
 	static void parse_output(const ps_thread_arg &args);
 	
 	/*-- variables. --*/
@@ -167,6 +158,7 @@ namespace seeks_plugins
 	static se_ggle _ggle;
 	static se_cuil _cuil;
 	static se_bing _bing;
+	static se_yahoo _yahoo;
      };
       
 } /* end of namespace. */

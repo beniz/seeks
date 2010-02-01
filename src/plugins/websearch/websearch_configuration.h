@@ -33,6 +33,7 @@ namespace seeks_plugins
 #define SE_GOOGLE   1U
 #define SE_CUIL     2U
 #define SE_BING     4U
+#define SE_YAHOO    8U
    
    class websearch_configuration : public configuration_spec
      {

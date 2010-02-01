@@ -106,15 +106,10 @@ namespace seeks_plugins
 				 if (!comp_sp)
 				   comp_sp = qc->get_cached_snippet_title((*mit).second.c_str());
 				 assert(comp_sp != NULL);
-				 
-				 /* std::cout << "url: " << sp->_url << std::endl;
-				  std::cout << "url2 (neighbor): " << comp_sp->_url << std::endl; */
-				 
+				 	     
 				 // Beware: second url (from sp) is the one to be possibly deleted!
 				 bool same = content_handler::has_same_content(qc,comp_sp,sp,st);
-				 
-				 //std::cerr << "[Debug]: same: " << same << std::endl;
-				 
+				 				 
 				 if (same)
 				   {
 				      search_snippet::merge_snippets(comp_sp,sp);
