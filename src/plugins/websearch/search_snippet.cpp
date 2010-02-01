@@ -193,7 +193,7 @@ namespace seeks_plugins
 	html_content += "<br><cite>";
 	html_content += cite_enc;
 	free_const(cite_enc);
-	html_content += "</cite>";
+	html_content += "</cite>\n";
 	
 	if (!_cached.empty())
 	  {

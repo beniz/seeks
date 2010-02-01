@@ -132,7 +132,7 @@ namespace seeks_plugins
 	       break;
 	  }
 		     
-	std::string rplcnt = "$cluster";
+	std::string rplcnt = "$ccluster";
 	cgi::map_block_killer(exports,"have-one-column-results-head");
 	if (k>1)
 	  cgi::map_block_killer(exports,"have-one-column-results");
@@ -528,48 +528,4 @@ namespace seeks_plugins
 	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc);
      }
 
-/*   sp_err websearch::render_clustered_types_page(client_state *csp, http_response *rsp,
-						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
-     {
-	static const char *result_tmpl_name = "websearch/templates/seeks_clustered_result_template.html";
-	
-	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-	  = static_renderer::websearch_exports(csp);
-	
-	// query.
-	std::string html_encoded_query;
-	static_renderer::render_query(parameters,exports,html_encoded_query);
-	
-	// clean query.
-	std::string query_clean;
-	static_renderer::render_clean_query(html_encoded_query,
-					    exports,query_clean);
-	
-	// current page.
-	int current_page = -1;
-	static_renderer::render_current_page(parameters,exports,current_page);
-	
-	// suggestions.
-	static_renderer::render_suggestions(qc,exports);
-     
-	// search snippets.
-	static_renderer::render_clustered_snippets(query_clean,current_page,
-						   clusters,K,qc,exports);
-     
-	// expand button.
-	std::string expansion;
-	static_renderer::render_expansion(parameters,exports,expansion);
-	
-	// TODO: prev & next links.
-	 
-	// cluster link.
-	static_renderer::render_nclusters(parameters,exports);
-	
-	// rendering.
-	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
-						exports,rsp);
-     
-	return err;
-     } */
-         
 } /* end of namespace. */
