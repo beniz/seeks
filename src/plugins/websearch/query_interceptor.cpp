@@ -69,11 +69,11 @@ namespace seeks_plugins
 	// - return the response to the client.
 	// default query detection.
 	const char *intercepted_query = miscutil::lookup(params,"q");
-	//if (!intercepted_query || strlen(intercepted_query) == 0)
-	// otherwise fall back onto se specific translation tables.
-	
-	// std::cout << "intercepted query: " << intercepted_query << std::endl;
-	
+	if (!intercepted_query)
+	  {
+	     return NULL; // wrong interception, cancel.
+	  }
+		
 	// build up query to seeks proxy.
 	char *q = strdup(CGI_PREFIX);
 	miscutil::string_append(&q,"search?q=");
