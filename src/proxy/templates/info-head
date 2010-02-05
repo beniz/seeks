@@ -3,8 +3,8 @@
 <strong>Node host:</strong><span>@my-hostname@</span>
 <strong>IP:</strong><span>@my-ip-address@</span>
 <strong>Options:</strong><span>@websearch-content-analysis@/@websearch-thumbs@/@websearch-clustering@</span>
-<!-- @if-have-admin-address-start -->
+<!-- @if-have-adminaddr-info-start -->
 <strong>Admin:</strong><span>@admin-address@</span>
-<!-- if-have-admin-address-end@ -->
+<!-- if-have-adminaddr-info-end@ -->
 <strong></strong><span>@time@</span>
 </p>
