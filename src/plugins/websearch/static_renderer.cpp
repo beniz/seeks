@@ -80,7 +80,8 @@ namespace seeks_plugins
 	     const char *sugg_enc = encode::html_encode(suggested_q_str.c_str());
 	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
-	     suggestion_str += "http://s.s/search?q=" + sugg_enc_str + "&expansion=1&action=expand";
+	     suggestion_str += "http://s.s/search?q=" + qc->_in_query_command + " " 
+	       + sugg_enc_str + "&expansion=1&action=expand";
 	     suggestion_str += "\">";
 	     suggestion_str += sugg_enc_str;
 	     suggestion_str += "</a>";

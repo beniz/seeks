@@ -301,7 +301,9 @@ namespace seeks_plugins
 	  return false;
 	std::string qlang = query.substr(1,2); // : + 2 characters for the language.
 	
-	// check that the language is known ! -> XXX: language table...
+	_in_query_command += query.substr(0,3);
+	
+	// check whether the language is known ! -> XXX: language table...
        	if (qlang == "en" || qlang == "fr")
 	  {
 	     _auto_lang = qlang;

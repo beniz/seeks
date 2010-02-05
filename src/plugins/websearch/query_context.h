@@ -194,6 +194,9 @@ namespace seeks_plugins
 
 	/* other HTTP headers, useful when interrogating search engines. */
 	std::list<const char*> _useful_http_headers;
+     
+	/* in-query command. */
+	std::string _in_query_command;
      };
       
 } /* end of namespace. */
