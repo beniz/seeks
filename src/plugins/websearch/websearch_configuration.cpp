@@ -53,7 +53,7 @@ namespace seeks_plugins
 	_lang = "auto";
 	_N = 10;
 	_thumbs = false;
-	_se_enabled = std::bitset<NSEs>(1111); // all engines.
+	_se_enabled.flip();
 	_query_context_delay = 300; // in seconds, 5 minutes.
 	_js = false; // default is no javascript, this may change later on.
 	_content_analysis = false;
