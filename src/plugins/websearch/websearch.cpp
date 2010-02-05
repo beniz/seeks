@@ -152,7 +152,7 @@ namespace seeks_plugins
 	assert(rsp);
 	assert(parameters);
 	
-	std::string seeks_search_css_str = plugin_manager::_plugin_repository + "websearch/templates/css/seeks_search.css";
+	std::string seeks_search_css_str = "websearch/templates/css/seeks_search.css";
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 	csp->_content_type = CT_CSS;
