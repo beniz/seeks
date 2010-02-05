@@ -41,7 +41,6 @@ namespace sp
 	long _connect_timeout_sec;
 	long _transfer_timeout_sec;
 	bool _proxy;
-	std::string _lang;
 	const std::list<const char*> *_headers; // forced http headers
      } cbget;
    
@@ -56,18 +55,11 @@ namespace sp
 		  const long &transfer_timeout_sec,
 		  const long &transfer_timeout_ms);
 	
-	curl_mget(const int &nrequests,
-		  const long &connect_timeout_sec,
-		  const long &connect_timeout_ms,
-		  const long &transfer_timeout_sec,
-		  const long &transfer_timeout_ms,
-		  const std::string &lang,
-		  const std::list<const char*> *headers);
-	
 	~curl_mget();
 	
 	// direct connection.
 	std::string** www_mget(const std::vector<std::string> &urls, const int &nrequests,
+			       const std::vector<std::list<const char*>*> *headers,
 			       const bool &proxy);
      
       public:

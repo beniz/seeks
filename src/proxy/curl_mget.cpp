@@ -55,31 +55,14 @@ namespace sp
 			const long &transfer_timeout_ms)
      :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
       _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
-      _transfer_timeout_ms(transfer_timeout_ms),_headers(NULL)
+      _transfer_timeout_ms(transfer_timeout_ms)
      {
 	_outputs = new std::string*[_nrequests];
 	for (int i=0;i<_nrequests;i++)
 	  _outputs[i] = NULL;
 	_cbgets = new cbget*[_nrequests];
      }
-   
-   curl_mget::curl_mget(const int &nrequests,
-			const long &connect_timeout_sec,
-			const long &connect_timeout_ms,
-			const long &transfer_timeout_sec,
-			const long &transfer_timeout_ms,
-			const std::string &lang,
-			const std::list<const char*> *headers)
-     :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
-         _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
-         _transfer_timeout_ms(transfer_timeout_ms),_lang(lang),_headers(headers)
-     {
-	_outputs = new std::string*[_nrequests];
-	for (int i=0;i<_nrequests;i++)
-	  _outputs[i] = NULL;
-	_cbgets = new cbget*[_nrequests];
-     }
-      
+         
    curl_mget::~curl_mget()
      {
 	delete[] _cbgets;
@@ -109,23 +92,18 @@ namespace sp
 	  }
 	
 	struct curl_slist *slist=NULL;
+	
 	// useful headers.
 	if (arg->_headers)
 	  {
 	     std::list<const char*>::const_iterator sit = arg->_headers->begin();
 	     while(sit!=arg->_headers->end())
 	       {
-		  curl_slist_append(slist,(*sit));
+		  slist = curl_slist_append(slist,(*sit));
 		  ++sit;
 		 }
 	  }
 	
-	if (arg->_lang == "en")
-	  slist = curl_slist_append(slist, "Accept-Language: en-us,en;q=0.5");
-	else if (arg->_lang == "fr")
-	  slist = curl_slist_append(slist, "Accept-Language: fr-fr,fr;q=0.5");
-	// XXX: other languages here.
-			
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
@@ -151,10 +129,11 @@ namespace sp
 	return NULL;
      }
    
-   std::string** curl_mget::www_mget(const std::vector<std::string> &urls, 
-				     const int &nrequests, const bool &proxy)
+   std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
+				     const std::vector<std::list<const char*>*> *headers,
+				     const bool &proxy)
      {
-	assert((int)urls.size() == nrequests);
+	assert((int)urls.size() == nrequests); // check.
 	
 	pthread_t tid[nrequests];
 	
@@ -168,8 +147,8 @@ namespace sp
 	     arg_cbget->_transfer_timeout_sec = _transfer_timeout_sec;
 	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
 	     arg_cbget->_proxy = proxy;
-	     arg_cbget->_lang = _lang;
-	     arg_cbget->_headers = _headers;
+	     if (headers)
+	       arg_cbget->_headers = headers->at(i); // headers are url dependent.
 	     
 	     _cbgets[i] = arg_cbget;
 	     

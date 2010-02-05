@@ -49,6 +49,7 @@
 #include "filter_plugin.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
+#include "iso639.h"
 
 namespace sp
 {
@@ -2502,6 +2503,9 @@ namespace sp
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
+	
+	// loads iso639 table.
+	iso639::initialize();
 	
 	// loads plugins.
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");

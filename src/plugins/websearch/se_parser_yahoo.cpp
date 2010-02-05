@@ -79,12 +79,12 @@ namespace seeks_plugins
 	     
 	     if (a_link)
 	       {
-		  if (_title_flag)
+		  if (_title_flag && pc->_current_snippet)
 		    {
 		       pc->_current_snippet->set_url(a_link);
 		       pc->_current_snippet->_cite = std::string(a_link);
 		    }
-		  else if (_begin_results)
+		  else if (_begin_results && pc->_current_snippet)
 		    pc->_current_snippet->_cached = std::string(a_link);
 	       }
 	  }	  

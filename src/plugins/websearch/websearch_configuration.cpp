@@ -53,7 +53,7 @@ namespace seeks_plugins
 	_lang = "auto";
 	_N = 10;
 	_thumbs = false;
-	_se_enabled.flip();
+	_se_enabled.flip(); // all engines is default.
 	_query_context_delay = 300; // in seconds, 5 minutes.
 	_js = false; // default is no javascript, this may change later on.
 	_content_analysis = false;
@@ -82,6 +82,9 @@ namespace seeks_plugins
 	     break;
 	     
 	   case hash_se :
+	     if (_se_enabled.count() == NSEs) // all bits set is default, so now reset to 0.
+	       _se_enabled.reset();
+	     
 	     if (strcasecmp(arg,"google") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
 	     else if (strcasecmp(arg,"cuil") == 0)

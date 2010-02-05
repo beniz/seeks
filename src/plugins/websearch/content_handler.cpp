@@ -54,8 +54,8 @@ namespace seeks_plugins
 	
 	// fetch content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
-		      websearch::_wconfig->_ct_transfer_timeout,0,"",&qc->_useful_http_headers);
-	cmg.www_mget(urls,urls.size(),proxy);
+		      websearch::_wconfig->_ct_transfer_timeout,0);
+	cmg.www_mget(urls,urls.size(),NULL,proxy);
 	
 	std::string **outputs = new std::string*[urls.size()];
 	int k = 0;

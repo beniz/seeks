@@ -156,6 +156,22 @@ namespace seeks_plugins
 	 * \brief grab useful HTTP headers from the client.
 	 */
 	void grab_useful_headers(const std::list<const char*> &http_headers);
+
+	/**
+	 * \brief conversion to forced region, from language.
+	 */
+	static std::string lang_forced_region(const std::string &auto_lang);
+	
+	/**
+	 * \brief force regions.
+	 */
+	static void in_query_command_forced_region(std::string &auto_lang,
+						   std::string &region_lang);
+	
+	/**
+	 * \brief generates the HTTP language header.
+	 */
+	std::string generate_lang_http_header() const;
 	
       public:
 	std::string _query;
@@ -190,11 +206,12 @@ namespace seeks_plugins
 	bool _compute_tfidf_features;
 
 	/* automatic language detection. */
-	std::string _auto_lang;
-
+	std::string _auto_lang; // lang, e.g. en.
+	std::string _auto_lang_reg; // lang-region, e.g. en-US.
+	
 	/* other HTTP headers, useful when interrogating search engines. */
 	std::list<const char*> _useful_http_headers;
-     
+		
 	/* in-query command. */
 	std::string _in_query_command;
      };

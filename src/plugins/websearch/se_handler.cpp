@@ -32,6 +32,7 @@
 #include "se_parser_bing.h"
 #include "se_parser_yahoo.h"
 
+#include <cctype>
 #include <pthread.h>
 #include <algorithm>
 #include <iterator>
@@ -127,15 +128,8 @@ namespace seeks_plugins
 	// can't figure out what argument to pass to Bing. Seems only feasible through cookies (losers).
 		
 	// language.
-	// TODO: translation table.
-	std::string lang = websearch::_wconfig->_lang;
-	if (websearch::_wconfig->_lang == "auto")
-	  lang = qc->_auto_lang;
-	if (lang == "en")
-	  miscutil::replace_in_string(q_bing,"%lang","en-US");
-	else if (lang == "fr")
-	  miscutil::replace_in_string(q_bing,"%lang","fr-FR");
-	
+	miscutil::replace_in_string(q_bing,"%lang",qc->_auto_lang_reg);
+		
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying bing: %s", q_bing.c_str());
 	
@@ -203,19 +197,10 @@ namespace seeks_plugins
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
 	
-	// language.
-	if (websearch::_wconfig->_lang == "auto")
-	  {
-	     if (qc->_auto_lang == "en")
-	       miscutil::replace_in_string(q_yahoo,"%lang","us");
-	     else miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
-	  }
-	else 
-	  {
-	     if (websearch::_wconfig->_lang == "en")
-	       miscutil::replace_in_string(q_yahoo,"%lang","us");
-	     else miscutil::replace_in_string(q_yahoo,"%lang",websearch::_wconfig->_lang);
-	  }
+	// language, in yahoo is obtained by hitting the regional server.
+	std::string reg = qc->_auto_lang_reg.substr(3,2);
+	std::transform(reg.begin(),reg.end(),reg.begin(),tolower);
+	miscutil::replace_in_string(q_yahoo,"%lang",reg);
 	
 	// query (don't move it, depends on domain name, which is language dependent).
 	miscutil::replace_in_string(q_yahoo,"%query",se_handler::no_command_query(std::string(query)));
@@ -311,30 +296,32 @@ namespace seeks_plugins
 					  int &nresults, const query_context *qc)
   {
     std::vector<std::string> urls;
-    
+    std::vector<std::list<const char*>*> headers;
+     
     // config, enabling of SEs.
     for (int i=0;i<NSEs;i++)
       {
 	 if (websearch::_wconfig->_se_enabled[i])
 	  {
-	    std::string url;
-	    se_handler::query_to_se(parameters,(SE)i,url,qc);
-	    urls.push_back(url);
+	     std::string url;
+	     std::list<const char*> *lheaders = NULL;
+	     se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
+	     urls.push_back(url);
+	     headers.push_back(lheaders);
 	  }
       }
     
-    if (urls.empty())
-      {
-	nresults = 0;
-	return NULL; // beware.
-      }
-    else nresults = urls.size();
+     if (urls.empty())
+       {
+	  nresults = 0;
+	  return NULL; // beware.
+       }
+     else nresults = urls.size();
     
-    // get content.
+     // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-		   websearch::_wconfig->_se_connect_timeout,0,qc->_auto_lang,
-		   &qc->_useful_http_headers);
-     cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
+		   websearch::_wconfig->_se_connect_timeout,0);
+     cmg.www_mget(urls,urls.size(),&headers,false); // don't go through the proxy, or will loop til death!
     
      std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;
@@ -346,6 +333,13 @@ namespace seeks_plugins
 	       outputs[i] = cmg._outputs[i];
 	       have_outputs = true;
 	    }
+     
+	  // delete headers, if any.
+	  if (headers.at(i))
+	    {
+	       miscutil::list_remove_all(headers.at(i));
+	       delete headers.at(i);
+	    }
        }
      
      if (!have_outputs)
@@ -353,12 +347,13 @@ namespace seeks_plugins
 	  delete[] outputs;
 	  outputs = NULL;
        }
-         
+          
     return outputs;
   }
    
   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			       const SE &se, std::string &url, const query_context *qc)
+			       const SE &se, std::string &url, const query_context *qc,
+			       std::list<const char*> *&lheaders)
   {
      switch(se)
       {
@@ -367,6 +362,8 @@ namespace seeks_plugins
 	 break;
       case CUIL:
 	 _cuil.query_to_se(parameters,url,qc);
+	 lheaders = new std::list<const char*>();
+	 lheaders->push_back(strdup(qc->generate_lang_http_header().c_str()));
 	break;
       case BING:
 	 _bing.query_to_se(parameters,url,qc);
@@ -375,7 +372,6 @@ namespace seeks_plugins
 	 _yahoo.query_to_se(parameters,url,qc);
        break;
       }
-
   }
    
   /*-- parsing. --*/
