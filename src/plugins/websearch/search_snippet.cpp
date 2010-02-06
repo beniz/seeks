@@ -125,7 +125,7 @@ namespace seeks_plugins
 
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words)
      {
-	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
+	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\">&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
 /*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
@@ -148,25 +148,28 @@ namespace seeks_plugins
 	  {
 	     std::string ggle_se_icon = se_icon;
 	     miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
-	     miscutil::replace_in_string(ggle_se_icon,"hspace=\"2\"","hspace=\"5\"");
+	     miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
 	     html_content += ggle_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_CUIL)
 	  {
 	     std::string cuil_se_icon = se_icon;
 	     miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
+	     miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
 	     html_content += cuil_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_BING)
 	  {
 	     std::string bing_se_icon = se_icon;
 	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
+	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
 	     html_content += bing_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_YAHOO)
 	  {
 	     std::string yahoo_se_icon = se_icon;
 	     miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
+	     miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
 	     html_content += yahoo_se_icon;
 	  }
 		
