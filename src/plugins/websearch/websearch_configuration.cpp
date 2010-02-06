@@ -53,7 +53,7 @@ namespace seeks_plugins
 	_lang = "auto";
 	_N = 10;
 	_thumbs = false;
-	_se_enabled.flip(); // all engines is default.
+	_se_enabled.set(); // all engines is default.
 	_query_context_delay = 300; // in seconds, 5 minutes.
 	_js = false; // default is no javascript, this may change later on.
 	_content_analysis = false;

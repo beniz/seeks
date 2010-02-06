@@ -47,7 +47,10 @@ namespace seeks_plugins
 				const std::list<const char*> &http_headers)
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
-	  _query_hash = query_context::hash_query_for_context(parameters,_query); // hashing may contain the language command...
+	  // reload config if file has changed.
+	  websearch::_wconfig->load_config();
+	  
+	  _query_hash = query_context::hash_query_for_context(parameters,_query); // hashing may contain a language command.
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;

@@ -2560,8 +2560,7 @@ namespace sp
 	       csp->_flags |= CSP_FLAG_ACTIVE;
 	       csp->_sfd    = SP_INVALID_SOCKET;
 	       
-	       // TODO: also reload plugin config files...
-	       //seeks_proxy::_config->load_config(); // reload when running, if file has changed.
+	       seeks_proxy::_config->load_config(); // reload when running, if file has changed.
 	       csp->_config = seeks_proxy::_config;
 	       
 	       if (seeks_proxy::_config->_need_bind )
