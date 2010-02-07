@@ -190,9 +190,9 @@ namespace sp
 	     return 0;
 	  }
 	
-	sockaddr_storage_to_ip(network, &network_addr, &addr_len, &network_port);
-	sockaddr_storage_to_ip(netmask, &netmask_addr, NULL, &netmask_port);
-	sockaddr_storage_to_ip(address, &address_addr, NULL, &address_port);
+	filters::sockaddr_storage_to_ip(network, &network_addr, &addr_len, &network_port);
+	filters::sockaddr_storage_to_ip(netmask, &netmask_addr, NULL, &netmask_port);
+	filters::sockaddr_storage_to_ip(address, &address_addr, NULL, &address_port);
 	
 	/* Check for family */
 	if ((network->ss_family == AF_INET) && (address->ss_family == AF_INET6)
@@ -230,7 +230,7 @@ namespace sp
 		  return 0;
 	       }
 	  }
-	
+
 	return 1;
      }
 #endif /* def HAVE_RFC2553 */
@@ -292,12 +292,12 @@ namespace sp
 			    * So, we signal the acl->dst is wildcard in wildcard_dst.
 			    */
 			   acl->_wildcard_dst ||
-			   match_sockaddr(&acl->_dst._addr, &acl->_dst._mask, &dst->_addr)
+			   filters::match_sockaddr(&acl->_dst._addr, &acl->_dst._mask, &dst->_addr)
 #else
 			   ((dst->_addr & acl->_dst._mask) == acl->_dst._addr)
 			   && ((dst->_port == acl->_dst._port) || (acl->_dst._port == 0))
 #endif
-           )
+			   )
          {
             if (acl->_action == ACL_PERMIT)
             {
@@ -310,8 +310,8 @@ namespace sp
          }
       }
       acl = acl->_next;
-   }
-
+   } /* end while. */
+	
    return(1);
 }
 
@@ -469,7 +469,8 @@ int filters::acl_addr(const char *aspec, access_control_addr *aca)
       /* ACL contains a port number, check ports in the future. */
       *mask_port = 1;
    }
-
+   else ((struct sockaddr_in*)&aca->_mask)->sin_port = 0;
+   
    /*
     * XXX: This could be optimized to operate on whole words instead
     * of octets (128-bit CPU could do it in one iteration).
