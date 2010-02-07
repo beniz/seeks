@@ -228,7 +228,6 @@ namespace seeks_plugins
 	  {
 	     hash_map<uint32_t,float,id_hash_uint> *vf = sps[i]->_features_tfidf;
 	     hash_map<uint32_t,std::string,id_hash_uint> *bow = sps[i]->_bag_of_words;
-	     //if (qc->_compute_tfidf_features && vf)
 	     if (vf)
 	       {
 		  delete sps[i]->_features_tfidf;
@@ -245,7 +244,8 @@ namespace seeks_plugins
 	       {
 		  vf = new hash_map<uint32_t,float,id_hash_uint>();
 		  bow = new hash_map<uint32_t,std::string,id_hash_uint>();
-		  feature_tfidf_thread_arg *args = new feature_tfidf_thread_arg(txt_contents[i],vf,bow);
+		  feature_tfidf_thread_arg *args = new feature_tfidf_thread_arg(txt_contents[i],vf,
+										bow,qc->_auto_lang);
 		  feature_args[i] = args;
 		  
 		  pthread_t f_thread;
@@ -346,7 +346,7 @@ namespace seeks_plugins
      {
 	mrf::tokenize_and_mrf_features(*args._txt_content,feature_tfidf_thread_arg::_delims,*args._vf,args._bow,
 				       feature_tfidf_thread_arg::_radius,feature_tfidf_thread_arg::_step,
-				       feature_tfidf_thread_arg::_window_length);
+				       feature_tfidf_thread_arg::_window_length,args._lang);
      }
    
    void content_handler::feature_based_similarity_scoring(query_context *qc,

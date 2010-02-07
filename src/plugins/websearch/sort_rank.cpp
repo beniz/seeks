@@ -171,11 +171,6 @@ namespace seeks_plugins
      {
 	uint32_t id = (uint32_t)strtod(id_str,NULL);
 	
-	std::cerr << "[Debug]: id_str: " << id_str << std::endl;
-	std::cerr << "[Debug]: double id: " << strtod(id_str,NULL) << std::endl;
-	
-	std::cerr << "[Debug]: id: " << id << std::endl;
-	
 	ref_sp = qc->get_cached_snippet(id);
 	ref_sp->set_back_similarity_link();
 	

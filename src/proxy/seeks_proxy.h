@@ -26,6 +26,7 @@
 #include "config.h"
 #include "proxy_dts.h"
 #include "sweeper.h"
+#include "lsh_configuration.h"
 
 #ifdef FEATURE_PTHREAD
 extern "C" 
@@ -39,6 +40,8 @@ extern "C"
 #else
         typedef CRITICAL_SECTION sp_mutex_t;
 #endif
+
+using lsh::lsh_configuration;
 
 namespace sp
 {
@@ -80,6 +83,10 @@ namespace sp
 	static std::string _configfile; // proxy configuration file.
 
 	static proxy_configuration *_config; // proxy configuration object.
+	
+	static std::string _lshconfigfile; // lsh configuration file.
+	
+	static lsh_configuration *_lsh_config; // lsh configuration.
 	
 #ifdef unix
 	static const char *_pidfile;

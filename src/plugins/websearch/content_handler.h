@@ -79,8 +79,9 @@ namespace seeks_plugins
 	 
 	feature_tfidf_thread_arg(std::string *txt_content,
 				 hash_map<uint32_t,float,id_hash_uint> *vf,
-				 hash_map<uint32_t,std::string,id_hash_uint> *bow)
-	  :_txt_content(txt_content),_vf(vf),_bow(bow)
+				 hash_map<uint32_t,std::string,id_hash_uint> *bow,
+				 const std::string &lang)
+	  :_txt_content(txt_content),_vf(vf),_bow(bow),_lang(lang)
 	    {
 	    };
 	
@@ -91,6 +92,7 @@ namespace seeks_plugins
 	std::string *_txt_content;
 	hash_map<uint32_t,float,id_hash_uint> *_vf;
 	hash_map<uint32_t,std::string,id_hash_uint> *_bow;
+	std::string _lang;
 	
 	static std::string _delims;
 	static int _radius;
