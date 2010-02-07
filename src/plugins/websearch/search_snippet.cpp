@@ -211,8 +211,8 @@ namespace seeks_plugins
 	html_content += "<a class=\"search_cache\" href=\"";
 	html_content += _archive;
 	html_content += " \">Archive</a>";
-	if (websearch::_wconfig->_content_analysis)
-	  {
+	/* if (websearch::_wconfig->_content_analysis)
+	  { */
 	     if (!_sim_back)
 	       {
 		  set_similarity_link();
@@ -227,7 +227,7 @@ namespace seeks_plugins
 	     if (!_sim_back)
 	       html_content += " \">Similar</a>";
 	     else html_content += "\">Back</a>";
-	  }
+	 /* } */
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
@@ -442,7 +442,6 @@ namespace seeks_plugins
      {
 	// seeks_rank is updated after merging.
 	// search engine rank.
-	//s1->_rank = std::min(s1->_rank,s2->_rank);
 	s1->_rank = 0.5*(s1->_rank + s2->_rank);
 	
 	// search engine.
@@ -452,10 +451,14 @@ namespace seeks_plugins
 	if (s1->_cached.empty())
 	  s1->_cached = s2->_cached;
 	
-	// summary. TODO: max size for garbage detection.
+	// summary.
 	if (s1->_summary.length() < s2->_summary.length())
 	  s1->_summary = s2->_summary;
      
+	// cite.
+	if (s1->_cite.length() > s2->_cite.length())
+	  s1->_cite = s2->_cite;
+	
 	// TODO: snippet type.
 	
 	// file format.
