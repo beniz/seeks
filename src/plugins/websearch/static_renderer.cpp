@@ -108,7 +108,7 @@ namespace seeks_plugins
 	  {
 	     snippets_str += snippets.at(i)->to_html_with_highlight(words);
 	  }
-	miscutil::add_map_entry(exports,"$search_snippets",1,snippets_str.c_str(),1);
+	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
      }
       
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
@@ -133,14 +133,14 @@ namespace seeks_plugins
 	       break;
 	  }
 		     
-	std::string rplcnt = "$ccluster";
+	std::string rplcnt = "ccluster";
 	cgi::map_block_killer(exports,"have-one-column-results-head");
 	if (k>1)
 	  cgi::map_block_killer(exports,"have-one-column-results");
 	else 
 	  {
 	     cgi::map_block_killer(exports,"have-clustered-results");
-	     rplcnt = "$search_snippets";
+	     rplcnt = "search_snippets";
 	  }
 		
 	// renders every cluster and snippets within.
