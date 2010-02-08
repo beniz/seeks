@@ -103,7 +103,7 @@ namespace seeks_plugins
        {
 	  snippets_str += snippets.at(i)->to_html_with_highlight(words);
        }
-     miscutil::add_map_entry(exports,"$search_snippets",1,snippets_str.c_str(),1);
+     miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
      
      // current page.
      std::string cp_str = miscutil::to_string(cp);
