@@ -140,8 +140,11 @@ namespace sp
 	unsigned int _keep_alive_timeout;
 #endif
 	
-	/** Nonzero if we need to bind() to the new port. */
+	/* Nonzero if we need to bind() to the new port. */
 	int _need_bind;
+
+	/* Access control list. */
+	access_control_list *_acl;
      };
    
 } /* end of namespace. */

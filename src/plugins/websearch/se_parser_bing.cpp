@@ -27,12 +27,11 @@ using sp::miscutil;
 
 namespace seeks_plugins
 {
-   std::string se_parser_bing::_sr_string_en = "ALL RESULTS";
    std::string se_parser_bing::_bing_stupid[2] =
      { "Document title", "Titre du document / Document title" };
    
    se_parser_bing::se_parser_bing()
-     :se_parser(),_h1_flag(false),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
+     :se_parser(),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
       _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
        {
        }
@@ -49,11 +48,12 @@ namespace seeks_plugins
 	
 	if (strcasecmp(tag,"h1") == 0)
 	  {
-	     _h1_flag = true;
+	     _h1_sr_flag = true;
 	  }
 	else if (_h1_sr_flag && strcasecmp(tag,"div") == 0)
 	  {
 	     const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
+	     
 	     if (a_class && strcasecmp(a_class,"sb_tlst") == 0)
 	       {
 		  // create new snippet.
@@ -115,18 +115,7 @@ namespace seeks_plugins
 					  const xmlChar *chars,
 					  int length)
      {
-	if (_h1_flag && !_h1_sr_flag)
-	  {
-	     std::string a_chars = std::string((char*)chars);
-	     miscutil::replace_in_string(a_chars,"\n"," ");  // in case...
-	     miscutil::replace_in_string(a_chars,"\r"," ");
-	     
-	     if (strcasecmp(a_chars.c_str(),_sr_string_en.c_str()) == 0)
-	       _h1_sr_flag = true;
-	  }
-	/* else if (!_results_flag)
-	  return; */
-	else if (_p_flag)
+	if (_p_flag)
 	  {
 	     std::string a_chars = std::string((char*)chars);
 	     miscutil::replace_in_string(a_chars,"\n"," ");

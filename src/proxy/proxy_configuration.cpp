@@ -27,6 +27,7 @@
 #include "urlmatch.h"
 #include "seeks_proxy.h" // for daemon flag.
 #include "gateway.h"
+#include "filters.h"
 
 #include <iostream>
 
@@ -52,10 +53,9 @@ namespace sp
    #define hash_confdir                       1496854555ul /* "confdir" */
    #define hash_connection_sharing            1951096841ul /* "connection-sharing" */
    #define hash_debug                         3473953184ul /* "debug" */
-   #define hash_deny_access                   4011049421ul /* "deny-access" */
+   #define hash_deny_access                   2517089737ul /* "deny-access" */
    #define hash_enable_remote_toggle          2307317490ul /* "enable-remote-toggle" */
    #define hash_enable_remote_http_toggle     3749326366ul /* "enable-remote-http-toggle" */
-   #define hash_filterfile                    2226910011ul /* "filterfile" */
    #define hash_forward                       2453031082ul /* "forward" */
    #define hash_forward_socks4                2224680052ul /* "forward-socks4" */
    #define hash_forward_socks4a               1278450079ul /* "forward-socks4a" */
@@ -149,6 +149,9 @@ namespace sp
 	char *vec[3];
 	char tmp[BUFFER_SIZE];
 	char *p;
+#ifdef FEATURE_ACL
+	access_control_list *cur_acl;
+#endif  /* def FEATURE_ACL */
 	
 	switch(cmd_hash)
 	  {
@@ -238,6 +241,139 @@ namespace sp
 	     _debug |= atoi(arg);
 	     break;
 	     
+	     /*************************************************************************
+	      * deny-access source-ip[/significant-bits] [dest-ip[/significant-bits]]
+	      * *************************************************************************/
+#ifdef FEATURE_ACL
+	   case hash_deny_access:
+	     std::cerr << "[Debug]: reading acl.\n";
+	     
+	     strlcpy(tmp, arg, sizeof(tmp));
+	     vec_count = miscutil::ssplit(tmp, " \t", vec, SZ(vec), 1, 1);
+	     
+	     if ((vec_count != 1) && (vec_count != 2))
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Wrong number of parameters for "
+				    "deny-access directive in configuration file.");
+		  break;
+	       }
+	     
+	     /* allocate a new node */
+	     cur_acl = new access_control_list();
+	     
+	     if (cur_acl == NULL)
+	       {
+		  errlog::log_error(LOG_LEVEL_FATAL, "can't allocate memory for configuration");
+		  /* Never get here - LOG_LEVEL_FATAL causes program exit */
+		  break;
+	       }
+	     
+	     cur_acl->_action = ACL_DENY;
+	           
+	     if (filters::acl_addr(vec[0], &cur_acl->_src) < 0)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Invalid source address, port or netmask "
+				    "for deny-access directive in configuration file: \"%s\"", vec[0]);
+		  delete cur_acl;
+		  break;
+	       }
+	     if (vec_count == 2)
+	       {
+		  if (filters::acl_addr(vec[1], &cur_acl->_dst) < 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Invalid destination address, port or netmask "
+					 "for deny-access directive in configuration file: \"%s\"", vec[1]);
+		       delete cur_acl;
+		       break;
+		    }
+	       }
+	     
+# ifdef HAVE_RFC2553
+	     else
+	       {
+		  cur_acl->_wildcard_dst = 1;
+	       }
+# endif /* def HAVE_RFC2553 */
+	     /*
+	      * Add it to the list.  Note we reverse the list to get the
+	      * behaviour the user expects.  With both the ACL and
+	      * actions file, the last match wins.  However, the internal
+	      * implementations are different:  The actions file is stored
+	      * in the same order as the file, and scanned completely.
+	      * With the ACL, we reverse the order as we load it, then
+	      * when we scan it we stop as soon as we get a match.
+	      */
+	     cur_acl->_next  = _acl;
+	     _acl = cur_acl;
+	     
+	     break;
+#endif /* def FEATURE_ACL */
+		  
+	     /*************************************************************************
+	      * permit-access source-ip[/significant-bits] [dest-ip[/significant-bits]]
+	      * *************************************************************************/
+#ifdef FEATURE_ACL
+	   case hash_permit_access:
+	     strlcpy(tmp, arg, sizeof(tmp));
+	     vec_count = miscutil::ssplit(tmp, " \t", vec, SZ(vec), 1, 1);
+	     
+	     if ((vec_count != 1) && (vec_count != 2))
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Wrong number of parameters for "
+				    "permit-access directive in configuration file.");
+		  break;
+	       }
+	     
+	     /* allocate a new node */
+	     cur_acl = new access_control_list();
+	     if (cur_acl == NULL)
+	       {
+		  errlog::log_error(LOG_LEVEL_FATAL, "can't allocate memory for configuration");
+		  /* Never get here - LOG_LEVEL_FATAL causes program exit */
+		  break;
+	       }
+	     
+	     cur_acl->_action = ACL_PERMIT;
+	     
+	     if (filters::acl_addr(vec[0], &cur_acl->_src) < 0)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Invalid source address, port or netmask "
+				    "for permit-access directive in configuration file: \"%s\"", vec[0]);
+		  delete cur_acl;
+		  break;
+	       }
+	     if (vec_count == 2)
+	       {
+		  if (filters::acl_addr(vec[1], &cur_acl->_dst) < 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Invalid destination address, port or netmask "
+					 "for permit-access directive in configuration file: \"%s\"", vec[1]);
+		       delete cur_acl;
+		       break;
+		    }
+	       }
+# ifdef HAVE_RFC2553
+	     else
+	       {
+		  cur_acl->_wildcard_dst = 1;
+	       }
+# endif /* def HAVE_RFC2553 */
+	     
+	     /*
+	      * Add it to the list.  Note we reverse the list to get the
+	      * behaviour the user expects.  With both the ACL and
+	      * actions file, the last match wins.  However, the internal
+	      * implementations are different:  The actions file is stored
+	      * in the same order as the file, and scanned completely.
+	      * With the ACL, we reverse the order as we load it, then
+	      * when we scan it we stop as soon as we get a match.
+	      */
+	     cur_acl->_next  = _acl;
+	     _acl = cur_acl;
+	     
+	     break;
+#endif /* def FEATURE_ACL */
+		  
 	     /**************************************************************************
 	      * enable-remote-toggle 0|1
 	      **************************************************************************/

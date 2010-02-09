@@ -24,7 +24,7 @@
 namespace seeks_plugins
 {
 
-#define hash_lang                   1526909359ul /* "search-langage" */
+#define hash_lang                   3579134231ul /* "search-langage" */
 #define hash_n                       578814699ul /* "search-results-page" */  
 #define hash_se                     1635576913ul /* "search-engine" */
 #define hash_qcd                    4118649627ul /* "query-context-delay" */
