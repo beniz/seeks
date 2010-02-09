@@ -1,1 +1,1 @@
-\.(doc|pps|ppt)$
+/.*.(doc|pps|ppt)$
