@@ -1,0 +1,18 @@
+# do not change these parameters unless you know 
+# what you are doing. 
+
+en-stopword-list englishST.txt
+fr-stopword-list frenchST.txt
+de-stopword-list germanST.txt
+it-stopword-list italianST.txt
+es-stopword-list spanishST.txt
+pt-stopword-list portugueseST.txt
+fi-stopword-list finnishST.txt
+se-stopword-list swedenST.txt
+ar-stopword-list arabicST.txt
+ru-stopword-list russianST.txt
+hu-stopword-list hungarianST.txt
+bg-stopword-list bugarianST.txt
+ro-stopword-list roumanianST.txt
+cs-stopword-list czechST.txt
+pl-stopword-list polishST.txt
