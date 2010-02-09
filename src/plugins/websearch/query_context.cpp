@@ -64,7 +64,7 @@ namespace seeks_plugins
 	    }
 	  else if (websearch::_wconfig->_lang == "auto")
 	    {
-	       _auto_lang_reg = query_context::detect_query_lang_http(_useful_http_headers);
+	       _auto_lang_reg = query_context::detect_query_lang_http(http_headers);
 	       _auto_lang = _auto_lang_reg.substr(0,2);
 	    }
 	  else 
