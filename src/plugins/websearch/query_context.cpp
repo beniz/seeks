@@ -342,7 +342,7 @@ namespace seeks_plugins
 		  // detect language.
 		  std::string lang_head = (*sit);
 		  size_t pos = lang_head.find_first_of(" ");
-		  if (pos != std::string::npos && pos+6<=lang_head.length())
+		  if (pos != std::string::npos && pos+6<=lang_head.length() && lang_head[pos+1] == '-')
 		    {
 		       std::string lang_reg = lang_head.substr(pos+1,5);
 		       errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
