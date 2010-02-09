@@ -1067,7 +1067,10 @@ class access_control_addr
 class access_control_list
 {
  public:
-   // TODO: constructor.
+   // constructor.
+   access_control_list()
+     :_next(NULL)
+       {};
    
    ~access_control_list() {};
    
