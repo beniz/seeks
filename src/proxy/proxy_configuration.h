@@ -143,8 +143,10 @@ namespace sp
 	/* Nonzero if we need to bind() to the new port. */
 	int _need_bind;
 
+#ifdef FEATURE_ACL	
 	/* Access control list. */
 	access_control_list *_acl;
+#endif     
      };
    
 } /* end of namespace. */
