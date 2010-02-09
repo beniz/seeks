@@ -2,30 +2,33 @@
  * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
  * does provide several locality sensitive hashing schemes for pattern matching over
  * continuous and discrete spaces.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "mrf.h"
+#include "seeks_proxy.h" // for lsh_config.
 
 #include <algorithm>
 #include <iostream>
+#include <cctype>
 
 #include <math.h>
 #include <assert.h>
+
+using sp::seeks_proxy;
 
 //#define DEBUG
 
@@ -89,6 +92,7 @@ namespace lsh
   //float mrf::_feature_weights[] = {16384, 8192, 4096, 2048, 1024, 256, 64, 16, 4, 1};
   short mrf::_array_size = 10;
   float mrf::_feature_weights[] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+  std::string mrf::_stop_word_token = "S";
    
   void mrf::tokenize(const std::string &str,
 		     std::vector<std::string> &tokens,
@@ -335,42 +339,57 @@ namespace lsh
 					hash_map<uint32_t,std::string,id_hash_uint> *bow,
 					const int &max_radius,
 					const int &step,
-					const uint32_t &window_length_default)
+					const uint32_t &window_length_default,
+					const std::string &lang)
     {
-      // Skip delimiters at beginning.
-      std::string::size_type lastPos = str.find_first_not_of(delim, 0);
-      // Find first "non-delimiter".
-      std::string::size_type pos = str.find_first_of(delim, lastPos);
-      std::vector<std::string> tokens;
-
+       // Skip delimiters at beginning.
+       std::string::size_type lastPos = str.find_first_not_of(delim, 0);
+       // Find first "non-delimiter".
+       std::string::size_type pos = str.find_first_of(delim, lastPos);
+       std::vector<std::string> tokens;
+       
+       stopwordlist *swl = NULL;
+       if (!lang.empty())
+	 swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+	        
        while(true)
-	{
-	   if ((int)tokens.size()>step)
-	     {
-		tokens.erase(tokens.begin(),tokens.begin()+step);
-	     }
-	   else tokens.clear();
-	   
-	  while((std::string::npos != pos || std::string::npos != lastPos)
-		&& tokens.size() < window_length_default)
-	    {
-	      // Found a token, add it to the vector.  
-	       tokens.push_back(str.substr(lastPos, pos - lastPos));
-	      // Skip the delimiters.
-	      lastPos = str.find_first_not_of(delim,pos);
-	      // Find next "non-delimiter".                          
-	       pos = str.find_first_of(delim, lastPos);
-	    }
-	   	   
-	   if (tokens.empty() || tokens.size()<window_length_default-max_radius)
-	     break;
-
-	  // produce the features out of the tokens.                                                               
-	  mrf::mrf_build(tokens,wfeatures,bow,0,max_radius,0,
-			 window_length_default);
-	}
+	 {
+	    if ((int)tokens.size()>step)
+	      {
+		 tokens.erase(tokens.begin(),tokens.begin()+step);
+	      }
+	    else tokens.clear();
+	    
+	    while((std::string::npos != pos || std::string::npos != lastPos)
+		  && tokens.size() < window_length_default)
+	      {
+		 // Found a token, add it to the vector.  
+		 std::string token = str.substr(lastPos, pos - lastPos);
+		 std::transform(token.begin(),token.end(),token.begin(),tolower);
+		 bool sw = false;
+		 if (swl)
+		   {
+		      sw = swl->has_word(token);
+		   }
+		 if (!sw)
+		   tokens.push_back(token);
+		 else if (window_length_default > 1)
+		   tokens.push_back(mrf::_stop_word_token);
+		 // Skip the delimiters.
+		 lastPos = str.find_first_not_of(delim,pos);
+		 // Find next "non-delimiter".                          
+		 pos = str.find_first_of(delim, lastPos);
+	      }
+	    
+	    if (tokens.empty() || tokens.size()<window_length_default-max_radius)
+	      break;
+	    
+	    // produce the features out of the tokens.                                                               
+	    mrf::mrf_build(tokens,wfeatures,bow,0,max_radius,0,
+			   window_length_default);
+	 }
     }
-
+   
   void mrf::mrf_build(const std::vector<std::string> &tokens,
                       hash_map<uint32_t,float,id_hash_uint> &wfeatures,
                       hash_map<uint32_t,std::string,id_hash_uint> *bow,
@@ -526,7 +545,8 @@ namespace lsh
 		  (*hit).second *= idf;
 		  
 		  // norm.
-		  norm += (*hit).second * (*hit).second;
+		  //norm += (*hit).second * (*hit).second;
+		  norm += (*hit).second;
 		  
 		  ++hit;
 	       }
@@ -536,7 +556,7 @@ namespace lsh
 	     hit = bags.at(i)->begin();
 	     while(hit!=bags.at(i)->end())
 	       {
-		  (*hit).second /= sqrt(norm);
+		  (*hit).second /= norm;//sqrt(norm);
 		  ++hit;
 	       }
 	  }

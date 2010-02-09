@@ -60,12 +60,11 @@ namespace seeks_plugins
 	virtual void cdata(parser_context *pc,
 			   const xmlChar *chars,
 			   int length) {};
-	
+
 	// libxml related tools.
 	static const char* get_attribute(const char **attributes,
 					 const char *name);
 	
-
 	// multithreaded use requires initialization.
 	static void libxml_init();
 

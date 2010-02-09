@@ -1,8 +1,9 @@
-bin_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_html_txt_parser
+bin_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_yahoo_parser test_html_txt_parser
 
 test_ggle_parser_SOURCES=test-ggle-parser.cpp
 test_bing_parser_SOURCES=test-bing-parser.cpp
 test_cuil_parser_SOURCES=test-cuil-parser.cpp
+test_yahoo_parser_SOURCES=test-yahoo-parser.cpp
 test_html_txt_parser_SOURCES=test-html-text-parser.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -march=native -mtune=native -pipe \

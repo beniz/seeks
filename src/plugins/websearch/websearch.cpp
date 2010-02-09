@@ -57,6 +57,9 @@ namespace seeks_plugins
 	  if (websearch::_wconfig == NULL)
 	    websearch::_wconfig = new websearch_configuration(_config_filename);
 	  _configuration = websearch::_wconfig;
+	
+	  // load tagging patterns.
+	  search_snippet::load_patterns();
 	  
 	  // cgi dispatchers.
 	  cgi_dispatcher *cgid_wb_hp
@@ -67,6 +70,10 @@ namespace seeks_plugins
 	    = new cgi_dispatcher("seeks_hp_search.css", &websearch::cgi_websearch_search_hp_css, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_seeks_hp_search_css);
 	  	  
+	  cgi_dispatcher *cgid_wb_seeks_search_css
+	    = new cgi_dispatcher("seeks_search.css", &websearch::cgi_websearch_search_css, NULL, TRUE);
+	  _cgi_dispatchers.push_back(cgid_wb_seeks_search_css);
+	  
 	  cgi_dispatcher *cgid_wb_search
 	    = new cgi_dispatcher("search", &websearch::cgi_websearch_search, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_search);
@@ -120,21 +127,48 @@ namespace seeks_plugins
 	assert(rsp);
 	assert(parameters);
 	
-	std::string seeks_search_css_str = plugin_manager::_plugin_repository + "websearch/css/seeks_hp_search.css";
-	sp_err err = cgisimple::load_file(seeks_search_css_str.c_str(),&rsp->_body,&rsp->_content_length);
-	
+	std::string seeks_search_css_str = "websearch/templates/css/seeks_hp_search.css";
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
 	csp->_content_type = CT_CSS;
-	
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),plugin_manager::_plugin_repository.c_str(),
+						    exports,rsp);
+		
 	if (err != SP_ERR_OK)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks_hp_search.css");
 	  }
-		
+	
 	rsp->_is_static = 1;
 	
 	return SP_ERR_OK;
      }
       
+   sp_err websearch::cgi_websearch_search_css(client_state *csp,
+					      http_response *rsp,
+					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	assert(csp);
+	assert(rsp);
+	assert(parameters);
+	
+	std::string seeks_search_css_str = "websearch/templates/css/seeks_search.css";
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
+	csp->_content_type = CT_CSS;
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),plugin_manager::_plugin_repository.c_str(),
+						    exports,rsp);
+	
+	if (err != SP_ERR_OK)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks_search.css");
+	  }
+	
+	rsp->_is_static = 1;
+	
+	return SP_ERR_OK;
+     }
+   
    sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -176,6 +210,8 @@ namespace seeks_plugins
 	       err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
 	     else if (strcmp(action,"titles") == 0)
 	       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
+	     else if (strcmp(action,"types") == 0)
+	       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
 	     else return websearch::cgi_websearch_hp(csp,rsp,parameters);
 	     
 	     return err;
@@ -281,7 +317,39 @@ namespace seeks_plugins
 	  }
 	else return SP_ERR_OK;
      }
-	     	        
+
+   sp_err websearch::cgi_websearch_clustered_types(client_state *csp, http_response *rsp,
+						   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!parameters->empty())
+	  {
+	     query_context *qc = websearch::lookup_qc(parameters);
+	     if (!qc)
+	       {
+		  // no cache, (re)do the websearch first.
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
+		  qc = websearch::lookup_qc(parameters);
+		  if (err != SP_ERR_OK)
+		    return err;
+	       }
+	     qc->_lock = true;
+	     
+	     // regroup search snippets by types.
+	     cluster *clusters;
+	     short K = 0;
+	     sort_rank::group_by_types(qc,clusters,K);
+	     
+	     // render result page.
+	     sp_err err = static_renderer::render_clustered_result_page_static(clusters,K,
+									       csp,rsp,parameters,qc);
+	     
+	     qc->_lock = false;
+	     
+	     return err;
+	  }
+	else return SP_ERR_OK;
+     }
+      
    sp_err websearch::cgi_websearch_similarity(client_state *csp, http_response *rsp,
 					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -293,9 +361,11 @@ namespace seeks_plugins
 	       {
 		  // no cache, (re)do the websearch first.
 		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
-		  qc = websearch::lookup_qc(parameters);
 		  if (err != SP_ERR_OK)
 		    return err;
+		  qc = websearch::lookup_qc(parameters);
+		  if (!qc)
+		    return SP_ERR_MEMORY;
 	       }
 	     const char *id = miscutil::lookup(parameters,"id");
 	     
@@ -340,7 +410,7 @@ namespace seeks_plugins
 	       nclust = atoi(nclust_str);
 	     oskmeans km(qc,qc->_cached_snippets,nclust); // nclust clusters+ 1 garbage for now...
 	     km.clusterize();
-	     //km.post_processing();
+	     km.post_processing();
 	     
 	     sp_err err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
 									       csp,rsp,parameters,qc);
@@ -380,7 +450,7 @@ namespace seeks_plugins
 	  // new context, whether we're expanding or not doesn't matter, we need
 	  // to generate snippets first.
 	  expanded = true;
-	  qc = new query_context(parameters);
+	  qc = new query_context(parameters,csp->_headers);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
        }
@@ -392,14 +462,14 @@ namespace seeks_plugins
 	  qc->_compute_tfidf_features = true;
        }
      
-     // render the page (static).                                                                                                
+     // render the page (static).
      sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							     csp,rsp,parameters,qc);
 
      // unlock the query context.
      qc->_lock = false;
 
-    // XXX: catch errors.                                                                                                 
+    // XXX: catch errors.
      return err;
   }
 

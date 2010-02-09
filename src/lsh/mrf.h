@@ -2,21 +2,20 @@
  * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
  * does provide several locality sensitive hashing schemes for pattern matching over
  * continuous and discrete spaces.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef MRF_H
@@ -118,7 +117,8 @@ namespace lsh
 					   hash_map<uint32_t,std::string,id_hash_uint> *bow,
 					   const int &radius,
 					   const int &step,
-					   const uint32_t &window_length_default=5);
+					   const uint32_t &window_length_default=5,
+					   const std::string &lang="");
      
      static void mrf_build(const std::vector<std::string> &tokens,
 			   hash_map<uint32_t,float,id_hash_uint> &wfeatures,
@@ -182,6 +182,8 @@ namespace lsh
   private:
     static float _feature_weights[];
     static short _array_size;
+    
+    static std::string _stop_word_token;
   };
 
 } /* end of namespace. */

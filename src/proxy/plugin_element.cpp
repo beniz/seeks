@@ -130,69 +130,14 @@ namespace sp
 	_neg_patterns.clear();
      }
 
-   int plugin_element::load_pattern_file()
+   sp_err plugin_element::load_pattern_file()
      {
-	if (!_pattern_filename)
-	  return 0;
-	
 	clear_patterns();
 	
-	// open file.
-	FILE *fp;
-	if ((fp = fopen(_pattern_filename,"r")) == NULL)
-	  {
-	     
-	     errlog::log_error(LOG_LEVEL_ERROR, "can't load pattern file '%s': error opening file: %E",
-			       _pattern_filename);
-	     return 0;   // we're done, this plugin will very probably be of no use.
-	  }
-	
-	// - read patterns.
-	bool positive = true;
-	unsigned long linenum = 0;
-	char  buf[BUFFER_SIZE];
-	while(loaders::read_config_line(buf, sizeof(buf), fp, &linenum) != NULL)
-	  {
-	     if (buf[0] == '+')
-	       {
-		  positive = true;
-		  continue;
-	       }
-	     if (buf[0] == '-')
-	       {
-		  positive = false;
-		  continue;
-	       }
-	     
-	     // - compile them.
-	     url_spec *usp = NULL;
-	     sp_err err = url_spec::create_url_spec(usp,buf);
-	     if (err != SP_ERR_OK)
-	       {
-		  // signal and skip bad pattern.
-		  errlog::log_error(LOG_LEVEL_ERROR,
-				    "cannot create URL pattern from: %s", buf);
-	       }
-	     // - store them.
-	     else 
-	       {
-		  if (positive)
-		    {
-		       _pos_patterns.push_back(usp);
-		    }
-		  else
-		    {
-		       _neg_patterns.push_back(usp);
-		    }
-	       }
-	  }
-	
-	fclose(fp);
-	
-	return 0;
+	return loaders::load_pattern_file(_pattern_filename,_pos_patterns,_neg_patterns);
      }
       
-   int plugin_element::load_code_file()
+   sp_err plugin_element::load_code_file()
      {
 	if (_code_filename)
 	  {
@@ -202,16 +147,16 @@ namespace sp
 	     else if (_perl)
 	       return perl_load_code_file();
 #endif
-	     return 1;
+	     return SP_ERR_FILE;
 	  }
-	return 0;
+	return SP_ERR_OK;
      }
 
-   int plugin_element::reload()
+   sp_err plugin_element::reload()
      {
-	int p = load_pattern_file();
-	int c = load_code_file();
-	return (p == 0 && c == 0);
+	sp_err p = load_pattern_file();
+	sp_err c = load_code_file();
+	return (p == SP_ERR_OK && c == SP_ERR_OK);
      }
       
    void plugin_element::compile_patterns(const std::vector<std::string> &patterns,

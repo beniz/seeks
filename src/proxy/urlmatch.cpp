@@ -353,19 +353,31 @@ sp_err urlmatch::parse_http_url(const char *url, http_request *http, int require
 #endif /* def FEATURE_EXTENDED_HOST_PATTERNS */
 }
 
-std::string urlmatch::parse_url_host(const std::string &url)
+void urlmatch::parse_url_host_and_path(const std::string &url,
+				       std::string &host, std::string &path)
 {
    size_t p1 = 0;
    if ((p1=url.find("http://"))!=std::string::npos)
      p1 += 7;
    else if ((p1=url.find("https://"))!=std::string::npos)
      p1 += 8;
+   else if (p1 == std::string::npos) // malformed url.
+     {
+	host = "";
+	path = "";
+	return;
+     }
    size_t p2 = 0;
    if ((p2 = url.find("/",p1))!=std::string::npos)
      {
-	return url.substr(p1,p2-p1);
+	host  = url.substr(p1,p2-p1);
+	path = url.substr(p2);
      }
-   else return url; // can't determine the host, returns the full url.
+   else 
+     {
+	host = url.substr(p1);
+	path = "";
+     }
 }
    
 /*********************************************************************
@@ -710,7 +722,7 @@ sp_err urlmatch::compile_url_pattern(url_spec *url, char *buf)
  *                SP_ERR_PARSE - Cannot parse regex
  *
  *********************************************************************/
-static sp_err urlmatch::compile_host_pattern(url_spec *url, const char *host_pattern)
+sp_err urlmatch::compile_host_pattern(url_spec *url, const char *host_pattern)
 {
    return urlmatch::compile_pattern(host_pattern, RIGHT_ANCHORED_HOST, url, &url->_host_regex);
 }

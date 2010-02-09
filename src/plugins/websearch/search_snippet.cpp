@@ -22,16 +22,35 @@
 #include "mem_utils.h"
 #include "miscutil.h"
 #include "encode.h"
+#include "loaders.h"
+#include "urlmatch.h"
+#include "plugin_manager.h" // for _plugin_repository.
+
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+#include "proxy_dts.h" // for http_request.
+#endif
+
 #include "mrf.h"
 
 #include <iostream>
 
 using sp::miscutil;
 using sp::encode;
+using sp::loaders;
+using sp::urlmatch;
+using sp::plugin_manager;
+using sp::http_request;
 using lsh::mrf;
 
 namespace seeks_plugins
 {
+   // loaded tagging patterns.
+   std::vector<url_spec*> search_snippet::_pdf_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_file_doc_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_audio_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_video_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_forum_pos_patterns = std::vector<url_spec*>();
+   
    search_snippet::search_snippet()
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
       _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
@@ -106,7 +125,7 @@ namespace seeks_plugins
 
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words)
      {
-	static std::string se_icon = "<span class=\"search_engine icon\">&nbsp;</span>";
+	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\">&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
 /*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
@@ -129,22 +148,31 @@ namespace seeks_plugins
 	  {
 	     std::string ggle_se_icon = se_icon;
 	     miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
-	     miscutil::replace_in_string(ggle_se_icon,"hspace=\"2\"","hspace=\"5\"");
+	     miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
 	     html_content += ggle_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_CUIL)
 	  {
 	     std::string cuil_se_icon = se_icon;
 	     miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
+	     miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
 	     html_content += cuil_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_BING)
 	  {
 	     std::string bing_se_icon = se_icon;
 	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
+	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
 	     html_content += bing_se_icon;
 	  }
-	
+	if (_engine.to_ulong()&SE_YAHOO)
+	  {
+	     std::string yahoo_se_icon = se_icon;
+	     miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
+	     miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
+	     html_content += yahoo_se_icon;
+	  }
+		
 	html_content += "</h3>";
 		
 	if (_summary != "")
@@ -168,7 +196,7 @@ namespace seeks_plugins
 	html_content += "<br><cite>";
 	html_content += cite_enc;
 	free_const(cite_enc);
-	html_content += "</cite>";
+	html_content += "</cite>\n";
 	
 	if (!_cached.empty())
 	  {
@@ -183,8 +211,8 @@ namespace seeks_plugins
 	html_content += "<a class=\"search_cache\" href=\"";
 	html_content += _archive;
 	html_content += " \">Archive</a>";
-	if (websearch::_wconfig->_content_analysis)
-	  {
+	/* if (websearch::_wconfig->_content_analysis)
+	  { */
 	     if (!_sim_back)
 	       {
 		  set_similarity_link();
@@ -199,7 +227,7 @@ namespace seeks_plugins
 	     if (!_sim_back)
 	       html_content += " \">Similar</a>";
 	     else html_content += "\">Back</a>";
-	  }
+	 /* } */
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
@@ -223,7 +251,11 @@ namespace seeks_plugins
 	miscutil::chomp(str);
 	if (str[strlen(str)-1] == '/')
 	  str[strlen(str)-1] = '\0';
-	return str;
+	std::string nstr = std::string(str);
+	freez(str);
+	miscutil::replace_in_string(nstr,"\n","");
+	miscutil::replace_in_string(nstr,"\r","");
+	return strdup(nstr.c_str());
      }
       
    void search_snippet::set_url(const std::string &url)
@@ -245,9 +277,11 @@ namespace seeks_plugins
    
    void search_snippet::set_summary(const char *summary)
      {
+	static size_t summary_max_size = 1000; // characters.
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
-	_summary = std::string(str);
+	_summary = (strlen(str)<summary_max_size) ? std::string(str) 
+	  : std::string(str).substr(0,summary_max_size-3) + "...";
 	free(str);
      }
       
@@ -281,7 +315,120 @@ namespace seeks_plugins
 	_sim_back = true;
      }
       
+   void search_snippet::tag()
+     {
+	// detect extension, if any, and if not already tagged.
+	if (_doc_type == WEBPAGE) // not already tagged.
+	  {
+	     // grab the 3 char long extension, if any.
+	     std::string file_ext;
+	     if (_url.size()>4 && _url[_url.size()-4] == '.')
+	       {
+		  file_ext = _url.substr(_url.size()-3);
+		  _file_format = file_ext;
+	       }
+	     		  
+	     if (search_snippet::match_tag(_url,search_snippet::_pdf_pos_patterns))
+	       _doc_type = FILE_DOC;
+	     else if(search_snippet::match_tag(_url,search_snippet::_file_doc_pos_patterns))
+	       _doc_type = FILE_DOC;
+	     else if (search_snippet::match_tag(_url,search_snippet::_audio_pos_patterns))
+	       _doc_type = AUDIO;
+	     else if (search_snippet::match_tag(_url,search_snippet::_video_pos_patterns))
+	       _doc_type = VIDEO;
+	     else if (search_snippet::match_tag(_url,search_snippet::_forum_pos_patterns))
+	       _doc_type = FORUM;
+	  
+	     /* std::cerr << "[Debug]: tagged snippet: url: " << _url 
+	       << " -- tag: " << (int)_doc_type << std::endl; */
+	  }
+		
+	// detect wikis. XXX: could be put into a pattern file if more complex patterns are needed.
+	size_t pos = 0;
+	std::string wiki_pattern = "wiki";
+	std::string::const_iterator sit = _url.begin();
+	if ((pos = miscutil::ci_find(_url,wiki_pattern,sit))!=std::string::npos)
+	  {
+	     _doc_type = WIKI;
+	  }
+     }
+   
    // static.
+   sp_err search_snippet::load_patterns()
+     {
+	static std::string pdf_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/pdf";
+	static std::string file_doc_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/file_doc";
+	static std::string audio_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/audio";
+	static std::string video_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/video";
+	static std::string forum_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/forum";
+		
+	std::vector<url_spec*> fake_neg_patterns; // XXX: maybe to be supported in the future, if needed.
+	
+	sp_err err;
+	err = loaders::load_pattern_file(pdf_patterns_filename.c_str(),search_snippet::_pdf_pos_patterns,
+					 fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(file_doc_patterns_filename.c_str(),search_snippet::_file_doc_pos_patterns,
+					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(audio_patterns_filename.c_str(),search_snippet::_audio_pos_patterns,
+					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(video_patterns_filename.c_str(),search_snippet::_video_pos_patterns,
+					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(forum_patterns_filename.c_str(),search_snippet::_forum_pos_patterns,
+					   fake_neg_patterns);
+	return err;
+     }
+      
+   bool search_snippet::match_tag(const std::string &url,
+				  const std::vector<url_spec*> &patterns)
+     {
+	std::string host;
+	std::string path;
+	urlmatch::parse_url_host_and_path(url,host,path);
+	
+	/* std::cerr << "[Debug]: host: " << host << " -- path: " << path 
+	  << " -- pattern size: " << patterns.size() << std::endl; */
+	
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+	http_request http;
+	http._host = (char*)host.c_str();
+	urlmatch::init_domain_components(&http);
+#endif
+	
+	size_t psize = patterns.size();
+	for (size_t i=0;i<psize;i++)
+	  {
+	     url_spec *pattern = patterns.at(i);
+	     
+	     // host matching.
+#ifdef FEATURE_EXTENDED_HOST_PATTERNS
+	     int host_match = host.empty() ? 0 : ((NULL == pattern->_host_regex)
+						  || (0 == regexec(pattern->_host_regex, host.c_str(), 0, NULL, 0)));
+#else
+	     int host_match = urlmatch::host_matches(&http,pattern);
+#endif
+	     if (host_match == 0)
+	       continue;
+	     	     
+	     // path matching.
+	     int path_match = urlmatch::path_matches(path.c_str(),pattern);
+	     if (path_match)
+	       {
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+		  http._host = NULL;
+#endif
+		  return true;
+	       }
+	  }
+#ifndef FEATURE_EXTENDED_HOST_PATTERNS
+	http._host = NULL;
+#endif
+	return false;
+     }
+         
    void search_snippet::delete_snippets(std::vector<search_snippet*> &snippets)
      {
 	size_t snippets_size = snippets.size();
@@ -295,7 +442,6 @@ namespace seeks_plugins
      {
 	// seeks_rank is updated after merging.
 	// search engine rank.
-	//s1->_rank = std::min(s1->_rank,s2->_rank);
 	s1->_rank = 0.5*(s1->_rank + s2->_rank);
 	
 	// search engine.
@@ -309,6 +455,12 @@ namespace seeks_plugins
 	if (s1->_summary.length() < s2->_summary.length())
 	  s1->_summary = s2->_summary;
      
+	// cite.
+	if (s1->_cite.length() > s2->_cite.length())
+	  s1->_cite = s2->_cite;
+	
+	// TODO: snippet type.
+	
 	// file format.
 	if (s1->_file_format.length() < s2->_file_format.length())  // we could do better here, ok enough for now.
 	  s1->_file_format = s2->_file_format;

@@ -117,6 +117,11 @@ namespace seeks_plugins
 	       NULL,
 	       NULL,
 	       cdata_wrapper,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
 	       NULL
 	  };
 
@@ -133,6 +138,8 @@ namespace seeks_plugins
 			       e.what());
 	  }
 	
+	htmlCtxtUseOptions(ctxt,HTML_PARSE_NOERROR);
+	
 	int status = htmlParseChunk(ctxt,output,strlen(output),0);
 	if (status != 0) // an error occurred.
 	  {
@@ -143,7 +150,6 @@ namespace seeks_plugins
 		  miscutil::replace_in_string(err_msg,"\n","");
 		  errlog::log_error(LOG_LEVEL_ERROR, "html level parsing error (libxml2): %s",
 				    err_msg.c_str());
-	       
 		  // check on error level.
 		  if (xep->level == 3) // fatal or recoverable error.
 		    {

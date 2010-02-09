@@ -64,7 +64,8 @@ namespace seeks_plugins
 					    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					    std::string &query_clean)
      {
-	query_clean = se_handler::cleanup_query(html_encoded_query);
+	query_clean = se_handler::no_command_query(html_encoded_query);
+	query_clean = se_handler::cleanup_query(query_clean);
 	miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
      }
    
@@ -76,12 +77,13 @@ namespace seeks_plugins
 	     std::string suggestion_str = "Suggestion:&nbsp;<a href=\"";
 	     // for now, let's grab the first suggestion only.
 	     std::string suggested_q_str = qc->_suggestions[0];
-	     miscutil::replace_in_string(suggested_q_str," ","+");
-	     suggestion_str += "http://s.s/search?q=" + suggested_q_str + "&expansion=1&action=expand";
-	     suggestion_str += "\">";
-	     const char *sugg_enc = encode::html_encode(qc->_suggestions[0].c_str());
-	     suggestion_str += std::string(sugg_enc);
+	     const char *sugg_enc = encode::html_encode(suggested_q_str.c_str());
+	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
+	     suggestion_str += "http://s.s/search?q=" + qc->_in_query_command + " " 
+	       + sugg_enc_str + "&expansion=1&action=expand";
+	     suggestion_str += "\">";
+	     suggestion_str += sugg_enc_str;
 	     suggestion_str += "</a>";
 	     miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
 	  }
@@ -95,7 +97,10 @@ namespace seeks_plugins
      {
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
-		
+	
+	cgi::map_block_killer(exports,"have-clustered-results-head");
+	cgi::map_block_killer(exports,"have-clustered-results");
+	
 	std::string snippets_str;
 	size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)snippets.size());
 	size_t snistart = (current_page-1) * websearch::_wconfig->_N;
@@ -103,7 +108,7 @@ namespace seeks_plugins
 	  {
 	     snippets_str += snippets.at(i)->to_html_with_highlight(words);
 	  }
-	miscutil::add_map_entry(exports,"$search_snippets",1,snippets_str.c_str(),1);
+	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
      }
       
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
@@ -113,14 +118,40 @@ namespace seeks_plugins
 						   const query_context *qc,
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
-	// !! TODO: use the current page later. !!
-
+	static short template_K=7; // max number of clusters available in the template.
+	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 		
-	// renders every cluster and snippets within.
+	// check for empty cluster, and determine which rendering to use.
+	short k = 0;
 	for (short c=0;c<K;c++)
 	  {
+	     if (!clusters[c]._cpoints.empty())
+	       k++;
+	     if (k>2)
+	       break;
+	  }
+		     
+	std::string rplcnt = "ccluster";
+	cgi::map_block_killer(exports,"have-one-column-results-head");
+	if (k>1)
+	  cgi::map_block_killer(exports,"have-one-column-results");
+	else 
+	  {
+	     cgi::map_block_killer(exports,"have-clustered-results");
+	     rplcnt = "search_snippets";
+	  }
+		
+	// renders every cluster and snippets within.
+	int l = 0;
+	for (short c=0;c<K;c++)
+	  {
+	     if (clusters[c]._cpoints.empty())
+	       {
+		  continue;
+	       }
+	     
 	     std::vector<search_snippet*> snippets;
 	     hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit 
 	       = clusters[c]._cpoints.begin();
@@ -133,17 +164,37 @@ namespace seeks_plugins
 
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
-	     std::string cluster_str;
-	     //size_t nsps = std::min(3,(int)snippets.size());
+	     std::string cluster_str = static_renderer::render_cluster_label(clusters[c]);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
 	     
-	     std::string cl = "$cluster" + miscutil::to_string(c);
+	     std::string cl = rplcnt;
+	     if (k>1)
+	       cl += miscutil::to_string(l++);
 	     miscutil::add_map_entry(exports,cl.c_str(),1,cluster_str.c_str(),1);
 	  }
+	
+	// kill remaining cluster slots.
+	for (short c=l;c<=template_K;c++)
+	  {
+	     std::string hcl = "have-cluster" + miscutil::to_string(c);
+	     cgi::map_block_killer(exports,hcl.c_str());
+	  }
      }
-        
+   
+   std::string static_renderer::render_cluster_label(const cluster &cl)
+     {
+	const char *clabel_encoded = encode::html_encode(cl._label.c_str());
+	std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
+	const char *slabel_encoded = encode::html_encode(slabel.c_str());
+	std::string html_label = "<h2>" + std::string(clabel_encoded) 
+	  + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
+	free_const(clabel_encoded);
+	free_const(slabel_encoded);
+	return html_label;
+     }
+      
    void static_renderer::render_current_page(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					     int &current_page)
@@ -206,6 +257,13 @@ namespace seeks_plugins
    void static_renderer::render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
+	if (!websearch::_wconfig->_clustering)
+	  {
+	     cgi::map_block_killer(exports,"have-clustering");
+	     return;
+	  }
+	else cgi::map_block_killer(exports,"not-have-clustering");
+		
 	const char *nclusters_str = miscutil::lookup(parameters,"clusters");
 	
 	if (!nclusters_str)
@@ -218,14 +276,56 @@ namespace seeks_plugins
 	     miscutil::add_map_entry(exports,"$xxnclust",1,nclust_str.c_str(),1);
 	  }
      }
-
+   
+   hash_map<const char*,const char*,hash<const char*>,eqstr>* static_renderer::websearch_exports(client_state *csp)
+     {
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = cgi::default_exports(csp,"");
+	
+	// we need to inject a remote base location for remote web access.
+	// the injected header, if it exists is Seeks-Remote-Location
+	std::string base_url = "";
+	std::list<const char*>::const_iterator sit = csp->_headers.begin();
+	while(sit!=csp->_headers.end())
+	  {
+	     if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
+	       {
+		  base_url = (*sit);
+		  size_t pos = base_url.find_first_of(" ");
+		  base_url = base_url.substr(pos+1);
+		  break;
+	       }
+	     ++sit;
+	  }
+	miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
+		
+	if (!websearch::_wconfig->_js) // no javascript required
+	  {
+	     cgi::map_block_killer(exports,"websearch-have-js");
+	  }
+	
+	if (websearch::_wconfig->_content_analysis)
+	  miscutil::add_map_entry(exports,"websearch-content-analysis",1,"content_analysis",1);
+	else miscutil::add_map_entry(exports,"websearch-content-analysis",1,strdup(""),0);
+	
+	if (websearch::_wconfig->_thumbs)
+	  miscutil::add_map_entry(exports,"websearch-thumbs",1,"thumbs",1);
+	else miscutil::add_map_entry(exports,"websearch-thumbs",1,strdup(""),0);
+	
+	if (websearch::_wconfig->_clustering)
+	  miscutil::add_map_entry(exports,"websearch-clustering",1,"clustering",1);
+	else miscutil::add_map_entry(exports,"websearch-clustering",1,strdup(""),0);
+	
+	return exports;
+     }
+      
   /*- rendering. -*/
   sp_err static_renderer::render_hp(client_state *csp,http_response *rsp)
      {
-	static const char *hp_tmpl_name = "websearch/html/seeks_ws_hp.html";
+	static const char *hp_tmpl_name = "websearch/templates/seeks_ws_hp.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-	  = cgi::default_exports(csp,"");
+	  = static_renderer::websearch_exports(csp);
 		
 	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,plugin_manager::_plugin_repository.c_str(),
 						exports,rsp);
@@ -241,7 +341,10 @@ namespace seeks_plugins
      static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
      
      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-       = cgi::default_exports(csp,"");
+       = static_renderer::websearch_exports(csp);
+
+     // one-column results.
+     cgi::map_block_killer(exports,"have-clustered-results");
      
      // query.
      std::string html_encoded_query;
@@ -298,10 +401,10 @@ namespace seeks_plugins
 							       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 							       const query_context *qc)
      {
-	static const char *result_tmpl_name = "websearch/templates/seeks_clustered_result_template.html";
+	static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+	  = static_renderer::websearch_exports(csp);
 	
 	// query.
 	std::string html_encoded_query;
@@ -339,8 +442,8 @@ namespace seeks_plugins
 	static_renderer::render_nclusters(parameters,exports);
 	
 	// rendering.
-	sp_err err = cgi::template_fill_for_cgi_str(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
-						    exports,rsp);
+	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+						exports,rsp);
 	
 	return err;
      }
@@ -350,8 +453,6 @@ namespace seeks_plugins
 							const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 							query_context *qc, const int &mode)
      {
-	//std::cerr << "mode: " << mode << std::endl;
-	
 	if (mode > 1)
 	  return SP_ERR_OK; // wrong mode, do nothing.
 	
@@ -427,6 +528,5 @@ namespace seeks_plugins
 	// static rendering.
 	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc);
      }
-   
-   
+
 } /* end of namespace. */

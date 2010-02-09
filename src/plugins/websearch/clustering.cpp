@@ -103,6 +103,19 @@ namespace seeks_plugins
 	std::stable_sort(_clusters,_clusters+_K,cluster::max_rank_cluster);
      }
       
+   // default ranking is as computed by seeks on the main list of results.
+   void clustering::rank_elements(cluster &cl)
+     {
+	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::iterator hit
+	  = cl._cpoints.begin();
+	while(hit!=cl._cpoints.end())
+	  {
+	     search_snippet *sp = _qc->get_cached_snippet((*hit).first);
+	     sp->_seeks_ir = sp->_seeks_rank;
+	     ++hit;
+	  }
+     }
+   
    void clustering::rank_clusters_elements()
      {
 	for (short c=0;c<_K;c++)

@@ -55,6 +55,8 @@ namespace seeks_plugins
 					      const query_context *qc,
 					      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
+	static std::string render_cluster_label(const cluster &cl);
+	
 	static void render_current_page(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					int &current_page);
@@ -78,6 +80,8 @@ namespace seeks_plugins
 	static void render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	  
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* websearch_exports(client_state *csp);
+	
 	/*- renderer. -*/
 	static sp_err render_hp(client_state *csp, http_response *rsp);
 	
@@ -96,6 +100,8 @@ namespace seeks_plugins
 						   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						   query_context *qc, const int &mode);
      
+	/* static sp_err render_clustered_types_page(client_state *csp, http_response *rsp,
+						  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters); */
      };
    
 } /* end of namespace. */

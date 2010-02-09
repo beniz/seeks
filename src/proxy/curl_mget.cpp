@@ -34,40 +34,6 @@
 
 namespace sp
 {
- /*   static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
-     {
-	char *buffer = static_cast<char*>(ptr);
-	cbget *arg = static_cast<cbget*>(userp);
-	size *= nmemb;
-	
-	int rembuff = arg->_buffer_len - arg->_buffer_pos; // remaining space in buffer.
-	
-	char *newbuff = NULL;
-	if (size > (size_t)rembuff)
-	  {
-	     // not enough space in buffer.
-	     newbuff = (char*)realloc(arg->_output,arg->_buffer_len + (size - rembuff));
-	     if (newbuff == NULL)
-	       {
-		  errlog::log_error(LOG_LEVEL_ERROR, "Failed to grow buffer in Curl callback");
-		  size = rembuff;
-		  exit(0);
-	       }
-	     else
-	       {
-		  // realloc succeeded.
-		  arg->_buffer_len += size - rembuff;
-		  arg->_output = newbuff;
-	       }
-	  }
-	memcpy(&arg->_output[arg->_buffer_pos],buffer,size);
-	arg->_buffer_pos += size;
-
-	//std::cerr << "output: " << arg->output << std::endl;
-	
-	return size;
-     } */
-
    static size_t write_data(void *ptr, size_t size, size_t nmemb, void *userp)
      {
 	char *buffer = static_cast<char*>(ptr);
@@ -81,8 +47,7 @@ namespace sp
 	
 	return size;
      }
-   
-   
+      
    curl_mget::curl_mget(const int &nrequests, 
 			const long &connect_timeout_sec,
 			const long &connect_timeout_ms,
@@ -92,13 +57,12 @@ namespace sp
       _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
       _transfer_timeout_ms(transfer_timeout_ms)
      {
-	//_outputs = (char**) malloc(_nrequests*sizeof(char*));
 	_outputs = new std::string*[_nrequests];
 	for (int i=0;i<_nrequests;i++)
 	  _outputs[i] = NULL;
 	_cbgets = new cbget*[_nrequests];
      }
-   
+         
    curl_mget::~curl_mget()
      {
 	delete[] _cbgets;
@@ -127,9 +91,20 @@ namespace sp
 	     curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
 	  }
 	
-	/* struct curl_slist *slist=NULL;
-	 slist = curl_slist_append(slist, "Expect:"); 
-	 curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist); */
+	struct curl_slist *slist=NULL;
+	
+	// useful headers.
+	if (arg->_headers)
+	  {
+	     std::list<const char*>::const_iterator sit = arg->_headers->begin();
+	     while(sit!=arg->_headers->end())
+	       {
+		  slist = curl_slist_append(slist,(*sit));
+		  ++sit;
+		 }
+	  }
+	
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorbuffer);
@@ -147,15 +122,18 @@ namespace sp
 	  }
 	
 	curl_easy_cleanup(curl);
-	//curl_slist_free_all(slist);
+	
+	if (slist)
+	  curl_slist_free_all(slist);
 	
 	return NULL;
      }
    
-   std::string** curl_mget::www_mget(const std::vector<std::string> &urls, 
-				     const int &nrequests, const bool &proxy)
+   std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
+				     const std::vector<std::list<const char*>*> *headers,
+				     const bool &proxy)
      {
-	assert((int)urls.size() == nrequests);
+	assert((int)urls.size() == nrequests); // check.
 	
 	pthread_t tid[nrequests];
 	
@@ -169,6 +147,8 @@ namespace sp
 	     arg_cbget->_transfer_timeout_sec = _transfer_timeout_sec;
 	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
 	     arg_cbget->_proxy = proxy;
+	     if (headers)
+	       arg_cbget->_headers = headers->at(i); // headers are url dependent.
 	     
 	     _cbgets[i] = arg_cbget;
 	     

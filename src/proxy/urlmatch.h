@@ -59,7 +59,8 @@ namespace sp
 	static sp_err parse_http_url(const char *url,
 				     http_request *http,
 				     int require_protocol);
-	static std::string parse_url_host(const std::string &url);
+	static void parse_url_host_and_path(const std::string &url,
+					    std::string &host, std::string &path);
 #define REQUIRE_PROTOCOL 1
 	
 	static int url_match(const url_spec *pattern,

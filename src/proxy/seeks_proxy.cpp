@@ -49,6 +49,7 @@
 #include "filter_plugin.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
+#include "iso639.h"
 
 namespace sp
 {
@@ -91,6 +92,10 @@ namespace sp
    std::string seeks_proxy::_configfile = "";
 
    proxy_configuration* seeks_proxy::_config = NULL;
+   
+   std::string seeks_proxy::_lshconfigfile = "lsh/lsh-config";
+   
+   lsh_configuration* seeks_proxy::_lsh_config = NULL;
    
    int seeks_proxy::_Argc = 0;
    const char** seeks_proxy::_Argv = NULL;
@@ -2503,6 +2508,14 @@ namespace sp
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
 	
+	if (seeks_proxy::_lsh_config)
+	  delete seeks_proxy::_lsh_config;
+	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
+	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
+	
+	// loads iso639 table.
+	iso639::initialize();
+	
 	// loads plugins.
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
 	plugin_manager::load_all_plugins();
@@ -2556,8 +2569,7 @@ namespace sp
 	       csp->_flags |= CSP_FLAG_ACTIVE;
 	       csp->_sfd    = SP_INVALID_SOCKET;
 	       
-	       // TODO: also reload plugin config files...
-	       //seeks_proxy::_config->load_config(); // reload when running, if file has changed.
+	       seeks_proxy::_config->load_config(); // reload when running, if file has changed.
 	       csp->_config = seeks_proxy::_config;
 	       
 	       if (seeks_proxy::_config->_need_bind )
@@ -2779,7 +2791,6 @@ namespace sp
 #if defined(unix)
 	freez(seeks_proxy::_basedir);
 #endif
-	freez(seeks_proxy::_configfile);
 #if defined(_WIN32) && !defined(_WIN_CONSOLE)
 	/* Cleanup - remove taskbar icon etc. */
 	TermLogWindow();

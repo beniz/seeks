@@ -25,6 +25,7 @@
 #include "mrf.h"
 #include "errlog.h"
 #include "se_handler.h"
+#include "iso639.h"
 
 #include <sys/time.h>
 #include <iostream>
@@ -32,18 +33,45 @@
 using sp::sweeper;
 using sp::miscutil;
 using sp::errlog;
+using sp::iso639;
 using lsh::mrf;
 
 namespace seeks_plugins
 {
-   
-   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+   query_context::query_context()
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
-	  _query_hash = query_context::hash_query_for_context(parameters,_query);
+       }
+      
+   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				const std::list<const char*> &http_headers)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
+       {
+	  // reload config if file has changed.
+	  websearch::_wconfig->load_config();
+	  
+	  _query_hash = query_context::hash_query_for_context(parameters,_query); // hashing may contain a language command.
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;
+	  
+	  grab_useful_headers(http_headers);
+	  
+	  // sets auto_lang & auto_lang_reg.
+	  if (detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)))
+	    {
+	       query_context::in_query_command_forced_region(_auto_lang,_auto_lang_reg);
+	    }
+	  else if (websearch::_wconfig->_lang == "auto")
+	    {
+	       _auto_lang_reg = query_context::detect_query_lang_http(_useful_http_headers);
+	       _auto_lang = _auto_lang_reg.substr(0,2);
+	    }
+	  else 
+	    {
+	       _auto_lang = websearch::_wconfig->_lang; // fall back is default search language.
+	       _auto_lang_reg = query_context::lang_forced_region(websearch::_wconfig->_lang);
+	    }
 	  
 	  sweeper::register_sweepable(this);
 	  register_qc(); // register with websearch plugin.
@@ -56,22 +84,37 @@ namespace seeks_plugins
 	_unordered_snippets.clear();
 	_unordered_snippets_title.clear();
 	
-	/* clear_cached_features();
-	 clear_cached_contents(); */
-	
 	search_snippet::delete_snippets(_cached_snippets);
 			
 	// clears the LSH hashtable.
 	// the LSH is cleared automatically as well.
 	if (_ulsh_ham)
 	  delete _ulsh_ham;
+
+	for (std::list<const char*>::iterator lit=_useful_http_headers.begin();
+	     lit!=_useful_http_headers.end();lit++)
+	  free_const((*lit));
      }
    
+   std::string query_context::sort_query(const std::string &query)
+     {
+	std::string clean_query = se_handler::cleanup_query(query);
+	std::vector<std::string> tokens;
+	mrf::tokenize(clean_query,tokens," ");
+	std::sort(tokens.begin(),tokens.end(),std::less<std::string>());
+	std::string sorted_query;
+	size_t ntokens = tokens.size();
+	for (size_t i=0;i<ntokens;i++)
+	  sorted_query += tokens.at(i);
+	return sorted_query;
+     }
+      
    uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 						  std::string &query)
      {
 	query = std::string(miscutil::lookup(parameters,"q"));
-	return mrf::mrf_single_feature(query);
+	std::string sorted_query = query_context::sort_query(query);
+	return mrf::mrf_single_feature(sorted_query);
      }
       
    bool query_context::sweep_me()
@@ -153,7 +196,7 @@ namespace seeks_plugins
 	  
 	  // query SEs.                                                                                                 
 	  int nresults = 0;
-	  std::string **outputs = se_handler::query_to_ses(parameters,nresults);
+	  std::string **outputs = se_handler::query_to_ses(parameters,nresults,this);
 	  
 	  // test for failed connection to the SEs comes here.    
 	  if (!outputs)
@@ -163,8 +206,6 @@ namespace seeks_plugins
 	  
 	  // parse the output and create result search snippets.   
 	  int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
-	  
-	  //std::cerr << "[Debug]: rank_offset: " << rank_offset << std::endl;
 	  
 	  se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this);
 	  for (int j=0;j<nresults;j++)
@@ -266,5 +307,150 @@ namespace seeks_plugins
 	  return NULL;
 	else return (*hit).second;    
      }
+
+   bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	std::string query = std::string(miscutil::lookup(parameters,"q"));
+	if (query[0] != ':')
+	  return false;
+	std::string qlang = query.substr(1,2); // : + 2 characters for the language.
+	
+	_in_query_command += query.substr(0,3);
+	
+	// check whether the language is known ! -> XXX: language table...
+	if (iso639::has_code(qlang.c_str()))
+	  {
+	     _auto_lang = qlang;
+	     errlog::log_error(LOG_LEVEL_INFO,"In-query language command detection: %s",_auto_lang.c_str());
+	     return true;
+	  }
+	else 
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO,"language code not found: %s",qlang.c_str());
+	     return false;
+	  }
+     }
+      
+   // static.
+   std::string query_context::detect_query_lang_http(const std::list<const char*> &http_headers)
+     {
+	std::list<const char*>::const_iterator sit = http_headers.begin();
+	while(sit!=http_headers.end())
+	  {
+	     if (miscutil::strncmpic((*sit),"accept-language:",16) == 0)
+	       {
+		  // detect language.
+		  std::string lang_head = (*sit);
+		  size_t pos = lang_head.find_first_of(" ");
+		  std::string lang_reg = lang_head.substr(pos+1,5);
+		  
+		  errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
+		  return lang_reg;
+	       }
+	     ++sit;
+	  }
+	return "en-US"; // beware, returning hardcoded default (since config value is most likely "auto").
+     }
+
+   void query_context::grab_useful_headers(const std::list<const char*> &http_headers)
+     {
+	std::list<const char*>::const_iterator sit = http_headers.begin();
+	while(sit!=http_headers.end())
+	  {
+	     // user-agent
+	     if (miscutil::strncmpic((*sit),"user-agent:",11) == 0)
+	       {
+		  const char *ua = strdup((*sit));
+		  _useful_http_headers.push_back(ua);
+	       }
+	     // XXX: other useful headers should be detected and stored here.
+	     ++sit;
+	  }
+     }
    
+   std::string query_context::lang_forced_region(const std::string &auto_lang)
+     {
+	// XXX: in-query language commands force the query language to the search engine.
+	// As such, we have to decide which region we attach to every of the most common
+	// language forced queries.
+	// Evidently, this is not a robust nor fast solution. Full support of locales etc... should
+	// appear in the future. As for now, this is a simple scheme for a simple need.
+	// Unsupported languages default to american english, that's how the world is right 
+	// now...
+	std::string region_lang = "en-US"; // default.
+	if (auto_lang == "en")
+	  {
+	  }
+	else if (auto_lang == "fr")
+	  region_lang = "fr-FR";
+	else if (auto_lang == "de")
+	  region_lang = "de-DE";
+	else if (auto_lang == "it")
+	  region_lang = "it-IT";
+	else if (auto_lang == "es")
+	  region_lang = "es-ES";
+	else if (auto_lang == "pt")
+	  region_lang = "es-PT"; // so long for Brazil (BR)...
+	else if (auto_lang == "nl")
+	  region_lang = "nl-NL";
+	else if (auto_lang == "ja")
+	  region_lang = "ja-JP";
+	else if (auto_lang == "no")
+	  region_lang = "no-NO";
+	else if (auto_lang == "pl")
+	  region_lang = "pl-PL";
+	else if (auto_lang == "ru")
+	  region_lang = "ru-RU";
+	else if (auto_lang == "ro")
+	  region_lang = "ro-RO";
+	else if (auto_lang == "sh")
+	  region_lang = "sh-RS"; // Serbia.
+	else if (auto_lang == "sl")
+	  region_lang = "sl-SL";
+	else if (auto_lang == "sk")
+	  region_lang = "sk-SK";
+	else if (auto_lang == "sv")
+	  region_lang = "sv-SE";
+	else if (auto_lang == "th")
+	  region_lang = "th-TH";
+	else if (auto_lang == "uk")
+	  region_lang = "uk-UA";
+	else if (auto_lang == "zh")
+	  region_lang = "zh-CN";
+	else if (auto_lang == "ko")
+	  region_lang = "ko-KR";
+	else if (auto_lang == "ar")
+	  region_lang = "ar-EG"; // Egypt, with _NO_ reasons. In most cases, the search engines will decide based on the 'ar' code.
+	else if (auto_lang == "be")
+	  region_lang = "be-BY";
+	else if (auto_lang == "bg")
+	  region_lang = "bg-BG";
+	else if (auto_lang == "bs")
+	  region_lang = "bs-BA";
+	else if (auto_lang == "cs")
+	  region_lang = "cs-CZ";
+	else if (auto_lang == "fi")
+	  region_lang = "fi-FI";
+	else if (auto_lang == "he")
+	  region_lang = "he-IL";
+	else if (auto_lang == "hi")
+	  region_lang = "hi-IN";
+	else if (auto_lang == "hr")
+	  region_lang = "hr-HR";
+	return region_lang;
+     }
+
+   std::string query_context::generate_lang_http_header() const
+     {
+	return "accept-language: " + _auto_lang + "," + _auto_lang_reg + ";q=0.5";
+     }
+   
+   void query_context::in_query_command_forced_region(std::string &auto_lang,
+						      std::string &region_lang)
+     {
+	region_lang = query_context::lang_forced_region(auto_lang);
+	if (region_lang == "en-US") // in case we are on the default language.
+	  auto_lang = "en";
+     }
+	
 } /* end of namespace. */

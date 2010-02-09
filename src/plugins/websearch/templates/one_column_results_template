@@ -1,0 +1,5 @@
+<div id="search_results">
+<ol>
+@search_snippets@
+</ol>
+</div>

@@ -1,15 +1,17 @@
 body {
 	width: 700px;
+	left: 0px;
+	position: absolute;
 }
 
 #main {
-	margin-top: 90px;
+	margin-top: 106px;
 }
 
 #search_bar {
 	position: fixed;
 	padding: 5px 10px 5px 20px;
-	top: 0px;
+	top: 16px;
 	left: 0px;
 	height: 90px;
 	width: 100%;
@@ -19,7 +21,7 @@ body {
 }
 
 #search_form {
-	margin-top : 8px;
+	margin-top: 8px;
 	width: 364px;
 	height: 47px;
 	background-image: url(/plugins/websearch/public/images/search_form.png);
@@ -56,8 +58,8 @@ body {
 }
 
 #search_results .search_snippet .preview {
-	width: 0px;
-	display: none;
+	# width: 0px;
+	# display: none;
 	float: left;
 	padding: 0px 7px 7px 0px;
 	margin-bottom: 30px;
@@ -168,7 +170,7 @@ body {
 
 #sort_urls {
         position: absolute;
-	left: 395px;
+	left: 546px;
 	top: 77px;
 	font-size: 90%;
 }
@@ -179,13 +181,24 @@ body {
 
 #sort_titles {
         position: absolute;
-        left: 480px;
+        left: 638px;
 	top: 77px;
         font-size: 90%;
 }
 
 #sort_titles a {
         font-weight: bold;
+}
+
+#sort_types {
+       position: absolute;
+       left: 678px;
+       top: 77px;
+       font-sizez: 90%;
+}
+
+#sort_types a {
+      font-weight: bold;
 }
 
 #cluster, #expansion {
@@ -196,10 +209,13 @@ body {
 
 #cluster {
 	margin-top: 5px;
-
 	width: 62px;
 	height: 60px;
 	left: 504px;
+}
+
+#search_results h2 {
+    color: gray;
 }
 
 .cluster_off, .cluster_on:hover {
@@ -208,6 +224,16 @@ body {
 
 .cluster_off:hover, .cluster_on {
 	background-image: url(/plugins/websearch/public/images/search_cluster_on.png);
+}
+
+.cluster_inactive {
+        background-image: url(/plugins/websearch/public/images/search_cluster_inactive.png);
+}
+
+.clustered .cluster {
+	border: 1px solid gray;
+	padding: 8px;
+	margin-bottom: 10px;
 }
 
 #expansion {

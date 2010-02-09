@@ -30,7 +30,9 @@
 #include "se_parser_ggle.h"
 #include "se_parser_cuil.h"
 #include "se_parser_bing.h"
+#include "se_parser_yahoo.h"
 
+#include <cctype>
 #include <pthread.h>
 #include <algorithm>
 #include <iterator>
@@ -63,14 +65,14 @@ namespace seeks_plugins
      }
    
    void se_ggle::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     std::string &url)
+			     std::string &url, const query_context *qc)
      {
 	std::string q_ggle = se_handler::_se_strings[0]; // query to ggle.
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
 	int p = 31;
-	q_ggle.replace(p,6,std::string(query));
+	q_ggle.replace(p,6,se_handler::no_command_query(std::string(query)));
 	
 	// expansion = result page called...
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -80,8 +82,6 @@ namespace seeks_plugins
 	
 	// number of results.
 	int num = websearch::_wconfig->_N; // by default.
-	/* if (pp == 0)
-	  num *= se_handler::_results_lookahead_factor; */ 
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_ggle,"%num",num_str);
 	
@@ -89,10 +89,9 @@ namespace seeks_plugins
 	miscutil::replace_in_string(q_ggle,"%encoding","utf-8");
 	
 	// language.
-	miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
-	
-	// client version. TODO: grab parameter from http request ?
-	miscutil::replace_in_string(q_ggle,"%client","firefox-a"); // beware: may use something else, seeks-a.
+	if (websearch::_wconfig->_lang == "auto")
+	  miscutil::replace_in_string(q_ggle,"%lang",qc->_auto_lang);
+	else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
 	
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying ggle: %s", q_ggle.c_str());
@@ -110,14 +109,14 @@ namespace seeks_plugins
      }
       
    void se_bing::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     std::string &url)
+			     std::string &url, const query_context *qc)
      {
 	std::string q_bing = se_handler::_se_strings[2]; // query to bing.
 	const char *query = miscutil::lookup(parameters,"q");
 	        
 	// query.
 	int p = 29;
-	q_bing.replace(p,6,std::string(query));
+	q_bing.replace(p,6,se_handler::no_command_query(std::string(query)));
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -129,12 +128,8 @@ namespace seeks_plugins
 	// can't figure out what argument to pass to Bing. Seems only feasible through cookies (losers).
 		
 	// language.
-	// TODO: translation table.
-	if (websearch::_wconfig->_lang == "en")
-	  miscutil::replace_in_string(q_bing,"%lang","en-US");
-	else if (websearch::_wconfig->_lang == "fr")
-	  miscutil::replace_in_string(q_bing,"%lang","fr-FR");
-	
+	miscutil::replace_in_string(q_bing,"%lang",qc->_auto_lang_reg);
+		
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying bing: %s", q_bing.c_str());
 	
@@ -151,17 +146,17 @@ namespace seeks_plugins
      }
    
    void se_cuil::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     std::string &url)
+			     std::string &url, const query_context *qc)
      {
 	std::string q_cuil = se_handler::_se_strings[1];
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
 	int p = 29;
-	q_cuil.replace(p,6,std::string(query));
+	q_cuil.replace(p,6,se_handler::no_command_query(std::string(query)));
 
-	// language.
-	miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
+	// language detection is done through headers.
+	//miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
 
 	// expansion + hack for getting Cuil's next pages.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -179,21 +174,60 @@ namespace seeks_plugins
 	errlog::log_error(LOG_LEVEL_INFO, "Querying cuil: %s", q_cuil.c_str());
 	url = q_cuil;
      }
+
+   se_yahoo::se_yahoo()
+     : search_engine()
+       {
+       }
    
+   se_yahoo::~se_yahoo()
+     {
+     }
+  
+   void se_yahoo::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			      std::string &url, const query_context *qc)
+     {
+	std::string q_yahoo = se_handler::_se_strings[3];
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// page.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp =  (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	if (pp>1) pp++;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
+	
+	// language, in yahoo is obtained by hitting the regional server.
+	std::string reg = qc->_auto_lang_reg.substr(3,2);
+	std::transform(reg.begin(),reg.end(),reg.begin(),tolower);
+	miscutil::replace_in_string(q_yahoo,"%lang",reg);
+	
+	// query (don't move it, depends on domain name, which is language dependent).
+	miscutil::replace_in_string(q_yahoo,"%query",se_handler::no_command_query(std::string(query)));
+	
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_yahoo.c_str());
+	
+	url = q_yahoo;
+     }
+      
    /*- se_handler. -*/
    std::string se_handler::_se_strings[NSEs] =
     {
       // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
-      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding&client=%client",
+      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
-      "http://www.cuil.com/search?q=%query&lang=%lang",
+      "http://www.cuil.com/search?q=%query",
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
-      "http://www.bing.com/search?q=%query&first=%start&mkt=%lang"
+      "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
+      // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
+      "http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
     };
 
    se_ggle se_handler::_ggle = se_ggle();
    se_cuil se_handler::_cuil = se_cuil();
    se_bing se_handler::_bing = se_bing();
+   se_yahoo se_handler::_yahoo = se_yahoo();
    
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
@@ -202,6 +236,25 @@ namespace seeks_plugins
 	const char *q = "q";
 	const char *query = miscutil::lookup(parameters,q);
 	std::string query_str = std::string(query);
+	
+	// known query.
+	const char *query_known = miscutil::lookup(parameters,"qknown");
+	
+	// if the current query is the same as before, let's apply the current language to it
+	// (i.e. the in-query language command, if any).
+	if (query_known)
+	  {
+	     std::string query_known_str = std::string(query_known);
+	     if (query_known_str != query_str)
+	       {
+		  // look for in-query commands.
+		  std::string no_command_query = se_handler::no_command_query(query_known_str);
+		  if (no_command_query == query_str)
+		    query_str = query_known_str; // replace query with query + in-query command.
+	       }
+	  }
+		
+	// clean up the 'pluses'.
 	miscutil::replace_in_string(query_str," ","+");
 	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
 	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
@@ -211,13 +264,14 @@ namespace seeks_plugins
    // could be moved elsewhere...
    std::string se_handler::cleanup_query(const std::string &oquery)
      {
-	// non interpreted '+' should be deduced.
 	std::string cquery = oquery;
+	
+	// non interpreted '+' should be deduced.
 	size_t end_pos = cquery.size()-1;
 	size_t pos = 0;
 	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
 	  {
-	     // TODO: this is buggy in certain cases, such as "x++" in quotes.
+	     // XXX: this is buggy in certain cases, such as "x++" in quotes.
 	     if (pos != end_pos)
 	       cquery.replace(pos,1," ");
 	     while(cquery[--pos] == '+') // deal with multiple pluses.
@@ -228,36 +282,47 @@ namespace seeks_plugins
 	return cquery;
      }
    
+   std::string se_handler::no_command_query(const std::string &oquery)
+     {
+	std::string cquery = oquery;
+	// remove any command from the query.
+	if (cquery[0] == ':')
+	  cquery = cquery.substr(4);
+	return cquery;
+     }
+      
   /*-- queries to the search engines. */  
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults)
+					  int &nresults, const query_context *qc)
   {
     std::vector<std::string> urls;
-    
+    std::vector<std::list<const char*>*> headers;
+     
     // config, enabling of SEs.
     for (int i=0;i<NSEs;i++)
       {
 	 if (websearch::_wconfig->_se_enabled[i])
 	  {
-	    std::string url;
-	    se_handler::query_to_se(parameters,(SE)i,url);
-	    urls.push_back(url);
+	     std::string url;
+	     std::list<const char*> *lheaders = NULL;
+	     se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
+	     urls.push_back(url);
+	     headers.push_back(lheaders);
 	  }
       }
     
-    if (urls.empty())
-      {
-	nresults = 0;
-	return NULL; // beware.
-      }
-    else nresults = urls.size();
+     if (urls.empty())
+       {
+	  nresults = 0;
+	  return NULL; // beware.
+       }
+     else nresults = urls.size();
     
-    // get content.
+     // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		   websearch::_wconfig->_se_connect_timeout,0);
-     cmg.www_mget(urls,urls.size(),false); // don't go through the proxy, or will loop til death!
+     cmg.www_mget(urls,urls.size(),&headers,false); // don't go through the proxy, or will loop til death!
     
-     //char **outputs = (char**)malloc(urls.size()*sizeof(char*));
      std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;
      for (size_t i=0;i<urls.size();i++)
@@ -268,6 +333,13 @@ namespace seeks_plugins
 	       outputs[i] = cmg._outputs[i];
 	       have_outputs = true;
 	    }
+     
+	  // delete headers, if any.
+	  if (headers.at(i))
+	    {
+	       miscutil::list_remove_all(headers.at(i));
+	       delete headers.at(i);
+	    }
        }
      
      if (!have_outputs)
@@ -275,29 +347,31 @@ namespace seeks_plugins
 	  delete[] outputs;
 	  outputs = NULL;
        }
-     
-     /* std::cout << "outputs:\n";
-      std::cout << outputs[0] << std::endl; */
-    
+          
     return outputs;
   }
    
   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			       const SE &se, std::string &url)
+			       const SE &se, std::string &url, const query_context *qc,
+			       std::list<const char*> *&lheaders)
   {
      switch(se)
       {
       case GOOGLE:
-	 _ggle.query_to_se(parameters,url);
+	 _ggle.query_to_se(parameters,url,qc);
 	 break;
       case CUIL:
-	 _cuil.query_to_se(parameters,url);
+	 _cuil.query_to_se(parameters,url,qc);
+	 lheaders = new std::list<const char*>();
+	 lheaders->push_back(strdup(qc->generate_lang_http_header().c_str()));
 	break;
       case BING:
-	 _bing.query_to_se(parameters,url);
-	break;
+	 _bing.query_to_se(parameters,url,qc);
+       break;
+      case YAHOO:
+	 _yahoo.query_to_se(parameters,url,qc);
+       break;
       }
-
   }
    
   /*-- parsing. --*/
@@ -390,9 +464,13 @@ namespace seeks_plugins
 	se_parser *se = se_handler::create_se_parser(args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
-	// link the snippets to the query context.
+	// link the snippets to the query context
+	// and post-process them.
 	for (size_t i=0;i<args._snippets->size();i++)
-	  args._snippets->at(i)->_qc = args._qr;
+	  {
+	     args._snippets->at(i)->_qc = args._qr;
+	     args._snippets->at(i)->tag();
+	  }
 	
 	// hack for cuil.
 	if (args._se == CUIL)
@@ -407,7 +485,7 @@ namespace seeks_plugins
 		  ++hit;
 	       }
 	  }
-	// hack
+	// hack for getting stuff out of ggle.
 	else if (args._se == GOOGLE)
 	  {
 	     // get more stuff from the parser.
@@ -416,7 +494,6 @@ namespace seeks_plugins
 	     if (!se_p_ggle->_suggestion.empty())
 	       args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
 	  }
-		
 	delete se;
      }
    
@@ -433,6 +510,9 @@ namespace seeks_plugins
 	break;
       case BING:
 	sep = new se_parser_bing();
+	break;
+      case YAHOO:
+        sep = new se_parser_yahoo();
 	break;
       }
     return sep;

@@ -40,8 +40,20 @@ namespace seeks_plugins
    class query_context : public sweepable
      {
       public:
-	query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	/**
+	 * \brief Dummy constructor. Testing purposes.
+	 */
+	query_context();
 	
+	/**
+	 * \brief Constructor.
+	 */
+	query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+		      const std::list<const char*> &http_headers);
+	
+	/**
+	 * \brief destructor.
+	 */
 	virtual ~query_context();
      
 	/**
@@ -78,6 +90,11 @@ namespace seeks_plugins
 	 * update last time of use.
 	 */
 	void update_last_time();
+	
+	/**
+	 * sorts query words so that this context is query word order independent.
+	 */
+	static std::string sort_query(const std::string &query);
 	
 	/**
 	 * \brief query hashing, based on mrf in lsh.
@@ -124,6 +141,38 @@ namespace seeks_plugins
 	 */
 	search_snippet* get_cached_snippet_title(const char *title);
 
+	/**
+	 * \brief detect query language from the query special keywords, :en, :fr, ...
+	 * @return true if the language could be detected that way, false otherwise.
+	 */
+	bool detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
+	/**
+	 * \brief detect query language, using http headers.
+	 */
+	static std::string detect_query_lang_http(const std::list<const char*> &http_headers);
+	
+	/**
+	 * \brief grab useful HTTP headers from the client.
+	 */
+	void grab_useful_headers(const std::list<const char*> &http_headers);
+
+	/**
+	 * \brief conversion to forced region, from language.
+	 */
+	static std::string lang_forced_region(const std::string &auto_lang);
+	
+	/**
+	 * \brief force regions.
+	 */
+	static void in_query_command_forced_region(std::string &auto_lang,
+						   std::string &region_lang);
+	
+	/**
+	 * \brief generates the HTTP language header.
+	 */
+	std::string generate_lang_http_header() const;
+	
       public:
 	std::string _query;
 	uint32_t _query_hash;
@@ -155,6 +204,16 @@ namespace seeks_plugins
 
 	/* tfidf feature computation flag. */
 	bool _compute_tfidf_features;
+
+	/* automatic language detection. */
+	std::string _auto_lang; // lang, e.g. en.
+	std::string _auto_lang_reg; // lang-region, e.g. en-US.
+	
+	/* other HTTP headers, useful when interrogating search engines. */
+	std::list<const char*> _useful_http_headers;
+		
+	/* in-query command. */
+	std::string _in_query_command;
      };
       
 } /* end of namespace. */

@@ -76,9 +76,9 @@ namespace sp
 	void compile_patterns(const std::vector<std::string> &patterns,
 			      std::vector<url_spec*> &c_patterns);
 	
-	int load_pattern_file();
-	int load_code_file();
-	int reload();
+	sp_err load_pattern_file();
+	sp_err load_code_file();
+	sp_err reload();
 	
 	virtual char* print() { return (char*)""; };
 	

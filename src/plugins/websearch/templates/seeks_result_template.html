@@ -2,47 +2,64 @@
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <title>qclean - Seeks Search</title>
-<link rel="search" href="/plugins/websearch/public/opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
-<link rel="stylesheet" href="/public/yui/3.0.0/cssreset/reset-min.css" type="text/css">
-<link rel="stylesheet" href="/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css">
-<link rel="stylesheet" href="/public/css/base.css" type="text/css" />
-<link rel="stylesheet" href="/plugins/websearch/public/css/seeks_search.css" type="text/css">
+<link rel="search" href="@base-url@/plugins/websearch/public/opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssreset/reset-min.css" type="text/css">
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css">
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css">
+<link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
+<link rel="stylesheet" href="seeks_search.css" type="text/css">
 <link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
 </head>
 
 <body>
 
+#include info-head
+
 <div id="search_bar">
-<form method="GET" action="/search" id="search_form">
+<form method="GET" action="@base-url@/search" id="search_form">
 <input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
+<input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
-<a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=clusterize&clusters=xxnclust" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- @if-have-clustering-start -->
+<a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=clusterize&clusters=xxnclust" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- if-have-clustering-end@ -->
+<!-- @if-not-have-clustering-start -->
+<a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
+<!-- if-not-have-clustering-end@ -->
 
+<!-- @if-have-one-column-results-head-start -->
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
+<!-- if-have-one-column-results-head-end@ -->
+<!-- @if-have-clustered-results-head-start -->
+<div id="search_pages"><a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=expand" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<!-- if-have-clustered-results-head-end@ -->
 
 <a id="search_home" title="Home (ctrl+h)" href="/websearch-hp/">&nbsp;</a>
 
 <div id="search_sugg">xxsugg</div>
-<div id="sort_urls">Sort by <a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=urls" title="Sort by urls">urls</a></div>
-<div id="sort_titles"><a href="http://s.s/search?q=qclean&page=xxpage&expansion=xxexp&action=titles" title="Sort by titles">titles</a></div>
+<div id="sort_urls">Group by <a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=urls" title="Group by urls">urls</a></div>
+<div id="sort_titles"><a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=titles" title="Group by titles">titles</a></div>
+<div id="sort_types"><a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=types" title="Group by types">types</a></div>
 
 <!-- <a href="http://s.s/advanced_search?q=fullquery">Advanced seeks</a> -->
 </div>
 
 <div id="main">
-<div id="search_results">
-<ol>
-@search_snippets@
-</ol>
-</div>
+<!-- @if-have-one-column-results-start -->
+#include websearch/templates/one_column_results_template
+<!-- if-have-one-column-results-end@ -->
+<!-- @if-have-clustered-results-start -->
+#include websearch/templates/clustered_results_template
+<!-- if-have-clustered-results-end@ -->
 
-<script type="text/javascript" src="/public/yui/3.0.0/yui/yui-min.js"></script>
+<!-- @if-websearch-have-js-start -->
+<script type="text/javascript" src="@base-url@/public/yui/3.0.0/yui/yui-min.js"></script>
 <script type="text/javascript">
 
 // Shortcut for search, ctrl+s
@@ -66,16 +83,18 @@ YUI().use('event-key', function(Y) {
 // Shortcut for clustering, ctrl+c
 YUI().use('event-key', function(Y) {
     var handle = Y.on('key', function(e) {
-        e.halt();
-        document.location = Y.one('#cluster').getAttribute('href');
+    e.halt();
+    document.location = Y.one('#cluster').getAttribute('href');
     }, document, 'press:99+ctrl');
+
 
 });
 
+
 // Shortcut for previous page, ctrl+<
-YUI().use('event-key', function(Y) {
+YUI().use('event-key', function(Y) { 
     var handle = Y.on('key', function(e) {
-        e.halt();
+        e.halt();                    
         document.location = Y.one('#search_page_prev').getAttribute('href');
     }, document, 'press:37+ctrl');
 
@@ -100,5 +119,7 @@ YUI().use('event-key', function(Y) {
 });
 
 </script>
+<!-- if-websearch-have-js-end@ -->
+
 </div> 
 </body></html>

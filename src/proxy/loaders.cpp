@@ -538,4 +538,81 @@ char* loaders::read_config_line(char *buf, size_t buflen, FILE *fp, unsigned lon
    }
 }
 
+/*********************************************************************
+ *
+ * Function    :  load_pattern_file
+ *
+ * Description :  Read a pattern file, removing comments, compiling
+ *                and loading up the patterns into two sets (positive
+ *                and negative).
+ *
+ * Parameters  :
+ *          1  :  pattern_filename = pattern file name.
+ *          2  :  pos_patterns = vector of positive patterns.
+ *          3  :  neg_patterns = vector of negative patterns.
+ *
+ * Returns     :  SP_ERR_FILE on EOF or error
+ *                Otherwise, returns SP_ERR_OK.
+ *
+ *********************************************************************/  
+sp_err loaders::load_pattern_file(const char *pattern_filename,
+				  std::vector<url_spec*> &pos_patterns,
+				  std::vector<url_spec*> &neg_patterns)
+{     
+   if (!pattern_filename)
+     return SP_ERR_FILE;
+	
+   // open file.
+   FILE *fp;
+   if ((fp = fopen(pattern_filename,"r")) == NULL)
+     {
+	errlog::log_error(LOG_LEVEL_ERROR, "can't load pattern file '%s': error opening file: %E",
+			  pattern_filename);
+	return SP_ERR_FILE;   // we're done, this plugin will very probably be of no use.
+     }
+   
+   // - read patterns.
+   bool positive = true;  // positive pattern is default.
+   unsigned long linenum = 0;
+   char  buf[BUFFER_SIZE];
+   while(loaders::read_config_line(buf, sizeof(buf), fp, &linenum) != NULL)
+     {
+	if (buf[0] == '+')
+	  {
+	     positive = true;
+	     continue;
+	  }
+	if (buf[0] == '-')
+	  {
+	     positive = false;
+	     continue;
+	  }
+	
+	// - compile them.
+	url_spec *usp = NULL;
+	sp_err err = url_spec::create_url_spec(usp,buf);
+	if (err != SP_ERR_OK)
+	  {
+	     // signal and skip bad pattern.
+	     errlog::log_error(LOG_LEVEL_ERROR,
+			       "cannot create URL pattern from: %s", buf);
+	  }
+	
+	// - store them.
+	else
+	  {
+	     if (positive)
+	       {
+		  pos_patterns.push_back(usp);
+	       }
+	     else
+	       {
+		  neg_patterns.push_back(usp);
+	       }
+	  }
+     }
+   fclose(fp);
+   return SP_ERR_OK;	
+}
+   
 } /* end of namespace. */

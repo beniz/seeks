@@ -21,6 +21,7 @@
 #define SORT_RANK_H
 
 #include "search_snippet.h"
+#include "clustering.h" // cluster.
 
 namespace seeks_plugins
 {
@@ -39,10 +40,7 @@ namespace seeks_plugins
 						 search_snippet *&ref_sp,
 						 std::vector<search_snippet*> &sorted_snippets);
 	
-	// advanced sorting, based on webpages content.
-	//static void retrieve_and_score(query_context *qc);
-	
-	
+	static void group_by_types(query_context *qc, cluster *&clusters, short &K);
      };
    
 } /* end of namespace. */

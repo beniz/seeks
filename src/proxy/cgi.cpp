@@ -1672,7 +1672,7 @@ http_response* cgi::finish_http_response(const client_state *csp, http_response 
  *                               template text.
  *          3  :  templatename = name of the HTML template to be used
  *          4  :  recursive = Flag set if this function calls itself
- *                            following an #include statament
+ *                            following an #include statement
  *
  * Returns     :  SP_ERR_OK on success
  *                SP_ERR_MEMORY on out-of-memory error.
@@ -1756,7 +1756,8 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
    /* Open template file */
    if (NULL == (fp = fopen(full_path, "r")))
      {
-	errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path);
+	if (!recursive)
+	  errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path);
 	freez(full_path);
 	freez(file_buffer);
 	return SP_ERR_FILE;
@@ -1787,6 +1788,7 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
 							     csp->_config->_templdir,
 							     1)))
 		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Cannot open included template file %s: %E", full_path);
 		       freez(file_buffer);
 		       fclose(fp);
 		       return err;
@@ -1803,10 +1805,13 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
 	     continue;
 	  }
 	
-	/* skip lines starting with '#' */
-	if (*buf == '#')
+	/* skip lines starting with '#' for certain file types */
+	if (csp->_content_type != CT_CSS) // other types with # comments come here.
 	  {
-	     continue;
+	     if (*buf == '#')
+	       {
+		  continue;
+	       }
 	  }
 	
 	if (miscutil::string_append(&file_buffer, buf))
@@ -1957,8 +1962,6 @@ sp_err cgi::template_fill(char **template_ptr,
    return SP_ERR_OK;
 }
 
-
-   
 sp_err cgi::template_fill_str(char **template_ptr,
 			      const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
 {     
@@ -2105,6 +2108,7 @@ hash_map<const char*,const char*,hash<const char*>,eqstr>* cgi::default_exports(
      }
    
    err = miscutil::add_map_entry(exports, "version", 1, encode::html_encode(VERSION), 0);
+   if (!err) err = miscutil::add_map_entry(exports, "package-version", 1, encode::html_encode(PACKAGE_VERSION), 0);
    cgi::get_locale_time(buf, sizeof(buf));
    if (!err) err = miscutil::add_map_entry(exports, "time",          1, encode::html_encode(buf), 0);
    if (!err) err = miscutil::add_map_entry(exports, "my-ip-address", 1, 

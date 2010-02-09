@@ -46,7 +46,7 @@ namespace seeks_plugins
    uint32_t feature_tfidf_thread_arg::_window_length=1;
    
    std::string** content_handler::fetch_snippets_content(const std::vector<std::string> &urls,
-							 const bool &proxy)
+							 const bool &proxy, const query_context *qc)
      {
 	// just in case.
 	if (urls.empty())
@@ -55,7 +55,7 @@ namespace seeks_plugins
 	// fetch content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
 		      websearch::_wconfig->_ct_transfer_timeout,0);
-	cmg.www_mget(urls,urls.size(),proxy);
+	cmg.www_mget(urls,urls.size(),NULL,proxy);
 	
 	std::string **outputs = new std::string*[urls.size()];
 	int k = 0;
@@ -103,13 +103,16 @@ namespace seeks_plugins
 	  {
 	     search_snippet *sp = qc->_cached_snippets.at(i);
 	     if (sp->_cached_content)
-	       continue;
+	       {
+		  std::cerr << "[Debug]: already in cache: " << sp->_url << std::endl;
+		  continue;
+	       }
 	     urls.push_back(sp->_url);
 	     snippets.push_back(sp);
 	  }
 	
 	// fetch content.
-	std::string **outputs = content_handler::fetch_snippets_content(urls,true);
+	std::string **outputs = content_handler::fetch_snippets_content(urls,true,qc);
 	if (!outputs)
 	  return;
 	
@@ -225,7 +228,6 @@ namespace seeks_plugins
 	  {
 	     hash_map<uint32_t,float,id_hash_uint> *vf = sps[i]->_features_tfidf;
 	     hash_map<uint32_t,std::string,id_hash_uint> *bow = sps[i]->_bag_of_words;
-	     //if (qc->_compute_tfidf_features && vf)
 	     if (vf)
 	       {
 		  delete sps[i]->_features_tfidf;
@@ -242,7 +244,8 @@ namespace seeks_plugins
 	       {
 		  vf = new hash_map<uint32_t,float,id_hash_uint>();
 		  bow = new hash_map<uint32_t,std::string,id_hash_uint>();
-		  feature_tfidf_thread_arg *args = new feature_tfidf_thread_arg(txt_contents[i],vf,bow);
+		  feature_tfidf_thread_arg *args = new feature_tfidf_thread_arg(txt_contents[i],vf,
+										bow,qc->_auto_lang);
 		  feature_args[i] = args;
 		  
 		  pthread_t f_thread;
@@ -343,7 +346,7 @@ namespace seeks_plugins
      {
 	mrf::tokenize_and_mrf_features(*args._txt_content,feature_tfidf_thread_arg::_delims,*args._vf,args._bow,
 				       feature_tfidf_thread_arg::_radius,feature_tfidf_thread_arg::_step,
-				       feature_tfidf_thread_arg::_window_length);
+				       feature_tfidf_thread_arg::_window_length,args._lang);
      }
    
    void content_handler::feature_based_similarity_scoring(query_context *qc,
@@ -396,7 +399,7 @@ namespace seeks_plugins
 	if (!content1 && !content2)
 	  {
 	     urls.push_back(url1); urls.push_back(url2);
-	     outputs = content_handler::fetch_snippets_content(urls,true);
+	     outputs = content_handler::fetch_snippets_content(urls,true,qc);
 	     if (outputs)
 	       {
 		  sp1->_cached_content = outputs[0];
@@ -407,7 +410,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url1);
-	     std::string **output1 = content_handler::fetch_snippets_content(urls,true);
+	     std::string **output1 = content_handler::fetch_snippets_content(urls,true,qc);
 	     
 	     if (output1)
 	       {
@@ -422,7 +425,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url2);
-	     std::string **output2 = content_handler::fetch_snippets_content(urls,true);
+	     std::string **output2 = content_handler::fetch_snippets_content(urls,true,qc);
 	     outputs[0] = content1;
 	     if (output2)
 	       {
