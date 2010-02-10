@@ -62,9 +62,6 @@ namespace seeks_plugins
 		  pc->_snippets->push_back(pc->_current_snippet);
 	       }
 	  }
-	/* else if (_begin_results && strcasecmp(tag,"li") == 0)
-	  {
-	  } */
 	else if (_start_results && strcasecmp(tag,"ol") == 0)
 	  {
 	     _begin_results = true;
@@ -81,8 +78,13 @@ namespace seeks_plugins
 	       {
 		  if (_title_flag && pc->_current_snippet)
 		    {
-		       pc->_current_snippet->set_url(a_link);
-		       pc->_current_snippet->_cite = std::string(a_link);
+		       std::string url_str = std::string(a_link);
+		       size_t pos = 0;
+		       if ((pos = url_str.find("rds.yahoo.com"))!=std::string::npos)
+			 if ((pos = url_str.find("/**",pos))!=std::string::npos)
+			   url_str = url_str.substr(pos+3);
+		       pc->_current_snippet->set_url(url_str);
+		       pc->_current_snippet->_cite = url_str;
 		    }
 		  else if (_begin_results && pc->_current_snippet)
 		    pc->_current_snippet->_cached = std::string(a_link);

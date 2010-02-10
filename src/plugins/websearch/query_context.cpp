@@ -342,7 +342,7 @@ namespace seeks_plugins
 		  // detect language.
 		  std::string lang_head = (*sit);
 		  size_t pos = lang_head.find_first_of(" ");
-		  if (pos != std::string::npos && pos+6<=lang_head.length() && lang_head[pos+1] == '-')
+		  if (pos != std::string::npos && pos+6<=lang_head.length() && lang_head[pos+3] == '-')
 		    {
 		       std::string lang_reg = lang_head.substr(pos+1,5);
 		       errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
@@ -371,6 +371,18 @@ namespace seeks_plugins
 	       {
 		  const char *ua = strdup((*sit));
 		  _useful_http_headers.push_back(ua);
+	       }
+	     else if (miscutil::strncmpic((*sit),"accept-charset:",15) == 0)
+	       {
+		  const char *ac = strdup((*sit));
+		  /* std::string ac_str = "accept-charset: utf-8";
+		  const char *ac = strdup(ac_str.c_str()); */
+		  _useful_http_headers.push_back(ac);
+	       }
+	     else if (miscutil::strncmpic((*sit),"accept:",7) == 0)
+	       {
+		  const char *aa = strdup((*sit));
+		  _useful_http_headers.push_back(aa);
 	       }
 	     // XXX: other useful headers should be detected and stored here.
 	     ++sit;

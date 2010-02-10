@@ -198,9 +198,10 @@ namespace seeks_plugins
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
 	
 	// language, in yahoo is obtained by hitting the regional server.
-	std::string reg = qc->_auto_lang_reg.substr(3,2);
+	/* std::string reg = qc->_auto_lang_reg.substr(3,2);
 	std::transform(reg.begin(),reg.end(),reg.begin(),tolower);
-	miscutil::replace_in_string(q_yahoo,"%lang",reg);
+	miscutil::replace_in_string(q_yahoo,"%lang",reg);*/
+	miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 	
 	// query (don't move it, depends on domain name, which is language dependent).
 	miscutil::replace_in_string(q_yahoo,"%query",se_handler::no_command_query(std::string(query)));
@@ -221,7 +222,8 @@ namespace seeks_plugins
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
       // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
-      "http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
+      //"http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
+      "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs="
     };
 
    se_ggle se_handler::_ggle = se_ggle();
@@ -355,6 +357,16 @@ namespace seeks_plugins
 			       const SE &se, std::string &url, const query_context *qc,
 			       std::list<const char*> *&lheaders)
   {
+     lheaders = new std::list<const char*>();
+     
+     /* pass the user-agent header. */
+     std::list<const char*>::const_iterator sit = qc->_useful_http_headers.begin();
+     while(sit!=qc->_useful_http_headers.end())
+       {
+	  lheaders->push_back(strdup((*sit)));
+	  ++sit;
+       }
+          
      switch(se)
       {
       case GOOGLE:
@@ -362,7 +374,6 @@ namespace seeks_plugins
 	 break;
       case CUIL:
 	 _cuil.query_to_se(parameters,url,qc);
-	 lheaders = new std::list<const char*>();
 	 lheaders->push_back(strdup(qc->generate_lang_http_header().c_str()));
 	break;
       case BING:
@@ -370,7 +381,7 @@ namespace seeks_plugins
        break;
       case YAHOO:
 	 _yahoo.query_to_se(parameters,url,qc);
-       break;
+	 break;
       }
   }
    
