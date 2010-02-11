@@ -85,13 +85,6 @@ namespace seeks_plugins
        
 	_unordered_snippets.clear();
 	
-	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit
-	  = _unordered_snippets_title.begin();
-	while(hit!=_unordered_snippets_title.end())
-	  {
-	     free_const((*hit).first);
-	     ++hit;
-	  }
 	_unordered_snippets_title.clear();
 	
 	search_snippet::delete_snippets(_cached_snippets);
