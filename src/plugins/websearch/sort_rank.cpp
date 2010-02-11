@@ -22,6 +22,7 @@
 #include "content_handler.h"
 #include "urlmatch.h"
 
+#include <ctype.h>
 #include <algorithm>
 #include <iterator>
 #include <map>
@@ -85,10 +86,13 @@ namespace seeks_plugins
 		  else if (websearch::_wconfig->_content_analysis)
 		    {
 		       // grab nearest neighbors out of the LSH uniform hashtable.
+		       std::string surl = urlmatch::strip_url(sp->_url);
 		       std::map<double,const std::string,std::greater<double> > mres
-			 = qc->_ulsh_ham->getLEltsWithProbabilities(sp->_url,qc->_lsh_ham->_L); // url. we could treat host & path independently...
+			 = qc->_ulsh_ham->getLEltsWithProbabilities(surl,qc->_lsh_ham->_L); // url. we could treat host & path independently...
+		       std::string lctitle = sp->_title;
+		       std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
 		       std::map<double,const std::string,std::greater<double> > mres_tmp
-			 = qc->_ulsh_ham->getLEltsWithProbabilities(sp->_title,qc->_lsh_ham->_L); // title.
+			 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_L); // title.
 		       std::map<double,const std::string,std::greater<double> >::const_iterator mit = mres_tmp.begin();
 		       while(mit!=mres_tmp.end())
 			 {
@@ -140,8 +144,11 @@ namespace seeks_plugins
 		  // lsh.
 		  if (websearch::_wconfig->_content_analysis)
 		    {
-		       qc->_ulsh_ham->add(sp->_url,qc->_lsh_ham->_L);
-		       qc->_ulsh_ham->add(sp->_title,qc->_lsh_ham->_L);
+		       std::string surl = urlmatch::strip_url(sp->_url);
+		       qc->_ulsh_ham->add(surl,qc->_lsh_ham->_L);
+		       std::string lctitle = sp->_title;
+		       std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+		       qc->_ulsh_ham->add(lctitle,qc->_lsh_ham->_L);
 		    }
 		  
 	       } // end if new.

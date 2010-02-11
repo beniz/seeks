@@ -138,8 +138,9 @@ namespace seeks_plugins
 	
 	/**
 	 * \brief returns a cached snippet if it knows it, NULL otherwise.
+	 * @param lctitle lower-case title.
 	 */
-	search_snippet* get_cached_snippet_title(const char *title);
+	search_snippet* get_cached_snippet_title(const char *lctitle);
 
 	/**
 	 * \brief detect query language from the query special keywords, :en, :fr, ...

@@ -84,6 +84,14 @@ namespace seeks_plugins
 	unregister(); // unregister from websearch plugin.
        
 	_unordered_snippets.clear();
+	
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit
+	  = _unordered_snippets_title.begin();
+	while(hit!=_unordered_snippets_title.end())
+	  {
+	     free_const((*hit).first);
+	     ++hit;
+	  }
 	_unordered_snippets_title.clear();
 	
 	search_snippet::delete_snippets(_cached_snippets);
@@ -295,18 +303,20 @@ namespace seeks_plugins
       
    void query_context::add_to_unordered_cache_title(search_snippet *sr)
      {
+	std::string lctitle = sr->_title;
+	std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
 	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	if ((hit=_unordered_snippets_title.find(sr->_title.c_str()))!=_unordered_snippets_title.end())
+	if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
 	  {
 	     // do nothing.
 	  }
-	else _unordered_snippets_title.insert(std::pair<const char*,search_snippet*>(sr->_title.c_str(),sr));
+	else _unordered_snippets_title.insert(std::pair<const char*,search_snippet*>(strdup(lctitle.c_str()),sr));
      }
 			     
-   search_snippet* query_context::get_cached_snippet_title(const char *title)
+   search_snippet* query_context::get_cached_snippet_title(const char *lctitle)
      {
 	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
-	if ((hit = _unordered_snippets_title.find(title))==_unordered_snippets_title.end())
+	if ((hit = _unordered_snippets_title.find(lctitle))==_unordered_snippets_title.end())
 	  return NULL;
 	else return (*hit).second;    
      }

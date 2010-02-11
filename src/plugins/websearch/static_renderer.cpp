@@ -24,11 +24,13 @@
 #include "cgisimple.h"
 #include "miscutil.h"
 #include "encode.h"
+#include "urlmatch.h"
 #include "proxy_configuration.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <iostream>
 #include <algorithm>
 
@@ -38,6 +40,7 @@ using sp::cgisimple;
 using sp::plugin_manager;
 using sp::cgi_dispatcher;
 using sp::encode;
+using sp::urlmatch;
 using sp::proxy_configuration;
 using sp::seeks_proxy;
 using sp::errlog;
@@ -470,11 +473,18 @@ namespace seeks_plugins
 	  {
 	     search_snippet *sp = qc->_cached_snippets.at(i);
 	     if (mode == 0)
-	       ulsh_ham.add(sp->_url,lsh_ham->_L);
+	       {
+		  std::string surl = urlmatch::strip_url(sp->_url);
+		  ulsh_ham.add(surl,lsh_ham->_L);
+	       }
 	     else if (mode == 1)
-	       ulsh_ham.add(sp->_title,lsh_ham->_L);
+	       {
+		  std::string lctitle = sp->_title;
+		  std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+		  ulsh_ham.add(lctitle,lsh_ham->_L);
+	       }
 	  }
-		
+			
 	int k=nsnippets;
 	for (size_t i=0;i<nsnippets;i++)
 	  {
@@ -494,9 +504,16 @@ namespace seeks_plugins
 	      */
 	     std::map<double,const std::string,std::greater<double> > mres;
 	     if (mode == 0)
-	       mres = ulsh_ham.getLEltsWithProbabilities(sp->_url,lsh_ham->_L);
+	       {
+		  std::string surl = urlmatch::strip_url(sp->_url);
+		  mres = ulsh_ham.getLEltsWithProbabilities(surl,lsh_ham->_L);
+	       }
 	     else if (mode == 1)
-	       mres = ulsh_ham.getLEltsWithProbabilities(sp->_title,lsh_ham->_L);
+	       {
+		  std::string lctitle = sp->_title;
+		  std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+		  mres = ulsh_ham.getLEltsWithProbabilities(lctitle,lsh_ham->_L);
+	       }
 	     std::map<double,const std::string,std::greater<double> >::const_iterator mit = mres.begin();
 	     while(mit!=mres.end())
 	       {
