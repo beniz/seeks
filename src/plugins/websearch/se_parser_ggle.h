@@ -84,10 +84,6 @@ namespace seeks_plugins
 	std::string _summary;
 	std::string _forum;
 	
-	static std::string _sr_string_en;
-	static std::string _sr_string_fr;
-	static std::string _cached_string;
-	
       public:
 	std::string _suggestion;
      };

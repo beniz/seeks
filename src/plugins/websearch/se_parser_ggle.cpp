@@ -20,18 +20,16 @@
 #include "se_parser_ggle.h"
 
 #include "miscutil.h"
+#include "urlmatch.h"
 
 #include <strings.h>
 #include <iostream>
 
 using sp::miscutil;
+using sp::urlmatch;
 
 namespace seeks_plugins
 {
-   std::string se_parser_ggle::_sr_string_en = "Search Results";
-   std::string se_parser_ggle::_sr_string_fr = "Résultats de recherche";
-   std::string se_parser_ggle::_cached_string = "Cached";
-   
    se_parser_ggle::se_parser_ggle()
      :se_parser(),_body_flag(false),_h2_flag(false),_h2_sr_flag(false),
       _ol_flag(false),_li_flag(false),_h3_flag(false),
@@ -60,8 +58,12 @@ namespace seeks_plugins
 	// check for h3 flag -> snippet's title.
 	else if (_h2_sr_flag && _li_flag && strcasecmp(tag,"h3") == 0)
 	  {
-	     _h3_flag = true;
-	     _new_link_flag = true;
+	     const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
+	     if (a_class && strcasecmp(a_class,"r") == 0)
+	       {
+		  _h3_flag = true;
+		  _new_link_flag = true;
+	       }
 	  }
 	// check for h2 flag -> search results 'title'.
 	else if (_body_flag && !_h2_sr_flag && strcasecmp(tag,"h2") == 0)
@@ -225,7 +227,7 @@ namespace seeks_plugins
 			      const xmlChar *chars,
 			      int length)
      {
-	handle_characters(pc, chars, length);
+	//handle_characters(pc, chars, length);
      }
    
    void se_parser_ggle::handle_characters(parser_context *pc,
@@ -359,7 +361,17 @@ namespace seeks_plugins
    
    void se_parser_ggle::post_process_snippet(search_snippet *&se)
      {
-	// fix to summary (others are to be added here accordingly).
+	// some buggy ggle output generates malformed urls and snippets.
+	std::string surl = urlmatch::strip_url(se->_url);
+	if (surl == se->_url) // missing http or https.
+	  {
+	     delete se;
+	     se = NULL;
+	     _count--;
+	     return;
+	  }
+		
+	// fix to summary (others are to be added here accordingly). XXX: language specific...
 	size_t r = miscutil::replace_in_string(se->_summary,"Your browser may not have a PDF reader available. Google recommends visiting our text version of this document.",					       "");
 	r = miscutil::replace_in_string(se->_summary,"Quick View","");
 	r = miscutil::replace_in_string(se->_summary,"View as HTML","");
