@@ -379,7 +379,19 @@ void urlmatch::parse_url_host_and_path(const std::string &url,
 	path = "";
      }
 }
-   
+ 
+std::string urlmatch::strip_url(const std::string &url)
+{
+   std::string surl = url;
+   if (strncmp(surl.c_str(),"http://",7)==0)
+     surl = surl.substr(7);
+   else if (strncmp(surl.c_str(),"https://",8)==0)
+     surl = surl.substr(8);
+   if (miscutil::strncmpic(surl.c_str(),"www.",4)==0)
+     surl = surl.substr(4);
+   return surl;
+}
+        
 /*********************************************************************
  *
  * Function    :  unknown_method

@@ -264,7 +264,8 @@ namespace seeks_plugins
 	char* str = search_snippet::url_preprocessing(url_str);
 	_url = std::string(str);
 	free(str);
-	_id = mrf::mrf_single_feature(_url);
+	std::string surl = urlmatch::strip_url(_url);
+	_id = mrf::mrf_single_feature(surl);
      }
    
    void search_snippet::set_url(const char *url)
@@ -272,7 +273,8 @@ namespace seeks_plugins
 	char *str = search_snippet::url_preprocessing(url);
 	_url = std::string(str);
 	free(str);
-	_id = mrf::mrf_single_feature(_url);
+	std::string surl = urlmatch::strip_url(_url);
+	_id = mrf::mrf_single_feature(surl);
      }
    
    void search_snippet::set_summary(const char *summary)
@@ -465,5 +467,5 @@ namespace seeks_plugins
 	if (s1->_file_format.length() < s2->_file_format.length())  // we could do better here, ok enough for now.
 	  s1->_file_format = s2->_file_format;
      }
-      
+   
 } /* end of namespace. */

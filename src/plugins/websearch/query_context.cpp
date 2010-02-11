@@ -22,6 +22,7 @@
 #include "stl_hash.h"
 #include "mem_utils.h"
 #include "miscutil.h"
+#include "urlmatch.h"
 #include "mrf.h"
 #include "errlog.h"
 #include "se_handler.h"
@@ -32,6 +33,7 @@
 
 using sp::sweeper;
 using sp::miscutil;
+using sp::urlmatch;
 using sp::errlog;
 using sp::iso639;
 using lsh::mrf;
@@ -278,7 +280,8 @@ namespace seeks_plugins
 
    search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
-	uint32_t id = mrf::mrf_single_feature(url);
+	std::string surl = urlmatch::strip_url(url);
+	uint32_t id = mrf::mrf_single_feature(surl);
 	return get_cached_snippet(id);
      }
       

@@ -61,6 +61,12 @@ namespace sp
 				     int require_protocol);
 	static void parse_url_host_and_path(const std::string &url,
 					    std::string &host, std::string &path);
+	
+	/**
+	 * \brief strips http, https & www from a URL.
+	 */
+	static std::string strip_url(const std::string &url);
+
 #define REQUIRE_PROTOCOL 1
 	
 	static int url_match(const url_spec *pattern,
