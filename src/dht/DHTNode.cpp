@@ -60,7 +60,7 @@ namespace dht
 	/**
 	 * Create stabilizer before structures in vnodes register to it.
 	 */
-	_stabilizer = new Stabilizer();
+	//_stabilizer = new Stabilizer();
 	
 	/**
 	 * create the virtual nodes.
@@ -225,8 +225,8 @@ namespace dht
      }
       
    int DHTNode::notify_cb(const DHTKey& recipientKey,
-			  const NetAddress& senderAddress,
 			  const DHTKey& senderKey,
+			  const NetAddress& senderAddress,
 			  int& status)
      { 
 	status = -1;
@@ -254,7 +254,7 @@ namespace dht
    int DHTNode::findClosestPredecessor_cb(const DHTKey& recipientKey,
 					  const DHTKey& nodeKey,
 					  DHTKey& dkres, NetAddress& na,
-					  DHTKey& dkres_succ,
+					  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 					  int& status)
      {
 	status = -1;
@@ -274,7 +274,7 @@ namespace dht
 	/**
 	 * return closest predecessor.
 	 */
-	vnode->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, status);	
+	vnode->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
 	return 0;
      }
    

@@ -59,7 +59,7 @@ namespace dht
    
    void FingerTable::findClosestPredecessor(const DHTKey& nodeKey,
 					    DHTKey& dkres, NetAddress& na,
-					    DHTKey& dkres_succ,
+					    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 					    int& status)
      {
 	status = -1;
@@ -79,7 +79,8 @@ namespace dht
 	       {
 		  dkres = loc->getDHTKey();
 		  na = loc->getNetAddress();
-		  dkres_succ = *getVNodeSuccessor();
+		  dkres_succ = *getVNodeSuccessor(); // NO!
+		  dkres_succ_na = NetAddress(); // TODO: successor list!
 		  status = 0;
 		  return;
 	       }     

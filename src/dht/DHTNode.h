@@ -80,8 +80,8 @@ namespace dht
 	 *                        - 3 error: recipient (key) is unknown on this peer.
 	 */
 	int notify_cb(const DHTKey& recipientKey,
-		      const NetAddress& senderAddress,
 		      const DHTKey& senderKey,
+		      const NetAddress& senderAddress,
 		      int& status);
 	  
 
@@ -91,7 +91,7 @@ namespace dht
 	int findClosestPredecessor_cb(const DHTKey& recipientKey,
 				      const DHTKey& nodeKey,
 				      DHTKey& dkres, NetAddress& na,
-				      DHTKey& dkres_succ,
+				      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				      int& status);
 	
 	/**----------------------------**/

@@ -22,7 +22,6 @@
 #define L1_PROTOB_RPC_SERVER_H
 
 #include "l1_rpc_server.h"
-#include "l1_rpc_arg.h"
 
 namespace dht
 {
@@ -42,6 +41,7 @@ namespace dht
 				 const NetAddress &recipient_na,
 				 const DHTKey &sender_key,
 				 const NetAddress &sender_na,
+				 int &status,
 				 std::string &resp_msg);
      
 	/*- l1 interface. -*/
@@ -73,15 +73,6 @@ namespace dht
 						      DHTKey& dkres, NetAddress& na,
 						      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 						      int& status);
-	
-	 /*- server callback fcts -*/
-	dht_err rpc_get_successor(l1_rpc_arg_succ_pred *args);
-	
-	dht_err rpc_get_predecessor(l1_rpc_arg_succ_pred *args);
-	
-	dht_err rpc_notify(l1_rpc_arg_notify *args);
-	
-	dht_err rpc_find_closest_pred(l1_rpc_arg_closest_pred *args);
      };
    
 } /* end of namespace. */

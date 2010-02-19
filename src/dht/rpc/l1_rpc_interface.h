@@ -25,10 +25,10 @@
 #include "DHTKey.h"
 #include "NetAddress.h"
 
-class DHTNode;
-
 namespace dht
 {
+   class DHTNode;
+   
    /* callbacks hash ids. */
    #define hash_get_successor                 3682586751ul    /* "get-successor" */
    #define hash_get_predecessor               3440834331ul    /* "get-predecessor" */

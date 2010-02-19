@@ -373,6 +373,12 @@ src/proxy/tests/Makefile \
 src/plugins/Makefile \
 src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
+src/plugins/privoxy/Makefile \
+src/dht/Makefile \
+src/dht/rpc/Makefile \
+src/dht/rpc/protob/Makefile \
+src/dht/protob/Makefile \
+src/dht/protob/tests/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT

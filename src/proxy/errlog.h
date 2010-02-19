@@ -54,6 +54,7 @@
 #define LOG_LEVEL_CLF        0x0200 /* Common Log File format */
 #define LOG_LEVEL_CRUNCH     0x0400
 #define LOG_LEVEL_CGI        0x0800 /* CGI / templates */
+#define LOG_LEVEL_DHT        0x0300 /* DHT output */
 
 /* Following are always on: */
 #define LOG_LEVEL_INFO    0x1000

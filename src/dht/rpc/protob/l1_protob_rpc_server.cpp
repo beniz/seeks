@@ -20,7 +20,7 @@
   
 #include "l1_protob_rpc_server.h"
 #include "l1_protob_wrapper.h"
-#include "rpc_functor.h"
+#include "DHTNode.h"
 
 namespace dht
 {
@@ -65,10 +65,11 @@ namespace dht
 	  }
 		
 	// decides which response to give.
+	int status = DHT_ERR_OK;
 	dht_err err = execute_callback(fct_id,recipient_key,recipient_na,
-				       sender_key,sender_na,resp_msg);
+				       sender_key,sender_na,status,resp_msg);
 	
-	return DHT_ERR_OK;
+	return err;
      }
    
    dht_err l1_protob_rpc_server::execute_callback(const uint32_t &fct_id,
@@ -76,6 +77,7 @@ namespace dht
 						  const NetAddress &recipient_na,
 						  const DHTKey &sender_key,
 						  const NetAddress &sender_na,
+						  int& status,
 						  std::string &resp_msg)
      {
 	if (fct_id == hash_get_successor)
@@ -115,8 +117,7 @@ namespace dht
 						     DHTKey& dkres, NetAddress& na,
 						     int& status)
      {
-	// TODO: access to a DHTNode.
-     	_pnode->getSuccessor_cb(recipientKey,recipient,dkres,na,status);
+	return _pnode->getSuccessor_cb(recipientKey,dkres,na,status);
      }
       
    dht_err l1_protob_rpc_server::RPC_getPredecessor_cb(const DHTKey& recipientKey,
@@ -126,8 +127,7 @@ namespace dht
 						       DHTKey& dkres, NetAddress& na,
 						       int& status)
      {
-	
-	
+	return _pnode->getPredecessor_cb(recipientKey,dkres,na,status); 
      }
       
    dht_err l1_protob_rpc_server::RPC_notify_cb(const DHTKey& recipientKey,
@@ -136,8 +136,7 @@ namespace dht
 					       const NetAddress& senderAddress,
 					       int& status)
      {
-	
-	
+	return _pnode->notify_cb(recipientKey,senderKey,senderAddress,status);
      }
       
    dht_err l1_protob_rpc_server::RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
@@ -149,8 +148,8 @@ namespace dht
 							       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 							       int& status)
      {
-	
-	
+	return _pnode->findClosestPredecessor_cb(recipientKey,nodeKey,dkres,na,
+						 dkres_succ,dkres_succ_na,status);	
      }
    
 } /* end of namespace. */
