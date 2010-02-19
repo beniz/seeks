@@ -95,7 +95,8 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't serialize null query");
 	     throw l1_fail_serialize_exception();
 	  }
-	if (l1q->SerializeToString(&str)) // != 0 on error.
+	bool status = l1q->SerializeToString(&str);
+	if (!l1q->SerializeToString(&str)) // != 0 on error.
 	  throw l1_fail_serialize_exception();
      }
    
@@ -179,7 +180,7 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't serialize null response");
 	     throw l1_fail_serialize_exception();
 	  }
-	if (l1r->SerializeToString(&str)) // != 0 on error.
+	if (!l1r->SerializeToString(&str))
 	  throw l1_fail_serialize_exception();
      }
       
@@ -248,7 +249,8 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null query");
 	     throw l1_fail_deserialize_exception();
 	  }
-	if (l1q->ParseFromString(str))
+	bool status = l1q->ParseFromString(str);
+	if (!l1q->ParseFromString(str))
 	  throw l1_fail_deserialize_exception();
      }
 
@@ -361,7 +363,7 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null response");
 	     throw l1_fail_deserialize_exception();
 	  }
-	if (l1r->ParseFromString(str))
+	if (!l1r->ParseFromString(str))
 	  throw l1_fail_deserialize_exception();
      }
    
