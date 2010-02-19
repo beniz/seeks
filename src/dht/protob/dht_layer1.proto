@@ -1,0 +1,49 @@
+package dht.l1;
+
+/**
+* messages' components. 
+*/
+
+/* message's head. */
+message header
+{
+ required uint32 layer_id = 1;  /* layer identification. */
+ optional uint32 fct_id = 2;    /* call back fct identification, optional in response. */
+}
+
+/* net address. */
+message net_address
+{
+ required uint32 ip_addr = 1; /* ip addr is 32bit, moving to ipv6, is 128bit */
+ required bytes net_port = 2; /* communication port on 16bit. */
+}
+
+/* 160bit node key. */
+message dht_key
+{
+ required bytes key = 1; /* 160bit dht key. */
+}
+
+/* (virtual) seeks node id. */
+message vnodeid
+{
+ required dht_key key = 1;  		/* 160bit node key. */
+ required net_address addr = 2; 	/* node's net address. */
+}
+
+/* query and response. */
+message l1_query
+{
+ required header head = 1; 		/* message head. */
+ required vnodeid recipient = 2;	/* message recipient. */
+ required vnodeid sender = 3; 		/* sender id. */
+ optional dht_key lookedup_key = 4;	/* node's key we're looking after. */
+}
+
+message l1_response
+{
+ required header head = 1; 	      /* message head. */
+ optional uint32 error_status = 2;    /* response error status. */
+ optional vnodeid found_vnode = 3;    /* found node id. */
+ optional vnodeid found_vnode_succ = 4;      /* additional information, = successor in closestPredecessor call. */
+}

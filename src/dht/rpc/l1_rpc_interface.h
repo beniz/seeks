@@ -1,0 +1,220 @@
+/**
+ * This is the p2p messaging component of the Seeks project,
+ * a collaborative websearch overlay network.
+ *
+ * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+#ifndef L1_RPC_INTERFACE_H
+#define L1_RPC_INTERFACE_H
+
+#include "dht_err.h"
+#include "DHTKey.h"
+#include "NetAddress.h"
+
+class DHTNode;
+
+namespace dht
+{
+   /* callbacks hash ids. */
+   #define hash_get_successor                 3682586751ul    /* "get-successor" */
+   #define hash_get_predecessor               3440834331ul    /* "get-predecessor" */
+   #define hash_notify                        4267298065ul    /* "notify" */
+   #define hash_find_closest_predecessor      3893622114ul    /* "find-closest-predecessor" */
+   
+   class l1_rpc_client_interface
+     {
+      public:
+	l1_rpc_client_interface() {};
+
+	virtual ~l1_rpc_client_interface() {};
+	
+	/**
+	 * \brief getSuccessor RPC.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @param dkres target node's successor's identification key.
+	 * @param na target node's successor's net address.
+	 * @param status RPC result status for handling erroneous results.
+	 * @return status.
+	 */
+	virtual dht_err RPC_getSuccessor(const DHTKey& recipientKey,
+					 const NetAddress& recipient,
+					 const DHTKey &senderKey,
+					 const NetAddress& senderAddress,
+					 DHTKey& dkres, NetAddress& na,
+					 int& status) = 0;
+	
+	/**
+	 * \brief getPredecessor RPC.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @param dkres target node's predecessor's identification key.
+	 * @param na target node's predecessor's net address.
+	 * @param status RPC result status for handling erroneous results.
+	 * @return error status.
+	 */
+	virtual dht_err RPC_getPredecessor(const DHTKey& recipientKey,
+					   const NetAddress& recipient,
+					   const DHTKey& senderKey,
+					   const NetAddress& senderAddress,
+					   DHTKey& dkres, NetAddress& na,
+					   int& status) = 0;
+	
+	/**
+	 * \brief Notify RPC: sender notifies recipient that it thinks it is it's successor.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient node on which this function will execute.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @return error status.
+	 */
+	virtual dht_err RPC_notify(const DHTKey& recipientKey,
+				   const NetAddress& recipient,
+				   const DHTKey& senderKey,
+				   const NetAddress& senderAddress,
+				   int& status) = 0;
+     
+	/**
+	 * \brief findClosestPredecessor RPC: ask recipient to find
+	 *        the closest predecessor to nodeKey.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient Net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @param nodeKey identification key to which the closest predecessor is sought.
+	 * @param dkres result identification key of the closest predecessor to nodeKey.
+	 * @param na result net address of the closest predecessor to nodeKey.
+	 * @param dkres_succ result identification key of the successor to dkres.
+	 * @param dkres_succ_na net address of the successor.
+	 * @param status result status.
+	 * @return error status.
+	 */
+	virtual dht_err RPC_findClosestPredecessor(const DHTKey& recipientKey,
+						   const NetAddress& recipient,
+						   const DHTKey& senderKey,
+						   const NetAddress& senderAddress,
+						   const DHTKey& nodeKey,
+						   DHTKey& dkres, NetAddress& na,
+						   DHTKey& dkres_succ,
+						   NetAddress &dkres_succ_na,
+						   int& status) = 0;
+     };
+
+   class l1_rpc_server_interface
+     {
+      public:
+	l1_rpc_server_interface(DHTNode *pnode)
+	  :_pnode(pnode)
+	    {};
+	
+	virtual ~l1_rpc_server_interface() {};
+	
+	/**
+	 * \brief getSuccessor RPC callback.
+	 * @param recipientKey identification key of the target node
+	 *                     (Note: this is required due to the presence of virtual nodes).
+	 * @param recipient Net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @param dkres target node's successor's identification key.
+	 * @param na target node's successor's net address.
+	 * @param status result status for handling erroneous results.
+	 * @return status.
+	 */
+	virtual dht_err RPC_getSuccessor_cb(const DHTKey& recipientKey,
+					    const NetAddress &recipient,
+					    const DHTKey& senderKey,
+					    const NetAddress& senderAddress,
+					    DHTKey& dkres, NetAddress& na,
+					    int& status) = 0;
+	
+	/**
+	 * \brief getPredecessor RPC callback.
+	 * @param recipientKey identification key of the target node
+	 *                     (Note: this is required due to the presence of virtual nodes).
+	 * @param recipient Net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @param dkres target node's predecessor's identification key.
+	 * @param na target node's predecessor's net address.
+	 * @param status result status for handling erroneous results.
+	 * @return error status.
+	 */
+	virtual dht_err RPC_getPredecessor_cb(const DHTKey& recipientKey,
+					      const NetAddress &recipient,
+					      const DHTKey& senderKey, 
+					      const NetAddress& senderAddress,
+					      DHTKey& dkres, NetAddress& na,
+					      int& status) = 0;
+	
+	/**
+	 * \brief Notify RPC callback: updates recipient's predecessor according to sender's id key.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient Net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @return status.
+	 */
+	virtual dht_err RPC_notify_cb(const DHTKey& recipientKey,
+				      const NetAddress &recipient,
+				      const DHTKey& senderKey,
+				      const NetAddress& senderAddress,
+				      int& status) = 0;
+	
+	/**
+	 * TODO: getSuccList RPC.
+	 */
+	
+	/**
+	 * TODO: getPredList RPC.
+	 */
+	
+	/**
+	 * \brief findClosestPredecessor RPC: ask recipient to find
+	 *        the closest predecessor to nodeKey.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient Net address of the target node.
+	 * @param senderAddress Net address of the sender node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param nodeKey identification key to which the closest predecessor is sought.
+	 * @param dkres result identification key of the closest predecessor to nodeKey.
+	 * @param na result net address of the closest predecessor to nodeKey.
+	 * @param dkres_succ result identification key of the successor to dkres.
+	 * @param dkres_succ_na address of dkres's sucesssor.
+	 * @param status result status.
+	 * @return error status.
+	 */
+	 virtual dht_err RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
+						       const NetAddress &recipient,
+						       const DHTKey& senderKey,
+						       const NetAddress& senderAddress,
+						       const DHTKey& nodeKey,
+						       DHTKey& dkres, NetAddress& na,
+						       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+						       int& status) = 0;	
+     
+      public:
+	DHTNode *_pnode;
+     };
+   
+} /* end of namespace. */
+
+#endif

@@ -1,0 +1,184 @@
+/**
+ * This is the p2p messaging component of the Seeks project,
+ * a collaborative websearch overlay network.
+ *
+ * Copyright (C) 2009  Emmanuel Benazera, juban@free.fr
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef L1_PROTOB_WRAPPER_H
+#define L1_PROTOB_WRAPPER_H
+
+#include "dht_layer1.pb.h"
+#include "dht_err.h"
+#include "dht_exception.h"
+#include "DHTKey.h"
+#include "NetAddress.h"
+
+#include <string>
+#include <stdint.h>
+
+namespace dht
+{
+   class l1_protob_wrapper
+     {
+	/**
+	 * From data to protobuffers.
+	 */
+	
+      public:
+	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
+					     const DHTKey &recipient_dhtkey,
+					     const NetAddress &recipient_na,
+					     const DHTKey &sender_dhtkey,
+					     const NetAddress &sender_na);
+	
+      private:
+	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
+					     const std::string &recipient_key,
+					     const uint32_t &recipient_ip_addr,
+					     const std::string &recipient_net_port);
+	
+	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
+					     const std::string &recipient_key,
+					     const uint32_t &recipient_ip_addr,
+					     const std::string &recipient_net_port,
+					     const std::string &sender_key,
+					     const uint32_t &sender_ip_addr,
+					     const std::string &sender_net_port);
+      public:
+	static void serialize_to_string(const l1::l1_query *l1q, std::string &str);
+	
+	// responses.
+      public:
+	static l1::l1_response* create_l1_response(const uint32_t &error_status,
+						   const DHTKey &resultKey,
+						   const NetAddress &resultAddress,
+						   const DHTKey &foundKey,
+						   const NetAddress &foundAddress);
+	
+	static l1::l1_response* create_l1_response(const uint32_t &error_status,
+						   const DHTKey &resultKey,
+						   const NetAddress &resultAddress);
+      private:
+	static l1::l1_response* create_l1_response(const uint32_t error_status,
+						   const std::string &result_key,
+						   const uint32_t &result_ip_addr,
+						   const std::string &result_net_port);
+	
+	static l1::l1_response* create_l1_response(const uint32_t error_status,
+						   const std::string &result_key,
+						   const uint32_t &result_ip_addr,
+						   const std::string &result_net_port,
+						   const std::string &found_key,
+						   const uint32_t &found_ip_addr,
+						   const std::string &found_net_port);
+	
+      public:
+	static void serialize_to_string(const l1::l1_response *l1r, std::string &str);
+	
+	/**
+	 * From protobuffers to data.
+	 */	
+      public:
+	static dht_err read_l1_query(const l1::l1_query *l1q,
+				     uint32_t &layer_id,
+				     uint32_t &fct_id,
+				     DHTKey &recipient_dhtkey,
+				     NetAddress &recipient_na,
+				     DHTKey &sender_dhtkey,
+				     NetAddress &sender_na);
+      private:
+	static dht_err read_l1_query(const l1::l1_query *l1q,
+				     uint32_t &layer_id,
+				     uint32_t &fct_id,
+				     std::string &recipient_key,
+				     uint32_t &recipient_ip_addr,
+				     std::string &recipient_net_port,
+				     std::string &sender_key,
+				     uint32_t &sender_ip_addr,
+				     std::string &sender_net_port);
+      public:
+	static void deserialize(const std::string &str, l1::l1_query *l1q);
+     
+	// TODO: responses.
+      public:
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status,
+					DHTKey &resultKey,
+					NetAddress &resultAddress,
+					DHTKey &foundKey,
+					NetAddress &foundAddress);
+	
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status,
+					DHTKey &resultKey,
+					NetAddress &resultAddress);
+	
+      private:
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status,
+					std::string &result_key,
+					uint32_t &result_ip_addr,
+					std::string &result_net_port,
+					std::string &found_key,
+					uint32_t &found_ip_addr,
+					std::string &found_net_port);
+   
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status,
+					std::string &result_key,
+					uint32_t &result_ip_addr,
+					std::string &result_net_port);
+	
+      public:
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status);
+	
+      public:
+	static void deserialize(const std::string &str, l1::l1_response *l1r);
+     };
+   
+   /*- exceptions. -*/
+   class l1_fail_serialize_exception : public dht_exception
+     {
+      public:
+	l1_fail_serialize_exception()
+	  :dht_exception()
+	    {
+	       _message = "failed serialization of message";
+	    };
+	virtual ~l1_fail_serialize_exception() {};
+     };
+   
+   class l1_fail_deserialize_exception : public dht_exception
+     {
+      public:
+	l1_fail_deserialize_exception()
+	  :dht_exception()
+	    {
+	       _message = "failed deserialization of message";
+	    };
+	virtual ~l1_fail_deserialize_exception() {};
+     };
+      
+} /* end of namespace. */
+
+#endif
