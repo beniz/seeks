@@ -22,7 +22,8 @@
 
 namespace dht
 {
-#define hash_l1_port                2857811716ul  /* "l1-port" */
+#define hash_l1_port                                      2857811716ul  /* "l1-port" */
+#define hash_l1_server_max_msg_bytes                      1170059721ul  /* "l1-server-max-msg-bytes" */
    
    dht_configuration::dht_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -37,6 +38,7 @@ namespace dht
    void dht_configuration::set_default_config()
      {
 	_l1_port = 8231;  // the 8200 range by default.
+	_l1_server_max_msg_bytes = 8192; // 1Kb for now.
      }
    
    void dht_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -49,6 +51,11 @@ namespace dht
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Sets the port for the DHT level 1 communications.");
 	     break;
+	     
+	   case hash_l1_server_max_msg_bytes:
+	     _l1_server_max_msg_bytes = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets the maximum length of a served message on the layer 1 of the DHT.");
 	     
 	   default:
 	     break;

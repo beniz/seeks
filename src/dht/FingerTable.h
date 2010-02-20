@@ -66,7 +66,7 @@ namespace dht
 	 */
 	void findClosestPredecessor(const DHTKey& nodeKey,
 				    DHTKey& dkres, NetAddress& na,
-				    DHTKey& dkres_succ,
+				    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				    int& status);
 
 	/**

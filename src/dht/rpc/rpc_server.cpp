@@ -30,6 +30,8 @@
 #include <strings.h>
 #include <errno.h>
 
+#include <iostream>
+
 using sp::errlog;
 using sp::spsockets;
 
@@ -68,6 +70,12 @@ namespace dht
 #endif
 		 {
 		    spsockets::close_socket(udp_sock);
+		    
+		    //debug
+		    std::cout << "rpc_server, can't bind to " << _na.getNetAddress().c_str()
+		      << ":" << _na.getPort() << std::endl;
+		    //debug
+		    
 		    errlog::log_error(LOG_LEVEL_FATAL, "rpc_server: can't bind to %s:%d: "
 				      "There may be some other server running on port %d",
 				      _na.getNetAddress().c_str(),
@@ -78,6 +86,12 @@ namespace dht
 	     else
 	       {
 		  spsockets::close_socket(udp_sock);
+		  
+		  //debug
+		  std::cout << "rpc_server, can't bind to " << _na.getNetAddress().c_str()
+		    << ":" << _na.getPort() << std::endl;
+		  //debug
+		  
 		  errlog::log_error(LOG_LEVEL_FATAL, "can't bind to %s:%d: %E",
 				    _na.getNetAddress().c_str(), _na.getPort());
 		  // TODO: throw exception instead.
@@ -86,21 +100,38 @@ namespace dht
 	  }
 	
 	// get messages, one by one.
-	size_t buflen = 1024;
+	size_t buflen = 1024; // TODO: 128 bytes may not be enough -> use dht_configuration value.
 	char buf[buflen];
 	struct sockaddr_in from;
 	size_t fromlen = sizeof(struct sockaddr_in);
 	while(true)
 	  {
+	     //debug
+	     std::cout << "rpc_server: listening for dgrams...\n";
+	     //debug
+	     
 	     int n = recvfrom(udp_sock,buf,buflen,0,(struct sockaddr*)&from,&fromlen);
 	     if (n < 0)
 	       {
+		  //debug
+		  std::cout << "Error receiving DGRAM message\n";
+		  //debug
+		  
 		  errlog::log_error(LOG_LEVEL_ERROR, "recvfrom: error receiving DGRAM message, %E");
 	       }
 	     
+	     //debug
+	     std::cout << "rpc_server: received an " << n << " bytes datagram.\n";
+	     //debug
+	     
 	     // message.
 	     errlog::log_error(LOG_LEVEL_LOG, "rpc_server: received a datagram");
+	     buf[n] = '\0';
 	     std::string dtg_str = std::string(buf);
+	     
+	     //debug
+	     std::cout << "rpc_server: received msg: " << dtg_str << std::endl;
+	     //debug
 	     
 	     // TODO: produce and send a response.
 	     // sendto(sock,...).

@@ -28,6 +28,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include <iostream>
+
 using sp::spsockets;
 using sp::errlog;
 
@@ -50,6 +52,10 @@ namespace dht
 	int udp_sock = socket(AF_INET,SOCK_DGRAM,0);
 	if (udp_sock < 0)
 	  {
+	     // debug
+	     std::cout << "Error creating rpc_client socket\n";
+	     // debug
+	     
 	     errlog::log_error(LOG_LEVEL_INFO,"Error creating rpc_client socket");
 	     throw rpc_client_socket_error_exception();
 	  }
@@ -59,6 +65,10 @@ namespace dht
 	struct hostent *hp = gethostbyname(server_na.getNetAddress().c_str());
 	if (hp == 0)
 	  {
+	     //debug
+	     std::cout << "Unknown host for rpc_client " << server_na.getNetAddress() << std::endl;
+	     //debug
+	     
 	     errlog::log_error(LOG_LEVEL_INFO,"Unknown host for rpc_client %s", server_na.getNetAddress().c_str());
 	     throw rpc_client_host_error_exception(server_na.getNetAddress());
 	  }
@@ -66,6 +76,10 @@ namespace dht
 	bcopy((char*)hp->h_addr,(char*)&server.sin_addr,hp->h_length);
 	server.sin_port = htons(server_na.getPort());
 	int length = sizeof(struct sockaddr_in);
+
+	//debug
+	std::cout << "rpc_client: sending msg...\n";
+	//debug
 	
 	// send the message.
 	int n = sendto(udp_sock,msg.c_str(),strlen(msg.c_str()),0,(struct sockaddr*)&server,length);
@@ -78,6 +92,9 @@ namespace dht
 		
 	// receive message, if necessary.
 	// TODO: timeout + exception.
+	if (!need_response)
+	  return DHT_ERR_OK;
+	
 	size_t buflen = 1024;
 	char buf[buflen];
 	struct sockaddr_in from;
