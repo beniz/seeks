@@ -20,15 +20,19 @@
 
 #include "lsh_configuration.h"
 #include "errlog.h"
+#include "seeks_proxy.h" // for mutexes.
 
 #include <iostream>
 
 using sp::errlog;
+using sp::seeks_proxy;
 
 namespace lsh
 {
    #define hash_en_swl         3069493191ul  /* "en-stopword-list" */
    #define hash_fr_swl         3229696102ul  /* "fr-stopword-list" */
+   
+   sp_mutex_t lsh_configuration::_load_swl_mutex;
    
    lsh_configuration::lsh_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -85,6 +89,7 @@ namespace lsh
    
    stopwordlist* lsh_configuration::get_wordlist(const std::string &lang) const
      {
+	seeks_proxy::mutex_lock(&lsh_configuration::_load_swl_mutex);
 	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr>::const_iterator hit;
 	if ((hit=_swlists.find(lang.c_str()))!=_swlists.end())
 	  {
@@ -96,9 +101,14 @@ namespace lsh
 		    errlog::log_error(LOG_LEVEL_ERROR,"Failed loading stopword file %s",
 				      (*hit).second->_swlistfile.c_str());
 	       }
+	     seeks_proxy::mutex_unlock(&lsh_configuration::_load_swl_mutex);
 	     return (*hit).second;
 	  }
-	else return NULL;
+	else 
+	  {
+	     seeks_proxy::mutex_unlock(&lsh_configuration::_load_swl_mutex);
+	     return NULL;
+	  }
      }
          
 } /* end of namespace. */

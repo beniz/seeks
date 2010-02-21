@@ -25,7 +25,14 @@
 #include "stopwordlist.h"
 #include "stl_hash.h"
 
+extern "C"
+{
+#include <pthread.h>
+}
+
 using sp::configuration_spec;
+
+typedef pthread_mutex_t sp_mutex_t;
 
 namespace lsh
 {
@@ -49,6 +56,9 @@ namespace lsh
 	
 	// main options.
 	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr> _swlists; /**< list of stop word, indexed by 2-char language indicator. */
+     
+	// mutex for loading stop word list.
+	static sp_mutex_t _load_swl_mutex;
      };
       
 } /* end of namespace. */
