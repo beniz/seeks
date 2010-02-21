@@ -77,13 +77,17 @@ namespace seeks_plugins
      {
 	if (!qc->_suggestions.empty())
 	  {
+	     const char *base_url = miscutil::lookup(exports,"base-url");
+	     std::string base_url_str = "";
+	     if (base_url)
+	       base_url_str = std::string(base_url);
 	     std::string suggestion_str = "Suggestion:&nbsp;<a href=\"";
 	     // for now, let's grab the first suggestion only.
 	     std::string suggested_q_str = qc->_suggestions[0];
 	     const char *sugg_enc = encode::html_encode(suggested_q_str.c_str());
 	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
-	     suggestion_str += "http://s.s/search?q=" + qc->_in_query_command + " " 
+	     suggestion_str += base_url_str + "/search?q=" + qc->_in_query_command + " " 
 	       + sugg_enc_str + "&expansion=1&action=expand";
 	     suggestion_str += "\">";
 	     suggestion_str += sugg_enc_str;
@@ -123,12 +127,14 @@ namespace seeks_plugins
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
      }
-      
+   
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
+						   const std::string &html_encoded_query,
 						   const int &current_page,
 						   cluster *clusters,
 						   const short &K,
 						   const query_context *qc,
+						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	static short template_K=7; // max number of clusters available in the template.
@@ -156,6 +162,11 @@ namespace seeks_plugins
 	     rplcnt = "search_snippets";
 	  }
 		
+	bool clusterize = false;
+	const char *action_str = miscutil::lookup(parameters,"action");
+	if (action_str && strcmp(action_str,"clusterize")==0)
+	  clusterize = true;
+	
 	// renders every cluster and snippets within.
 	int l = 0;
 	for (short c=0;c<K;c++)
@@ -177,7 +188,11 @@ namespace seeks_plugins
 
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
-	     std::string cluster_str = static_renderer::render_cluster_label(clusters[c]);
+	     std::string cluster_str;
+	     if (!clusterize)
+	       cluster_str = static_renderer::render_cluster_label(clusters[c]);
+	     else cluster_str = static_renderer::render_cluster_label_query_link(html_encoded_query,
+										 clusters[c],exports);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
@@ -204,6 +219,26 @@ namespace seeks_plugins
 	std::string html_label = "<h2>" + std::string(clabel_encoded) 
 	  + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
 	free_const(clabel_encoded);
+	free_const(slabel_encoded);
+	return html_label;
+     }
+      
+   std::string static_renderer::render_cluster_label_query_link(const std::string &html_encoded_query,
+								const cluster &cl,
+								const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+     {
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+	  base_url_str = std::string(base_url);
+	const char *clabel_encoded = encode::html_encode(cl._label.c_str());
+	std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
+	const char *slabel_encoded = encode::html_encode(slabel.c_str());
+	std::string clabel_enc_str = std::string(clabel_encoded);
+	free_const(clabel_encoded);
+	std::string html_label = "<h2><a href=" + base_url_str + "/search?q=" + html_encoded_query
+	  + " " + clabel_enc_str + "&page=1&expansion=1&action=expand>" + clabel_enc_str 
+	  + "</a><font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
 	free_const(slabel_encoded);
 	return html_label;
      }
@@ -243,8 +278,12 @@ namespace seeks_plugins
 	     
 	if (current_page < nl)
 	  {
+	     const char *base_url = miscutil::lookup(exports,"base-url");
+	     std::string base_url_str = "";
+	     if (base_url)
+	       base_url_str = std::string(base_url);
 	     std::string np_str = miscutil::to_string(current_page+1);
-	     std::string np_link = "<a href=\"http://s.s/search?page=" + np_str + "&q="
+	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&q="
 	       + html_encoded_query + "&expansion=" + expansion + "&action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
@@ -260,7 +299,11 @@ namespace seeks_plugins
 	 if (current_page > 1)
 	  {
 	     std::string pp_str = miscutil::to_string(current_page-1);
-	     std::string pp_link = "<a href=\"http://s.s/search?page=" + pp_str + "&q="
+	     const char *base_url = miscutil::lookup(exports,"base-url");
+	     std::string base_url_str = "";
+	     if (base_url)
+	       base_url_str = std::string(base_url);
+	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&q="
 	                   + html_encoded_query + "&expansion=" + expansion + "&action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
@@ -436,8 +479,9 @@ namespace seeks_plugins
 	static_renderer::render_suggestions(qc,exports);
 	
 	// search snippets.
-	static_renderer::render_clustered_snippets(query_clean,current_page,
-						   clusters,K,qc,exports);
+	static_renderer::render_clustered_snippets(query_clean,html_encoded_query,current_page,
+						   clusters,K,qc,parameters,
+						   exports);
 	
 	// expand button.
 	std::string expansion;
