@@ -17,11 +17,14 @@
  */
   
 #include "se_parser_yahoo.h"
+#include "encode.h"
 #include "miscutil.h"
+#include "mem_utils.h"
 
 #include <strings.h>
 #include <iostream>
 
+using sp::encode;
 using sp::miscutil;
 
 namespace seeks_plugins
@@ -84,7 +87,9 @@ namespace seeks_plugins
 			 if ((pos = url_str.find("/**",pos))!=std::string::npos)
 			   url_str = url_str.substr(pos+3);
 		       pc->_current_snippet->set_url(url_str);
-		       pc->_current_snippet->_cite = url_str;
+		       const char *url_enc = encode::url_decode(url_str.c_str());
+		       pc->_current_snippet->_cite = std::string(url_enc);
+		       free_const(url_enc);
 		    }
 		  else if (_begin_results && pc->_current_snippet)
 		    pc->_current_snippet->_cached = std::string(a_link);
