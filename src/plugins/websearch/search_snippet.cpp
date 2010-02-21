@@ -231,7 +231,7 @@ namespace seeks_plugins
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
-	     html_content += "@base-url@/search_cache?url="
+	     html_content += "/search_cache?url="
 	                  + _url + "&q=" + _qc->_query;
 	     html_content += " \">Quick link</a>";
 	  }
@@ -303,7 +303,7 @@ namespace seeks_plugins
    	
    void search_snippet::set_similarity_link()
      {
-	_sim_link = "@base-url@/search?q=" + _qc->_query 
+	_sim_link = "/search?q=" + _qc->_query 
 	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
 	    + "&action=similarity&id=" + miscutil::to_string(_id);
 	_sim_back = false;
@@ -311,7 +311,7 @@ namespace seeks_plugins
       
    void search_snippet::set_back_similarity_link()
      {
-	_sim_link = "@base-url@/search?q=" + _qc->_query
+	_sim_link = "/search?q=" + _qc->_query
 	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
 	    + "&action=expand";
 	_sim_back = true;

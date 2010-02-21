@@ -114,7 +114,9 @@ namespace seeks_plugins
 			    /* std::cerr << "adding to label: " << (*bit).second
 			      << " --> " << (*mit).first << std::endl; */
 			    
-			    _label += (*bit).second + " ";
+			    if (!_label.empty())
+			      _label += " ";
+			    _label += (*bit).second;
 			    found = true;
 			    break;
 			 }

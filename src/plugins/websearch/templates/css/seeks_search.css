@@ -240,6 +240,10 @@ body {
 	margin-bottom: 10px;
 }
 
+.clustered .cluster .label {
+        color: gray;
+}
+
 #expansion {
 	padding-top: 13px;
 	padding-right: 16px;

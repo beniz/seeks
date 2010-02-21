@@ -236,9 +236,11 @@ namespace seeks_plugins
 	const char *slabel_encoded = encode::html_encode(slabel.c_str());
 	std::string clabel_enc_str = std::string(clabel_encoded);
 	free_const(clabel_encoded);
-	std::string html_label = "<h2><a href=" + base_url_str + "/search?q=" + html_encoded_query
-	  + " " + clabel_enc_str + "&page=1&expansion=1&action=expand>" + clabel_enc_str 
-	  + "</a><font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
+	std::string label_query = html_encoded_query + " " + clabel_enc_str;
+	miscutil::replace_in_string(label_query," ","+");
+	std::string html_label = "<h2><a class=\"label\" href=" + base_url_str + "/search?q=" + label_query
+	  + "&page=1&expansion=1&action=expand>" + clabel_enc_str 
+	  + "</a><font size=\"2\"> " + std::string(slabel_encoded) + "</font></h2><br>";
 	free_const(slabel_encoded);
 	return html_label;
      }
