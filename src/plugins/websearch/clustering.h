@@ -74,6 +74,8 @@ namespace seeks_plugins
 	
 	void compute_rank(const query_context *qc);
 	
+	void compute_label(const query_context *qc);
+	
 	centroid _c; /**< cluster's centroid. */
 	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint> _cpoints; /**< points associated to this cluster. */
 	double _rank; /**< cluster's rank among clusters. */
@@ -102,6 +104,8 @@ namespace seeks_plugins
 	void rank_clusters_elements();
 	
 	void compute_clusters_rank();
+
+	void compute_cluster_labels();
 	
       protected:
 	hash_map<uint32_t,float,id_hash_uint>* get_point_features(const short &np);

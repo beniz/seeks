@@ -191,14 +191,6 @@ namespace seeks_plugins
 	
 	// sort snippets according to computed scores.
 	std::stable_sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
-
-	// reset scores.
-	std::vector<search_snippet*>::iterator vit = sorted_snippets.begin();
-	while(vit!=sorted_snippets.end())
-	  {
-	     (*vit)->_seeks_ir = 0;
-	     ++vit;
-	  }
      }
 
    void sort_rank::group_by_types(query_context *qc, cluster *&clusters, short &K)

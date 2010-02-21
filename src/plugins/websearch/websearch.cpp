@@ -51,7 +51,7 @@ namespace seeks_plugins
 	  _name = "websearch";
 	  
 	  _version_major = "0";
-	  _version_minor = "1";
+	  _version_minor = "2";
 	  
 	  _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
 	  if (websearch::_wconfig == NULL)
@@ -374,6 +374,15 @@ namespace seeks_plugins
 	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
 	     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 								     csp,rsp,parameters,qc);
+	      
+	     // reset scores.
+	     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
+	     while(vit!=qc->_cached_snippets.end())
+	       {
+		  (*vit)->_seeks_ir = 0;
+		  ++vit;
+	       }
+	      
 	     ref_sp->set_similarity_link(); // reset sim_link.
 	     qc->_lock = false;
 	     
@@ -414,6 +423,15 @@ namespace seeks_plugins
 	     
 	     sp_err err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
 									       csp,rsp,parameters,qc);
+	     
+	     // reset scores.
+	     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
+	     while(vit!=qc->_cached_snippets.end())
+	       {
+		  (*vit)->_seeks_ir = 0;
+		  ++vit;
+	       }
+	     
 	     qc->_lock = false;
 	  
 	     return err;

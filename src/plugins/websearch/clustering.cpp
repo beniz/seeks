@@ -58,6 +58,76 @@ namespace seeks_plugins
 	     ++hit;
 	  }
      }
+
+   void cluster::compute_label(const query_context *qc)
+     {
+	// compute total tf-idf weight for features of docs belonging to this cluster.
+	hash_map<uint32_t,float,id_hash_uint> f_totals;
+	hash_map<uint32_t,float,id_hash_uint>::iterator fhit,hit2;
+	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
+	  = _cpoints.begin();
+	while(hit!=_cpoints.end())
+	  {
+	     hit2 = (*hit).second->begin();
+	     while(hit2!=(*hit).second->end())
+	       {
+		  if ((fhit=f_totals.find((*hit2).first))!=f_totals.end())
+		    {
+		       (*fhit).second += (*hit2).second;
+		    }
+		  else f_totals.insert(std::pair<uint32_t,float>((*hit2).first,(*hit2).second));
+		  ++hit2;
+	       }
+	     ++hit;
+	  }
+	
+	// grab features with the highest tf-idf weight.
+	std::map<float,uint32_t,std::greater<float> > f_mtotals;
+	fhit = f_totals.begin();
+	while(fhit!=f_totals.end())
+	  {
+	     f_mtotals.insert(std::pair<float,uint32_t>((*fhit).second,(*fhit).first));
+	     ++fhit;
+	  }
+	f_totals.clear();
+	
+	// turn features in to word labels.
+	int k=0;
+	int KW = 2; // number of words per label. TODO: use weights for less/more words...
+	std::map<float,uint32_t,std::greater<float> >::iterator mit = f_mtotals.begin();
+	while(mit!=f_mtotals.end())
+	  {
+	     bool found = false;
+	     if (k>KW)
+	       break;
+	     else
+	       {
+		  hit = _cpoints.begin();
+		  while(hit!=_cpoints.end())
+		    {
+		       uint32_t id = (*hit).first;
+		       search_snippet *sp = qc->get_cached_snippet(id);
+		       
+		       hash_map<uint32_t,std::string,id_hash_uint>::const_iterator bit;
+		       if ((bit=sp->_bag_of_words->find((*mit).second))!=sp->_bag_of_words->end())
+			 {
+			    /* std::cerr << "adding to label: " << (*bit).second
+			      << " --> " << (*mit).first << std::endl; */
+			    
+			    _label += (*bit).second + " ";
+			    found = true;
+			    break;
+			 }
+		       ++hit;
+		    }
+	       }
+	     ++mit;
+	     if (found)
+	       k++;
+	  }
+     
+	//std::cerr << "label: " << _label << std::endl;
+     }
       
    /*- clustering. -*/
    clustering::clustering()
@@ -101,6 +171,9 @@ namespace seeks_plugins
      
 	// sort clusters.
 	std::stable_sort(_clusters,_clusters+_K,cluster::max_rank_cluster);
+   
+	// compute labels.
+	compute_cluster_labels();
      }
       
    // default ranking is as computed by seeks on the main list of results.
@@ -128,6 +201,12 @@ namespace seeks_plugins
 	  _clusters[c].compute_rank(_qc);
      }
    
+   void clustering::compute_cluster_labels()
+     {
+	for (short c=0;c<_K;c++)
+	  _clusters[c].compute_label(_qc);
+     }
+      
    hash_map<uint32_t,float,id_hash_uint>* clustering::get_point_features(const short &np)
      {
 	short p = 0;

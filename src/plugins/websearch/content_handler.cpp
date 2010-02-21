@@ -83,8 +83,22 @@ namespace seeks_plugins
 	std::vector<std::string*> txt_contents;
 	for (size_t i=0;i<nsnippets;i++)
 	  {
-	     std::string *str = new std::string(qc->_cached_snippets.at(i)->_title + "\n" 
-						+ qc->_cached_snippets.at(i)->_summary);
+	     if (qc->_cached_snippets.at(i)->_summary.empty())
+	       {
+		  std::string *str = new std::string();
+		  txt_contents.push_back(str);
+		  continue;
+	       }
+	     
+	     // decode html.
+	     std::string dec_sum = qc->_cached_snippets.at(i)->_summary;
+	     miscutil::replace_in_string(dec_sum,"&amp","&");
+	     miscutil::replace_in_string(dec_sum,"&quot","\"");
+	     miscutil::replace_in_string(dec_sum,"&lt","<");
+	     miscutil::replace_in_string(dec_sum,"&gt",">");
+	     /* std::string *str = new std::string(qc->_cached_snippets.at(i)->_title + "\n" 
+						+ qc->_cached_snippets.at(i)->_summary); */
+	     std::string *str = new std::string(dec_sum);
 	     txt_contents.push_back(str);
 	  }
 	content_handler::extract_tfidf_features_from_snippets(qc,txt_contents,qc->_cached_snippets);
@@ -104,7 +118,7 @@ namespace seeks_plugins
 	     search_snippet *sp = qc->_cached_snippets.at(i);
 	     if (sp->_cached_content)
 	       {
-		  std::cerr << "[Debug]: already in cache: " << sp->_url << std::endl;
+		  //std::cerr << "[Debug]: already in cache: " << sp->_url << std::endl;
 		  continue;
 	       }
 	     urls.push_back(sp->_url);
@@ -279,7 +293,7 @@ namespace seeks_plugins
 	       {
 		  sps[i]->_features_tfidf = feature_args[i]->_vf; // cache features.
 		  sps[i]->_bag_of_words = feature_args[i]->_bow; // cache words.
-		  std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
+		  //std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
 		  delete feature_args[i];
 	       }
 	  }
@@ -374,8 +388,8 @@ namespace seeks_plugins
 	       {
 		  sps[i]->_seeks_ir = oskmeans::distance_normed_points(*ref_features,*sps[i]->_features_tfidf);
 		  
-		  std::cerr << "[Debug]: url: " << sps[i]->_url 
-		    << " -- score: " << sps[i]->_seeks_ir << std::endl;
+		  /* std::cerr << "[Debug]: url: " << sps[i]->_url 
+		    << " -- score: " << sps[i]->_seeks_ir << std::endl; */
 	       }
 	  }
      }   

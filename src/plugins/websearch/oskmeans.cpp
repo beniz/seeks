@@ -35,7 +35,7 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-   short oskmeans::_niterations = 8;
+   short oskmeans::_niterations = 20;
    float oskmeans::_nu0 = 1.0;
    float oskmeans::_nuf = 0.01;
    
@@ -87,33 +87,48 @@ namespace seeks_plugins
      {
 	size_t npts = _points.size();
 	
-	// grab the first best ranked snippet as the first centroid.
-	std::stable_sort(_snippets.begin(),_snippets.end(),
-			 search_snippet::max_seeks_rank);
-        int sk = 0;
-	while(!_snippets.at(sk)->_features_tfidf)
-	  sk++;
-	_clusters[0]._c._features = *_snippets.at(sk)->_features_tfidf; 
-	
-	// use oskmeans++ to sample the other centroids.
 	bool centroids[npts];
 	for (size_t i=0;i<npts;i++)
 	  centroids[i] = false;
 	
+	// grab the first best ranked snippet as the first centroid.
+	std::stable_sort(_snippets.begin(),_snippets.end(),
+			 search_snippet::max_seeks_rank);
+        int sk = 0;
+	while(!_snippets.at(sk++)->_features_tfidf)
+	  {
+	  }
+	_clusters[0]._c._features = *_snippets.at(sk-1)->_features_tfidf; 
+	uint32_t idc1 = _snippets.at(sk-1)->_id;
+	
+	sk = 0;
+	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
+	  = _points.begin();
+	while(hit!=_points.end())
+	  {
+	     if ((*hit).first == idc1)
+	       {
+		  centroids[sk] = true;
+		  break;
+	       }
+	     ++sk;
+	     ++hit;
+	  }
+		
+	// use kmeans++ to sample the other centroids.
 	for (short c=1;c<_K;c++)
 	  {
 	     // compute sampling probabilities.
 	     double probs[npts];
 	     double tmax_sim = 0.0;
-	     hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit 
-	       = _points.begin();
+	     hit = _points.begin();
 	     int k = 0;
-	     while(k<=sk)
-	       {
-		  hit++; // skip point.
-		  probs[0] = 0.0;
-		  k++;
-	       }
+	     	   
+#ifdef DEBUG
+	     //debug
+	     std::string urls[npts];
+	     //debug
+#endif
 	     
 	     while(hit!=_points.end())
 	       {
@@ -124,14 +139,23 @@ namespace seeks_plugins
 		       continue;
 		    }
 		  		  
-		  double max_sim = 0.0;
+		  double max_sim = 0.0; // max distance.
 		  get_closest_cluster((*hit).second,max_sim);
 		  
-		  //std::cerr << "min_dist: " << min_dist << " -- ";
+		  search_snippet *sp = _qc->get_cached_snippet((*hit).first);
+		  max_sim = (1.0-max_sim)*(1.0-max_sim)*sp->_seeks_rank;
 		  
-		  probs[k++] = max_sim;
+		  probs[k] = max_sim;
 		  tmax_sim += max_sim;
 
+#ifdef DEBUG
+		  //debug
+		  urls[k] = sp->_url;
+		  std::cout << "url: " << urls[k] << " -- max_sim: " << max_sim << " -- seeks_rank: " << sp->_seeks_rank << std::endl;
+		  //debug
+#endif
+		  
+		  k++;
 		  ++hit;
 	       }
 	     for (size_t j=0;j<npts;j++)  // normalization.
@@ -140,18 +164,17 @@ namespace seeks_plugins
 #ifdef DEBUG
 	     std::cerr << "[Debug]: probs: ";
 	     for (size_t j=0;j<npts;j++)
-	       std::cerr << probs[j] << " ";
-	     std::cerr << std::endl;
+	       std::cerr << urls[j] << ": " << probs[j] << std::endl;
 #endif
 	     
 	     // sample point.
-	     double smpl_prob = Random::genUniformDbl32(0,1);
+	     //double smpl_prob = Random::genUniformDbl32(0,1);
 	     
 #ifdef DEBUG
 	     std::cerr << "[Debug]: smpl_prob: " << smpl_prob << std::endl;
 #endif
 	     
-	     double cprob = 0.0;
+	     /*double cprob = 0.0;
 	     size_t l = 0;
 	     for (l=0;l<npts;l++)
 	       {
@@ -161,15 +184,25 @@ namespace seeks_plugins
 		       if (cprob >= smpl_prob)
 			 break;
 		    }
-	       }
-	     centroids[l] = true;	     
+	       } */
+	     
+	     // select the point with max value to existing clusters.
+	     double max_score = -1.0;
+	     int cl = -1;
+	     for (size_t l=0;l<npts;l++)
+	       if (probs[l] > max_score)
+		 {
+		    max_score = probs[l];
+		    cl = l;
+		 }
+	     centroids[cl] = true;
 
 #ifdef DEBUG
-	     std::cerr << "[Debug]: cluster's centroid #" << c << ": point #" << l << std::endl;
+	     std::cerr << "[Debug]: cluster's centroid #" << c << ": point #" << cl << " -- url: " << urls[cl] << std::endl;
 #endif
 	     
 	     // set cluster's centroid.
-	     hash_map<uint32_t,float,id_hash_uint> *point_features = get_point_features(l);
+	     hash_map<uint32_t,float,id_hash_uint> *point_features = get_point_features(cl);
 	     _clusters[c]._c._features = *point_features;
 	  }
      }
