@@ -88,7 +88,7 @@ namespace seeks_plugins
 			   url_str = url_str.substr(pos+3);
 		       pc->_current_snippet->set_url(url_str);
 		       const char *url_enc = encode::url_decode(url_str.c_str());
-		       pc->_current_snippet->_cite = std::string(url_enc);
+		       pc->_current_snippet->set_cite(std::string(url_enc));
 		       free_const(url_enc);
 		    }
 		  else if (_begin_results && pc->_current_snippet)
