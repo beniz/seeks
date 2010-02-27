@@ -30,6 +30,5 @@ nobase_websearchplugindata_DATA= websearch-config \
                  	  templates/css/seeks_search.css \
                  	  patterns/* \
                  	  public/opensearch.xml \
-                 	  public/css/reset-fonts-grids.css \
                  	  public/images/*.* \
                  	  public/images/search_engines/*.*
