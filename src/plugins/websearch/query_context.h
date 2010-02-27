@@ -215,6 +215,9 @@ namespace seeks_plugins
 		
 	/* in-query command. */
 	std::string _in_query_command;
+     
+	/* query tokenizing and hashing delimiters. */
+	static std::string _query_delims;
      };
       
 } /* end of namespace. */
