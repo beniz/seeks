@@ -34,7 +34,7 @@ namespace seeks_plugins
    class search_snippet;
    class query_context;
    
-#define NSEs 4  // number of supported search engines.
+#define NSEs 5  // number of supported search engines.
    
 #ifndef ENUM_SE
 #define ENUM_SE
@@ -43,7 +43,8 @@ namespace seeks_plugins
 	GOOGLE, // 0
 	CUIL,   // 1
 	BING,   // 2
-	YAHOO   // 3
+	YAHOO,  // 3
+	EXALEAD // 4
      };
 #endif
    
@@ -62,7 +63,7 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *_param_translation;
      };
 
-   // arguments to a threaded parser. (TODO: move it down).
+   // arguments to a threaded parser.
    struct ps_thread_arg
      {
 	ps_thread_arg()
@@ -123,6 +124,16 @@ namespace seeks_plugins
 				 std::string &url, const query_context *qc);
      };
       
+   class se_exalead : public search_engine
+     {
+      public:
+	se_exalead();
+	~se_exalead();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+   
    class se_handler
      {
       public:
@@ -160,6 +171,7 @@ namespace seeks_plugins
 	static se_cuil _cuil;
 	static se_bing _bing;
 	static se_yahoo _yahoo;
+	static se_exalead _exalead;
      };
       
 } /* end of namespace. */
