@@ -31,6 +31,7 @@
 #include "sort_rank.h"
 #include "content_handler.h"
 #include "oskmeans.h"
+#include "mrf.h"
 
 #include <iostream>
 #include <algorithm>
@@ -53,7 +54,10 @@ namespace seeks_plugins
 	  _version_major = "0";
 	  _version_minor = "2";
 	  
-	  _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
+	  if (seeks_proxy::_datadir.empty())
+	    _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
+	  else _config_filename = seeks_proxy::_datadir + "/plugins/websearch/websearch-config";
+	  
 	  if (websearch::_wconfig == NULL)
 	    websearch::_wconfig = new websearch_configuration(_config_filename);
 	  _configuration = websearch::_wconfig;
@@ -98,6 +102,9 @@ namespace seeks_plugins
 
 	  // initializes the libxml for multithreaded usage.
 	  se_parser::libxml_init();
+       
+	  // initialize mrf.
+	  mrf::init_delims();
        }
 
    websearch::~websearch()
@@ -131,8 +138,10 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 	csp->_content_type = CT_CSS;
-	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),plugin_manager::_plugin_repository.c_str(),
-						    exports,rsp);
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),
+						    (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						     : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+						     exports,rsp);
 		
 	if (err != SP_ERR_OK)
 	  {
@@ -156,7 +165,9 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 	csp->_content_type = CT_CSS;
-	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),plugin_manager::_plugin_repository.c_str(),
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),
+						    (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						     : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						    exports,rsp);
 	
 	if (err != SP_ERR_OK)

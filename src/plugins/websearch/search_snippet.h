@@ -100,6 +100,8 @@ namespace seeks_plugins
 	void set_url(const std::string &url);
 	void set_url(const char *url);
 	
+	void set_cite(const std::string &cite);
+	
 	void set_summary(const std::string &summary);
 	void set_summary(const char *summary);
 	

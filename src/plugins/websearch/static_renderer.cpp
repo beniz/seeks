@@ -356,7 +356,7 @@ namespace seeks_plugins
 	     ++sit;
 	  }
 	miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
-		
+	
 	if (!websearch::_wconfig->_js) // no javascript required
 	  {
 	     cgi::map_block_killer(exports,"websearch-have-js");
@@ -385,7 +385,9 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 		
-	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,
+						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						 : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						exports,rsp);
 	
 	return err;
@@ -447,7 +449,9 @@ namespace seeks_plugins
      static_renderer::render_nclusters(parameters,exports);
      
      // rendering.
-     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,
+					     (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+					      : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 					     exports,rsp);
      
      return err;
@@ -501,7 +505,9 @@ namespace seeks_plugins
 	static_renderer::render_nclusters(parameters,exports);
 	
 	// rendering.
-	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,
+						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						 : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						exports,rsp);
 	
 	return err;

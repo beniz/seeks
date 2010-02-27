@@ -68,16 +68,27 @@ namespace sp
    
    int plugin_manager::load_all_plugins()
      {
-	// basedir.
-	assert(seeks_proxy::_basedir);
-	
-	plugin_manager::_plugin_repository = std::string(seeks_proxy::_basedir)
+	/**
+	 * Defaults the plugin repository to the base directory, only if the repository has not been set 
+	 * through the command line, or in the configuration file, in that order.
+	 */
+	if (plugin_manager::_plugin_repository.empty() && seeks_proxy::_config->_plugindir)
+	  {
+	     plugin_manager::_plugin_repository = std::string(seeks_proxy::_config->_plugindir);
+	  }
+	else if (plugin_manager::_plugin_repository.empty())
+	  {
+	     // basedir.
+	     assert(seeks_proxy::_basedir);
+	     plugin_manager::_plugin_repository = std::string(seeks_proxy::_basedir)
 #ifdef unix
-	+ "/plugins/";
+	       + "/plugins/";
 #endif
 #if defined(_WIN32)
-	+ "\plugins\\";
-#endif		
+	     + "\plugins\\";
+#endif	
+	  }
+	
 	unsigned int BUF_SIZE = 1024;
 	
 	// TODO: win32...

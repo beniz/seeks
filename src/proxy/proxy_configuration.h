@@ -99,6 +99,12 @@ namespace sp
 	/** The log file directory. */
 	const char *_logdir;
 	
+	/** The plugin repository. */
+	const char *_plugindir;
+	
+	/** The data repository for all data (including plugin data). */
+	const char *_datadir;
+	
 	/** The list of activated plugins. */
 	hash_map<const char*,bool,hash<const char*>,eqstr> _activated_plugins;
 	

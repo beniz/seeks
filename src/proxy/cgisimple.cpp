@@ -1733,9 +1733,12 @@ sp_err cgisimple::cgi_file_server(client_state *csp,
 	return cgisimple::cgi_error_404(csp,rsp,parameters);
      }
    
-   std::string path_file_str = std::string(seeks_proxy::_basedir) + "/" + std::string(CGI_SITE_FILE_SERVER)
-                               + "/" + std::string(path_file);
-      
+   std::string path_file_str;
+   if (seeks_proxy::_datadir.empty())
+     path_file_str = std::string(seeks_proxy::_basedir);
+   else path_file_str = std::string(seeks_proxy::_datadir);
+   path_file_str += "/" + std::string(CGI_SITE_FILE_SERVER) + "/" + std::string(path_file);
+   
    sp_err err = cgisimple::load_file(path_file_str.c_str(),&rsp->_body,&rsp->_content_length);
 
    /**
@@ -1771,7 +1774,10 @@ sp_err cgisimple::cgi_plugin_file_server(client_state *csp,
 	return cgisimple::cgi_error_404(csp,rsp,parameters);
      }
    
-   std::string path_file_str = plugin_manager::_plugin_repository + "/" + std::string(path_file);
+   std::string path_file_str;
+   if (seeks_proxy::_datadir.empty())
+     path_file_str = plugin_manager::_plugin_repository + "/" + std::string(path_file);
+   else path_file_str = seeks_proxy::_datadir + "plugins/" + std::string(path_file);
    
    sp_err err = cgisimple::load_file(path_file_str.c_str(),&rsp->_body,&rsp->_content_length);
    

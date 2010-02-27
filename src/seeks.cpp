@@ -26,6 +26,7 @@
 #include "miscutil.h"
 #include "cgi.h"
 #include "spsockets.h"
+#include "plugin_manager.h"
 
 #include <string.h>
 #include <sys/types.h>
@@ -174,6 +175,16 @@ int main(int argc, const char *argv[])
 	     do_chroot = 1;
 	  }
 # endif /* defined(unix) */
+	else if (strcmp(argv[argc_pos], "--plugin-repository") == 0)
+	  {
+	     if (++argc_pos == argc) seeks_proxy::usage(argv[0]);
+	     plugin_manager::_plugin_repository = std::string(argv[argc_pos]);
+	  }
+	else if (strcmp(argv[argc_pos], "--data-repository") == 0)
+	  {
+	     if (++argc_pos == argc) seeks_proxy::usage(argv[0]);
+	     seeks_proxy::_datadir = std::string(argv[argc_pos]);
+	  }
 	else if (argc_pos + 1 != argc)
 	  {
 	     /*

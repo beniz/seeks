@@ -1,12 +1,15 @@
 #automake for websearch plugin.
 
+websearchpluginlibdir = $(libdir)/plugins/websearch
+websearchplugindatadir = $(datadir)/plugins/websearch
+
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -march=native -mtune=native -pipe \
 	    -I../../utils -I../../lsh -I../../proxy
 ACLOCAL_AMFLAGS=-I m4
-lib_LTLIBRARIES=libseekswebsearchplugin.la
+websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
 	                           se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
-				   se_parser_yahoo.cpp html_txt_parser.cpp \
+				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 	                           query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp
@@ -17,3 +20,16 @@ libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
 SUBDIRS=. tests
+
+nobase_websearchplugindata_DATA= websearch-config \
+	 	          templates/clustered_results_template \
+                 	  templates/one_column_results_template  \
+                 	  templates/seeks_result_template.html \
+                 	  templates/seeks_ws_hp.html \
+                 	  templates/css/seeks_hp_search.css \
+                 	  templates/css/seeks_search.css \
+                 	  patterns/* \
+                 	  public/opensearch.xml \
+                 	  public/css/reset-fonts-grids.css \
+                 	  public/images/*.* \
+                 	  public/images/search_engines/*.*

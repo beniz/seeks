@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,7 @@
 #include "loaders.h"
 #include "urlmatch.h"
 #include "plugin_manager.h" // for _plugin_repository.
+#include "seeks_proxy.h" // for _datadir.
 
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
 #include "proxy_dts.h" // for http_request.
@@ -39,6 +40,7 @@ using sp::encode;
 using sp::loaders;
 using sp::urlmatch;
 using sp::plugin_manager;
+using sp::seeks_proxy;
 using sp::http_request;
 using lsh::mrf;
 
@@ -172,10 +174,17 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
 	     html_content += yahoo_se_icon;
 	  }
-		
+	if (_engine.to_ulong()&SE_EXALEAD)
+	  {
+	     std::string exalead_se_icon = se_icon;
+	     miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
+	     miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
+	     html_content += exalead_se_icon;
+	  }
+			
 	html_content += "</h3>";
 		
-	if (_summary != "")
+	if (!_summary.empty())
 	  {
 	     html_content += "<div>";
 	     std::string summary = _summary;
@@ -185,7 +194,7 @@ namespace seeks_plugins
 	else html_content += "<div>";
 	
 	const char *cite_enc = NULL;
-	if (_cite != "")
+	if (!_cite.empty())
 	  {
 	     cite_enc = encode::html_encode(_cite.c_str());
 	  }
@@ -265,7 +274,7 @@ namespace seeks_plugins
 	_url = std::string(str);
 	free(str);
 	std::string surl = urlmatch::strip_url(_url);
-	_id = mrf::mrf_single_feature(surl);
+	_id = mrf::mrf_single_feature(surl,"");
      }
    
    void search_snippet::set_url(const char *url)
@@ -274,12 +283,22 @@ namespace seeks_plugins
 	_url = std::string(str);
 	free(str);
 	std::string surl = urlmatch::strip_url(_url);
-	_id = mrf::mrf_single_feature(surl);
+	_id = mrf::mrf_single_feature(surl,"");
      }
    
+   void search_snippet::set_cite(const std::string &cite)
+     {
+	static size_t cite_max_size = 60;
+	std::string host, path;
+	urlmatch::parse_url_host_and_path(cite,host,path);
+	_cite = host + path;
+	if (_cite.length()>cite_max_size)
+	  _cite.substr(0,cite_max_size-3) + "...";
+     }
+      
    void search_snippet::set_summary(const char *summary)
      {
-	static size_t summary_max_size = 1000; // characters.
+	static size_t summary_max_size = 240; // characters.
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
 	_summary = (strlen(str)<summary_max_size) ? std::string(str) 
@@ -358,11 +377,21 @@ namespace seeks_plugins
    // static.
    sp_err search_snippet::load_patterns()
      {
-	static std::string pdf_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/pdf";
-	static std::string file_doc_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/file_doc";
-	static std::string audio_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/audio";
-	static std::string video_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/video";
-	static std::string forum_patterns_filename = plugin_manager::_plugin_repository + "websearch/patterns/forum";
+	static std::string pdf_patterns_filename 
+	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/pdf"
+	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/pdf";
+	static std::string file_doc_patterns_filename 
+	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/file_doc"
+	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/file_doc";
+	static std::string audio_patterns_filename 
+	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/audio"
+	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/audio";
+	static std::string video_patterns_filename 
+	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/video"
+	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/video";
+	static std::string forum_patterns_filename 
+	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/forum"
+	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/forum";
 		
 	std::vector<url_spec*> fake_neg_patterns; // XXX: maybe to be supported in the future, if needed.
 	

@@ -11,4 +11,14 @@ endif
 LDADD = -lseeksutils -lseeksproxy -lseeksplugins -lnsl -lpcre -lpcreposix -lseekslsh -lpthread -lz -ldl @CURL_LDADD@ @XML2_LDADD@
 
 SUBDIRS=utils lsh proxy plugins .
-# dht
+
+nobase_data_DATA=config \
+	         public/css/* \
+		 public/images/*.png \
+		 public/images/*.ico \
+		 public/yui/3.0.0/cssreset/reset-min.css \
+		 public/yui/3.0.0/cssfonts/fonts-min.css \
+		 public/yui/3.0.0/cssgrids/grids-min.css \
+		 public/yui/3.0.0/yui/yui-min.js \
+		 lsh/lsh-config \
+		 proxy/templates/*

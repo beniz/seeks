@@ -30,8 +30,9 @@ namespace seeks_plugins
    std::string query_interceptor::_p_filename = "websearch/patterns/qi_patterns";
    
    query_interceptor::query_interceptor(plugin *parent)
-     :interceptor_plugin(std::string(plugin_manager::_plugin_repository
-				     + query_interceptor::_p_filename).c_str(),parent)
+     :interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
+								      + query_interceptor::_p_filename).c_str() 
+			  : std::string(seeks_proxy::_datadir + "/plugins/" + query_interceptor::_p_filename).c_str()),parent)
        {
        }
    

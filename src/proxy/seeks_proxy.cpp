@@ -56,6 +56,7 @@ namespace sp
    
    /* initialize all static (global) variables... */
    const char* seeks_proxy::_basedir = NULL;
+   std::string seeks_proxy::_datadir = "";
    int seeks_proxy::_received_hup_signal = 0;
    int seeks_proxy::_no_daemon = 1;  // To be turned back off after debugging phase...
    const char* seeks_proxy::_pidfile = NULL;
@@ -2325,8 +2326,8 @@ namespace sp
 # if defined(unix)
 	       "[--daemon] [--pidfile pidfile] [--pre-chroot-nslookup hostname] [--user user[.group]] "
 # endif /* defined(unix) */
-	       "[--version] [configfile]\n"
-	       "Aborting\n", myname);
+	       "[--version] [--plugin-repository] [--data-repository] [configfile]\n"
+	       "Bye\n", myname);
 	exit(2);
      }
 #endif /* #if !defined(_WIN32) || defined(_WIN_CONSOLE) */
@@ -2512,7 +2513,7 @@ namespace sp
 	  delete seeks_proxy::_lsh_config;
 	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
-	
+		
 	// loads iso639 table.
 	iso639::initialize();
 	
