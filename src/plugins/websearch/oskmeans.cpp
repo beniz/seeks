@@ -249,8 +249,7 @@ namespace seeks_plugins
 		       recompute_centroid(learning_rate,&_clusters[cl]._c,(*hit).second,cl_norm);
 		       normalize_centroid(&_clusters[cl]._c,cl_norm);
 		    }
-		  
-		  
+		  		  
 		  ++hit;
 		  _t++;
 	       }
