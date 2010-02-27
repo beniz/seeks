@@ -85,7 +85,7 @@
 #      No email address is displayed on error pages and the CGI user
 #      interface.
 #
-#admin-address seeks-admin@example.com
+# admin-address seeks-admin@example.com
 #
 #
 #  1.3. proxy-info-url
@@ -164,7 +164,7 @@ confdir .
 #
 #  Default value:
 #
-#      templates
+#      proxy/templates
 #
 templdir proxy/templates
 #
@@ -242,7 +242,36 @@ logdir .
 logfile logfile
 #
 #
-# 2.5. activated plugins
+# 2.5. plugindir
+# ======================
+#
+# Specifies:
+#
+#       The repository to be recursively scanned for precompiled plugins.
+#
+# Type of value:
+#
+#       Path to a directory.
+#
+# Default value:
+#
+#       Unset. Forced through command line or automatically set to base dir.
+#
+# Notes:
+#
+#      It makes sense to setup this value after Seeks has been installed 
+#      through a package or the configure/make install scripts.
+#      
+#      The repository is then recursively scanned at startup, and Seeks will
+#      try to load _all_ dynamic libraries within this directory.
+#      Therefore it is strongly recommended to NOT specify a system-wide 
+#      repository such as '/usr/lib' etc...
+#
+#      Use --plugin-repository your_repository to override the value at startup.
+#
+# plugindir /usr/local/lib/seeks
+#
+# 2.6. activated-plugin
 # ======================
 #
 # Specifies:
@@ -270,10 +299,35 @@ logfile logfile
 #	a warning. In such case, the plugin that was loaded the
 #	last is the one remaining available under that name.
 #
-activated-plugin websearch
-activated-plugin privoxy-block
-#activated-plugin privoxy-filters
+#activated-plugin websearch
 #
+#
+# 2.7. datadir
+# ======================
+#
+# Specifies:
+#
+#      The repository in which the machine-independent data are stored.
+#
+# Type of value:
+#
+#      Path to a directory.
+#
+# Default value:
+#
+#      Unset. Forced through command line or automatically set depending on data.
+#
+# Notes:
+#
+#      It makes sense to setup this value after Seeks has been installed
+#      through a package or the configure/make install scripts.
+#
+#      The specified repository should contain data for Seeks and the
+#      installed plugins.
+# 
+#      Use --data-repository your_repository to override the value at startup.
+#
+# datadir /usr/local/share/seeks
 #
 #  3. DEBUGGING
 #  =============
@@ -352,7 +406,7 @@ activated-plugin privoxy-block
 #      problem on your own.
 #
 debug 1 # Log the destination for each request Seeks let through.
-debug 2
+#debug 2
 #debug 4
 #debug 8
 #debug 16
@@ -498,7 +552,6 @@ debug 8192 # Non-fatal errors
 #
 #
 listen-address  127.0.0.1:8118
-#listen-address 192.168.0.2:8118
 #
 #
 #  4.2. toggle
@@ -724,9 +777,6 @@ enable-remote-http-toggle  0
 #
 #        permit-access  [::ffff:192.0.2.0]/120
 #
-#permit-access 192.168.0.2
-#deny-access 192.168.0.22
-#
 #
 #  4.7. buffer-limit
 #  ==================
@@ -748,12 +798,6 @@ enable-remote-http-toggle  0
 #      Use a 4MB (4096 KB) limit.
 #
 #  Notes:
-#
-#      For content filtering, i.e. the +filter and +deanimate-gif
-#      actions, it is necessary that Seeks buffers the entire document
-#      body. This can be potentially dangerous, since a server could
-#      just keep sending data indefinitely and wait for your RAM to
-#      exhaust -- with nasty consequences.  Hence this option.
 #
 #      When a document buffer size reaches the buffer-limit, it is
 #      flushed to the client unfiltered and no further attempt to filter
