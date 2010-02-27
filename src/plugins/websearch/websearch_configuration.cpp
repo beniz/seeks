@@ -92,6 +92,8 @@ namespace seeks_plugins
 	       _se_enabled |= std::bitset<NSEs>(SE_BING);
 	     else if (strcasecmp(arg,"yahoo") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
+	     else if (strcasecmp(arg,"exalead") == 0)
+	       _se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
 	     break;
