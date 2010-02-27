@@ -31,6 +31,20 @@ namespace lsh
 {
    #define hash_en_swl         3069493191ul  /* "en-stopword-list" */
    #define hash_fr_swl         3229696102ul  /* "fr-stopword-list" */
+   #define hash_de_swl         1184593985ul  /* "de-stopword-list" */
+   #define hash_it_swl         1922004664ul  /* "it-stopword-list" */
+   #define hash_es_swl          696183464ul  /* "es-stopword-list" */
+   #define hash_pt_swl         2436772936ul  /* "pt-stopword-list" */
+   #define hash_fi_swl          471128499ul  /* "fi-stopword-list" */
+   #define hash_sv_swl         1176262111ul  /* "sv-stopword-list" */
+   #define hash_ar_swl         3009450614ul  /* "ar-stopword-list" */
+   #define hash_ru_swl         2303303740ul  /* "ru-stopword-list" */
+   #define hash_hu_swl         3972852814ul  /* "hu-stopword-list" */
+   #define hash_bg_swl         3065121129ul  /* "bg-stopword-list" */
+   #define hash_ro_swl         2960570529ul  /* "ro-stopword-list" */
+   #define hash_cs_swl         3332125561ul  /* "cs-stopword-list" */
+   #define hash_pl_swl         4105258461ul  /* "pl-stopword-list" */
+   #define hash_lsh_delims     3228991366ul  /* "lsh-delims" */
    
    sp_mutex_t lsh_configuration::_load_swl_mutex;
    
@@ -56,6 +70,8 @@ namespace lsh
 	     ++hit;
 	  }
 	_swlists.clear();
+	
+	_lsh_delims = "\n\t\f\r ,.;:'!?)(-|><^·&\"\\/{}#$–";
      }
       
    void lsh_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -76,6 +92,88 @@ namespace lsh
 	     filename = std::string(arg);
 	     swl = new stopwordlist(filename);
 	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("fr"),swl));
+	     break;
+	     
+	   case hash_de_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("de"),swl));
+	     break;
+	     
+	   case hash_it_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("it"),swl));
+	     break;
+	     
+	   case hash_es_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("es"),swl));
+	     break;
+	     
+	   case hash_pt_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("pt"),swl));
+	     break;
+	     
+	   case hash_fi_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("fi"),swl));
+	     break;
+	     
+	   case hash_sv_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("sv"),swl));
+	     break;
+	     
+	   case hash_ar_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("ar"),swl));
+	     break;
+	     
+	   case hash_ru_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("ru"),swl));
+	     break;
+	     
+	   case hash_hu_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("hu"),swl));
+	     break;
+	     
+	   case hash_bg_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("bg"),swl));
+	     break;
+	     
+	   case hash_ro_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("ro"),swl));
+	     break;
+	     
+	   case hash_cs_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("cs"),swl));
+	     break;
+	     
+	   case hash_pl_swl:
+	     filename = std::string(arg);
+	     swl = new stopwordlist(filename);
+	     _swlists.insert(std::pair<const char*,stopwordlist*>(strdup("pl"),swl));
+	     break;
+	     
+	   case hash_lsh_delims:
+	     _lsh_delims = std::string(arg);
 	     break;
 	     
 	   default:
