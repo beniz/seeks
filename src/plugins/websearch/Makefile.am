@@ -3,7 +3,7 @@
 websearchpluginlibdir = $(libdir)/plugins/websearch
 websearchplugindatadir = $(datadir)/plugins/websearch
 
-AM_CPPFLAGS=-Wno-deprecated -Wall -g -march=native -mtune=native -pipe \
+AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I../../utils -I../../lsh -I../../proxy
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la

@@ -1,7 +1,7 @@
 bin_PROGRAMS=seeks
 seeks_SOURCES=seeks.cpp
 
-AM_CPPFLAGS=-Wall -Wno-deprecated -g -march=native -mtune=native -pipe \
+AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -Iutils -Ilsh -Iproxy @PCRE_CFLAGS@
 AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
 

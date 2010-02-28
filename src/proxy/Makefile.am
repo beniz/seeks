@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
 lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la
-AM_CPPFLAGS=-Wall -Wno-deprecated -g -march=native -mtune=native -pipe \
+AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I../utils -I../lsh
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
