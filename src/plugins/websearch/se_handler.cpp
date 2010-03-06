@@ -466,6 +466,14 @@ namespace seeks_plugins
 			 pthread_t ps_thread;
 			 int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
 						  (void * (*)(void *))se_handler::parse_output, args);
+			 if (err != 0)
+			   {
+			      errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
+			      parser_threads[k++] = 0;
+			      delete args;
+			      parser_args[k] = NULL;
+			      continue;
+			   }
 			 parser_threads[k++] = ps_thread;
 		      }
 		    else parser_threads[k++] = 0;

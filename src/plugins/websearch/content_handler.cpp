@@ -24,6 +24,7 @@
 #include "websearch.h"
 #include "oskmeans.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #include <pthread.h>
 #include <iostream>
@@ -32,6 +33,7 @@
 
 using sp::curl_mget;
 using sp::miscutil;
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -183,6 +185,15 @@ namespace seeks_plugins
 		  pthread_t ps_thread;
 		  int err = pthread_create(&ps_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
 					   (void * (*)(void *))content_handler::parse_output, args);
+		  if (err != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
+		       parser_threads[i] = 0;
+		       delete args;
+		       parser_args[i] = NULL;
+		       continue;
+		    }
+		  
 		  parser_threads[i] = ps_thread;
 	       }
 	     else 
@@ -237,7 +248,7 @@ namespace seeks_plugins
 	pthread_t feature_threads[ncontents];
 	feature_tfidf_thread_arg* feature_args[ncontents];
 	                    
-	// XXX: limits the number of threads.
+	// XXX: limit to the number of threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
 	     hash_map<uint32_t,float,id_hash_uint> *vf = sps[i]->_features_tfidf;
@@ -265,6 +276,14 @@ namespace seeks_plugins
 		  pthread_t f_thread;
 		  int err = pthread_create(&f_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
 					   (void*(*)(void*))content_handler::generate_features_tfidf,args);
+		  if (err != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating feature generator thread.");
+		       feature_threads[i] = 0;
+		       delete args;
+		       feature_args[i] = NULL;
+		       continue;
+		    }
 		  feature_threads[i] = f_thread;
 	       }
 	     else
@@ -321,6 +340,14 @@ namespace seeks_plugins
 		  pthread_t f_thread;
 		  int err = pthread_create(&f_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
 					   (void*(*)(void*))content_handler::generate_features,args);
+		  if (err != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating feature generator thread.");
+		       feature_threads[i] = 0;
+		       delete args;
+		       feature_args[i] = NULL;
+		       continue;
+		    }
 		  feature_threads[i] = f_thread;
 	       }
 	     else 
@@ -350,10 +377,20 @@ namespace seeks_plugins
    
    void content_handler::generate_features(feature_thread_arg &args)
      {
-	mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
-				       feature_thread_arg::_radius,feature_thread_arg::_step,
-				       feature_thread_arg::_window_length);
-	mrf::unique_features(*args._vf);
+	try 
+	  {
+	     mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
+					    feature_thread_arg::_radius,feature_thread_arg::_step,
+					    feature_thread_arg::_window_length);
+	     mrf::unique_features(*args._vf);
+	  }
+	catch (std::exception &e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s generating unique features.", e.what());
+	  }
+	catch (...)
+	  {
+	  }
      }
       
    void content_handler::generate_features_tfidf(feature_tfidf_thread_arg &args)
