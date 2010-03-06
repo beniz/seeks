@@ -109,18 +109,28 @@ namespace sp
 	char errorbuffer[CURL_ERROR_SIZE];
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &errorbuffer);
 	
-	int status = curl_easy_perform(curl);
-	if (status != 0)  // an error occurred.
+	try
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR, "curl error: %s", errorbuffer);
-	     
-	     if (arg->_output)
+	     int status = curl_easy_perform(curl);
+	     if (status != 0)  // an error occurred.
 	       {
-		  free(arg->_output);
-		  arg->_output = NULL;
+		  errlog::log_error(LOG_LEVEL_ERROR, "curl error: %s", errorbuffer);
+		  
+		  if (arg->_output)
+		    {
+		       free(arg->_output);
+		       arg->_output = NULL;
+		    }
 	       }
 	  }
-	
+	catch (std::exception &e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "Error %s in fetching remote data with curl.", e.what());
+	  }
+	catch (...)
+	  {
+	  }
+		
 	curl_easy_cleanup(curl);
 	
 	if (slist)
