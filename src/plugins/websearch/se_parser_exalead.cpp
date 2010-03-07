@@ -152,8 +152,9 @@ namespace seeks_plugins
 	  {
 	     std::string a_chars = std::string((char*)chars);
 	     size_t i=0;
-	     while(i<a_chars.length() && isspace(a_chars[i++]))
+	     while(i<a_chars.length() && isspace(a_chars[i]))
 	       {
+		  i++;
 	       }
 	     a_chars = a_chars.substr(i);
 	     miscutil::replace_in_string(a_chars,"\n"," ");
@@ -175,8 +176,9 @@ namespace seeks_plugins
 	 {
 	    std::string a_chars = std::string((char*)chars);
 	    size_t i=0;
-	    while(i<a_chars.length() && isspace(a_chars[i++]))
+	    while(i<a_chars.length() && isspace(a_chars[i]))
 	      {
+		 i++;
 	      }
 	    a_chars = a_chars.substr(i);
 	    miscutil::replace_in_string(a_chars,"\n"," ");
