@@ -33,3 +33,7 @@ As such this the first truely mature of the SOLO releases.
 - Much improved Makefiles and template serving functions.
 
 - Added top banner for displaying the Seeks node information.
+
+- Added Access Control List (ACL). Allows to block and/or filter
+  authorized connections by IP address. Helpful to secure public
+  nodes.
