@@ -161,6 +161,13 @@ body {
 	background-image: url(base-url/plugins/websearch/public/images/home_32x30.png);
 }
 
+#search_help {
+        position: absolute;
+	left: 687px;
+	top: 58px;
+	font-size: 90%;
+}
+
 #search_page_current {
 	padding: 10px;
 }
