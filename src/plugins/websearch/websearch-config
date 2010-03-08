@@ -12,6 +12,8 @@ search-results-page 10
 search-engine google
 search-engine bing
 search-engine cuil
+search-engine yahoo
+#search-engine exalead
 
 # minimum number of seconds search results are kept in
 # the system cache, for reuse, update, etc...
@@ -38,8 +40,8 @@ enable-js 0
 enable-content-analysis 0
 
 # enables the clustering button on the interface.
-# default: 0
-enable-clustering 0
+# default: 1
+enable-clustering 1
 
 ## Technical configuration:
 # only modify settings below this point if you know what you are
@@ -53,7 +55,7 @@ se-connect-timeout 3
 # Transfer timeout when connecting to a search engine.
 # In seconds.
 # default: 5
-se-transfer-timeout 5
+se-transfer-timeout 3
 
 # Connection timeout when fetching content for analysis & caching.
 # In seconds.
