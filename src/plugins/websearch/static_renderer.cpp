@@ -102,6 +102,11 @@ namespace seeks_plugins
 					 const std::vector<search_snippet*> &snippets,
 					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+	  base_url_str = std::string(base_url);
+	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 	
@@ -122,7 +127,7 @@ namespace seeks_plugins
 	     for (size_t i=snistart;i<snisize;i++)
 	       {
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
-		    snippets_str += snippets.at(i)->to_html_with_highlight(words);
+		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
 	       }
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
@@ -138,6 +143,11 @@ namespace seeks_plugins
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	static short template_K=7; // max number of clusters available in the template.
+	
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+	  base_url_str = std::string(base_url);
 	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
@@ -195,7 +205,7 @@ namespace seeks_plugins
 										 clusters[c],exports);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
-	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
+	       cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
 	     
 	     std::string cl = rplcnt;
 	     if (k>1)

@@ -118,7 +118,8 @@ namespace seeks_plugins
 	
 	// html output for inclusion in search result template page.
 	std::string to_html();
-	std::string to_html_with_highlight(std::vector<std::string> &words);
+	std::string to_html_with_highlight(std::vector<std::string> &words,
+					   const std::string &base_url);
 
 	// static functions.
 	// highlights terms within the argument string.

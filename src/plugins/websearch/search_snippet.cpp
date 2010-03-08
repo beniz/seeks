@@ -122,10 +122,12 @@ namespace seeks_plugins
    std::string search_snippet::to_html()
      {
 	std::vector<std::string> words;
-	return to_html_with_highlight(words);
+	std::string base_url_str;
+	return to_html_with_highlight(words,base_url_str);
      }
 
-   std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words)
+   std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
+						      const std::string &base_url_str)
      {
 	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\">&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
@@ -220,27 +222,26 @@ namespace seeks_plugins
 	html_content += "<a class=\"search_cache\" href=\"";
 	html_content += _archive;
 	html_content += " \">Archive</a>";
-	/* if (websearch::_wconfig->_content_analysis)
-	  { */
-	     if (!_sim_back)
-	       {
-		  set_similarity_link();
-		  html_content += "<a class=\"search_cache\" href=\"";
-	       }
-	     else
-	       {
-		  set_back_similarity_link();
-		  html_content += "<a class=\"search_similarity\" href=\"";
-	       }
-	     html_content += _sim_link;
-	     if (!_sim_back)
-	       html_content += " \">Similar</a>";
-	     else html_content += "\">Back</a>";
-	 /* } */
+	
+	if (!_sim_back)
+	  {
+	     set_similarity_link();
+	     html_content += "<a class=\"search_cache\" href=\"";
+	  }
+	else
+	  {
+	     set_back_similarity_link();
+	     html_content += "<a class=\"search_similarity\" href=\"";
+	  }
+	html_content += base_url_str + _sim_link;
+	if (!_sim_back)
+	  html_content += " \">Similar</a>";
+	else html_content += "\">Back</a>";
+	
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
-	     html_content += "/search_cache?url="
+	     html_content += base_url_str + "/search_cache?url="
 	                  + _url + "&q=" + _qc->_query;
 	     html_content += " \">Quick link</a>";
 	  }
