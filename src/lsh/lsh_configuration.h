@@ -52,7 +52,7 @@ namespace lsh
 	virtual void finalize_configuration();
 	
 	// local.
-	stopwordlist* get_wordlist(const std::string &lang) const;
+	stopwordlist* get_wordlist(const std::string &lang);
 	
 	// main options.
 	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr> _swlists; /**< list of stop word, indexed by 2-char language indicator. */
@@ -60,7 +60,7 @@ namespace lsh
 	std::string _lsh_delims; /**< default delimiters for tokenization in mrf. */
 	
 	// mutex for loading stop word list.
-	static sp_mutex_t _load_swl_mutex;
+	sp_mutex_t _load_swl_mutex;
      };
       
 } /* end of namespace. */
