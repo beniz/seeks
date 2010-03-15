@@ -34,6 +34,8 @@ using sp::http_response;
 using lsh::LSHSystemHamming;
 using lsh::LSHUniformHashTableHamming;
 
+typedef pthread_mutex_t sp_mutex_t;
+
 namespace seeks_plugins
 {   
    class query_context : public sweepable
@@ -217,6 +219,9 @@ namespace seeks_plugins
      
 	/* query tokenizing and hashing delimiters. */
 	static std::string _query_delims;
+     
+	/* mutex for threaded work on the context. */
+	sp_mutex_t _qc_mutex;
      };
       
 } /* end of namespace. */

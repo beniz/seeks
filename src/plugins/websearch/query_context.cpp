@@ -26,6 +26,7 @@
 #include "errlog.h"
 #include "se_handler.h"
 #include "iso639.h"
+#include "seeks_proxy.h" // for mutexes
 
 #include <sys/time.h>
 #include <iostream>
@@ -33,6 +34,7 @@
 using sp::sweeper;
 using sp::miscutil;
 using sp::urlmatch;
+using sp::seeks_proxy;
 using sp::errlog;
 using sp::iso639;
 using lsh::mrf;
@@ -44,12 +46,15 @@ namespace seeks_plugins
    query_context::query_context()
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
+	  seeks_proxy::mutex_init(&_qc_mutex);
        }
       
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				const std::list<const char*> &http_headers)
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
+	  seeks_proxy::mutex_init(&_qc_mutex);
+	  
 	  // reload config if file has changed.
 	  websearch::_wconfig->load_config();
 	  
