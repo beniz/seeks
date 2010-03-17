@@ -26,9 +26,9 @@ nobase_websearchplugindata_DATA= websearch-config \
                  	  templates/one_column_results_template  \
                  	  templates/seeks_result_template.html \
                  	  templates/seeks_ws_hp.html \
-                 	  templates/css/seeks_hp_search.css \
+                 	  templates/opensearch.xml \
+			  templates/css/seeks_hp_search.css \
                  	  templates/css/seeks_search.css \
                  	  patterns/* \
-                 	  public/opensearch.xml \
                  	  public/images/*.* \
                  	  public/images/search_engines/*.*
