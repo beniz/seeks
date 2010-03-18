@@ -96,6 +96,19 @@ namespace seeks_plugins
 	else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
      }
    
+   void static_renderer::render_lang(const query_context *qc,
+				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+     {
+	miscutil::add_map_entry(exports,"$xxlang",1,qc->_auto_lang.c_str(),1);
+	/* std::string lang_str = "<a href=\"";
+	std::string lang_help_str = "http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want";
+	const char *lang_help_enc = encode::html_encode(lang_help_str.c_str());
+	lang_help_str = std::string(lang_help_enc);
+	free_const(lang_help_enc);
+	lang_str += lang_help_str + "\">Language</a>:&nbsp; " + qc->_auto_lang;
+	miscutil::add_map_entry(exports,"$xxlang",1,lang_str.c_str(),1); */
+     }
+      
    void static_renderer::render_snippets(const std::string &query_clean,
 					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
@@ -431,6 +444,9 @@ namespace seeks_plugins
      // suggestions.
      static_renderer::render_suggestions(qc,exports);
      
+     // language.
+     static_renderer::render_lang(qc,exports);
+     
      // TODO: check whether we have some results.
      /* if (snippets->empty())
        {
@@ -492,6 +508,9 @@ namespace seeks_plugins
 	
 	// suggestions.
 	static_renderer::render_suggestions(qc,exports);
+	
+	// language.
+	static_renderer::render_lang(qc,exports);
 	
 	// search snippets.
 	static_renderer::render_clustered_snippets(query_clean,html_encoded_query,current_page,

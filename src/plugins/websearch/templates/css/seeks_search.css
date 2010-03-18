@@ -168,6 +168,10 @@ body {
 	font-size: 90%;
 }
 
+#search_help a {
+	text-decoration: none;
+}
+
 #search_page_current {
 	padding: 10px;
 }
@@ -181,6 +185,25 @@ body {
 
 #search_sugg a {
 	font-weight: bold;
+	text-decoration: none;
+}
+
+#search_lang {
+        position: absolute;
+	text-align: center;
+	word-spacing: 0px;
+	padding-right: 8px;
+	padding-left: 1px;
+	left: 280px; 
+	top: 67px;
+	font-size: 90%;
+	font-weight: bold;
+	color: gray;
+	display: block;
+}
+
+#search_lang a {
+ 	text-decoration: none;
 }
 
 #sort_urls {
@@ -192,6 +215,7 @@ body {
 
 #sort_urls a {
         font-weight: bold;
+	text-decoration: none;
 }
 
 #sort_titles {
@@ -203,6 +227,7 @@ body {
 
 #sort_titles a {
         font-weight: bold;
+	text-decoration: none;
 }
 
 #sort_types {
@@ -214,6 +239,7 @@ body {
 
 #sort_types a {
       font-weight: bold;
+      text-decoration: none;
 }
 
 #cluster, #expansion {
