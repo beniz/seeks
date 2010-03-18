@@ -2944,30 +2944,30 @@ char* seeks_proxy::make_path(const char *dir, const char *file)
 	     path_size += strlen(seeks_proxy::_basedir) + 1; /* +1 for the slash */
 	     path = (char*) zalloc(path_size);
 	     if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
-	     miscutil::strlcpy(path, seeks_proxy::_basedir, path_size);
-	     miscutil::strlcat(path, "/", path_size);
-	     miscutil::strlcat(path, dir, path_size);
+	     strlcpy(path, seeks_proxy::_basedir, path_size);
+	     strlcat(path, "/", path_size);
+	     strlcat(path, dir, path_size);
 	  }	
 	else
 #endif /* defined unix */
 	  {
 	     path = (char*) zalloc(path_size);
 	     if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
-	     miscutil::strlcpy(path, dir, path_size);
+	     strlcpy(path, dir, path_size);
 	  }
 	assert(NULL != path);
 #if defined(_WIN32) || defined(__OS2__)
 	if(path[strlen(path)-1] != '\\')
 	  {
-	     miscutil::strlcat(path, "\\", path_size);
+	     strlcat(path, "\\", path_size);
 	  }
-#else /* ifndef _WIN32 || __OS2__ */
+#else /* ifndef _WIN32 */
 	if(path[strlen(path)-1] != '/')
 	  {
-	     miscutil::strlcat(path, "/", path_size);
+	     strlcat(path, "/", path_size);
 	  }
-#endif /* ifndef _WIN32 || __OS2__ */
-	miscutil::strlcat(path, file, path_size);
+#endif /* ifndef _WIN32 */
+	strlcat(path, file, path_size);
 	
 	return path;
      }
