@@ -56,6 +56,8 @@ namespace seeks_plugins
 	  std::cerr << "[Debug]: oskmeans created: " << _points.size() << " points -- " 
 	    << _K << " clusters\n";
 #endif
+	  if (_K > _points.size())
+	    _K = _points.size();
        }
       
    oskmeans::~oskmeans()
