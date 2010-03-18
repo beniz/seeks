@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+    <ShortName>Seeks Search</ShortName>
+    <Tags>Seeks</Tags>
+    <Description>Real-time p2p pattern matching network for social websearch.</Description>
+    <Contact>ebenazer@seeks-project.info</Contact>
+    <InputEncoding>UTF-8</InputEncoding>
+    <SyndicationRight>open</SyndicationRight>
+    <Image width="16" height="16" type="image/png">http://s.s/public/images/seek_icon_16x16_transparent.png</Image>
+    <Url type="text/html" template="@base-url@/search?q={searchTerms}&amp;expansion=1&amp;action=expand"/>
+</OpenSearchDescription>
