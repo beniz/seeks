@@ -210,13 +210,14 @@ case "$host" in
 esac
 
 #=================================================================
-# OpenBSD specific
+# FreeBSD specific
 #=================================================================
 case "$host" in
-*-freebsd*) AM_CONDITIONAL(HAVE_FREEBSD,true)
-# SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+*-freebsd*) freebsd=true;
+ SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
 ;;
 esac
+AM_CONDITIONAL(HAVE_FREEBSD,test x$freebsd = xtrue)
 
 # Checks for RFC 2553 resolver and socket functions 
 
