@@ -39,7 +39,7 @@ namespace sp
 	
 	int check_file_changed();
 
-#ifdef unix
+#ifdef __linux__
 	static int init_file_notification();
 	
 	static int stop_file_notification();

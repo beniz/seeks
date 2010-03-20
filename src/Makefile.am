@@ -8,7 +8,10 @@ AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD = -lseeksutils -lseeksproxy -lseeksplugins -lnsl -lpcre -lpcreposix -lseekslsh -lpthread -lz -ldl @CURL_LDADD@ @XML2_LDADD@
+LDADD = -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
+if !HAVE_FREEBSD
+LDADD += -ldl
+endif
 
 SUBDIRS=utils lsh proxy plugins .
 

@@ -13,4 +13,7 @@ AM_LDFLAGS=-L. -L../ -L../../utils -L../../lsh
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD = @CURL_LDADD@ -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz -ldl
+LDADD = @CURL_LDADD@ -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz 
+if !HAVE_FREEBSD
+LDADD += -ldl
+endif

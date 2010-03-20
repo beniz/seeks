@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-#ifdef unix // linux only.
+#ifdef __linux__ // linux only.
 #include <sys/select.h>
 #include <sys/inotify.h>
 #endif
@@ -190,7 +190,7 @@ namespace sp
 	  }
      }
 
-#ifdef unix
+#ifdef __linux__
    int configuration_spec::init_file_notification()
      {
 	configuration_spec::_fd = inotify_init();  // new instance, could be system wide ?

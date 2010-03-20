@@ -2501,7 +2501,7 @@ namespace sp
 	unsigned int active_threads = 0;
 	
 	// loads main configuration file (seeks + proxy configuration).
-#ifdef unix
+#ifdef __linux__
 	configuration_spec::init_file_notification(); // init inotify, Linux only.
 #endif
 	if (seeks_proxy::_config)

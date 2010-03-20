@@ -209,7 +209,17 @@ case "$host" in
 ;;
 esac
 
-# Checks for RFC 2553 resolver and socket functions                                                                                     
+#=================================================================
+# OpenBSD specific
+#=================================================================
+case "$host" in
+*-freebsd*) AM_CONDITIONAL(HAVE_FREEBSD,true)
+# SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+;;
+esac
+
+# Checks for RFC 2553 resolver and socket functions 
+
 AC_CHECK_FUNC([getaddrinfo],
    [AC_CHECK_FUNC([getnameinfo],
       [AC_DEFINE([HAVE_RFC2553], [1],
