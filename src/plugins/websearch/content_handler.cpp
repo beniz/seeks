@@ -2,20 +2,19 @@
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "content_handler.h"
 #include "mem_utils.h"
@@ -24,6 +23,7 @@
 #include "websearch.h"
 #include "oskmeans.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #include <pthread.h>
 #include <iostream>
@@ -32,6 +32,7 @@
 
 using sp::curl_mget;
 using sp::miscutil;
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -83,8 +84,22 @@ namespace seeks_plugins
 	std::vector<std::string*> txt_contents;
 	for (size_t i=0;i<nsnippets;i++)
 	  {
-	     std::string *str = new std::string(qc->_cached_snippets.at(i)->_title + "\n" 
-						+ qc->_cached_snippets.at(i)->_summary);
+	     if (qc->_cached_snippets.at(i)->_summary.empty())
+	       {
+		  std::string *str = new std::string();
+		  txt_contents.push_back(str);
+		  continue;
+	       }
+	     
+	     // decode html.
+	     std::string dec_sum = qc->_cached_snippets.at(i)->_summary;
+	     miscutil::replace_in_string(dec_sum,"&amp","&");
+	     miscutil::replace_in_string(dec_sum,"&quot","\"");
+	     miscutil::replace_in_string(dec_sum,"&lt","<");
+	     miscutil::replace_in_string(dec_sum,"&gt",">");
+	     /* std::string *str = new std::string(qc->_cached_snippets.at(i)->_title + "\n" 
+						+ qc->_cached_snippets.at(i)->_summary); */
+	     std::string *str = new std::string(dec_sum);
 	     txt_contents.push_back(str);
 	  }
 	content_handler::extract_tfidf_features_from_snippets(qc,txt_contents,qc->_cached_snippets);
@@ -104,7 +119,7 @@ namespace seeks_plugins
 	     search_snippet *sp = qc->_cached_snippets.at(i);
 	     if (sp->_cached_content)
 	       {
-		  std::cerr << "[Debug]: already in cache: " << sp->_url << std::endl;
+		  //std::cerr << "[Debug]: already in cache: " << sp->_url << std::endl;
 		  continue;
 	       }
 	     urls.push_back(sp->_url);
@@ -169,6 +184,15 @@ namespace seeks_plugins
 		  pthread_t ps_thread;
 		  int err = pthread_create(&ps_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
 					   (void * (*)(void *))content_handler::parse_output, args);
+		  if (err != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
+		       parser_threads[i] = 0;
+		       delete args;
+		       parser_args[i] = NULL;
+		       continue;
+		    }
+		  
 		  parser_threads[i] = ps_thread;
 	       }
 	     else 
@@ -223,7 +247,7 @@ namespace seeks_plugins
 	pthread_t feature_threads[ncontents];
 	feature_tfidf_thread_arg* feature_args[ncontents];
 	                    
-	// XXX: limits the number of threads.
+	// XXX: limit to the number of threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
 	     hash_map<uint32_t,float,id_hash_uint> *vf = sps[i]->_features_tfidf;
@@ -251,6 +275,14 @@ namespace seeks_plugins
 		  pthread_t f_thread;
 		  int err = pthread_create(&f_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
 					   (void*(*)(void*))content_handler::generate_features_tfidf,args);
+		  if (err != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating feature generator thread.");
+		       feature_threads[i] = 0;
+		       delete args;
+		       feature_args[i] = NULL;
+		       continue;
+		    }
 		  feature_threads[i] = f_thread;
 	       }
 	     else
@@ -279,7 +311,7 @@ namespace seeks_plugins
 	       {
 		  sps[i]->_features_tfidf = feature_args[i]->_vf; // cache features.
 		  sps[i]->_bag_of_words = feature_args[i]->_bow; // cache words.
-		  std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
+		  //std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
 		  delete feature_args[i];
 	       }
 	  }
@@ -307,6 +339,14 @@ namespace seeks_plugins
 		  pthread_t f_thread;
 		  int err = pthread_create(&f_thread,NULL, // default attribute is PTHREAD_CREATE_JOINABLE
 					   (void*(*)(void*))content_handler::generate_features,args);
+		  if (err != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating feature generator thread.");
+		       feature_threads[i] = 0;
+		       delete args;
+		       feature_args[i] = NULL;
+		       continue;
+		    }
 		  feature_threads[i] = f_thread;
 	       }
 	     else 
@@ -336,10 +376,20 @@ namespace seeks_plugins
    
    void content_handler::generate_features(feature_thread_arg &args)
      {
-	mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
-				       feature_thread_arg::_radius,feature_thread_arg::_step,
-				       feature_thread_arg::_window_length);
-	mrf::unique_features(*args._vf);
+	try 
+	  {
+	     mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
+					    feature_thread_arg::_radius,feature_thread_arg::_step,
+					    feature_thread_arg::_window_length);
+	     mrf::unique_features(*args._vf);
+	  }
+	catch (std::exception &e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s generating unique features.", e.what());
+	  }
+	catch (...)
+	  {
+	  }
      }
       
    void content_handler::generate_features_tfidf(feature_tfidf_thread_arg &args)
@@ -374,8 +424,8 @@ namespace seeks_plugins
 	       {
 		  sps[i]->_seeks_ir = oskmeans::distance_normed_points(*ref_features,*sps[i]->_features_tfidf);
 		  
-		  std::cerr << "[Debug]: url: " << sps[i]->_url 
-		    << " -- score: " << sps[i]->_seeks_ir << std::endl;
+		  /* std::cerr << "[Debug]: url: " << sps[i]->_url 
+		    << " -- score: " << sps[i]->_seeks_ir << std::endl; */
 	       }
 	  }
      }   

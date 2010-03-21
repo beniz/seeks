@@ -25,7 +25,14 @@
 #include "stopwordlist.h"
 #include "stl_hash.h"
 
+extern "C"
+{
+#include <pthread.h>
+}
+
 using sp::configuration_spec;
+
+typedef pthread_mutex_t sp_mutex_t;
 
 namespace lsh
 {
@@ -45,10 +52,15 @@ namespace lsh
 	virtual void finalize_configuration();
 	
 	// local.
-	stopwordlist* get_wordlist(const std::string &lang) const;
+	stopwordlist* get_wordlist(const std::string &lang);
 	
 	// main options.
 	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr> _swlists; /**< list of stop word, indexed by 2-char language indicator. */
+
+	std::string _lsh_delims; /**< default delimiters for tokenization in mrf. */
+	
+	// mutex for loading stop word list.
+	sp_mutex_t _load_swl_mutex;
      };
       
 } /* end of namespace. */

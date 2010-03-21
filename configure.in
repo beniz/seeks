@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (C) 2006, 2009 Emmanuel Benazera, juban@.free.fr
+# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@.free.fr
 #
 # Permission is hereby granted to distribute this software for
 # non-commercial research purposes, provided that this copyright
@@ -209,7 +209,18 @@ case "$host" in
 ;;
 esac
 
-# Checks for RFC 2553 resolver and socket functions                                                                                     
+#=================================================================
+# FreeBSD specific
+#=================================================================
+case "$host" in
+*-freebsd*) freebsd=true;
+ SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+;;
+esac
+AM_CONDITIONAL(HAVE_FREEBSD,test x$freebsd = xtrue)
+
+# Checks for RFC 2553 resolver and socket functions 
+
 AC_CHECK_FUNC([getaddrinfo],
    [AC_CHECK_FUNC([getnameinfo],
       [AC_DEFINE([HAVE_RFC2553], [1],

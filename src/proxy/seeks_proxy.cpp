@@ -56,6 +56,7 @@ namespace sp
    
    /* initialize all static (global) variables... */
    const char* seeks_proxy::_basedir = NULL;
+   std::string seeks_proxy::_datadir = "";
    int seeks_proxy::_received_hup_signal = 0;
    int seeks_proxy::_no_daemon = 1;  // To be turned back off after debugging phase...
    const char* seeks_proxy::_pidfile = NULL;
@@ -2325,8 +2326,8 @@ namespace sp
 # if defined(unix)
 	       "[--daemon] [--pidfile pidfile] [--pre-chroot-nslookup hostname] [--user user[.group]] "
 # endif /* defined(unix) */
-	       "[--version] [configfile]\n"
-	       "Aborting\n", myname);
+	       "[--version] [--plugin-repository] [--data-repository] [configfile]\n"
+	       "Bye\n", myname);
 	exit(2);
      }
 #endif /* #if !defined(_WIN32) || defined(_WIN_CONSOLE) */
@@ -2500,7 +2501,7 @@ namespace sp
 	unsigned int active_threads = 0;
 	
 	// loads main configuration file (seeks + proxy configuration).
-#ifdef unix
+#ifdef __linux__
 	configuration_spec::init_file_notification(); // init inotify, Linux only.
 #endif
 	if (seeks_proxy::_config)
@@ -2512,7 +2513,7 @@ namespace sp
 	  delete seeks_proxy::_lsh_config;
 	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
-	
+		
 	// loads iso639 table.
 	iso639::initialize();
 	
@@ -2943,30 +2944,30 @@ char* seeks_proxy::make_path(const char *dir, const char *file)
 	     path_size += strlen(seeks_proxy::_basedir) + 1; /* +1 for the slash */
 	     path = (char*) zalloc(path_size);
 	     if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
-	     miscutil::strlcpy(path, seeks_proxy::_basedir, path_size);
-	     miscutil::strlcat(path, "/", path_size);
-	     miscutil::strlcat(path, dir, path_size);
+	     strlcpy(path, seeks_proxy::_basedir, path_size);
+	     strlcat(path, "/", path_size);
+	     strlcat(path, dir, path_size);
 	  }	
 	else
 #endif /* defined unix */
 	  {
 	     path = (char*) zalloc(path_size);
 	     if (!path ) errlog::log_error(LOG_LEVEL_FATAL, "malloc failed!");
-	     miscutil::strlcpy(path, dir, path_size);
+	     strlcpy(path, dir, path_size);
 	  }
 	assert(NULL != path);
 #if defined(_WIN32) || defined(__OS2__)
 	if(path[strlen(path)-1] != '\\')
 	  {
-	     miscutil::strlcat(path, "\\", path_size);
+	     strlcat(path, "\\", path_size);
 	  }
-#else /* ifndef _WIN32 || __OS2__ */
+#else /* ifndef _WIN32 */
 	if(path[strlen(path)-1] != '/')
 	  {
-	     miscutil::strlcat(path, "/", path_size);
+	     strlcat(path, "/", path_size);
 	  }
-#endif /* ifndef _WIN32 || __OS2__ */
-	miscutil::strlcat(path, file, path_size);
+#endif /* ifndef _WIN32 */
+	strlcat(path, file, path_size);
 	
 	return path;
      }

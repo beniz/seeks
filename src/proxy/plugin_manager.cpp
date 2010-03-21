@@ -2,21 +2,20 @@
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "plugin_manager.h"
 
 #include "seeks_proxy.h"
@@ -68,16 +67,27 @@ namespace sp
    
    int plugin_manager::load_all_plugins()
      {
-	// basedir.
-	assert(seeks_proxy::_basedir);
-	
-	plugin_manager::_plugin_repository = std::string(seeks_proxy::_basedir)
+	/**
+	 * Defaults the plugin repository to the base directory, only if the repository has not been set 
+	 * through the command line, or in the configuration file, in that order.
+	 */
+	if (plugin_manager::_plugin_repository.empty() && seeks_proxy::_config->_plugindir)
+	  {
+	     plugin_manager::_plugin_repository = std::string(seeks_proxy::_config->_plugindir);
+	  }
+	else if (plugin_manager::_plugin_repository.empty())
+	  {
+	     // basedir.
+	     assert(seeks_proxy::_basedir);
+	     plugin_manager::_plugin_repository = std::string(seeks_proxy::_basedir)
 #ifdef unix
-	+ "/plugins/";
+	       + "/plugins/";
 #endif
 #if defined(_WIN32)
-	+ "\plugins\\";
-#endif		
+	     + "\plugins\\";
+#endif	
+	  }
+	
 	unsigned int BUF_SIZE = 1024;
 	
 	// TODO: win32...

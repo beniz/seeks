@@ -1,6 +1,8 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 
+ *  sileht, theli48@gmail.com
+ *  Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -16,18 +18,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SE_PARSER_CUIL_H
-#define SE_PARSER_CUIL_H
+#ifndef SE_PARSER_exalead_H
+#define SE_PARSER_exalead_H
 
 #include "se_parser.h"
+#include <string>
 
 namespace seeks_plugins
 {
-   class se_parser_cuil : public se_parser
+   class se_parser_exalead : public se_parser
      {
       public:
-	se_parser_cuil();
-	~se_parser_cuil();
+	se_parser_exalead();
+	~se_parser_exalead();
 	
 	// virtual.
 	void start_element(parser_context *pc,
@@ -49,24 +52,26 @@ namespace seeks_plugins
 	void handle_characters(parser_context *pc,
 			       const xmlChar *chars,
 			       int length);
-	
+     
       private:
-	bool _start_results;
-	bool _new_link;
-	bool _sum_flag;
+	bool _result_flag;
+	bool _title_flag;
+	bool _p_flag;
+	bool _summary_flag;
 	bool _cite_flag;
-	bool _screening;
-	bool _pages;
+	bool _cached_flag;
+	bool _b_title_flag;
+	bool _b_summary_flag;
+	bool _ignore_flag;
 	
+	std::string _title;
 	std::string _summary;
 	std::string _cite;
+	std::string _cached;
 	
-      public:
-	hash_map<int,std::string> _links_to_pages; // links to other result pages are embedded and
-	                                           // generated automatically. Until it is reversed
-						   // engineered, we grab them from the html page. 
+	static std::string _sr_string_en;
      };
    
-} /* end of namespace. */
+};
 
 #endif

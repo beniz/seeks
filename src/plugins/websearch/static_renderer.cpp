@@ -2,20 +2,19 @@
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "static_renderer.h"
 #include "mem_utils.h"
@@ -77,13 +76,17 @@ namespace seeks_plugins
      {
 	if (!qc->_suggestions.empty())
 	  {
+	     const char *base_url = miscutil::lookup(exports,"base-url");
+	     std::string base_url_str = "";
+	     if (base_url)
+	       base_url_str = std::string(base_url);
 	     std::string suggestion_str = "Suggestion:&nbsp;<a href=\"";
 	     // for now, let's grab the first suggestion only.
 	     std::string suggested_q_str = qc->_suggestions[0];
 	     const char *sugg_enc = encode::html_encode(suggested_q_str.c_str());
 	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
-	     suggestion_str += "http://s.s/search?q=" + qc->_in_query_command + " " 
+	     suggestion_str += base_url_str + "/search?q=" + qc->_in_query_command + " " 
 	       + sugg_enc_str + "&expansion=1&action=expand";
 	     suggestion_str += "\">";
 	     suggestion_str += sugg_enc_str;
@@ -93,11 +96,29 @@ namespace seeks_plugins
 	else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
      }
    
+   void static_renderer::render_lang(const query_context *qc,
+				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+     {
+	miscutil::add_map_entry(exports,"$xxlang",1,qc->_auto_lang.c_str(),1);
+	/* std::string lang_str = "<a href=\"";
+	std::string lang_help_str = "http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want";
+	const char *lang_help_enc = encode::html_encode(lang_help_str.c_str());
+	lang_help_str = std::string(lang_help_enc);
+	free_const(lang_help_enc);
+	lang_str += lang_help_str + "\">Language</a>:&nbsp; " + qc->_auto_lang;
+	miscutil::add_map_entry(exports,"$xxlang",1,lang_str.c_str(),1); */
+     }
+      
    void static_renderer::render_snippets(const std::string &query_clean,
 					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
 					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+	  base_url_str = std::string(base_url);
+	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 	
@@ -105,23 +126,40 @@ namespace seeks_plugins
 	cgi::map_block_killer(exports,"have-clustered-results");
 	
 	std::string snippets_str;
-	size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)snippets.size());
-	size_t snistart = (current_page-1) * websearch::_wconfig->_N;
-	for (size_t i=snistart;i<snisize;i++)
+	if (!snippets.empty())
 	  {
-	     snippets_str += snippets.at(i)->to_html_with_highlight(words);
+	     // check whether we're rendering similarity snippets.
+	     bool similarity = false;
+	     if (snippets.at(0)->_seeks_ir > 0)
+	       similarity = true;
+	     	     
+	     // proceed with rendering.
+	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)snippets.size());
+	     size_t snistart = (current_page-1) * websearch::_wconfig->_N;
+	     for (size_t i=snistart;i<snisize;i++)
+	       {
+		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
+		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
+	       }
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
      }
-      
+   
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
+						   const std::string &html_encoded_query,
 						   const int &current_page,
 						   cluster *clusters,
 						   const short &K,
 						   const query_context *qc,
+						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	static short template_K=7; // max number of clusters available in the template.
+	
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+	  base_url_str = std::string(base_url);
 	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
@@ -146,6 +184,11 @@ namespace seeks_plugins
 	     rplcnt = "search_snippets";
 	  }
 		
+	bool clusterize = false;
+	const char *action_str = miscutil::lookup(parameters,"action");
+	if (action_str && strcmp(action_str,"clusterize")==0)
+	  clusterize = true;
+	
 	// renders every cluster and snippets within.
 	int l = 0;
 	for (short c=0;c<K;c++)
@@ -167,10 +210,14 @@ namespace seeks_plugins
 
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
-	     std::string cluster_str = static_renderer::render_cluster_label(clusters[c]);
+	     std::string cluster_str;
+	     if (!clusterize)
+	       cluster_str = static_renderer::render_cluster_label(clusters[c]);
+	     else cluster_str = static_renderer::render_cluster_label_query_link(html_encoded_query,
+										 clusters[c],exports);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
-	       cluster_str += snippets.at(i)->to_html_with_highlight(words);
+	       cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
 	     
 	     std::string cl = rplcnt;
 	     if (k>1)
@@ -194,6 +241,28 @@ namespace seeks_plugins
 	std::string html_label = "<h2>" + std::string(clabel_encoded) 
 	  + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
 	free_const(clabel_encoded);
+	free_const(slabel_encoded);
+	return html_label;
+     }
+      
+   std::string static_renderer::render_cluster_label_query_link(const std::string &html_encoded_query,
+								const cluster &cl,
+								const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+     {
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+	  base_url_str = std::string(base_url);
+	const char *clabel_encoded = encode::html_encode(cl._label.c_str());
+	std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
+	const char *slabel_encoded = encode::html_encode(slabel.c_str());
+	std::string clabel_enc_str = std::string(clabel_encoded);
+	free_const(clabel_encoded);
+	std::string label_query = html_encoded_query + " " + clabel_enc_str;
+	miscutil::replace_in_string(label_query," ","+");
+	std::string html_label = "<h2><a class=\"label\" href=" + base_url_str + "/search?q=" + label_query
+	  + "&page=1&expansion=1&action=expand>" + clabel_enc_str 
+	  + "</a><font size=\"2\"> " + std::string(slabel_encoded) + "</font></h2><br>";
 	free_const(slabel_encoded);
 	return html_label;
      }
@@ -233,8 +302,12 @@ namespace seeks_plugins
 	     
 	if (current_page < nl)
 	  {
+	     const char *base_url = miscutil::lookup(exports,"base-url");
+	     std::string base_url_str = "";
+	     if (base_url)
+	       base_url_str = std::string(base_url);
 	     std::string np_str = miscutil::to_string(current_page+1);
-	     std::string np_link = "<a href=\"http://s.s/search?page=" + np_str + "&q="
+	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&q="
 	       + html_encoded_query + "&expansion=" + expansion + "&action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
@@ -250,7 +323,11 @@ namespace seeks_plugins
 	 if (current_page > 1)
 	  {
 	     std::string pp_str = miscutil::to_string(current_page-1);
-	     std::string pp_link = "<a href=\"http://s.s/search?page=" + pp_str + "&q="
+	     const char *base_url = miscutil::lookup(exports,"base-url");
+	     std::string base_url_str = "";
+	     if (base_url)
+	       base_url_str = std::string(base_url);
+	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&q="
 	                   + html_encoded_query + "&expansion=" + expansion + "&action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
@@ -270,7 +347,7 @@ namespace seeks_plugins
 	const char *nclusters_str = miscutil::lookup(parameters,"clusters");
 	
 	if (!nclusters_str)
-	  miscutil::add_map_entry(exports,"$xxnclust",1,strdup("2"),0);
+	  miscutil::add_map_entry(exports,"$xxnclust",1,strdup("10"),0); // default number of clusters is 10.
 	else
 	  {
 	     miscutil::add_map_entry(exports,"$xxclust",1,nclusters_str,1);
@@ -301,7 +378,7 @@ namespace seeks_plugins
 	     ++sit;
 	  }
 	miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
-		
+	
 	if (!websearch::_wconfig->_js) // no javascript required
 	  {
 	     cgi::map_block_killer(exports,"websearch-have-js");
@@ -330,7 +407,9 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 		
-	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,
+						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						 : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						exports,rsp);
 	
 	return err;
@@ -365,6 +444,9 @@ namespace seeks_plugins
      // suggestions.
      static_renderer::render_suggestions(qc,exports);
      
+     // language.
+     static_renderer::render_lang(qc,exports);
+     
      // TODO: check whether we have some results.
      /* if (snippets->empty())
        {
@@ -392,7 +474,9 @@ namespace seeks_plugins
      static_renderer::render_nclusters(parameters,exports);
      
      // rendering.
-     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,
+					     (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+					      : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 					     exports,rsp);
      
      return err;
@@ -425,9 +509,13 @@ namespace seeks_plugins
 	// suggestions.
 	static_renderer::render_suggestions(qc,exports);
 	
+	// language.
+	static_renderer::render_lang(qc,exports);
+	
 	// search snippets.
-	static_renderer::render_clustered_snippets(query_clean,current_page,
-						   clusters,K,qc,exports);
+	static_renderer::render_clustered_snippets(query_clean,html_encoded_query,current_page,
+						   clusters,K,qc,parameters,
+						   exports);
 	
 	// expand button.
 	std::string expansion;
@@ -445,7 +533,9 @@ namespace seeks_plugins
 	static_renderer::render_nclusters(parameters,exports);
 	
 	// rendering.
-	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,plugin_manager::_plugin_repository.c_str(),
+	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,
+						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						 : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						exports,rsp);
 	
 	return err;

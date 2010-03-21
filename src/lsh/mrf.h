@@ -66,6 +66,8 @@ namespace lsh
   class mrf
   {
   public:
+     static void init_delims(); // initizlize default delimiters witgh those from configuration files.
+     
      static void tokenize(const std::string &str,
 			  std::vector<std::string> &tokens,
 			  const std::string &delim);
@@ -74,6 +76,9 @@ namespace lsh
      
      // straight hash of a query string.
      static uint32_t mrf_single_feature(const std::string &str);
+     
+     static uint32_t mrf_single_feature(const std::string &str,
+					const std::string &delims);
      
      static void mrf_features_query(const std::string &str,
 				    std::vector<uint32_t> &features,

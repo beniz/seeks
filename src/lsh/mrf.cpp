@@ -20,6 +20,7 @@
 
 #include "mrf.h"
 #include "seeks_proxy.h" // for lsh_config.
+#include "miscutil.h"
 
 #include <algorithm>
 #include <iostream>
@@ -29,6 +30,7 @@
 #include <assert.h>
 
 using sp::seeks_proxy;
+using sp::miscutil;
 
 //#define DEBUG
 
@@ -85,15 +87,20 @@ namespace lsh
 
   /*-- mrf --*/
 
-  std::string mrf::_default_delims = " ,.;!?)(";//\\n\\t\\f\\r";
-  uint32_t mrf::_skip_token = 0xDEADBEEF;
+   std::string mrf::_default_delims = "\n\t\f\r ,.;:`'!?)(-|><^·&\"\\/{}#$–"; // replaced by those in lsh-config when the library is initialized.
+   uint32_t mrf::_skip_token = 0xDEADBEEF;
   uint32_t mrf::_hctable[] = { 1, 3, 5, 11, 23, 47, 97, 197, 397, 797 };
   double mrf::_epsilon = 1e-6;  // infinitesimal. 
   //float mrf::_feature_weights[] = {16384, 8192, 4096, 2048, 1024, 256, 64, 16, 4, 1};
   short mrf::_array_size = 10;
   float mrf::_feature_weights[] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
   std::string mrf::_stop_word_token = "S";
-   
+
+   void mrf::init_delims()
+     {
+	mrf::_default_delims = seeks_proxy::_lsh_config->_lsh_delims;
+     }
+      
   void mrf::tokenize(const std::string &str,
 		     std::vector<std::string> &tokens,
 		     const std::string &delim)
@@ -150,8 +157,16 @@ namespace lsh
 	mrf::tokenize(str,tokens,mrf::_default_delims);
 	return mrf::mrf_hash(tokens);
      }
-      
-  void mrf::mrf_features_query(const std::string &str,
+   
+   uint32_t mrf::mrf_single_feature(const std::string &str,
+				    const std::string &delims)
+     {
+	std::vector<std::string> tokens;
+	mrf::tokenize(str,tokens,delims);
+	return mrf::mrf_hash(tokens);
+     }
+   
+   void mrf::mrf_features_query(const std::string &str,
 			       std::vector<uint32_t> &features,
 			       const int &min_radius,
 			       const int &max_radius,
@@ -363,18 +378,32 @@ namespace lsh
 	    while((std::string::npos != pos || std::string::npos != lastPos)
 		  && tokens.size() < window_length_default)
 	      {
-		 // Found a token, add it to the vector.  
+		 // Found a token, chomp it.
 		 std::string token = str.substr(lastPos, pos - lastPos);
-		 std::transform(token.begin(),token.end(),token.begin(),tolower);
-		 bool sw = false;
-		 if (swl)
+		 size_t cpos = 0;
+		 while(cpos<token.size() && isspace(token[cpos]))
 		   {
-		      sw = swl->has_word(token);
+		      ++cpos;
 		   }
-		 if (!sw)
-		   tokens.push_back(token);
-		 else if (window_length_default > 1)
-		   tokens.push_back(mrf::_stop_word_token);
+		 if (cpos>0)
+		   token = token.substr(cpos);
+		 		 
+		 // bypasse digit-beginning tokens, look into stop word list if available, & add to token list.
+		 if (!token.empty() && !isdigit(token.c_str()[0]))
+		   {
+		      std::transform(token.begin(),token.end(),token.begin(),tolower);
+		      bool sw = false;
+		      if (swl)
+			{
+			   sw = swl->has_word(token);
+			}
+		      if (!sw)
+			{
+			   tokens.push_back(token);
+			}
+		      else if (window_length_default > 1)
+			tokens.push_back(mrf::_stop_word_token);
+		   }
 		 // Skip the delimiters.
 		 lastPos = str.find_first_not_of(delim,pos);
 		 // Find next "non-delimiter".                          
@@ -426,28 +455,34 @@ namespace lsh
         if (radius_chain >= min_radius
             && radius_chain <= max_radius)
           {
-	    //hash chain and add it to features set.
-            uint32_t h = mrf::mrf_hash(chain);
-            
-#ifdef DEBUG
-	     std::cout << "h: " << h << std::endl;
-	     chain.print(std::cout);
-	     std::cout << "radius: " << chain.get_radius() << std::endl;
-#endif
-	     
-	    // count features, increment total, and sets an exponential weight.
-	    short rad_offset = chain.get_radius()+offset;
-	    hash_map<uint32_t,float,id_hash_uint>::iterator hit;
-	    if((hit=wfeatures.find(h))!=wfeatures.end())
-	       (*hit).second += mrf::_feature_weights[rad_offset];
-	     else wfeatures.insert(std::pair<uint32_t,float>(h,mrf::_feature_weights[rad_offset]));
-	     	     
-	     // populate the words, if required.
-	     if (bow && chain.size() == 1)
+	     //if (chain.size()>1 || chain.at(0) != mrf::_stop_word_token)
+	     if (chain.size() > 1 || chain.at(0).size() > 1)
 	       {
-		  hash_map<uint32_t,std::string,id_hash_uint>::iterator bit;
-		  if ((bit=bow->find(h))==bow->end())
-		    bow->insert(std::pair<uint32_t,std::string>(h,chain.at(0)));
+		  //hash chain and add it to features set.
+		  uint32_t h = mrf::mrf_hash(chain);
+		  
+#ifdef DEBUG
+		  std::cout << "h: " << h << std::endl;
+		  chain.print(std::cout);
+		  std::cout << "radius: " << chain.get_radius() << std::endl;
+#endif
+		  
+		  // count features, increment total, and sets an exponential weight.
+		  short rad_offset = chain.get_radius()+offset;
+		  hash_map<uint32_t,float,id_hash_uint>::iterator hit;
+		  if((hit=wfeatures.find(h))!=wfeatures.end())
+		    (*hit).second += mrf::_feature_weights[rad_offset];
+		  else wfeatures.insert(std::pair<uint32_t,float>(h,mrf::_feature_weights[rad_offset]));
+		  
+		  // populate the words, if required.
+		  if (bow && chain.size() == 1 && chain.at(0).size()>2)
+		    {
+		       hash_map<uint32_t,std::string,id_hash_uint>::iterator bit;
+		       if ((bit=bow->find(h))==bow->end())
+			 {
+			    bow->insert(std::pair<uint32_t,std::string>(h,chain.at(0)));
+			 }
+		    }
 	       }
 	  }
 	 chains.push(chain);
@@ -473,28 +508,34 @@ namespace lsh
 		
 		if (chain1.get_radius() >= min_radius
 		    && chain1.get_radius() <= max_radius)
-		  {
-		     // hash it and add it to features. 
-		     uint32_t h = mrf::mrf_hash(chain1);
+		   {
+		     //if (chain1.size()>1 || chain1.at(0) != mrf::_stop_word_token)
+		      if (chain1.size() > 1 || chain1.at(0).size() > 1)
+			{
+			  // hash it and add it to features. 
+			  uint32_t h = mrf::mrf_hash(chain1);
 #ifdef DEBUG
-		     std::cout << "h: " << h << std::endl;
-		     chain1.print(std::cout);
-		     std::cout << "radius: " << chain1.get_radius() << std::endl;
+			  std::cout << "h: " << h << std::endl;
+			  chain1.print(std::cout);
+			  std::cout << "radius: " << chain1.get_radius() << std::endl;
 #endif
-		     
-		     // count features, increment total, and sets an exponential weight.
-		     hash_map<uint32_t,float,id_hash_uint>::iterator hit;
-		     if((hit=wfeatures.find(h))!=wfeatures.end())
-		       (*hit).second += mrf::_feature_weights[chain1.get_radius()+offset];
-		     else wfeatures.insert(std::pair<uint32_t,float>(h,mrf::_feature_weights[chain1.get_radius()+offset]));
-		     		  
-		     // populate the words, if required.
-		     if (bow && chain.size() == 1)
-		       {
-			  hash_map<uint32_t,std::string,id_hash_uint>::iterator bit;
-			  if ((bit=bow->find(h))==bow->end())
-			    bow->insert(std::pair<uint32_t,std::string>(h,chain.at(0)));
-			 }
+			  
+			  // count features, increment total, and sets an exponential weight.
+			  hash_map<uint32_t,float,id_hash_uint>::iterator hit;
+			  if((hit=wfeatures.find(h))!=wfeatures.end())
+			    (*hit).second += mrf::_feature_weights[chain1.get_radius()+offset];
+			  else wfeatures.insert(std::pair<uint32_t,float>(h,mrf::_feature_weights[chain1.get_radius()+offset]));
+			  
+			  // populate the words, if required.
+			  if (bow && chain1.size() == 1 && chain1.at(0).size()>2)
+			    {
+			       hash_map<uint32_t,std::string,id_hash_uint>::iterator bit;
+			       if ((bit=bow->find(h))==bow->end())
+				 {
+				    bow->insert(std::pair<uint32_t,std::string>(h,chain1.at(0)));
+				 }
+			    }
+		       }
 		  }
 		// second generated chain: add a 'skip' token.
 		str_chain chain2 = chain;

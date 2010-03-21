@@ -1,21 +1,20 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "se_handler.h"
 #include "miscutil.h"
@@ -31,6 +30,7 @@
 #include "se_parser_cuil.h"
 #include "se_parser_bing.h"
 #include "se_parser_yahoo.h"
+#include "se_parser_exalead.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -51,7 +51,6 @@ namespace seeks_plugins
    
    search_engine::~search_engine()
      {
-	// TODO: delete translation map if any.
      }
    
    se_ggle::se_ggle()
@@ -67,7 +66,7 @@ namespace seeks_plugins
    void se_ggle::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			     std::string &url, const query_context *qc)
      {
-	std::string q_ggle = se_handler::_se_strings[0]; // query to ggle.
+	std::string q_ggle = se_handler::_se_strings[GOOGLE]; // query to ggle.
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
@@ -111,7 +110,7 @@ namespace seeks_plugins
    void se_bing::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			     std::string &url, const query_context *qc)
      {
-	std::string q_bing = se_handler::_se_strings[2]; // query to bing.
+	std::string q_bing = se_handler::_se_strings[BING]; // query to bing.
 	const char *query = miscutil::lookup(parameters,"q");
 	        
 	// query.
@@ -148,7 +147,7 @@ namespace seeks_plugins
    void se_cuil::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			     std::string &url, const query_context *qc)
      {
-	std::string q_cuil = se_handler::_se_strings[1];
+	std::string q_cuil = se_handler::_se_strings[CUIL];
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
@@ -187,7 +186,7 @@ namespace seeks_plugins
    void se_yahoo::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			      std::string &url, const query_context *qc)
      {
-	std::string q_yahoo = se_handler::_se_strings[3];
+	std::string q_yahoo = se_handler::_se_strings[YAHOO];
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// page.
@@ -211,6 +210,46 @@ namespace seeks_plugins
 	
 	url = q_yahoo;
      }
+
+   se_exalead::se_exalead()
+     :search_engine()
+       {
+       }
+   
+   se_exalead::~se_exalead()
+     {
+     }
+   
+   void se_exalead::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				std::string &url, const query_context *qc)
+     {
+	std::string q_exa = se_handler::_se_strings[EXALEAD];
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// query.
+	miscutil::replace_in_string(q_exa,"%query",std::string(query));
+	
+	// page
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_exa,"%start",pp_str);
+	
+	// number of results.
+	int num = websearch::_wconfig->_N;
+	std::string num_str = miscutil::to_string(num);
+	miscutil::replace_in_string(q_exa,"%num",num_str);
+     
+	// language
+	if (websearch::_wconfig->_lang == "auto")
+	  miscutil::replace_in_string(q_exa,"%lang",qc->_auto_lang);
+	else miscutil::replace_in_string(q_exa,"%lang",websearch::_wconfig->_lang);
+     
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying exalead: %s", q_exa.c_str());
+	
+	url = q_exa;
+     }
       
    /*- se_handler. -*/
    std::string se_handler::_se_strings[NSEs] =
@@ -223,13 +262,16 @@ namespace seeks_plugins
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
       // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
       //"http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
-      "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs="
+      "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
+      // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
+      "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
     };
 
    se_ggle se_handler::_ggle = se_ggle();
    se_cuil se_handler::_cuil = se_cuil();
    se_bing se_handler::_bing = se_bing();
    se_yahoo se_handler::_yahoo = se_yahoo();
+   se_exalead se_handler::_exalead = se_exalead();
    
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
@@ -382,6 +424,9 @@ namespace seeks_plugins
       case YAHOO:
 	 _yahoo.query_to_se(parameters,url,qc);
 	 break;
+       case EXALEAD:
+	 _exalead.query_to_se(parameters,url,qc);
+	 break;
       }
   }
    
@@ -420,6 +465,14 @@ namespace seeks_plugins
 			 pthread_t ps_thread;
 			 int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
 						  (void * (*)(void *))se_handler::parse_output, args);
+			 if (err != 0)
+			   {
+			      errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
+			      parser_threads[k++] = 0;
+			      delete args;
+			      parser_args[k] = NULL;
+			      continue;
+			   }
 			 parser_threads[k++] = ps_thread;
 		      }
 		    else parser_threads[k++] = 0;
@@ -524,6 +577,9 @@ namespace seeks_plugins
 	break;
       case YAHOO:
         sep = new se_parser_yahoo();
+	break;
+       case EXALEAD:
+	sep = new se_parser_exalead();
 	break;
       }
     return sep;

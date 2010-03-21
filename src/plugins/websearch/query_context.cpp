@@ -1,21 +1,20 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "query_context.h"
 #include "websearch.h"
@@ -27,6 +26,7 @@
 #include "errlog.h"
 #include "se_handler.h"
 #include "iso639.h"
+#include "seeks_proxy.h" // for mutexes
 
 #include <sys/time.h>
 #include <iostream>
@@ -34,21 +34,27 @@
 using sp::sweeper;
 using sp::miscutil;
 using sp::urlmatch;
+using sp::seeks_proxy;
 using sp::errlog;
 using sp::iso639;
 using lsh::mrf;
 
 namespace seeks_plugins
 {
+   std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
+   
    query_context::query_context()
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
+	  seeks_proxy::mutex_init(&_qc_mutex);
        }
       
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				const std::list<const char*> &http_headers)
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
        {
+	  seeks_proxy::mutex_init(&_qc_mutex);
+	  
 	  // reload config if file has changed.
 	  websearch::_wconfig->load_config();
 	  
@@ -117,7 +123,7 @@ namespace seeks_plugins
      {
 	query = std::string(miscutil::lookup(parameters,"q"));
 	std::string sorted_query = query_context::sort_query(query);
-	return mrf::mrf_single_feature(sorted_query);
+	return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
      }
       
    bool query_context::sweep_me()
@@ -177,6 +183,18 @@ namespace seeks_plugins
   {
      const char *expansion = miscutil::lookup(parameters,"expansion");
      int horizon = atoi(expansion);
+     
+     // seeks button used as a back button.
+     if (_page_expansion > 0 && horizon < (int)_page_expansion)
+       {
+	  // reset expansion parameter.
+	  miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
+	  std::string exp_str = miscutil::to_string(_page_expansion);
+	  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+				  "expansion",1,exp_str.c_str(),1);
+	  return SP_ERR_OK;
+       }
+          
      for (int i=_page_expansion;i<horizon;i++) // catches up with requested horizon.
        {
 	  // resets expansion parameter.
@@ -195,8 +213,7 @@ namespace seeks_plugins
 					 "cuil_npage",1,(*hit).second.c_str(),1); // beware.
 	    }
 	  // hack
-	  
-	  
+	  	  
 	  // query SEs.                                                                                                 
 	  int nresults = 0;
 	  std::string **outputs = se_handler::query_to_ses(parameters,nresults,this);
@@ -282,7 +299,7 @@ namespace seeks_plugins
    search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
 	std::string surl = urlmatch::strip_url(url);
-	uint32_t id = mrf::mrf_single_feature(surl);
+	uint32_t id = mrf::mrf_single_feature(surl,query_context::_query_delims);
 	return get_cached_snippet(id);
      }
       

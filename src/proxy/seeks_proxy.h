@@ -93,6 +93,7 @@ namespace sp
 #endif
 	static int _no_daemon;
 	static const char *_basedir;
+	static std::string _datadir;
 	static int _received_hup_signal;
 	
 #ifdef FEATURE_GRACEFUL_TERMINATION

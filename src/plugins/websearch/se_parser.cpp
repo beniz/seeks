@@ -2,21 +2,20 @@
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
- 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "se_parser.h"
 #include "seeks_proxy.h" // mutex_lock
 #include "miscutil.h"
@@ -83,7 +82,7 @@ namespace seeks_plugins
      {
 	_count = count_offset;
 	
-	htmlParserCtxtPtr ctxt;
+	htmlParserCtxtPtr ctxt = NULL;
 	parser_context pc;
 	pc._parser = this;
 	pc._snippets = snippets;
@@ -131,38 +130,41 @@ namespace seeks_plugins
 	  {
 	     ctxt = htmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "",
 					     XML_CHAR_ENCODING_UTF8); // encoding here.
-	  }
-	catch (std::exception e)
-	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s at xml/html parser creation search results.",
-			       e.what());
-	  }
-	
-	htmlCtxtUseOptions(ctxt,HTML_PARSE_NOERROR);
-	
-	int status = htmlParseChunk(ctxt,output,strlen(output),0);
-	if (status != 0) // an error occurred.
-	  {
-	     xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
-	     if (xep)
+	     htmlCtxtUseOptions(ctxt,HTML_PARSE_NOERROR);
+	     
+	     int status = htmlParseChunk(ctxt,output,strlen(output),0);
+	     if (status != 0) // an error occurred.
 	       {
-		  std::string err_msg = std::string(xep->message);
-		  miscutil::replace_in_string(err_msg,"\n","");
-		  errlog::log_error(LOG_LEVEL_ERROR, "html level parsing error (libxml2): %s",
-				    err_msg.c_str());
-		  // check on error level.
-		  if (xep->level == 3) // fatal or recoverable error.
+		  xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
+		  if (xep)
 		    {
-		       errlog::log_error(LOG_LEVEL_ERROR,"libxml2 fatal error.");
-		    }
-		  else if (xep->level == 2)
-		    {
-		       errlog::log_error(LOG_LEVEL_ERROR,"libxml2 recoverable error");
+		       std::string err_msg = std::string(xep->message);
+		       miscutil::replace_in_string(err_msg,"\n","");
+		       errlog::log_error(LOG_LEVEL_ERROR, "html level parsing error (libxml2): %s",
+					 err_msg.c_str());
+		       // check on error level.
+		       if (xep->level == 3) // fatal or recoverable error.
+			 {
+			    errlog::log_error(LOG_LEVEL_ERROR,"libxml2 fatal error.");
+			 }
+		       else if (xep->level == 2)
+			 {
+			    errlog::log_error(LOG_LEVEL_ERROR,"libxml2 recoverable error");
+			 }
 		    }
 	       }
 	  }
-		
-	htmlFreeParserCtxt(ctxt);
+	catch (std::exception e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s in xml/html parsing of search results.",
+			       e.what());
+	  }
+	catch (...) // catch everything else to avoid crashes.
+	  {
+	  }
+	
+	if (ctxt)
+	  htmlFreeParserCtxt(ctxt);
 	
 	seeks_proxy::mutex_unlock(&se_parser::_se_parser_mutex);	
      }

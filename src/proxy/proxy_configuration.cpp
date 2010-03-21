@@ -28,6 +28,7 @@
 #include "seeks_proxy.h" // for daemon flag.
 #include "gateway.h"
 #include "filters.h"
+#include "plugin_manager.h"
 
 #include <iostream>
 
@@ -66,6 +67,8 @@ namespace sp
    #define hash_listen_address                2520413741ul /* "listen-address" */
    #define hash_logdir                        3521470393ul /* "logdir" */
    #define hash_logfile                         38803787ul /* "logfile" */
+   #define hash_plugindir                     2324026896ul /* "plugindir" */
+   #define hash_datadir                       4055122953ul /* "datadir" */
    #define hash_max_client_connections        1237838806ul /* "max-client-connections" */
    #define hash_permit_access                 1005955844ul /* "permit-access" */
    #define hash_proxy_info_url                 181245282ul /* "proxy-info-url" */
@@ -91,7 +94,7 @@ namespace sp
    
    proxy_configuration::proxy_configuration(const std::string &filename)
      :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
-      _templdir(NULL),_logdir(NULL),
+      _templdir(NULL),_logdir(NULL),_plugindir(NULL),_datadir(NULL),
       _admin_address(NULL),_proxy_info_url(NULL),_usermanual(NULL),
       _hostname(NULL),
       _haddr(NULL),_hport(0),_buffer_limit(0),
@@ -113,6 +116,8 @@ namespace sp
 	free_const(_hostname);
 	free_const(_haddr);
 	free_const(_logfile);
+	free_const(_plugindir);
+	free_const(_datadir);
 	
 	freez(_admin_address);
 	freez(_proxy_info_url);
@@ -647,6 +652,27 @@ namespace sp
 	     break;
 	     
 	     /*************************************************************************
+	      * plugindir path to a directory
+	      *************************************************************************/
+	   case hash_plugindir :
+	     free_const(_plugindir);
+	     _plugindir = strdup(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"The repository to be scanned for precompiled plugins");
+	     break;
+	       
+	     /************************************************************************
+	      * datadir path to a directory for data
+	      ************************************************************************/
+	   case hash_datadir :
+	     free_const(_datadir);
+	     _datadir = strdup(arg);
+	     seeks_proxy::_datadir = std::string(_datadir); // XXX: should be outside this class...
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"The data repository (including plugin data)");
+	     break;
+	     
+	     /*************************************************************************
 	      * logdir directory-name
 	      *************************************************************************/
 	   case hash_logdir :
@@ -752,7 +778,10 @@ namespace sp
 	      *************************************************************************/
 	   case hash_templdir :
 	     free_const(_templdir);
-	     _templdir = seeks_proxy::make_path(NULL, arg);
+	     /* if (seeks_proxy::_datadir.empty())
+	       _templdir = seeks_proxy::make_path(NULL, arg);
+	     else _templdir = seeks_proxy(seeks_proxy::_datadir.c_str(), arg); */
+	     _templdir = strdup(arg);
 	     break;
 	     
 	     //TODO: seeks, toggle on/off from a local webpage.
@@ -920,7 +949,7 @@ namespace sp
 	// TODO.
 	errlog::set_debug_level(_debug);
 	
-	#ifdef FEATURE_CONNECTION_KEEP_ALIVE
+#ifdef FEATURE_CONNECTION_KEEP_ALIVE
 	if (_feature_flags & RUNTIME_FEATURE_CONNECTION_KEEP_ALIVE)
 	  {
 	     if (_multi_threaded)
@@ -995,6 +1024,15 @@ namespace sp
 	_need_bind = 1;
 	// TODO: deal with port change here, and the need for a bind.
 	
+	// update template directory as necessary.
+	const char *templdir_old = _templdir;
+	if (!seeks_proxy::_datadir.empty())
+	  {
+	     std::string templdir_str = seeks_proxy::_datadir + "/" + std::string(_templdir);
+	     _templdir = strdup(templdir_str.c_str());
+	  }
+	else _templdir = seeks_proxy::make_path(NULL,_templdir);
+	free_const(templdir_old);
      }
 
    bool proxy_configuration::is_plugin_activated(const char *pname)

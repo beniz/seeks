@@ -1,0 +1,39 @@
+* Bubs-0.2-SOLO
+This releases enables a set of novel websearch features, fixes bugs
+in the machinery, eases the deployment of public Seeks nodes.
+As such this the first truely mature of the SOLO releases.
+
+- Support for multiple languages. This includes:
+  ¤ Automatic language detection from the http headers.
+  * In-query language command.
+  ¤ Stop word list in content analysis, in multiple languages.
+  
+- Clustering of websearch results.
+  ¤ Online sphercial k-means.
+  ¤ Two clustering modes, from websearch snippets summaries,
+    from automatically downloaded and analyzed web content.
+  ¤ Automated computation of cluster labels. 
+  ¤ Cluster labels as extended queries.
+
+- Improved automatic similarity of results with tf-idf
+  feature generation.
+
+- Automatic reload of configuration files at runtime when 
+  changes are made.
+
+- Sorting and grouping of websearch results, by urls, titles,
+  and result types (webpage, wiki, pdf, videos, mp3, other files,
+  ...).
+
+- Added optional thumbails of websearch results.
+
+- Improved parsing of supported search engines, and added
+  support for Yahoo! Search and Exalead.
+  
+- Much improved Makefiles and template serving functions.
+
+- Added top banner for displaying the Seeks node information.
+
+- Added Access Control List (ACL). Allows to block and/or filter
+  authorized connections by IP address. Helpful to secure public
+  nodes.

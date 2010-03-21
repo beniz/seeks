@@ -93,6 +93,10 @@ body {
         background-image: url(base-url/plugins/websearch/public/images/search_engines/yahoo_12x12_transparent.png);
 }
 
+#search_results .search_snippet .search_engine_exalead {
+        background-image: url(base-url/plugins/websearch/public/images/search_engines/exalead_12x12.png);
+}
+
 #search_results cite {
 	color: blue;
 }
@@ -157,6 +161,17 @@ body {
 	background-image: url(base-url/plugins/websearch/public/images/home_32x30.png);
 }
 
+#search_help {
+        position: absolute;
+	left: 687px;
+	top: 58px;
+	font-size: 90%;
+}
+
+#search_help a {
+	text-decoration: none;
+}
+
 #search_page_current {
 	padding: 10px;
 }
@@ -170,6 +185,25 @@ body {
 
 #search_sugg a {
 	font-weight: bold;
+	text-decoration: none;
+}
+
+#search_lang {
+        position: absolute;
+	text-align: center;
+	word-spacing: 0px;
+	padding-right: 8px;
+	padding-left: 1px;
+	left: 280px; 
+	top: 67px;
+	font-size: 90%;
+	font-weight: bold;
+	color: gray;
+	display: block;
+}
+
+#search_lang a {
+ 	text-decoration: none;
 }
 
 #sort_urls {
@@ -181,6 +215,7 @@ body {
 
 #sort_urls a {
         font-weight: bold;
+	text-decoration: none;
 }
 
 #sort_titles {
@@ -192,6 +227,7 @@ body {
 
 #sort_titles a {
         font-weight: bold;
+	text-decoration: none;
 }
 
 #sort_types {
@@ -203,6 +239,7 @@ body {
 
 #sort_types a {
       font-weight: bold;
+      text-decoration: none;
 }
 
 #cluster, #expansion {
@@ -238,6 +275,10 @@ body {
 	border: 1px solid gray;
 	padding: 8px;
 	margin-bottom: 10px;
+}
+
+.clustered .cluster .label {
+        color: gray;
 }
 
 #expansion {
