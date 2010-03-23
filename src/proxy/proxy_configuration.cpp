@@ -1024,7 +1024,6 @@ namespace sp
 	_need_bind = 1;
 	// TODO: deal with port change here, and the need for a bind.
 
-	   perror("Merde");
 #ifdef SEEKS_PLUGINS_LIBDIR
 	//nothing configured use default
 	if (!_plugindir)
