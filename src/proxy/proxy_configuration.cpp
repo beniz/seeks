@@ -1024,11 +1024,13 @@ namespace sp
 	_need_bind = 1;
 	// TODO: deal with port change here, and the need for a bind.
 
+	   perror("Merde");
 #ifdef SEEKS_PLUGINS_LIBDIR
 	//nothing configured use default
-	if (plugin_manager::_plugin_repository.empty())
+	if (!_plugindir)
 	{
-	   plugin_manager::_plugin_repository = std::string(SEEKS_PLUGINS_LIBDIR);
+	   free_const(_plugindir);
+	   _plugindir = SEEKS_PLUGINS_LIBDIR;
 	}
 #endif
  
