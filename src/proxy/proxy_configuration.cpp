@@ -1023,7 +1023,23 @@ namespace sp
 	
 	_need_bind = 1;
 	// TODO: deal with port change here, and the need for a bind.
-	
+
+#ifdef SEEKS_PLUGINS_LIBDIR
+	//nothing configured use default
+	if (plugin_manager::_plugin_repository.empty())
+	{
+	   plugin_manager::_plugin_repository = std::string(SEEKS_PLUGINS_LIBDIR);
+	}
+#endif
+ 
+#ifdef SEEKS_DATADIR
+	//nothing configured use default
+	if (seeks_proxy::_datadir.empty())
+	{
+	   seeks_proxy::_datadir = std::string(SEEKS_DATADIR);
+	}
+#endif
+
 	// update template directory as necessary.
 	const char *templdir_old = _templdir;
 	if (!seeks_proxy::_datadir.empty())
@@ -1032,6 +1048,7 @@ namespace sp
 	     _templdir = strdup(templdir_str.c_str());
 	  }
 	else _templdir = seeks_proxy::make_path(NULL,_templdir);
+
 	free_const(templdir_old);
      }
 

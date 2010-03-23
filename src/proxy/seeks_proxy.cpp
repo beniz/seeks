@@ -91,11 +91,9 @@ namespace sp
 #endif
 
    std::string seeks_proxy::_configfile = "";
-
    proxy_configuration* seeks_proxy::_config = NULL;
-   
-   std::string seeks_proxy::_lshconfigfile = "lsh/lsh-config";
-   
+
+   std::string seeks_proxy::_lshconfigfile = "";
    lsh_configuration* seeks_proxy::_lsh_config = NULL;
    
    int seeks_proxy::_Argc = 0;
@@ -2326,7 +2324,7 @@ namespace sp
 # if defined(unix)
 	       "[--daemon] [--pidfile pidfile] [--pre-chroot-nslookup hostname] [--user user[.group]] "
 # endif /* defined(unix) */
-	       "[--version] [--plugin-repository] [--data-repository] [configfile]\n"
+	       "[--version] [--plugin-repository dir] [--data-repository dir] [configfile]\n"
 	       "Bye\n", myname);
 	exit(2);
      }
@@ -2499,11 +2497,13 @@ namespace sp
 	sp_socket bfd;
 	
 	unsigned int active_threads = 0;
-	
+
+
 	// loads main configuration file (seeks + proxy configuration).
 #ifdef unix
 	configuration_spec::init_file_notification(); // init inotify, Linux only.
 #endif
+ 
 	if (seeks_proxy::_config)
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);

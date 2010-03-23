@@ -1,7 +1,7 @@
 #automake for websearch plugin.
 
-websearchpluginlibdir = $(libdir)/plugins/websearch
-websearchplugindatadir = $(datadir)/plugins/websearch
+websearchpluginlibdir = $(libdir)/seeks/plugins/websearch
+websearchplugindatadir = $(datadir)/seeks/plugins/websearch
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I../../utils -I../../lsh -I../../proxy
@@ -13,7 +13,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 	                           query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp
-libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I../../ -I../../../lsh/osb-lsh/ @CURL_CFLAGS@ @XML2_CFLAGS@ 
+libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I../../ -I../../../lsh/osb-lsh/ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
@@ -21,7 +21,10 @@ endif
 
 SUBDIRS=. tests
 
-nobase_websearchplugindata_DATA= websearch-config \
+websearchconfigdir=$(sysconfdir)/seeks
+websearchconfig_DATA=websearch-config
+
+nobase_websearchplugindata_DATA= \
 	 	          templates/clustered_results_template \
                  	  templates/one_column_results_template  \
                  	  templates/seeks_result_template.html \

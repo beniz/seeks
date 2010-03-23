@@ -1,4 +1,4 @@
-bin_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_yahoo_parser test_exalead_parser \
+noinst_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_yahoo_parser test_exalead_parser \
 	     test_html_txt_parser
 
 test_ggle_parser_SOURCES=test-ggle-parser.cpp

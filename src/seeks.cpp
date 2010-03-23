@@ -31,6 +31,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h> 
 #include <pwd.h>
 #include <grp.h>
 #include <unistd.h>
@@ -82,7 +83,16 @@ int main(int argc, const char *argv[])
    seeks_proxy::_Argc = argc;
    seeks_proxy::_Argv = argv;
    
+#ifdef SEEKS_CONFIGDIR
+   seeks_proxy::_lshconfigfile = SEEKS_CONFIGDIR "/lsh-config";
+#else
+   seeks_proxy::_lshconfigfile = "lsh-config";
+#endif
+
    seeks_proxy::_configfile =
+#ifdef SEEKS_CONFIGDIR
+     SEEKS_CONFIGDIR "/"
+#endif
 #if !defined(_WIN32)
      "config"
 #else
@@ -204,23 +214,40 @@ int main(int argc, const char *argv[])
    errlog::show_version(seeks_proxy::_Argv[0]);
    
 #if defined(unix)
-   if (*seeks_proxy::_configfile.c_str() != '/' )
+   char cwd[BUFFER_SIZE];
+
+   if (NULL == getcwd(cwd, sizeof(cwd)))
+   {
+      perror("failed to get current working directory");
+      exit( 1 );
+   }
+
+   struct stat stFileInfo; 
+   if ( stat("seeks.cpp", &stFileInfo)  == 0 && stat("config", &stFileInfo) == 0)
      {
-	char cwd[BUFFER_SIZE];
+	/* force directory source */
+	if (seeks_proxy::_datadir.empty()){
+		seeks_proxy::_datadir = strdup(cwd);
+		seeks_proxy::_datadir += "/";
+	}
+	if (plugin_manager::_plugin_repository.empty()){
+	        plugin_manager::_plugin_repository = strdup(cwd);
+		plugin_manager::_plugin_repository += "/plugins/";
+	}
+	seeks_proxy::_lshconfigfile = "lsh/lsh-config";
+	seeks_proxy::_configfile = "config";
+     }
+
+   if (*seeks_proxy::_configfile.c_str() != '/' )
+   {
+	/* make config-filename absolute here */
 	char *abs_file;
 	size_t abs_file_size;
-	
-	/* make config-filename absolute here */
-	if (NULL == getcwd(cwd, sizeof(cwd)))
-	  {
-	     perror("failed to get current working directory");
-	     exit( 1 );
-	  }
-	
+
 	/* XXX: why + 5? */
 	abs_file_size = strlen(cwd) + seeks_proxy::_configfile.length() + 5;
 	seeks_proxy::_basedir = strdup(cwd);
-	
+
 	if (NULL == seeks_proxy::_basedir ||
 	    NULL == (abs_file = (char*) zalloc(abs_file_size)))
 	  {
@@ -232,6 +259,7 @@ int main(int argc, const char *argv[])
 	strlcat(abs_file, "/", abs_file_size );
 	strlcat(abs_file, seeks_proxy::_configfile.c_str(), abs_file_size);
 	seeks_proxy::_configfile = std::string(abs_file);
+
      }
 #endif /* defined unix */
    
