@@ -226,14 +226,16 @@ int main(int argc, const char *argv[])
    if ( stat("seeks.cpp", &stFileInfo)  == 0 && stat("config", &stFileInfo) == 0)
      {
 	/* force directory source */
-	if (seeks_proxy::_datadir.empty()){
-		seeks_proxy::_datadir = strdup(cwd);
-		seeks_proxy::_datadir += "/";
-	}
-	if (plugin_manager::_plugin_repository.empty()){
-	        plugin_manager::_plugin_repository = strdup(cwd);
-		plugin_manager::_plugin_repository += "/plugins/";
-	}
+	if (seeks_proxy::_datadir.empty())
+	  {
+	     seeks_proxy::_datadir = strdup(cwd);
+	     seeks_proxy::_datadir += "/";
+	  }
+	if (plugin_manager::_plugin_repository.empty())
+	  {
+	     plugin_manager::_plugin_repository = strdup(cwd);
+	     plugin_manager::_plugin_repository += "/plugins/";
+	  }
 	seeks_proxy::_lshconfigfile = "lsh/lsh-config";
 	seeks_proxy::_configfile = "config";
      }

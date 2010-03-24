@@ -1025,22 +1025,22 @@ namespace sp
 	// TODO: deal with port change here, and the need for a bind.
 
 #ifdef SEEKS_PLUGINS_LIBDIR
-	//nothing configured use default
+	// nothing configured,  use default.
 	if (!_plugindir)
 	{
 	   free_const(_plugindir);
-	   _plugindir = SEEKS_PLUGINS_LIBDIR;
+	   _plugindir = strdup(SEEKS_PLUGINS_LIBDIR);
 	}
 #endif
  
 #ifdef SEEKS_DATADIR
-	//nothing configured use default
+	// nothing configured, use default.
 	if (seeks_proxy::_datadir.empty())
 	{
 	   seeks_proxy::_datadir = std::string(SEEKS_DATADIR);
 	}
 #endif
-
+	
 	// update template directory as necessary.
 	const char *templdir_old = _templdir;
 	if (!seeks_proxy::_datadir.empty())

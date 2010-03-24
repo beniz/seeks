@@ -55,16 +55,15 @@ namespace seeks_plugins
 	  _version_minor = "2";
 	  
 
-	  if (seeks_proxy::_datadir.empty()){
+	  if (seeks_proxy::_datadir.empty())
 	    _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
-	  } else {
+	  else
 	    _config_filename = seeks_proxy::_datadir + "/plugins/websearch/websearch-config";
-	  }
-
+	  
 #ifdef SEEKS_CONFIGDIR
           struct stat stFileInfo; 
-   	  if ( !  stat(_config_filename.c_str(), &stFileInfo)  == 0){
-		  _config_filename = SEEKS_CONFIGDIR "/websearch-config";
+	  if (!stat(_config_filename.c_str(), &stFileInfo)  == 0){
+	     _config_filename = SEEKS_CONFIGDIR "/websearch-config";
 	  }
 #endif
 
