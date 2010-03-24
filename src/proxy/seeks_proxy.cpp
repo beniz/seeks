@@ -2511,7 +2511,7 @@ namespace sp
 	
 	if (seeks_proxy::_lsh_config)
 	  delete seeks_proxy::_lsh_config;
-	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_datadir + "/" + seeks_proxy::_lshconfigfile);
+	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
 		
 	// loads iso639 table.
