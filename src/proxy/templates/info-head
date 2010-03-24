@@ -6,5 +6,6 @@
 <!-- @if-have-adminaddr-info-start -->
 <strong>Admin:</strong><span>@admin-address@</span>
 <!-- if-have-adminaddr-info-end@ -->
+<strong>Source</strong><span><a href="http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree">code</a></span>
 <strong></strong><span>@time@</span>
 </p>
