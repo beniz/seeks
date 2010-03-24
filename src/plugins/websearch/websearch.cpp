@@ -32,6 +32,7 @@
 #include "oskmeans.h"
 #include "mrf.h"
 
+#include <sys/stat.h> 
 #include <iostream>
 #include <algorithm>
 #include <bitset>
@@ -53,10 +54,20 @@ namespace seeks_plugins
 	  _version_major = "0";
 	  _version_minor = "2";
 	  
-	  if (seeks_proxy::_datadir.empty())
+
+	  if (seeks_proxy::_datadir.empty()){
 	    _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
-	  else _config_filename = seeks_proxy::_datadir + "/plugins/websearch/websearch-config";
-	  
+	  } else {
+	    _config_filename = seeks_proxy::_datadir + "/plugins/websearch/websearch-config";
+	  }
+
+#ifdef SEEKS_CONFIGDIR
+          struct stat stFileInfo; 
+   	  if ( !  stat(_config_filename.c_str(), &stFileInfo)  == 0){
+		  _config_filename = SEEKS_CONFIGDIR "/websearch-config";
+	  }
+#endif
+
 	  if (websearch::_wconfig == NULL)
 	    websearch::_wconfig = new websearch_configuration(_config_filename);
 	  _configuration = websearch::_wconfig;
