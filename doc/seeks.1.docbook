@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<refentry>
+  <refentryinfo>
+    <author>
+      <firstname>Abaakouk</firstname>
+      <surname>Mehdi</surname>
+      <email>theli48@gmail.com</email>
+    </author>
+    <copyright>
+      <year>2009</year>
+      <holder>Abaakouk mehdi</holder>
+    </copyright>
+    <date>2009-03-25</date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>seeks</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>seeks</refname>
+    <refpurpose>seeks</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+	<cmdsynopsis>
+		<command>seeks</command>
+		<arg><option>--chroot</option></arg> 
+		<arg><option>--help</option></arg> 
+		<arg><option>--daemon</option></arg> 
+		<arg><option>--pidfile <replaceable class="parameter">pidfile</replaceable></option></arg> 
+		<arg><option>--pre-chroot-nslookup <replaceable class="parameter">hostname</replaceable></option></arg>
+		<arg><option>--user <replaceable class="parameter">user<arg>.group</arg></replaceable></option></arg>
+		<arg><option>--version</option></arg>
+		<arg><option>--plugin-repository <replaceable class="parameter">dir</replaceable></option></arg>
+		<arg><option>--data-repository <replaceable class="parameter">dir</replaceable></option></arg>
+		<arg>configfile</arg>
+	</cmdsynopsis>
+</refsynopsisdiv>
+
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para>
+	    Seeks is an open source:
+  </para>
+  <para>* websearch proxy and meta-search engine,</para>
+  <para>* real-time p2p pattern matching network for social websearch. </para>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+    <variablelist>
+<varlistentry><term>--help             </term>
+<listitem>
+<para>
+show this help message and exit.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--daemon           </term>
+<listitem> 
+<para>
+Run the server in the background. 
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--pidfile <replaceable class="parameter">pidfile</replaceable>        </term>
+<listitem>
+<para>
+On startup, write the process ID to pidfile. Delete the pidfile on exit. Failure to create or delete the pidfile is non-fatal. If no --pidfile option is given, no PID file will be used. 
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--chroot           </term>
+<listitem>
+<para>
+Before changing to the user ID passed to the --user option, chroot to that user's home directory, i.e. make the kernel pretend to the seeks process that the directory tree starts there. If set up carefully, this can limit the impact of possible vulnerabilities in seeks to the files contained in that hierarchy. 
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--user <replaceable class="parameter">user[.group]</replaceable>              </term>
+<listitem>
+<para>
+After (optionally) writing the PID file, assumes the user ID of user and the GID of group, or, if the optional group was not specified, the default group of the user. Exit if the privileges are not sufficient to do so. 
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--plugin-repository <replaceable class="parameter">dir</replaceable>          </term>
+<listitem>
+<para>
+Set the directories where the plugins are to be loaded from.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--data-repository <replaceable class="parameter">dir</replaceable>        </term>
+<listitem>
+<para>
+Set the directories where the public data is to be loaded from.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term><replaceable class="parameter">configfile</replaceable> </term>
+<listitem>
+	<para>
+		Seeks proxy configuration file.
+</para>
+</listitem>
+</varlistentry>
+
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>FILES</title>
+  <para>
+		Default seeks configuration files:
+    </para>
+    <para>
+	    /etc/seeks/config 
+	    /etc/seeks/websearch-config
+  </para>
+  </refsect1>
+  <refsect1>
+    <title>COPYRIGHT</title>
+    <para>
+      This manual page was written by Abaakouk Mehdi
+    </para>
+  </refsect1>
+</refentry>

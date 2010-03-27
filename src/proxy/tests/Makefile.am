@@ -1,4 +1,4 @@
-bin_PROGRAMS=test_curl_mget shash
+noinst_PROGRAMS=test_curl_mget shash
 test_curl_mget_SOURCES=test-curl-mget.cpp 
 shash_SOURCES=shash.cpp
 

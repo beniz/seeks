@@ -6,16 +6,16 @@
  * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
+ * modify it under the terms of the GNU General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
+ * You should have received a copy of the GNU General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
@@ -1023,6 +1023,23 @@ namespace sp
 	
 	_need_bind = 1;
 	// TODO: deal with port change here, and the need for a bind.
+
+#ifdef SEEKS_PLUGINS_LIBDIR
+	// nothing configured,  use default.
+	if (!_plugindir)
+	{
+	   free_const(_plugindir);
+	   _plugindir = strdup(SEEKS_PLUGINS_LIBDIR);
+	}
+#endif
+ 
+#ifdef SEEKS_DATADIR
+	// nothing configured, use default.
+	if (seeks_proxy::_datadir.empty())
+	{
+	   seeks_proxy::_datadir = std::string(SEEKS_DATADIR);
+	}
+#endif
 	
 	// update template directory as necessary.
 	const char *templdir_old = _templdir;
@@ -1032,6 +1049,7 @@ namespace sp
 	     _templdir = strdup(templdir_str.c_str());
 	  }
 	else _templdir = seeks_proxy::make_path(NULL,_templdir);
+
 	free_const(templdir_old);
      }
 

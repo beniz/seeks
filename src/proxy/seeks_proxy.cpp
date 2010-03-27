@@ -6,16 +6,16 @@
  * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
+ * modify it under the terms of the GNU General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
+ * You should have received a copy of the GNU General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
@@ -91,11 +91,9 @@ namespace sp
 #endif
 
    std::string seeks_proxy::_configfile = "";
-
    proxy_configuration* seeks_proxy::_config = NULL;
-   
-   std::string seeks_proxy::_lshconfigfile = "lsh/lsh-config";
-   
+
+   std::string seeks_proxy::_lshconfigfile = "";
    lsh_configuration* seeks_proxy::_lsh_config = NULL;
    
    int seeks_proxy::_Argc = 0;
@@ -2326,7 +2324,7 @@ namespace sp
 # if defined(unix)
 	       "[--daemon] [--pidfile pidfile] [--pre-chroot-nslookup hostname] [--user user[.group]] "
 # endif /* defined(unix) */
-	       "[--version] [--plugin-repository] [--data-repository] [configfile]\n"
+	       "[--version] [--plugin-repository dir] [--data-repository dir] [configfile]\n"
 	       "Bye\n", myname);
 	exit(2);
      }
@@ -2499,11 +2497,13 @@ namespace sp
 	sp_socket bfd;
 	
 	unsigned int active_threads = 0;
-	
+
+
 	// loads main configuration file (seeks + proxy configuration).
 #ifdef __linux__
 	configuration_spec::init_file_notification(); // init inotify, Linux only.
 #endif
+ 
 	if (seeks_proxy::_config)
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);

@@ -51,3 +51,8 @@ strong {
 #info-head span {
 	margin-right: 10px;
 }
+
+#info-head a {
+        color: gray;
+	text-decoration: none;
+}
