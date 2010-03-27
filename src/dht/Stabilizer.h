@@ -19,7 +19,6 @@
  */
 
 /**
- * \file$Id:
  * \brief This is a stabilizer for some of the DHT internal structures that need
  *        to be periodically updated with regard to the changes on the overlay network.
  *        This is inspired from the same mechanism in Chord.

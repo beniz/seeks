@@ -31,7 +31,7 @@ namespace dht
    DHTNode::DHTNode()
      : _dht_config(NULL),_n_estimate(1)
      {
-	_dht_config_filename = std::string(seeks_proxy::_basedir) + "/dht/dht-config";
+	_dht_config_filename = std::string(seeks_proxy::_basedir) + "/dht/dht-config"; // TODO: changes for packaging.
 	DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
 	
 	/**
@@ -60,7 +60,7 @@ namespace dht
 	/**
 	 * Create stabilizer before structures in vnodes register to it.
 	 */
-	//_stabilizer = new Stabilizer();
+	_stabilizer = new Stabilizer();
 	
 	/**
 	 * create the virtual nodes.

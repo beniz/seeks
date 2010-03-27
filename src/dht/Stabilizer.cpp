@@ -47,8 +47,9 @@ namespace dht
    Stabilizer::Stabilizer()
      : BstTimeCbTree()
        {
-	  start_fast_stabilizer();
-	  start_slow_stabilizer();
+	  // TODO: activate when code is ready.
+	  /* start_fast_stabilizer();
+	  start_slow_stabilizer(); */
        }
    
    void Stabilizer::start_fast_stabilizer()
