@@ -1,28 +1,19 @@
 /**
  * This file is part of the SEEKS project.
- * Copyright (C) 2006 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2006, 2010 Emmanuel Benazera, juban@free.fr
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- **/
- 
-
-/**
- * \file$Id:
- * \brief Binary search tree with time keys and callback values.
- * 
- * \author E. Benazera, juban@free.fr
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef BSTTIMECB_H
@@ -134,6 +125,8 @@ namespace dht
 	BstTimeCbTree();
 	
 	BstTimeCbTree(const timespec&, callback<int>* cb);
+	
+	~BstTimeCbTree();
 	
 	/**
 	 * \brief checks on current time and executes all callbacks whose date is
