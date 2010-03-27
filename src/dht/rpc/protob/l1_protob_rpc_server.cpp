@@ -52,10 +52,10 @@ namespace dht
 	// read query.
 	uint32_t layer_id;
 	uint32_t fct_id;
-	DHTKey recipient_key, sender_key;
+	DHTKey recipient_key, sender_key, node_key;
 	NetAddress recipient_na, sender_na;
 	l1_protob_wrapper::read_l1_query(&l1q,layer_id,fct_id,recipient_key,
-					 recipient_na,sender_key,sender_na);
+					 recipient_na,sender_key,sender_na,node_key);
 	// check on the layer id.
 	if (layer_id != 1)
 	  {
@@ -67,7 +67,7 @@ namespace dht
 	// decides which response to give.
 	int status = DHT_ERR_OK;
 	dht_err err = execute_callback(fct_id,recipient_key,recipient_na,
-				       sender_key,sender_na,status,resp_msg);
+				       sender_key,sender_na,node_key,status,resp_msg);
 	
 	return err;
      }
@@ -77,9 +77,12 @@ namespace dht
 						  const NetAddress &recipient_na,
 						  const DHTKey &sender_key,
 						  const NetAddress &sender_na,
+						  const DHTKey &node_key,
 						  int& status,
 						  std::string &resp_msg)
      {
+	l1::l1_response *l1r = NULL;
+	
 	if (fct_id == hash_get_successor)
 	  {
 	     DHTKey dkres;
@@ -88,24 +91,53 @@ namespace dht
 				 sender_key,sender_na,
 				 dkres,dkres_na,status);
 	     
-	     // create and serialize a response.
-	     l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
-	     l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
-	     delete l1r;
+	     // create a response.
+	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
 	  }
 	else if (fct_id == hash_get_predecessor)
 	  {
+	     DHTKey dkres;
+	     NetAddress dkres_na;
+	     RPC_getPredecessor_cb(recipient_key,recipient_na,
+				   sender_key,sender_na,
+				   dkres,dkres_na,status);
+	     
+	     // create a response.
+	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
 	  }
 	else if (fct_id == hash_notify)
 	  {
+	     RPC_notify_cb(recipient_key,recipient_na,
+			   sender_key,sender_na,
+			   status);
+	     
+	     // create a response.
+	     l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
 	else if (fct_id == hash_find_closest_predecessor)
-	  { 
+	  {
+	     DHTKey dkres, dkres_succ;
+	     NetAddress dkres_na, dkres_succ_na;
+	     RPC_findClosestPredecessor_cb(recipient_key,recipient_na,
+					   sender_key,sender_na,
+					   node_key,
+					   dkres,dkres_na,
+					   dkres_succ,dkres_succ_na,
+					   status);
+	     
+	     // create a response.
+	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
+							 dkres_succ,dkres_succ_na);
 	  }
 	else 
 	  {
-	     // unknown cb.
+	     // TODO: unknown cb.
 	  }
+	
+	// serialize the response.
+	l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
+	delete l1r;
+	
 	return DHT_ERR_OK;	
      }
 

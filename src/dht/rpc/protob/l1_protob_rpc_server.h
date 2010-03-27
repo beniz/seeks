@@ -41,6 +41,7 @@ namespace dht
 				 const NetAddress &recipient_na,
 				 const DHTKey &sender_key,
 				 const NetAddress &sender_na,
+				 const DHTKey &node_key,
 				 int &status,
 				 std::string &resp_msg);
      

@@ -9,4 +9,4 @@ AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
 AM_LDFLAGS=-L../ -L../../ -L../../../utils -L../../../proxy -L../../../lsh
 
 LDADD = -lseeksrpc -lseeksdht -lrmd160 -lseeksutils -lseeksproxy -lseeksplugins \
-        -lseekslsh -lpcre -lpcreposix -lprotobuf -lpthread -lz -ldl @CURL_LDADD@ @XML2_LDADD@
+        -lseekslsh -lpcre -lpcreposix -lprotobuf -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
