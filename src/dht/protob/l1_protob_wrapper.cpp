@@ -95,7 +95,6 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't serialize null query");
 	     throw l1_fail_serialize_exception();
 	  }
-	bool status = l1q->SerializeToString(&str);
 	if (!l1q->SerializeToString(&str)) // != 0 on error.
 	  throw l1_fail_serialize_exception();
      }
@@ -135,15 +134,21 @@ namespace dht
 	return l1r;
      }
    
-   l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t error_status,
-							  const std::string &result_key,
-							  const uint32_t &result_ip_addr,
-							  const std::string &result_net_port)
+   l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t &error_status)
      {
 	l1::l1_response *l1r = new l1::l1_response();
 	l1::header *l1r_head = l1r->mutable_head();
 	l1r_head->set_layer_id(1);
 	l1r->set_error_status(error_status);
+	return l1r;
+     }
+      
+   l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t error_status,
+							  const std::string &result_key,
+							  const uint32_t &result_ip_addr,
+							  const std::string &result_net_port)
+     {
+	l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(error_status);
 	l1::vnodeid *l1r_found_vnode = l1r->mutable_found_vnode();
 	l1::dht_key *l1r_result_key = l1r_found_vnode->mutable_key();
 	l1r_result_key->set_key(result_key);
@@ -217,6 +222,31 @@ namespace dht
    dht_err l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
 					    uint32_t &layer_id,
 					    uint32_t &fct_id,
+					    DHTKey &recipient_dhtkey,
+					    NetAddress &recipient_na,
+					    DHTKey &sender_dhtkey,
+					    NetAddress &sender_na,
+					    DHTKey &nodekey)
+     {
+	dht_err err = l1_protob_wrapper::read_l1_query(l1q,layer_id,fct_id,
+						       recipient_dhtkey,recipient_na,
+						       sender_dhtkey,sender_na);
+	l1::dht_key l1q_node_key = l1q->lookedup_key();
+	std::string node_key_str = l1q_node_key.key();
+	if (!node_key_str.empty()) // optional field.
+	  {
+	     std::vector<unsigned char> ser;
+	     std::copy(node_key_str.begin(),node_key_str.end(),std::back_inserter(ser));
+	     nodekey = DHTKey::unserialize(ser);
+	  }
+	if (err != DHT_ERR_OK)
+	  return err;
+	else return DHT_ERR_OK;
+     }
+        
+   dht_err l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
+					    uint32_t &layer_id,
+					    uint32_t &fct_id,
 					    std::string &recipient_key,
 					    uint32_t &recipient_ip_addr,
 					    std::string &recipient_net_port,
@@ -249,7 +279,6 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null query");
 	     throw l1_fail_deserialize_exception();
 	  }
-	bool status = l1q->ParseFromString(str);
 	if (!l1q->ParseFromString(str))
 	  throw l1_fail_deserialize_exception();
      }

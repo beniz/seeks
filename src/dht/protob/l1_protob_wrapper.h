@@ -72,6 +72,9 @@ namespace dht
 	static l1::l1_response* create_l1_response(const uint32_t &error_status,
 						   const DHTKey &resultKey,
 						   const NetAddress &resultAddress);
+      
+	static l1::l1_response* create_l1_response(const uint32_t &error_status);
+						   
       private:
 	static l1::l1_response* create_l1_response(const uint32_t error_status,
 						   const std::string &result_key,
@@ -100,6 +103,16 @@ namespace dht
 				     NetAddress &recipient_na,
 				     DHTKey &sender_dhtkey,
 				     NetAddress &sender_na);
+	
+	static dht_err read_l1_query(const l1::l1_query *l1q,
+				     uint32_t &layer_id,
+				     uint32_t &fct_id,
+				     DHTKey &recipient_dhtkey,
+				     NetAddress &recipient_na,
+				     DHTKey &sender_dhtkey,
+				     NetAddress &sender_na,
+				     DHTKey &nodekey);
+      
       private:
 	static dht_err read_l1_query(const l1::l1_query *l1q,
 				     uint32_t &layer_id,
