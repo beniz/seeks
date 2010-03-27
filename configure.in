@@ -386,6 +386,7 @@ src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
 src/plugins/privoxy/Makefile \
 src/dht/Makefile \
+src/dht/tests/Makefile \
 src/dht/rpc/Makefile \
 src/dht/rpc/tests/Makefile \
 src/dht/rpc/protob/Makefile \
