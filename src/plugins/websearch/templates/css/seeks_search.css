@@ -181,6 +181,7 @@ body {
 	left: 25px;
 	top: 67px;
 	font-size: 90%;
+	max-width: 220px;
 }
 
 #search_sugg a {
