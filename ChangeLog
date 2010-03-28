@@ -1,4 +1,21 @@
-* Bubs-0.2-SOLO
+* Bubs-0.2.1-SOLO-stable
+This releases brings some technical improvements for stability.
+
+- Better mutexes around the concurrent treatment of queries.
+
+- Fixes rare crash in clustering too few snippets.
+
+- Removed some decoration on the UI.
+
+- Language indicator on the search result page.
+
+- Ready for Ubuntu and Debian packaging.
+
+- Compiles under FreeBSD and Gentoo.
+
+- Some other minor fixes here and then.
+
+* Bubs-0.2-SOLO-stable
 This releases enables a set of novel websearch features, fixes bugs
 in the machinery, eases the deployment of public Seeks nodes.
 As such this the first truely mature of the SOLO releases.
