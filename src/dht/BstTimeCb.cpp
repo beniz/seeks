@@ -1,5 +1,5 @@
 /**
- *  This file is part of the SEEKS project.
+ *  This file is part of the Seeks project.
  *  Copyright (C) 2006, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "BstTimeCb.h"
 #include <time.h>
@@ -98,9 +97,11 @@ namespace dht
    
    
    /*-- BstTimeCbTree --*/
+   // TODO: mutex def goes elsewhere.
    pthread_mutex_t _cbtree_mutex = PTHREAD_MUTEX_INITIALIZER;
    
    BstTimeCbTree::BstTimeCbTree()
+     :_bstcbtree(NULL)
      {
 	start_threaded_timecheck_loop();
      }
@@ -113,6 +114,7 @@ namespace dht
 
    BstTimeCbTree::~BstTimeCbTree()
      {
+	// TODO: delete _bstcbtree ?
      }
       
    void BstTimeCbTree::insert(const timespec& tv, callback<int>* cb)
@@ -216,12 +218,13 @@ namespace dht
 	for (;;)
 	  {
 	     btb->timecheck();
-	     sleep(1);
+	     sleep(5);  // TODO: was 1.
 	  }
 	return NULL;
      }
    
-   //TODO: mutex it.
+   // TODO: mutex it.
+   // TODO: reuse an existing thread or use another mechanism (?).
    void BstTimeCbTree::start_threaded_timecheck_loop()
      {
 	/**

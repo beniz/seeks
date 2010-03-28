@@ -2,7 +2,7 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
- * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2006, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -22,40 +22,35 @@
 #include "FingerTable.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
+#include "l1_protob_rpc_server.h"
+#include "l1_protob_rpc_client.h"
 
 using sp::seeks_proxy;
 using sp::proxy_configuration;
 
 namespace dht
 {
-   DHTNode::DHTNode()
-     : _dht_config(NULL),_n_estimate(1)
+   DHTNode::DHTNode(const char *net_addr,
+		    const short &net_port)
+     : _dht_config(NULL),_n_estimate(1),_l1_server(NULL),_l1_client(NULL)
      {
-	_dht_config_filename = std::string(seeks_proxy::_basedir) + "/dht/dht-config"; // TODO: changes for packaging.
+#ifdef SEEKS_CONFIGDIR
+	_dht_config_filename = SEEKS_CONFIGDIR "dht-config"; // TODO: changes for packaging.
+#else
+	_dht_config_filename = "dht-config";
+#endif
 	DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
 	
 	/**
 	 * create the location table.
 	 */
 	_lt = new LocationTable();
-
-	/**
-	 * We get the local net interface information.
-	 * Beware: TODO: Win32.
-	 */
-	/* std::string iname = "";
-	std::string ipaddr = "";
-	if (DHTNetUtils::getLocalNetInterfaceInfo(iname, ipaddr) == -1)
-	  {
-	     std::cerr << "[Error]:DHTNode: Can't get the local interface and ip address.\n"
-	       << "Please specify a network interface or check your system network interfaces.\n"
-	       << "Exiting.\n";
-	     exit(-1);
-	  } */
 	
 	// this node net l1 address.
-	_l1_na.setNetAddress(seeks_proxy::_config->_haddr);
-	_l1_na.setPort(_dht_config->_l1_port);
+	//_l1_na.setNetAddress(seeks_proxy::_config->_haddr);
+	_l1_na.setNetAddress(net_addr);
+	//_l1_na.setPort(_dht_config->_l1_port);
+	_l1_na.setPort(net_port);
 	
 	/**
 	 * Create stabilizer before structures in vnodes register to it.
@@ -72,8 +67,9 @@ namespace dht
 	      * creating virtual nodes.
 	      */
 	     DHTVirtualNode* dvn = new DHTVirtualNode(this);
-	     _vnodes[&dvn->getIdKey()] = dvn;
-	     
+	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
+								     dvn));
+	     	     
 	     /**
 	      * TODO: register vnode routing structures to the stabilizer:
 	      * - stabilize on successor continuously,
@@ -84,16 +80,17 @@ namespace dht
 	  }
 	
 	/**
-	 * start rpc server.
+	 * start rpc client & server.
 	 */
-	//TODO.
-	//_rpc_server_thread_id = start_rpc_server(DHTSettings::_default_com_port, logfile);
+	_l1_server = new l1_protob_rpc_server(net_addr,net_port,this);
+	
+	// TODO: run the server in its own thread.
      }
-
+      
    DHTNode::~DHTNode()
      {
 	delete _lt; //TODO: should clean the table.
-		
+	
 	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
 	  = _vnodes.begin();
 	while(hit!=_vnodes.end())

@@ -1,5 +1,5 @@
 /**
- * This file is part of the SEEKS project.
+ * This file is part of the Seeks project.
  * Copyright (C) 2006, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify

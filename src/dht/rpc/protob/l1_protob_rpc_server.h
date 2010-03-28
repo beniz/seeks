@@ -2,7 +2,7 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
- * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as

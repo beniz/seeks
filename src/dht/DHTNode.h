@@ -45,7 +45,7 @@ namespace dht
 	/**
 	 * \brief constructor.
 	 */
-	DHTNode();
+	DHTNode(const char *net_addr, const short &net_port);
 
 	~DHTNode();
 	
@@ -180,11 +180,6 @@ namespace dht
 	 */
 	l1_rpc_client *_l1_client;
 	
-	/**
-	 * RPC server thread id.
-	 */
-	int _rpc_server_thread_id;
-
 	/**
 	 * node's stabilizer.
 	 */
