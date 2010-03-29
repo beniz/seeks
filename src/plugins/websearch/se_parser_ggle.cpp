@@ -90,8 +90,6 @@ namespace seeks_plugins
 	     
 	     if (a_link)
 	       {
-		  /* if (_spell_flag)  // the spell section provides links as queries.
-		    { */
 		  std::string a_link_str = std::string(a_link);
 		  size_t p = miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
 		  if (p != 0)
@@ -286,7 +284,7 @@ namespace seeks_plugins
      {
 	const char *tag = (const char*) name;
 	
-	if (pc->_current_snippet && _li_flag && strcasecmp(tag,"h3")==0)
+	if (pc->_current_snippet && _li_flag && _h3_flag && strcasecmp(tag,"h3")==0)
 	  {
 	     _h3_flag = false;
 	     pc->_current_snippet->_title = _h3;
