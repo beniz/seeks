@@ -19,15 +19,18 @@
  */
 
 #include "rpc_client.h"
+#include "DHTNode.h"
 #include "spsockets.h"
 #include "errlog.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include <pthread.h>
 #include <iostream>
 
 using sp::spsockets;
@@ -42,7 +45,28 @@ namespace dht
    rpc_client::~rpc_client()
      {
      }
-         
+
+   void rpc_client::do_rpc_call_static(rpc_call_args *args)
+     {
+	args->_err = args->_client->do_rpc_call(args->_server_na,args->_msg,
+						args->_need_response,args->_response);
+     }
+   
+   dht_err rpc_client::do_rpc_call_threaded(const NetAddress &server_na,
+					    const std::string &msg,
+					    const bool &need_response,
+					    std::string &response)
+     {
+	rpc_call_args args(this,server_na,msg,need_response,response);
+	
+	pthread_t rpc_call_thread;
+	int err = pthread_create(&rpc_call_thread,NULL, //joinable
+				 (void * (*)(void *))&rpc_client::do_rpc_call_static,&args);
+	
+	// join.
+	pthread_join(rpc_call_thread,NULL);
+     }
+      
    dht_err rpc_client::do_rpc_call(const NetAddress &server_na,
 				   const std::string &msg,
 				   const bool &need_response,
@@ -93,8 +117,30 @@ namespace dht
 	// receive message, if necessary.
 	// TODO: timeout + exception.
 	if (!need_response)
-	  return DHT_ERR_OK;
+	  return DHT_ERR_OK;	
 	
+	// TODO: non blocking on (single) response.
+	fd_set rfds;
+	FD_ZERO(&rfds);
+	FD_SET(udp_sock,&rfds);
+	timeval timeout;
+	timeout.tv_sec = DHTNode::_dht_config->_l1_client_timeout;
+	timeout.tv_usec = 0;
+	
+	int m = select((int)udp_sock+1,&rfds,NULL,NULL,&timeout);
+	
+	if (m == 0) // no bits received before the communication timed out.
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "Didn't receive response data in time to layer 1 call");
+	     response = "";
+	     return DHT_ERR_OK;
+	  }
+	else if (m < 0)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "select() failed!: %E");
+	     return DHT_ERR_NETWORK;
+	  }
+		  
 	size_t buflen = 1024;
 	char buf[buflen];
 	struct sockaddr_in from;

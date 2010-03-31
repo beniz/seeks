@@ -25,8 +25,34 @@
 #include "dht_exception.h"
 #include "NetAddress.h"
 
+#include <string>
+
 namespace dht
 {
+   class rpc_client;
+   
+   class rpc_call_args
+     {
+      public:
+	rpc_call_args(rpc_client *client,
+		      const NetAddress &server_na, const std::string &msg,
+		      const bool &need_response, std::string &response)
+	  :_client(client),_server_na(server_na),_msg(msg),
+	   _need_response(need_response),_response(response)
+	  {
+	     _err = DHT_ERR_OK;
+	  };
+	
+	~rpc_call_args() {};
+	
+	rpc_client *_client;
+	NetAddress _server_na;
+	std::string _msg;
+	bool _need_response;
+	std::string _response;
+	dht_err _err;
+     };
+      
    class rpc_client
      {
       public:
@@ -34,6 +60,13 @@ namespace dht
 	
 	virtual ~rpc_client();
 	  
+	static void do_rpc_call_static(rpc_call_args *args);
+	
+	dht_err do_rpc_call_threaded(const NetAddress &server_na,
+				     const std::string &msg,
+				     const bool &need_response,
+				     std::string &response);
+	
 	dht_err do_rpc_call(const NetAddress &server_na,
 			    const std::string &msg,
 			    const bool &need_response,
