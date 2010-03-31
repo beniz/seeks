@@ -51,7 +51,7 @@ namespace dht
 	// send & get response.
 	try
 	  {
-	     do_rpc_call(recipient,msg_str,true,resp_str); // XXX: the recipient port must be set...
+	     do_rpc_call_threaded(recipient,msg_str,true,resp_str); // XXX: the recipient port must be set...
 	     delete l1q;
 	     l1q = NULL;
 	  }
