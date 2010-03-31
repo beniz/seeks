@@ -1,5 +1,4 @@
 #automake file for seeks dht tests
-
 bin_PROGRAMS=test_hash_key test_keys test_dhtnode # test_dht_net_utils test_stabilizer
 test_hash_key_SOURCES=test-hash-key.cpp
 test_keys_SOURCES=test-keys.cpp 

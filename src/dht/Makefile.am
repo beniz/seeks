@@ -7,4 +7,4 @@ libseeksdht_la_SOURCES=NetAddress.cpp DHTKey.cpp dht_configuration.cpp FingerTab
 		       DHTVirtualNode.cpp Location.cpp LocationTable.cpp DHTNode.cpp Stabilizer.cpp \
 		       BstTimeCb.cpp
 
-SUBDIRS=. protob rpc tests
+SUBDIRS=protob rpc . protob/tests rpc/tests tests

@@ -19,7 +19,7 @@ if !HAVE_FREEBSD
 LDADD += -ldl
 endif
 
-SUBDIRS=utils lsh proxy plugins .
+SUBDIRS=utils lsh proxy plugins dht .
 
 configdir=$(sysconfdir)/seeks
 config_DATA=config \
