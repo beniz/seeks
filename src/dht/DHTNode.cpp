@@ -30,16 +30,24 @@ using sp::proxy_configuration;
 
 namespace dht
 {
+   std::string DHTNode::_dht_config_filename = "";
+   dht_configuration* DHTNode::_dht_config = NULL;
+   
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port)
-     : _dht_config(NULL),_n_estimate(1),_l1_server(NULL),_l1_client(NULL)
+     : _n_estimate(1),_l1_server(NULL),_l1_client(NULL)
      {
+	if (DHTNode::_dht_config_filename.empty())
+	  {
 #ifdef SEEKS_CONFIGDIR
-	_dht_config_filename = SEEKS_CONFIGDIR "dht-config"; // TODO: changes for packaging.
+	     DHTNode::_dht_config_filename = SEEKS_CONFIGDIR "dht-config"; // TODO: changes for packaging.
 #else
-	_dht_config_filename = "dht-config";
+	     DHTNode::_dht_config_filename = "dht-config";
 #endif
-	DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
+	  }
+	
+	if (!DHTNode::_dht_config)
+	  DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
 	
 	/**
 	 * create the location table.
@@ -84,7 +92,10 @@ namespace dht
 	 */
 	_l1_server = new l1_protob_rpc_server(net_addr,net_port,this);
 	
-	// TODO: run the server in its own thread.
+	/**
+	 * run the server in its own thread.
+	 */
+	rpc_server::run_static(_l1_server);
      }
       
    DHTNode::~DHTNode()

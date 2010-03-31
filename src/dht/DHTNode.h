@@ -145,8 +145,8 @@ namespace dht
 	/**
 	 * configuration.
 	 */
-	std::string _dht_config_filename;
-	dht_configuration *_dht_config;
+	static std::string _dht_config_filename;
+	static dht_configuration *_dht_config;
 	
 	/**
 	 * shared location table.
