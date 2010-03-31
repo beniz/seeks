@@ -36,6 +36,10 @@ namespace dht
 	
 	dht_err run();
 
+	dht_err run_thread();
+	
+	static void run_static(rpc_server *server);
+	
 	/*- server responses. -*/
 	virtual dht_err serve_response(const std::string &msg,
 				       std::string &resp_msg);

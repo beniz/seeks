@@ -30,6 +30,7 @@
 #include <strings.h>
 #include <errno.h>
 
+#include <pthread.h>
 #include <iostream>
 
 using sp::errlog;
@@ -103,7 +104,7 @@ namespace dht
 	size_t buflen = 1024; // TODO: 128 bytes may not be enough -> use dht_configuration value.
 	char buf[buflen];
 	struct sockaddr_in from;
-	size_t fromlen = sizeof(struct sockaddr_in);
+	socklen_t fromlen = sizeof(struct sockaddr_in);
 	while(true)
 	  {
 	     //debug
@@ -153,7 +154,24 @@ namespace dht
 	
 	return DHT_ERR_OK;
      }
-
+   
+   dht_err rpc_server::run_thread()
+     {
+	pthread_t rpc_server_thread;
+	pthread_attr_t attrs;
+	pthread_attr_init(&attrs);
+	pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
+	int err = pthread_create(&rpc_server_thread,&attrs,
+				 (void * (*)(void *))&rpc_server::run_static,this);
+	pthread_attr_destroy(&attrs);
+     }
+   
+   void rpc_server::run_static(rpc_server *server)
+     {
+	//TODO: error catching...
+	server->run();
+     }
+      
    dht_err rpc_server::serve_response(const std::string &msg,
 				      std::string &resp_msg)
      {
@@ -161,5 +179,3 @@ namespace dht
      }
       
 } /* end of namespace. */
-
-  
