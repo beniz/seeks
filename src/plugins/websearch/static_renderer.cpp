@@ -87,7 +87,7 @@ namespace seeks_plugins
 	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
 	     suggestion_str += base_url_str + "/search?q=" + qc->_in_query_command + " " 
-	       + sugg_enc_str + "&expansion=1&action=expand";
+	       + sugg_enc_str + "&amp;expansion=1&amp;action=expand";
 	     suggestion_str += "\">";
 	     suggestion_str += sugg_enc_str;
 	     suggestion_str += "</a>";
@@ -261,7 +261,7 @@ namespace seeks_plugins
 	std::string label_query = html_encoded_query + " " + clabel_enc_str;
 	miscutil::replace_in_string(label_query," ","+");
 	std::string html_label = "<h2><a class=\"label\" href=" + base_url_str + "/search?q=" + label_query
-	  + "&page=1&expansion=1&action=expand>" + clabel_enc_str 
+	  + "&amp;page=1&amp;expansion=1&amp;action=expand>" + clabel_enc_str 
 	  + "</a><font size=\"2\"> " + std::string(slabel_encoded) + "</font></h2><br>";
 	free_const(slabel_encoded);
 	return html_label;
@@ -307,8 +307,8 @@ namespace seeks_plugins
 	     if (base_url)
 	       base_url_str = std::string(base_url);
 	     std::string np_str = miscutil::to_string(current_page+1);
-	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&q="
-	       + html_encoded_query + "&expansion=" + expansion + "&action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
+	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&amp;q="
+	       + html_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -327,8 +327,8 @@ namespace seeks_plugins
 	     std::string base_url_str = "";
 	     if (base_url)
 	       base_url_str = std::string(base_url);
-	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&q="
-	                   + html_encoded_query + "&expansion=" + expansion + "&action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
+	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&amp;q="
+	                   + html_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);

@@ -210,9 +210,11 @@ namespace seeks_plugins
 	
 	if (!_cached.empty())
 	  {
+	     const char *enc_cached = encode::html_encode(_cached.c_str());
 	     html_content += "<a class=\"search_cache\" href=\"";
-	     html_content += _cached;
-	     html_content += " \">Cached</a>";
+	     html_content += enc_cached;
+	     html_content += "\">Cached</a>";
+	     free_const(enc_cached);
 	  }
 	if (_archive.empty())
 	  {
@@ -220,7 +222,7 @@ namespace seeks_plugins
 	  }
 	html_content += "<a class=\"search_cache\" href=\"";
 	html_content += _archive;
-	html_content += " \">Archive</a>";
+	html_content += "\">Archive</a>";
 	
 	if (!_sim_back)
 	  {
@@ -234,14 +236,14 @@ namespace seeks_plugins
 	  }
 	html_content += base_url_str + _sim_link;
 	if (!_sim_back)
-	  html_content += " \">Similar</a>";
+	  html_content += "\">Similar</a>";
 	else html_content += "\">Back</a>";
 	
 	if (_cached_content)
 	  {
 	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += base_url_str + "/search_cache?url="
-	                  + _url + "&q=" + _qc->_query;
+	                  + _url + "&amp;q=" + _qc->_query;
 	     html_content += " \">Quick link</a>";
 	  }
 	
@@ -323,16 +325,16 @@ namespace seeks_plugins
    void search_snippet::set_similarity_link()
      {
 	_sim_link = "/search?q=" + _qc->_query 
-	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
-	    + "&action=similarity&id=" + miscutil::to_string(_id);
+	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion) 
+	    + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id);
 	_sim_back = false;
      }
       
    void search_snippet::set_back_similarity_link()
      {
 	_sim_link = "/search?q=" + _qc->_query
-	  + "&page=1&expansion=" + miscutil::to_string(_qc->_page_expansion) 
-	    + "&action=expand";
+	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion) 
+	    + "&amp;action=expand";
 	_sim_back = true;
      }
       
