@@ -74,6 +74,13 @@ namespace dht
 						      DHTKey& dkres, NetAddress& na,
 						      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 						      int& status);
+	
+	virtual dht_err RPC_joinGetSucc_cb(const DHTKey& recipientKey,
+					   const NetAddress& recipient,
+					   const DHTKey &senderKey,
+					   const NetAddress& senderAddress,
+					   DHTKey& dkres, NetAddress& na,
+					   int& status);
      };
    
 } /* end of namespace. */

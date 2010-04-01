@@ -366,7 +366,6 @@ namespace dht
 	  }
      }
    
-   
    void DHTKey::charToBits (const char &c, std::bitset<8> &bb_char)
      {
 	char cc = c;
@@ -375,7 +374,7 @@ namespace dht
 	unsigned int bpos = 0;
 	for (int i=7; i >=0; i--)
 	  {
-	     if ((cc >> i) & 1) bb_char.set (7-bpos);
+	     if ((cc >> i) & 1) bb_char.set(7-bpos);
 	     bpos++;
 	  }
      }

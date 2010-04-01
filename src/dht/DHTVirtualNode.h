@@ -86,6 +86,7 @@ namespace dht
 	/**-- functions using RPCs. --**/
 	/* TODO. */
 	int join(const DHTKey& dk_boostrap,
+		 const NetAddress &dk_boostrap_na,
 		 const DHTKey& senderKey,
 		 int& status);
 	

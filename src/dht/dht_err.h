@@ -28,3 +28,5 @@ typedef int dht_err;
 #define DHT_ERR_NO_SUCCESSOR_FOUND                 5 /**< can't find a successor to a peer. */
 #define DHT_ERR_UNKNOWN_PEER_LOCATION              6 /**< can't find a net address for a peer. */
 #define DHT_ERR_COM_TIMEOUT                        7 /**< a communication with a peer has timed out. */
+#define DHT_ERR_PTHREAD                            8 /**< thread creation error. */
+#define DHT_ERR_UNKNOWN                         1000 /**< unknown error. */

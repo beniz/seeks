@@ -135,7 +135,7 @@ namespace dht
 	 *        we do not get any email address or unique ip address to hash from.
 	 *        The random bit generator is seeded with gettimeofday, using microseconds.
 	 * 
-	 * TODO: stronger randomness and collusion prevention in generated keys.
+	 * TODO: stronger randomness and collision prevention in generated keys.
 	 */
 	static DHTKey randomKey();
 	
@@ -143,7 +143,7 @@ namespace dht
 	 * \brief Basic random bit generator, for debugging purposes.
 	 */
 	static bool irbit2(unsigned long *iseed);
-	
+		
 	/**
 	 * \brief conversion to/from a vector of unsigned char.
 	 */

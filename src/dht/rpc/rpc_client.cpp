@@ -65,6 +65,8 @@ namespace dht
 	
 	// join.
 	pthread_join(rpc_call_thread,NULL);
+     
+	return args._err;
      }
       
    dht_err rpc_client::do_rpc_call(const NetAddress &server_na,

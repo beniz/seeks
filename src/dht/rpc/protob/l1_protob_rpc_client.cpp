@@ -166,5 +166,27 @@ namespace dht
 	delete l1r;
 	return DHT_ERR_OK;
      }
+
+   dht_err l1_protob_rpc_client::RPC_joinGetSucc(const DHTKey& recipientKey,
+						 const NetAddress& recipient,
+						 const DHTKey &senderKey,
+						 const NetAddress& senderAddress,
+						 DHTKey& dkres, NetAddress& na,
+						 int& status)
+     {
+	// do call, wait and get response.
+	l1::l1_response *l1r = new l1::l1_response();
+	dht_err err = l1_protob_rpc_client::RPC_call(hash_join_get_succ,
+						     recipientKey,recipient,
+						     senderKey,senderAddress,
+						     l1r);
+	// handle the response.
+	uint32_t layer_id, error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+						  dkres,na);
+	status = error_status;
+	delete l1r;
+	return DHT_ERR_OK;
+     }
    
 } /* end of namespace. */

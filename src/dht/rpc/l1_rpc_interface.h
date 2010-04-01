@@ -34,6 +34,7 @@ namespace dht
    #define hash_get_predecessor               3440834331ul    /* "get-predecessor" */
    #define hash_notify                        4267298065ul    /* "notify" */
    #define hash_find_closest_predecessor      3893622114ul    /* "find-closest-predecessor" */
+   #define hash_join_get_succ                 2753881080ul    /* "join-get-succ" */
    
    class l1_rpc_client_interface
      {
@@ -116,6 +117,23 @@ namespace dht
 						   DHTKey& dkres_succ,
 						   NetAddress &dkres_succ_na,
 						   int& status) = 0;
+	/**
+	 * \brief joinGetSucc: find_successor remote call when bootstrapping.
+	 * @param recipientKey identification key of the target node.
+	 * @param recipient net address of the target node.
+	 * @param senderKey Identification key of the sender node on the circle.
+	 * @param senderAddress Net address of the sender node.
+	 * @param dkres target node's predecessor's identification key.
+	 * @param na target node's predecessor's net address.
+	 * @param status RPC result status for handling erroneous results.
+	 * @return error status.
+	 */
+	virtual dht_err RPC_joinGetSucc(const DHTKey &recipientKey,
+					const NetAddress &recipient,
+					const DHTKey &senderKey,
+					const NetAddress &senderAddress,
+					DHTKey &dkres, NetAddress &na,
+					int &status) = 0;
      };
 
    class l1_rpc_server_interface
@@ -210,7 +228,24 @@ namespace dht
 						       DHTKey& dkres, NetAddress& na,
 						       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 						       int& status) = 0;	
-     
+     /**
+      * \brief joinGetSucc_cb: callback to joining node, at bootstrap.
+      * @param recipientKey identification key of the target node.
+      * @param recipient net address of the target node.
+      * @param senderKey Identification key of the sender node on the circle.
+      * @param senderAddress Net address of the sender node.
+      * @param dkres target node's predecessor's identification key.
+      * @param na target node's predecessor's net address.
+      * @param status RPC result status for handling erroneous results.
+      * @return error status.
+      */
+	virtual dht_err RPC_joinGetSucc_cb(const DHTKey &recipientKey,
+					   const NetAddress &recipient,
+					   const DHTKey &senderKey,
+					   const NetAddress &senderAddress,
+					   DHTKey &dkres, NetAddress &na,
+					   int &status) = 0;
+	
       public:
 	DHTNode *_pnode;
      };

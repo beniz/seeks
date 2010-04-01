@@ -21,10 +21,15 @@
 #include "DHTNode.h"
 #include "FingerTable.h"
 #include "seeks_proxy.h"
+#include "net_utils.h"
+#include "errlog.h"
 #include "proxy_configuration.h"
 #include "l1_protob_rpc_server.h"
 #include "l1_protob_rpc_client.h"
 
+#include <sys/time.h>
+
+using sp::errlog;
 using sp::seeks_proxy;
 using sp::proxy_configuration;
 
@@ -226,7 +231,7 @@ namespace dht
 	 * Setting RPC results.
 	 */
 	na = resloc->getNetAddress();
-	if (status == -1)
+	if (status == -1)  // TODO: ???
 	  status = DHT_ERR_OK;
 	
 	return status;
@@ -286,8 +291,49 @@ namespace dht
 	return 0;
      }
    
+   int DHTNode::joinGetSucc_cb(const DHTKey &recipientKey,
+			       const DHTKey &senderKey,
+			       DHTKey &dkres, NetAddress &na,
+			       int &status)
+     {
+	// TODO: if recipientKey is not specified, find the closes VNode to senderkey.
+	DHTVirtualNode *vnode = NULL;
+	if (recipientKey.count() == 0) // test for unspecified recipient.
+	  {
+	     // TODO.
+	  }
+	else 
+	  {
+	     vnode = findVNode(recipientKey);
+	     if (!vnode)
+	       {
+		  dkres = DHTKey();
+		  na = NetAddress();
+		  status = DHT_ERR_UNKNOWN_PEER;
+		  return status;
+	       }
+	  }
+	
+	status = vnode->find_successor(senderKey, dkres, na);
+	if (status < 0) // TODO: more precise check.
+	  {
+	     dkres = DHTKey();
+	     na = NetAddress();
+	     status = DHT_ERR_UNKNOWN; // TODO: some other error ?
+	  }
+	else if (dkres.count() == 0) // TODO: if not found.
+	  {
+	     na = NetAddress();
+	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
+	     return status;
+	  }
+	
+	status = DHT_ERR_OK;
+	return status;
+     }
+   
    /**-- Main routines using RPCs --**/
-   int DHTNode::join(const NetAddress& na_bootstrap,
+   int DHTNode::join(const NetAddress& dk_bootstrap_na,
 		     int& status)
      {
 	/**
@@ -307,7 +353,7 @@ namespace dht
 	      * TODO: join.
 	      */
 	     DHTVirtualNode* vnode = (*hit).second;
-	     vnode->join(dk_bootstrap, *(*hit).first, status);
+	     vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // TODO: could make a single call instead ?
 	     
 	     /**
 	      * TODO: check on status and reset.
@@ -385,6 +431,92 @@ namespace dht
 	  }
 	
      }
-   
+
+   DHTKey DHTNode::generate_uniform_key()
+     {
+	/**
+	 * There is a key per virtual node.
+	 * A key is 48bit mac address + 112 random bits -> through ripemd-160.
+	 */
+	
+	/* first we try to get a mac address for this systems. */
+	long stat;
+	u_char addr[6];
+	stat = mac_addr_sys(addr); // TODO: do it once only...
+	if (stat < 0)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "Can't determine mac address for this system, falling back to full key randomization");
+	     return DHTKey::randomKey();
+	  }
+	
+	/* printf( "MAC address = ");
+	for (int i=0; i<6; ++i)
+	  {
+	     printf("%2.2x", addr[i]);
+	  }
+	std::cout << std::endl; */
+	
+	int rbits = 112; // 160-48.
+	
+	/* generate random bits, seed is timeofday. BEWARE: this is no 'strong' randomization. */
+	timeval tim;
+	gettimeofday(&tim,NULL);
+	unsigned long iseed = tim.tv_sec + tim.tv_usec;
+	
+	//debug
+	//std::cout << "iseed: " << iseed << std::endl;
+	//debug
+	
+	int nchars = rbits/8;
+	char crkey[rbits];
+	if (stat == 0)
+	  {
+	     std::bitset<112> rkey;
+	     for (int j=0;j<rbits;j++)
+	       rkey.set(j,DHTKey::irbit2(&iseed));
+	     
+	     //debug
+	     //std::cout << "rkey: " << rkey.to_string() << std::endl;
+	     //debug
+	     
+	     for (int j=0;j<nchars;j++)
+	       {
+		  std::bitset<8> cbits;
+		  short pos = 0;
+		  for (int k=j*8;k<(j+1)*8;k++)
+		    {
+		       //std::cout << "k: " << k << " -- rkey@k: " << rkey[k] << std::endl;
+		       if (rkey[k])
+			 cbits.set(pos);
+		       else cbits.set(0);
+		       pos++;
+		    }
+		  unsigned long ckey = cbits.to_ulong();
+		  
+		  /* std::cout << "cbits: " << cbits.to_string() << std::endl;
+		   std::cout << "ckey: " << ckey << std::endl; */
+		  
+		  crkey[j] = (char)ckey;
+	       }
+	     
+	     std::string fkey = std::string((char*)addr) + std::string(crkey);
+	     
+	     //std::cout << "fkey: " << fkey << std::endl;
+	     	     
+	     //debug
+	     /* byte* hashcode = DHTKey::RMD((byte*)fkey.c_str());
+	      std::cout << "rmd: " << hashcode << std::endl; */
+	     //debug
+	     
+	     char *fckey = new char[20];
+	     memcpy(fckey,fkey.c_str(),20);
+	     DHTKey res_key = DHTKey::hashKey(fckey);
+	     
+	     delete[] fckey;
+	     
+	     return res_key;
+	  }
+	return DHTKey(); // beware, we should never reach here.
+     }
    
 } /* end of namespace. */

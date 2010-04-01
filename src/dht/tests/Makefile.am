@@ -1,10 +1,12 @@
 #automake file for seeks dht tests
-bin_PROGRAMS=test_hash_key test_keys test_dhtnode # test_dht_net_utils test_stabilizer
+bin_PROGRAMS=test_hash_key test_keys test_dhtnode grab_mac dhtkey_gen # test_dht_net_utils test_stabilizer
 test_hash_key_SOURCES=test-hash-key.cpp
 test_keys_SOURCES=test-keys.cpp 
 test_dhtnode_SOURCES=test-dhtnode.cpp
 #test_dht_net_utils_SOURCES=test-dht-net-utils.cpp
 #test_stabilizer_SOURCES=test-stabilizer.cpp
+grab_mac_SOURCES=grab-mac.cc
+dhtkey_gen_SOURCES=dhtkey-gen.cc
 
 AM_CPPFLAGS=-I../ -I../../utils -I../../lsh -I../../proxy -I../../utils \
 	    -I../rpc -I../rpc/protob -I../protob -Wall -g

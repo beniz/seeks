@@ -32,8 +32,11 @@ namespace dht
 	  /**
 	   * We generate a random key as the node's id.
 	   */
-	  _idkey = DHTKey::randomKey();
-
+	  //_idkey = DHTKey::randomKey();
+	  _idkey = DHTNode::generate_uniform_key();
+	  
+	  //std::cout << "virtual node key: " << _idkey << std::endl;
+	  
 	  /**
 	   * create location and registers it to the location table.
 	   */
@@ -87,6 +90,7 @@ namespace dht
    
    /**-- functions using RPCs. --**/
    int DHTVirtualNode::join(const DHTKey& dk_bootstrap,
+			    const NetAddress &dk_bootstrap_na,
 			    const DHTKey& senderKey,
 			    int& status)
      {
@@ -100,8 +104,11 @@ namespace dht
 	 */
 	DHTKey dkres;
 	NetAddress na;
-	status = find_successor(dk_bootstrap, dkres, na);
-
+	//status = find_successor(dk_bootstrap, dkres, na);
+	_pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
+					    _idkey,_pnode->_l1_na,
+					    dkres, na, status);
+	
 	setSuccessor(dkres);
      
 	return status;  /* TODO. */

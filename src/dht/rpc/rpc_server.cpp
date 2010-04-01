@@ -164,6 +164,10 @@ namespace dht
 	int err = pthread_create(&rpc_server_thread,&attrs,
 				 (void * (*)(void *))&rpc_server::run_static,this);
 	pthread_attr_destroy(&attrs);
+     
+	if (err == 0)
+	  return DHT_ERR_OK;
+	else return DHT_ERR_PTHREAD;
      }
    
    void rpc_server::run_static(rpc_server *server)

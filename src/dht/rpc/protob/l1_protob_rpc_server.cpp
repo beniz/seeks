@@ -129,6 +129,17 @@ namespace dht
 	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
 							 dkres_succ,dkres_succ_na);
 	  }
+	else if (fct_id == hash_join_get_succ)
+	  {
+	      DHTKey dkres;
+	     NetAddress dkres_na;
+	     RPC_joinGetSucc_cb(recipient_key,recipient_na,
+				sender_key,sender_na,
+				dkres,dkres_na,status);
+	     
+	     // create a response.
+	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	  }
 	else 
 	  {
 	     // TODO: unknown cb.
@@ -183,5 +194,15 @@ namespace dht
 	return _pnode->findClosestPredecessor_cb(recipientKey,nodeKey,dkres,na,
 						 dkres_succ,dkres_succ_na,status);	
      }
-   
+
+   dht_err l1_protob_rpc_server::RPC_joinGetSucc_cb(const DHTKey& recipientKey,
+						    const NetAddress &recipient,
+						    const DHTKey& senderKey,
+						    const NetAddress& senderAddress,
+						    DHTKey& dkres, NetAddress& na,
+						    int& status)
+     {
+	return _pnode->joinGetSucc_cb(recipientKey,senderKey,dkres,na,status);
+     }
+      
 } /* end of namespace. */

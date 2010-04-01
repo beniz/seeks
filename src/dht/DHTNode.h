@@ -50,6 +50,11 @@ namespace dht
 	~DHTNode();
 	
 	/**
+	 * DHTNode key generation, one per virtual node.
+	 */
+	static DHTKey generate_uniform_key();
+	
+	/**
 	 * accessors.
 	 */
 	DHTVirtualNode* findVNode(const DHTKey& dk) const;
@@ -94,6 +99,14 @@ namespace dht
 				      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				      int& status);
 	
+	/**
+	 * \brief joinGetSucc callback.
+	 */
+	int joinGetSucc_cb(const DHTKey &recipientKey,
+			   const DHTKey &senderKey,
+			   DHTKey& dkres, NetAddress& na,
+			   int& status);
+	
 	/**----------------------------**/
 	/**
 	 * TODO: Main routines using RPCs.
@@ -106,7 +119,7 @@ namespace dht
 	 * @param status bootstrap RPCs status.
 	 * @return status.
 	 */
-	int join(const NetAddress& na_bootstrap,
+	int join(const NetAddress& dk_bootstrap_na,
 		 int& status);
 
 	/**
