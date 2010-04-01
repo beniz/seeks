@@ -210,7 +210,8 @@ namespace seeks_plugins
 	
 	if (!_cached.empty())
 	  {
-	     const char *enc_cached = encode::html_encode(_cached.c_str());
+	     char *enc_cached = encode::html_encode(_cached.c_str());
+	     miscutil::chomp(enc_cached);
 	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += enc_cached;
 	     html_content += "\">Cached</a>";
