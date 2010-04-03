@@ -313,6 +313,16 @@ AC_SUBST(PCRE_LDADD)
 PCRE_CFLAGS=`$PCRE_CONFIG --cflags`
 AC_SUBST(PCRE_CFLAGS)
 
+#==========================================================================
+# Finding docbook2x-man
+#==========================================================================
+AC_CHECK_PROG(docbook,docbook2x-man,yes,no)
+if test $docbook = "yes"; then
+   AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
+else 
+   AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
+fi
+
 #====================================================                                                    
 # This check is incomplete. For mingw32 zlib is found                                                                
 # by configure, but not necessarily by the compiler.                                                                       
