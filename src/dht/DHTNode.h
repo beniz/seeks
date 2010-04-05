@@ -55,6 +55,13 @@ namespace dht
 	static DHTKey generate_uniform_key();
 	
 	/**
+	 * join at startup.
+	 * First tries with the LocationTable information if any, and if no reset specified.
+	 * Otherwise go for the bootstrap nodelist.
+	 */
+	dht_err join_start(std::vector<NetAddress> &bootstrap_nodelist, bool &reset);
+	
+	/**
 	 * accessors.
 	 */
 	DHTVirtualNode* findVNode(const DHTKey& dk) const;
@@ -109,18 +116,18 @@ namespace dht
 	
 	/**----------------------------**/
 	/**
-	 * TODO: Main routines using RPCs.
+	 * Main routines using RPCs.
 	 */
+	
 	/**
-	 * TODO:
 	 * \brief joins the circle by asking dk for the successor to its own key. 
 	 *        This is done for _all_ the virtual nodes of a peer.
 	 * @param na_bootstrap network address of a bootstrap node (any known peer).
-	 * @param status bootstrap RPCs status.
+	 * @param dk_bootstrap DHT key of the bootstrap node.
 	 * @return status.
 	 */
 	int join(const NetAddress& dk_bootstrap_na,
-		 int& status);
+		 const DHTKey &dk_bootstrap);
 
 	/**
 	 * \brief find nodeKey's successor.

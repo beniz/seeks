@@ -115,6 +115,47 @@ namespace dht
 	     ++hit;
 	  }
      }
+
+   dht_err DHTNode::join_start(std::vector<NetAddress> &bootstrap_nodelist,
+			       bool &reset)
+     {
+	// try location table if possible/asked to.
+	if (!reset || _lt->is_empty())
+	  {
+	     hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator lit
+	       = _lt->_hlt.begin();
+	     while(lit!=_lt->_hlt.end())
+	       {
+		  Location *loc = (*lit).second;
+		  
+		  // TODO: test location beforehand.
+	     	  // 
+		  // join.
+	     	  dht_err status = join(loc->getNetAddress(),loc->getDHTKey());
+		  if (status == DHT_ERR_OK)
+		    return status; // we're done, join was successful, stabilization will take over the job.
+		  		  
+		  ++lit;
+	       }
+	  }
+	
+	// try to bootstrap from the nodelist in configuration.
+	std::vector<NetAddress>::const_iterator nit = DHTNode::_dht_config->_bootstrap_nodelist.begin();
+	while(nit!=DHTNode::_dht_config->_bootstrap_nodelist.end())
+	  {
+	     NetAddress na = (*nit);
+	     
+	     // TODO: test address beforehand.
+	      
+	     // join.
+	     DHTKey key;
+	     dht_err status = join(na,key); // empty key is handled by the called node.
+	     if (status == DHT_ERR_OK)
+	       return status; // we're done, join was successful, stabilization will take over the job.
+	     
+	     ++nit;
+	  }
+     }
       
    /**----------------------------**/
    /**
@@ -334,14 +375,8 @@ namespace dht
    
    /**-- Main routines using RPCs --**/
    int DHTNode::join(const NetAddress& dk_bootstrap_na,
-		     int& status)
+		     const DHTKey &dk_bootstrap)
      {
-	/**
-	 * TODO: we need to get the key from the boostrap node.
-	 * This MUST be done through a direct call to the bootstrap peer.
-	 */
-	DHTKey dk_bootstrap;  /* TODO!!!! */
-	
 	/**
 	 * We're basically bootstraping all the virtual nodes here.
 	 */
@@ -349,10 +384,8 @@ namespace dht
 	  = _vnodes.begin();
 	while(hit != _vnodes.end())
 	  {
-	     /**
-	      * TODO: join.
-	      */
 	     DHTVirtualNode* vnode = (*hit).second;
+	     int status = 0;
 	     vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // TODO: could make a single call instead ?
 	     
 	     /**
