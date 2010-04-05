@@ -6,3 +6,5 @@ libseeksdhtprotob_la_SOURCES=dht_layer1.pb.cc l1_protob_wrapper.cpp
 dht_layer1.pb.cc:
 	protoc --cpp_out=. dht_layer1.proto
 
+clean-local:
+	rm dht_layer1.pb.h dht_layer1.pb.cc
