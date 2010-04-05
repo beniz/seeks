@@ -1,23 +1,22 @@
 /**
- * The Locality Sensitive Distributed Hashtable (LSH-DHT) library is
- * part of the SEEKS project and does provide the components of
- * a peer-to-peer pattern matching overlay network.
- * Copyright (C) 2006 Emmanuel Benazera, juban@free.fr
+ * This is the p2p messaging component of the Seeks project,
+ * a collaborative websearch overlay network.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- */
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
 
 #ifndef LOCATIONTABLE_H
 #define LOCATIONTABLE_H
@@ -38,6 +37,10 @@ namespace dht
       public:
 	LocationTable();
 
+	~LocationTable();
+	
+	bool is_empty() const;
+	
       private:
 	/**
 	 * \brief add new location to table.
@@ -75,7 +78,7 @@ namespace dht
 	
 	/* TODO: max size of the table, including 'caching' size of unused but known locations. */
 	
-      private:
+      public:
 	/**
 	 * TODO: hashtable of known peers on this system.
 	 * TODO: should we add the local virtual nodes to it ? (why not?).

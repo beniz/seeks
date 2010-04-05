@@ -37,7 +37,6 @@ namespace dht
 	  {
 	     _na = na;
 	  }
-	
      }
    
    

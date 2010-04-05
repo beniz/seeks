@@ -62,10 +62,6 @@ namespace dht
 	 */
 	
 	/**
-	 * TODO: geographical coordinates.
-	 */
-	
-	/**
 	 * TODO: back-pointers to related internal structures, if needed.
 	 */
      };
