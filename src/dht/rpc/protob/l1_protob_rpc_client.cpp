@@ -85,17 +85,29 @@ namespace dht
      {
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();	
-	dht_err err = l1_protob_rpc_client::RPC_call(hash_get_successor,
-						     recipientKey,recipient,
-						     senderKey,senderAddress,
-						     l1r);
+	
+	try
+	  {
+	     dht_err err = l1_protob_rpc_client::RPC_call(hash_get_successor,
+							  recipientKey,recipient,
+							  senderKey,senderAddress,
+							  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed getSuccessor cal to %s",
+			       recipient.toString().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
 	// handle the response.
      	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-						  dkres,na);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  dkres,na);
 	status = error_status;
 	delete l1r;
-	return DHT_ERR_OK;
+	return err;
      }
    
    dht_err l1_protob_rpc_client::RPC_getPredecessor(const DHTKey& recipientKey,
@@ -107,17 +119,29 @@ namespace dht
      {
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
-	dht_err err = l1_protob_rpc_client::RPC_call(hash_get_predecessor,
-						     recipientKey,recipient,
-						     senderKey,senderAddress,
-						     l1r);
+	
+	try
+	  {
+	     dht_err err = l1_protob_rpc_client::RPC_call(hash_get_predecessor,
+							  recipientKey,recipient,
+							  senderKey,senderAddress,
+							  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed getPredecessor call to %s",
+			       recipient.toString().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
 	// handle the response.
 	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
 						  dkres,na);
 	status = error_status;
 	delete l1r;
-	return DHT_ERR_OK;
+	return err;
      }
      
    dht_err l1_protob_rpc_client::RPC_notify(const DHTKey& recipientKey,
@@ -128,17 +152,28 @@ namespace dht
      {
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
-	dht_err err = l1_protob_rpc_client::RPC_call(hash_notify,
-						     recipientKey,recipient,
-						     senderKey,senderAddress,
-						     l1r);
+	
+	try
+	  {
+	     dht_err err = l1_protob_rpc_client::RPC_call(hash_notify,
+							  recipientKey,recipient,
+							  senderKey,senderAddress,
+							  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed notify call to %s",
+			       recipient.toString().c_str());
+	     return DHT_ERR_CALL;
+	  }
 	
 	// handle the response.
 	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
 	status = error_status;
 	delete l1r;
-	return DHT_ERR_OK;
+	return err;
      }
         
    dht_err l1_protob_rpc_client::RPC_findClosestPredecessor(const DHTKey& recipientKey,
@@ -153,18 +188,30 @@ namespace dht
      {
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
-	dht_err err = l1_protob_rpc_client::RPC_call(hash_find_closest_predecessor,
-						     recipientKey,recipient,
-						     senderKey,senderAddress,
-						     l1r);
+	
+	try
+	  {
+	     dht_err err = l1_protob_rpc_client::RPC_call(hash_find_closest_predecessor,
+							  recipientKey,recipient,
+							  senderKey,senderAddress,
+							  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed findClosestPredecessor call to %s",
+			       recipient.toString().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
 	// handle the response.
 	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-						  dkres,na,
-						  dkres_succ,dkres_succ_na);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  dkres,na,
+							  dkres_succ,dkres_succ_na);
 	status = error_status;
 	delete l1r;
-	return DHT_ERR_OK;
+	return err;
      }
 
    dht_err l1_protob_rpc_client::RPC_joinGetSucc(const DHTKey& recipientKey,
@@ -176,17 +223,29 @@ namespace dht
      {
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
-	dht_err err = l1_protob_rpc_client::RPC_call(hash_join_get_succ,
-						     recipientKey,recipient,
-						     senderKey,senderAddress,
-						     l1r);
+	
+	try
+	  {
+	     dht_err err = l1_protob_rpc_client::RPC_call(hash_join_get_succ,
+							  recipientKey,recipient,
+							  senderKey,senderAddress,
+							  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed joinGetSucc call to %s", 
+			       recipient.toString().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
 	// handle the response.
 	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-						  dkres,na);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  dkres,na);
 	status = error_status;
 	delete l1r;
-	return DHT_ERR_OK;
+	return err;
      }
    
 } /* end of namespace. */

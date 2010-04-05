@@ -56,8 +56,8 @@ namespace dht
 	 *        e.g. "/RPC2" for certain RPCs, etc...
 	 * @return a full address as a string, e.g. "http://whereIgo.com/RPC1".
 	 */
-	std::string toString(const std::string& protocol,
-			     const std::string& aend) const;
+	std::string toString(const std::string& protocol="",
+			     const std::string& aend="") const;
 
 	/**
 	 * operators.
