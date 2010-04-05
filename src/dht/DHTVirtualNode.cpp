@@ -89,10 +89,10 @@ namespace dht
 
    
    /**-- functions using RPCs. --**/
-   int DHTVirtualNode::join(const DHTKey& dk_bootstrap,
-			    const NetAddress &dk_bootstrap_na,
-			    const DHTKey& senderKey,
-			    int& status)
+   dht_err DHTVirtualNode::join(const DHTKey& dk_bootstrap,
+				const NetAddress &dk_bootstrap_na,
+				const DHTKey& senderKey,
+				int& status)
      {
 	/**
 	 * reset predecessor.
@@ -104,18 +104,18 @@ namespace dht
 	 */
 	DHTKey dkres;
 	NetAddress na;
-	//status = find_successor(dk_bootstrap, dkres, na);
+	
 	_pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
 					    _idkey,_pnode->_l1_na,
 					    dkres, na, status);
 	
 	setSuccessor(dkres);
      
-	return status;  /* TODO. */
+	return (dht_err)status;
      }
    
-   int DHTVirtualNode::find_successor(const DHTKey& nodeKey,
-				      DHTKey& dkres, NetAddress& na)
+   dht_err DHTVirtualNode::find_successor(const DHTKey& nodeKey,
+					  DHTKey& dkres, NetAddress& na)
      {
 	DHTKey dk_pred;
 	NetAddress na_pred;
@@ -123,23 +123,28 @@ namespace dht
 	/**
 	 * find closest predecessor to nodeKey.
 	 */
-	int status = find_predecessor(nodeKey, dk_pred, na_pred);
+	dht_err dht_status = find_predecessor(nodeKey, dk_pred, na_pred);
 	
 	/**
-	 * TODO: check on find_predecessor's status.
+	 * check on find_predecessor's status.
 	 */
-     
+	if (dht_status != DHT_ERR_OK)
+	  {
+	     return dht_status;
+	  }
+	
 	/**
 	 * RPC call to get pred's successor.
 	 */
+	int status = 0;
 	_pnode->_l1_client->RPC_getSuccessor(dk_pred, na_pred, 
 					     getIdKey(), getNetAddress(),
 					     dkres, na, status);
-	return status;
+	return (dht_err)status;
      }
    
-   int DHTVirtualNode::find_predecessor(const DHTKey& nodeKey,
-					DHTKey& dkres, NetAddress& na)
+   dht_err DHTVirtualNode::find_predecessor(const DHTKey& nodeKey,
+					    DHTKey& dkres, NetAddress& na)
      {
 	/**
 	 * location to iterate (route) among results.
@@ -151,6 +156,7 @@ namespace dht
 	     /**
 	      * TODO: after debugging, write a better handling of this error.
               */
+	     // TODO: errlog.
 	     std::cerr << "[Error]:DHTNode::find_predecessor: this virtual node has no successor:"
                << nodeKey << ".Exiting\n";
 	     exit(-1);
@@ -164,7 +170,6 @@ namespace dht
 	      * RPC calls.
 	      */
 	     int status = -1;
-	     
 	     const DHTKey recipientKey = rloc.getDHTKey();
 	     const NetAddress recipient = rloc.getNetAddress();
 	     DHTKey succ_key = succloc.getDHTKey();
@@ -175,15 +180,22 @@ namespace dht
 							    succ_key, succ_na, status);
 	     
              /**
-	      * TODO: check on RPC status.
+	      * check on RPC status.
+	      * If the call has failed, then our current findPredecessor function
+	      * has undershot the looked up key. In general this means the call
+	      * has failed and should be retried.
 	      */
-	     
+	     if ((dht_err)status != DHT_ERR_OK)
+	       {
+		  return (dht_err)status;
+	       }
+	     	     
 	     rloc.setDHTKey(dkres);
 	     rloc.setNetAddress(na);
 	     succloc.setDHTKey(succ_key);
 	     succloc.setNetAddress(succ_na);
 	  }
-	return 0;	
+	return DHT_ERR_OK;	
      }
       
    int DHTVirtualNode::stabilize()

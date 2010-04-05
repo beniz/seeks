@@ -21,6 +21,7 @@
 #ifndef DHTVIRTUALNODE_H
 #define DHTVIRTUALNODE_H
 
+#include "dht_err.h"
 #include "DHTKey.h"
 #include "NetAddress.h"
 
@@ -84,17 +85,16 @@ namespace dht
 	/**---------------------------------------**/
 	
 	/**-- functions using RPCs. --**/
-	/* TODO. */
-	int join(const DHTKey& dk_boostrap,
-		 const NetAddress &dk_boostrap_na,
-		 const DHTKey& senderKey,
-		 int& status);
+	dht_err join(const DHTKey& dk_boostrap,
+		     const NetAddress &dk_boostrap_na,
+		     const DHTKey& senderKey,
+		     int& status);
 	
-	int find_successor(const DHTKey& nodeKey,
-			   DHTKey& dkres, NetAddress& na);
+	dht_err find_successor(const DHTKey& nodeKey,
+			       DHTKey& dkres, NetAddress& na);
 	
-	int find_predecessor(const DHTKey& nodeKey,
-			     DHTKey& dkres, NetAddress& na);
+	dht_err find_predecessor(const DHTKey& nodeKey,
+				 DHTKey& dkres, NetAddress& na);
 	
 	int stabilize();
 	
