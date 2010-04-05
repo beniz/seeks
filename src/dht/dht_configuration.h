@@ -22,6 +22,7 @@
 #define DHT_CONFIGURATION_H
 
 #include "configuration_spec.h"
+#include "NetAddress.h"
 
 using sp::configuration_spec;
 
@@ -46,6 +47,7 @@ namespace dht
 	short _l1_port; /**< listening port for level 1 communications. */
 	int _l1_server_max_msg_bytes; /**< maximum size of UDP datagrams served on layer 1. */
 	int _l1_client_timeout; /**< l1 client communication timeout. */
+	std::vector<NetAddress> _bootstrap_nodelist; /**< list of bootstrap nodes. */
      };
    
 } /* end of namespace. */

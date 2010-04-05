@@ -19,12 +19,18 @@
  */
 
 #include "dht_configuration.h"
+#include "miscutil.h"
+#include "errlog.h"
+
+using sp::errlog;
+using sp::miscutil;
 
 namespace dht
 {
 #define hash_l1_port                                      2857811716ul  /* "l1-port" */
 #define hash_l1_server_max_msg_bytes                      1170059721ul  /* "l1-server-max-msg-bytes" */
 #define hash_l1_client_timeout                            1673776173ul  /* "l1-client-timeout" */
+#define hash_bootstrap_node                               1741523628ul  /* "bootstrap-node" */
    
    dht_configuration::dht_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -46,6 +52,13 @@ namespace dht
    void dht_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
 					     char *buf, const unsigned long &linenum)
      {
+	int vec_count;
+	char *vec[3];
+	char tmp[BUFFER_SIZE];
+	std::string bootstrap_na;
+	int bootstrap_port;
+	NetAddress na;
+	
 	switch(cmd_hash)
 	  {
 	   case hash_l1_port:
@@ -63,6 +76,28 @@ namespace dht
 	     _l1_client_timeout = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Sets the communication timeout for the client on the layer 1 of the DHT.");
+	     break;
+	     
+	   case hash_bootstrap_node:
+	     strlcpy(tmp, arg, sizeof(tmp));
+	     vec_count = miscutil::ssplit(tmp, " \t", vec, SZ(vec), 1, 1);
+	     
+	     if ((vec_count < 2))
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Wrong number of parameters for "
+				    "bootstrap-node directive in DHT configuration file.");
+		  break;
+	       }
+	     
+	     bootstrap_na = std::string(vec[0]);
+	     bootstrap_port = atoi(vec[1]);
+	     na = NetAddress(bootstrap_na,bootstrap_port);
+	     
+	     // TODO: test address.
+	     
+	     _bootstrap_nodelist.push_back(na);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets a bootstrap node for the DHT.");
 	     break;
 	     
 	   default:
