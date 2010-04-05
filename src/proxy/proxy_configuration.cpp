@@ -251,8 +251,6 @@ namespace sp
 	      * *************************************************************************/
 #ifdef FEATURE_ACL
 	   case hash_deny_access:
-	     std::cerr << "[Debug]: reading acl.\n";
-	     
 	     strlcpy(tmp, arg, sizeof(tmp));
 	     vec_count = miscutil::ssplit(tmp, " \t", vec, SZ(vec), 1, 1);
 	     
