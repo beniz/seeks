@@ -67,7 +67,6 @@ namespace seeks_plugins
 					    std::string &query_clean)
      {
 	query_clean = se_handler::no_command_query(html_encoded_query);
-	query_clean = se_handler::cleanup_query(query_clean);
 	miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
      }
    
