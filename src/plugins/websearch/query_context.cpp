@@ -107,7 +107,7 @@ namespace seeks_plugins
    
    std::string query_context::sort_query(const std::string &query)
      {
-	std::string clean_query = se_handler::cleanup_query(query);
+	std::string clean_query = query;
 	std::vector<std::string> tokens;
 	mrf::tokenize(clean_query,tokens," ");
 	std::sort(tokens.begin(),tokens.end(),std::less<std::string>());
