@@ -178,6 +178,10 @@ namespace seeks_plugins
 	uint32_t id = (uint32_t)strtod(id_str,NULL);
 	
 	ref_sp = qc->get_cached_snippet(id);
+	
+	if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
+	  return;
+	
 	ref_sp->set_back_similarity_link();
 	
 	if (websearch::_wconfig->_content_analysis)

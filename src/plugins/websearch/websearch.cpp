@@ -441,6 +441,10 @@ namespace seeks_plugins
 	     qc->_lock = true;
 	     search_snippet *ref_sp = NULL;
 	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
+	     
+	     if (!ref_sp)
+	       return SP_ERR_OK;
+	     
 	     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 								     csp,rsp,parameters,qc);
 	      
