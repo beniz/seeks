@@ -95,7 +95,7 @@ namespace seeks_plugins
 	~search_snippet();
 	
 	// set_url with url preprocessing for later comparison.
-	char* url_preprocessing(const char *url);
+	std::string url_preprocessing(const char *url);
 	void set_url(const std::string &url);
 	void set_url(const char *url);
 	
