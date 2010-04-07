@@ -264,8 +264,8 @@ namespace seeks_plugins
 	free(slabel_html_enc);
 		
 	std::string label_query = url_encoded_query + "+" + clabel_url_enc_str;
-	std::string html_label = "<h2><a class=\"label\" href=" + base_url_str + "/search?q=" + label_query
-	  + "&amp;page=1&amp;expansion=1&amp;action=expand>" + clabel_html_enc_str 
+	std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + "/search?q=" + label_query
+	  + "&amp;page=1&amp;expansion=1&amp;action=expand\">" + clabel_html_enc_str 
 	  + "</a><font size=\"2\"> " + slabel_html_enc + "</font></h2><br><ol>";
 	return html_label;
      }
