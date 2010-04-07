@@ -143,7 +143,7 @@ namespace seeks_plugins
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
-						   const std::string &html_encoded_query,
+						   const std::string &url_encoded_query,
 						   const int &current_page,
 						   cluster *clusters,
 						   const short &K,
@@ -210,11 +210,12 @@ namespace seeks_plugins
 	     std::string cluster_str;
 	     if (!clusterize)
 	       cluster_str = static_renderer::render_cluster_label(clusters[c]);
-	     else cluster_str = static_renderer::render_cluster_label_query_link(html_encoded_query,
+	     else cluster_str = static_renderer::render_cluster_label_query_link(url_encoded_query,
 										 clusters[c],exports);
 	     size_t nsps = snippets.size();
 	     for (size_t i=0;i<nsps;i++)
 	       cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
+	     cluster_str += "</ol>";
 	     
 	     std::string cl = rplcnt;
 	     if (k>1)
@@ -236,13 +237,13 @@ namespace seeks_plugins
 	std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
 	const char *slabel_encoded = encode::html_encode(slabel.c_str());
 	std::string html_label = "<h2>" + std::string(clabel_encoded) 
-	  + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br>";
+	  + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br><ol>";
 	free_const(clabel_encoded);
 	free_const(slabel_encoded);
 	return html_label;
      }
       
-   std::string static_renderer::render_cluster_label_query_link(const std::string &html_encoded_query,
+   std::string static_renderer::render_cluster_label_query_link(const std::string &url_encoded_query,
 								const cluster &cl,
 								const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
@@ -250,17 +251,22 @@ namespace seeks_plugins
 	std::string base_url_str = "";
 	if (base_url)
 	  base_url_str = std::string(base_url);
-	const char *clabel_encoded = encode::html_encode(cl._label.c_str());
+	char *clabel_url_enc = encode::url_encode(cl._label.c_str());
+	char *clabel_html_enc = encode::html_encode(cl._label.c_str());
+	std::string clabel_url_enc_str = std::string(clabel_url_enc);
+	free(clabel_url_enc);
+	std::string clabel_html_enc_str = std::string(clabel_html_enc);
+	free(clabel_html_enc);
+		
 	std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
-	const char *slabel_encoded = encode::html_encode(slabel.c_str());
-	std::string clabel_enc_str = std::string(clabel_encoded);
-	free_const(clabel_encoded);
-	std::string label_query = html_encoded_query + " " + clabel_enc_str;
-	miscutil::replace_in_string(label_query," ","+");
+	char *slabel_html_enc = encode::html_encode(slabel.c_str());
+	std::string slabel_html_enc_str = std::string(slabel_html_enc);
+	free(slabel_html_enc);
+		
+	std::string label_query = url_encoded_query + "+" + clabel_url_enc_str;
 	std::string html_label = "<h2><a class=\"label\" href=" + base_url_str + "/search?q=" + label_query
-	  + "&amp;page=1&amp;expansion=1&amp;action=expand>" + clabel_enc_str 
-	  + "</a><font size=\"2\"> " + std::string(slabel_encoded) + "</font></h2><br>";
-	free_const(slabel_encoded);
+	  + "&amp;page=1&amp;expansion=1&amp;action=expand>" + clabel_html_enc_str 
+	  + "</a><font size=\"2\"> " + slabel_html_enc + "</font></h2><br><ol>";
 	return html_label;
      }
       
@@ -514,7 +520,7 @@ namespace seeks_plugins
 	static_renderer::render_lang(qc,exports);
 	
 	// search snippets.
-	static_renderer::render_clustered_snippets(query_clean,html_encoded_query,current_page,
+	static_renderer::render_clustered_snippets(query_clean,url_encoded_query,current_page,
 						   clusters,K,qc,parameters,
 						   exports);
 	

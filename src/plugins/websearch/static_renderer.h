@@ -52,7 +52,7 @@ namespace seeks_plugins
 				    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
 	static void render_clustered_snippets(const std::string &query_clean,
-					      const std::string &html_encoded_query,
+					      const std::string &url_encoded_query,
 					      const int &current_page,
 					      cluster *clusters,
 					      const short &K,
@@ -62,7 +62,7 @@ namespace seeks_plugins
 	
 	static std::string render_cluster_label(const cluster &cl);
 	
-	static std::string render_cluster_label_query_link(const std::string &html_encoded_query,
+	static std::string render_cluster_label_query_link(const std::string &url_encoded_query,
 							   const cluster &cl,
 							   const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
