@@ -54,12 +54,17 @@ namespace seeks_plugins
 
    void static_renderer::render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-				      std::string &html_encoded_query)
+				      std::string &html_encoded_query,
+				      std::string &url_encoded_query)
      {
-	char *html_encoded_query_str = encode::html_encode(miscutil::lookup(parameters,"q"));
-	miscutil::add_map_entry(exports,"$fullquery",1,html_encoded_query_str,1);
+	const char *q = miscutil::lookup(parameters,"q");
+	char *html_encoded_query_str = encode::html_encode(q);
 	html_encoded_query = std::string(html_encoded_query_str);
 	free(html_encoded_query_str);
+	char *url_encoded_query_str = encode::url_encode(q);
+	miscutil::add_map_entry(exports,"$fullquery",1,url_encoded_query_str,1);
+	url_encoded_query = std::string(url_encoded_query_str);
+	free(url_encoded_query_str);
      }
       
    void static_renderer::render_clean_query(const std::string &html_encoded_query,
@@ -99,13 +104,6 @@ namespace seeks_plugins
 				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	miscutil::add_map_entry(exports,"$xxlang",1,qc->_auto_lang.c_str(),1);
-	/* std::string lang_str = "<a href=\"";
-	std::string lang_help_str = "http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want";
-	const char *lang_help_enc = encode::html_encode(lang_help_str.c_str());
-	lang_help_str = std::string(lang_help_enc);
-	free_const(lang_help_enc);
-	lang_str += lang_help_str + "\">Language</a>:&nbsp; " + qc->_auto_lang;
-	miscutil::add_map_entry(exports,"$xxlang",1,lang_str.c_str(),1); */
      }
       
    void static_renderer::render_snippets(const std::string &query_clean,
@@ -293,7 +291,7 @@ namespace seeks_plugins
    
    void static_renderer::render_next_page_link(const int &current_page,
 					       const size_t &snippets_size,
-					       const std::string &html_encoded_query,
+					       const std::string &url_encoded_query,
 					       const std::string &expansion,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
@@ -307,7 +305,7 @@ namespace seeks_plugins
 	       base_url_str = std::string(base_url);
 	     std::string np_str = miscutil::to_string(current_page+1);
 	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&amp;q="
-	       + html_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
+	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -315,7 +313,7 @@ namespace seeks_plugins
       
    void static_renderer::render_prev_page_link(const int &current_page,
 					       const size_t &snippets_size,
-					       const std::string &html_encoded_query,
+					       const std::string &url_encoded_query,
 					       const std::string &expansion,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
@@ -327,7 +325,7 @@ namespace seeks_plugins
 	     if (base_url)
 	       base_url_str = std::string(base_url);
 	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&amp;q="
-	                   + html_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
+	                   + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
@@ -429,7 +427,9 @@ namespace seeks_plugins
      
      // query.
      std::string html_encoded_query;
-     static_renderer::render_query(parameters,exports,html_encoded_query);
+     std::string url_encoded_query;
+     static_renderer::render_query(parameters,exports,html_encoded_query,
+				   url_encoded_query);
     
      // clean query.
      std::string query_clean;
@@ -463,11 +463,11 @@ namespace seeks_plugins
      
      // next link.
      static_renderer::render_next_page_link(current_page,snippets.size(),
-					    html_encoded_query,expansion,exports);
+					    url_encoded_query,expansion,exports);
      
      // previous link.
      static_renderer::render_prev_page_link(current_page,snippets.size(),
-					    html_encoded_query,expansion,exports);
+					    url_encoded_query,expansion,exports);
 
      // cluster link.
      static_renderer::render_nclusters(parameters,exports);
@@ -494,7 +494,9 @@ namespace seeks_plugins
 	
 	// query.
 	std::string html_encoded_query;
-	static_renderer::render_query(parameters,exports,html_encoded_query);
+	std::string url_encoded_query;
+	static_renderer::render_query(parameters,exports,html_encoded_query,
+				      url_encoded_query);
 	
 	// clean query.
 	std::string query_clean;

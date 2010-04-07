@@ -33,7 +33,8 @@ namespace seeks_plugins
 	/*- rendering functions. -*/
 	static void render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-				 std::string &html_encoded_query);
+				 std::string &html_encoded_query,
+				 std::string &url_encoded_query);
 	
 	static void render_clean_query(const std::string &html_encoded_query,
 				       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
@@ -75,13 +76,13 @@ namespace seeks_plugins
 	
 	static void render_next_page_link(const int &current_page,
 					  const size_t &snippets_size,
-					  const std::string &html_encoded_query,
+					  const std::string &url_encoded_query,
 					  const std::string &expansion,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
 	static void render_prev_page_link(const int &current_page,
 					  const size_t &snippets_size,
-					  const std::string &html_encoded_query,
+					  const std::string &url_encoded_query,
 					  const std::string &expansion,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 

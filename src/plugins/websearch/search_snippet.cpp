@@ -325,7 +325,7 @@ namespace seeks_plugins
    	
    void search_snippet::set_similarity_link()
      {
-	_sim_link = "/search?q=" + _qc->_query 
+	_sim_link = "/search?q=" + _qc->_url_enc_query 
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion) 
 	    + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id);
 	_sim_back = false;
@@ -333,7 +333,7 @@ namespace seeks_plugins
       
    void search_snippet::set_back_similarity_link()
      {
-	_sim_link = "/search?q=" + _qc->_query
+	_sim_link = "/search?q=" + _qc->_url_enc_query
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion) 
 	    + "&amp;action=expand";
 	_sim_back = true;

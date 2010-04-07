@@ -582,7 +582,8 @@ namespace seeks_plugins
    query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string query;
-	uint32_t query_hash = query_context::hash_query_for_context(parameters,query);
+	std::string url_enc_query;
+	uint32_t query_hash = query_context::hash_query_for_context(parameters,query,url_enc_query);
 	hash_map<uint32_t,query_context*,hash<uint32_t> >::iterator hit;
 	if ((hit = websearch::_active_qcontexts.find(query_hash))!=websearch::_active_qcontexts.end())
 	  {

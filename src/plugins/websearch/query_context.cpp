@@ -27,6 +27,7 @@
 #include "se_handler.h"
 #include "iso639.h"
 #include "seeks_proxy.h" // for mutexes
+#include "encode.h"
 
 #include <sys/time.h>
 #include <iostream>
@@ -37,6 +38,7 @@ using sp::urlmatch;
 using sp::seeks_proxy;
 using sp::errlog;
 using sp::iso639;
+using sp::encode;
 using lsh::mrf;
 
 namespace seeks_plugins
@@ -58,7 +60,7 @@ namespace seeks_plugins
 	  // reload config if file has changed.
 	  websearch::_wconfig->load_config();
 	  
-	  _query_hash = query_context::hash_query_for_context(parameters,_query); // hashing may contain a language command.
+	  _query_hash = query_context::hash_query_for_context(parameters,_query,_url_enc_query); // hashing may contain a language command.
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;
@@ -119,9 +121,12 @@ namespace seeks_plugins
      }
       
    uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-						  std::string &query)
+						  std::string &query, std::string &url_enc_query)
      {
 	query = std::string(miscutil::lookup(parameters,"q"));
+	char *url_enc_query_str = encode::url_encode(query.c_str());
+	url_enc_query = std::string(url_enc_query_str);
+	free(url_enc_query_str);
 	std::string sorted_query = query_context::sort_query(query);
 	return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
      }

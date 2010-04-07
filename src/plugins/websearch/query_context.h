@@ -103,7 +103,7 @@ namespace seeks_plugins
 	 * the 32 bit hash is returned.
 	 */
 	static uint32_t hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-					       std::string &query);
+					       std::string &query, std::string &url_enc_query);
 	
 	/**
 	 * \brief adds a snippet to the unordered cache set.
@@ -177,6 +177,7 @@ namespace seeks_plugins
 	
       public:
 	std::string _query;
+	std::string _url_enc_query;
 	uint32_t _query_hash;
 	uint32_t _page_expansion; // expansion as fetched pages from the search engines.
 		
