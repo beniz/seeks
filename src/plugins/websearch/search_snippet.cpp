@@ -267,10 +267,10 @@ namespace seeks_plugins
 	freez(str);
 	miscutil::replace_in_string(nstr,"\n","");
 	miscutil::replace_in_string(nstr,"\r","");
-	//miscutil::replace_in_string(nstr,"&","&amp;");
 	str = encode::html_encode(nstr.c_str());
 	nstr = std::string(str);
 	free(str);
+	miscutil::replace_in_string(nstr," ","%20"); // encoding fails doing this.
 	return nstr;
      }
       
