@@ -48,8 +48,41 @@ namespace dht
 
    void rpc_client::do_rpc_call_static(rpc_call_args *args)
      {
-	args->_err = args->_client->do_rpc_call(args->_server_na,args->_msg,
-						args->_need_response,args->_response);
+	try
+	  {
+	     args->_err = args->_client->do_rpc_call(args->_server_na,args->_msg,
+						     args->_need_response,args->_response);
+	  }
+	catch (rpc_client_timeout_error_exception &e)
+	  {
+	     args->_err = DHT_ERR_COM_TIMEOUT;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_reception_error_exception &e)
+	  {
+	     args->_err = DHT_ERR_RESPONSE;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_socket_error_exception &e)
+	  {
+	     args->_err = DHT_ERR_SOCKET;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_host_error_exception &e)
+	  {
+	     args->_err = DHT_ERR_HOST;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_sending_error_exception &e)
+	  {
+	     args->_err = DHT_ERR_CALL;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_reception_error_exception &e)
+	  {
+	     args->_err = DHT_ERR_RESPONSE;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
      }
    
    dht_err rpc_client::do_rpc_call_threaded(const NetAddress &server_na,
@@ -58,14 +91,13 @@ namespace dht
 					    std::string &response)
      {
 	rpc_call_args args(this,server_na,msg,need_response,response);
-	
 	pthread_t rpc_call_thread;
 	int err = pthread_create(&rpc_call_thread,NULL, //joinable
 				 (void * (*)(void *))&rpc_client::do_rpc_call_static,&args);
 	
 	// join.
 	pthread_join(rpc_call_thread,NULL);
-     
+	     
 	return args._err;
      }
       
@@ -117,11 +149,10 @@ namespace dht
 	  }
 		
 	// receive message, if necessary.
-	// TODO: timeout + exception.
 	if (!need_response)
 	  return DHT_ERR_OK;	
 	
-	// TODO: non blocking on (single) response.
+	// non blocking on (single) response.
 	fd_set rfds;
 	FD_ZERO(&rfds);
 	FD_SET(udp_sock,&rfds);
@@ -133,14 +164,18 @@ namespace dht
 	
 	if (m == 0) // no bits received before the communication timed out.
 	  {
+	     //debug
+	     std::cerr << "[Debug]: timeout on client response\n";
+	     //debug
+	     
 	     errlog::log_error(LOG_LEVEL_ERROR, "Didn't receive response data in time to layer 1 call");
 	     response = "";
-	     return DHT_ERR_OK;
+	     throw rpc_client_timeout_error_exception();
 	  }
 	else if (m < 0)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "select() failed!: %E");
-	     return DHT_ERR_NETWORK;
+	     return DHT_ERR_UNKNOWN;
 	  }
 		  
 	size_t buflen = 1024;

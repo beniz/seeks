@@ -49,18 +49,18 @@ namespace dht
 	std::string resp_str;
 	
 	// send & get response.
-	try
-	  {
-	     do_rpc_call_threaded(recipient,msg_str,true,resp_str); // XXX: the recipient port must be set...
-	     delete l1q;
-	     l1q = NULL;
-	  }
-	catch (dht_exception &e)
+	dht_err err = do_rpc_call_threaded(recipient,msg_str,true,resp_str); // XXX: the recipient port must be set...
+	delete l1q;
+	l1q = NULL;
+		
+	if (err != DHT_ERR_OK)
 	  {
 	     delete l1q;
 	     l1q = NULL;
-	     throw; // re-throw the exception.
+	     return err;
 	  }
+	
+	std::cout << "[Debug]:l1_protob_rpc_client: trying to deserialize response\n";
 	
 	// deserialize response.
 	try 
@@ -223,26 +223,35 @@ namespace dht
      {
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
+	dht_err err = DHT_ERR_OK;
 	
 	try
 	  {
-	     dht_err err = l1_protob_rpc_client::RPC_call(hash_join_get_succ,
-							  recipientKey,recipient,
-							  senderKey,senderAddress,
-							  l1r);
+	     err = l1_protob_rpc_client::RPC_call(hash_join_get_succ,
+						  recipientKey,recipient,
+						  senderKey,senderAddress,
+						  l1r);
 	  }
 	catch (dht_exception &e)
 	  {
 	     delete l1r;
-	     errlog::log_error(LOG_LEVEL_DHT, "Failed joinGetSucc call to %s", 
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed joinGetSucc call to %s (exception)", 
 			       recipient.toString().c_str());
 	     return DHT_ERR_CALL;
+	  }
+		
+	if (err != DHT_ERR_OK)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed joinGetSucc call to %s (response)",
+			       recipient.toString().c_str());
+	     return err;
 	  }
 	
 	// handle the response.
 	uint32_t layer_id, error_status;
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-							  dkres,na);
+	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+						  dkres,na);
 	status = error_status;
 	delete l1r;
 	return err;

@@ -28,6 +28,7 @@
 #include "l1_protob_rpc_client.h"
 
 #include <sys/time.h>
+#include <algorithm>
 
 using sp::errlog;
 using sp::seeks_proxy;
@@ -74,7 +75,10 @@ namespace dht
 	 * create the virtual nodes.
 	 * TODO: persistance of vnodes and associated tables.
 	 */
-	for (unsigned int i=0; i<NVNODES; i++)
+	
+	std::cout << "nvnodes: " << DHTNode::_dht_config->_nvnodes << std::endl;
+	
+	for (unsigned int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
 	  {
 	     /**
 	      * creating virtual nodes.
@@ -96,11 +100,12 @@ namespace dht
 	 * start rpc client & server.
 	 */
 	_l1_server = new l1_protob_rpc_server(net_addr,net_port,this);
+	_l1_client = new l1_protob_rpc_client();
 	
 	/**
 	 * run the server in its own thread.
 	 */
-	rpc_server::run_static(_l1_server);
+	_l1_server->run_thread();
      }
       
    DHTNode::~DHTNode()
@@ -117,11 +122,15 @@ namespace dht
      }
 
    dht_err DHTNode::join_start(std::vector<NetAddress> &bootstrap_nodelist,
-			       bool &reset)
+			       const bool &reset)
      {
+	std::cerr << "[Debug]: join_start\n";
+	
 	// try location table if possible/asked to.
-	if (!reset || _lt->is_empty())
+	if (!reset)// || !_lt->is_empty()) // TODO: serialization/deserialization... location table by default contains virtual nodes...
 	  {
+	     std::cerr << "[Debug]:join_start: trying location table.\n";
+	     
 	     hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator lit
 	       = _lt->_hlt.begin();
 	     while(lit!=_lt->_hlt.end())
@@ -131,7 +140,7 @@ namespace dht
 		  // TODO: test location beforehand.
 	     	  // 
 		  // join.
-	     	  dht_err status = join(loc->getNetAddress(),loc->getDHTKey());
+		  dht_err status = join(loc->getNetAddress(),loc->getDHTKey());
 		  if (status == DHT_ERR_OK)
 		    return status; // we're done, join was successful, stabilization will take over the job.
 		  		  
@@ -140,13 +149,15 @@ namespace dht
 	  }
 	
 	// try to bootstrap from the nodelist in configuration.
-	std::vector<NetAddress>::const_iterator nit = DHTNode::_dht_config->_bootstrap_nodelist.begin();
-	while(nit!=DHTNode::_dht_config->_bootstrap_nodelist.end())
+	std::vector<NetAddress>::const_iterator nit = bootstrap_nodelist.begin();
+	while(nit!=bootstrap_nodelist.end())
 	  {
 	     NetAddress na = (*nit);
 	     
 	     // TODO: test address beforehand.
 	      
+	     std::cerr << "[Debug]: trying to bootstrap from " << na.toString() << std::endl;
+	     	     
 	     // join.
 	     DHTKey key;
 	     dht_err status = join(na,key); // empty key is handled by the called node.
@@ -155,6 +166,58 @@ namespace dht
 	     
 	     ++nit;
 	  }
+	
+	std::cerr << "[Debug]: end join_start (failed)\n";
+	
+	// hermaphrodite, builds its own circle.
+	dht_err err = self_bootstrap();
+	
+	return DHT_ERR_BOOTSTRAP;
+     }
+
+   dht_err DHTNode::self_bootstrap()
+     {
+	//debug
+	std::cerr << "[Debug]:self-bootstrap in hermaphrodite mode...\n";
+	//debug
+	
+	// For every virtual node, appoint local virtual node as successor.
+	std::vector<const DHTKey*> vnode_keys_ord;
+	rank_vnodes(vnode_keys_ord);
+	size_t nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
+	for (size_t i=0;i<nv;i++)
+	  {
+	     const DHTKey *dkey = vnode_keys_ord.at(i);
+	     DHTVirtualNode *vnode = findVNode(*dkey);
+	     
+	     if (i == nv-1)
+	       vnode->setSuccessor(*vnode_keys_ord.at(0)); // close the circle.
+	     else
+	       vnode->setSuccessor(*vnode_keys_ord.at(i+1));
+	     if (i == 0)
+	       vnode->setPredecessor(*vnode_keys_ord.at(nv-1));
+	     else 
+	       vnode->setPredecessor(*vnode_keys_ord.at(i-1));
+	  }
+	
+	//debug
+	std::cerr << "[Debug]:self-bootstrap complete.\n";
+	//debug
+	
+	return DHT_ERR_OK;
+     }
+
+   void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
+     {
+	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator vit
+	  = _vnodes.begin();
+	while(vit!=_vnodes.end())
+	  {
+	     vnode_keys_ord.push_back((*vit).first);
+	     ++vit;
+	  }
+	std::stable_sort(vnode_keys_ord.begin(),vnode_keys_ord.end(),
+			 DHTKey::lowdhtkey);
      }
       
    /**----------------------------**/
@@ -328,8 +391,16 @@ namespace dht
 	/**
 	 * return closest predecessor.
 	 */
-	vnode->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
-	return 0;
+	dht_err err = vnode->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
+	
+	if ((err != DHT_ERR_OK && err != DHT_ERR_UNKNOWN_PEER_LOCATION)
+	    || status != DHT_ERR_OK)
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed findClosestPredecessor_cb");
+	     return err;
+	  }
+	
+	return err;
      }
    
    int DHTNode::joinGetSucc_cb(const DHTKey &recipientKey,
@@ -337,22 +408,38 @@ namespace dht
 			       DHTKey &dkres, NetAddress &na,
 			       int &status)
      {
-	// TODO: if recipientKey is not specified, find the closes VNode to senderkey.
+	// if recipientKey is not specified, find the closest VNode to senderkey.
 	DHTVirtualNode *vnode = NULL;
-	if (recipientKey.count() == 0) // test for unspecified recipient.
+	DHTKey contactKey = recipientKey;
+	if (contactKey.count() == 0) // test for unspecified recipient.
 	  {
-	     // TODO.
-	  }
-	else 
-	  {
-	     vnode = findVNode(recipientKey);
-	     if (!vnode)
+	     // rank local nodes.
+	     std::vector<const DHTKey*> vnode_keys_ord;
+	     rank_vnodes(vnode_keys_ord);
+	     
+	     // pick up the closest one.
+	     DHTKey *curr = NULL, *prev = NULL;
+	     std::vector<const DHTKey*>::const_iterator dit = vnode_keys_ord.begin();
+	     while(dit!=vnode_keys_ord.end())
 	       {
-		  dkres = DHTKey();
-		  na = NetAddress();
-		  status = DHT_ERR_UNKNOWN_PEER;
-		  return status;
+		  curr = const_cast<DHTKey*>((*dit));
+		  if (senderKey > *curr)
+		    break;
+		  prev = curr;
+		  ++dit;
 	       }
+	     
+	     // recipient key is prev.
+	     contactKey = *prev;
+	  }
+	
+	vnode = findVNode(contactKey);
+	if (!vnode)
+	  {
+	     dkres = DHTKey();
+	     na = NetAddress();
+	     status = DHT_ERR_UNKNOWN_PEER;
+	     return status;
 	  }
 	
 	status = vnode->find_successor(senderKey, dkres, na);
@@ -374,8 +461,8 @@ namespace dht
      }
    
    /**-- Main routines using RPCs --**/
-   int DHTNode::join(const NetAddress& dk_bootstrap_na,
-		     const DHTKey &dk_bootstrap)
+   dht_err DHTNode::join(const NetAddress& dk_bootstrap_na,
+			 const DHTKey &dk_bootstrap)
      {
 	/**
 	 * We're basically bootstraping all the virtual nodes here.
@@ -386,20 +473,29 @@ namespace dht
 	  {
 	     DHTVirtualNode* vnode = (*hit).second;
 	     int status = 0;
-	     vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // TODO: could make a single call instead ?
+	     dht_err err = vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // TODO: could make a single call instead ?
 	     
-	     /**
-	      * TODO: check on status and reset.
-	      */
+	     // local errors.
+	     if (err != DHT_ERR_OK)
+	       {
+		  return err;
+	       }
+	     
+	     // remote errors.
+	     if ((dht_err) status != DHT_ERR_OK)
+	       {
+		  return (dht_err) status; // let's fail and try from another bootstrap address. TODO: some nodes may have succeeded...
+	       }
+	     
+	     ++hit;
 	  }
 	
-	/* TODO. */
-	return 0;
+	return DHT_ERR_OK;
      }
    
-   int DHTNode::find_successor(const DHTKey& recipientKey,
-			       const DHTKey& nodeKey,
-			       DHTKey& dkres, NetAddress& na)
+   dht_err DHTNode::find_successor(const DHTKey& recipientKey,
+				   const DHTKey& nodeKey,
+				   DHTKey& dkres, NetAddress& na)
      {
 	/**
 	 * get the virtual node and deal with possible errors.
@@ -415,9 +511,9 @@ namespace dht
 	return vnode->find_successor(nodeKey, dkres, na);
      }
    
-   int DHTNode::find_predecessor(const DHTKey& recipientKey,
-				 const DHTKey& nodeKey,
-				 DHTKey& dkres, NetAddress& na)
+   dht_err DHTNode::find_predecessor(const DHTKey& recipientKey,
+				     const DHTKey& nodeKey,
+				     DHTKey& dkres, NetAddress& na)
      {
 	/**
 	 * get the virtual node and deal with possible errors.
@@ -433,7 +529,7 @@ namespace dht
 	return vnode->find_predecessor(nodeKey, dkres, na);
      }
 
-   int DHTNode::stabilize(const DHTKey& recipientKey)
+   dht_err DHTNode::stabilize(const DHTKey& recipientKey)
      {
 	/**
 	 * get virtual node.
@@ -444,11 +540,10 @@ namespace dht
 	     return 3;
 	  }
 
-	int status = vnode->stabilize();
+	dht_err status = vnode->stabilize();
 	return status;
      }
-   
-   
+      
    /**----------------------------**/   
    
    DHTVirtualNode* DHTNode::findVNode(const DHTKey& dk) const

@@ -39,12 +39,11 @@ namespace dht
 	    _starts[i] = dkvnode.successor(i);
 
 	  for (unsigned int i=0; i<KEYNBITS; i++)
-	    _locs[i] = NULL; //TODO: or should we populate this something ?
+	    _locs[i] = NULL;
        }
    
    FingerTable::~FingerTable()
      {
-	// TODO: delete _locs elts ?
      }
       
    void FingerTable::setSuccessor(Location* loc)
@@ -57,12 +56,12 @@ namespace dht
 	_vnode->setSuccessor(loc);
      }
    
-   void FingerTable::findClosestPredecessor(const DHTKey& nodeKey,
-					    DHTKey& dkres, NetAddress& na,
-					    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-					    int& status)
+   dht_err FingerTable::findClosestPredecessor(const DHTKey& nodeKey,
+					       DHTKey& dkres, NetAddress& na,
+					       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+					       int& status)
      {
-	status = -1;
+	status = DHT_ERR_OK;
 	
 	for (int i=KEYNBITS-1; i>=0; i--)
 	  {
@@ -70,7 +69,7 @@ namespace dht
 	     
 	     /**
 	      * Beware: this should only happen if the finger table is
-	      * not yet populated... -> cf. TODO at array initialization.
+	      * not yet populated...
 	      */
 	     if (!loc)
 	       continue;
@@ -79,24 +78,26 @@ namespace dht
 	       {
 		  dkres = loc->getDHTKey();
 		  na = loc->getNetAddress();
-		  dkres_succ = *getVNodeSuccessor(); // NO!
-		  dkres_succ_na = NetAddress(); // TODO: successor list!
-		  status = 0;
-		  return;
+		  dkres_succ = DHTKey();
+		  dkres_succ_na = NetAddress();
+		  status = DHT_ERR_OK;
+		  return DHT_ERR_OK;
 	       }     
 	  }
 	
 	/**
-	 * return current node's id key.
+	 * otherwise return current node's id key, and sets the successor
+	 * (saves an rpc later).
 	 */
-	status = 0;
+	status = DHT_ERR_OK;
 	dkres = getVNodeIdKey();
-	
-	//this net address.
 	na = getVNodeNetAddress();
 	dkres_succ = *getVNodeSuccessor();
-	
-	return;
+	Location *succ_loc = findLocation(dkres_succ);
+	if (!succ_loc)
+	  return DHT_ERR_UNKNOWN_PEER_LOCATION;
+	dkres_succ_na = succ_loc->getNetAddress();
+	return DHT_ERR_OK;
      }
    
    int FingerTable::stabilize()

@@ -118,6 +118,17 @@ namespace dht
 	virtual ~rpc_client_reception_error_exception() {};
      };
    
+   class rpc_client_timeout_error_exception : public dht_exception
+     {
+      public:
+	rpc_client_timeout_error_exception()
+	  :dht_exception()
+	    {
+	       _message = "rpc client timeout error";
+	    }
+	virtual ~rpc_client_timeout_error_exception() {};
+     };
+   
 } /* end of namespace. */
 
 #endif

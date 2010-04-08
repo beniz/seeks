@@ -25,6 +25,8 @@
 #include "dht_exception.h"
 #include "NetAddress.h"
 
+#include <pthread.h>
+
 namespace dht
 {
    class rpc_server
@@ -38,6 +40,8 @@ namespace dht
 
 	dht_err run_thread();
 	
+	int detach_thread();
+	
 	static void run_static(rpc_server *server);
 	
 	/*- server responses. -*/
@@ -46,6 +50,7 @@ namespace dht
 		
       public:
 	NetAddress _na;
+	pthread_t _rpc_server_thread;
      };
    
    /*- exceptions. -*/

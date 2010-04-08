@@ -21,6 +21,9 @@
 #include "DHTVirtualNode.h"
 #include "DHTNode.h"
 #include "FingerTable.h"
+#include "errlog.h"
+
+using sp::errlog;
 
 namespace dht
 {
@@ -78,13 +81,13 @@ namespace dht
 	    || senderKey.between(*_predecessor, _idkey))
 	  setPredecessor(senderKey, senderAddress);
      }
-
-   void DHTVirtualNode::findClosestPredecessor(const DHTKey& nodeKey,
-					       DHTKey& dkres, NetAddress& na,
-					       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-					       int& status)
+   
+   dht_err DHTVirtualNode::findClosestPredecessor(const DHTKey& nodeKey,
+						  DHTKey& dkres, NetAddress& na,
+						  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+						  int& status)
      {
-	_fgt->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
+	return _fgt->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
      }
 
    
@@ -105,13 +108,21 @@ namespace dht
 	DHTKey dkres;
 	NetAddress na;
 	
-	_pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
-					    _idkey,_pnode->_l1_na,
-					    dkres, na, status);
+	dht_err err = _pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
+							  _idkey,_pnode->_l1_na,
+							  dkres, na, status);
 	
-	setSuccessor(dkres);
-     
-	return (dht_err)status;
+	// local errors.
+	if (err != DHT_ERR_OK)
+	  {
+	     return err;
+	  }
+	
+	// remote errors.
+	if ((dht_err)status == DHT_ERR_OK)
+	  setSuccessor(dkres);
+     	
+	return err;
      }
    
    dht_err DHTVirtualNode::find_successor(const DHTKey& nodeKey,
@@ -192,6 +203,26 @@ namespace dht
 	     	     
 	     rloc.setDHTKey(dkres);
 	     rloc.setNetAddress(na);
+	
+	     if (succ_key.count() > 0
+		 && (dht_err)status == DHT_ERR_OK)
+	       {
+	       }
+	     else
+	       {
+		  /**
+		   * In general we need to ask rloc for its successor.
+		   */
+		  _pnode->_l1_client->RPC_getSuccessor(dkres, na, getIdKey(), getNetAddress(), 
+						       succ_key, succ_na, status);
+		  
+		  if ((dht_err)status != DHT_ERR_OK)
+		    {
+		       errlog::log_error(LOG_LEVEL_DHT, "Failed call to getSuccessor in find_predecessor loop");
+		       return (dht_err)status;
+		    }
+	       }
+	     
 	     succloc.setDHTKey(succ_key);
 	     succloc.setNetAddress(succ_na);
 	  }

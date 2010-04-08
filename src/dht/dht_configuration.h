@@ -44,6 +44,7 @@ namespace dht
 	virtual void finalize_configuration();
 	
 	// main options.
+	short _nvnodes; /**< number of virtual nodes supported by this DHT node. */
 	short _l1_port; /**< listening port for level 1 communications. */
 	int _l1_server_max_msg_bytes; /**< maximum size of UDP datagrams served on layer 1. */
 	int _l1_client_timeout; /**< l1 client communication timeout. */

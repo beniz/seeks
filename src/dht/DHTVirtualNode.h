@@ -77,10 +77,10 @@ namespace dht
 	 * @param dkres_succ successor to dkres.
 	 * @param status result status. TODO.
 	 */
-	void findClosestPredecessor(const DHTKey& nodeKey,
-				    DHTKey& dkres, NetAddress& na,
-				    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-				    int& status);
+	dht_err findClosestPredecessor(const DHTKey& nodeKey,
+				       DHTKey& dkres, NetAddress& na,
+				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+				       int& status);
 	
 	/**---------------------------------------**/
 	

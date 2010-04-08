@@ -35,8 +35,6 @@
 #include "l1_rpc_server.h"
 #include "l1_rpc_client.h"
 
-#define NVNODES 32 //number of virtual nodes per peer.
-
 namespace dht
 {
    class DHTNode
@@ -59,8 +57,20 @@ namespace dht
 	 * First tries with the LocationTable information if any, and if no reset specified.
 	 * Otherwise go for the bootstrap nodelist.
 	 */
-	dht_err join_start(std::vector<NetAddress> &bootstrap_nodelist, bool &reset);
+	dht_err join_start(std::vector<NetAddress> &bootstrap_nodelist, 
+			   const bool &reset);
 	
+	/**
+	 * self-boostrap.
+	 * Bootstraps itself by building a circle of its virtual nodes.
+	 * Useful only for the first node of a circle.
+	 */
+	dht_err self_bootstrap();
+
+      private:
+	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
+	
+      public:
 	/**
 	 * accessors.
 	 */
@@ -126,20 +136,20 @@ namespace dht
 	 * @param dk_bootstrap DHT key of the bootstrap node.
 	 * @return status.
 	 */
-	int join(const NetAddress& dk_bootstrap_na,
-		 const DHTKey &dk_bootstrap);
-
+	dht_err join(const NetAddress& dk_bootstrap_na,
+		     const DHTKey &dk_bootstrap);
+	
 	/**
 	 * \brief find nodeKey's successor.
 	 * @param recipientKey identification key of the target node.
 	 * @param nodekey identification key to which the successor must be found.
 	 * @param dkres result identification key of nodeKey's successor.
 	 * @param na result net address of nodeKey's successor.
-	 * @return status TODO.
+	 * @return status
 	 */
-	int find_successor(const DHTKey& recipientKey,
-			   const DHTKey& nodeKey,
-			   DHTKey& dkres, NetAddress& na);
+	dht_err find_successor(const DHTKey& recipientKey,
+			       const DHTKey& nodeKey,
+			       DHTKey& dkres, NetAddress& na);
 	
 	/**
 	 * \brief find nodekey's predecessor.
@@ -147,19 +157,19 @@ namespace dht
 	 * @param nodeKey identification key to which the predecessor must be found.
 	 * @param dkres result identification key of nodeKey's predecessor.
 	 * @param na result net address of nodeKey's predecessor.
-	 * @return status TODO.
+	 * @return status.
 	 */
-	int find_predecessor(const DHTKey& recipientKey,
-			     const DHTKey& nodeKey,
-			     DHTKey& dkres, NetAddress& na);
+	dht_err find_predecessor(const DHTKey& recipientKey,
+				 const DHTKey& nodeKey,
+				 DHTKey& dkres, NetAddress& na);
 	
 	/**
 	 * \brief stabilize: verify a vnode's immediate successor,
 	 *        and tell the successor about itself.
 	 * @param recipientKey identification key of the target node.
-	 * @return status TODO.
+	 * @return status.
 	 */
-	int stabilize(const DHTKey& recipientKey);
+	dht_err stabilize(const DHTKey& recipientKey);
 	
       public:
 	/**

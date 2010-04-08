@@ -48,8 +48,8 @@ namespace dht
      : BstTimeCbTree()
        {
 	  // TODO: activate when code is ready.
-	  /* start_fast_stabilizer();
-	  start_slow_stabilizer(); */
+	  start_fast_stabilizer();
+	  start_slow_stabilizer();
        }
    
    void Stabilizer::start_fast_stabilizer()
@@ -131,8 +131,8 @@ namespace dht
 	//debug
 	
 	//debug
-	std::cout << "[Debug]:Stabilizer::fast_stabilize: tround: " << tround << std::endl;
-	std::cout << "[Debug]:Stabilizer::fast_stabilize: scheduling next call around: "
+	std::cerr << "[Debug]:Stabilizer::fast_stabilize: tround: " << tround << std::endl;
+	std::cerr << "[Debug]:Stabilizer::fast_stabilize: scheduling next call around: "
 	  << tsp << std::endl;
 	//std::cout << tround << std::endl;
 	//debug

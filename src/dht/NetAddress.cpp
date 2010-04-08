@@ -21,7 +21,6 @@
 #include "NetAddress.h"
 #include "miscutil.h"
 #include "serialize.h"
-#include <sstream>
 #include <stdlib.h>
 
 using sp::miscutil;
@@ -53,8 +52,7 @@ namespace dht
    std::string NetAddress::toString(const std::string& protocol,
 				    const std::string& aend) const
      {
-	std::ostringstream os; os << _port;
-	std::string port_str = std::string(os.str(), os.tellp());
+	std::string port_str = miscutil::to_string(_port);
 	std::string res = protocol + _net_address 
 	  + ":" + port_str + aend;
 	return res;

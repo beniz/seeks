@@ -63,11 +63,13 @@ namespace dht
 	
 	/**
 	 * \brief find closest predecessor to a given key.
+	 * Successor information is unset by default, set only if the closest node 
+	 * is this virtual node.
 	 */
-	void findClosestPredecessor(const DHTKey& nodeKey,
-				    DHTKey& dkres, NetAddress& na,
-				    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-				    int& status);
+	dht_err findClosestPredecessor(const DHTKey& nodeKey,
+				       DHTKey& dkres, NetAddress& na,
+				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+				       int& status);
 
 	/**
 	 * \brief verifies our successor is the right one,

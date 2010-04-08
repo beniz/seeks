@@ -163,6 +163,12 @@ namespace dht
 	static std::vector<unsigned char> serialize(const DHTKey &dk);
      
 	static DHTKey unserialize(const std::vector<unsigned char> &ser);
+
+	static bool lowdhtkey(const DHTKey *dk1, const DHTKey *dk2)
+	  {
+	     return (dk1 < dk2);
+	  };
+		
      };
    
 } /* end of namespace */
@@ -179,6 +185,14 @@ using dht::DHTKey;
 	  }
      };
 #endif
+
+/* struct lowdhtkey
+{
+   bool operator()(const DHTKey *dk1, const DHTKey *dk2) const
+     {
+	return (dk1 < dk2);
+     }
+}; */
 
 namespace __gnu_cxx // beware
 {
