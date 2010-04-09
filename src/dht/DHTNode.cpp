@@ -78,7 +78,7 @@ namespace dht
 	
 	std::cout << "nvnodes: " << DHTNode::_dht_config->_nvnodes << std::endl;
 	
-	for (unsigned int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
+	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
 	  {
 	     /**
 	      * creating virtual nodes.
@@ -191,13 +191,13 @@ namespace dht
 	     DHTVirtualNode *vnode = findVNode(*dkey);
 	     
 	     if (i == nv-1)
-	       vnode->setSuccessor(*vnode_keys_ord.at(0)); // close the circle.
+	       vnode->setSuccessor(*vnode_keys_ord.at(0),_l1_na); // close the circle.
 	     else
-	       vnode->setSuccessor(*vnode_keys_ord.at(i+1));
+	       vnode->setSuccessor(*vnode_keys_ord.at(i+1),_l1_na);
 	     if (i == 0)
-	       vnode->setPredecessor(*vnode_keys_ord.at(nv-1));
+	       vnode->setPredecessor(*vnode_keys_ord.at(nv-1),_l1_na);
 	     else 
-	       vnode->setPredecessor(*vnode_keys_ord.at(i-1));
+	       vnode->setPredecessor(*vnode_keys_ord.at(i-1),_l1_na);
 	  }
 	
 	//debug
