@@ -34,4 +34,6 @@ typedef int dht_err;
 #define DHT_ERR_BOOTSTRAP                         11 /**< bootstrap error. */
 #define DHT_ERR_SOCKET                            12 /**< socket error. */
 #define DHT_ERR_HOST                              13 /**< unknown host or name resolution failure. */
+#define DHT_ERR_MSG                               14 /**< msg (serialization/deserialization) error. */
+#define DHT_ERR_CALLBACK                          15 /**< unknown callback function. */
 #define DHT_ERR_UNKNOWN                         1000 /**< unknown error. */
