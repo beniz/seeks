@@ -40,6 +40,12 @@ namespace dht
 					  const NetAddress& senderAddress,
 					  l1::l1_response *l1r)
      {
+	//debug
+	std::cerr << "[Debug]: rpc client call: creating a l1 query:\n";
+	std::cerr << "fct_id: " << fct_id << " -- recipient: " << recipient.toString()
+	  << " -- senderAddress: " << senderAddress.toString() << std::endl;
+	//debug
+	
 	// serialize.
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
 							       recipientKey,recipient,
@@ -83,6 +89,10 @@ namespace dht
 						  DHTKey& dkres, NetAddress& na,
 						  int& status)
      {
+	//debug
+	std::cerr << "[Debug]: RPC_getSuccessor call\n";
+	//debug
+	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();	
 	
@@ -117,6 +127,10 @@ namespace dht
 						    DHTKey& dkres, NetAddress& na,
 						    int& status)
      {
+	//debug
+	std::cerr << "[Debug]: RPC_getPredecessor call\n";
+	//debug
+		
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	
@@ -150,6 +164,10 @@ namespace dht
 					    const NetAddress& senderAddress,
 					    int& status)
      {
+	//debug
+	std::cerr << "[Debug]: RPC_notify call\n";
+	//debug
+	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	
@@ -186,6 +204,10 @@ namespace dht
 							    NetAddress &dkres_succ_na,
 							    int& status)
      {
+	//debug
+	std::cerr << "[Debug]: RPC_findClosestPredecessor call\n";
+	//debug
+		
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	
@@ -221,6 +243,10 @@ namespace dht
 						 DHTKey& dkres, NetAddress& na,
 						 int& status)
      {
+	//debug
+	std::cerr << "[Debug]: RPC_joinGetSucc call\n";
+	//debug
+		
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	dht_err err = DHT_ERR_OK;
