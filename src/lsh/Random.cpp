@@ -30,8 +30,9 @@ unsigned long int Random::genUniformUnsInt32 (const unsigned long int &minB,
 {
   unsigned long int r = 0;
   if (RAND_MAX >= maxB - minB)
-    r = static_cast<unsigned long int> ((maxB - minB + 1.0) * random () / (RAND_MAX + 1.0));
-  else r = static_cast<unsigned long int> ((maxB - minB + 1.0) * (static_cast<unsigned long long int> (random ()) * (static_cast<unsigned long long int> (RAND_MAX) + 1.0) + static_cast<unsigned long long int> (random ())) / ((static_cast<unsigned long long int> (RAND_MAX) + 1.0) * (static_cast<unsigned long long int> (RAND_MAX) + 1.0)));
+    r = minB + static_cast<unsigned long int> ((maxB - minB + 1.0) * random () / (RAND_MAX + 1.0));
+  else r = minB + static_cast<unsigned long int> ((maxB - minB + 1.0) * (static_cast<unsigned long long int> (random ()) * (static_cast<unsigned long long int> (RAND_MAX) + 1.0) + static_cast<unsigned long long int> (random ())) 
+						  / ((static_cast<unsigned long long int> (RAND_MAX) + 1.0) * (static_cast<unsigned long long int> (RAND_MAX) + 1.0)));
   return r;
 }
 
