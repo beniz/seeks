@@ -43,6 +43,7 @@ int main(int argc, char **argv)
 
    // init logging module.
    errlog::init_log_module();
+   errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_LOG);
    
    // TODO: thread it ?
    DHTNode node(net_addr,net_port);
