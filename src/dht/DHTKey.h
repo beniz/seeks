@@ -181,7 +181,7 @@ using dht::DHTKey;
      {
 	bool operator()(const DHTKey* dk1, const DHTKey* dk2) const
 	  {
-	     return (dk1 == dk2);
+	     return (*dk1 == *dk2);
 	  }
      };
 #endif
