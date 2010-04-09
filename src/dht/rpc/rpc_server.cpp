@@ -107,7 +107,8 @@ namespace dht
 	while(true)
 	  {
 	     //debug
-	     std::cout << "rpc_server: listening for dgrams...\n";
+	     std::cerr << "[Debug]:rpc_server: listening for dgrams on " 
+	       << _na.toString() << "...\n";
 	     //debug
 	     
 	     int n = recvfrom(udp_sock,buf,buflen,0,(struct sockaddr*)&from,&fromlen);
@@ -125,28 +126,50 @@ namespace dht
 	     //debug
 	     
 	     // message.
-	     errlog::log_error(LOG_LEVEL_LOG, "rpc_server: received a datagram");
-	     buf[n] = '\0';
-	     std::string dtg_str = std::string(buf);
+	     errlog::log_error(LOG_LEVEL_LOG, "rpc_server: received a %d bytes datagram", n);
+	     //buf[n] = '\0';
+	     std::string dtg_str = std::string(buf,n-1);
+	     //std::cout << "msg size: " << dtg_str.size() << std::endl;
 	     
 	     //debug
-	     std::cout << "rpc_server: received msg: " << dtg_str << std::endl;
+	     //std::cout << "rpc_server: received msg: " << dtg_str << std::endl;
 	     //debug
 	     
 	     // produce and send a response.
+	     std::string resp_msg;
 	     try
 	       {
-		  std::string resp_msg;
 		  serve_response(dtg_str,resp_msg);
 	       }
 	     catch (dht_exception ex)
 	       {
-		  errlog::log_error(LOG_LEVEL_LOG, "rpc_server exception: %ex", ex.what().c_str());
+		  errlog::log_error(LOG_LEVEL_LOG, "rpc_server exception: %s", ex.what().c_str());
 	       
 		  // TODO: error decision.
 	     	  // TODO: rethrow something.
 	       }
+	  
+	     //debug
+	     //std::cerr << "resp_msg: " << resp_msg << std::endl;
+	     //debug
 	     
+	     // send the response back.
+	     char msg_str[resp_msg.length()+1];
+	     for (size_t i=0;i<resp_msg.length();i++)
+	       msg_str[i] = resp_msg[i];
+	     msg_str[resp_msg.length()] = '\0';
+	     
+	     //debug
+	     std::cerr << "[Debug]:sending " << sizeof(msg_str) << " bytes\n";
+	     //std::cerr << "sent msg: " << msg_str << std::endl;
+	     //debug
+	     
+	     n = sendto(udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&from,fromlen);
+	     if (n<0)
+	       {
+		  errlog::log_error(LOG_LEVEL_DHT, "Error sending rpc_server answer msg");
+		  throw rpc_server_sending_error_exception();
+	       }
 	  } // end while server listening loop.
 	
 	return DHT_ERR_OK;

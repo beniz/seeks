@@ -30,45 +30,64 @@ using namespace dht;
 using sp::miscutil;
 using sp::errlog;
 
+const char *usage = "Usage: test_dhtnode <ip:port> (--join ip:port) or (--self-bootstrap)\n";
+
 int main(int argc, char **argv)
 {
-   if (argc < 3)
+   if (argc < 2)
      {
-	std::cout << "Usage test_dhtnode <ip addr> <port> (--join ip:port)\n";
+	std::cout << usage;
 	exit(0);
      }
    
-   const char *net_addr = argv[1];
-   const int net_port = atoi(argv[2]);
+   char *net_addr = argv[1];
+   char *vec1[2];
+   miscutil::ssplit(net_addr,":",vec1,SZ(vec1),0,0);
+   net_addr = vec1[0];
+   int net_port = atoi(vec1[1]);
 
    // init logging module.
    errlog::init_log_module();
-   errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_LOG);
+   errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
    
    // TODO: thread it ?
    DHTNode node(net_addr,net_port);
    
    bool joinb = false;
-   if (argc > 4)
+   bool sbootb = false;
+   if (argc > 2)
      {
-	const char *joinopt = argv[3];
-	char *bootnode = argv[4];
-	char* vec[2];
-	miscutil::ssplit(bootnode,":",vec,SZ(vec),0,0);
+	const char *joinopt = argv[2];
 	
 	if (strcmp(joinopt,"--join")==0)
 	  joinb = true;
+	else if (strcmp(joinopt,"--self-bootstrap")==0)
+	  sbootb = true;
+	else 
+	  {
+	     std::cout << usage;
+	     exit(0);
+	  }
 	
-	int bootstrap_port = atoi(vec[1]);
-	std::cout << "bootstrap node at ip: " << vec[0] << " -- port: " << bootstrap_port << std::endl;
-	
-	std::vector<NetAddress> bootstrap_nodelist;
-	NetAddress bootstrap_na(vec[0],bootstrap_port);
-	bootstrap_nodelist.push_back(bootstrap_na);
-	
-	bool reset = true;
 	if (joinb)
-	 node.join_start(bootstrap_nodelist,reset);
+	  {
+	     char *bootnode = argv[3];
+	     char* vec[2];
+	     miscutil::ssplit(bootnode,":",vec,SZ(vec),0,0);
+	     
+	     int bootstrap_port = atoi(vec[1]);
+	     std::cout << "bootstrap node at ip: " << vec[0] << " -- port: " << bootstrap_port << std::endl;
+	     
+	     std::vector<NetAddress> bootstrap_nodelist;
+	     NetAddress bootstrap_na(vec[0],bootstrap_port);
+	     bootstrap_nodelist.push_back(bootstrap_na);
+	     
+	     bool reset = true;
+	     if (joinb)
+	       node.join_start(bootstrap_nodelist,reset);
+	  }
+	else if (sbootb)
+	  node.self_bootstrap();
      }
    	
    pthread_join(node._l1_server->_rpc_server_thread,NULL);

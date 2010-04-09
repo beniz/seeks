@@ -75,7 +75,18 @@ namespace dht
 	    };
 	virtual ~rpc_server_wrong_layer_exception() {};
      };
-   
+
+   class rpc_server_sending_error_exception : public dht_exception
+     {
+      public:
+	rpc_server_sending_error_exception()
+	  :dht_exception()
+	    {
+	       _message = "error sending msg by the rpc server";
+	    };
+	virtual ~rpc_server_sending_error_exception() {};
+     };
+      
 } /* end of namespace. */
 
 #endif

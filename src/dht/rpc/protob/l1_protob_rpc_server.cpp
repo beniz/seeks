@@ -21,6 +21,9 @@
 #include "l1_protob_rpc_server.h"
 #include "l1_protob_wrapper.h"
 #include "DHTNode.h"
+#include "errlog.h"
+
+using sp::errlog;
 
 namespace dht
 {
@@ -38,7 +41,7 @@ namespace dht
 						std::string &resp_msg)
      {
 	//debug
-	std::cerr << "[Debug]: executing serve_response\n";
+	//std::cerr << "[Debug]: executing serve_response\n";
 	//debug
 	
 	// deserialize query message.
@@ -50,7 +53,9 @@ namespace dht
 	  }
 	catch (l1_fail_deserialize_exception ex) 
 	  {
-	     throw rpc_server_wrong_layer_exception();
+	     std::cerr << "[Debug]: deserialization exception: " << ex.what() << std::endl;
+	     errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
+	     return DHT_ERR_MSG;
 	  }
 			
 	// read query.
@@ -73,6 +78,10 @@ namespace dht
 	dht_err err = execute_callback(fct_id,recipient_key,recipient_na,
 				       sender_key,sender_na,node_key,status,resp_msg);
 	
+	//debug
+	//std::cerr << "[Debug]: rsp_msg: " << resp_msg << std::endl;
+	//debug
+	
 	return err;
      }
    
@@ -85,10 +94,18 @@ namespace dht
 						  int& status,
 						  std::string &resp_msg)
      {
+	//debug
+	std::cerr << "[Debug]:execute_callback: ";
+	//debug
+	
 	l1::l1_response *l1r = NULL;
 	
 	if (fct_id == hash_get_successor)
 	  {
+	     //debug
+	     std::cerr << "get_successor\n";
+	     //debug
+	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_getSuccessor_cb(recipient_key,recipient_na,
@@ -100,6 +117,10 @@ namespace dht
 	  }
 	else if (fct_id == hash_get_predecessor)
 	  {
+	     //debug
+	     std::cerr << "get_predecessor\n";
+	     //debug
+	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_getPredecessor_cb(recipient_key,recipient_na,
@@ -111,6 +132,10 @@ namespace dht
 	  }
 	else if (fct_id == hash_notify)
 	  {
+	     //debug
+	     std::cerr << "notify\n";
+	     //debug
+	     	     
 	     RPC_notify_cb(recipient_key,recipient_na,
 			   sender_key,sender_na,
 			   status);
@@ -120,6 +145,10 @@ namespace dht
 	  }
 	else if (fct_id == hash_find_closest_predecessor)
 	  {
+	     //debug
+	     std::cerr << "find_closest_predecessor\n";
+	     //debug
+	     
 	     DHTKey dkres, dkres_succ;
 	     NetAddress dkres_na, dkres_succ_na;
 	     RPC_findClosestPredecessor_cb(recipient_key,recipient_na,
@@ -130,12 +159,18 @@ namespace dht
 					   status);
 	     
 	     // create a response.
-	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
-							 dkres_succ,dkres_succ_na);
+	     if (dkres_succ.count() > 0)
+	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
+							   dkres_succ,dkres_succ_na);
+	     else l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
 	  }
 	else if (fct_id == hash_join_get_succ)
 	  {
-	      DHTKey dkres;
+	     //debug
+	     std::cerr << "join_get_succ\n";
+	     //debug
+	     	     
+	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_joinGetSucc_cb(recipient_key,recipient_na,
 				sender_key,sender_na,
@@ -147,11 +182,24 @@ namespace dht
 	else 
 	  {
 	     // TODO: unknown cb.
+	     
+	     //debug
+	     std::cerr << "[Debug]:unknown callback.\n";
+	     //debug
+	     
+	     errlog::log_error(LOG_LEVEL_DHT, "Couldn't find callback with id %i", fct_id);
+	     return DHT_ERR_CALLBACK;
 	  }
 	
 	// serialize the response.
 	l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
 	delete l1r;
+	
+	//debug
+	/* l1::l1_response l1rt;
+	l1_protob_wrapper::deserialize(resp_msg,&l1rt);
+	std::cerr << "layer_id resp deser: " << l1rt.head().layer_id() << std::endl; */
+	//debug
 	
 	return DHT_ERR_OK;	
      }

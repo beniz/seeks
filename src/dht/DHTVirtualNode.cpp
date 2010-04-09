@@ -161,6 +161,12 @@ namespace dht
 					    DHTKey& dkres, NetAddress& na)
      {
 	/**
+	 * Default result is itself.
+	 */
+	dkres = getIdKey();
+	na = getNetAddress();
+	
+	/**
 	 * location to iterate (route) among results.
 	 */
 	Location rloc(_idkey, getNetAddress());
@@ -188,6 +194,8 @@ namespace dht
 	     const NetAddress recipient = rloc.getNetAddress();
 	     DHTKey succ_key = succloc.getDHTKey();
 	     NetAddress succ_na = succloc.getNetAddress();
+	     dkres = DHTKey();
+	     na = NetAddress();
 	     
 	     /**
 	      * we make a local call to virtual nodes first, and a remote call if needed.
@@ -209,9 +217,17 @@ namespace dht
 	      */
 	     if ((dht_err)status != DHT_ERR_OK)
 	       {
+		  //debug
+		  std::cerr << "[Debug]:DHTVirtualNode::find_predecessor: failed.\n";
+		  //debug
+		  
 		  return (dht_err)status;
 	       }
 	     	     
+	     //debug
+	     assert(dkres.count()>0);
+	     //debug
+	     
 	     rloc.setDHTKey(dkres);
 	     rloc.setNetAddress(na);
 	
@@ -231,6 +247,10 @@ namespace dht
 		  
 		  if ((dht_err)status != DHT_ERR_OK)
 		    {
+		       //debug
+		       std::cerr << "[Debug]:find_predecessor: failed call to getSuccessor\n";
+		       //debug
+		       
 		       errlog::log_error(LOG_LEVEL_DHT, "Failed call to getSuccessor in find_predecessor loop");
 		       return (dht_err)status;
 		    }
@@ -239,6 +259,11 @@ namespace dht
 	     succloc.setDHTKey(succ_key);
 	     succloc.setNetAddress(succ_na);
 	  }
+	
+	//debug
+	assert(dkres.count()>0);
+	//debug
+	
 	return DHT_ERR_OK;	
      }
       

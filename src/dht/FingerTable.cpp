@@ -21,9 +21,12 @@
 #include "FingerTable.h"
 #include "DHTNode.h"
 #include "Random.h"
+#include "errlog.h"
+
 #include <assert.h>
 
 using lsh::Random;
+using sp::errlog;
 
 namespace dht
 {
@@ -58,8 +61,8 @@ namespace dht
 	     Location* loc = _locs[i];
 	     
 	     /**
-	      * Beware: this should only happen if the finger table is
-	      * not yet populated...
+	      * This should only happen when the finger table is
+	      * not yet been fully populated...
 	      */
 	     if (!loc)
 	       continue;
@@ -157,7 +160,7 @@ namespace dht
 	/**
 	 * notify RPC.
 	 */
-	loc_err == _vnode->getPNode()->notify_cb(*succ, getVNodeIdKey(), getVNodeNetAddress(), status);
+	loc_err = _vnode->getPNode()->notify_cb(*succ, getVNodeIdKey(), getVNodeNetAddress(), status);
 	if (loc_err == DHT_ERR_UNKNOWN_PEER)
 	  _vnode->getPNode()->_l1_client->RPC_notify(*succ, succ_loc->getNetAddress(),
 						     getVNodeIdKey(),getVNodeNetAddress(),
@@ -167,7 +170,7 @@ namespace dht
 	 * TODO: check on RPC status.
 	 */
 	
-	return 0;	
+	return status;	
      }
 
    int FingerTable::fix_finger()
@@ -188,17 +191,25 @@ namespace dht
 	 */
 	DHTKey dkres;
 	NetAddress na;
-	int status = -1;
+	dht_err status = DHT_ERR_OK;
 	
 	//debug
 	//std::cerr << "[Debug]:finger nodekey: _starts[" << rindex << "]: " << _starts[rindex] << std::endl;
 	//debug
 	
 	status = _vnode->find_predecessor(_starts[rindex], dkres, na);
-	/**
-	 * TODO: check on find_predecessor's status.
-	 */
-     
+	if (status != DHT_ERR_OK)
+	  {
+	     //debug
+	     std::cerr << "[Debug]:fix_fingers: error finding predecessor.\n";
+	     //debug
+	     
+	     errlog::log_error(LOG_LEVEL_DHT, "Error finding predecessor when fixing finger.\n");
+	     return status;
+	  }
+	
+	assert(dkres.count()>0);
+	
 	/**
 	 * lookup result, add it to the location table if needed.
 	 */

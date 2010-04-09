@@ -76,8 +76,6 @@ namespace dht
 	 * TODO: persistance of vnodes and associated tables.
 	 */
 	
-	std::cout << "nvnodes: " << DHTNode::_dht_config->_nvnodes << std::endl;
-	
 	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
 	  {
 	     /**
@@ -374,7 +372,7 @@ namespace dht
 					  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 					  int& status)
      {
-	status = -1;
+	status = DHT_ERR_OK;
 	
 	/**
 	 * get virtual node.
@@ -400,6 +398,10 @@ namespace dht
 	     return err;
 	  }
 	
+	//debug
+	assert(dkres.count()>0);
+	//debug
+	
 	return err;
      }
    
@@ -408,6 +410,10 @@ namespace dht
 			       DHTKey &dkres, NetAddress &na,
 			       int &status)
      {
+	//debug
+	std::cerr << "[Debug]:executing joinGetSucc_cb.\n";
+	//debug
+	
 	// if recipientKey is not specified, find the closest VNode to senderkey.
 	DHTVirtualNode *vnode = NULL;
 	DHTKey contactKey = recipientKey;
@@ -429,6 +435,13 @@ namespace dht
 		  ++dit;
 	       }
 	     
+	     if (!prev) // could not find a key smaller than senderKey, so curr is the successor.
+	       {
+		  dkres = *curr;
+		  na = getNetAddress();
+		  return DHT_ERR_OK;
+	       }
+	     	       
 	     // recipient key is prev.
 	     contactKey = *prev;
 	  }
@@ -555,7 +568,7 @@ namespace dht
 	  {
 	     std::cout << "[Error]:DHTNode::findVNode: virtual node: " << dk
 	       << " is unknown on this node.\n";
-	     return NULL;  /* BEWARE, TODO: abort related RPC or return error message. */
+	     return NULL;
 	  }
 	
      }

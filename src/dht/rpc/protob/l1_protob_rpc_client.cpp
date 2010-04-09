@@ -41,9 +41,9 @@ namespace dht
 					  l1::l1_response *l1r)
      {
 	//debug
-	std::cerr << "[Debug]: rpc client call: creating a l1 query:\n";
-	std::cerr << "fct_id: " << fct_id << " -- recipient: " << recipient.toString()
-	  << " -- senderAddress: " << senderAddress.toString() << std::endl;
+	/* std::cerr << "[Debug]: rpc client call: creating a l1 query:\n";
+	 std::cerr << "fct_id: " << fct_id << " -- recipient: " << recipient.toString()
+	 << " -- senderAddress: " << senderAddress.toString() << std::endl; */
 	//debug
 	
 	// serialize.
@@ -55,7 +55,7 @@ namespace dht
 	std::string resp_str;
 	
 	// send & get response.
-	dht_err err = do_rpc_call_threaded(recipient,msg_str,true,resp_str); // XXX: the recipient port must be set...
+	dht_err err = do_rpc_call_threaded(recipient,msg_str,true,resp_str);
 	delete l1q;
 	l1q = NULL;
 		
@@ -66,8 +66,11 @@ namespace dht
 	     return err;
 	  }
 	
-	std::cout << "[Debug]:l1_protob_rpc_client: trying to deserialize response\n";
-	
+	//debug
+	/* std::cerr << "[Debug]:l1_protob_rpc_client: trying to deserialize response\n";
+	 std::cerr << "response size: " << resp_str.size() << std::endl; */
+	//debug
+	  
 	// deserialize response.
 	try 
 	  {
@@ -75,6 +78,7 @@ namespace dht
 	  }
 	catch (l1_fail_deserialize_exception &e)
 	  {
+	     std::cerr << "response deserialization error\n";
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l1 error: %s",e.what().c_str());
 	     return DHT_ERR_NETWORK;
 	  }

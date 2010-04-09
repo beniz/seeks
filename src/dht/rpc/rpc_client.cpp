@@ -78,11 +78,6 @@ namespace dht
 	     args->_err = DHT_ERR_CALL;
 	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
 	  }
-	catch (rpc_client_reception_error_exception &e)
-	  {
-	     args->_err = DHT_ERR_RESPONSE;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
      }
    
    dht_err rpc_client::do_rpc_call_threaded(const NetAddress &server_na,
@@ -97,7 +92,8 @@ namespace dht
 	
 	// join.
 	pthread_join(rpc_call_thread,NULL);
-	     
+	
+	response = args._response;
 	return args._err;
      }
       
@@ -124,27 +120,32 @@ namespace dht
 	if (hp == 0)
 	  {
 	     //debug
-	     std::cout << "Unknown host for rpc_client " << server_na.getNetAddress() << std::endl;
+	     //std::cout << "Unknown host for rpc_client " << server_na.getNetAddress() << std::endl;
 	     //debug
 	     
-	     errlog::log_error(LOG_LEVEL_INFO,"Unknown host for rpc_client %s", server_na.getNetAddress().c_str());
+	     errlog::log_error(LOG_LEVEL_ERROR,"Unknown host for rpc_client %s", server_na.getNetAddress().c_str());
 	     throw rpc_client_host_error_exception(server_na.getNetAddress());
 	  }
 		
 	bcopy((char*)hp->h_addr,(char*)&server.sin_addr,hp->h_length);
 	server.sin_port = htons(server_na.getPort());
 	int length = sizeof(struct sockaddr_in);
-
+	char msg_str[msg.length()+1];
+	for (size_t i=0;i<msg.length();i++)
+	  msg_str[i] = msg[i];
+	msg_str[msg.length()] = '\0';
+	
 	//debug
-	std::cout << "rpc_client: sending msg...\n";
+	/* std::cerr << "rpc_client: sending msg of " << sizeof(msg_str) << " bytes...\n";
+	 std::cerr << "msg: " << msg_str << std::endl; */
 	//debug
 	
 	// send the message.
-	int n = sendto(udp_sock,msg.c_str(),strlen(msg.c_str()),0,(struct sockaddr*)&server,length);
+	int n = sendto(udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&server,length);
 	if (n<0)
 	  {
 	     response.clear();
-	     errlog::log_error(LOG_LEVEL_INFO,"Error sending rpc_client msg");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error sending rpc_client msg");
 	     throw rpc_client_sending_error_exception();
 	  }
 		
@@ -165,7 +166,7 @@ namespace dht
 	if (m == 0) // no bits received before the communication timed out.
 	  {
 	     //debug
-	     std::cerr << "[Debug]: timeout on client response\n";
+	     //std::cerr << "[Debug]: timeout on client response\n";
 	     //debug
 	     
 	     errlog::log_error(LOG_LEVEL_ERROR, "Didn't receive response data in time to layer 1 call");
@@ -185,11 +186,18 @@ namespace dht
 	if (n<0)
 	  {
 	     response.clear();
-	     errlog::log_error(LOG_LEVEL_INFO,"Error in response to rpc_client msg");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error in response to rpc_client msg");
 	     throw rpc_client_reception_error_exception();
 	  }
 	
-	response = std::string(buf);
+	//debug
+	std::cerr << "[Debug]:received " << n << " bytes\n";
+	//std::cerr << "received msg: " << buf << std::endl;
+	//debug
+	
+	response = std::string(buf,n-1);
+	
+	std::cerr << "in rpc_client response size: " << response.size() << std::endl;
 	
 	return DHT_ERR_OK;
      }
