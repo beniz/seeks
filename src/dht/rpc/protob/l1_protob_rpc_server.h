@@ -33,8 +33,8 @@ namespace dht
 	
 	~l1_protob_rpc_server();
 	
-	virtual dht_err server_response(const std::string &msg,
-					std::string &resp_msg);
+	virtual dht_err serve_response(const std::string &msg,
+				       std::string &resp_msg);
 	
 	dht_err execute_callback(const uint32_t &fct_id,
 				 const DHTKey &recipient_key,

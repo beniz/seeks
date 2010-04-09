@@ -34,9 +34,13 @@ namespace dht
      {
      }
    
-   dht_err l1_protob_rpc_server::server_response(const std::string &msg,
-						 std::string &resp_msg)
+   dht_err l1_protob_rpc_server::serve_response(const std::string &msg,
+						std::string &resp_msg)
      {
+	//debug
+	std::cerr << "[Debug]: executing serve_response\n";
+	//debug
+	
 	// deserialize query message.
 	l1::l1_query l1q;
 	

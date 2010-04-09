@@ -133,9 +133,7 @@ namespace dht
 	     std::cout << "rpc_server: received msg: " << dtg_str << std::endl;
 	     //debug
 	     
-	     // TODO: produce and send a response.
-	     // sendto(sock,...).
-	     
+	     // produce and send a response.
 	     try
 	       {
 		  std::string resp_msg;
