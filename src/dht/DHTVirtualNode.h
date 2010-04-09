@@ -107,12 +107,10 @@ namespace dht
 	DHTNode* getPNode() const { return _pnode; }
 	DHTKey* getSuccessor() const { return _successor; }
 	void setSuccessor(const DHTKey &dk);
-	void setSuccessor(const DHTKey& dk, const NetAddress& na);  //DEPRECATED ?
-	void setSuccessor(Location* loc);
+	void setSuccessor(const DHTKey& dk, const NetAddress& na);
 	DHTKey* getPredecessor() const { return _predecessor; }
 	void setPredecessor(const DHTKey &dk);
-	void setPredecessor(const DHTKey& dk, const NetAddress& na); //DEPRECATED ? nop...
-	void setPredecessor(Location* loc);
+	void setPredecessor(const DHTKey& dk, const NetAddress& na);
 	Location* getLocation() const { return _loc; }
 	FingerTable* getFingerTable() { return _fgt; }
 	
@@ -122,7 +120,7 @@ namespace dht
 	LocationTable* getLocationTable() const;
 	Location* findLocation(const DHTKey& dk) const;
 	void addToLocationTable(const DHTKey& dk, const NetAddress& na,
-				Location* loc) const;
+				Location *&loc) const;
 	NetAddress getNetAddress() const;
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
 	

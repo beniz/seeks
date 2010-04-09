@@ -120,7 +120,7 @@ namespace dht
 	
 	// remote errors.
 	if ((dht_err)status == DHT_ERR_OK)
-	  setSuccessor(dkres);
+	  setSuccessor(dkres,na);
      	
 	return err;
      }
@@ -146,11 +146,14 @@ namespace dht
 	
 	/**
 	 * RPC call to get pred's successor.
+	 * we check among local virtual nodes first.
 	 */
 	int status = 0;
-	_pnode->_l1_client->RPC_getSuccessor(dk_pred, na_pred, 
-					     getIdKey(), getNetAddress(),
-					     dkres, na, status);
+	dht_err loc_err = _pnode->getSuccessor_cb(dk_pred,dkres,na,status);
+	if (loc_err == DHT_ERR_UNKNOWN_PEER)
+	  _pnode->_l1_client->RPC_getSuccessor(dk_pred, na_pred, 
+					       getIdKey(), getNetAddress(),
+					       dkres, na, status);
 	return (dht_err)status;
      }
    
@@ -185,10 +188,18 @@ namespace dht
 	     const NetAddress recipient = rloc.getNetAddress();
 	     DHTKey succ_key = succloc.getDHTKey();
 	     NetAddress succ_na = succloc.getNetAddress();
-	     _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
-							    getIdKey(),getNetAddress(),
-							    nodeKey, dkres, na, 
-							    succ_key, succ_na, status);
+	     
+	     /**
+	      * we make a local call to virtual nodes first, and a remote call if needed.
+	      */
+	     dht_err loc_err = _pnode->findClosestPredecessor_cb(recipientKey,
+								 nodeKey, dkres, na,
+								 succ_key, succ_na, status);
+	     if (loc_err == DHT_ERR_UNKNOWN_PEER)
+	       _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
+							      getIdKey(),getNetAddress(),
+							      nodeKey, dkres, na, 
+							      succ_key, succ_na, status);
 	     
              /**
 	      * check on RPC status.
@@ -213,8 +224,10 @@ namespace dht
 		  /**
 		   * In general we need to ask rloc for its successor.
 		   */
-		  _pnode->_l1_client->RPC_getSuccessor(dkres, na, getIdKey(), getNetAddress(), 
-						       succ_key, succ_na, status);
+		  dht_err loc_err = _pnode->getSuccessor_cb(dkres,succ_key,succ_na,status);
+		  if (loc_err == DHT_ERR_UNKNOWN_PEER)
+		    _pnode->_l1_client->RPC_getSuccessor(dkres, na, getIdKey(), getNetAddress(), 
+							 succ_key, succ_na, status);
 		  
 		  if ((dht_err)status != DHT_ERR_OK)
 		    {
@@ -247,15 +260,15 @@ namespace dht
 	_successor = new DHTKey(dk);
      }
    
-   //DEPRECATED   
    void DHTVirtualNode::setSuccessor(const DHTKey& dk, const NetAddress& na)
      {
-	if (*_successor == dk)
+	if (_successor && *_successor == dk)
 	  {
 	     /**
 	      * lookup for the corresponding location.
 	      */
 	     Location* loc = findLocation(dk);
+	     
 	     //debug
 	     if (!loc)
 	       {
@@ -269,6 +282,11 @@ namespace dht
 	      * another node with the same key, or that com port has changed).
 	      */
 	     loc->update(na);
+	     
+	     /**
+	      * takes the first spot of the finger table.
+	      */
+	     _fgt->_locs[0] = loc;
 	  }
 	else
 	  {
@@ -281,18 +299,12 @@ namespace dht
 		  addToLocationTable(dk, na, loc);
 	       }
 	     setSuccessor(loc->getDHTKey());
+	     
+	     /**
+	      * takes the first spot of the finger table.
+	      */
+	     _fgt->_locs[0] = loc;
 	  }
-     }
-
-   void DHTVirtualNode::setSuccessor(Location* loc)
-     {
-	if (*_successor != loc->getDHTKey())
-	  {
-	     setSuccessor(loc->getDHTKey());
-	  }
-	/**
-	 * TODO: udpate location ?
-	 */
      }
 
    void DHTVirtualNode::setPredecessor(const DHTKey &dk)
@@ -302,10 +314,9 @@ namespace dht
 	_predecessor = new DHTKey(dk);
      }
 
-   //DEPRECATED
    void DHTVirtualNode::setPredecessor(const DHTKey& dk, const NetAddress& na)
      {
-	if (*_predecessor == dk)
+	if (_predecessor && *_predecessor == dk)
 	  {
 	     /**
 	      * lookup for the corresponding location.
@@ -339,13 +350,6 @@ namespace dht
 	  }
      }
 
-   void DHTVirtualNode::setPredecessor(Location* loc)
-     {
-	if (*_predecessor != loc->getDHTKey())
-	  setPredecessor(loc->getDHTKey());
-     }
-   
-
    /**
     * function channeling to pnode (DHTNode) functions.
     */
@@ -361,7 +365,7 @@ namespace dht
      }
    
    void DHTVirtualNode::addToLocationTable(const DHTKey& dk, const NetAddress& na,
-					   Location* loc) const
+					   Location *&loc) const
      {
 	getLocationTable()->addToLocationTable(dk, na, loc);
      }
