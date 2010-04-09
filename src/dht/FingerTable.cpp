@@ -46,16 +46,6 @@ namespace dht
      {
      }
       
-   void FingerTable::setSuccessor(Location* loc)
-     {
-	_locs[0] = loc;
-	
-	/**
-	 * update successor in vnode.
-	 */
-	_vnode->setSuccessor(loc);
-     }
-   
    dht_err FingerTable::findClosestPredecessor(const DHTKey& nodeKey,
 					       DHTKey& dkres, NetAddress& na,
 					       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
@@ -77,6 +67,11 @@ namespace dht
 	     if (loc->getDHTKey().between(getVNodeIdKey(), nodeKey))
 	       {
 		  dkres = loc->getDHTKey();
+		  
+		  //debug
+		  assert(dkres.count()>0);
+		  //debug
+		  
 		  na = loc->getNetAddress();
 		  dkres_succ = DHTKey();
 		  dkres_succ_na = NetAddress();
@@ -102,6 +97,10 @@ namespace dht
    
    int FingerTable::stabilize()
      {
+	//debug
+	std::cerr << "[Debug]:FingerTable::stabilize()\n";
+	//debug
+	
 	DHTKey recipientKey = _vnode->getIdKey();
 	NetAddress na = getVNodeNetAddress();
 	
@@ -129,11 +128,13 @@ namespace dht
 	 */
 	DHTKey succ_pred;
 	NetAddress na_succ_pred;
-	int status = -1;
+	int status = 0;
 	
-	_vnode->getPNode()->_l1_client->RPC_getPredecessor(*succ, succ_loc->getNetAddress(),
-							   recipientKey,na,
-							   succ_pred, na_succ_pred, status);
+	dht_err loc_err = _vnode->getPNode()->getPredecessor_cb(*succ, succ_pred, na_succ_pred, status);
+	if (loc_err == DHT_ERR_UNKNOWN_PEER)
+	  _vnode->getPNode()->_l1_client->RPC_getPredecessor(*succ, succ_loc->getNetAddress(),
+							     recipientKey,na,
+							     succ_pred, na_succ_pred, status);
 	/**
 	 * TODO: check on RPC status.
 	 */
@@ -150,15 +151,17 @@ namespace dht
          */
 	if (succ_pred.between(recipientKey, *succ))
 	  {
-	     _vnode->setSuccessor(succ_pred_loc);
+	     _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
 	  }
 	
 	/**
 	 * notify RPC.
 	 */
-	_vnode->getPNode()->_l1_client->RPC_notify(*succ, succ_loc->getNetAddress(),
-						   getVNodeIdKey(),getVNodeNetAddress(),
-						   status);
+	loc_err == _vnode->getPNode()->notify_cb(*succ, getVNodeIdKey(), getVNodeNetAddress(), status);
+	if (loc_err == DHT_ERR_UNKNOWN_PEER)
+	  _vnode->getPNode()->_l1_client->RPC_notify(*succ, succ_loc->getNetAddress(),
+						     getVNodeIdKey(),getVNodeNetAddress(),
+						     status);
 	
 	/**
 	 * TODO: check on RPC status.
@@ -169,8 +172,12 @@ namespace dht
 
    int FingerTable::fix_finger()
      {
-	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
+	//debug
+	std::cerr << "[Debug]:FingerTable::fix_finger()\n";
+	//debug
 	
+	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
+		
 	//debug
 	assert(rindex > 0);
 	assert(rindex < KEYNBITS);
@@ -182,6 +189,11 @@ namespace dht
 	DHTKey dkres;
 	NetAddress na;
 	int status = -1;
+	
+	//debug
+	//std::cerr << "[Debug]:finger nodekey: _starts[" << rindex << "]: " << _starts[rindex] << std::endl;
+	//debug
+	
 	status = _vnode->find_predecessor(_starts[rindex], dkres, na);
 	/**
 	 * TODO: check on find_predecessor's status.

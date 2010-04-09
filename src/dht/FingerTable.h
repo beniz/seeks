@@ -40,13 +40,6 @@ namespace dht
 	~FingerTable();
 	
 	/**
-	 * \brief set successor (bin 0 of the finger table) and
-	 *        set successor in the virtual node.
-	 * @param loc Location as successor.
-	 */
-	void setSuccessor(Location* loc);
-	
-	/**
 	 * accessors.
 	 */
 	Location* getFinger(const int& i) { return _locs[i]; } 
@@ -111,7 +104,8 @@ namespace dht
 	 * and n is the virtual node's key.
 	 */
 	DHTKey _starts[KEYNBITS];
-     
+
+      public:
 	/**
 	 * \brief finger table: each location _locs[i] is the peer with key
 	 * that is the closest known successor to _starts[i].
