@@ -68,12 +68,13 @@ namespace dht
      }
    
    void LocationTable::addToLocationTable(const DHTKey& key, const NetAddress& na, 
-					  Location* loc)
+					  Location *&loc)
      {
 	loc = new Location(key, na);
 	addToLocationTable(loc);
      }
 
+   // TODO: mutexes!
    Location* LocationTable::addOrFindToLocationTable(const DHTKey& dk, const NetAddress& na)
      {
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;

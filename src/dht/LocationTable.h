@@ -56,7 +56,7 @@ namespace dht
 	 * @param loc location pointer to be filled with the new location info.
 	 * TODO: table cleanup.
 	 */
-	void addToLocationTable(const DHTKey& key, const NetAddress& na, Location* loc);
+	void addToLocationTable(const DHTKey& key, const NetAddress& na, Location *&loc);
 	
 	/**
 	 * \brief - lookup for the key in the hashtable. Replace based on the existing location
