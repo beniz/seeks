@@ -226,7 +226,7 @@ namespace dht
 				    DHTKey& dkres, NetAddress& na,
 				    int& status)
      {
-	status = -1;
+	status = DHT_ERR_OK;
 	
 	/**
 	 * get virtual node and deal with possible errors.
@@ -276,8 +276,10 @@ namespace dht
 	 * Setting RPC results.
 	 */
 	na = resloc->getNetAddress();
-	if (status == -1)
-	  status = DHT_ERR_OK;
+	
+	//debug
+	assert(dkres.count()>0);
+	//debug
 	
 	return status;
      }
@@ -286,7 +288,7 @@ namespace dht
 				      DHTKey& dkres, NetAddress& na,
 				      int& status)
      {
-	status = -1;
+	status = DHT_ERR_OK;
 	
 	/**
 	 * get virtual node and deal with possible errors.
@@ -308,7 +310,7 @@ namespace dht
 	  {
 	     dkres = DHTKey();
 	     na = NetAddress();
-	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
+	     status = DHT_ERR_NO_PREDECESSOR_FOUND;
 	     return status;
 	  }
 	
@@ -333,8 +335,6 @@ namespace dht
 	 * Setting RPC results.
 	 */
 	na = resloc->getNetAddress();
-	if (status == -1)  // TODO: ???
-	  status = DHT_ERR_OK;
 	
 	return status;
      }

@@ -26,14 +26,15 @@ typedef int dht_err;
 #define DHT_ERR_COMLEVEL                           3 /**< wrong communication level */
 #define DHT_ERR_UNKNOWN_PEER                       4 /**< unknown peer in lookup. */
 #define DHT_ERR_NO_SUCCESSOR_FOUND                 5 /**< can't find a successor to a peer. */
-#define DHT_ERR_UNKNOWN_PEER_LOCATION              6 /**< can't find a net address for a peer. */
-#define DHT_ERR_COM_TIMEOUT                        7 /**< a communication with a peer has timed out. */
-#define DHT_ERR_PTHREAD                            8 /**< thread creation error. */
-#define DHT_ERR_CALL                               9 /**< call error. */
-#define DHT_ERR_RESPONSE                          10 /**< response error. */
-#define DHT_ERR_BOOTSTRAP                         11 /**< bootstrap error. */
-#define DHT_ERR_SOCKET                            12 /**< socket error. */
-#define DHT_ERR_HOST                              13 /**< unknown host or name resolution failure. */
-#define DHT_ERR_MSG                               14 /**< msg (serialization/deserialization) error. */
-#define DHT_ERR_CALLBACK                          15 /**< unknown callback function. */
+#define DHT_ERR_NO_PREDECESSOR_FOUND               6 /**< can't find a predecessor to a peer. */
+#define DHT_ERR_UNKNOWN_PEER_LOCATION              7 /**< can't find a net address for a peer. */
+#define DHT_ERR_COM_TIMEOUT                        8 /**< a communication with a peer has timed out. */
+#define DHT_ERR_PTHREAD                            9 /**< thread creation error. */
+#define DHT_ERR_CALL                              10 /**< call error. */
+#define DHT_ERR_RESPONSE                          11 /**< response error. */
+#define DHT_ERR_BOOTSTRAP                         12 /**< bootstrap error. */
+#define DHT_ERR_SOCKET                            13 /**< socket error. */
+#define DHT_ERR_HOST                              14 /**< unknown host or name resolution failure. */
+#define DHT_ERR_MSG                               15 /**< msg (serialization/deserialization) error. */
+#define DHT_ERR_CALLBACK                          16 /**< unknown callback function. */
 #define DHT_ERR_UNKNOWN                         1000 /**< unknown error. */
