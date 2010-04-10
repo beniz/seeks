@@ -61,7 +61,7 @@ namespace dht
 	     Location* loc = _locs[i];
 	     
 	     /**
-	      * This should only happen when the finger table is
+	      * This should only happen when the finger table has
 	      * not yet been fully populated...
 	      */
 	     if (!loc)
@@ -139,22 +139,36 @@ namespace dht
 							     recipientKey,na,
 							     succ_pred, na_succ_pred, status);
 	/**
-	 * TODO: check on RPC status.
+	 * check on RPC status.
 	 */
-	
-	/**
-	 * look up succ_pred, add it to the location table if needed.
-         * -> because succ_pred should be in one of the succlist/predlist anyways.
-         */
-	Location* succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
-	
-	/**
-         * key check: if a node has taken place in between us and our
-	 * successor.
-         */
-	if (succ_pred.between(recipientKey, *succ))
+	if ((dht_err)status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
 	  {
-	     _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
+	  }
+	else if ((dht_err)status != DHT_ERR_OK)
+	  {
+	     //debug
+	     std::cerr << "[Debug]:FingerTable::stabilize: failed return from getPredecessor\n";
+	     //debug
+	  
+	     errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed return from getPredecessor");
+	     return (dht_err)status;
+	  }
+	else if ((dht_err)status == DHT_ERR_OK)
+	  {
+	     /**
+	      * look up succ_pred, add it to the location table if needed.
+	      * -> because succ_pred should be in one of the succlist/predlist anyways.
+	      */
+	     Location* succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
+	     
+	     /**
+	      * key check: if a node has taken place in between us and our
+	      * successor.
+	      */
+	     if (succ_pred.between(recipientKey, *succ))
+	       {
+		  _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
+	       }
 	  }
 	
 	/**
@@ -167,9 +181,14 @@ namespace dht
 						     status);
 	
 	/**
-	 * TODO: check on RPC status.
+	 * check on RPC status.
 	 */
-	
+	if ((dht_err)status != DHT_ERR_OK)
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
+	     return (dht_err)status;
+	  }
+		
 	return status;	
      }
 
@@ -197,14 +216,14 @@ namespace dht
 	//std::cerr << "[Debug]:finger nodekey: _starts[" << rindex << "]: " << _starts[rindex] << std::endl;
 	//debug
 	
-	status = _vnode->find_predecessor(_starts[rindex], dkres, na);
+	status = _vnode->find_successor(_starts[rindex], dkres, na);
 	if (status != DHT_ERR_OK)
 	  {
 	     //debug
-	     std::cerr << "[Debug]:fix_fingers: error finding predecessor.\n";
+	     std::cerr << "[Debug]:fix_fingers: error finding successor.\n";
 	     //debug
 	     
-	     errlog::log_error(LOG_LEVEL_DHT, "Error finding predecessor when fixing finger.\n");
+	     errlog::log_error(LOG_LEVEL_DHT, "Error finding successor when fixing finger.\n");
 	     return status;
 	  }
 	
@@ -217,7 +236,30 @@ namespace dht
      
 	_locs[rindex] = rloc;
 	
+	//debug
+	print(std::cout);
+	//debug
+	
 	return 0;
+     }
+
+   void FingerTable::print(std::ostream &out) const
+     {
+	out << "   ftable: " << _vnode->getIdKey() << std::endl;
+	if (_vnode->getSuccessor())
+	  out << "successor: " << *_vnode->getSuccessor() << std::endl;
+	if (_vnode->getPredecessor())
+	  out << "predecessor: " << *_vnode->getPredecessor() << std::endl;
+	for (int i=0;i<KEYNBITS;i++)
+	  {
+	     if (_locs[i])
+	       {
+		  out << "---------------------------------------------------------------\n";
+		  out << "starts: " << i << ": " << _starts[i] << std::endl;;
+		  out << "           " << _locs[i]->getDHTKey() << std::endl;
+		  out << _locs[i]->getNetAddress() << std::endl;
+	       }
+	  }
      }
    
 } /* end of namespace. */

@@ -87,6 +87,8 @@ namespace dht
 	 */
 	virtual bool isStable() { return false; }
 	
+	void print(std::ostream &out) const;
+	
       private:
 	/**
 	 * virtual node to which this table refers.

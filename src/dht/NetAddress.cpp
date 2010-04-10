@@ -79,7 +79,7 @@ namespace dht
     */
    std::ostream& NetAddress::print (std::ostream& output) const
      {
-	output << "IP/hname: " << _net_address << ":" << _port << std::endl;
+	output << "ip/port: " << _net_address << ":" << _port;
 	return output;
      }
 
