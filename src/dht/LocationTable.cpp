@@ -27,6 +27,8 @@ namespace dht
 {
    LocationTable::LocationTable()
      {	
+	// initialize mutex.
+	seeks_proxy::mutex_init(&_lt_mutex);
      }
 
    LocationTable::~LocationTable()
@@ -64,7 +66,9 @@ namespace dht
 	hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::iterator hit;
 	if ((hit=_hlt.find(&loc->getDHTKeyRef()))!=_hlt.end())
 	  delete (*hit).second; // beware.
+	seeks_proxy::mutex_lock(&_lt_mutex);
 	_hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
+	seeks_proxy::mutex_unlock(&_lt_mutex);
      }
    
    void LocationTable::addToLocationTable(const DHTKey& key, const NetAddress& na, 
@@ -74,7 +78,6 @@ namespace dht
 	addToLocationTable(loc);
      }
 
-   // TODO: mutexes!
    Location* LocationTable::addOrFindToLocationTable(const DHTKey& dk, const NetAddress& na)
      {
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;

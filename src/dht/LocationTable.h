@@ -23,6 +23,9 @@
 
 #include "stl_hash.h"
 #include "Location.h"
+#include "seeks_proxy.h" // for mutexes...
+
+using sp::seeks_proxy;
 
 namespace dht
 {
@@ -94,6 +97,10 @@ namespace dht
 	 * TODO: set of cached peers (locations) ?.
 	 */
 	
+	/**
+	 * mutex for table.
+	 */
+	sp_mutex_t _lt_mutex;
      };
      
 } /* end of namespace. */
