@@ -295,22 +295,27 @@ namespace dht
 	std::string result_key, found_key;
 	uint32_t result_ip_addr, found_ip_addr;
 	std::string result_net_port, found_net_port;
-	l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-					    result_key,result_ip_addr,
-					    result_net_port,found_key,
-					    found_ip_addr,found_net_port);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  result_key,result_ip_addr,
+							  result_net_port,found_key,
+							  found_ip_addr,found_net_port);
+	if (err != DHT_ERR_OK)
+	  return err;
 	std::vector<unsigned char> ser;
 	std::copy(result_key.begin(),result_key.end(),std::back_inserter(ser));
 	resultKey = DHTKey::unserialize(ser);
+	ser.clear();
 	std::string result_ip = NetAddress::unserialize_ip(result_ip_addr);
 	short result_port = NetAddress::unserialize_port(result_net_port);
 	resultAddress = NetAddress(result_ip,result_port);
-	ser.clear();
-	std::copy(found_key.begin(),found_key.end(),std::back_inserter(ser));
-	foundKey = DHTKey::unserialize(ser);
-	std::string found_ip = NetAddress::unserialize_ip(found_ip_addr);
-	short found_port = NetAddress::unserialize_port(found_net_port);
-	foundAddress = NetAddress(found_ip,found_port);
+	if (!found_key.empty())
+	  {
+	     std::copy(found_key.begin(),found_key.end(),std::back_inserter(ser));
+	     foundKey = DHTKey::unserialize(ser);
+	     std::string found_ip = NetAddress::unserialize_ip(found_ip_addr);
+	     short found_port = NetAddress::unserialize_port(found_net_port);
+	     foundAddress = NetAddress(found_ip,found_port);
+	  }
 	return DHT_ERR_OK;
      }
       
@@ -323,9 +328,11 @@ namespace dht
 	std::string result_key;
 	uint32_t result_ip_addr;
 	std::string result_net_port, found_net_port;
-	l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-					    result_key,result_ip_addr,
-					    result_net_port);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  result_key,result_ip_addr,
+							  result_net_port);
+	if (err != DHT_ERR_OK)
+	  return err;
 	std::vector<unsigned char> ser;
 	std::copy(result_key.begin(),result_key.end(),std::back_inserter(ser));
 	resultKey = DHTKey::unserialize(ser);
@@ -345,8 +352,10 @@ namespace dht
 					       uint32_t &found_ip_addr,
 					       std::string &found_net_port)
      {
-	l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
-					    result_key,result_ip_addr,result_net_port);
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  result_key,result_ip_addr,result_net_port);
+	if (err != DHT_ERR_OK)
+	  return err;
 	l1::vnodeid l1r_found_vnode_succ = l1r->found_vnode_succ();
 	l1::dht_key l1r_found_key = l1r_found_vnode_succ.key();
 	found_key = l1r_found_key.key();
@@ -363,9 +372,9 @@ namespace dht
 					       uint32_t &result_ip_addr,
 					       std::string &result_net_port)
      {
-	const l1::header l1r_head = l1r->head();
-	layer_id = l1r_head.layer_id();
-	error_status = l1r->error_status();
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
+	if (err != DHT_ERR_OK)
+	  return err;
 	l1::vnodeid l1r_found_vnode = l1r->found_vnode();
 	l1::dht_key l1r_result_key = l1r_found_vnode.key();
 	result_key = l1r_result_key.key();
@@ -382,7 +391,7 @@ namespace dht
 	const l1::header l1r_head = l1r->head();
 	layer_id = l1r_head.layer_id();
 	error_status = l1r->error_status();
-	return DHT_ERR_OK;
+	return error_status;
      }
    
    void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_response *l1r)
