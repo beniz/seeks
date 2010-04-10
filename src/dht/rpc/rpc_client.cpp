@@ -110,6 +110,7 @@ namespace dht
 	     std::cout << "Error creating rpc_client socket\n";
 	     // debug
 	     
+	     spsockets::close_socket(udp_sock); // beware.
 	     errlog::log_error(LOG_LEVEL_INFO,"Error creating rpc_client socket");
 	     throw rpc_client_socket_error_exception();
 	  }
@@ -123,6 +124,7 @@ namespace dht
 	     //std::cout << "Unknown host for rpc_client " << server_na.getNetAddress() << std::endl;
 	     //debug
 	     
+	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Unknown host for rpc_client %s", server_na.getNetAddress().c_str());
 	     throw rpc_client_host_error_exception(server_na.getNetAddress());
 	  }
@@ -145,13 +147,17 @@ namespace dht
 	if (n<0)
 	  {
 	     response.clear();
+	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error sending rpc_client msg");
 	     throw rpc_client_sending_error_exception();
 	  }
 		
 	// receive message, if necessary.
 	if (!need_response)
-	  return DHT_ERR_OK;	
+	  {
+	     spsockets::close_socket(udp_sock);
+	     return DHT_ERR_OK;	
+	  }
 	
 	// non blocking on (single) response.
 	fd_set rfds;
@@ -176,6 +182,7 @@ namespace dht
 	else if (m < 0)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "select() failed!: %E");
+	     spsockets::close_socket(udp_sock);
 	     return DHT_ERR_UNKNOWN;
 	  }
 		  
@@ -186,6 +193,7 @@ namespace dht
 	if (n<0)
 	  {
 	     response.clear();
+	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error in response to rpc_client msg");
 	     throw rpc_client_reception_error_exception();
 	  }
@@ -198,6 +206,8 @@ namespace dht
 	response = std::string(buf,n-1);
 	
 	std::cerr << "in rpc_client response size: " << response.size() << std::endl;
+	
+	spsockets::close_socket(udp_sock);
 	
 	return DHT_ERR_OK;
      }
