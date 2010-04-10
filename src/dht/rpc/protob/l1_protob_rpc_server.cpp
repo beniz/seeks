@@ -113,7 +113,9 @@ namespace dht
 				 dkres,dkres_na,status);
 	     
 	     // create a response.
-	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     if (status == DHT_ERR_OK)
+	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     else l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
 	else if (fct_id == hash_get_predecessor)
 	  {
@@ -128,7 +130,9 @@ namespace dht
 				   dkres,dkres_na,status);
 	     
 	     // create a response.
-	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     if (status == DHT_ERR_OK)
+	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     else l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
 	else if (fct_id == hash_notify)
 	  {
@@ -159,10 +163,14 @@ namespace dht
 					   status);
 	     
 	     // create a response.
-	     if (dkres_succ.count() > 0)
-	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
-							   dkres_succ,dkres_succ_na);
-	     else l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     if (status == DHT_ERR_OK)
+	       {
+		  if (dkres_succ.count() > 0)
+		    l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
+								dkres_succ,dkres_succ_na);
+		  else l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	       }
+	     else l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
 	else if (fct_id == hash_join_get_succ)
 	  {
@@ -177,7 +185,9 @@ namespace dht
 				dkres,dkres_na,status);
 	     
 	     // create a response.
-	     l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     if (status == DHT_ERR_OK)
+	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+	     else l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
 	else 
 	  {
