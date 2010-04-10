@@ -24,6 +24,7 @@
 #include "dht_err.h"
 #include "DHTKey.h"
 #include "NetAddress.h"
+#include "seeks_proxy.h" // for mutexes...
 
 #if (__GNUC__ >= 3)
 #include <ext/slist>
@@ -36,6 +37,8 @@ using __gnu_cxx::slist;
 #else
 using std::slist;
 #endif
+
+using sp::seeks_proxy;
 
 namespace dht
 {
@@ -169,6 +172,12 @@ namespace dht
 	 * this virtual node local location.
 	 */
 	Location* _loc;
+     
+	/**
+	 * predecessor and successor mutexes.
+	 */
+	sp_mutex_t _pred_mutex;
+	sp_mutex_t _succ_mutex;
      };  
    
 } /* end of namespace. */

@@ -35,11 +35,8 @@ namespace dht
 	  /**
 	   * We generate a random key as the node's id.
 	   */
-	  //_idkey = DHTKey::randomKey();
 	  _idkey = DHTNode::generate_uniform_key();
-	  
-	  //std::cout << "virtual node key: " << _idkey << std::endl;
-	  
+	  	  
 	  /**
 	   * create location and registers it to the location table.
 	   */
@@ -50,6 +47,12 @@ namespace dht
 	   * finger table.
 	   */
 	  _fgt = new FingerTable(this, getLocationTable());
+       
+	  /**
+	   * Initializes mutexes.
+	   */
+	  seeks_proxy::mutex_init(&_pred_mutex);
+	  seeks_proxy::mutex_init(&_succ_mutex);
        }
 
    DHTVirtualNode::~DHTVirtualNode()
@@ -192,8 +195,8 @@ namespace dht
 	     int status = -1;
 	     const DHTKey recipientKey = rloc.getDHTKey();
 	     const NetAddress recipient = rloc.getNetAddress();
-	     DHTKey succ_key = succloc.getDHTKey();
-	     NetAddress succ_na = succloc.getNetAddress();
+	     DHTKey succ_key = DHTKey(); // = succloc.getDHTKey();
+	     NetAddress succ_na = NetAddress(); // = succloc.getNetAddress();
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     
@@ -256,6 +259,8 @@ namespace dht
 		    }
 	       }
 	     
+	     assert(succ_key.count()>0);
+	     
 	     succloc.setDHTKey(succ_key);
 	     succloc.setNetAddress(succ_na);
 	  }
@@ -280,9 +285,11 @@ namespace dht
     */
    void DHTVirtualNode::setSuccessor(const DHTKey &dk)
      {
+	seeks_proxy::mutex_lock(&_succ_mutex);
 	if (_successor)
 	  delete _successor;
 	_successor = new DHTKey(dk);
+	seeks_proxy::mutex_unlock(&_succ_mutex);
      }
    
    void DHTVirtualNode::setSuccessor(const DHTKey& dk, const NetAddress& na)
@@ -334,9 +341,11 @@ namespace dht
 
    void DHTVirtualNode::setPredecessor(const DHTKey &dk)
      {
+	seeks_proxy::mutex_lock(&_pred_mutex);
 	if (_predecessor)
 	  delete _predecessor;
 	_predecessor = new DHTKey(dk);
+	seeks_proxy::mutex_unlock(&_pred_mutex);
      }
 
    void DHTVirtualNode::setPredecessor(const DHTKey& dk, const NetAddress& na)
