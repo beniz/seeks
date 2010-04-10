@@ -43,7 +43,7 @@ message l1_query
 message l1_response
 {
  required header head = 1; 	      /* message head. */
- optional uint32 error_status = 2;    /* response error status. */
+ required uint32 error_status = 2;    /* response error status. */
  optional vnodeid found_vnode = 3;    /* found node id. */
  optional vnodeid found_vnode_succ = 4;      /* additional information, = successor in closestPredecessor call. */
 }
