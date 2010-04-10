@@ -118,7 +118,9 @@ namespace dht
 		  std::cout << "Error receiving DGRAM message\n";
 		  //debug
 		  
+		  spsockets::close_socket(udp_sock);
 		  errlog::log_error(LOG_LEVEL_ERROR, "recvfrom: error receiving DGRAM message, %E");
+		  return DHT_ERR_SOCKET; // TODO: exception.
 	       }
 	     
 	     //debug
@@ -143,8 +145,9 @@ namespace dht
 	       }
 	     catch (dht_exception ex)
 	       {
+		  spsockets::close_socket(udp_sock);
 		  errlog::log_error(LOG_LEVEL_LOG, "rpc_server exception: %s", ex.what().c_str());
-	       
+		  
 		  // TODO: error decision.
 	     	  // TODO: rethrow something.
 	       }
@@ -167,6 +170,7 @@ namespace dht
 	     n = sendto(udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&from,fromlen);
 	     if (n<0)
 	       {
+		  spsockets::close_socket(udp_sock);
 		  errlog::log_error(LOG_LEVEL_DHT, "Error sending rpc_server answer msg");
 		  throw rpc_server_sending_error_exception();
 	       }
