@@ -70,7 +70,7 @@ namespace dht
 	 * \brief notifies this virtual node that the argument key/address peer
 	 *        thinks it is its predecessor.
 	 */
-	void notify(const DHTKey& senderKey, const NetAddress& senderAddress);
+	dht_err notify(const DHTKey& senderKey, const NetAddress& senderAddress);
 	
 	/**
 	 * \brief find the closest predecessor of nodeKey in the finger table.
@@ -78,7 +78,7 @@ namespace dht
 	 * @param dkres closest predecessor result variable,
 	 * @param na closest predecessor net address variable,
 	 * @param dkres_succ successor to dkres.
-	 * @param status result status. TODO.
+	 * @param status result status.
 	 */
 	dht_err findClosestPredecessor(const DHTKey& nodeKey,
 				       DHTKey& dkres, NetAddress& na,

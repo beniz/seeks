@@ -198,6 +198,7 @@ namespace dht
 	std::cerr << "[Debug]:FingerTable::fix_finger()\n";
 	//debug
 	
+	// TODO: seed.
 	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
 		
 	//debug
@@ -237,7 +238,7 @@ namespace dht
 	_locs[rindex] = rloc;
 	
 	//debug
-	print(std::cout);
+	//print(std::cout);
 	//debug
 	
 	return 0;

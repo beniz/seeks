@@ -35,6 +35,7 @@ namespace dht
 	  /**
 	   * We generate a random key as the node's id.
 	   */
+	  //_idkey = DHTKey::randomKey();
 	  _idkey = DHTNode::generate_uniform_key();
 	  	  
 	  /**
@@ -78,11 +79,12 @@ namespace dht
 	delete _fgt;
      }
       
-   void DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
+   dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
      {
 	if (!_predecessor
 	    || senderKey.between(*_predecessor, _idkey))
 	  setPredecessor(senderKey, senderAddress);
+	return DHT_ERR_OK;
      }
    
    dht_err DHTVirtualNode::findClosestPredecessor(const DHTKey& nodeKey,
@@ -144,6 +146,11 @@ namespace dht
 	 */
 	if (dht_status != DHT_ERR_OK)
 	  {
+	     //debug
+	     std::cerr << "find_successor failed on getting predecessor\n".
+	     //debug
+	     
+	     errlog::log_error(LOG_LEVEL_DHT, "find_successor failed on getting predecessor");
 	     return dht_status;
 	  }
 	
@@ -285,6 +292,10 @@ namespace dht
     */
    void DHTVirtualNode::setSuccessor(const DHTKey &dk)
      {
+	//debug
+	assert(dk.count()>0);
+	//debug
+	
 	seeks_proxy::mutex_lock(&_succ_mutex);
 	if (_successor)
 	  delete _successor;

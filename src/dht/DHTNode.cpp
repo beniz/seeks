@@ -170,7 +170,7 @@ namespace dht
 	// hermaphrodite, builds its own circle.
 	dht_err err = self_bootstrap();
 	
-	return DHT_ERR_BOOTSTRAP;
+	return DHT_ERR_BOOTSTRAP; // TODO: check on error status.
      }
 
    dht_err DHTNode::self_bootstrap()
@@ -196,6 +196,11 @@ namespace dht
 	       vnode->setPredecessor(*vnode_keys_ord.at(nv-1),_l1_na);
 	     else 
 	       vnode->setPredecessor(*vnode_keys_ord.at(i-1),_l1_na);
+	  
+	     //debug
+	     std::cerr << "predecessor: " << *vnode->getPredecessor() << std::endl;
+	     std::cerr << "successor: " << *vnode->getSuccessor() << std::endl;
+	     //debug
 	  }
 	
 	//debug
@@ -360,10 +365,10 @@ namespace dht
 	 * notifies this node that the argument node (key) thinks it is 
 	 * its predecessor.
 	 */
-	vnode->notify(senderKey, senderAddress);
-	status = 0;
+	dht_err err = vnode->notify(senderKey, senderAddress);
 	
-	return status;
+	status = err;
+	return err;
      }
    
    int DHTNode::findClosestPredecessor_cb(const DHTKey& recipientKey,
