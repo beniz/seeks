@@ -111,7 +111,7 @@ namespace dht
 	catch (dht_exception &e)
 	  {
 	     delete l1r;
-	     errlog::log_error(LOG_LEVEL_DHT, "Failed getSuccessor cal to %s: %s",
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed getSuccessor call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
 	     return DHT_ERR_CALL;
 	  }
@@ -225,7 +225,54 @@ namespace dht
 	delete l1r;
 	return err;
      }
-        
+
+   dht_err l1_protob_rpc_client::RPC_getSuccList(const DHTKey &recipientKey,
+						 const NetAddress &recipient,
+						 const DHTKey &senderKey,
+						 const NetAddress &senderAddress,
+						 slist<DHTKey> &dkres_list,
+						 slist<NetAddress> &na_list,
+						 int &status)
+     {
+	//debug
+	std::cerr << "[Debug]: RPC_getSuccList call\n";
+	//debug
+	
+	// do call, wait and get response.
+	l1::l1_response *l1r = new l1::l1_response();
+	dht_err err = DHT_ERR_OK;
+	
+	try
+	  {
+	     err = l1_protob_rpc_client::RPC_call(hash_get_succlist,
+						  recipientKey,recipient,
+						  senderKey,senderAddress,
+						  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed getSuccList call to %s: %s",
+			       recipient.toString().c_str(), e.what().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
+	// check on local error status.
+	if (err != DHT_ERR_OK)
+	  {
+	     delete l1r;
+	     return err;
+	  }
+	
+	/// handle the response.
+	uint32_t layer_id, error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+						  dkres_list,na_list);
+	status = error_status; // remote error status.
+	delete l1r;
+	return err;
+     }
+      
    dht_err l1_protob_rpc_client::RPC_findClosestPredecessor(const DHTKey& recipientKey,
 							    const NetAddress& recipient,
 							    const DHTKey& senderKey,
@@ -320,6 +367,52 @@ namespace dht
 	uint32_t layer_id, error_status;
 	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
 						  dkres,na);
+	status = error_status;
+	delete l1r;
+	return err;
+     }
+
+   dht_err l1_protob_rpc_client::RPC_ping(const DHTKey& recipientKey,
+					  const NetAddress& recipient,
+					  const DHTKey& senderKey,
+					  const NetAddress& senderAddress,
+					  int& status)
+     {
+	//debug
+	std::cerr << "[Debug]: RPC_ping call\n";
+	//debug
+	
+	// do call, wait and get response.
+	l1::l1_response *l1r = new l1::l1_response();
+	dht_err err = DHT_ERR_OK;
+	 
+	try
+	  {
+	     err = l1_protob_rpc_client::RPC_call(hash_ping,
+						  recipientKey,recipient,
+						  senderKey,senderAddress,
+						  l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed ping call to %s: %s",
+			       recipient.toString().c_str(), e.what().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
+	// check on local error status.
+	if (err != DHT_ERR_OK)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed ping call to %s",
+			       recipient.toString().c_str());
+	     return err;
+	  }
+	
+	// handle the response.
+	uint32_t layer_id, error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
 	status = error_status;
 	delete l1r;
 	return err;

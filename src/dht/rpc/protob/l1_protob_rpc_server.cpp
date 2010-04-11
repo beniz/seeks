@@ -147,6 +147,23 @@ namespace dht
 	     // create a response.
 	     l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
+	else if (fct_id == hash_get_succlist)
+	  {
+	     //debug
+	     std::cerr << "get_succlist\n";
+	     //debug
+	     
+	     slist<DHTKey> dkres_list;
+	     slist<NetAddress> na_list;
+	     RPC_getSuccList_cb(recipient_key,recipient_na,
+				sender_key,sender_na,
+				dkres_list,na_list,status);
+	     
+	     // create a response.
+	     if (status == DHT_ERR_OK)
+	       l1r = l1_protob_wrapper::create_l1_response(status,dkres_list,na_list);
+	     else l1r = l1_protob_wrapper::create_l1_response(status);
+	  }
 	else if (fct_id == hash_find_closest_predecessor)
 	  {
 	     //debug
@@ -243,7 +260,18 @@ namespace dht
      {
 	return _pnode->notify_cb(recipientKey,senderKey,senderAddress,status);
      }
-      
+
+   dht_err l1_protob_rpc_server::RPC_getSuccList_cb(const DHTKey& recipientKey,
+						    const NetAddress &recipient,
+						    const DHTKey& senderKey,
+						    const NetAddress& senderAddress,
+						    slist<DHTKey> &dkres_list,
+						    slist<NetAddress> &na_list,
+						    int& status)
+     {
+	return _pnode->getSuccList_cb(recipientKey,dkres_list,na_list,status);
+     }
+   
    dht_err l1_protob_rpc_server::RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 							       const NetAddress &recipient,
 							       const DHTKey& senderKey,
@@ -265,6 +293,15 @@ namespace dht
 						    int& status)
      {
 	return _pnode->joinGetSucc_cb(recipientKey,senderKey,dkres,na,status);
+     }
+      
+   dht_err l1_protob_rpc_server::RPC_ping_cb(const DHTKey& recipientKey,
+					     const NetAddress &recipient,
+					     const DHTKey& senderKey,
+					     const NetAddress& senderAddress,
+					     int& status)
+     {
+	return _pnode->ping_cb(recipientKey,senderKey,senderAddress,status);
      }
       
 } /* end of namespace. */

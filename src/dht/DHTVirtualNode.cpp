@@ -27,7 +27,7 @@ using sp::errlog;
 
 namespace dht
 {
-   size_t DHTVirtualNode::_maxSuccsListSize = 15; //default adhoc value. TODO: compute useful value.
+   size_t DHTVirtualNode::_maxSuccsListSize = 15; //default adhoc value. A dedicated value is computed in DHTNode.
    
    DHTVirtualNode::DHTVirtualNode(DHTNode* pnode)
      : _pnode(pnode), _successor(NULL), _predecessor(NULL)
@@ -35,8 +35,8 @@ namespace dht
 	  /**
 	   * We generate a random key as the node's id.
 	   */
-	  //_idkey = DHTKey::randomKey();
-	  _idkey = DHTNode::generate_uniform_key();
+	  _idkey = DHTKey::randomKey();
+	  //_idkey = DHTNode::generate_uniform_key();
 	  	  
 	  /**
 	   * create location and registers it to the location table.
@@ -63,7 +63,7 @@ namespace dht
 	if (_predecessor)
 	  delete _predecessor;
 	
-	slist<DHTKey*>::iterator sit = _successors.begin();
+	/* slist<DHTKey*>::iterator sit = _successors.begin();
 	while(sit!=_successors.end())
 	  {
 	     delete (*sit);
@@ -74,7 +74,7 @@ namespace dht
 	  {
 	     delete (*sit);
 	     ++sit;
-	  }
+	  } */
 	
 	delete _fgt;
      }
@@ -95,7 +95,13 @@ namespace dht
 	return _fgt->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
      }
 
-   
+   dht_err DHTVirtualNode::ping(const DHTKey &senderKey, const NetAddress &senderAddress)
+     {
+	// TODO: add protection against ping or some good reason not to respond with an OK status.
+	// alive.
+	return DHT_ERR_OK;
+     }
+      
    /**-- functions using RPCs. --**/
    dht_err DHTVirtualNode::join(const DHTKey& dk_bootstrap,
 				const NetAddress &dk_bootstrap_na,
@@ -147,7 +153,7 @@ namespace dht
 	if (dht_status != DHT_ERR_OK)
 	  {
 	     //debug
-	     std::cerr << "find_successor failed on getting predecessor\n".
+	     std::cerr << "find_successor failed on getting predecessor\n";
 	     //debug
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "find_successor failed on getting predecessor");

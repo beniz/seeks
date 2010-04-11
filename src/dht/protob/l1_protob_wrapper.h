@@ -30,6 +30,18 @@
 #include <string>
 #include <stdint.h>
 
+#if (__GNUC__ >= 3)
+#include <ext/slist>
+#else
+#include <slist>
+#endif
+ 
+#if (__GNUC__ >= 3)
+using __gnu_cxx::slist;
+#else
+using std::slist;
+#endif
+
 namespace dht
 {
    class l1_protob_wrapper
@@ -72,10 +84,17 @@ namespace dht
 	static l1::l1_response* create_l1_response(const uint32_t &error_status,
 						   const DHTKey &resultKey,
 						   const NetAddress &resultAddress);
-      
+	
+	static l1::l1_response* create_l1_response(const uint32_t &error_status,
+						   const slist<DHTKey> &resultKeyList,
+						   const slist<NetAddress> &resultAddressList);
 	static l1::l1_response* create_l1_response(const uint32_t &error_status);
 						   
       private:
+	static l1::l1_response* create_l1_response(const uint32_t &error_status,
+						   const slist<std::string> &result_key_list,
+						   const slist<std::pair<uint32_t,std::string> > &result_address_list);
+	
 	static l1::l1_response* create_l1_response(const uint32_t error_status,
 						   const std::string &result_key,
 						   const uint32_t &result_ip_addr,
@@ -126,7 +145,7 @@ namespace dht
       public:
 	static void deserialize(const std::string &str, l1::l1_query *l1q);
      
-	// TODO: responses.
+	// responses.
       public:
 	static dht_err read_l1_response(const l1::l1_response *l1r,
 					uint32_t &layer_id,
@@ -142,7 +161,19 @@ namespace dht
 					DHTKey &resultKey,
 					NetAddress &resultAddress);
 	
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status,
+					slist<DHTKey> &dkres_list,
+					slist<NetAddress> &na_list);
+	
       private:
+	static dht_err read_l1_response(const l1::l1_response *l1r,
+					uint32_t &layer_id,
+					uint32_t &error_status,
+					slist<std::string> &result_key_list,
+					slist<std::pair<uint32_t,std::string> > &result_address_list);
+	
 	static dht_err read_l1_response(const l1::l1_response *l1r,
 					uint32_t &layer_id,
 					uint32_t &error_status,

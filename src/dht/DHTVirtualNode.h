@@ -85,6 +85,11 @@ namespace dht
 				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				       int& status);
 	
+	/**
+	 * \brief this virtual node is being pinged from the outside world.
+	 */
+	dht_err ping(const DHTKey &senderKey, const NetAddress &senderAddress);
+	
 	/**---------------------------------------**/
 	
 	/**-- functions using RPCs. --**/
@@ -114,6 +119,10 @@ namespace dht
 	DHTKey* getPredecessor() const { return _predecessor; }
 	void setPredecessor(const DHTKey &dk);
 	void setPredecessor(const DHTKey& dk, const NetAddress& na);
+	void clearSuccsList() { _successors.clear(); };
+	void clearPredsList() { _predecessors.clear(); };
+	slist<const DHTKey*> getSuccessorList() const { return _successors; };
+	slist<const DHTKey*> getPredecessorList() const { return _predecessors; };
 	Location* getLocation() const { return _loc; }
 	FingerTable* getFingerTable() { return _fgt; }
 	
@@ -148,23 +157,26 @@ namespace dht
 	 */
 	DHTKey* _predecessor;
      
+      public:
 	/**
 	 * Sorted list of successors.
 	 */
-	slist<DHTKey*> _successors;
+	slist<const DHTKey*> _successors;
 	
 	/**
 	 * Sorted list of predecessors.
 	 */
-	slist<DHTKey*> _predecessors;
-
+	slist<const DHTKey*> _predecessors;
+	
+      public:
 	/**
 	 * Max size of the pred/succ lists.
 	 */
 	static size_t _maxSuccsListSize;
 	
+      private:
 	/**
-	 * TODO: finger table.
+	 * finger table.
 	 */
 	FingerTable* _fgt;
 

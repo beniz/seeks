@@ -134,6 +134,78 @@ namespace dht
 	return l1r;
      }
    
+   l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t &error_status,
+							  const slist<DHTKey> &resultKeyList,
+							  const slist<NetAddress> &resultAddressList)
+     {
+	std::vector<unsigned char> dkresult;
+	slist<std::string> result_key_list;
+	slist<std::string>::iterator back;
+	slist<DHTKey>::const_iterator sit = resultKeyList.begin();
+	while(sit!=resultKeyList.end())
+	  {
+	     dkresult = DHTKey::serialize((*sit));
+	     std::string result_key(dkresult.begin(),dkresult.end());
+	     dkresult.clear();
+	     if (result_key_list.empty())
+	       {
+		  result_key_list.push_front(result_key);
+		  back = result_key_list.begin();
+	       }
+	     else back = result_key_list.insert_after(back,result_key);
+	     ++sit;
+	  }
+	slist<std::pair<uint32_t,std::string> > result_address_list;
+	slist<std::pair<uint32_t,std::string> >::iterator back_al;
+	slist<NetAddress>::const_iterator tit = resultAddressList.begin();
+	while(tit!=resultAddressList.end())
+	  {
+	     std::pair<uint32_t,std::string> pp;
+	     uint32_t result_ip_addr = (*tit).serialize_ip();
+	     std::string result_net_port = (*tit).serialize_port();
+	     pp.first = result_ip_addr;
+	     pp.second = result_net_port;
+	     if (result_address_list.empty())
+	       {
+		  result_address_list.push_front(pp);
+		  back_al = result_address_list.begin();
+	       }
+	     else back_al = result_address_list.insert_after(back_al,pp);
+	     ++tit;
+	  }
+	l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(error_status,result_key_list,
+								     result_address_list);
+	return l1r;
+     }
+   
+   l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t &error_status,
+							  const slist<std::string> &result_key_list,
+							  const slist<std::pair<uint32_t,std::string> > &result_address_list)
+     {
+	l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(error_status);
+	l1::nodelist *l1r_vnodelist = l1r->mutable_vnodelist();
+	slist<std::string>::const_iterator sit = result_key_list.begin();
+	while(sit!=result_key_list.end())
+	  {
+	     l1::vnodeid *l1r_found_vnode = l1r_vnodelist->add_nodes();
+	     l1::dht_key *l1r_result_key = l1r_found_vnode->mutable_key();
+	     l1r_result_key->set_key((*sit));
+	     ++sit;
+	  }
+	slist<std::pair<uint32_t,std::string> >::const_iterator tit = result_address_list.begin();
+	int i = 0;
+	while(tit!=result_address_list.end())
+	  {
+	     l1::vnodeid *l1r_found_vnode = l1r_vnodelist->mutable_nodes(i);
+	     l1::net_address *l1r_result_addr = l1r_found_vnode->mutable_addr();
+	     l1r_result_addr->set_ip_addr((*tit).first);
+	     l1r_result_addr->set_net_port((*tit).second);
+	     i++;
+	     ++tit;
+	  }
+	return l1r;
+     }
+      
    l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t &error_status)
      {
 	l1::l1_response *l1r = new l1::l1_response();
@@ -157,7 +229,7 @@ namespace dht
 	l1r_result_addr->set_net_port(result_net_port);
 	return l1r;
      }
-   
+
    l1::l1_response* l1_protob_wrapper::create_l1_response(const uint32_t error_status,
 							  const std::string &result_key,
 							  const uint32_t &result_ip_addr,
@@ -339,6 +411,90 @@ namespace dht
 	std::string result_ip = NetAddress::unserialize_ip(result_ip_addr);
 	short result_port = NetAddress::unserialize_port(result_net_port);
 	resultAddress = NetAddress(result_ip,result_port);
+	return DHT_ERR_OK;
+     }
+   
+   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+					       uint32_t &layer_id,
+					       uint32_t &error_status,
+					       slist<DHTKey> &dkres_list,
+					       slist<NetAddress> &na_list)
+     {
+	slist<std::string> result_key_list;
+	slist<std::pair<uint32_t,std::string> > result_address_list;
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+							  result_key_list,result_address_list);
+	if (err != DHT_ERR_OK)
+	  return err;
+	std::vector<unsigned char> ser;
+	slist<DHTKey>::iterator back;
+	slist<std::string>::const_iterator sit = result_key_list.begin();
+	while(sit!=result_key_list.end())
+	  {
+	     std::copy((*sit).begin(),(*sit).end(),std::back_inserter(ser));
+	     DHTKey resultKey = DHTKey::unserialize(ser);
+	     ser.clear();
+	     if (dkres_list.empty())
+	       {
+		  dkres_list.push_front(resultKey);
+		  back = dkres_list.begin();
+	       }
+	     else back = dkres_list.insert_after(back,resultKey);
+	     ++sit;
+	  }
+	slist<NetAddress>::iterator back_al;
+	slist<std::pair<uint32_t,std::string> >::const_iterator tit = result_address_list.begin();
+	while(tit!=result_address_list.end())
+	  {
+	     std::string result_ip = NetAddress::unserialize_ip((*tit).first);
+	     short result_port = NetAddress::unserialize_port((*tit).second);
+	     NetAddress resultAddress = NetAddress(result_ip,result_port);
+	     if (na_list.empty())
+	       {
+		  na_list.push_front(resultAddress);
+		  back_al = na_list.begin();
+	       }
+	     else back_al = na_list.insert_after(back_al,resultAddress);
+	     ++tit;
+	  }
+	return DHT_ERR_OK;
+     }
+        
+   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+					       uint32_t &layer_id,
+					       uint32_t &error_status,
+					       slist<std::string> &result_key_list,
+					       slist<std::pair<uint32_t,std::string> > &result_address_list)
+     {
+	dht_err err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
+	if (err != DHT_ERR_OK)
+	  return err;
+	l1::nodelist l1r_vnodelist = l1r->vnodelist();
+	int nnodes = l1r_vnodelist.nodes_size();
+	slist<std::string>::iterator back;
+	slist<std::pair<uint32_t,std::string> >::iterator back_al;
+	for (int i=0;i<nnodes;i++)
+	  {
+	     l1::vnodeid l1r_found_vnode = l1r_vnodelist.nodes(i);
+	     l1::dht_key l1r_result_key = l1r_found_vnode.key();
+	     std::string result_key = l1r_result_key.key();
+	     if (result_key_list.empty())
+	       {
+		  result_key_list.push_front(result_key);
+		  back = result_key_list.begin();
+	       }
+	     else back = result_key_list.insert_after(back,result_key);
+	     l1::net_address l1r_result_addr = l1r_found_vnode.addr();
+	     uint32_t result_ip_addr = l1r_result_addr.ip_addr();
+	     std::string result_net_port = l1r_result_addr.net_port();
+	     std::pair<uint32_t,std::string> pp(result_ip_addr,result_net_port);
+	     if (result_address_list.empty())
+	       {
+		  result_address_list.push_front(pp);
+		  back_al = result_address_list.begin();
+	       }
+	     else back_al = result_address_list.insert_after(back_al,pp);
+	  }
 	return DHT_ERR_OK;
      }
    

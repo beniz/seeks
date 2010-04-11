@@ -31,6 +31,12 @@ message vnodeid
  required net_address addr = 2; 	/* node's net address. */
 }
 
+/* node list. */
+message nodelist
+{
+ repeated vnodeid nodes = 1;
+}
+
 /* query and response. */
 message l1_query
 {
@@ -46,4 +52,5 @@ message l1_response
  required uint32 error_status = 2;    /* response error status. */
  optional vnodeid found_vnode = 3;    /* found node id. */
  optional vnodeid found_vnode_succ = 4;      /* additional information, = successor in closestPredecessor call. */
+ optional nodelist vnodelist = 5;
 }

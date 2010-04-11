@@ -75,7 +75,7 @@ namespace dht
 	 * create the virtual nodes.
 	 * TODO: persistance of vnodes and associated tables.
 	 */
-	
+	DHTVirtualNode::_maxSuccsListSize = DHTNode::_dht_config->_nvnodes-1;
 	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
 	  {
 	     /**
@@ -188,6 +188,9 @@ namespace dht
 	     const DHTKey *dkey = vnode_keys_ord.at(i);
 	     DHTVirtualNode *vnode = findVNode(*dkey);
 	     
+	     vnode->clearSuccsList();
+	     vnode->clearPredsList();
+	     
 	     if (i == nv-1)
 	       vnode->setSuccessor(*vnode_keys_ord.at(0),_l1_na); // close the circle.
 	     else
@@ -201,6 +204,27 @@ namespace dht
 	     std::cerr << "predecessor: " << *vnode->getPredecessor() << std::endl;
 	     std::cerr << "successor: " << *vnode->getSuccessor() << std::endl;
 	     //debug
+	  
+	     // fill up successor list.
+	     size_t c = 0;
+	     size_t j = i+2;
+	     slist<const DHTKey*>::iterator back;
+	     while(c<nv)
+	       {
+		  if (j >= nv)
+		    j = 0;
+		  if (vnode->_successors.empty())
+		    {
+		       vnode->_successors.push_front(vnode_keys_ord.at(j));
+		       back = vnode->_successors.begin();
+		    }
+		  else
+		    back = vnode->_successors.insert_after(back,vnode_keys_ord.at(j));
+		  c++;
+		  j++;
+	       }
+	     
+	     //TODO: predecessor list.
 	  }
 	
 	//debug
@@ -344,12 +368,12 @@ namespace dht
 	return status;
      }
       
-   int DHTNode::notify_cb(const DHTKey& recipientKey,
-			  const DHTKey& senderKey,
-			  const NetAddress& senderAddress,
-			  int& status)
+   dht_err DHTNode::notify_cb(const DHTKey& recipientKey,
+			      const DHTKey& senderKey,
+			      const NetAddress& senderAddress,
+			      int& status)
      { 
-	status = -1;
+	status = DHT_ERR_OK;
 	
 	/**
 	 * get virtual node.
@@ -370,12 +394,87 @@ namespace dht
 	status = err;
 	return err;
      }
-   
-   int DHTNode::findClosestPredecessor_cb(const DHTKey& recipientKey,
-					  const DHTKey& nodeKey,
-					  DHTKey& dkres, NetAddress& na,
-					  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-					  int& status)
+
+   dht_err DHTNode::getSuccList_cb(const DHTKey &recipientKey,
+				   slist<DHTKey> &dkres_list,
+				   slist<NetAddress> &na_list,
+				   int &status)
+     {
+	status = DHT_ERR_OK;
+	
+	/**
+	 * get virtual node and deal with possible errors.
+	 */
+	DHTVirtualNode* vnode = findVNode(recipientKey);
+	if (!vnode)
+	  {
+	     dkres_list = slist<DHTKey>();
+	     na_list = slist<NetAddress>();
+	     status = DHT_ERR_UNKNOWN_PEER;
+	     return status;
+	  }
+	
+	/**
+	 * return successor list.
+	 */
+	slist<DHTKey>::iterator back;
+	slist<const DHTKey*>::const_iterator sit = vnode->_successors.begin();
+	while(sit!=vnode->_successors.end())
+	  {
+	     if (dkres_list.empty())
+	       {
+		  dkres_list.push_front(*(*sit));
+		  back = dkres_list.begin();
+	       }
+	     else back = dkres_list.insert_after(back,*(*sit));
+	     ++sit;
+	  }
+	
+	if (dkres_list.empty())
+	  {
+	     na_list = slist<NetAddress>();
+	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
+	     return status;
+	  }
+	
+	/**
+	 * fetch location information.
+	 */
+	slist<NetAddress>::iterator back_al;
+	slist<DHTKey>::const_iterator tit = dkres_list.begin();
+	while(sit!=dkres_list.end())
+	  {
+	     Location *resloc = vnode->findLocation((*tit));
+	     if (!resloc)
+	       {
+		  dkres_list.clear();
+		  na_list = slist<NetAddress>();
+		  status = DHT_ERR_UNKNOWN_PEER_LOCATION;
+		  return status;
+	       }
+	     
+	     if (na_list.empty())
+	       {
+		  na_list.push_front(resloc->getNetAddress());
+		  back_al = na_list.begin();
+	       }
+	     else back_al = na_list.insert_after(back_al,resloc->getNetAddress());
+	     
+	     ++tit;
+	  }
+	
+	//debug
+	assert(!na_list.empty());
+	//debug
+	
+	return status;
+     }
+        
+   dht_err DHTNode::findClosestPredecessor_cb(const DHTKey& recipientKey,
+					      const DHTKey& nodeKey,
+					      DHTKey& dkres, NetAddress& na,
+					      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+					      int& status)
      {
 	status = DHT_ERR_OK;
 	
@@ -410,10 +509,10 @@ namespace dht
 	return err;
      }
    
-   int DHTNode::joinGetSucc_cb(const DHTKey &recipientKey,
-			       const DHTKey &senderKey,
-			       DHTKey &dkres, NetAddress &na,
-			       int &status)
+   dht_err DHTNode::joinGetSucc_cb(const DHTKey &recipientKey,
+				   const DHTKey &senderKey,
+				   DHTKey &dkres, NetAddress &na,
+				   int &status)
      {
 	//debug
 	std::cerr << "[Debug]:executing joinGetSucc_cb.\n";
@@ -476,6 +575,32 @@ namespace dht
 	
 	status = DHT_ERR_OK;
 	return status;
+     }
+
+   dht_err DHTNode::ping_cb(const DHTKey& recipientKey,
+			    const DHTKey& senderKey,
+			    const NetAddress& senderAddress,
+			    int& status)
+     {
+	status = DHT_ERR_OK;
+	
+	/**
+	 * get virtual node.
+	 */
+	DHTVirtualNode* vnode = findVNode(recipientKey);
+	if (!vnode)
+	  {
+	     status = DHT_ERR_UNKNOWN_PEER;
+	     return status;
+	  }
+	
+	/**
+	 * ping this virtual node.
+	 */
+	dht_err err = vnode->ping(senderKey, senderAddress);
+	
+	status = err;
+	return err;
      }
    
    /**-- Main routines using RPCs --**/

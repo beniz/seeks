@@ -66,6 +66,14 @@ namespace dht
 				      const NetAddress& senderAddress,
 				      int& status);
 	
+	virtual dht_err RPC_getSuccList_cb(const DHTKey& recipientKey,
+					   const NetAddress &recipient,
+					   const DHTKey& senderKey,
+					   const NetAddress& senderAddress,
+					   slist<DHTKey> &dkres_list, 
+					   slist<NetAddress> &na_list,
+					   int& status);
+	
 	virtual dht_err RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 						      const NetAddress &recipient,
 						      const DHTKey& senderKey,
@@ -81,6 +89,12 @@ namespace dht
 					   const NetAddress& senderAddress,
 					   DHTKey& dkres, NetAddress& na,
 					   int& status);
+     
+	virtual dht_err RPC_ping_cb(const DHTKey& recipientKey,
+				    const NetAddress &recipient,
+				    const DHTKey& senderKey,
+				    const NetAddress& senderAddress,
+				    int& status);
      };
    
 } /* end of namespace. */

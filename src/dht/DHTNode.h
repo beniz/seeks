@@ -101,28 +101,43 @@ namespace dht
 	 *                        - 0 ok
 	 *                        - 3 error: recipient (key) is unknown on this peer.
 	 */
-	int notify_cb(const DHTKey& recipientKey,
-		      const DHTKey& senderKey,
-		      const NetAddress& senderAddress,
-		      int& status);
-	  
+	dht_err notify_cb(const DHTKey& recipientKey,
+			  const DHTKey& senderKey,
+			  const NetAddress& senderAddress,
+			  int& status);
+	
+	/**
+	 * \brief getSuccList callback.
+	 */
+	dht_err getSuccList_cb(const DHTKey &recipientKey,
+			       slist<DHTKey> &dkres_list,
+			       slist<NetAddress> &dkres_na,
+			       int &status);
 
 	/**
 	 * \brief findClosestPredecessor callback.
 	 */
-	int findClosestPredecessor_cb(const DHTKey& recipientKey,
-				      const DHTKey& nodeKey,
-				      DHTKey& dkres, NetAddress& na,
-				      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-				      int& status);
+	dht_err findClosestPredecessor_cb(const DHTKey& recipientKey,
+					  const DHTKey& nodeKey,
+					  DHTKey& dkres, NetAddress& na,
+					  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+					  int& status);
 	
 	/**
 	 * \brief joinGetSucc callback.
 	 */
-	int joinGetSucc_cb(const DHTKey &recipientKey,
-			   const DHTKey &senderKey,
-			   DHTKey& dkres, NetAddress& na,
-			   int& status);
+	dht_err joinGetSucc_cb(const DHTKey &recipientKey,
+			       const DHTKey &senderKey,
+			       DHTKey& dkres, NetAddress& na,
+			       int& status);
+	
+	/**
+	 * \brief ping callback.
+	 */
+	dht_err ping_cb(const DHTKey& recipientKey,
+			const DHTKey& senderKey,
+			const NetAddress& senderAddress,
+			int& status);
 	
 	/**----------------------------**/
 	/**
