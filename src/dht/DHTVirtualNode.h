@@ -24,6 +24,7 @@
 #include "dht_err.h"
 #include "DHTKey.h"
 #include "NetAddress.h"
+#include "SuccList.h"
 #include "seeks_proxy.h" // for mutexes...
 
 #if (__GNUC__ >= 3)
@@ -84,7 +85,6 @@ namespace dht
 				       DHTKey& dkres, NetAddress& na,
 				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				       int& status);
-	
 	/**
 	 * \brief this virtual node is being pinged from the outside world.
 	 */
@@ -103,7 +103,7 @@ namespace dht
 	
 	dht_err find_predecessor(const DHTKey& nodeKey,
 				 DHTKey& dkres, NetAddress& na);
-	
+		
 	int stabilize();
 	
 	/**---------------------------**/
@@ -121,8 +121,6 @@ namespace dht
 	void setPredecessor(const DHTKey& dk, const NetAddress& na);
 	void clearSuccsList() { _successors.clear(); };
 	void clearPredsList() { _predecessors.clear(); };
-	slist<const DHTKey*> getSuccessorList() const { return _successors; };
-	slist<const DHTKey*> getPredecessorList() const { return _predecessors; };
 	Location* getLocation() const { return _loc; }
 	FingerTable* getFingerTable() { return _fgt; }
 	
@@ -161,7 +159,7 @@ namespace dht
 	/**
 	 * Sorted list of successors.
 	 */
-	slist<const DHTKey*> _successors;
+	SuccList _successors;
 	
 	/**
 	 * Sorted list of predecessors.

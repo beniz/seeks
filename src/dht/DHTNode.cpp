@@ -213,13 +213,13 @@ namespace dht
 	       {
 		  if (j >= nv)
 		    j = 0;
-		  if (vnode->_successors.empty())
+		  if (vnode->_successors._succs.empty())
 		    {
-		       vnode->_successors.push_front(vnode_keys_ord.at(j));
-		       back = vnode->_successors.begin();
+		       vnode->_successors._succs.push_front(vnode_keys_ord.at(j));
+		       back = vnode->_successors._succs.begin();
 		    }
 		  else
-		    back = vnode->_successors.insert_after(back,vnode_keys_ord.at(j));
+		    back = vnode->_successors._succs.insert_after(back,vnode_keys_ord.at(j));
 		  c++;
 		  j++;
 	       }
@@ -418,8 +418,8 @@ namespace dht
 	 * return successor list.
 	 */
 	slist<DHTKey>::iterator back;
-	slist<const DHTKey*>::const_iterator sit = vnode->_successors.begin();
-	while(sit!=vnode->_successors.end())
+	slist<const DHTKey*>::const_iterator sit = vnode->_successors._succs.begin();
+	while(sit!=vnode->_successors._succs.end())
 	  {
 	     if (dkres_list.empty())
 	       {

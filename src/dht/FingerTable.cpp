@@ -138,6 +138,7 @@ namespace dht
 	  _vnode->getPNode()->_l1_client->RPC_getPredecessor(*succ, succ_loc->getNetAddress(),
 							     recipientKey,na,
 							     succ_pred, na_succ_pred, status);
+	// TODO: handle successor failure, retry, then move down the successor list.
 	/**
 	 * check on RPC status.
 	 */
@@ -179,7 +180,7 @@ namespace dht
 	  _vnode->getPNode()->_l1_client->RPC_notify(*succ, succ_loc->getNetAddress(),
 						     getVNodeIdKey(),getVNodeNetAddress(),
 						     status);
-	
+	// TODO: handle successor failure, retry, then move down the successor list.
 	/**
 	 * check on RPC status.
 	 */

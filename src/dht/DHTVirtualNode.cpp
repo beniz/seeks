@@ -30,7 +30,8 @@ namespace dht
    size_t DHTVirtualNode::_maxSuccsListSize = 15; //default adhoc value. A dedicated value is computed in DHTNode.
    
    DHTVirtualNode::DHTVirtualNode(DHTNode* pnode)
-     : _pnode(pnode), _successor(NULL), _predecessor(NULL)
+     : _pnode(pnode),_successor(NULL),_predecessor(NULL),
+       _successors(this)
        {
 	  /**
 	   * We generate a random key as the node's id.

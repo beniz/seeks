@@ -29,7 +29,6 @@
 
 namespace dht
 {
-//   class DHTVirtualNode;
    class LocationTable;
    
    class FingerTable : public Stabilizable
