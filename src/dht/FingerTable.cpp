@@ -84,6 +84,18 @@ namespace dht
 	  }
 	
 	/**
+	 * otherwise, let's look in the successor list.
+	 */
+	_vnode->_successors.findClosestPredecessor(nodeKey,dkres,na,
+						   dkres_succ, dkres_succ_na,
+						   status);
+	if (dkres.count()>0)
+	  {
+	     status = DHT_ERR_OK;
+	     return DHT_ERR_OK;
+	  }
+		
+	/**
 	 * otherwise return current node's id key, and sets the successor
 	 * (saves an rpc later).
 	 */

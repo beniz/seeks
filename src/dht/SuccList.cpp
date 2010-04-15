@@ -67,8 +67,8 @@ namespace dht
 	
 	Location *loc_succ = _vnode->findLocation(*dk_succ);
 	
-	slist<DHTKey> dkres_list;
-	slist<NetAddress> na_list;
+	std::list<DHTKey> dkres_list;
+	std::list<NetAddress> na_list;
 	dht_err loc_err = _vnode->getPNode()->getSuccList_cb(*dk_succ,dkres_list,na_list,status);
 	if (loc_err == DHT_ERR_UNKNOWN_PEER)
 	  _vnode->getPNode()->_l1_client->RPC_getSuccList(*dk_succ, loc_succ->getNetAddress(),
@@ -93,31 +93,25 @@ namespace dht
 	return DHT_ERR_OK;
      }
    
-   void SuccList::merge_succ_list(slist<DHTKey> &dkres_list, slist<NetAddress> &na_list)
+   void SuccList::merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list)
      {
-	slist<DHTKey>::iterator kit = dkres_list.begin();
-	slist<NetAddress>::iterator nit = na_list.begin();
+	std::list<DHTKey>::iterator kit = dkres_list.begin();
+	std::list<NetAddress>::iterator nit = na_list.begin();
 	
 	// first pass.
 	if (_vnode->_successors._succs.empty())
 	  {
-	     slist<const DHTKey*>::iterator back;
 	     while(kit!=dkres_list.end())
 	       {
 		  Location *loc = _vnode->addOrFindToLocationTable((*kit),(*nit));
-		  if (_vnode->_successors._succs.empty())
-		    {
-		       _vnode->_successors._succs.push_front(&loc->getDHTKeyRef());
-		       back = _vnode->_successors._succs.begin();
-		    }
-		  else back = _vnode->_successors._succs.insert_after(back,&loc->getDHTKeyRef());
+		  _vnode->_successors._succs.push_back(&loc->getDHTKeyRef());
 		  ++kit; ++nit;
 	       }
 	     return;
 	  }
 		
 	bool prune = false;
-	slist<const DHTKey*>::iterator sit = _vnode->_successors._succs.begin();
+	std::list<const DHTKey*>::iterator sit = _vnode->_successors._succs.begin();
 	while(kit!=dkres_list.end() && sit!=_vnode->_successors._succs.end())
 	  {
 	     if (*(*sit)<(*kit))
@@ -237,7 +231,7 @@ namespace dht
    
    bool SuccList::has_key(const DHTKey &key) const
      {
-	slist<const DHTKey*>::const_iterator sit = _succs.begin();
+	std::list<const DHTKey*>::const_iterator sit = _succs.begin();
 	while(sit!=_succs.end())
 	  {
 	     if (*(*sit) == key)
@@ -246,5 +240,39 @@ namespace dht
 	  }
 	return false;
      }
-      
+
+   dht_err SuccList::findClosestPredecessor(const DHTKey &nodeKey,
+					    DHTKey &dkres, NetAddress &na,
+					    DHTKey &dkres_succ, NetAddress &dkres_succ_na,
+					    int &status)
+     {
+	std::list<const DHTKey*>::const_iterator sit = _succs.end();
+	std::list<const DHTKey*>::const_iterator sit2 = sit;
+	while(sit!=_succs.begin())
+	  {
+	     --sit;
+	     Location *loc = _vnode->findLocation(*(*sit));
+	     
+	     /**
+	      * XXX: this should never happen.
+	      */
+	     if (!loc)
+	       continue;
+	     
+	     if (loc->getDHTKey().between(_vnode->getIdKey(),nodeKey))
+	       {
+		  dkres = loc->getDHTKey();
+		  na = loc->getNetAddress();
+		  if (sit2 != _succs.end())
+		    {
+		       Location *loc2 = _vnode->findLocation(*(*sit2));
+		       dkres_succ = loc2->getDHTKey();
+		       dkres_succ_na = loc2->getNetAddress();
+		    }
+	       }
+	     sit2 = sit;
+	  }
+	return DHT_ERR_OK;
+     }
+         
 } /* end of namespace. */

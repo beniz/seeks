@@ -211,18 +211,11 @@ namespace dht
 	     // fill up successor list.
 	     size_t c = 0;
 	     size_t j = i+2;
-	     slist<const DHTKey*>::iterator back;
 	     while(c<nv)
 	       {
 		  if (j >= nv)
 		    j = 0;
-		  if (vnode->_successors._succs.empty())
-		    {
-		       vnode->_successors._succs.push_front(vnode_keys_ord.at(j));
-		       back = vnode->_successors._succs.begin();
-		    }
-		  else
-		    back = vnode->_successors._succs.insert_after(back,vnode_keys_ord.at(j));
+		  vnode->_successors._succs.push_back(vnode_keys_ord.at(j));
 		  c++;
 		  j++;
 	       }
@@ -400,8 +393,8 @@ namespace dht
      }
 
    dht_err DHTNode::getSuccList_cb(const DHTKey &recipientKey,
-				   slist<DHTKey> &dkres_list,
-				   slist<NetAddress> &na_list,
+				   std::list<DHTKey> &dkres_list,
+				   std::list<NetAddress> &na_list,
 				   int &status)
      {
 	status = DHT_ERR_OK;
@@ -412,8 +405,8 @@ namespace dht
 	DHTVirtualNode* vnode = findVNode(recipientKey);
 	if (!vnode)
 	  {
-	     dkres_list = slist<DHTKey>();
-	     na_list = slist<NetAddress>();
+	     dkres_list = std::list<DHTKey>();
+	     na_list = std::list<NetAddress>();
 	     status = DHT_ERR_UNKNOWN_PEER;
 	     return status;
 	  }
@@ -425,22 +418,16 @@ namespace dht
 	/**
 	 * return successor list.
 	 */
-	slist<DHTKey>::iterator back;
-	slist<const DHTKey*>::const_iterator sit = vnode->_successors._succs.begin();
+	std::list<const DHTKey*>::const_iterator sit = vnode->_successors._succs.begin();
 	while(sit!=vnode->_successors._succs.end())
 	  {
-	     if (dkres_list.empty())
-	       {
-		  dkres_list.push_front(*(*sit));
-		  back = dkres_list.begin();
-	       }
-	     else back = dkres_list.insert_after(back,*(*sit));
+	     dkres_list.push_back(*(*sit));
 	     ++sit;
 	  }
 	
 	if (dkres_list.empty())
 	  {
-	     na_list = slist<NetAddress>();
+	     na_list = std::list<NetAddress>();
 	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
 	     return status;
 	  }
@@ -448,26 +435,18 @@ namespace dht
 	/**
 	 * fetch location information.
 	 */
-	slist<NetAddress>::iterator back_al;
-	slist<DHTKey>::const_iterator tit = dkres_list.begin();
+	std::list<DHTKey>::const_iterator tit = dkres_list.begin();
 	while(tit!=dkres_list.end())
 	  {
 	     Location *resloc = vnode->findLocation((*tit));
 	     if (!resloc)
 	       {
 		  dkres_list.clear();
-		  na_list = slist<NetAddress>();
+		  na_list = std::list<NetAddress>();
 		  status = DHT_ERR_UNKNOWN_PEER_LOCATION;
 		  return status;
 	       }
-	     
-	     if (na_list.empty())
-	       {
-		  na_list.push_front(resloc->getNetAddress());
-		  back_al = na_list.begin();
-	       }
-	     else back_al = na_list.insert_after(back_al,resloc->getNetAddress());
-	     
+	     na_list.push_back(resloc->getNetAddress());
 	     ++tit;
 	  }
 	

@@ -24,18 +24,7 @@
 #include "dht_err.h"
 #include "DHTKey.h"
 #include "NetAddress.h"
-
-#if (__GNUC__ >= 3)
-#include <ext/slist>
-#else
-#include <slist>
-#endif
-
-#if (__GNUC__ >= 3)
-using __gnu_cxx::slist;
-#else
-using std::slist;
-#endif
+#include <list>
 
 namespace dht
 {
@@ -123,8 +112,8 @@ namespace dht
 					const NetAddress &recipient,
 					const DHTKey &senderKey,
 					const NetAddress &senderAddress,
-					slist<DHTKey> &dkres_list,
-					slist<NetAddress> &na_list,
+					std::list<DHTKey> &dkres_list,
+					std::list<NetAddress> &na_list,
 					int &status) = 0;
 	
 	/**
@@ -261,8 +250,8 @@ namespace dht
 					   const NetAddress &recipient,
 					   const DHTKey &senderKey,
 					   const NetAddress &senderAddress,
-					   slist<DHTKey> &dkres_list,
-					   slist<NetAddress> &dkres_na_list,
+					   std::list<DHTKey> &dkres_list,
+					   std::list<NetAddress> &dkres_na_list,
 					   int &status) = 0;
 	
 	/**

@@ -153,8 +153,8 @@ namespace dht
 	     std::cerr << "get_succlist\n";
 	     //debug
 	     
-	     slist<DHTKey> dkres_list;
-	     slist<NetAddress> na_list;
+	     std::list<DHTKey> dkres_list;
+	     std::list<NetAddress> na_list;
 	     RPC_getSuccList_cb(recipient_key,recipient_na,
 				sender_key,sender_na,
 				dkres_list,na_list,status);
@@ -265,8 +265,8 @@ namespace dht
 						    const NetAddress &recipient,
 						    const DHTKey& senderKey,
 						    const NetAddress& senderAddress,
-						    slist<DHTKey> &dkres_list,
-						    slist<NetAddress> &na_list,
+						    std::list<DHTKey> &dkres_list,
+						    std::list<NetAddress> &na_list,
 						    int& status)
      {
 	return _pnode->getSuccList_cb(recipientKey,dkres_list,na_list,status);

@@ -26,17 +26,7 @@
 #include "Stabilizer.h"
 #include "dht_err.h"
 
-#if (__GNUC__ >= 3)
-#include <ext/slist>
-#else
-#include <slist>
-#endif
-
-#if (__GNUC__ >= 3)
-using __gnu_cxx::slist;
-#else
-using std::slist;
-#endif
+#include <list>
 
 namespace dht
 {
@@ -53,9 +43,14 @@ namespace dht
 	
 	dht_err update_successors();
 	
-	void merge_succ_list(slist<DHTKey> &dkres_list, slist<NetAddress> &na_list);
+	void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list);
 	
 	bool has_key(const DHTKey &key) const;
+	
+	dht_err findClosestPredecessor(const DHTKey &nodeKey,
+				       DHTKey &dkres, NetAddress &na,
+				       DHTKey &dkres_succ, NetAddress &dkres_succ_na,
+				       int &status);
 	
 	/**
 	 * virtual functions, from Stabilizable.
@@ -67,7 +62,7 @@ namespace dht
 	// TODO.
 	virtual bool isStable() { return false; } ;
 	
-	slist<const DHTKey*> _succs;
+	std::list<const DHTKey*> _succs;
 	
 	DHTVirtualNode *_vnode;
      };

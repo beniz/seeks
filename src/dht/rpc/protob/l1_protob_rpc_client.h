@@ -66,8 +66,8 @@ namespace dht
 					const NetAddress &recipient,
 					const DHTKey &senderKey,
 					const NetAddress &senderAddress,
-					slist<DHTKey> &dkres_list,
-					slist<NetAddress> &na_list,
+					std::list<DHTKey> &dkres_list,
+					std::list<NetAddress> &na_list,
 					int &status);
 	
 	virtual dht_err RPC_findClosestPredecessor(const DHTKey& recipientKey,

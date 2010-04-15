@@ -109,8 +109,8 @@ namespace dht
 	 * \brief getSuccList callback.
 	 */
 	dht_err getSuccList_cb(const DHTKey &recipientKey,
-			       slist<DHTKey> &dkres_list,
-			       slist<NetAddress> &dkres_na,
+			       std::list<DHTKey> &dkres_list,
+			       std::list<NetAddress> &dkres_na,
 			       int &status);
 
 	/**
