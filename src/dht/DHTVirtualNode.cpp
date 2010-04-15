@@ -21,6 +21,7 @@
 #include "DHTVirtualNode.h"
 #include "DHTNode.h"
 #include "FingerTable.h"
+#include "RouteIterator.h"
 #include "errlog.h"
 
 using sp::errlog;
@@ -172,6 +173,9 @@ namespace dht
    dht_err DHTVirtualNode::find_predecessor(const DHTKey& nodeKey,
 					    DHTKey& dkres, NetAddress& na)
      {
+	static short retries = 2;
+	int ret = 0;
+		
 	/**
 	 * Default result is itself.
 	 */
@@ -194,8 +198,10 @@ namespace dht
 	     exit(-1);
 	  }
 	
-	Location succloc(*getSuccessor(),NetAddress()); // warning: at this point the address is unknown.
-			
+	Location succloc(*getSuccessor(),NetAddress()); // warning: at this point the address is not needed.
+	RouteIterator rit;
+	rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
+	
 	while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey()))
           {
 	     /**
@@ -212,20 +218,62 @@ namespace dht
 	     /**
 	      * we make a local call to virtual nodes first, and a remote call if needed.
 	      */
-	     dht_err loc_err = _pnode->findClosestPredecessor_cb(recipientKey,
-								 nodeKey, dkres, na,
-								 succ_key, succ_na, status);
-	     if (loc_err == DHT_ERR_UNKNOWN_PEER)
-	       _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
-							      getIdKey(),getNetAddress(),
-							      nodeKey, dkres, na, 
-							      succ_key, succ_na, status);
+	     dht_err err = _pnode->findClosestPredecessor_cb(recipientKey,
+							     nodeKey, dkres, na,
+							     succ_key, succ_na, status);
+	     if (err == DHT_ERR_UNKNOWN_PEER)
+	       err = _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
+								    getIdKey(),getNetAddress(),
+								    nodeKey, dkres, na, 
+								    succ_key, succ_na, status);
 	     
              /**
-	      * check on RPC status.
 	      * If the call has failed, then our current findPredecessor function
 	      * has undershot the looked up key. In general this means the call
 	      * has failed and should be retried.
+	      */
+	     if (err != DHT_ERR_OK)
+	       {
+		  if (ret < retries && (err == DHT_ERR_CALL 
+					|| err == DHT_ERR_COM_TIMEOUT)) // failed call, remote node does not respond.
+		    {
+		       // let's undershoot by finding the closest predecessor to the 
+		       // dead node.
+		       std::vector<Location*>::iterator rtit = rit._hops.end();
+		       while(err != DHT_ERR_OK && rtit!=rit._hops.begin())
+			 {
+			    --rtit;
+			    
+			    Location *past_loc = (*rtit);
+			    
+			    err = _pnode->findClosestPredecessor_cb(past_loc->getDHTKey(),
+								    recipientKey,dkres,na,
+								    succ_key,succ_na,status);
+			    if (err == DHT_ERR_UNKNOWN_PEER)
+			      err = _pnode->_l1_client->RPC_findClosestPredecessor(past_loc->getDHTKey(),
+										   past_loc->getNetAddress(),
+										   getIdKey(),getNetAddress(),
+										   recipientKey,dkres,na,
+										   succ_key,succ_na,status);
+			 }
+		    
+		       if (err != DHT_ERR_OK)
+			 {
+			    // weird, undershooting failed.
+			    errlog::log_error(LOG_LEVEL_DHT, "Tentative overshooting did fail in find_predecessor");
+			    return (dht_err)status;
+			 }
+		       else
+			 {
+			    rtit++;
+			    rit.erase_from(rtit);
+			 }
+		       ret++; // we have a limited number of such routing trials.
+		    }
+	       }
+	     
+	     /**
+	      * check on rpc status.
 	      */
 	     if ((dht_err)status != DHT_ERR_OK)
 	       {
@@ -235,14 +283,15 @@ namespace dht
 		  
 		  return (dht_err)status;
 	       }
-	     	     
+	     
 	     //debug
 	     assert(dkres.count()>0);
 	     //debug
 	     
 	     rloc.setDHTKey(dkres);
 	     rloc.setNetAddress(na);
-	
+	     rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
+	     
 	     if (succ_key.count() > 0
 		 && (dht_err)status == DHT_ERR_OK)
 	       {

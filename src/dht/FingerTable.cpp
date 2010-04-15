@@ -85,6 +85,8 @@ namespace dht
 	
 	/**
 	 * otherwise, let's look in the successor list.
+	 * XXX: some of those nodes may have been tested already
+	 * in the finger table...
 	 */
 	_vnode->_successors.findClosestPredecessor(nodeKey,dkres,na,
 						   dkres_succ, dkres_succ_na,
@@ -93,6 +95,19 @@ namespace dht
 	  {
 	     status = DHT_ERR_OK;
 	     return DHT_ERR_OK;
+	  }
+	
+	/**
+	 * otherwise, let's try our successor node.
+	 */
+	Location *loc = findLocation(*_vnode->getSuccessor());
+	if (loc->getDHTKey().between(getVNodeIdKey(), nodeKey))
+	  {
+	     dkres = loc->getDHTKey();
+	     na = loc->getNetAddress();
+	     dkres_succ = *(*_vnode->_successors._succs.begin());
+	     Location *loc_succ = findLocation(dkres_succ);
+	     dkres_succ_na = loc_succ->getNetAddress();
 	  }
 		
 	/**
