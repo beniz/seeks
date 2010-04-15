@@ -29,6 +29,25 @@ using lsh::Random;
 
 namespace dht
 {
+   Stabilizable::Stabilizable()
+     :_stabilizing_fast(0),_stabilizing_slow(0)
+       {
+       }
+
+   void Stabilizable::stabilize_fast_ct()
+     {
+	_stabilizing_fast++;
+	stabilize_fast();
+	_stabilizing_fast--;
+     }
+      
+   void Stabilizable::stabilize_slow_ct()
+     {
+	_stabilizing_slow++;
+	stabilize_slow();
+	_stabilizing_slow--;
+     }
+   
    /**
     * For now we're using the same parameters and values as in Chord.
     * We'll change these as needed.
@@ -47,7 +66,6 @@ namespace dht
    Stabilizer::Stabilizer()
      : BstTimeCbTree()
        {
-	  // TODO: activate when code is ready.
 	  start_fast_stabilizer();
 	  start_slow_stabilizer();
        }
@@ -136,7 +154,7 @@ namespace dht
 	  << tsp << std::endl;
 	//std::cout << tround << std::endl;
 	//debug
-
+	
 	return 0;
      }
 
@@ -145,7 +163,7 @@ namespace dht
 	bool stable = isstable_slow();
 	
 	/**
-	 * TODO: if we've on-going rpcs wrt. stabilization,
+	 * if we have on-going rpcs wrt. stabilization,
 	 * we delay the next round by slowing down the calls.
 	 */
 	if (slow_stabilizing())
@@ -213,7 +231,7 @@ namespace dht
 	  << tsp << std::endl;
 	//std::cout << tround << std::endl;
 	//debug
-
+	
 	return 0;
      }
    
@@ -232,8 +250,7 @@ namespace dht
 	    return true;
 	return false;
      }
-   
-   
+      
    bool Stabilizer::isstable_slow() const
      {
 	for (unsigned int i=0; i<_stab_elts_slow.size(); i++)

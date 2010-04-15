@@ -68,11 +68,14 @@ namespace dht
 	 */
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
 	
+	/**
+	 * \brief remove location from table.
+	 */
+	void removeLocation(Location *loc);
+	
 	/* TODO: find location. */
 	//Location* findLocation(const Location& loc);
 	Location* findLocation(const DHTKey& dk);
-	
-	/* TODO: periodic check on dead/useless locations ? */
 	
 	/* TODO: clean up the dead/unused locations. */
 	size_t cleanUpLocations();

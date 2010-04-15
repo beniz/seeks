@@ -236,6 +236,17 @@ namespace dht
 	 */
 	Location* rloc = _vnode->addOrFindToLocationTable(dkres, na);
      
+	Location *curr_loc = _locs[rindex];
+	if (rloc != curr_loc)
+	  {
+	     // remove location if it not used in other lists.
+	     if (!has_key(rindex,curr_loc) 
+		 && !_vnode->_successors.has_key(curr_loc->getDHTKey()))
+	       {
+		  _vnode->removeLocation(curr_loc);
+	       }
+	  }
+		
 	_locs[rindex] = rloc;
 	
 	//debug
@@ -245,6 +256,19 @@ namespace dht
 	return 0;
      }
 
+   bool FingerTable::has_key(const int &index, Location *loc) const
+     {
+	for (int i=0;i<KEYNBITS;i++)
+	  {
+	     if (i != index)
+	       {
+		  if (_locs[i] == loc)
+		    return true;
+	       }
+	  }
+	return false;
+     }
+      
    void FingerTable::print(std::ostream &out) const
      {
 	out << "   ftable: " << _vnode->getIdKey() << std::endl;

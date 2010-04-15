@@ -37,11 +37,10 @@
 
 namespace dht
 {
-   //TODO: virtual call for 'stabilizable' structures.
    class Stabilizable
      {
       public:
-	Stabilizable() {};
+	Stabilizable(); 
 	
 	virtual ~Stabilizable() {};
 	
@@ -50,7 +49,11 @@ namespace dht
 	virtual void stabilize_slow() {};
 	
 	virtual bool isStable() { return false; }
-
+	
+	void stabilize_fast_ct();
+	
+	void stabilize_slow_ct();
+	
 	int getStabilizingFast() const { return _stabilizing_fast; }
 	
 	int getStabilizingSlow() const { return _stabilizing_slow; }

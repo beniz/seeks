@@ -53,6 +53,8 @@ namespace dht
 	DHTKey* getVNodeSuccessor() const { return _vnode->getSuccessor(); }
 	Location* findLocation(const DHTKey& dk) const { return _vnode->findLocation(dk); }  
 	
+	bool has_key(const int &index, Location *loc) const;
+	
 	/**
 	 * \brief find closest predecessor to a given key.
 	 * Successor information is unset by default, set only if the closest node 

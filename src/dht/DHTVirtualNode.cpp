@@ -38,7 +38,12 @@ namespace dht
 	   */
 	  _idkey = DHTKey::randomKey();
 	  //_idkey = DHTNode::generate_uniform_key();
-	  	  
+	  
+	  /**
+	   * create location table. TODO: read from serialized table.
+	   */
+	  _lt = new LocationTable();
+	  
 	  /**
 	   * create location and registers it to the location table.
 	   */
@@ -48,7 +53,7 @@ namespace dht
 	  /**
 	   * finger table.
 	   */
-	  _fgt = new FingerTable(this, getLocationTable());
+	  _fgt = new FingerTable(this,_lt);
        
 	  /**
 	   * Initializes mutexes.
@@ -64,18 +69,8 @@ namespace dht
 	if (_predecessor)
 	  delete _predecessor;
 	
-	/* slist<DHTKey*>::iterator sit = _successors.begin();
-	while(sit!=_successors.end())
-	  {
-	     delete (*sit);
-	     ++sit;
-	  }
-	sit = _predecessors.begin();
-	while(sit!=_predecessors.end())
-	  {
-	     delete (*sit);
-	     ++sit;
-	  } */
+	// TODO: deregister succlist from stabilizer !!
+	_successors.clear();
 	
 	delete _fgt;
      }
@@ -286,14 +281,6 @@ namespace dht
 	return DHT_ERR_OK;	
      }
       
-   int DHTVirtualNode::stabilize()
-     {
-	/**
-	 * stabilize is in FingerTable (because of the stabilization alg).
-	 */
-	return _fgt->stabilize();
-     }
-   
    /**
     * accessors.
     */
@@ -317,7 +304,7 @@ namespace dht
 	     /**
 	      * lookup for the corresponding location.
 	      */
-	     Location* loc = findLocation(dk);
+	     Location* loc = addOrFindToLocationTable(dk,na);
 	     
 	     //debug
 	     if (!loc)
@@ -373,7 +360,7 @@ namespace dht
 	     /**
 	      * lookup for the corresponding location.
               */
-	     Location* loc = findLocation(dk);
+	     Location* loc = addOrFindToLocationTable(dk,na);
 	     //debug
 	     if (!loc)
 	       {
@@ -402,26 +389,22 @@ namespace dht
 	  }
      }
 
-   /**
-    * function channeling to pnode (DHTNode) functions.
-    */
-   
-   LocationTable* DHTVirtualNode::getLocationTable() const
-     {
-	return _pnode->getLocationTable();
-     }
-   
    Location* DHTVirtualNode::findLocation(const DHTKey& dk) const
      {
-	return getLocationTable()->findLocation(dk);
+	return _lt->findLocation(dk);
      }
    
    void DHTVirtualNode::addToLocationTable(const DHTKey& dk, const NetAddress& na,
 					   Location *&loc) const
      {
-	getLocationTable()->addToLocationTable(dk, na, loc);
+	_lt->addToLocationTable(dk, na, loc);
      }
 
+   void DHTVirtualNode::removeLocation(Location *loc) const
+     {
+	_lt->removeLocation(loc);
+     }
+   
    NetAddress DHTVirtualNode::getNetAddress() const
      {
 	return _pnode->getNetAddress();
@@ -429,7 +412,7 @@ namespace dht
    
    Location* DHTVirtualNode::addOrFindToLocationTable(const DHTKey& key, const NetAddress& na)
      {
-	return getLocationTable()->addOrFindToLocationTable(key, na);
+	return _lt->addOrFindToLocationTable(key, na);
      }
    
    

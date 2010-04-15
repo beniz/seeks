@@ -20,6 +20,7 @@
   
 #include "SuccList.h"
 #include "DHTVirtualNode.h"
+#include "FingerTable.h"
 #include "DHTNode.h"
 #include "Location.h"
 #include "errlog.h"
@@ -72,29 +73,178 @@ namespace dht
 	if (loc_err == DHT_ERR_UNKNOWN_PEER)
 	  _vnode->getPNode()->_l1_client->RPC_getSuccList(*dk_succ, loc_succ->getNetAddress(),
 							  _vnode->getIdKey(), _vnode->getNetAddress(),
-					      dkres_list, na_list, status);
+							  dkres_list, na_list, status);
 	
 	// TODO: handle failure, retry, and move to next successor in the list.
 	
 	if ((dht_err)status != DHT_ERR_OK)
 	  {
 	     //debug
-	     std::cerr << "getSuccList failed\n";
+	     std::cerr << "getSuccList failed: " << status << "\n";
 	     //debug
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "getSuccList failed\n");
 	     return (dht_err)status;
 	  }
 		
-	// TODO: merge succlist.
+	// merge succlist.
      	merge_succ_list(dkres_list,na_list);
+     
+	return DHT_ERR_OK;
      }
    
-   void SuccList::merge_succ_list(const slist<DHTKey> &dkres_list, const slist<NetAddress> &na_list)
+   void SuccList::merge_succ_list(slist<DHTKey> &dkres_list, slist<NetAddress> &na_list)
      {
-	// TODO.
+	slist<DHTKey>::iterator kit = dkres_list.begin();
+	slist<NetAddress>::iterator nit = na_list.begin();
 	
+	// first pass.
+	if (_vnode->_successors._succs.empty())
+	  {
+	     slist<const DHTKey*>::iterator back;
+	     while(kit!=dkres_list.end())
+	       {
+		  Location *loc = _vnode->addOrFindToLocationTable((*kit),(*nit));
+		  if (_vnode->_successors._succs.empty())
+		    {
+		       _vnode->_successors._succs.push_front(&loc->getDHTKeyRef());
+		       back = _vnode->_successors._succs.begin();
+		    }
+		  else back = _vnode->_successors._succs.insert_after(back,&loc->getDHTKeyRef());
+		  ++kit; ++nit;
+	       }
+	     return;
+	  }
+		
+	bool prune = false;
+	slist<const DHTKey*>::iterator sit = _vnode->_successors._succs.begin();
+	while(kit!=dkres_list.end() && sit!=_vnode->_successors._succs.end())
+	  {
+	     if (*(*sit)<(*kit))
+	       {
+		  // node is our list may have died...
+		  
+		  // ping sit.
+		  Location *loc = _vnode->findLocation(*(*sit));
+		  
+		  //debug
+		  assert(loc!=NULL);
+		  //debug
+		  
+		  bool dead = true;
+		  if (_vnode->getPNode()->findVNode(*(*sit)))
+		    {
+		       // this is a local virtual node... Either our successor
+		       // is not up-to-date, either we're cut off from the world...
+		       // XXX: what to do ?
+		       dead = false;
+		    }
+		  else 
+		    {
+		       // let's ping that node.
+		       int status = DHT_ERR_OK;
+		       dht_err err = _vnode->getPNode()->_l1_client->RPC_ping(*(*sit),loc->getNetAddress(),
+									      _vnode->getIdKey(),_vnode->getNetAddress(),
+									      status);
+		       if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
+			 dead = false;
+		    }
+		  		  
+		  // if dead, remove node and location.
+		  if (dead)
+		    {
+		       sit = _vnode->_successors._succs.erase(sit);
+		       _vnode->removeLocation(loc);
+		    }
+		  else // move to next sit node
+		    ++sit;
+	       }
+	     else if (*(*sit)>(*kit))
+	       {
+		  // a new node may have joined.
+		  // add the new node, list to be pruned out later.
+		  // let's ping that node.
+		  bool alive = false;
+		  if (_vnode->getPNode()->findVNode((*kit)))
+		    {
+		       // this is a local virtual node... Either our successor
+		       // is not up-to-date, either we're cut off from the world...
+		       alive = true; 
+		    }
+		  else
+		    {
+		       int status = DHT_ERR_OK;
+		       dht_err err = _vnode->getPNode()->_l1_client->RPC_ping((*kit),(*nit),
+									      _vnode->getIdKey(),_vnode->getNetAddress(),
+									      status);
+		       if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
+			 alive = true;
+		    }
+		  
+		  if (alive)
+		    {
+		       // add to location table.
+		       Location *loc = NULL;
+		       _vnode->addToLocationTable((*kit),(*nit),loc);
+		    
+		       // add it to the list.
+		       _vnode->_successors._succs.insert(sit,&loc->getDHTKeyRef());
+		       prune = true;
+		    }
+		  
+		  ++kit; ++nit;
+	       }
+	     else if (*(*sit) == (*kit))
+	       {
+		  ++kit; ++nit;
+		  ++sit;
+	       }
+	  }
+	
+	// prune out the successor list as needed.
+	if (prune)
+	  {
+	     int ssize = _vnode->_successors._succs.size();
+	     if (ssize <= DHTNode::_dht_config->_nvnodes)
+	       return;
+	     
+	     int c = 0;
+	     sit = _vnode->_successors._succs.begin();
+	     while(sit!=_vnode->_successors._succs.end())
+	       {
+		  if (c<DHTNode::_dht_config->_nvnodes)
+		    {
+		       ++c;
+		       ++sit;
+		    }
+		  else
+		    {
+		       // remove location if it is not used in the finger table.
+		       Location *loc = _vnode->findLocation(*(*sit));
+		       if (_vnode->getFingerTable()->has_key(-1,loc))
+			 {
+			    _vnode->removeLocation(loc);
+			 }
+		       sit = _vnode->_successors._succs.erase(sit);
+		    }
+	       }
+	  }
+	
+	//debug
+	assert(_vnode->_successors._succs.size() == DHTNode::_dht_config->_nvnodes);
+	//debug
      }
    
-   
+   bool SuccList::has_key(const DHTKey &key) const
+     {
+	slist<const DHTKey*>::const_iterator sit = _succs.begin();
+	while(sit!=_succs.end())
+	  {
+	     if (*(*sit) == key)
+	       return true;
+	     ++sit;
+	  }
+	return false;
+     }
+      
 } /* end of namespace. */

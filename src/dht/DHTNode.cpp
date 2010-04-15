@@ -58,7 +58,7 @@ namespace dht
 	/**
 	 * create the location table.
 	 */
-	_lt = new LocationTable();
+	//_lt = new LocationTable();
 	
 	// this node net l1 address.
 	//_l1_na.setNetAddress(seeks_proxy::_config->_haddr);
@@ -86,12 +86,17 @@ namespace dht
 								     dvn));
 	     	     
 	     /**
-	      * TODO: register vnode routing structures to the stabilizer:
+	      * register vnode routing structures to the stabilizer:
 	      * - stabilize on successor continuously,
 	      * - stabilize more slowly on the rest of the finger table.
 	      */
 	     _stabilizer->add_fast(dvn->getFingerTable());
 	     _stabilizer->add_slow(dvn->getFingerTable());
+	  
+	     /**
+	      * register successor list with the stabilizer.
+	      */
+	     _stabilizer->add_slow(&dvn->_successors);
 	  }
 	
 	/**
@@ -108,8 +113,6 @@ namespace dht
       
    DHTNode::~DHTNode()
      {
-	delete _lt; //TODO: should clean the table.
-	
 	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
 	  = _vnodes.begin();
 	while(hit!=_vnodes.end())
@@ -125,7 +128,7 @@ namespace dht
 	std::cerr << "[Debug]: join_start\n";
 	
 	// try location table if possible/asked to.
-	if (!reset)// || !_lt->is_empty()) // TODO: serialization/deserialization... location table by default contains virtual nodes...
+	/* if (!reset) // TODO: serialization/deserialization... location table by default contains virtual nodes...
 	  {
 	     std::cerr << "[Debug]:join_start: trying location table.\n";
 	     
@@ -144,7 +147,7 @@ namespace dht
 		  		  
 		  ++lit;
 	       }
-	  }
+	  } */
 	
 	// try to bootstrap from the nodelist in configuration.
 	std::vector<NetAddress>::const_iterator nit = bootstrap_nodelist.begin();
@@ -295,6 +298,7 @@ namespace dht
 	Location* resloc = vnode->findLocation(dkres);
 	if (!resloc)
 	  {
+	     // XXX: we shoule never reach here.
 	     std::cout << "[Error]:RPC_getSuccessor_cb: our own successor is an unknown location !\n"; 
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER_LOCATION;
@@ -414,6 +418,10 @@ namespace dht
 	     return status;
 	  }
 	
+	//debug
+	assert(!vnode->_successors._succs.empty());
+	//debug
+	
 	/**
 	 * return successor list.
 	 */
@@ -442,7 +450,7 @@ namespace dht
 	 */
 	slist<NetAddress>::iterator back_al;
 	slist<DHTKey>::const_iterator tit = dkres_list.begin();
-	while(sit!=dkres_list.end())
+	while(tit!=dkres_list.end())
 	  {
 	     Location *resloc = vnode->findLocation((*tit));
 	     if (!resloc)
@@ -672,12 +680,9 @@ namespace dht
 	return vnode->find_predecessor(nodeKey, dkres, na);
      }
 
-   dht_err DHTNode::stabilize(const DHTKey& recipientKey)
+   /* dht_err DHTNode::stabilize(const DHTKey& recipientKey)
      {
-	/**
-	 * get virtual node.
-	 */
-	DHTVirtualNode* vnode = findVNode(recipientKey);
+    DHTVirtualNode* vnode = findVNode(recipientKey);
 	if (!vnode)
 	  {
 	     return 3;
@@ -685,7 +690,7 @@ namespace dht
 
 	dht_err status = vnode->stabilize();
 	return status;
-     }
+     } */
       
    /**----------------------------**/   
    

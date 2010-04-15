@@ -24,6 +24,7 @@
 #include "dht_err.h"
 #include "DHTKey.h"
 #include "NetAddress.h"
+#include "LocationTable.h"
 #include "SuccList.h"
 #include "seeks_proxy.h" // for mutexes...
 
@@ -45,7 +46,7 @@ namespace dht
 {
    
    class Location;
-   class LocationTable;
+   //class LocationTable;
    class Stabilizer;
    class FingerTable;
    class DHTNode;
@@ -104,8 +105,6 @@ namespace dht
 	dht_err find_predecessor(const DHTKey& nodeKey,
 				 DHTKey& dkres, NetAddress& na);
 		
-	int stabilize();
-	
 	/**---------------------------**/
 	
 	/**
@@ -124,15 +123,20 @@ namespace dht
 	Location* getLocation() const { return _loc; }
 	FingerTable* getFingerTable() { return _fgt; }
 	
-	/**
-	 * function channeling to pnode (DHTNode) functions.
-	 */
+	/* location finding. */
 	LocationTable* getLocationTable() const;
 	Location* findLocation(const DHTKey& dk) const;
 	void addToLocationTable(const DHTKey& dk, const NetAddress& na,
 				Location *&loc) const;
+	void removeLocation(Location *loc) const;
 	NetAddress getNetAddress() const;
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
+	
+      public:
+	/**
+	 * location table.
+	 */
+	LocationTable *_lt;
 	
       private:
 	/**

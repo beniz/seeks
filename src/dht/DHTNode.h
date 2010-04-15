@@ -30,7 +30,7 @@
 #include "stl_hash.h"
 #include "dht_configuration.h"
 #include "DHTVirtualNode.h"
-#include "LocationTable.h"
+//#include "LocationTable.h"
 #include "Stabilizer.h"
 #include "l1_rpc_server.h"
 #include "l1_rpc_client.h"
@@ -75,7 +75,6 @@ namespace dht
 	 * accessors.
 	 */
 	DHTVirtualNode* findVNode(const DHTKey& dk) const;
-	LocationTable* getLocationTable() const { return _lt; }
 	NetAddress getNetAddress() const { return _l1_na; }
 	
 	/**----------------------------**/
@@ -184,7 +183,7 @@ namespace dht
 	 * @param recipientKey identification key of the target node.
 	 * @return status.
 	 */
-	dht_err stabilize(const DHTKey& recipientKey);
+	//dht_err stabilize(const DHTKey& recipientKey);
 	
       public:
 	/**
@@ -196,7 +195,7 @@ namespace dht
 	/**
 	 * shared location table.
 	 */
-	LocationTable* _lt;
+	//LocationTable* _lt;
 	
 	/**
 	 * array of DHT node. TODO: hashtable.

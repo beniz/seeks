@@ -53,7 +53,9 @@ namespace dht
 	
 	dht_err update_successors();
 	
-	void merge_succ_list(const slist<DHTKey> &dkres_list, const slist<NetAddress> &na_list);
+	void merge_succ_list(slist<DHTKey> &dkres_list, slist<NetAddress> &na_list);
+	
+	bool has_key(const DHTKey &key) const;
 	
 	/**
 	 * virtual functions, from Stabilizable.

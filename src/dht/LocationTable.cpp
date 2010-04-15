@@ -97,5 +97,18 @@ namespace dht
 	  }	 
      }
    
+   void LocationTable::removeLocation(Location *loc)
+     {
+	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
+	if ((hit = _hlt.find(&loc->getDHTKeyRef())) != _hlt.end())
+	  {
+	     delete (*hit).second;
+	  }
+	else 
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_string().c_str());
+	  }
+     }
+   
    
 } /* end of namespace. */
