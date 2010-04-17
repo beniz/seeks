@@ -147,9 +147,7 @@ namespace dht
 	       {
 		  spsockets::close_socket(udp_sock);
 		  errlog::log_error(LOG_LEVEL_LOG, "rpc_server exception: %s", ex.what().c_str());
-		  
-		  // TODO: error decision.
-	     	  // TODO: rethrow something.
+		  return DHT_ERR_CALLBACK;
 	       }
 	  
 	     //debug

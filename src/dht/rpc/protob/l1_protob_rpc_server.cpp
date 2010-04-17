@@ -206,6 +206,19 @@ namespace dht
 	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
 	     else l1r = l1_protob_wrapper::create_l1_response(status);
 	  }
+	else if (fct_id == hash_ping)
+	  {
+	     //debug
+	     std::cerr << "ping\n";
+	     //debug
+	     
+	     RPC_ping_cb(recipient_key,recipient_na,
+			 sender_key,sender_na,
+			 status);
+	     
+	     // create a reponse.
+	     l1r = l1_protob_wrapper::create_l1_response(status);
+	  }
 	else 
 	  {
 	     // TODO: unknown cb.
@@ -214,7 +227,7 @@ namespace dht
 	     std::cerr << "[Debug]:unknown callback.\n";
 	     //debug
 	     
-	     errlog::log_error(LOG_LEVEL_DHT, "Couldn't find callback with id %i", fct_id);
+	     errlog::log_error(LOG_LEVEL_DHT, "Couldn't find callback with id %u", fct_id);
 	     return DHT_ERR_CALLBACK;
 	  }
 	
