@@ -32,6 +32,8 @@ using sp::serialize;
 
 namespace dht
 {
+   int DHTKey::_n_generated_keys = 0;
+   
    DHTKey::DHTKey()
      : std::bitset<KEYNBITS>()
        {
@@ -411,7 +413,8 @@ namespace dht
      {
 	timeval tim;
 	gettimeofday(&tim, NULL);
-	unsigned long iseed = tim.tv_sec + tim.tv_usec;
+	unsigned long iseed = tim.tv_sec + tim.tv_usec 
+	  + DHTKey::_n_generated_keys;
 	DHTKey res;
 	for (unsigned int b=0; b<KEYNBITS; b++)
 	  {
