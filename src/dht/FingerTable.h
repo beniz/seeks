@@ -55,6 +55,8 @@ namespace dht
 	
 	bool has_key(const int &index, Location *loc) const;
 	
+	void removeLocation(Location *loc);
+	
 	/**
 	 * \brief find closest predecessor to a given key.
 	 * Successor information is unset by default, set only if the closest node 
@@ -87,7 +89,7 @@ namespace dht
 	 * TODO.
 	 */
 	virtual bool isStable() { return false; }
-	
+
 	void print(std::ostream &out) const;
 	
       private:

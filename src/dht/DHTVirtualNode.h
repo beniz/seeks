@@ -104,7 +104,10 @@ namespace dht
 	
 	dht_err find_predecessor(const DHTKey& nodeKey,
 				 DHTKey& dkres, NetAddress& na);
-		
+	
+	bool is_dead(const DHTKey &recipientKey, const NetAddress &na,
+		     int &status);
+	
 	/**---------------------------**/
 	
 	/**
@@ -122,13 +125,15 @@ namespace dht
 	void clearPredsList() { _predecessors.clear(); };
 	Location* getLocation() const { return _loc; }
 	FingerTable* getFingerTable() { return _fgt; }
+	std::list<const DHTKey*>::const_iterator getNextSuccessor() const { return _successors.next(); };
+	std::list<const DHTKey*>::const_iterator endSuccessor() const { return _successors.end(); };
 	
 	/* location finding. */
 	LocationTable* getLocationTable() const;
 	Location* findLocation(const DHTKey& dk) const;
 	void addToLocationTable(const DHTKey& dk, const NetAddress& na,
 				Location *&loc) const;
-	void removeLocation(Location *loc) const;
+	void removeLocation(Location *loc);
 	NetAddress getNetAddress() const;
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
 	
@@ -169,12 +174,6 @@ namespace dht
 	 * Sorted list of predecessors.
 	 */
 	slist<const DHTKey*> _predecessors;
-	
-      public:
-	/**
-	 * Max size of the pred/succ lists.
-	 */
-	static size_t _maxSuccsListSize;
 	
       private:
 	/**

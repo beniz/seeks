@@ -193,11 +193,6 @@ namespace dht
 	static dht_configuration *_dht_config;
 	
 	/**
-	 * shared location table.
-	 */
-	//LocationTable* _lt;
-	
-	/**
 	 * array of DHT node. TODO: hashtable.
 	 */
 	//TODO: should be made persistent.

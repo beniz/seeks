@@ -41,11 +41,25 @@ namespace dht
      
 	void clear();
 	
+	std::list<const DHTKey*>::const_iterator next() const { return _succs.begin(); };
+	
+	std::list<const DHTKey*>::const_iterator end() const { return _succs.end(); };
+	
+	void erase_front();
+	
+	void set_direct_successor(const DHTKey *succ_key);
+	
+	bool empty() const { return _succs.empty(); };
+	
+	size_t size() const { return _succs.size(); };
+	
 	dht_err update_successors();
 	
 	void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list);
 	
 	bool has_key(const DHTKey &key) const;
+	
+	void removeKey(const DHTKey &key);
 	
 	dht_err findClosestPredecessor(const DHTKey &nodeKey,
 				       DHTKey &dkres, NetAddress &na,
@@ -62,9 +76,12 @@ namespace dht
 	// TODO.
 	virtual bool isStable() { return false; } ;
 	
+      public:
 	std::list<const DHTKey*> _succs;
 	
 	DHTVirtualNode *_vnode;
+     
+	static short _max_list_size;
      };
       
 } /* end of namespace. */

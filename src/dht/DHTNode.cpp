@@ -75,7 +75,8 @@ namespace dht
 	 * create the virtual nodes.
 	 * TODO: persistance of vnodes and associated tables.
 	 */
-	DHTVirtualNode::_maxSuccsListSize = DHTNode::_dht_config->_nvnodes-1;
+	//SuccList::_max_list_size = DHTNode::_dht_config->_nvnodes-1;
+	SuccList::_max_list_size = 5; // adhoc default...
 	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
 	  {
 	     /**
@@ -185,17 +186,30 @@ namespace dht
 	// For every virtual node, appoint local virtual node as successor.
 	std::vector<const DHTKey*> vnode_keys_ord;
 	rank_vnodes(vnode_keys_ord);
-	size_t nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
-	for (size_t i=0;i<nv;i++)
+	int nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
+	
+	//debug
+	std::cerr << "nv: " << nv << std::endl;
+	//debug
+	
+	for (int i=0;i<nv;i++)
 	  {
 	     const DHTKey *dkey = vnode_keys_ord.at(i);
 	     DHTVirtualNode *vnode = findVNode(*dkey);
 	     
+	     //debug
+	     std::cerr << "vnode key: " << vnode->getIdKey() << std::endl;
+	     //debug
+	     
 	     vnode->clearSuccsList();
 	     vnode->clearPredsList();
 	     
+	     size_t j = i+2;
 	     if (i == nv-1)
-	       vnode->setSuccessor(*vnode_keys_ord.at(0),_l1_na); // close the circle.
+	       {
+		  vnode->setSuccessor(*vnode_keys_ord.at(0),_l1_na); // close the circle.
+		  j = 1;
+	       }
 	     else
 	       vnode->setSuccessor(*vnode_keys_ord.at(i+1),_l1_na);
 	     if (i == 0)
@@ -209,9 +223,8 @@ namespace dht
 	     //debug
 	  
 	     // fill up successor list.
-	     size_t c = 0;
-	     size_t j = i+2;
-	     while(c<nv)
+	     int c = 0;
+	     while(c<nv-2)
 	       {
 		  if (j >= nv)
 		    j = 0;
@@ -220,7 +233,15 @@ namespace dht
 		  j++;
 	       }
 	     
-	     //TODO: predecessor list.
+	     //debug
+	     std::cerr << "successor list (" << vnode->_successors.size() << "): ";
+	     std::list<const DHTKey*>::const_iterator lit = vnode->_successors._succs.begin();
+	     while(lit!=vnode->_successors._succs.end())
+	       {
+		  std::cerr << *(*lit) << std::endl;
+		  ++lit;
+	       }
+	     //debug
 	  }
 	
 	//debug
@@ -232,6 +253,10 @@ namespace dht
 
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
      {
+	//debug
+	std::cerr << "[Debug]:rankin_vnodes: number of vnodes: " << _vnodes.size() << std::endl;
+	//debug
+	
 	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator vit
 	  = _vnodes.begin();
 	while(vit!=_vnodes.end())
@@ -411,10 +436,14 @@ namespace dht
 	     return status;
 	  }
 	
-	//debug
-	assert(!vnode->_successors._succs.empty());
-	//debug
-	
+	if (vnode->_successors.empty())
+	  {
+	     dkres_list = std::list<DHTKey>();
+	     na_list = std::list<NetAddress>();
+	     status = DHT_ERR_OK;
+	     return status;
+	  }
+		
 	/**
 	 * return successor list.
 	 */

@@ -28,8 +28,6 @@ using sp::errlog;
 
 namespace dht
 {
-   size_t DHTVirtualNode::_maxSuccsListSize = 15; //default adhoc value. A dedicated value is computed in DHTNode.
-   
    DHTVirtualNode::DHTVirtualNode(DHTNode* pnode)
      : _pnode(pnode),_successor(NULL),_predecessor(NULL),
        _successors(this)
@@ -78,8 +76,27 @@ namespace dht
       
    dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
      {
-	if (!_predecessor
-	    || senderKey.between(*_predecessor, _idkey))
+	bool reset_pred = false;
+	if (!_predecessor)
+	  reset_pred = true;
+	else
+	  {
+	     /**
+	      * If we are the new successor of a node, because some other node did 
+	      * fail in between us, then we need to make sure that this dead node is
+	      * not our predecessor. If it is, then we do accept the change.
+	      */
+	     // TODO: slow down the time between two pings by looking at a location 'alive' flag.
+	     Location *pred_loc = findLocation(*_predecessor);
+	     int status = 0;
+	     bool dead = is_dead(pred_loc->getDHTKey(),pred_loc->getNetAddress(),status);
+	     if (dead)
+	       reset_pred = true;
+	     else if (senderKey.between(*_predecessor, _idkey))
+	       reset_pred = true;
+	  }
+	
+	if (reset_pred)
 	  setPredecessor(senderKey, senderAddress);
 	return DHT_ERR_OK;
      }
@@ -203,15 +220,20 @@ namespace dht
 	rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
 	
 	while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey()))
-          {
+	  {
+	     //debug
+	     std::cerr << "[Debug]:find_predecessor: passed between test: nodekey "
+	       << nodeKey << " not between " << rloc.getDHTKey() << " and " << succloc.getDHTKey() << std::endl;
+	     //debug
+	     
 	     /**
 	      * RPC calls.
 	      */
 	     int status = -1;
 	     const DHTKey recipientKey = rloc.getDHTKey();
 	     const NetAddress recipient = rloc.getNetAddress();
-	     DHTKey succ_key = DHTKey(); // = succloc.getDHTKey();
-	     NetAddress succ_na = NetAddress(); // = succloc.getNetAddress();
+	     DHTKey succ_key = DHTKey();
+	     NetAddress succ_na = NetAddress();
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     
@@ -237,6 +259,12 @@ namespace dht
 		  if (ret < retries && (err == DHT_ERR_CALL 
 					|| err == DHT_ERR_COM_TIMEOUT)) // failed call, remote node does not respond.
 		    {
+		       //debug
+		       std::cerr << "[Debug]:error while finding predecessor, will try to undershoot to find a new route\n";
+		       //debug
+
+		       exit(0);
+		       
 		       // let's undershoot by finding the closest predecessor to the 
 		       // dead node.
 		       std::vector<Location*>::iterator rtit = rit._hops.end();
@@ -259,7 +287,7 @@ namespace dht
 		    
 		       if (err != DHT_ERR_OK)
 			 {
-			    // weird, undershooting failed.
+			    // weird, undershooting did fail.
 			    errlog::log_error(LOG_LEVEL_DHT, "Tentative overshooting did fail in find_predecessor");
 			    return (dht_err)status;
 			 }
@@ -285,7 +313,9 @@ namespace dht
 	       }
 	     
 	     //debug
+	     std::cerr << "[Debug]:find_predecessor: dkres: " << dkres << std::endl;
 	     assert(dkres.count()>0);
+	     assert(dkres != rloc.getDHTKey());
 	     //debug
 	     
 	     rloc.setDHTKey(dkres);
@@ -309,7 +339,8 @@ namespace dht
 		  if ((dht_err)status != DHT_ERR_OK)
 		    {
 		       //debug
-		       std::cerr << "[Debug]:find_predecessor: failed call to getSuccessor\n";
+		       std::cerr << "[Debug]:find_predecessor: failed call to getSuccessor: " 
+			         << status << std::endl;
 		       //debug
 		       
 		       errlog::log_error(LOG_LEVEL_DHT, "Failed call to getSuccessor in find_predecessor loop");
@@ -329,7 +360,32 @@ namespace dht
 	
 	return DHT_ERR_OK;	
      }
-      
+
+   bool DHTVirtualNode::is_dead(const DHTKey &recipientKey, const NetAddress &na,
+				   int &status)
+     {
+	if (_pnode->findVNode(recipientKey))
+	  {
+	     // this is a local virtual node... Either our successor
+	     // is not up-to-date, either we're cut off from the world...
+	     // XXX: what to do ?
+	     status = DHT_ERR_OK;
+	     return false;
+	  }
+	else
+	  {
+	     // let's ping that node.
+	     status = DHT_ERR_OK;
+	     dht_err err = _pnode->_l1_client->RPC_ping(recipientKey,na,
+							getIdKey(),getNetAddress(),
+							status);
+	     if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
+	       return false;
+	     else return true;
+	  }
+     }
+   
+   
    /**
     * accessors.
     */
@@ -343,6 +399,7 @@ namespace dht
 	if (_successor)
 	  delete _successor;
 	_successor = new DHTKey(dk);
+	_successors.set_direct_successor(_successor);
 	seeks_proxy::mutex_unlock(&_succ_mutex);
      }
    
@@ -449,8 +506,12 @@ namespace dht
 	_lt->addToLocationTable(dk, na, loc);
      }
 
-   void DHTVirtualNode::removeLocation(Location *loc) const
+   void DHTVirtualNode::removeLocation(Location *loc)
      {
+	_fgt->removeLocation(loc);
+	_successors.removeKey(loc->getDHTKey());
+	if (*_predecessor == loc->getDHTKey())
+	  _predecessor = NULL; // beware.
 	_lt->removeLocation(loc);
      }
    

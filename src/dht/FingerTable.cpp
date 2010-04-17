@@ -127,6 +127,9 @@ namespace dht
    
    int FingerTable::stabilize()
      {
+	static int retries = 3;
+	int ret = 0;
+	
 	//debug
 	std::cerr << "[Debug]:FingerTable::stabilize()\n";
 	//debug
@@ -158,21 +161,154 @@ namespace dht
 	 */
 	DHTKey succ_pred;
 	NetAddress na_succ_pred;
-	int status = 0;
 	
-	dht_err loc_err = _vnode->getPNode()->getPredecessor_cb(*succ, succ_pred, na_succ_pred, status);
-	if (loc_err == DHT_ERR_UNKNOWN_PEER)
-	  _vnode->getPNode()->_l1_client->RPC_getPredecessor(*succ, succ_loc->getNetAddress(),
-							     recipientKey,na,
-							     succ_pred, na_succ_pred, status);
-	// TODO: handle successor failure, retry, then move down the successor list.
-	/**
-	 * check on RPC status.
-	 */
-	if ((dht_err)status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
+	int status = 0;
+	dht_err err = DHT_ERR_RETRY;
+	std::vector<Location*> dead_locs;
+	while (err != DHT_ERR_OK) // while over all successors in the list. If all fail, then rejoin.
 	  {
+	     err = _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
+	     if (err == DHT_ERR_UNKNOWN_PEER)
+	       err = _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+									recipientKey,na,
+									succ_pred, na_succ_pred, status);
+	     //debug
+	     std::cerr << "[Debug]: predecessor call: err=" << err << " -- status=" << status << std::endl;
+	     //debug
+	     	     
+	     /**
+	      * handle successor failure, retry, then move down the successor list.
+	      */
+	     if (err != DHT_ERR_OK
+		 && (err == DHT_ERR_CALL || err == DHT_ERR_COM_TIMEOUT
+		     || ret == retries)) // node is not dead, but predecessor call has failed 'retries' times.
+	       {
+		  /**
+		   * our successor is not responding.
+		   * let's ping it, if it seems dead, let's move to the next successor on our list.
+		   */
+		  bool dead = _vnode->is_dead(*succ,succ_loc->getNetAddress(),
+					      status);
+		  
+		  if (dead || ret == retries)
+		    {
+		       //debug
+		       std::cerr << "[Debug]:dead successor detected\n";
+		       //debug
+		       
+		       // get a new successor.
+		       std::list<const DHTKey*>::const_iterator kit = _vnode->getNextSuccessor();
+		       if (kit == _vnode->endSuccessor())
+			 break; // we're out of potential successors.
+		       if ((*kit) == _vnode->getSuccessor())
+			 {
+			    // first successor is our old one, let's skip it.
+			    _vnode->_successors.erase_front();
+			    kit = _vnode->getNextSuccessor();
+			    if (kit == _vnode->endSuccessor())
+			      break; // we're out of potential successors.
+			 }
+		       succ = const_cast<DHTKey*>((*kit));
+		       
+		       // mark dead nodes for tentative removal from location table.
+		       dead_locs.push_back(succ_loc);
+		       
+		       // sets a new successor.
+		       succ_loc = findLocation(*succ);
+		       
+		       // replaces the successor and the head of the successor list as well.
+		       _vnode->setSuccessor(succ_loc->getDHTKeyRef(),succ_loc->getNetAddress());
+		       
+		       // resets the error.
+		       err = status = DHT_ERR_RETRY;
+		    }
+		  else 
+		    {
+		       // let's retry the getpredecessor call.
+		       ret++;
+		    }
+	       }
+	     
+	     /**
+	      * Let's loop if we did change our successor.
+	      */
+	     if (err == DHT_ERR_RETRY)
+	       {
+		  //debug
+		  std::cerr << "[Debug]: trying to call the new successor, one more loop.\n";
+		  //debug
+		  
+		  continue;
+	       }
+	     
+	     /**
+	      * check on RPC status.
+	      */
+	     if ((dht_err)status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
+	       {
+		  break;
+	       }
+	     else if ((dht_err)status == DHT_ERR_OK)
+	       {
+		  /**
+		   * beware, the predecessor may be a dead node.
+		   * this may happen when our successor has failed and was replaced by its
+		   * successor in the list. Asked for its predecessor, this new successor may
+		   * with high probability return our old dead successor.
+		   * The check below ensures we detect this case.
+		   */
+		  Location *pred_loc = _vnode->findLocation(succ_pred);
+		  if (pred_loc)
+		    {
+		       for (size_t i=0;i<dead_locs.size();i++)
+			 if (pred_loc == dead_locs.at(i)) // comparing ptr.
+			   {
+			      status = DHT_ERR_NO_PREDECESSOR_FOUND;
+			      succ_pred.reset(); // clears every bit.
+			      na_succ_pred = NetAddress();
+			      break;
+			   }
+		    }
+		  break;
+	       }
+	     else 
+	       {
+		  // other errors: our successor has replied, but with a signaled error.
+		  err = status;
+		  break;
+	       }
+	     
+	     status = 0;
 	  }
-	else if ((dht_err)status != DHT_ERR_OK)
+	
+	// clear dead nodes.
+	for (size_t i=0;i<dead_locs.size();i++)
+	  {
+	     Location *dead_loc = dead_locs.at(i);
+	     
+	     //debug
+	     assert(!_vnode->_successors.has_key(dead_loc->getDHTKey()));
+	     assert(*_vnode->getSuccessor() != dead_loc->getDHTKey());
+	     //debug
+	     
+	     _vnode->removeLocation(dead_loc);
+	  }
+	dead_locs.clear();
+	
+	/**
+	 * total failure, we're very much probably cut off from the network.
+	 * let's try to rejoin.
+	 * TODO: if join fails, let's fall back into a trying mode, in which
+	 * we try a join every x minutes.
+	 */
+	//TODO: rejoin + wrong test here.
+	/* if (_vnode->_successors.empty())
+	  {
+	     std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n";
+	     exit(0);
+	  } */
+		
+	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
 	  {
 	     //debug
 	     std::cerr << "[Debug]:FingerTable::stabilize: failed return from getPredecessor\n";
@@ -202,9 +338,9 @@ namespace dht
 	/**
 	 * notify RPC.
 	 */
-	loc_err = _vnode->getPNode()->notify_cb(*succ, getVNodeIdKey(), getVNodeNetAddress(), status);
-	if (loc_err == DHT_ERR_UNKNOWN_PEER)
-	  _vnode->getPNode()->_l1_client->RPC_notify(*succ, succ_loc->getNetAddress(),
+	err = _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
+	if (err == DHT_ERR_UNKNOWN_PEER)
+	  _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 						     getVNodeIdKey(),getVNodeNetAddress(),
 						     status);
 	// TODO: handle successor failure, retry, then move down the successor list.
@@ -222,13 +358,13 @@ namespace dht
 
    int FingerTable::fix_finger()
      {
-	//debug
-	std::cerr << "[Debug]:FingerTable::fix_finger()\n";
-	//debug
-	
 	// TODO: seed.
 	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
-		
+	
+	//debug
+	std::cerr << "[Debug]:FingerTable::fix_finger: " << rindex << std::endl;
+	//debug
+	
 	//debug
 	assert(rindex > 0);
 	assert(rindex < KEYNBITS);
@@ -256,28 +392,25 @@ namespace dht
 	     return status;
 	  }
 	
+	//debug
 	assert(dkres.count()>0);
+	//debug
 	
 	/**
 	 * lookup result, add it to the location table if needed.
 	 */
 	Location* rloc = _vnode->addOrFindToLocationTable(dkres, na);
-     
 	Location *curr_loc = _locs[rindex];
-	if (rloc != curr_loc)
+	if (curr_loc && rloc != curr_loc)
 	  {
 	     // remove location if it not used in other lists.
-	     if (!has_key(rindex,curr_loc) 
-		 && !_vnode->_successors.has_key(curr_loc->getDHTKey()))
-	       {
-		  _vnode->removeLocation(curr_loc);
-	       }
+	     _vnode->removeLocation(curr_loc);
 	  }
 		
 	_locs[rindex] = rloc;
 	
 	//debug
-	//print(std::cout);
+	print(std::cout);
 	//debug
 	
 	return 0;
@@ -296,6 +429,17 @@ namespace dht
 	return false;
      }
       
+   void FingerTable::removeLocation(Location *loc)
+     {
+	for (int i=0;i<KEYNBITS;i++)
+	  {
+	     if (_locs[i] == loc)
+	       {
+		  _locs[i] = NULL;
+	       }
+	  }
+     }
+      
    void FingerTable::print(std::ostream &out) const
      {
 	out << "   ftable: " << _vnode->getIdKey() << std::endl;
@@ -303,7 +447,14 @@ namespace dht
 	  out << "successor: " << *_vnode->getSuccessor() << std::endl;
 	if (_vnode->getPredecessor())
 	  out << "predecessor: " << *_vnode->getPredecessor() << std::endl;
-	for (int i=0;i<KEYNBITS;i++)
+	out << "successor list (" << _vnode->_successors.size() << "): ";
+	std::list<const DHTKey*>::const_iterator lit = _vnode->_successors._succs.begin();
+	while(lit!=_vnode->_successors._succs.end())
+	  {
+	     out << *(*lit) << std::endl;
+	     ++lit;
+	  }
+	/* for (int i=0;i<KEYNBITS;i++)
 	  {
 	     if (_locs[i])
 	       {
@@ -312,7 +463,7 @@ namespace dht
 		  out << "           " << _locs[i]->getDHTKey() << std::endl;
 		  out << _locs[i]->getNetAddress() << std::endl;
 	       }
-	  }
+	  } */
      }
    
 } /* end of namespace. */
