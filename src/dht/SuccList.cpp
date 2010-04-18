@@ -142,6 +142,8 @@ namespace dht
 	  {
 	     if (sit != _vnode->_successors._succs.end() && *(*sit)<(*kit))
 	       {
+		  std::cerr << "[Debug]:mergelist: <\n";
+		  
 		  // node in our list may have died...
 		  Location *loc = _vnode->findLocation(*(*sit));
 		  
@@ -151,14 +153,27 @@ namespace dht
 		  
 		  prev_succ_key = (*sit);
 		  
-		  // RPC-based ping.
-		  /* int status = DHT_ERR_OK;
-		  bool dead = _vnode->is_dead(*(*sit),loc->getNetAddress(),status); */
-	
-		  // remove node, if dead remove location. // BEWARE: may leave useless locations in the table...
+		  // remove node, if dead remove location.
+		  //TODO: remove even iterator only if node appears to be dead.
 		  sit = _vnode->_successors._succs.erase(sit);
-		  /* if (dead)
-		    _vnode->removeLocation(loc); */
+		  /*if (!_vnode->getFingerTable()->has_key(-1,loc)
+		      && (!_vnode->isPredecessorEqual(loc->getDHTKey()))
+		      && *_vnode->getSuccessor() != loc->getDHTKey())
+		    {
+		       //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
+		       //_vnode->removeLocation(loc);
+		    } 
+		  else */
+		    {  
+		       // RPC-based ping.
+		       int status = DHT_ERR_OK;
+		       bool dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
+		       if (dead)
+			 {
+			    std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
+			    _vnode->removeLocation(loc);
+			 }
+		    }
 	       }
 	     else if (*(*sit) == (*kit))
 	       {
@@ -169,33 +184,66 @@ namespace dht
 	     else if ((sit == _vnode->_successors._succs.end() && kit != dkres_list.end())
 		      || *(*sit)>(*kit))
 	       {
+		  std::cerr << "[Debug]:mergelist: >\n";
+		  
 		  // a new node may have joined.
 		  // first, make sure we're not looping on the circle.
-		  /* if (_vnode->getIdKey() == (*kit)) */
-		   /* break; */ // let's stop here.		       
-		  /* if (sit == _vnode->_successors._succs.end())
-		    { */
-		       if (_vnode->getIdKey().incl(*prev_succ_key,(*kit)))
+		  if (_vnode->getIdKey().incl(*prev_succ_key,(*kit)))
+		    {
+		       //debug
+		       std::cerr << "[Debug]:loop in merging.\n";
+		       //debug
+		       
+		       /**
+			* remove everything that lies behind the (*sit) key in the successor list.
+			* Though we ping them before complete removal.
+			*/
+		       int status = DHT_ERR_OK;
+		       bool dead = false;
+		       Location *loc = NULL;
+		       while(sit!=_vnode->_successors._succs.end())
 			 {
-			    //debug
-			    std::cerr << "[Debug]:loop in merging.\n";
-			    //debug
+			    loc = _vnode->findLocation(*(*sit));
 			    
-			    // TODO: remove everything that lies behind the (*sit) key in the successor list.
-			    // TODO: ping them before removal.
-			    _vnode->_successors._succs.erase(sit,_vnode->_successors._succs.end());
-			    
-			    break; // the successor list is looping around the circle.
+			    // test for location usage, _after_ removal from the succlist.
+			    sit = _vnode->_successors._succs.erase(sit);
+			    /* if (!_vnode->getFingerTable()->has_key(-1,loc)
+				&& !_vnode->isPredecessorEqual(loc->getDHTKey())
+				&& *_vnode->getSuccessor() != loc->getDHTKey())
+			      {
+				 //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
+				 //_vnode->removeLocation(loc);
+			      }
+			    else */
+			      {
+				 dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
+				 if (dead)
+				   {
+				      std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
+				      _vnode->removeLocation(loc);
+				   }
+			      }
+			    loc = NULL;
+			    status = DHT_ERR_OK;
+			    dead = false;
 			 }
-		    //}
+		       
+		       //debug
+		       std::cerr << "[Debug]:mergelist: cleared remaining list\n";
+		       //debug
+		       
+		       break; // the successor list is looping around the circle.
+		    }
 		  
 		  // add the new node, list to be pruned out later.
 		  // let's ping that node.
 		  bool alive = false;
 		  if (_vnode->getPNode()->findVNode((*kit)))
 		    {
-		       // this is a local virtual node... Either our successor
-		       // is not up-to-date, either we're cut off from the world...
+		       /**
+			* this is a local virtual node... Either our successor
+		        * is not up-to-date, either we're cut off from the world...
+			*/
 		       alive = true; 
 		    }
 		  else
@@ -212,14 +260,23 @@ namespace dht
 		    {
 		       // add to location table.
 		       Location *loc = NULL;
-		       _vnode->addToLocationTable((*kit),(*nit),loc);
-		    
+		       
+		       //debug
+		       std::cerr << "[Debug]:mergelist: adding to location table: " << (*kit) << std::endl;
+		       //debug
+		       
+		       //buggy:
+		       //_vnode->addToLocationTable((*kit),(*nit),loc);
+		       loc = _vnode->addOrFindToLocationTable((*kit),(*nit));	
+		       
 		       //debug
 		       assert(loc!=NULL);
 		       assert(loc->getDHTKey().count()>0);
+		       assert(loc->getDHTKeyRef() == (*kit));
 		       //debug
 		       
-		       // add it to the list.
+		       // add it to the list, before sit.
+		       prev_succ_key = (*sit);
 		       _vnode->_successors._succs.insert(sit,&loc->getDHTKeyRef());
 		       
 		       //debug

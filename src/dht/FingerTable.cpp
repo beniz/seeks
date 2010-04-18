@@ -302,11 +302,11 @@ namespace dht
 	 * we try a join every x minutes.
 	 */
 	//TODO: rejoin + wrong test here.
-	/* if (_vnode->_successors.empty())
+	if (_vnode->_successors.empty())
 	  {
 	     std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n";
 	     exit(0);
-	  } */
+	  }
 		
 	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
 	  {
@@ -404,7 +404,8 @@ namespace dht
 	if (curr_loc && rloc != curr_loc)
 	  {
 	     // remove location if it not used in other lists.
-	     _vnode->removeLocation(curr_loc);
+	     if (!_vnode->_successors.has_key(curr_loc->getDHTKey()))
+	       _vnode->removeLocation(curr_loc);
 	  }
 		
 	_locs[rindex] = rloc;

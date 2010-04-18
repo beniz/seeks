@@ -61,16 +61,22 @@ namespace dht
 	}
      }
    
-   void LocationTable::addToLocationTable(Location* loc)
+   void LocationTable::addToLocationTable(Location *&loc)
      {
 	hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::iterator hit;
 	if ((hit=_hlt.find(&loc->getDHTKeyRef()))!=_hlt.end())
-	  delete (*hit).second; // beware.
+	  {
+	     if (loc)
+	       delete loc;
+	     loc = (*hit).second;
+	     return;
+	  }
 	seeks_proxy::mutex_lock(&_lt_mutex);
 	_hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
 	seeks_proxy::mutex_unlock(&_lt_mutex);
      }
    
+   // DEPRECATED ?
    void LocationTable::addToLocationTable(const DHTKey& key, const NetAddress& na, 
 					  Location *&loc)
      {
@@ -91,8 +97,9 @@ namespace dht
 	  }
 	else 
 	  {
-	     Location* loc = NULL;
-	     addToLocationTable(dk, na, loc);
+	     Location* loc = new Location(dk, na);
+	     _hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
+	     //addToLocationTable(dk, na, loc);
 	     return loc;
 	  }	 
      }
@@ -109,6 +116,5 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_string().c_str());
 	  }
      }
-   
-   
+      
 } /* end of namespace. */

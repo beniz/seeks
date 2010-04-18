@@ -49,7 +49,7 @@ namespace dht
 	 * \brief add new location to table.
 	 * @param loc location to be added.
 	 */
-	void addToLocationTable(Location* loc);
+	void addToLocationTable(Location *&loc);
 	
       public:
 	/**
@@ -57,7 +57,6 @@ namespace dht
 	 * @param key identification key to be added,
 	 * @param na net address of the location to be added,
 	 * @param loc location pointer to be filled with the new location info.
-	 * TODO: table cleanup.
 	 */
 	void addToLocationTable(const DHTKey& key, const NetAddress& na, Location *&loc);
 	
@@ -73,12 +72,10 @@ namespace dht
 	 */
 	void removeLocation(Location *loc);
 	
-	/* TODO: find location. */
-	//Location* findLocation(const Location& loc);
+	/**
+	 * \brief find location. 
+	 */
 	Location* findLocation(const DHTKey& dk);
-	
-	/* TODO: clean up the dead/unused locations. */
-	size_t cleanUpLocations();
 	
 	/* TODO: max caching size of locations. */
 	

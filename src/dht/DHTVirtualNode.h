@@ -136,6 +136,7 @@ namespace dht
 	void removeLocation(Location *loc);
 	NetAddress getNetAddress() const;
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
+	bool isPredecessorEqual(const DHTKey &key) const;
 	
       public:
 	/**

@@ -510,7 +510,7 @@ namespace dht
      {
 	_fgt->removeLocation(loc);
 	_successors.removeKey(loc->getDHTKey());
-	if (*_predecessor == loc->getDHTKey())
+	if (_predecessor && *_predecessor == loc->getDHTKey())
 	  _predecessor = NULL; // beware.
 	_lt->removeLocation(loc);
      }
@@ -524,6 +524,12 @@ namespace dht
      {
 	return _lt->addOrFindToLocationTable(key, na);
      }
-   
-   
+
+   bool DHTVirtualNode::isPredecessorEqual(const DHTKey &key) const
+     {
+	if (_predecessor)
+	  return false;
+	return (*_predecessor == key);
+     }
+      
 } /* end of namespace. */
