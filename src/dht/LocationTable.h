@@ -77,9 +77,10 @@ namespace dht
 	 */
 	Location* findLocation(const DHTKey& dk);
 	
-	/* TODO: max caching size of locations. */
-	
-	/* TODO: max size of the table, including 'caching' size of unused but known locations. */
+	/**
+	 * \brief prints the location table.
+	 */
+	void print(std::ostream &out) const;
 	
       public:
 	/**

@@ -24,7 +24,7 @@ typedef int dht_err;
 #define DHT_ERR_MEMORY                             1 /**< Out of memory */
 #define DHT_ERR_NETWORK                            2 /**< Network communication error */
 #define DHT_ERR_COMLEVEL                           3 /**< wrong communication level */
-#define DHT_ERR_UNKNOWN_PEER                       4 /**< unknown peer in lookup. */
+#define DHT_ERR_UNKNOWN_PEER                       4 /**< unknown peer in lookup, usually old address for a new node. */
 #define DHT_ERR_NO_SUCCESSOR_FOUND                 5 /**< can't find a successor to a peer. */
 #define DHT_ERR_NO_PREDECESSOR_FOUND               6 /**< can't find a predecessor to a peer. */
 #define DHT_ERR_UNKNOWN_PEER_LOCATION              7 /**< can't find a net address for a peer. */
@@ -38,4 +38,5 @@ typedef int dht_err;
 #define DHT_ERR_MSG                               15 /**< msg (serialization/deserialization) error. */
 #define DHT_ERR_CALLBACK                          16 /**< unknown callback function. */
 #define DHT_ERR_RETRY                             17 /**< error mark while retrying (a call, ...). */
+#define DHT_ERR_MAXHOPS                           18 /**< max number of hops reached in key lookup. */
 #define DHT_ERR_UNKNOWN                         1000 /**< unknown error. */

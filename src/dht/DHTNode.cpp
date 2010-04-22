@@ -217,6 +217,8 @@ namespace dht
 	     else 
 	       vnode->setPredecessor(*vnode_keys_ord.at(i-1),_l1_na);
 	  
+	     vnode->update_successor_list_head(); // sets successor in successor list.
+	     
 	     //debug
 	     std::cerr << "predecessor: " << *vnode->getPredecessor() << std::endl;
 	     std::cerr << "successor: " << *vnode->getSuccessor() << std::endl;

@@ -27,7 +27,9 @@
 #include "stl_hash.h"
 
 #define KEYNBITS 160
+//#define KEYNBITS 32
 #define KEYNBITSIZE 5  /* 160 / 32 bits (ulong) */
+//#define KEYNBITSIZE 1
 
 namespace dht
 {
@@ -138,6 +140,7 @@ namespace dht
 	 * TODO: stronger randomness and collision prevention in generated keys.
 	 */
 	static DHTKey randomKey();
+	static int _n_generated_keys; // number of generated keys.
 	
 	/**
 	 * \brief Basic random bit generator, for debugging purposes.

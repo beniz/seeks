@@ -88,11 +88,15 @@ namespace dht
 	 * XXX: some of those nodes may have been tested already
 	 * in the finger table...
 	 */
+	std::cerr << "[Debug]:looking up closest predecessor in successor list\n";
 	_vnode->_successors.findClosestPredecessor(nodeKey,dkres,na,
 						   dkres_succ, dkres_succ_na,
 						   status);
 	if (dkres.count()>0)
 	  {
+	     std::cerr << "[Debug]:found closest predecessor in successor list: "
+	       << dkres << std::endl;
+	     
 	     status = DHT_ERR_OK;
 	     return DHT_ERR_OK;
 	  }
@@ -100,7 +104,8 @@ namespace dht
 	/**
 	 * otherwise, let's try our successor node.
 	 */
-	Location *loc = findLocation(*_vnode->getSuccessor());
+	// successor is part of successor list now.
+	/* Location *loc = findLocation(*_vnode->getSuccessor());
 	if (loc->getDHTKey().between(getVNodeIdKey(), nodeKey))
 	  {
 	     dkres = loc->getDHTKey();
@@ -108,12 +113,15 @@ namespace dht
 	     dkres_succ = *(*_vnode->_successors._succs.begin());
 	     Location *loc_succ = findLocation(dkres_succ);
 	     dkres_succ_na = loc_succ->getNetAddress();
-	  }
+	  } */
 		
+	// TODO: we should never reach here...
 	/**
 	 * otherwise return current node's id key, and sets the successor
 	 * (saves an rpc later).
 	 */
+	std::cerr << "[Debug]:closest predecessor is node itself... should not happen\n";
+	
 	status = DHT_ERR_OK;
 	dkres = getVNodeIdKey();
 	na = getVNodeNetAddress();
@@ -122,6 +130,11 @@ namespace dht
 	if (!succ_loc)
 	  return DHT_ERR_UNKNOWN_PEER_LOCATION;
 	dkres_succ_na = succ_loc->getNetAddress();
+	
+	//debug
+	assert(dkres!=getVNodeIdKey()); // exit.
+	//debug
+	
 	return DHT_ERR_OK;
      }
    
@@ -180,7 +193,7 @@ namespace dht
 	      * handle successor failure, retry, then move down the successor list.
 	      */
 	     if (err != DHT_ERR_OK
-		 && (err == DHT_ERR_CALL || err == DHT_ERR_COM_TIMEOUT
+		 && (err == DHT_ERR_CALL || err == DHT_ERR_COM_TIMEOUT || err == DHT_ERR_UNKNOWN_PEER
 		     || ret == retries)) // node is not dead, but predecessor call has failed 'retries' times.
 	       {
 		  /**
@@ -197,17 +210,23 @@ namespace dht
 		       //debug
 		       
 		       // get a new successor.
-		       std::list<const DHTKey*>::const_iterator kit = _vnode->getNextSuccessor();
-		       if (kit == _vnode->endSuccessor())
+		       _vnode->_successors.pop_front(); // removes our current successor.
+		       
+		       std::list<const DHTKey*>::const_iterator kit
+			 = _vnode->_successors.empty() ? _vnode->_successors.end()
+			   : _vnode->getFirstSuccessor();
+		       
+		       /**
+			* if we're at the end, game over, we will need to rejoin the network
+			* (we're probably cut off because of network failure, or some weird configuration).
+			*/
+		       if (kit == _vnode->_successors.end())
 			 break; // we're out of potential successors.
-		       if ((*kit) == _vnode->getSuccessor())
-			 {
-			    // first successor is our old one, let's skip it.
-			    _vnode->_successors.erase_front();
-			    kit = _vnode->getNextSuccessor();
-			    if (kit == _vnode->endSuccessor())
-			      break; // we're out of potential successors.
-			 }
+		       		       
+		       //debug
+		       std::cerr << "[Debug]:trying successor: " << *(*kit) << std::endl;
+		       //debug
+		       
 		       succ = const_cast<DHTKey*>((*kit));
 		       
 		       // mark dead nodes for tentative removal from location table.
@@ -228,14 +247,14 @@ namespace dht
 		       ret++;
 		    }
 	       }
-	     
+	     	     	     
 	     /**
 	      * Let's loop if we did change our successor.
 	      */
 	     if (err == DHT_ERR_RETRY)
 	       {
 		  //debug
-		  std::cerr << "[Debug]: trying to call the new successor, one more loop.\n";
+		  std::cerr << "[Debug]: trying to call the (new) successor, one more loop.\n";
 		  //debug
 		  
 		  continue;
@@ -246,6 +265,10 @@ namespace dht
 	      */
 	     if ((dht_err)status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
 	       {
+		  //debug
+		  std::cerr << "[Debug]:stabilize: our successor has no predecessor set.\n";
+		  //debug
+		  
 		  break;
 	       }
 	     else if ((dht_err)status == DHT_ERR_OK)
@@ -302,20 +325,24 @@ namespace dht
 	 * we try a join every x minutes.
 	 */
 	//TODO: rejoin + wrong test here.
-	if (_vnode->_successors.empty())
+	/* if (_vnode->_successors.empty())
 	  {
 	     std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n";
 	     exit(0);
-	  }
+	  } */
 		
 	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
 	  {
 	     //debug
 	     std::cerr << "[Debug]:FingerTable::stabilize: failed return from getPredecessor\n";
 	     //debug
+	     
+	     errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed return from getPredecessor, %u",
+			       status);
+	     //return (dht_err)status;
 	  
-	     errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed return from getPredecessor");
-	     return (dht_err)status;
+	     std::cerr << "[Debug]: no more successors to try... Should try to rejoin the overlay network\n";
+	     exit(0);
 	  }
 	else if ((dht_err)status == DHT_ERR_OK)
 	  {
@@ -332,6 +359,7 @@ namespace dht
 	     if (succ_pred.between(recipientKey, *succ))
 	       {
 		  _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
+		  _vnode->update_successor_list_head();
 	       }
 	  }
 	

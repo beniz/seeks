@@ -24,6 +24,7 @@
 #include "DHTKey.h"
 #include "NetAddress.h"
 #include "Stabilizer.h"
+#include "Location.h"
 #include "dht_err.h"
 
 #include <list>
@@ -32,20 +33,34 @@ namespace dht
 {
    class DHTVirtualNode;
    
+   /**
+    * \brief list of successors, makes the ring more robust to node failures.
+    *        The first element of the list is the successor itself, that is replicated
+    *        in the DHTVirtualNode class.
+    */
    class SuccList : public Stabilizable
      {
       public:
+	/**
+	 * \brief constructor with backpointer to the virtual node.
+	 */
 	SuccList(DHTVirtualNode *vnode);
 	
+	/**
+	 * \brief destructor.
+	 */
 	~SuccList();
      
+	/**
+	 * \brief clears the list of successors.
+	 */
 	void clear();
 	
-	std::list<const DHTKey*>::const_iterator next() const { return _succs.begin(); };
+	std::list<const DHTKey*>::const_iterator begin() const { return _succs.begin(); };
 	
 	std::list<const DHTKey*>::const_iterator end() const { return _succs.end(); };
 	
-	void erase_front();
+	void pop_front();
 	
 	void set_direct_successor(const DHTKey *succ_key);
 	
@@ -58,7 +73,7 @@ namespace dht
 	void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list);
 	
 	bool has_key(const DHTKey &key) const;
-	
+		
 	void removeKey(const DHTKey &key);
 	
 	dht_err findClosestPredecessor(const DHTKey &nodeKey,

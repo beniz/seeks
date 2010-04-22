@@ -53,8 +53,14 @@ namespace dht
 	DHTKey* getVNodeSuccessor() const { return _vnode->getSuccessor(); }
 	Location* findLocation(const DHTKey& dk) const { return _vnode->findLocation(dk); }  
 	
+	/**
+	 * \brief test whether a location is used in the finger table.
+	 */
 	bool has_key(const int &index, Location *loc) const;
 	
+	/**
+	 * \brief remove location from all indexes in the finger table. 
+	 */
 	void removeLocation(Location *loc);
 	
 	/**
@@ -82,7 +88,6 @@ namespace dht
 	 * virtual functions, from Stabilizable.
 	 */
 	virtual void stabilize_fast() { stabilize(); };
-	
 	virtual void stabilize_slow() { fix_finger(); };
 	
 	/**

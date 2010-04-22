@@ -145,8 +145,11 @@ namespace dht
 	
 	// remote errors.
 	if ((dht_err)status == DHT_ERR_OK)
-	  setSuccessor(dkres,na);
-     	
+	  {
+	     setSuccessor(dkres,na);
+	     update_successor_list_head();
+	  }
+	
 	return err;
      }
    
@@ -191,6 +194,7 @@ namespace dht
 					    DHTKey& dkres, NetAddress& na)
      {
 	static short retries = 2;
+	static short max_hops = 15; // TODO: in dht_configuration.
 	int ret = 0;
 		
 	/**
@@ -219,6 +223,7 @@ namespace dht
 	RouteIterator rit;
 	rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
 	
+	short nhops = 0;
 	while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey()))
 	  {
 	     //debug
@@ -226,6 +231,19 @@ namespace dht
 	       << nodeKey << " not between " << rloc.getDHTKey() << " and " << succloc.getDHTKey() << std::endl;
 	     //debug
 	     
+	     if (nhops > max_hops)
+	       {
+		  //debug
+		  std::cerr << "[Debug]:reached the maximum number of " << max_hops << " hops\n";
+		  //debug
+		  
+		  //TODO: errlog
+		  
+		  dkres = DHTKey();
+		  na = NetAddress();
+		  return DHT_ERR_MAXHOPS;
+	       }
+	     	     
 	     /**
 	      * RPC calls.
 	      */
@@ -352,8 +370,10 @@ namespace dht
 	     
 	     succloc.setDHTKey(succ_key);
 	     succloc.setNetAddress(succ_na);
+	  
+	     nhops++;
 	  }
-	
+		
 	//debug
 	assert(dkres.count()>0);
 	//debug
@@ -399,7 +419,6 @@ namespace dht
 	if (_successor)
 	  delete _successor;
 	_successor = new DHTKey(dk);
-	_successors.set_direct_successor(_successor);
 	seeks_proxy::mutex_unlock(&_succ_mutex);
      }
    
@@ -527,9 +546,23 @@ namespace dht
 
    bool DHTVirtualNode::isPredecessorEqual(const DHTKey &key) const
      {
-	if (_predecessor)
+	if (!_predecessor)
 	  return false;
 	return (*_predecessor == key);
      }
+
+   bool DHTVirtualNode::not_used_location(Location *loc) const
+     {
+	if (!_fgt->has_key(-1,loc)
+	    && !isPredecessorEqual(loc->getDHTKey())
+	    && *_successor != loc->getDHTKey())
+	  return true;
+	else return false;
+     }
       
+   void DHTVirtualNode::update_successor_list_head()
+     {
+	_successors.set_direct_successor(_successor);
+     }
+   
 } /* end of namespace. */

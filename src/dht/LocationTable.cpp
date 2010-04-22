@@ -117,4 +117,19 @@ namespace dht
 	  }
      }
       
+   void LocationTable::print(std::ostream &out) const 
+     {
+	out << "location table:\n";
+	hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+	  = _hlt.begin();
+	while(hit!=_hlt.end())
+	  {
+	     Location *loc = (*hit).second;
+	     out << loc->getDHTKey() << " -- ";
+	     loc->getNetAddress().print(out);
+	     out << std::endl;
+	     ++hit;
+	  }
+     }
+      
 } /* end of namespace. */

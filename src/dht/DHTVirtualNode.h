@@ -125,7 +125,7 @@ namespace dht
 	void clearPredsList() { _predecessors.clear(); };
 	Location* getLocation() const { return _loc; }
 	FingerTable* getFingerTable() { return _fgt; }
-	std::list<const DHTKey*>::const_iterator getNextSuccessor() const { return _successors.next(); };
+	std::list<const DHTKey*>::const_iterator getFirstSuccessor() const { return _successors.begin(); };
 	std::list<const DHTKey*>::const_iterator endSuccessor() const { return _successors.end(); };
 	
 	/* location finding. */
@@ -137,7 +137,11 @@ namespace dht
 	NetAddress getNetAddress() const;
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
 	bool isPredecessorEqual(const DHTKey &key) const;
+	bool not_used_location(Location *loc) const;
 	
+	/* update of successor list. */
+	void update_successor_list_head();
+		
       public:
 	/**
 	 * location table.

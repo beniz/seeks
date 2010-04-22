@@ -22,7 +22,6 @@
 #include "DHTVirtualNode.h"
 #include "FingerTable.h"
 #include "DHTNode.h"
-#include "Location.h"
 #include "errlog.h"
 
 #include <iostream>
@@ -44,14 +43,21 @@ namespace dht
 
    void SuccList::clear()
      {
-	// TODO: beware, should remove keys from LocationTable as well.
-	_succs.clear();
+	Location *loc = NULL;
+	std::list<const DHTKey*>::iterator lit = _succs.begin();
+	while(lit!=_succs.end())
+	  {
+	     loc = _vnode->findLocation(*(*lit));
+	     lit = _succs.erase(lit);
+	     if (_vnode->not_used_location(loc))
+	       _vnode->removeLocation(loc);
+	  }
      }
 
-   void SuccList::erase_front()
+   void SuccList::pop_front()
      {
 	if (!_succs.empty())
-	  _succs.erase(_succs.begin());
+	  _succs.pop_front();
      }
 
    void SuccList::set_direct_successor(const DHTKey *succ_key)
@@ -128,9 +134,12 @@ namespace dht
 	  }
 	//debug
 	
-	// TODO: if dkres_list size > max_list_size, remove the last elt.
-	
-	
+	// if dkres_list size > max_list_size, remove the last elt.
+	if ((int)dkres_list.size() > SuccList::_max_list_size)
+	  {
+	     dkres_list.pop_back();
+	  }
+		
 	std::list<DHTKey>::iterator kit = dkres_list.begin();
 	std::list<NetAddress>::iterator nit = na_list.begin();
 	
@@ -153,26 +162,17 @@ namespace dht
 		  
 		  prev_succ_key = (*sit);
 		  
-		  // remove node, if dead remove location.
-		  //TODO: remove even iterator only if node appears to be dead.
+		  // remove successor, and location is it is either dead or unused.
 		  sit = _vnode->_successors._succs.erase(sit);
-		  /*if (!_vnode->getFingerTable()->has_key(-1,loc)
-		      && (!_vnode->isPredecessorEqual(loc->getDHTKey()))
-		      && *_vnode->getSuccessor() != loc->getDHTKey())
+		  if (_vnode->not_used_location(loc))
+		    _vnode->removeLocation(loc);
+		  else
 		    {
-		       //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
-		       //_vnode->removeLocation(loc);
-		    } 
-		  else */
-		    {  
 		       // RPC-based ping.
 		       int status = DHT_ERR_OK;
 		       bool dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
 		       if (dead)
-			 {
-			    std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
-			    _vnode->removeLocation(loc);
-			 }
+			 _vnode->removeLocation(loc);
 		    }
 	       }
 	     else if (*(*sit) == (*kit))
@@ -207,19 +207,17 @@ namespace dht
 			    
 			    // test for location usage, _after_ removal from the succlist.
 			    sit = _vnode->_successors._succs.erase(sit);
-			    /* if (!_vnode->getFingerTable()->has_key(-1,loc)
-				&& !_vnode->isPredecessorEqual(loc->getDHTKey())
-				&& *_vnode->getSuccessor() != loc->getDHTKey())
+			    if (_vnode->not_used_location(loc))
 			      {
 				 //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
-				 //_vnode->removeLocation(loc);
+				 _vnode->removeLocation(loc);
 			      }
-			    else */
+			    else
 			      {
 				 dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
 				 if (dead)
 				   {
-				      std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
+				      //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
 				      _vnode->removeLocation(loc);
 				   }
 			      }
@@ -265,8 +263,6 @@ namespace dht
 		       std::cerr << "[Debug]:mergelist: adding to location table: " << (*kit) << std::endl;
 		       //debug
 		       
-		       //buggy:
-		       //_vnode->addToLocationTable((*kit),(*nit),loc);
 		       loc = _vnode->addOrFindToLocationTable((*kit),(*nit));	
 		       
 		       //debug
@@ -284,7 +280,7 @@ namespace dht
 		       //debug
 		       		       
 		       // don't let the list grow beyond its max allowed size.
-		       if (_vnode->_successors.size() > SuccList::_max_list_size)
+		       if ((int)_vnode->_successors.size() > SuccList::_max_list_size)
 			 prune = true;
 		    }
 		  
@@ -320,7 +316,8 @@ namespace dht
 		       // remove location if it is not used in the finger table.
 		       Location *loc = _vnode->findLocation(*(*sit));
 		       sit = _vnode->_successors._succs.erase(sit);
-		       _vnode->removeLocation(loc);
+		       if (_vnode->not_used_location(loc))
+			 _vnode->removeLocation(loc);
 		    }
 	       }
 	  }
@@ -349,7 +346,7 @@ namespace dht
 	  }
 	return false;
      }
-
+   
    void SuccList::removeKey(const DHTKey &key)
      {
 	std::list<const DHTKey*>::iterator sit = _succs.begin();
@@ -379,8 +376,17 @@ namespace dht
 	     if (!loc)
 	       continue;
 	     
+	     //debug
+	     std::cerr << "[Debug]: in succlist findclosestpredecessor: " << loc->getDHTKey() << std::endl;
+	     std::cerr << "? in [vnode key=" << _vnode->getIdKey() << ", nodekey=" << nodeKey << std::endl;
+	     //debug
+	     
 	     if (loc->getDHTKey().between(_vnode->getIdKey(),nodeKey))
 	       {
+		  //debug
+		  std::cerr << "passed\n";
+		  //debug
+		  
 		  dkres = loc->getDHTKey();
 		  na = loc->getNetAddress();
 		  if (sit2 != _succs.end())
@@ -389,10 +395,11 @@ namespace dht
 		       dkres_succ = loc2->getDHTKey();
 		       dkres_succ_na = loc2->getNetAddress();
 		    }
+		  return DHT_ERR_OK;
 	       }
 	     sit2 = sit;
 	  }
-	return DHT_ERR_OK;
+	return DHT_ERR_OK; // beware.
      }
          
 } /* end of namespace. */
