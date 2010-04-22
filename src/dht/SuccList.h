@@ -88,8 +88,7 @@ namespace dht
 	
         virtual void stabilize_slow() { update_successors(); };
 	
-	// TODO.
-	virtual bool isStable() { return false; } ;
+	virtual bool isStable();
 	
       public:
 	std::list<const DHTKey*> _succs;
@@ -97,6 +96,13 @@ namespace dht
 	DHTVirtualNode *_vnode;
      
 	static short _max_list_size;
+     
+      private:
+	/**
+	 * List stability is maintained over two passes.
+	 */
+	bool _stable_pass1;
+	bool _stable_pass2;
      };
       
 } /* end of namespace. */

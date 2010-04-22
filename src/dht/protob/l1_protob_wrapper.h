@@ -46,6 +46,13 @@ namespace dht
 					     const DHTKey &sender_dhtkey,
 					     const NetAddress &sender_na);
 	
+	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
+					     const DHTKey &recipient_dhtkey,
+					     const NetAddress &recipient_na,
+					     const DHTKey &sender_dhtkey,
+					     const NetAddress &sender_na,
+					     const DHTKey &node_key);
+	
       private:
 	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
 					     const std::string &recipient_key,

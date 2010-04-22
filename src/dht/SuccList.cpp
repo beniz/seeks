@@ -33,7 +33,7 @@ namespace dht
    short SuccList::_max_list_size = 1; // default is successor only, reset by DHTNode constructor.
    
    SuccList::SuccList(DHTVirtualNode *vnode)
-     : Stabilizable(), _vnode(vnode)
+     : Stabilizable(), _vnode(vnode), _stable_pass1(false), _stable_pass2(false)
        {
        }
    
@@ -96,7 +96,7 @@ namespace dht
 							  _vnode->getIdKey(), _vnode->getNetAddress(),
 							  dkres_list, na_list, status);
 	
-	// TODO: handle failure, retry, and move to next successor in the list.
+	// TODO: handle failure, retry, and move to next successor in the list ?
 	
 	if ((dht_err)status != DHT_ERR_OK)
 	  {
@@ -133,6 +133,9 @@ namespace dht
 	     ++llit;
 	  }
 	//debug
+	
+	_stable_pass2 = _stable_pass1;
+	_stable_pass1 = true; // assume we're stable, and check below if it is true.
 	
 	// if dkres_list size > max_list_size, remove the last elt.
 	if ((int)dkres_list.size() > SuccList::_max_list_size)
@@ -174,6 +177,7 @@ namespace dht
 		       if (dead)
 			 _vnode->removeLocation(loc);
 		    }
+		  _stable_pass1 = false;
 	       }
 	     else if (*(*sit) == (*kit))
 	       {
@@ -184,10 +188,14 @@ namespace dht
 	     else if ((sit == _vnode->_successors._succs.end() && kit != dkres_list.end())
 		      || *(*sit)>(*kit))
 	       {
+		  //debug
 		  std::cerr << "[Debug]:mergelist: >\n";
+		  //debug
 		  
-		  // a new node may have joined.
-		  // first, make sure we're not looping on the circle.
+		  /**
+		   * A new node may have joined.
+		   * First, make sure we're not looping on the circle.
+		   */
 		  if (_vnode->getIdKey().incl(*prev_succ_key,(*kit)))
 		    {
 		       //debug
@@ -209,7 +217,6 @@ namespace dht
 			    sit = _vnode->_successors._succs.erase(sit);
 			    if (_vnode->not_used_location(loc))
 			      {
-				 //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
 				 _vnode->removeLocation(loc);
 			      }
 			    else
@@ -217,10 +224,10 @@ namespace dht
 				 dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
 				 if (dead)
 				   {
-				      //std::cerr << "removed location: " << loc->getDHTKey() << std::endl;
 				      _vnode->removeLocation(loc);
 				   }
 			      }
+			    _stable_pass1 = false;
 			    loc = NULL;
 			    status = DHT_ERR_OK;
 			    dead = false;
@@ -247,11 +254,7 @@ namespace dht
 		  else
 		    {
 		       int status = DHT_ERR_OK;
-		       dht_err err = _vnode->getPNode()->_l1_client->RPC_ping((*kit),(*nit),
-									      _vnode->getIdKey(),_vnode->getNetAddress(),
-									      status);
-		       if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
-			 alive = true;
+		       alive = !_vnode->is_dead((*kit),(*nit),status);
 		    }
 		  
 		  if (alive)
@@ -274,6 +277,7 @@ namespace dht
 		       // add it to the list, before sit.
 		       prev_succ_key = (*sit);
 		       _vnode->_successors._succs.insert(sit,&loc->getDHTKeyRef());
+		       _stable_pass1 = false;
 		       
 		       //debug
 		       std::cerr << "added to successor list: " << loc->getDHTKeyRef() << std::endl;
@@ -331,6 +335,10 @@ namespace dht
 	     std::cerr << *(*lit) << std::endl;
 	     ++lit;
 	  } */
+	//debug
+	
+	//debug
+	std::cerr << "stable1: " << _stable_pass1 << " -- stable2: " << _stable_pass2 << std::endl;
 	//debug
 	
      }
@@ -401,5 +409,10 @@ namespace dht
 	  }
 	return DHT_ERR_OK; // beware.
      }
-         
+
+   bool SuccList::isStable()
+     {
+	return (_stable_pass1 && _stable_pass2);
+     }
+      
 } /* end of namespace. */

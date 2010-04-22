@@ -39,6 +39,18 @@ namespace dht
 			 const NetAddress& recipient,
 			 const DHTKey &senderKey,
 			 const NetAddress& senderAddress,
+			 const DHTKey &nodeKey,
+			 l1::l1_response *l1r);
+	
+	dht_err RPC_call(const uint32_t &fct_id,
+			 const DHTKey &recipientKey,
+			 const NetAddress& recipient,
+			 const DHTKey &senderKey,
+			 const NetAddress& senderAddress,
+			 l1::l1_response *l1r);
+	
+	dht_err RPC_call(l1::l1_query *l1q,
+			 const NetAddress &recipient,
 			 l1::l1_response *l1r);
 	
 	/*- l1 interface. -*/

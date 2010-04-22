@@ -38,6 +38,23 @@ namespace dht
 					  const NetAddress& recipient,
 					  const DHTKey &senderKey,
 					  const NetAddress& senderAddress,
+					  const DHTKey &nodeKey,
+					  l1::l1_response *l1r)
+     {
+	// serialize.
+	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
+							       recipientKey,recipient,
+							       senderKey,senderAddress,
+							       nodeKey);
+	
+	return RPC_call(l1q,recipient,l1r);
+     }
+      
+   dht_err l1_protob_rpc_client::RPC_call(const uint32_t &fct_id,
+					  const DHTKey &recipientKey,
+					  const NetAddress& recipient,
+					  const DHTKey &senderKey,
+					  const NetAddress& senderAddress,
 					  l1::l1_response *l1r)
      {
 	//debug
@@ -50,6 +67,15 @@ namespace dht
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
 							       recipientKey,recipient,
 							       senderKey,senderAddress);
+	
+     
+	return RPC_call(l1q,recipient,l1r);
+     }
+   
+   dht_err l1_protob_rpc_client::RPC_call(l1::l1_query *l1q,
+					  const NetAddress &recipient,
+					  l1::l1_response *l1r)
+     {
 	std::string msg_str;
 	l1_protob_wrapper::serialize_to_string(l1q,msg_str);
 	std::string resp_str;
@@ -296,7 +322,7 @@ namespace dht
 	     err = l1_protob_rpc_client::RPC_call(hash_find_closest_predecessor,
 						  recipientKey,recipient,
 						  senderKey,senderAddress,
-						  l1r);
+						  nodeKey,l1r);
 	  }
 	catch (dht_exception &e)
 	  {

@@ -52,6 +52,23 @@ namespace dht
      }
    
    l1::l1_query* l1_protob_wrapper::create_l1_query(const uint32_t &fct_id,
+						    const DHTKey &recipient_dhtkey,
+						    const NetAddress &recipient_na,
+						    const DHTKey &sender_dhtkey,
+						    const NetAddress &sender_na,
+						    const DHTKey &node_key)
+     {
+	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,recipient_dhtkey,
+							       recipient_na,sender_dhtkey,
+							       sender_na);
+	std::vector<unsigned char> dkser = DHTKey::serialize(node_key);
+	std::string node_key_str(dkser.begin(),dkser.end());
+	l1::dht_key *l1q_node_key = l1q->mutable_lookedup_key();
+	l1q_node_key->set_key(node_key_str);
+	return l1q;
+     }
+      
+   l1::l1_query* l1_protob_wrapper::create_l1_query(const uint32_t &fct_id,
 						    const std::string &recipient_key,
 						    const uint32_t &recipient_ip_addr,
 						    const std::string &recipient_net_port)
