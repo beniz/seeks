@@ -83,12 +83,18 @@ namespace dht
 	bool reset_pred = false;
 	if (!_predecessor)
 	  reset_pred = true;
-	else
+	else if (*_predecessor != senderKey) // our predecessor may have changed.
 	  {
 	     /**
 	      * If we are the new successor of a node, because some other node did 
 	      * fail in between us, then we need to make sure that this dead node is
-	      * not our predecessor. If it is, then we do accept the change.
+	      * not our predecessor. If it is, then we do accept the change of predecessor.
+	      *
+	      * XXX: this needs for a ping seems to not be mentionned in the original Chord
+	      * protocol. However, this breaks our golden rule that no node should be forced
+	      * to make network operations on the behalf of others. (This rule is only broken
+	      * on 'join' operations). Solution would be to ping our predecessor after a certain
+	      * time has passed.
 	      */
 	     // TODO: slow down the time between two pings by looking at a location 'alive' flag.
 	     Location *pred_loc = findLocation(*_predecessor);
@@ -193,6 +199,13 @@ namespace dht
 	  _pnode->_l1_client->RPC_getSuccessor(dk_pred, na_pred, 
 					       getIdKey(), getNetAddress(),
 					       dkres, na, status);
+	if (loc_err == DHT_ERR_OK)
+	  {
+	     Location *uloc = findLocation(dk_pred);
+	     if (uloc)
+	       uloc->update_check_time();
+	  }
+	
 	return (dht_err)status;
      }
    
@@ -219,6 +232,7 @@ namespace dht
 	     /**
 	      * TODO: after debugging, write a better handling of this error.
               */
+	     // this should not happen though...
 	     // TODO: errlog.
 	     std::cerr << "[Error]:DHTNode::find_predecessor: this virtual node has no successor:"
                << nodeKey << ".Exiting\n";
@@ -319,13 +333,22 @@ namespace dht
 			 }
 		       else
 			 {
+			    Location *uloc = findLocation((*rtit)->getDHTKey());
 			    rtit++;
 			    rit.erase_from(rtit);
+			    if (uloc)
+			      uloc->update_check_time();
 			 }
 		       ret++; // we have a limited number of such routing trials.
 		    }
+	       } /* end if !DHT_ERR_OK */
+	     else
+	       {
+		  Location *uloc = findLocation(recipientKey);
+		  if (uloc)
+		    uloc->update_check_time();
 	       }
-	     
+	     	     	     
 	     /**
 	      * check on rpc status.
 	      */
@@ -381,6 +404,12 @@ namespace dht
 		       errlog::log_error(LOG_LEVEL_DHT, "Failed call to getSuccessor in find_predecessor loop");
 		       return (dht_err)status;
 		    }
+		  else 
+		    {
+		       Location *uloc = findLocation(dkres);
+		       if (uloc)
+			 uloc->update_check_time();
+		    }
 	       }
 	     
 	     assert(succ_key.count()>0);
@@ -406,6 +435,9 @@ namespace dht
 	     // this is a local virtual node... Either our successor
 	     // is not up-to-date, either we're cut off from the world...
 	     // XXX: what to do ?
+	     Location *uloc = findLocation(recipientKey);
+	     if (uloc)
+	       uloc->update_check_time();
 	     status = DHT_ERR_OK;
 	     return false;
 	  }
@@ -417,7 +449,12 @@ namespace dht
 							getIdKey(),getNetAddress(),
 							status);
 	     if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
-	       return false;
+	       {
+		  Location *uloc = findLocation(recipientKey);
+		  if (uloc)
+		    uloc->update_check_time();
+		  return false;
+	       }
 	     else return true;
 	  }
      }

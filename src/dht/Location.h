@@ -45,25 +45,15 @@ namespace dht
 	/**
 	 * /brief updates the net address of this location.
 	 * @param na net address.
-	 * TODO: update based on peer proximity analysis.
 	 */
 	void update(const NetAddress& na);
 	
+	void update_check_time();
+	
       private:
 	DHTKey _key;  /**< location key id. */
-	NetAddress _na;
-	
-	time_t _dead_time;
-	time_t _up_time;
-	bool _alive;
-	
-	/**
-	 * TODO: opened socket to this location, if any.
-	 */
-	
-	/**
-	 * TODO: back-pointers to related internal structures, if needed.
-	 */
+	NetAddress _na; /**< location address. */
+	uint32_t _last_check_time; /**< last time this node has responded. */
      };
     
 } /* end of namespace */

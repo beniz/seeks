@@ -85,6 +85,7 @@ namespace dht
 	if (!dk_succ)
 	  {
 	     // TODO: errlog.
+	     // XXX: should never reach here...
 	     std::cerr << "[Error]:SuccList::update_successors: this virtual node has no successor:"
 	       << *dk_succ << ".Exiting\n";
 	     exit(-1);
@@ -115,7 +116,13 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_DHT, "getSuccList failed");
 	     return (dht_err)status;
 	  }
-		
+	else
+	  {
+	     Location *uloc = _vnode->findLocation(*dk_succ);
+	     if (uloc)
+	       uloc->update_check_time();
+	  }
+			
 	// merge succlist.
      	merge_succ_list(dkres_list,na_list);
      
@@ -147,7 +154,11 @@ namespace dht
 	_stable_pass2 = _stable_pass1;
 	_stable_pass1 = true; // assume we're stable, and check below if it is true.
 	
-	// if dkres_list size > max_list_size, remove the last elt.
+	/**
+	 * Remove the last element if the list we got from our successor is longer 
+	 * than the requested size. This is because our successor's list contains at
+	 * least one more node than what we need.
+	 */
 	if ((int)dkres_list.size() > SuccList::_max_list_size)
 	  {
 	     dkres_list.pop_back();

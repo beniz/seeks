@@ -20,6 +20,8 @@
 
 #include "Location.h"
 
+#include <sys/time.h>
+
 namespace dht
 {
    Location::Location(const DHTKey& key, const NetAddress& na)
@@ -39,5 +41,12 @@ namespace dht
 	  }
      }
    
-   
+   void Location::update_check_time()
+     {
+	struct timeval *tvz = (struct timeval*) malloc(sizeof(struct timeval));
+	gettimeofday(tvz,NULL);
+	_last_check_time = tvz->tv_sec;
+	free(tvz);
+     }
+      
 } /* end of namespace. */
