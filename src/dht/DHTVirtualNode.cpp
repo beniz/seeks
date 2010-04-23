@@ -121,7 +121,7 @@ namespace dht
 
    dht_err DHTVirtualNode::ping(const DHTKey &senderKey, const NetAddress &senderAddress)
      {
-	// TODO: add protection against ping or some good reason not to respond with an OK status.
+	// XXX: add protection against ping or some good reason not to respond with an OK status.
 	// alive.
 	return DHT_ERR_OK;
      }
@@ -213,7 +213,6 @@ namespace dht
 					    DHTKey& dkres, NetAddress& na)
      {
 	static short retries = 2;
-	static short max_hops = 15; // TODO: in dht_configuration.
 	int ret = 0;
 		
 	/**
@@ -253,14 +252,14 @@ namespace dht
 	     //debug
 #endif
 	     
-	     if (nhops > max_hops)
+	     if (nhops > _pnode->_dht_config->_max_hops)
 	       {
 #ifdef DEBUG
 		  //debug
-		  std::cerr << "[Debug]:reached the maximum number of " << max_hops << " hops\n";
+		  std::cerr << "[Debug]:reached the maximum number of " << _pnode->_dht_config->_max_hops << " hops\n";
 		  //debug
 #endif	  
-		  errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", max_hops);
+		  errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", _pnode->_dht_config->_max_hops);
 		  dkres = DHTKey();
 		  na = NetAddress();
 		  return DHT_ERR_MAXHOPS;
@@ -547,6 +546,7 @@ namespace dht
                   exit(-1);
 	       }
 	     //debug
+	     
 	     /**
 	      * updates the address (just in case we're talking to
               * another node with the same key, or that com port has changed).
