@@ -170,6 +170,11 @@ namespace dht
 	     std::cerr << "find_closest_predecessor\n";
 	     //debug
 	     
+	     //debug
+	     //TODO: catch this error.
+	     assert(node_key.count()>0);
+	     //debug
+	     
 	     DHTKey dkres, dkres_succ;
 	     NetAddress dkres_na, dkres_succ_na;
 	     RPC_findClosestPredecessor_cb(recipient_key,recipient_na,

@@ -89,11 +89,7 @@ namespace dht
 	 */
 	virtual void stabilize_fast() { stabilize(); };
 	virtual void stabilize_slow() { fix_finger(); };
-	
-	/**
-	 * TODO.
-	 */
-	virtual bool isStable() { return false; }
+	virtual bool isStable();
 
 	void print(std::ostream &out) const;
 	
@@ -121,6 +117,12 @@ namespace dht
 	 * that is the closest known successor to _starts[i].
 	 */
 	Location* _locs[KEYNBITS];
+     
+	/**
+	 * Finger table staibility is maintained over two passes.
+	 */
+	bool _stable_pass1;
+	bool _stable_pass2;
      };
       
 } /* end of namespace */

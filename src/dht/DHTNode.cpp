@@ -34,6 +34,8 @@ using sp::errlog;
 using sp::seeks_proxy;
 using sp::proxy_configuration;
 
+//#define DEBUG
+
 namespace dht
 {
    std::string DHTNode::_dht_config_filename = "";
@@ -41,7 +43,7 @@ namespace dht
    
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port)
-     : _n_estimate(1),_l1_server(NULL),_l1_client(NULL)
+     : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL)
      {
 	if (DHTNode::_dht_config_filename.empty())
 	  {
@@ -187,24 +189,22 @@ namespace dht
 	std::vector<const DHTKey*> vnode_keys_ord;
 	rank_vnodes(vnode_keys_ord);
 	int nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
-	
-	//debug
-	std::cerr << "nv: " << nv << std::endl;
-	//debug
-	
+		
 	for (int i=0;i<nv;i++)
 	  {
 	     const DHTKey *dkey = vnode_keys_ord.at(i);
 	     DHTVirtualNode *vnode = findVNode(*dkey);
 	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "vnode key: " << vnode->getIdKey() << std::endl;
 	     //debug
+#endif
 	     
 	     vnode->clearSuccsList();
 	     vnode->clearPredsList();
 	     
-	     size_t j = i+2;
+	     int j = i+2;
 	     if (i == nv-1)
 	       {
 		  vnode->setSuccessor(*vnode_keys_ord.at(0),_l1_na); // close the circle.
@@ -219,11 +219,13 @@ namespace dht
 	  
 	     vnode->update_successor_list_head(); // sets successor in successor list.
 	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "predecessor: " << *vnode->getPredecessor() << std::endl;
 	     std::cerr << "successor: " << *vnode->getSuccessor() << std::endl;
 	     //debug
-	  
+#endif
+	     
 	     // fill up successor list.
 	     int c = 0;
 	     while(c<nv-2)
@@ -235,6 +237,7 @@ namespace dht
 		  j++;
 	       }
 	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "successor list (" << vnode->_successors.size() << "): ";
 	     std::list<const DHTKey*>::const_iterator lit = vnode->_successors._succs.begin();
@@ -244,6 +247,7 @@ namespace dht
 		  ++lit;
 	       }
 	     //debug
+#endif
 	  }
 	
 	//debug
@@ -255,10 +259,6 @@ namespace dht
 
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
      {
-	//debug
-	std::cerr << "[Debug]:rankin_vnodes: number of vnodes: " << _vnodes.size() << std::endl;
-	//debug
-	
 	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator vit
 	  = _vnodes.begin();
 	while(vit!=_vnodes.end())
@@ -711,8 +711,10 @@ namespace dht
 	  return (*hit).second;
 	else
 	  {
-	     std::cout << "[Error]:DHTNode::findVNode: virtual node: " << dk
-	       << " is unknown on this node.\n";
+#ifdef DEBUG
+	     std::cout << "[Debug]:DHTNode::findVNode: virtual node: " << dk
+	      << " is unknown on this node.\n";
+#endif
 	     return NULL;
 	  }
 	
@@ -805,4 +807,19 @@ namespace dht
 	return DHTKey(); // beware, we should never reach here.
      }
    
+   void DHTNode::estimate_nodes(const unsigned long &nnodes,
+				const unsigned long &nnvnodes)
+     {
+	if (_nnodes == 0)
+	  {
+	     _nnodes = nnodes;
+	     _nnvnodes = nnvnodes;
+	  }
+	else 
+	  {
+	     _nnodes = std::min(_nnodes,(int)nnodes);
+	     _nnvnodes = std::min(_nnvnodes,(int)nnvnodes);
+	  }
+     }
+        
 } /* end of namespace. */

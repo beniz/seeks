@@ -55,7 +55,6 @@
 #define LOG_LEVEL_CRUNCH     0x0400
 #define LOG_LEVEL_CGI        0x0800 /* CGI / templates */
 #define LOG_LEVEL_DHT        0x8000 /* DHT output */
-#define LOG_LEVEL_DHT_L1     0x0500 /* DHT stabilization. */
 
 /* Following are always on: */
 #define LOG_LEVEL_INFO    0x1000

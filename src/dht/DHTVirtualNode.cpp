@@ -24,13 +24,17 @@
 #include "RouteIterator.h"
 #include "errlog.h"
 
+#include <math.h>
+
 using sp::errlog;
+
+//#define DEBUG
 
 namespace dht
 {
    DHTVirtualNode::DHTVirtualNode(DHTNode* pnode)
      : _pnode(pnode),_successor(NULL),_predecessor(NULL),
-       _successors(this)
+       _successors(this),_nnodes(0),_nnvnodes(0)
        {
 	  /**
 	   * We generate a random key as the node's id.
@@ -169,9 +173,11 @@ namespace dht
 	 */
 	if (dht_status != DHT_ERR_OK)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "find_successor failed on getting predecessor\n";
 	     //debug
+#endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "find_successor failed on getting predecessor");
 	     return dht_status;
@@ -226,19 +232,21 @@ namespace dht
 	short nhops = 0;
 	while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey()))
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]:find_predecessor: passed between test: nodekey "
 	       << nodeKey << " not between " << rloc.getDHTKey() << " and " << succloc.getDHTKey() << std::endl;
 	     //debug
+#endif
 	     
 	     if (nhops > max_hops)
 	       {
+#ifdef DEBUG
 		  //debug
 		  std::cerr << "[Debug]:reached the maximum number of " << max_hops << " hops\n";
 		  //debug
-		  
-		  //TODO: errlog
-		  
+#endif	  
+		  errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", max_hops);
 		  dkres = DHTKey();
 		  na = NetAddress();
 		  return DHT_ERR_MAXHOPS;
@@ -277,11 +285,11 @@ namespace dht
 		  if (ret < retries && (err == DHT_ERR_CALL 
 					|| err == DHT_ERR_COM_TIMEOUT)) // failed call, remote node does not respond.
 		    {
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:error while finding predecessor, will try to undershoot to find a new route\n";
 		       //debug
-
-		       exit(0);
+#endif
 		       
 		       // let's undershoot by finding the closest predecessor to the 
 		       // dead node.
@@ -323,15 +331,22 @@ namespace dht
 	      */
 	     if ((dht_err)status != DHT_ERR_OK)
 	       {
+#ifdef DEBUG
 		  //debug
 		  std::cerr << "[Debug]:DHTVirtualNode::find_predecessor: failed.\n";
 		  //debug
+#endif
 		  
 		  return (dht_err)status;
 	       }
 	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]:find_predecessor: dkres: " << dkres << std::endl;
+	     //debug
+#endif
+	     
+	     //debug
 	     assert(dkres.count()>0);
 	     assert(dkres != rloc.getDHTKey());
 	     //debug
@@ -356,10 +371,12 @@ namespace dht
 		  
 		  if ((dht_err)status != DHT_ERR_OK)
 		    {
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:find_predecessor: failed call to getSuccessor: " 
 			         << status << std::endl;
 		       //debug
+#endif
 		       
 		       errlog::log_error(LOG_LEVEL_DHT, "Failed call to getSuccessor in find_predecessor loop");
 		       return (dht_err)status;
@@ -438,7 +455,7 @@ namespace dht
 		  exit(-1);
 	       }
 	     //debug
-	     
+	    	     
 	     /**
 	      * updates the address (just in case we're talking to
 	      * another node with the same key, or that com port has changed).
@@ -564,5 +581,65 @@ namespace dht
      {
 	_successors.set_direct_successor(_successor);
      }
-   
+
+   void DHTVirtualNode::estimate_nodes()
+     {
+	estimate_nodes(_nnodes,_nnvnodes);
+	
+	//debug
+	std::cerr << "[Debug]:estimated number of nodes on the circle: " << _nnodes
+	  << " -- and virtual nodes: " << _nnvnodes << std::endl;
+	//debug
+     }
+      
+   void DHTVirtualNode::estimate_nodes(unsigned long &nnodes, unsigned long &nnvnodes)
+     {
+	DHTKey closest_succ;
+	_lt->findClosestSuccessor(_idkey,closest_succ);
+	
+	//debug
+	assert(closest_succ.count()>0);
+	//debug
+	
+	DHTKey diff = closest_succ - _idkey;
+	
+	//debug
+	assert(diff.count()>0);
+	//debug
+	
+	DHTKey density = diff;
+	size_t lts = _lt->size();
+	double p = ceil(log(lts)/log(2)); // in powers of two.
+	density.operator>>=(p); // approximates diff / ltsize.
+	DHTKey mask(1);
+	mask <<= KEYNBITS-1;
+	p = density.topBitPos();
+	
+	//debug
+	assert(p>0);
+	//debug
+	
+	DHTKey nodes_estimate = mask;
+	nodes_estimate.operator>>=(p); // approximates mask/density.
+	
+	try
+	  {
+	     nnvnodes = nodes_estimate.to_ulong();
+	     nnodes = nnvnodes / DHTNode::_dht_config->_nvnodes;
+	  }
+	catch (std::exception ovex) // overflow error if too many bits are set.
+	  {
+	     //debug
+	     std::cerr << "exception overflow when computing the number of nodes...\n";
+	     //debug
+	     
+	     errlog::log_error(LOG_LEVEL_DHT, "Overflow error computing the number of nodes on the network. This is probably a bug, please report it");
+	     nnodes = 0;
+	     nnvnodes = 0;
+	     return;
+	  }
+     
+	_pnode->estimate_nodes(nnodes,nnvnodes);
+     }
+      
 } /* end of namespace. */

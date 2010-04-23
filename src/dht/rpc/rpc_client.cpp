@@ -199,13 +199,15 @@ namespace dht
 	  }
 	
 	//debug
-	std::cerr << "[Debug]:received " << n << " bytes\n";
+	//std::cerr << "[Debug]:received " << n << " bytes\n";
 	//std::cerr << "received msg: " << buf << std::endl;
 	//debug
 	
 	response = std::string(buf,n-1);
 	
-	std::cerr << "in rpc_client response size: " << response.size() << std::endl;
+	//debug
+	//std::cerr << "in rpc_client response size: " << response.size() << std::endl;
+	//debug
 	
 	spsockets::close_socket(udp_sock);
 	

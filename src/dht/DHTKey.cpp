@@ -127,7 +127,6 @@ namespace dht
 		    {
 		       res.set(i,1);
 		    }
-		  
 	       }
 	     else if (!res[i] && dk[i])
 	       {
@@ -152,8 +151,19 @@ namespace dht
 	  }
 	return res;
      }
-   
-   
+
+   /* DHTKey DHTKey::operator/(const DHTKey &dk)
+     {
+	DHTKey remainder = *this;
+	DHTKey dividend(0);
+	while(remainder >= dk)
+	  {
+	     remainder = remainder - dk;
+	     dividend.operator++();
+	  }
+	return dividend;
+     } */
+      
    DHTKey DHTKey::operator++()
      {
 	size_t count = 0;
@@ -265,8 +275,17 @@ namespace dht
 	deck <<= dec;
 	return (*this) - deck;
      }
-   
-   
+
+   int DHTKey::topBitPos() const
+     {
+	for (int p=size()-1; p>=0; p--)
+	  {
+	     if (operator[](p))
+	       return p;
+	  }
+	return 0;	
+     }
+      
    bool DHTKey::between(const DHTKey& a, const DHTKey& b) const
      {
 	if (a == b)

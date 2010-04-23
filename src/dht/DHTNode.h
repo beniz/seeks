@@ -71,6 +71,10 @@ namespace dht
 	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
 	
       public:
+	void estimate_nodes(const unsigned long &nnodes,
+			    const unsigned long &nnvnodes);
+	
+      public:
 	/**
 	 * accessors.
 	 */
@@ -80,11 +84,6 @@ namespace dht
 	/**----------------------------**/
 	/**
 	 * \brief getSuccessor local callback.
-	 * @param status returned result status:
-	 *                     - 0 ok
-	 *                     - 1 no successor found (node is too young on the circle, or bug).
-	 *                     - 2 severe error: successor's location is unknown (bug).
-	 *                     - 3 error: recipient (key) is unknown on this peer.
 	 */
 	dht_err getSuccessor_cb(const DHTKey& recipientKey,
 				DHTKey& dkres, NetAddress& na,
@@ -96,9 +95,6 @@ namespace dht
 	
 	/**
 	 * \brief notify callback.
-	 * @param status returned result status:
-	 *                        - 0 ok
-	 *                        - 3 error: recipient (key) is unknown on this peer.
 	 */
 	dht_err notify_cb(const DHTKey& recipientKey,
 			  const DHTKey& senderKey,
@@ -177,14 +173,6 @@ namespace dht
 				 const DHTKey& nodeKey,
 				 DHTKey& dkres, NetAddress& na);
 	
-	/**
-	 * \brief stabilize: verify a vnode's immediate successor,
-	 *        and tell the successor about itself.
-	 * @param recipientKey identification key of the target node.
-	 * @return status.
-	 */
-	//dht_err stabilize(const DHTKey& recipientKey);
-	
       public:
 	/**
 	 * configuration.
@@ -204,10 +192,10 @@ namespace dht
 	NetAddress _l1_na;
 	
 	/**
-	 * TODO:
 	 * estimate of the number of peers on the circle.
 	 */
-	int _n_estimate;
+	int _nnodes;
+	int _nnvnodes;
 	
 	/**
 	 * rpc layer1 server.

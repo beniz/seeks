@@ -21,6 +21,8 @@
 #include "LocationTable.h"
 #include "errlog.h"
 
+#include <assert.h>
+
 using sp::errlog;
 
 namespace dht
@@ -51,11 +53,14 @@ namespace dht
    Location* LocationTable::findLocation(const DHTKey& dk)
      {
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
+	seeks_proxy::mutex_lock(&_lt_mutex);
 	if ((hit = _hlt.find(&dk)) != _hlt.end())
 	  {
+	     seeks_proxy::mutex_unlock(&_lt_mutex);
 	     return (*hit).second;
 	  }
 	else {
+	   seeks_proxy::mutex_unlock(&_lt_mutex);
 	   errlog::log_error(LOG_LEVEL_DHT, "findLocation: can't find location to key %s", dk.to_string().c_str());
 	   return NULL;  //beware: this should be handled outside this function.	
 	}
@@ -86,35 +91,83 @@ namespace dht
 
    Location* LocationTable::addOrFindToLocationTable(const DHTKey& dk, const NetAddress& na)
      {
-	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
+	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::iterator hit;
 	if ((hit = _hlt.find(&dk)) != _hlt.end())
 	  {
 	     /**
 	      * update the location.
 	      */
+	     seeks_proxy::mutex_lock(&_lt_mutex);
 	     (*hit).second->update(na);
+	     seeks_proxy::mutex_unlock(&_lt_mutex);
 	     return (*hit).second;
 	  }
 	else 
 	  {
 	     Location* loc = new Location(dk, na);
 	     _hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
-	     //addToLocationTable(dk, na, loc);
 	     return loc;
 	  }	 
      }
    
    void LocationTable::removeLocation(Location *loc)
      {
-	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
+	seeks_proxy::mutex_lock(&_lt_mutex);
+	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::iterator hit;
 	if ((hit = _hlt.find(&loc->getDHTKeyRef())) != _hlt.end())
 	  {
-	     delete (*hit).second;
+	     Location *loc = (*hit).second;
+	     _hlt.erase(hit);
+	     delete loc;
 	  }
 	else 
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_string().c_str());
 	  }
+	seeks_proxy::mutex_unlock(&_lt_mutex);
+     }
+      
+   void LocationTable::findClosestSuccessor(const DHTKey &dk,
+					    DHTKey &dkres)
+     {
+	DHTKey min_diff;
+	min_diff.set();
+	Location *succ_loc = NULL;
+	
+	seeks_proxy::mutex_lock(&_lt_mutex);
+	Location *loc = NULL;
+	hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+	  = _hlt.begin();
+	while(hit!=_hlt.end())
+	  {
+	     loc = (*hit).second;
+	     hit++;
+	     if (!loc)
+	       {
+		  continue;
+	       }
+	     
+	     DHTKey lkey = loc->getDHTKey();
+	     DHTKey diff = lkey - dk;
+	     
+	     if (diff.count() == 0)
+	       {
+		  continue;
+	       }
+	     	     
+	     if (diff < min_diff)
+	       {
+		  min_diff = diff;
+		  succ_loc = loc;
+	       }
+	  }
+	seeks_proxy::mutex_unlock(&_lt_mutex);
+     
+	//debug
+	assert(succ_loc!=NULL);
+	//debug
+	
+	dkres = succ_loc->getDHTKey();
      }
       
    void LocationTable::print(std::ostream &out) const 

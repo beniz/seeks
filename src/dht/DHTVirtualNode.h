@@ -142,6 +142,14 @@ namespace dht
 	/* update of successor list. */
 	void update_successor_list_head();
 		
+	/**
+	 * \brief estimates the number of nodes and virtual nodes on the circle,
+	 *        from this virtual node point of view.
+	 */
+	void estimate_nodes();
+	void estimate_nodes(unsigned long &nnodes, 
+			    unsigned long &nnvnodes);
+		
       public:
 	/**
 	 * location table.
@@ -196,6 +204,13 @@ namespace dht
 	 */
 	sp_mutex_t _pred_mutex;
 	sp_mutex_t _succ_mutex;
+     
+      public:
+	/**
+	 * estimates of the number of nodes and virtual nodes on the circle.
+	 */
+	unsigned long _nnodes;
+	unsigned long _nnvnodes;
      };  
    
 } /* end of namespace. */

@@ -28,6 +28,8 @@
 
 using sp::errlog;
 
+//#define DEBUG
+
 namespace dht
 {
    short SuccList::_max_list_size = 1; // default is successor only, reset by DHTNode constructor.
@@ -69,9 +71,11 @@ namespace dht
    
    dht_err SuccList::update_successors()
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:SuccList::update_successors()\n";
 	//debug
+#endif
 	
 	/**
 	 * RPC call to get successor list.
@@ -96,13 +100,17 @@ namespace dht
 							  _vnode->getIdKey(), _vnode->getNetAddress(),
 							  dkres_list, na_list, status);
 	
-	// TODO: handle failure, retry, and move to next successor in the list ?
-	
+	/** 
+	 * XXX: we could handle failure, retry, and move to next successor in the list.
+	 * For now, this is done in stabilize, in FingerTable.
+	 */
 	if ((dht_err)status != DHT_ERR_OK)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "getSuccList failed: " << status << "\n";
 	     //debug
+#endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "getSuccList failed");
 	     return (dht_err)status;
@@ -116,6 +124,7 @@ namespace dht
    
    void SuccList::merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:merging succlists\n";
 	std::cerr << "current list: ";
@@ -133,6 +142,7 @@ namespace dht
 	     ++llit;
 	  }
 	//debug
+#endif
 	
 	_stable_pass2 = _stable_pass1;
 	_stable_pass1 = true; // assume we're stable, and check below if it is true.
@@ -154,7 +164,9 @@ namespace dht
 	  {
 	     if (sit != _vnode->_successors._succs.end() && *(*sit)<(*kit))
 	       {
+#ifdef DEBUG
 		  std::cerr << "[Debug]:mergelist: <\n";
+#endif
 		  
 		  // node in our list may have died...
 		  Location *loc = _vnode->findLocation(*(*sit));
@@ -188,9 +200,11 @@ namespace dht
 	     else if ((sit == _vnode->_successors._succs.end() && kit != dkres_list.end())
 		      || *(*sit)>(*kit))
 	       {
+#ifdef DEBUG
 		  //debug
 		  std::cerr << "[Debug]:mergelist: >\n";
 		  //debug
+#endif
 		  
 		  /**
 		   * A new node may have joined.
@@ -198,9 +212,11 @@ namespace dht
 		   */
 		  if (_vnode->getIdKey().incl(*prev_succ_key,(*kit)))
 		    {
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:loop in merging.\n";
 		       //debug
+#endif
 		       
 		       /**
 			* remove everything that lies behind the (*sit) key in the successor list.
@@ -232,10 +248,12 @@ namespace dht
 			    status = DHT_ERR_OK;
 			    dead = false;
 			 }
-		       
+		    
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:mergelist: cleared remaining list\n";
 		       //debug
+#endif
 		       
 		       break; // the successor list is looping around the circle.
 		    }
@@ -262,9 +280,11 @@ namespace dht
 		       // add to location table.
 		       Location *loc = NULL;
 		       
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:mergelist: adding to location table: " << (*kit) << std::endl;
 		       //debug
+#endif
 		       
 		       loc = _vnode->addOrFindToLocationTable((*kit),(*nit));	
 		       
@@ -279,10 +299,12 @@ namespace dht
 		       _vnode->_successors._succs.insert(sit,&loc->getDHTKeyRef());
 		       _stable_pass1 = false;
 		       
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "added to successor list: " << loc->getDHTKeyRef() << std::endl;
 		       //debug
-		       		       
+#endif
+		       
 		       // don't let the list grow beyond its max allowed size.
 		       if ((int)_vnode->_successors.size() > SuccList::_max_list_size)
 			 prune = true;
@@ -292,6 +314,7 @@ namespace dht
 	       }
 	  }
 
+#ifdef DEBUG
 	//debug
 	std::cout << "vnode: " << _vnode->getIdKey() << std::endl;
 	std::cerr << "succlist (" << _vnode->_successors.size() << ") before pruning: ";
@@ -302,6 +325,7 @@ namespace dht
 	     ++lit;
 	  }
 	//debug
+#endif
 	
 	// prune out the successor list as needed.
 	if (prune)
@@ -326,6 +350,7 @@ namespace dht
 	       }
 	  }
 	
+#ifdef DEBUG
 	//debug
 	/* std::cerr << "vnode: " << _vnode->getIdKey() << std::endl;
 	std::cerr << "succlist (" << _vnode->_successors.size() << ") after pruning: ";
@@ -340,7 +365,7 @@ namespace dht
 	//debug
 	std::cerr << "stable1: " << _stable_pass1 << " -- stable2: " << _stable_pass2 << std::endl;
 	//debug
-	
+#endif
      }
    
    bool SuccList::has_key(const DHTKey &key) const
@@ -384,17 +409,15 @@ namespace dht
 	     if (!loc)
 	       continue;
 	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]: in succlist findclosestpredecessor: " << loc->getDHTKey() << std::endl;
 	     std::cerr << "? in [vnode key=" << _vnode->getIdKey() << ", nodekey=" << nodeKey << std::endl;
 	     //debug
+#endif
 	     
 	     if (loc->getDHTKey().between(_vnode->getIdKey(),nodeKey))
 	       {
-		  //debug
-		  std::cerr << "passed\n";
-		  //debug
-		  
 		  dkres = loc->getDHTKey();
 		  na = loc->getNetAddress();
 		  if (sit2 != _succs.end())

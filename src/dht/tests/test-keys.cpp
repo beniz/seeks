@@ -51,7 +51,11 @@ int main()
    
    std::cout << "testing minus: dhtk1 - dhtk1: " << dhtk1 - dhtk1 << std::endl;
    std::cout << "testing minus: dhtk2 - dhtk1: " << dhtk2 - dhtk1 << std::endl;
-
+   
+   std::cout << "dhtk1: " << dhtk1 << std::endl;
+   std::cout << "dhtk2: " << dhtk2 << std::endl;
+   std::cout << "testing minus: dhtk1 - dhtk2: " << dhtk1 - dhtk2 << std::endl;
+   
    std::cout << "testing comparisons: dhtk2 < dhtk1: " << (dhtk2 < dhtk1) << std::endl;
    std::cout << "testing comparisons: dhtk2 <= dhtk2: " << (dhtk2 <= dhtk2) << std::endl;
    std::cout << "testing comparisons: dhtk2 > dhtk1: " << (dhtk2 > dhtk1) << std::endl;

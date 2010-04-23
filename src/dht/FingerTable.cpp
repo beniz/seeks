@@ -31,7 +31,7 @@ using sp::errlog;
 namespace dht
 {
    FingerTable::FingerTable(DHTVirtualNode* vnode, LocationTable* lt)
-     : Stabilizable(), _vnode(vnode), _lt(lt)
+     : Stabilizable(), _vnode(vnode), _lt(lt), _stable_pass1(false), _stable_pass2(false)
        {
 	  /**
 	   * We're filling up the finger table starting keys
@@ -74,7 +74,7 @@ namespace dht
 		  //debug
 		  assert(dkres.count()>0);
 		  //debug
-		  
+		  		  		  
 		  na = loc->getNetAddress();
 		  dkres_succ = DHTKey();
 		  dkres_succ_na = NetAddress();
@@ -101,20 +101,6 @@ namespace dht
 	     return DHT_ERR_OK;
 	  }
 	
-	/**
-	 * otherwise, let's try our successor node.
-	 */
-	// successor is part of successor list now.
-	/* Location *loc = findLocation(*_vnode->getSuccessor());
-	if (loc->getDHTKey().between(getVNodeIdKey(), nodeKey))
-	  {
-	     dkres = loc->getDHTKey();
-	     na = loc->getNetAddress();
-	     dkres_succ = *(*_vnode->_successors._succs.begin());
-	     Location *loc_succ = findLocation(dkres_succ);
-	     dkres_succ_na = loc_succ->getNetAddress();
-	  } */
-		
 	// TODO: we should never reach here...
 	/**
 	 * otherwise return current node's id key, and sets the successor
@@ -185,10 +171,13 @@ namespace dht
 	       err = _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 									recipientKey,na,
 									succ_pred, na_succ_pred, status);
+	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]: predecessor call: err=" << err << " -- status=" << status << std::endl;
 	     //debug
-	     	     
+#endif
+	     
 	     /**
 	      * handle successor failure, retry, then move down the successor list.
 	      */
@@ -205,10 +194,12 @@ namespace dht
 		  
 		  if (dead || ret == retries)
 		    {
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:dead successor detected\n";
 		       //debug
-		       
+#endif
+	
 		       // get a new successor.
 		       _vnode->_successors.pop_front(); // removes our current successor.
 		       
@@ -222,10 +213,12 @@ namespace dht
 			*/
 		       if (kit == _vnode->_successors.end())
 			 break; // we're out of potential successors.
-		       		       
+		       
+#ifdef DEBUG
 		       //debug
 		       std::cerr << "[Debug]:trying successor: " << *(*kit) << std::endl;
 		       //debug
+#endif
 		       
 		       succ = const_cast<DHTKey*>((*kit));
 		       
@@ -253,9 +246,11 @@ namespace dht
 	      */
 	     if (err == DHT_ERR_RETRY)
 	       {
+#ifdef DEBUG
 		  //debug
 		  std::cerr << "[Debug]: trying to call the (new) successor, one more loop.\n";
 		  //debug
+#endif
 		  
 		  continue;
 	       }
@@ -265,9 +260,11 @@ namespace dht
 	      */
 	     if ((dht_err)status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
 	       {
+#ifdef DEBUG
 		  //debug
 		  std::cerr << "[Debug]:stabilize: our successor has no predecessor set.\n";
 		  //debug
+#endif
 		  
 		  break;
 	       }
@@ -333,9 +330,11 @@ namespace dht
 		
 	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]:FingerTable::stabilize: failed return from getPredecessor\n";
 	     //debug
+#endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed return from getPredecessor, %u",
 			       status);
@@ -386,6 +385,9 @@ namespace dht
 
    int FingerTable::fix_finger()
      {
+	_stable_pass2 = _stable_pass1;
+	_stable_pass1 = true; // below we check whether this is true.
+	
 	// TODO: seed.
 	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
 	
@@ -412,9 +414,11 @@ namespace dht
 	status = _vnode->find_successor(_starts[rindex], dkres, na);
 	if (status != DHT_ERR_OK)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]:fix_fingers: error finding successor.\n";
 	     //debug
+#endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "Error finding successor when fixing finger.\n");
 	     return status;
@@ -431,13 +435,25 @@ namespace dht
 	Location *curr_loc = _locs[rindex];
 	if (curr_loc && rloc != curr_loc)
 	  {
+	     _stable_pass1 = false;
+	     
 	     // remove location if it not used in other lists.
 	     if (!_vnode->_successors.has_key(curr_loc->getDHTKey()))
 	       _vnode->removeLocation(curr_loc);
 	  }
-		
+	else if (!curr_loc)
+	  {
+	     _stable_pass1 = false;
+	  }
+	
 	_locs[rindex] = rloc;
 	
+	if (!_stable_pass1)
+	  {
+	     // reestimate the estimated number of nodes.
+	     _vnode->estimate_nodes();
+	  }
+		
 	//debug
 	print(std::cout);
 	//debug
@@ -467,6 +483,11 @@ namespace dht
 		  _locs[i] = NULL;
 	       }
 	  }
+     }
+
+   bool FingerTable::isStable()
+     {
+	return (_stable_pass1 && _stable_pass2);
      }
       
    void FingerTable::print(std::ostream &out) const

@@ -74,6 +74,7 @@ namespace dht
 	 */ 
 	DHTKey operator+(const DHTKey& dk);
 	DHTKey operator-(const DHTKey& dk);
+	//DHTKey operator/(const DHTKey& dk);
 	DHTKey operator++();
 	DHTKey operator--();
 	bool operator<(const DHTKey& dk) const;
@@ -86,6 +87,11 @@ namespace dht
 	DHTKey successor(const int& inc);
 	
 	DHTKey predecessor(const int& dec);
+	
+	/**
+	 * \brief returns the position of the highest positive bit.
+	 */
+	int topBitPos() const;
 	
 	/**
 	 * \brief checks whether this key is in (a,b) on the circle, excluding bounds.
@@ -136,8 +142,6 @@ namespace dht
 	 * \brief Random key generation functions: this is for the case
 	 *        we do not get any email address or unique ip address to hash from.
 	 *        The random bit generator is seeded with gettimeofday, using microseconds.
-	 * 
-	 * TODO: stronger randomness and collision prevention in generated keys.
 	 */
 	static DHTKey randomKey();
 	static int _n_generated_keys; // number of generated keys.

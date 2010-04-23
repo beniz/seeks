@@ -104,18 +104,24 @@ namespace dht
 	char buf[buflen];
 	struct sockaddr_in from;
 	socklen_t fromlen = sizeof(struct sockaddr_in);
+	
+	//debug
+	std::cerr << "[Debug]:rpc_server: listening for dgrams on "
+	  << _na.toString() << "...\n";
+	//debu
+	
 	while(true)
 	  {
 	     //debug
-	     std::cerr << "[Debug]:rpc_server: listening for dgrams on " 
-	       << _na.toString() << "...\n";
+	     /* std::cerr << "[Debug]:rpc_server: listening for dgrams on " 
+	       << _na.toString() << "...\n"; */
 	     //debug
 	     
 	     int n = recvfrom(udp_sock,buf,buflen,0,(struct sockaddr*)&from,&fromlen);
 	     if (n < 0)
 	       {
 		  //debug
-		  std::cout << "Error receiving DGRAM message\n";
+		  //std::cout << "Error receiving DGRAM message\n";
 		  //debug
 		  
 		  spsockets::close_socket(udp_sock);
@@ -124,15 +130,13 @@ namespace dht
 	       }
 	     
 	     //debug
-	     std::cout << "rpc_server: received an " << n << " bytes datagram.\n";
+	     //std::cout << "rpc_server: received an " << n << " bytes datagram.\n";
 	     //debug
 	     
 	     // message.
 	     errlog::log_error(LOG_LEVEL_LOG, "rpc_server: received a %d bytes datagram", n);
-	     //buf[n] = '\0';
 	     std::string dtg_str = std::string(buf,n-1);
-	     //std::cout << "msg size: " << dtg_str.size() << std::endl;
-	     
+	     	     
 	     //debug
 	     //std::cout << "rpc_server: received msg: " << dtg_str << std::endl;
 	     //debug
@@ -161,7 +165,7 @@ namespace dht
 	     msg_str[resp_msg.length()] = '\0';
 	     
 	     //debug
-	     std::cerr << "[Debug]:sending " << sizeof(msg_str) << " bytes\n";
+	     //std::cerr << "[Debug]:sending " << sizeof(msg_str) << " bytes\n";
 	     //std::cerr << "sent msg: " << msg_str << std::endl;
 	     //debug
 	     

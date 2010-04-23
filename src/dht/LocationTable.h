@@ -44,6 +44,8 @@ namespace dht
 	
 	bool is_empty() const;
 	
+	size_t size() const { return _hlt.size(); };
+	
       private:
 	/**
 	 * \brief add new location to table.
@@ -76,6 +78,14 @@ namespace dht
 	 * \brief find location. 
 	 */
 	Location* findLocation(const DHTKey& dk);
+	
+	/**
+	 * \brief find closest successor.
+	 * XXX: could be faster with an ordered structure.
+	 * For now, only used for estimating the number of nodes on the circle.
+	 */
+	void findClosestSuccessor(const DHTKey &dk,
+				  DHTKey &dkres);
 	
 	/**
 	 * \brief prints the location table.
