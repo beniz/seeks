@@ -1,10 +1,14 @@
 lib_LTLIBRARIES=libseeksdhtprotob.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -march=native -mtune=native -pipe\
-	    -I../../utils -I../ -I../../proxy
-libseeksdhtprotob_la_SOURCES=dht_layer1.pb.cc l1_protob_wrapper.cpp
+	    -I../../utils -I../ -I../../proxy -I../../lsh
+libseeksdhtprotob_la_SOURCES=dht_layer1.pb.cc dht_layer1_data.pb.cc \
+		             l1_protob_wrapper.cpp l1_data_protob_wrapper.cpp
 
 dht_layer1.pb.cc:
 	protoc --cpp_out=. dht_layer1.proto
 
+dht_layer1_data.pb.cc:
+	protoc --cpp_out=. dht_layer1_data.proto
+
 clean-local:
-	rm dht_layer1.pb.h dht_layer1.pb.cc
+	rm dht_layer1.pb.h dht_layer1.pb.cc dht_layer1_data.pb.h dht_layer1_data.pb.cc

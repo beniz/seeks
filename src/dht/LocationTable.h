@@ -45,7 +45,7 @@ namespace dht
 	bool is_empty() const;
 	
 	size_t size() const { return _hlt.size(); };
-	
+		
       private:
 	/**
 	 * \brief add new location to table.

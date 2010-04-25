@@ -30,7 +30,6 @@
 #include "stl_hash.h"
 #include "dht_configuration.h"
 #include "DHTVirtualNode.h"
-//#include "LocationTable.h"
 #include "Stabilizer.h"
 #include "l1_rpc_server.h"
 #include "l1_rpc_client.h"
