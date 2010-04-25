@@ -1,0 +1,28 @@
+package dht.l1.table;
+
+import "dht_layer1.proto";
+
+/**
+ * table of locations.
+ */
+message location_table
+{
+ repeated dht.l1.vnodeid locations = 1;
+}
+
+/**
+ * vnode and related location table.
+ */
+message vnode_data
+{
+ required dht.l1.dht_key key = 1; /* vnode key. */
+ required location_table locations = 2; /* location table. */
+}
+
+/**
+ * table of virtual nodes.
+ */
+message vnodes_table
+{
+ repeated vnode_data vnodes = 1; /* vnodes and their location tables. */
+}
