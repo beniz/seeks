@@ -26,9 +26,11 @@
 #include "proxy_configuration.h"
 #include "l1_protob_rpc_server.h"
 #include "l1_protob_rpc_client.h"
+#include "l1_data_protob_wrapper.h"
 
 #include <sys/time.h>
 #include <algorithm>
+#include <fstream>
 
 using sp::errlog;
 using sp::seeks_proxy;
@@ -42,7 +44,8 @@ namespace dht
    dht_configuration* DHTNode::_dht_config = NULL;
    
    DHTNode::DHTNode(const char *net_addr,
-		    const short &net_port)
+		    const short &net_port,
+		    const bool &generate_vnodes)
      : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL)
      {
 	if (DHTNode::_dht_config_filename.empty())
@@ -54,13 +57,19 @@ namespace dht
 #endif
 	  }
 	
+	_vnodes_table_file = "vnodes-table.dat";
+#ifdef SEEKS_LOCALSTATEDIR
+	_vnodes_table_file = SEEKS_LOCALSTATDIR "/" _vnodes_table_file;
+#else
+	// do nothing.
+#endif
+			
+	//debug
+	std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
+	//debug
+	
 	if (!DHTNode::_dht_config)
 	  DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
-	
-	/**
-	 * create the location table.
-	 */
-	//_lt = new LocationTable();
 	
 	// this node net l1 address.
 	//_l1_na.setNetAddress(seeks_proxy::_config->_haddr);
@@ -73,34 +82,24 @@ namespace dht
 	 */
 	_stabilizer = new Stabilizer();
 	
-	/**
-	 * create the virtual nodes.
-	 * TODO: persistance of vnodes and associated tables.
-	 */
 	//SuccList::_max_list_size = DHTNode::_dht_config->_nvnodes-1;
 	SuccList::_max_list_size = 5; // adhoc default...
-	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
-	  {
-	     /**
-	      * creating virtual nodes.
-	      */
-	     DHTVirtualNode* dvn = new DHTVirtualNode(this);
-	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
-								     dvn));
-	     	     
-	     /**
-	      * register vnode routing structures to the stabilizer:
-	      * - stabilize on successor continuously,
-	      * - stabilize more slowly on the rest of the finger table.
-	      */
-	     _stabilizer->add_fast(dvn->getFingerTable());
-	     _stabilizer->add_slow(dvn->getFingerTable());
-	  
-	     /**
-	      * register successor list with the stabilizer.
-	      */
-	     _stabilizer->add_slow(&dvn->_successors);
-	  }
+		
+	/**
+	 * create the virtual nodes.
+	 * Persistance of vnodes and associated location tables works as follows:
+	 * - default is to save vnodes' ids after they are created, and location tables
+	 *   after a clean exit, i.e. if possible.
+	 * - at starting time, if we have persistent data, we try to load them and bootstrap
+	 *   from them unless:
+	 *   + number of vnodes has changed, in this case we generate vnodes from scratch.
+	 *   + it is corrupted, same consequences.
+	 * - at starting time, if we do not have persistent data or if we are told to generate
+	 *   the vnodes, we do so from scratch.
+	 */
+	bool has_persistent_data = load_vnodes_table();
+	if (!has_persistent_data)
+	  create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data.
 	
 	/**
 	 * start rpc client & server.
@@ -116,6 +115,9 @@ namespace dht
       
    DHTNode::~DHTNode()
      {
+	/**
+	 * clears up memory.
+	 */
 	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
 	  = _vnodes.begin();
 	while(hit!=_vnodes.end())
@@ -125,6 +127,136 @@ namespace dht
 	  }
      }
 
+   void DHTNode::create_vnodes()
+     {
+	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
+	  {
+	     /**
+	      * creating virtual nodes.
+	      */
+	     DHTVirtualNode* dvn = new DHTVirtualNode(this);
+	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
+								     dvn));
+	     
+	     /**
+	      * register vnode routing structures to the stabilizer:
+	      * - stabilize on successor continuously,
+	      * - stabilize more slowly on the rest of the finger table.
+	      */
+	     _stabilizer->add_fast(dvn->getFingerTable());
+	     _stabilizer->add_slow(dvn->getFingerTable());
+	     
+	     /**
+	      * register successor list with the stabilizer.
+	      */
+	     _stabilizer->add_slow(&dvn->_successors);
+	  }
+     }
+
+   bool DHTNode::load_vnodes_table()
+     {
+	std::ifstream ifs;
+	ifs.open(_vnodes_table_file.c_str(),std::ios::binary);
+	if (!ifs.is_open())
+	  return false;
+	
+	/**
+	 * Otherwise let's try to read from the persistent table.
+	 */
+	l1::table::vnodes_table *persistent_vt = new l1::table::vnodes_table();
+	
+	try
+	  {
+	     l1_data_protob_wrapper::deserialize_from_stream(ifs,persistent_vt);
+	  }
+	catch (l1_fail_deserialize_exception &e)
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed deserializing vnode and location tables");
+	     return false;
+	  }
+	std::vector<const DHTKey*> vnode_ids;
+	std::vector<LocationTable*> vnode_ltables;
+	l1_data_protob_wrapper::read_vnodes_table(persistent_vt,vnode_ids,vnode_ltables); // TODO: intercept failures.
+	if (vnode_ids.size()!=vnode_ltables.size())
+	  return false; // there's a problem in persistent data, let's take another path.
+	
+	/**
+	 * fill up tables with our persistent data if the number of vnodes has not 
+	 * changed in configuration.
+	 */
+	if (DHTNode::_dht_config->_nvnodes == (int)vnode_ids.size())
+	  {
+	     load_vnodes_and_tables(vnode_ids,vnode_ltables);
+	     errlog::log_error(LOG_LEVEL_DHT, "Successfully loaded %u persistent virtual nodes", vnode_ids.size());
+	     return true;
+	  }
+	else return false;
+     }
+   
+   void DHTNode::load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
+					const std::vector<LocationTable*> &vnode_ltables)
+     {
+	for (int i=0;i<DHTNode::_dht_config->_nvnodes;i++)
+	  {
+	     /**
+	      * create virtual nodes but specifies key and location table.
+	      */
+	     const DHTKey idkey = *vnode_ids.at(i);
+	     LocationTable *lt = vnode_ltables.at(i);
+	     DHTVirtualNode *dvn = new DHTVirtualNode(this,idkey,lt);
+	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
+								     dvn));
+	  
+	     /**
+	      * register vnode routing structures to the stabilizer:
+	      * - stabilize on successor continuously,
+	      * - stabilize more slowly on the rest of the finger table.
+	      */
+	     _stabilizer->add_fast(dvn->getFingerTable());
+	     _stabilizer->add_slow(dvn->getFingerTable());
+	     
+	     /**
+	      * register successor list with the stabilizer.
+	      */
+	     _stabilizer->add_slow(&dvn->_successors);
+	  }
+     }
+
+   bool DHTNode::hibernate_vnodes_table()
+     {
+	std::vector<const DHTKey*> vnode_ids;
+	std::vector<LocationTable*> vnode_ltables;
+	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator
+	  hit = _vnodes.begin();
+	while(hit!=_vnodes.end())
+	  {
+	     vnode_ids.push_back((*hit).first);
+	     vnode_ltables.push_back((*hit).second->_lt);
+	     ++hit;
+	  }
+	l1::table::vnodes_table *vt 
+	  = l1_data_protob_wrapper::create_vnodes_table(vnode_ids,vnode_ltables);
+	std::ofstream ofs;
+	ofs.open(_vnodes_table_file.c_str(),std::ios::trunc | std::ios::binary); // beware.
+	if (!ofs.is_open())
+	  {
+	     delete vt;
+	     return false;
+	  }
+	try
+	  {
+	     l1_data_protob_wrapper::serialize_to_stream(vt,ofs);
+	  }
+	catch (l1_fail_serialize_exception &e)
+	  {
+	     delete vt;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed serializing vnode and location tables");
+	     return false;
+	  }
+	delete vt;
+	return true;
+     }
+      
    dht_err DHTNode::join_start(std::vector<NetAddress> &bootstrap_nodelist,
 			       const bool &reset)
      {

@@ -28,6 +28,7 @@
 
 using sp::errlog;
 
+#define WITH_RANDOM_KEY
 //#define DEBUG
 
 namespace dht
@@ -39,32 +40,33 @@ namespace dht
 	  /**
 	   * We generate a random key as the node's id.
 	   */
+#ifdef WITH_RANDOM_KEY
 	  _idkey = DHTKey::randomKey();
-	  //_idkey = DHTNode::generate_uniform_key();
-	  
+#else
+	  _idkey = DHTNode::generate_uniform_key();
+#endif
 	  /**
-	   * create location table. TODO: read from serialized table.
+	   * initialize other structures.
 	   */
-	  _lt = new LocationTable();
-	  
-	  /**
-	   * create location and registers it to the location table.
-	   */
-	  Location *lloc = NULL;
-	  addToLocationTable(_idkey, getNetAddress(), lloc);
-	  
-	  /**
-	   * finger table.
-	   */
-	  _fgt = new FingerTable(this,_lt);
-       
-	  /**
-	   * Initializes mutexes.
-	   */
-	  seeks_proxy::mutex_init(&_pred_mutex);
-	  seeks_proxy::mutex_init(&_succ_mutex);
+	  init_vnode();
        }
 
+   DHTVirtualNode::DHTVirtualNode(DHTNode *pnode, const DHTKey &idkey, LocationTable *lt)
+     : _lt(lt), _pnode(pnode),_successor(NULL),_predecessor(NULL),
+       _successors(this),_nnodes(0),_nnvnodes(0)
+     {
+	/**
+	 * no need to generate the virtual node key, we have it from
+	 * persistent data.
+	 */
+	_idkey = idkey;
+	
+	/**
+	 * initialize other structures.
+	 */
+	init_vnode();
+     }
+      
    DHTVirtualNode::~DHTVirtualNode()
      {
 	if (_successor)
@@ -72,12 +74,37 @@ namespace dht
 	if (_predecessor)
 	  delete _predecessor;
 	
-	// TODO: deregister succlist from stabilizer !!
+	// TODO: deregister succlist from stabilizer.
 	_successors.clear();
 	
 	delete _fgt;
      }
       
+   void DHTVirtualNode::init_vnode()
+     {
+	/**
+	 * create location table. TODO: read from serialized table.
+	 */
+	_lt = new LocationTable();
+	
+	/**
+	 * create location and registers it to the location table.
+	 */
+	Location *lloc = NULL;
+	addToLocationTable(_idkey, getNetAddress(), lloc);
+	
+	/**
+	 * finger table.
+	 */
+	_fgt = new FingerTable(this,_lt);
+	
+	/**
+	 * Initializes mutexes.
+	 */
+	seeks_proxy::mutex_init(&_pred_mutex);
+	seeks_proxy::mutex_init(&_succ_mutex);
+     }
+   
    dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
      {
 	bool reset_pred = false;

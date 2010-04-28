@@ -63,10 +63,21 @@ namespace dht
 	 * - The node's id is a randomly generated key.
 	 * - successor and predecessor are NULL.
 	 */
-	DHTVirtualNode(DHTNode* pnode);
+	DHTVirtualNode(DHTNode *pnode);
+	
+	/**
+	 * \brief constructor based on persistent data, loaded at startup
+	 *        in DHTNode.
+	 */
+	DHTVirtualNode(DHTNode *pnode, const DHTKey &idkey, LocationTable *lt);
 	
 	~DHTVirtualNode();
 
+	/**
+	 * Initializes structures and mutexes.
+	 */
+	void init_vnode();
+	
 	/**-- functions used in RPC callbacks. --**/
 	/**
 	 * \brief notifies this virtual node that the argument key/address peer

@@ -42,10 +42,35 @@ namespace dht
 	/**
 	 * \brief constructor.
 	 */
-	DHTNode(const char *net_addr, const short &net_port);
+	DHTNode(const char *net_addr, const short &net_port,
+		const bool &generate_vnodes=true);
 
 	~DHTNode();
 	
+	/**
+	 * create virtual nodes.
+	 */
+	void create_vnodes();
+	
+	/*- persistence. -*/
+	/**
+	 * \brief loads table of virtual nodes and location tables from persistent
+	 * data, if it exists.
+	 */
+	bool load_vnodes_table();
+	
+	/**
+	 * \brief loads deserialized vnodes and tables into memory structures.
+	 */
+	void load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
+				    const std::vector<LocationTable*> &vnode_ltables);
+	
+	/**
+	 * \brief makes critical data (vnode keys and location tables) persistent.
+	 */
+	bool hibernate_vnodes_table();
+	
+	/*- main functions -*/
 	/**
 	 * DHTNode key generation, one per virtual node.
 	 */
@@ -210,8 +235,13 @@ namespace dht
 	 * node's stabilizer.
 	 */
 	Stabilizer* _stabilizer;
+     
+	/**
+	 * persistent table of virtual nodes and location tables, in a file.
+	 */
+	std::string _vnodes_table_file;
      };
-      
+   
 } /* end of namespace. */
 
 #endif

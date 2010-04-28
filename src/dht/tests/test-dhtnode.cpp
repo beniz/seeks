@@ -25,12 +25,33 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 
 using namespace dht;
 using sp::miscutil;
 using sp::errlog;
 
-const char *usage = "Usage: test_dhtnode <ip:port> (--join ip:port) or (--self-bootstrap)\n";
+const char *usage = "Usage: test_dhtnode <ip:port> (--join ip:port) or (--self-bootstrap) (--persist)\n";
+
+bool persistence = false;
+DHTNode *dnode = NULL;
+
+void sig_handler(int the_signal)
+{
+   switch(the_signal)
+     {
+      case SIGTERM:
+      case SIGINT:
+      case SIGHUP:
+	if (persistence)
+	  dnode->hibernate_vnodes_table();
+	exit(the_signal);
+	break;
+      default:
+	std::cerr << "sig_handler: exiting on unexpected signal " << the_signal << std::endl;
+     }
+   return;
+}
 
 int main(int argc, char **argv)
 {
@@ -50,8 +71,7 @@ int main(int argc, char **argv)
    errlog::init_log_module();
    errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
    
-   // TODO: thread it ?
-   DHTNode node(net_addr,net_port);
+   dnode = new DHTNode(net_addr,net_port);
    
    bool joinb = false;
    bool sbootb = false;
@@ -68,7 +88,29 @@ int main(int argc, char **argv)
 	     std::cout << usage;
 	     exit(0);
 	  }
-	
+
+	if (argc > 3)
+	  {
+	     if (strcmp(argv[3],"--persist") == 0)
+	       persistence = true;
+	  }
+		
+	/**
+	 * unix signal handling for graceful termination.
+	 */
+	const int catched_signals[] = { SIGTERM, SIGINT, SIGHUP, 0 };
+	for (int idx=0; catched_signals[idx] != 0; idx++)
+	  {
+	     if (signal(catched_signals[idx],&sig_handler) == SIG_ERR)
+	       {
+		  std::cerr << "Can't set signal-handler value for signal "
+		    << catched_signals[idx] << std::endl;
+	       }
+	  }
+		
+	/**
+	 * Join an existing ring or perform self-bootstrap.
+	 */
 	if (joinb)
 	  {
 	     char *bootnode = argv[3];
@@ -84,13 +126,11 @@ int main(int argc, char **argv)
 	     
 	     bool reset = true;
 	     if (joinb)
-	       node.join_start(bootstrap_nodelist,reset);
+	       dnode->join_start(bootstrap_nodelist,reset);
 	  }
 	else if (sbootb)
-	  node.self_bootstrap();
+	  dnode->self_bootstrap();
      }
    	
-   pthread_join(node._l1_server->_rpc_server_thread,NULL);
+   pthread_join(dnode->_l1_server->_rpc_server_thread,NULL);
 }
-
-  

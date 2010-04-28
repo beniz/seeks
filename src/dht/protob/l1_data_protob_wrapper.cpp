@@ -119,13 +119,15 @@ namespace dht
 		  NetAddress na = NetAddress(na_ip_addr,na_net_port);
 		  Location *loc = NULL;
 		  lt->addToLocationTable(lvkey,na,loc);
-		  if (vkey == lvkey)
-		    vnode_ids.push_back(&loc->getDHTKeyRef());
 		  
 		  //debug
 		  assert(loc!=NULL);
 		  //debug
+		  
+		  if (vkey == lvkey)
+		    vnode_ids.push_back(&loc->getDHTKeyRef());
 	       }
+	     vnode_ltables.push_back(lt);
 	  }
 	
 	//debug

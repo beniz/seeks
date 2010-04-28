@@ -2281,6 +2281,9 @@ namespace sp
 		       unlink(seeks_proxy::_pidfile);
 		    }
 # endif /* unix */
+		  
+		  // TODO: add dht gracecul termination here.
+		  
 		  exit(the_signal);
 		  break;
 		  
