@@ -51,6 +51,7 @@ namespace seeks_plugins
    std::vector<url_spec*> search_snippet::_audio_pos_patterns = std::vector<url_spec*>();
    std::vector<url_spec*> search_snippet::_video_pos_patterns = std::vector<url_spec*>();
    std::vector<url_spec*> search_snippet::_forum_pos_patterns = std::vector<url_spec*>();
+   std::vector<url_spec*> search_snippet::_reject_pos_patterns = std::vector<url_spec*>();
    
    search_snippet::search_snippet()
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
@@ -255,44 +256,18 @@ namespace seeks_plugins
 		
 	return html_content;
      }
-
-   /* std::string search_snippet::url_preprocessing(const char *url)
-     {
-	// decode url.
-	char* str = encode::url_decode(url);
-	miscutil::chomp(str);
-	if (str[strlen(str)-1] == '/')
-	  str[strlen(str)-1] = '\0';
-	std::string nstr = std::string(str);
-	freez(str);
-	miscutil::replace_in_string(nstr,"\n","");
-	miscutil::replace_in_string(nstr,"\r","");
-	str = encode::html_encode(nstr.c_str());
-	nstr = std::string(str);
-	free(str);
-	miscutil::replace_in_string(nstr," ","%20"); // encoding fails doing this.
-	return nstr;
-     } */
    
-   std::string search_snippet::url_preprocessing(const char *url)
-     {
-	std::string nstr = std::string(url);
-	miscutil::replace_in_string(nstr,"\n","");
-	miscutil::replace_in_string(nstr,"\r","");
-	return nstr;
-     }
-         
    void search_snippet::set_url(const std::string &url)
      {
 	const char *url_str = url.c_str();
-	_url = search_snippet::url_preprocessing(url_str);
+	_url = url_str;
 	std::string surl = urlmatch::strip_url(_url);
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
    void search_snippet::set_url(const char *url)
      {
-	_url = search_snippet::url_preprocessing(url);
+	_url = url;
 	std::string surl = urlmatch::strip_url(_url);
 	_id = mrf::mrf_single_feature(surl,"");
      }
@@ -370,7 +345,9 @@ namespace seeks_plugins
 	       _doc_type = VIDEO;
 	     else if (search_snippet::match_tag(_url,search_snippet::_forum_pos_patterns))
 	       _doc_type = FORUM;
-	  
+	     else if (search_snippet::match_tag(_url,search_snippet::_reject_pos_patterns))
+	       _doc_type = REJECTED;
+	     
 	     /* std::cerr << "[Debug]: tagged snippet: url: " << _url 
 	       << " -- tag: " << (int)_doc_type << std::endl; */
 	  }
@@ -403,7 +380,10 @@ namespace seeks_plugins
 	static std::string forum_patterns_filename 
 	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/forum"
 	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/forum";
-		
+	static std::string reject_patterns_filename
+	  = (seeks_proxy::_datadir.empty()) ? plugin_manager::_plugin_repository + "websearch/patterns/reject"
+	  : seeks_proxy::_datadir + "/plugins/websearch/patterns/reject";
+	
 	std::vector<url_spec*> fake_neg_patterns; // XXX: maybe to be supported in the future, if needed.
 	
 	sp_err err;
@@ -421,6 +401,9 @@ namespace seeks_plugins
 	if (err == SP_ERR_OK)
 	  err = loaders::load_pattern_file(forum_patterns_filename.c_str(),search_snippet::_forum_pos_patterns,
 					   fake_neg_patterns);
+	if (err == SP_ERR_OK)
+	  err = loaders::load_pattern_file(reject_patterns_filename.c_str(),search_snippet::_reject_pos_patterns,
+					   fake_neg_patterns);
 	return err;
      }
       
@@ -431,7 +414,8 @@ namespace seeks_plugins
 	std::string path;
 	urlmatch::parse_url_host_and_path(url,host,path);
 	
-	/* std::cerr << "[Debug]: host: " << host << " -- path: " << path 
+	/* std::cerr << "url: " << url << std::endl;
+	std::cerr << "[Debug]: host: " << host << " -- path: " << path 
 	  << " -- pattern size: " << patterns.size() << std::endl; */
 	
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS

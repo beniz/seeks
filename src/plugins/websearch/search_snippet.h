@@ -46,7 +46,8 @@ namespace seeks_plugins
 	CODE,
 	NEWS,
 	REAL_TIME,
-	WIKI
+	WIKI,
+	REJECTED /* user reject, for now by matching a regexp. */
      };
    
    class search_snippet
@@ -94,8 +95,7 @@ namespace seeks_plugins
 	
 	~search_snippet();
 	
-	// set_url with url preprocessing for later comparison.
-	std::string url_preprocessing(const char *url);
+	// set_url.
 	void set_url(const std::string &url);
 	void set_url(const char *url);
 	
@@ -183,6 +183,7 @@ namespace seeks_plugins
 	static std::vector<url_spec*> _audio_pos_patterns;
 	static std::vector<url_spec*> _video_pos_patterns;
 	static std::vector<url_spec*> _forum_pos_patterns;
+	static std::vector<url_spec*> _reject_pos_patterns;
      };
    
 } /* end of namespace. */

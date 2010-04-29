@@ -135,6 +135,8 @@ namespace seeks_plugins
 	     size_t snistart = (current_page-1) * websearch::_wconfig->_N;
 	     for (size_t i=snistart;i<snisize;i++)
 	       {
+		  if (snippets.at(i)->_doc_type == REJECTED)
+		    continue;
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
 	       }
