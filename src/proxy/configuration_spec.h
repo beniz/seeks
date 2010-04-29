@@ -38,16 +38,7 @@ namespace sp
 	sp_err parse_config_line(char *cmd, char* arg, char *tmp, char* buf);
 	
 	int check_file_changed();
-
-#ifdef __linux__
-	static int init_file_notification();
 	
-	static int stop_file_notification();
-
-	int watch_file();
-	
-	void unwatch_file();
-#endif
 	// virtual functions.
 	virtual void set_default_config() {};
 
@@ -68,12 +59,6 @@ namespace sp
 	 * File last-modified time, so we can check if file has been changed.
 	 */
 	time_t _lastmodified;
-
-#ifdef unix  // linux only, inotify file descriptor.
-	static int _fd;  // system wide descriptor.
-	int _wd; // local file descriptor.
-	bool _has_changed; // whether inotify has detected a change.
-#endif
 	
 	/**
 	 * All options from the config file, HTML-formatted.
