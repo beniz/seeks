@@ -256,7 +256,7 @@ namespace seeks_plugins
 	return html_content;
      }
 
-   std::string search_snippet::url_preprocessing(const char *url)
+   /* std::string search_snippet::url_preprocessing(const char *url)
      {
 	// decode url.
 	char* str = encode::url_decode(url);
@@ -272,8 +272,16 @@ namespace seeks_plugins
 	free(str);
 	miscutil::replace_in_string(nstr," ","%20"); // encoding fails doing this.
 	return nstr;
+     } */
+   
+   std::string search_snippet::url_preprocessing(const char *url)
+     {
+	std::string nstr = std::string(url);
+	miscutil::replace_in_string(nstr,"\n","");
+	miscutil::replace_in_string(nstr,"\r","");
+	return nstr;
      }
-      
+         
    void search_snippet::set_url(const std::string &url)
      {
 	const char *url_str = url.c_str();
