@@ -86,10 +86,13 @@ namespace seeks_plugins
 		       if ((pos = url_str.find("rds.yahoo.com"))!=std::string::npos)
 			 if ((pos = url_str.find("/**",pos))!=std::string::npos)
 			   url_str = url_str.substr(pos+3);
+		       const char *url_dec_str = encode::url_decode(url_str.c_str());
+		       url_str = std::string(url_dec_str);
+		       free_const(url_dec_str);
 		       pc->_current_snippet->set_url(url_str);
-		       const char *url_enc = encode::url_decode(url_str.c_str());
-		       pc->_current_snippet->set_cite(std::string(url_enc));
-		       free_const(url_enc);
+		       //const char *url_enc = encode::url_decode(url_str.c_str());
+		       pc->_current_snippet->set_cite(url_str);
+		       //free_const(url_enc);
 		    }
 		  else if (_begin_results && pc->_current_snippet)
 		    pc->_current_snippet->_cached = std::string(a_link);
