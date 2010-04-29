@@ -189,6 +189,9 @@ namespace seeks_plugins
      const char *expansion = miscutil::lookup(parameters,"expansion");
      int horizon = atoi(expansion);
      
+     if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
+       horizon = websearch::_wconfig->_max_expansions;
+       
      // seeks button used as a back button.
      if (_page_expansion > 0 && horizon < (int)_page_expansion)
        {

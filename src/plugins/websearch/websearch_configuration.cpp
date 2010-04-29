@@ -35,6 +35,7 @@ namespace seeks_plugins
 #define hash_ct_transfer_timeout    3371661146ul /* "ct-transfer-timeout" */
 #define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
 #define hash_clustering             2382120344ul /* "enable-clustering" */
+#define hash_max_expansions         3838821776ul /* "max-expansions" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -61,6 +62,7 @@ namespace seeks_plugins
 	_se_transfer_timeout = 5; // in seconds.
 	_ct_connect_timeout = 1; // in seconds.
 	_ct_transfer_timeout = 3; // in seconds.
+	_max_expansions = 100;
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -150,6 +152,12 @@ namespace seeks_plugins
 	     _clustering = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enables the clustering from the UI");
+	     break;
+	     
+	   case hash_max_expansions:
+	     _max_expansions = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets the maximum number of query expansions");
 	     break;
 	     
 	   default :

@@ -67,6 +67,7 @@ namespace seeks_plugins
 
 	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
 	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
+	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
      };
    
 } /* end of namespace. */
