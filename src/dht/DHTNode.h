@@ -78,10 +78,10 @@ namespace dht
 	
 	/**
 	 * join at startup.
-	 * First tries with the LocationTable information if any, and if no reset specified.
-	 * Otherwise go for the bootstrap nodelist.
+	 * tries from the list in configuration file and with the LocationTable information if any, 
+	 * and if reset is not true.
 	 */
-	dht_err join_start(std::vector<NetAddress> &bootstrap_nodelist, 
+	dht_err join_start(const std::vector<NetAddress> &bootstrap_nodelist, 
 			   const bool &reset);
 	
 	/**
@@ -240,6 +240,12 @@ namespace dht
 	 * persistent table of virtual nodes and location tables, in a file.
 	 */
 	std::string _vnodes_table_file;
+     
+	/**
+	 * whether this node is connected to the ring
+	 * (i.e. at least one of its virtual nodes is).
+	 */
+	bool _connected;
      };
    
 } /* end of namespace. */

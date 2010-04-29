@@ -71,8 +71,11 @@ namespace dht
 	 */
 	DHTVirtualNode(DHTNode *pnode, const DHTKey &idkey, LocationTable *lt);
 	
+	/**
+	 * \brief destructor.
+	 */
 	~DHTVirtualNode();
-
+	
 	/**
 	 * Initializes structures and mutexes.
 	 */
@@ -222,6 +225,13 @@ namespace dht
 	 */
 	unsigned long _nnodes;
 	unsigned long _nnvnodes;
+     
+	/**
+	 * whether this node is connected to the ring.
+	 * By connected it is meant that the virtual node has at least a working
+	 * successor.
+	 */
+	bool _connected;
      };  
    
 } /* end of namespace. */

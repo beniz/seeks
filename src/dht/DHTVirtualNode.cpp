@@ -35,7 +35,7 @@ namespace dht
 {
    DHTVirtualNode::DHTVirtualNode(DHTNode* pnode)
      : _pnode(pnode),_successor(NULL),_predecessor(NULL),
-       _successors(this),_nnodes(0),_nnvnodes(0)
+       _successors(this),_nnodes(0),_nnvnodes(0),_connected(false)
        {
 	  /**
 	   * We generate a random key as the node's id.
@@ -53,7 +53,7 @@ namespace dht
 
    DHTVirtualNode::DHTVirtualNode(DHTNode *pnode, const DHTKey &idkey, LocationTable *lt)
      : _lt(lt), _pnode(pnode),_successor(NULL),_predecessor(NULL),
-       _successors(this),_nnodes(0),_nnvnodes(0)
+       _successors(this),_nnodes(0),_nnvnodes(0),_connected(false)
      {
 	/**
 	 * no need to generate the virtual node key, we have it from
@@ -78,8 +78,10 @@ namespace dht
 	_successors.clear();
 	
 	delete _fgt;
+     
+	delete _lt;
      }
-      
+   
    void DHTVirtualNode::init_vnode()
      {
 	/**
@@ -165,11 +167,10 @@ namespace dht
 	_predecessor = NULL;
 	
 	/**
-	 * TODO: query the bootstrap node for our successor.
+	 * query the bootstrap node for our successor.
 	 */
 	DHTKey dkres;
 	NetAddress na;
-	
 	dht_err err = _pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
 							  _idkey,_pnode->_l1_na,
 							  dkres, na, status);
@@ -179,6 +180,8 @@ namespace dht
 	  {
 	     return err;
 	  }
+	else // we're connected.
+	  _connected = true;       
 	
 	// remote errors.
 	if ((dht_err)status == DHT_ERR_OK)

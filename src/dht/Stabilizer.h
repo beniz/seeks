@@ -99,7 +99,9 @@ namespace dht
 	 */
 	int slow_stabilize(double tround);
 
-	//TODO: is stable or not.
+	/**
+	 * whether the structure is stable or not.
+	 */
 	bool isstable_slow() const;
 	
 	/**

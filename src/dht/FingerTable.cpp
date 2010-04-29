@@ -164,7 +164,7 @@ namespace dht
 	int status = 0;
 	dht_err err = DHT_ERR_RETRY;
 	std::vector<Location*> dead_locs;
-	while (err != DHT_ERR_OK) // while over all successors in the list. If all fail, then rejoin.
+	while (err != DHT_ERR_OK) // in case of failure, will try all successors in the list. If all fail, then rejoin.
 	  {
 	     err = _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
 	     if (err == DHT_ERR_UNKNOWN_PEER)
@@ -322,11 +322,11 @@ namespace dht
 	 * we try a join every x minutes.
 	 */
 	//TODO: rejoin + wrong test here.
-	/* if (_vnode->_successors.empty())
+	if (_vnode->_successors.empty())
 	  {
 	     std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n";
 	     exit(0);
-	  } */
+	  }
 		
 	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
 	  {

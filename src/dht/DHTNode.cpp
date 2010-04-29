@@ -46,7 +46,7 @@ namespace dht
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
 		    const bool &generate_vnodes)
-     : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL)
+     : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
 	  {
@@ -257,49 +257,71 @@ namespace dht
 	return true;
      }
       
-   dht_err DHTNode::join_start(std::vector<NetAddress> &bootstrap_nodelist,
+   dht_err DHTNode::join_start(const std::vector<NetAddress> &btrap_nodelist,
 			       const bool &reset)
      {
 	std::cerr << "[Debug]: join_start\n";
 	
-	// try location table if possible/asked to.
-	/* if (!reset) // TODO: serialization/deserialization... location table by default contains virtual nodes...
-	  {
-	     std::cerr << "[Debug]:join_start: trying location table.\n";
-	     
-	     hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator lit
-	       = _lt->_hlt.begin();
-	     while(lit!=_lt->_hlt.end())
-	       {
-		  Location *loc = (*lit).second;
-		  
-		  // TODO: test location beforehand.
-	     	  // 
-		  // join.
-		  dht_err status = join(loc->getNetAddress(),loc->getDHTKey());
-		  if (status == DHT_ERR_OK)
-		    return status; // we're done, join was successful, stabilization will take over the job.
-		  		  
-		  ++lit;
-	       }
-	  } */
+	std::vector<NetAddress> bootstrap_nodelist = btrap_nodelist;
 	
+	/**
+	 * try location table if possible/asked to.
+	 * To do so, known locations are added to the bootstrap nodelist,
+	 * before being removed from location tables and removed.
+	 * XXX: there may be other applicable strategies here.
+	 */
+	if (!reset)
+	  {
+	     //debug
+	     std::cerr << "[Debug]:join_start: trying location table.\n";
+	     //debug
+	     
+	     hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit
+	       = _vnodes.begin();
+	     while(hit != _vnodes.end())
+	       {
+		  std::vector<Location*> dead_locs;
+		  LocationTable *lt = (*hit).second->_lt;	     
+		  hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::iterator lit
+		    = lt->_hlt.begin();
+		  while(lit!=lt->_hlt.end())
+		    {
+		       Location *loc = (*lit).second;
+		       if (loc->getDHTKey()!=(*hit).second->getIdKey())
+			 {
+			    bootstrap_nodelist.push_back(loc->getNetAddress());
+			    dead_locs.push_back(loc);
+			 }
+		       ++lit;
+		    }
+		  
+		  /**
+		   * clear location tables.
+		   * XXX: other strategies are applicable here, left for future work.
+		   */
+		  for (size_t i=0;i<dead_locs.size();i++)
+		    lt->removeLocation(dead_locs.at(i));
+		  		  
+		  ++hit;
+	       }
+	  }
+		
 	// try to bootstrap from the nodelist in configuration.
 	std::vector<NetAddress>::const_iterator nit = bootstrap_nodelist.begin();
 	while(nit!=bootstrap_nodelist.end())
 	  {
 	     NetAddress na = (*nit);
 	     
-	     // TODO: test address beforehand.
-	      
 	     std::cerr << "[Debug]: trying to bootstrap from " << na.toString() << std::endl;
-	     	     
+	     
+	     // TODO: errlog.
+	     
 	     // join.
 	     DHTKey key;
 	     dht_err status = join(na,key); // empty key is handled by the called node.
 	     if (status == DHT_ERR_OK)
 	       return status; // we're done, join was successful, stabilization will take over the job.
-	     
+	      	     
 	     ++nit;
 	  }
 	
@@ -385,6 +407,9 @@ namespace dht
 	//debug
 	std::cerr << "[Debug]:self-bootstrap complete.\n";
 	//debug
+	
+	// we are 'connected', to ourselves, but we are...
+	_connected = true;
 	
 	return DHT_ERR_OK;
      }
@@ -764,7 +789,7 @@ namespace dht
 	  = _vnodes.begin();
 	while(hit != _vnodes.end())
 	  {
-	     DHTVirtualNode* vnode = (*hit).second;
+	     DHTVirtualNode *vnode = (*hit).second;
 	     int status = 0;
 	     dht_err err = vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // TODO: could make a single call instead ?
 	     
@@ -782,6 +807,9 @@ namespace dht
 	     
 	     ++hit;
 	  }
+	
+	// this node is connected (all its virtual nodes are.
+	_connected = true;
 	
 	return DHT_ERR_OK;
      }
