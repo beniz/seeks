@@ -36,6 +36,7 @@ namespace seeks_plugins
 #define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
 #define hash_clustering             2382120344ul /* "enable-clustering" */
 #define hash_max_expansions         3838821776ul /* "max-expansions" */
+#define hash_extended_highlight     2722091897ul /* "extended-highlight" */   
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -63,6 +64,7 @@ namespace seeks_plugins
 	_ct_connect_timeout = 1; // in seconds.
 	_ct_transfer_timeout = 3; // in seconds.
 	_max_expansions = 100;
+	_extended_highlight = false; // experimental.
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -159,8 +161,14 @@ namespace seeks_plugins
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Sets the maximum number of query expansions");
 	     break;
+
+	   case hash_extended_highlight:
+	     _extended_highlight = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enables a more discriminative word highlight scheme");
+	     break;
 	     
-	   default :
+	   default:
 	     break;
 	     
 	  } // end of switch.
