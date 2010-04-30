@@ -97,8 +97,6 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(dec_sum,"&quot","\"");
 	     miscutil::replace_in_string(dec_sum,"&lt","<");
 	     miscutil::replace_in_string(dec_sum,"&gt",">");
-	     /* std::string *str = new std::string(qc->_cached_snippets.at(i)->_title + "\n" 
-						+ qc->_cached_snippets.at(i)->_summary); */
 	     std::string *str = new std::string(dec_sum);
 	     txt_contents.push_back(str);
 	  }

@@ -125,6 +125,9 @@ namespace seeks_plugins
 	static void highlight_query(std::vector<std::string> &words,
 				    std::string &str);
 	
+	// highlights the most discriminative terms (for this snippet among all snippets).
+	void highlight_discr(std::string &str);
+	
 	// tag snippet, i.e. detect its type if not already done by the parsers.
 	void tag();
 

@@ -567,6 +567,9 @@ namespace seeks_plugins
      seeks_proxy::mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      
+     if (websearch::_wconfig->_extended_highlight)
+       content_handler::fetch_all_snippets_summary_and_features(qc);
+     
      // render the page (static).
      sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							     csp,rsp,parameters,qc);

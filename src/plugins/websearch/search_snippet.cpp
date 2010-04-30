@@ -99,6 +99,56 @@ namespace seeks_plugins
 	  }
      }
       
+   void search_snippet::highlight_discr(std::string &str)
+     {
+	if (!_features_tfidf)
+	  return;
+	
+	std::vector<std::string> words;
+	std::map<float,uint32_t,std::greater<float> > f_tfidf;
+	
+	// sort features in decreasing tf-idf order.
+	hash_map<uint32_t,float,id_hash_uint>::const_iterator fit
+	  = _features_tfidf->begin();
+	while(fit!=_features_tfidf->end())
+	  {
+	     f_tfidf.insert(std::pair<float,uint32_t>((*fit).second,(*fit).first));
+	     ++fit;
+	  }
+	
+	int max_highlights = 3; // ad-hoc default.
+	int i = 0;
+	std::map<float,uint32_t,std::greater<float> >::const_iterator mit = f_tfidf.begin();
+	while(mit!=f_tfidf.end())
+	  {
+	     hash_map<uint32_t,std::string,id_hash_uint>::const_iterator bit;
+	     if ((bit=_bag_of_words->find((*mit).second))!=_bag_of_words->end())
+	       {
+		  words.push_back((*bit).second);
+		  i++;
+		  if (i>=max_highlights)
+		    break;
+	       }
+	     ++mit;
+	  }
+	
+	if (words.empty())
+	  return;
+	
+	// sort words by size.
+	std::sort(words.begin(),words.end(),std::greater<std::string>());
+	
+	// highlighting.
+	for (size_t i=0;i<words.size();i++)
+	  {
+	     if (words.at(i).length() > 2)
+	       {
+		  std::string bold_str = "<span class=\"highlight\">" + words.at(i) + "</span>";
+		  miscutil::ci_replace_in_string(str,words.at(i),bold_str);
+	       }
+	  }
+     }
+      
    std::ostream& search_snippet::print(std::ostream &output)
      {
 	output << "-----------------------------------\n";
@@ -191,6 +241,8 @@ namespace seeks_plugins
 	     html_content += "<div>";
 	     std::string summary = _summary;
 	     search_snippet::highlight_query(words,summary);
+	     if (websearch::_wconfig->_extended_highlight)
+	       highlight_discr(summary);
 	     html_content += summary;
 	  }
 	else html_content += "<div>";
