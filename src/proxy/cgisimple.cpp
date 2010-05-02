@@ -1747,7 +1747,15 @@ sp_err cgisimple::cgi_file_server(client_state *csp,
    if (!err)
      {
 	size_t epos = path_file_str.find_last_of(".");
-	std::string ext_str = path_file_str.substr(epos+1);
+	std::string ext_str;
+	try
+	  {
+	     ext_str = path_file_str.substr(epos+1);
+	  }
+	catch(std::exception &e)
+	  {
+	     ext_str = "";
+	  }
 	cgisimple::file_response_content_type(ext_str,rsp);
      }
       
@@ -1787,7 +1795,15 @@ sp_err cgisimple::cgi_plugin_file_server(client_state *csp,
    if (!err)
      {
 	size_t epos = path_file_str.find_last_of(".");
-	std::string ext_str = path_file_str.substr(epos+1);
+	std::string ext_str;
+	try
+	  {
+	     ext_str = path_file_str.substr(epos+1);
+	  }
+	catch(std::exception &e)
+	  {
+	     ext_str = "";
+	  }
 	cgisimple::file_response_content_type(ext_str,rsp);
      }
         

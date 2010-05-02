@@ -370,8 +370,22 @@ void urlmatch::parse_url_host_and_path(const std::string &url,
    size_t p2 = 0;
    if ((p2 = url.find("/",p1))!=std::string::npos)
      {
-	host  = url.substr(p1,p2-p1);
-	path = url.substr(p2);
+	try
+	  {
+	     host  = url.substr(p1,p2-p1);
+	  }
+	catch(std::exception &e)
+	  {
+	     host = "";
+	  }
+	try
+	  {
+	     path = url.substr(p2);
+	  }
+	catch(std::exception &e)
+	  {
+	     path = "";
+	  }
      }
    else 
      {

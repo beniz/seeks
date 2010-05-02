@@ -1979,7 +1979,14 @@ sp_err cgi::template_fill_str(char **template_ptr,
 	std::string name_str = std::string(name);
 	if (*name == '$')
 	  {
-	     name_str = name_str.substr(1);
+	     try
+	       {
+		  name_str = name_str.substr(1);
+	       }
+	     catch(std::exception &e)
+	       {
+		  name_str = "";
+	       }
 	  }
 	miscutil::replace_in_string(buffer_str,name_str,std::string(value));
 	++mit;
