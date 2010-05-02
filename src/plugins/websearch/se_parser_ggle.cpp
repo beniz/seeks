@@ -95,7 +95,14 @@ namespace seeks_plugins
 		  if (p != 0)
 		    {
 		       size_t pos = a_link_str.find("&");
-		       a_link_str = a_link_str.substr(0,pos);
+		       try
+			 {
+			    a_link_str = a_link_str.substr(0,pos);
+			 }
+		       catch(std::exception &e)
+			 {
+			    a_link_str = ""; // will lose the snippet.
+			 }
 		    }
 		  pc->_current_snippet->set_url(a_link_str);
 		  

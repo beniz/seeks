@@ -72,7 +72,14 @@ namespace seeks_plugins
 		  
 		  // create new snippet.
 		  std::string count_str = std::string(a_id);
-		  count_str = count_str.substr(7);
+		  try
+		    {
+		       count_str = count_str.substr(7);
+		    }
+		  catch(std::exception &e)
+		    {
+		       return; // stop here, do not create the snippet.
+		    }
 		  int count = atoi(count_str.c_str());
 		  search_snippet *sp = new search_snippet(count-1);
 		  sp->_engine |= std::bitset<NSEs>(SE_CUIL);
@@ -126,10 +133,24 @@ namespace seeks_plugins
 			    std::string a_link_str = std::string(a_link);
 			    size_t ppos = a_link_str.find("&p=");
 			    size_t epos = a_link_str.find("_");
-			    std::string pnum_str = a_link_str.substr(ppos+3,epos-ppos-3);
+			    std::string pnum_str;
+			    try
+			      {
+				 pnum_str = a_link_str.substr(ppos+3,epos-ppos-3);
+			      }
+			    catch(std::exception &e)
+			      {
+				 return; // do not save this link.
+			      }
 			    int pnum = atoi(pnum_str.c_str());
-			    _links_to_pages.insert(std::pair<int,std::string>(pnum,a_link_str.substr(ppos)));
-			    
+			    try
+			      {
+				 _links_to_pages.insert(std::pair<int,std::string>(pnum,a_link_str.substr(ppos)));
+			      }
+			    catch(std::exception &e)
+			      {
+				 return; // do not save this link.
+			      }
 			    /* std::cout << "added page link: " << a_link_str.substr(ppos) << std::endl;
 			     std::cout << "pnum_str: " << pnum_str << std::endl; */
 			 }

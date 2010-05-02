@@ -75,7 +75,14 @@ namespace seeks_plugins
 	  else if (websearch::_wconfig->_lang == "auto")
 	    {
 	       _auto_lang_reg = query_context::detect_query_lang_http(http_headers);
-	       _auto_lang = _auto_lang_reg.substr(0,2);
+	       try
+		 {
+		    _auto_lang = _auto_lang_reg.substr(0,2);
+		 }
+	       catch(std::exception &e)
+		 {
+		    _auto_lang = "";
+		 }
 	    }
 	  else 
 	    {
@@ -344,9 +351,17 @@ namespace seeks_plugins
 	std::string query = std::string(miscutil::lookup(parameters,"q"));
 	if (query[0] != ':')
 	  return false;
-	std::string qlang = query.substr(1,2); // : + 2 characters for the language.
-	
-	_in_query_command += query.substr(0,3);
+	std::string qlang;
+	try
+	  {
+	     qlang = query.substr(1,2); // : + 2 characters for the language.
+	     _in_query_command += query.substr(0,3);
+	  }
+	catch(std::exception &e)
+	  {
+	     qlang = "";
+	     _in_query_command = "";
+	  }
 	
 	// check whether the language is known ! -> XXX: language table...
 	if (iso639::has_code(qlang.c_str()))
@@ -375,13 +390,29 @@ namespace seeks_plugins
 		  size_t pos = lang_head.find_first_of(" ");
 		  if (pos != std::string::npos && pos+6<=lang_head.length() && lang_head[pos+3] == '-')
 		    {
-		       std::string lang_reg = lang_head.substr(pos+1,5);
+		       std::string lang_reg;
+		       try
+			 {
+			    lang_reg = lang_head.substr(pos+1,5);
+			 }
+		       catch(std::exception &e)
+			 {
+			    lang_reg = "en-US"; // default.
+			 }
 		       errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
 		       return lang_reg;
 		    }
 		  else if (pos != std::string::npos && pos+3<=lang_head.length())
 		    {
-		       std::string lang = lang_head.substr(pos+1,2);
+		       std::string lang;
+		       try
+			 {
+			    lang = lang_head.substr(pos+1,2);
+			 }
+		       catch(std::exception &e)
+			 {
+			    lang = "en"; // default.
+			 }
 		       std::string lang_reg = query_context::lang_forced_region(lang);
 		       errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
 		       return lang_reg;

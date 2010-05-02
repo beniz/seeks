@@ -331,16 +331,36 @@ namespace seeks_plugins
 	urlmatch::parse_url_host_and_path(cite,host,path);
 	_cite = host + path;
 	if (_cite.length()>cite_max_size)
-	  _cite.substr(0,cite_max_size-3) + "...";
+	  {
+	     try
+	       {
+		  _cite.substr(0,cite_max_size-3) + "...";
+	       }
+	     catch(std::exception &e)
+	       {
+		  // do nothing.
+	       }
+	  }
      }
-      
+   
    void search_snippet::set_summary(const char *summary)
      {
 	static size_t summary_max_size = 240; // characters.
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
-	_summary = (strlen(str)<summary_max_size) ? std::string(str) 
-	  : std::string(str).substr(0,summary_max_size-3) + "...";
+	if (strlen(str)<summary_max_size)
+	  _summary = std::string(str);
+	else
+	  {
+	     try
+	       {
+		  _summary = std::string(str).substr(0,summary_max_size-3) + "...";
+	       }
+	     catch(std::exception &e)
+	       {
+		  _summary = "";
+	       }
+	  }
 	free(str);
      }
       
@@ -383,7 +403,14 @@ namespace seeks_plugins
 	     std::string file_ext;
 	     if (_url.size()>4 && _url[_url.size()-4] == '.')
 	       {
-		  file_ext = _url.substr(_url.size()-3);
+		  try
+		    {
+		       file_ext = _url.substr(_url.size()-3);
+		    }
+		  catch(std::exception &e)
+		    {
+		       file_ext = "";
+		    }
 		  _file_format = file_ext;
 	       }
 	     		  

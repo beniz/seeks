@@ -206,9 +206,6 @@ namespace seeks_plugins
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
 	
 	// language, in yahoo is obtained by hitting the regional server.
-	/* std::string reg = qc->_auto_lang_reg.substr(3,2);
-	std::transform(reg.begin(),reg.end(),reg.begin(),tolower);
-	miscutil::replace_in_string(q_yahoo,"%lang",reg);*/
 	miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 	
 	// query (don't move it, depends on domain name, which is language dependent).
@@ -329,7 +326,16 @@ namespace seeks_plugins
 	std::string cquery = oquery;
 	// remove any command from the query.
 	if (cquery[0] == ':')
-	  cquery = cquery.substr(4);
+	  {
+	     try
+	       {
+		  cquery = cquery.substr(4);
+	       }
+	     catch(std::exception &e)
+	       {
+		  // do nothing.
+	       }
+	  }
 	return cquery;
      }
       
