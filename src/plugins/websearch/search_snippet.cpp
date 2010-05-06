@@ -219,7 +219,7 @@ namespace seeks_plugins
 	  }
 	json_str += json_str_eng + "]";
 	if (thumbs)
-	  json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + _url;
+	  json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + _url + "\"";
 	json_str += "}";
 	return json_str;
      }
