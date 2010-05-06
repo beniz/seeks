@@ -178,7 +178,8 @@ namespace seeks_plugins
 	json_str += "\"url\":\"" + _url + "\",";
 	json_str += "\"summary\":\"" + _summary + "\",";
 	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
-	json_str += "\"rank\":" + miscutil::to_string(_rank) + ",";
+	double rank = _rank / static_cast<double>(_engine.count());
+	json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
 	json_str += "\"cite\":\"";
 	if (!_cite.empty())
 	  json_str += _cite + "\",";
@@ -599,9 +600,14 @@ namespace seeks_plugins
    void search_snippet::merge_snippets(search_snippet *s1,
 				       const search_snippet *s2)
      {
+	std::bitset<NSEs> setest = s1->_engine;
+	setest &= s2->_engine;
+	if (setest.count()>0)
+	  return;
+	
 	// seeks_rank is updated after merging.
 	// search engine rank.
-	s1->_rank += 0.5*(s1->_rank + s2->_rank);
+	s1->_rank += s2->_rank;
 	
 	// search engine.
 	s1->_engine |= s2->_engine;

@@ -68,7 +68,8 @@ namespace seeks_plugins
 	static bool less_seeks_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     if (s1->_seeks_rank == s2->_seeks_rank)
-	       return s1->_rank < s2->_rank;
+	       return s1->_rank / static_cast<double>(s1->_engine.count()) 
+		 < s2->_rank / static_cast<double>(s2->_engine.count());
 	     else
 	       return s1->_seeks_rank < s2->_seeks_rank;
 	  };
@@ -76,7 +77,8 @@ namespace seeks_plugins
 	static bool max_seeks_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     if (s1->_seeks_rank == s2->_seeks_rank)
-	       return s1->_rank < s2->_rank;  // beware: min rank is still better.
+	       return s1->_rank / static_cast<double>(s1->_engine.count()) 
+		 < s2->_rank / static_cast<double>(s2->_engine.count());  // beware: min rank is still better.
 	     else
 	       return s1->_seeks_rank > s2->_seeks_rank;  // max seeks rank is better.
 	  };
