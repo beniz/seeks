@@ -27,9 +27,6 @@ namespace seeks_plugins
    class static_renderer
      {
       public:
-	/*- cgi. -*/
-	static void register_cgi(websearch *wbs);
-	
 	/*- rendering functions. -*/
 	static void render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,

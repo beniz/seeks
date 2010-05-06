@@ -299,18 +299,6 @@ namespace seeks_plugins
 	  }
      }
    
-   void query_context::update_snippet_seeks_rank(const uint32_t &id,
-						 const double &rank)
-     {
-	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
-	if ((hit = _unordered_snippets.find(id))==_unordered_snippets.end())
-	  {
-	     // don't have this url in cache ? let's do nothing.
-	  }
-	else (*hit).second->_seeks_rank = rank;  // BEWARE: we may want to set up a proper formula here
-	                                         //         with proper weighting by the consensus rank...
-     }
-
    search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
 	std::string surl = urlmatch::strip_url(url);

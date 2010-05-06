@@ -48,10 +48,6 @@ using lsh::Bucket;
 
 namespace seeks_plugins
 {
-   void static_renderer::register_cgi(websearch *wbs)
-     {
-     }
-
    void static_renderer::render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 				      std::string &html_encoded_query,

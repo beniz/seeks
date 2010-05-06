@@ -117,12 +117,6 @@ namespace seeks_plugins
 	void update_unordered_cache();
 	
 	/**
-	 * \brief finds and updates a search snippet's seeks rank.
-	 */
-	void update_snippet_seeks_rank(const uint32_t &id,
-				       const double &rank);
-
-	/**
 	 * \brief returns a cached snippet if it knows it, NULL otherwise.
 	 */
 	search_snippet* get_cached_snippet(const std::string &url) const;
