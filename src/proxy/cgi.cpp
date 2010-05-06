@@ -1548,6 +1548,8 @@ http_response* cgi::finish_http_response(const client_state *csp, http_response 
 	       err =  miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/css", 13);
 	     else if (csp->_content_type == CT_XML)
 	       err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: application/xml", 13);
+	     else if (csp->_content_type == CT_JSON)
+	       err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: application/json", 13);
 	     /* Other response types come here... */
 	     else
 	       err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/html; charset=UTF-8", 13);

@@ -12,7 +12,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 	                           query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
-				   clustering.cpp oskmeans.cpp
+				   clustering.cpp oskmeans.cpp json_renderer.cpp
 libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I../../ -I../../../lsh/osb-lsh/ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL

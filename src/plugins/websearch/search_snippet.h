@@ -113,7 +113,8 @@ namespace seeks_plugins
 	// sets a back link when similarity is engaged.
 	void set_back_similarity_link();
 	
-	// xml output.
+	// json output.
+	std::string to_json(const bool &thumbs);
 	
 	// html output for inclusion in search result template page.
 	std::string to_html();

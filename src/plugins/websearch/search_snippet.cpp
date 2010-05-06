@@ -169,6 +169,60 @@ namespace seeks_plugins
 	return output;
      }
      
+   std::string search_snippet::to_json(const bool &thumbs)
+     {
+	std::string json_str;
+	json_str += "{";
+	json_str += "\"id\":" + miscutil::to_string(_id) + ",";
+	json_str += "\"title\":\"" + _title + "\",";
+	json_str += "\"url\":\"" + _url + "\",";
+	json_str += "\"summary\":\"" + _summary + "\",";
+	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
+	json_str += "\"rank\":" + miscutil::to_string(_rank) + ",";
+	json_str += "\"cite\":\"";
+	if (!_cite.empty())
+	  json_str += _cite + "\",";
+	else json_str += _url + "\",";
+	if (!_cached.empty())
+	  json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
+	if (_archive.empty())
+	  set_archive_link();
+	json_str += "\"archive\":\"" + _archive + "\",";
+	json_str += "\"engines\":[";
+	std::string json_str_eng = "";
+	if (_engine.to_ulong()&SE_GOOGLE)
+	  json_str_eng += "\"google\"";
+	if (_engine.to_ulong()&SE_CUIL)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"cuil\"";
+	  }
+	if (_engine.to_ulong()&SE_BING)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"bing\"";
+	  }
+	if (_engine.to_ulong()&SE_YAHOO)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"yahoo\"";
+	  }
+	if (_engine.to_ulong()&SE_EXALEAD)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"exalead\"";
+	  }
+	json_str += json_str_eng + "]";
+	if (thumbs)
+	  json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + _url;
+	json_str += "}";
+	return json_str;
+     }
+      
    std::string search_snippet::to_html()
      {
 	std::vector<std::string> words;
@@ -547,7 +601,7 @@ namespace seeks_plugins
      {
 	// seeks_rank is updated after merging.
 	// search engine rank.
-	s1->_rank = 0.5*(s1->_rank + s2->_rank);
+	s1->_rank += 0.5*(s1->_rank + s2->_rank);
 	
 	// search engine.
 	s1->_engine |= s2->_engine;
