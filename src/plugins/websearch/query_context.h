@@ -106,6 +106,11 @@ namespace seeks_plugins
 					       std::string &query, std::string &url_enc_query);
 	
 	/**
+	 * \brief synchronizes qc's parameters with parameters.
+	 */
+	void update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
+	/**
 	 * \brief adds a snippet to the unordered cache set.
 	 */
 	void add_to_unordered_cache(search_snippet *sr);
@@ -137,6 +142,14 @@ namespace seeks_plugins
 	 */
 	search_snippet* get_cached_snippet_title(const char *lctitle);
 
+	/**
+	 * \brief detects whether a query contain a language command and 
+	 *        fills up the language parameter.
+	 * @return true if it does, false otherwise.
+	 */
+	static bool has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				   std::string &qlang);
+	
 	/**
 	 * \brief detect query language from the query special keywords, :en, :fr, ...
 	 * @return true if the language could be detected that way, false otherwise.

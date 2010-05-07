@@ -60,7 +60,6 @@ namespace seeks_plugins
 	  // reload config if file has changed.
 	  websearch::_wconfig->load_config();
 	  
-	  _query_hash = query_context::hash_query_for_context(parameters,_query,_url_enc_query); // hashing may contain a language command.
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;
@@ -68,7 +67,8 @@ namespace seeks_plugins
 	  grab_useful_headers(http_headers);
 	  
 	  // sets auto_lang & auto_lang_reg.
-	  if (detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)))
+	  bool has_in_query_lang = false;
+	  if ((has_in_query_lang = detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters))))
 	    {
 	       query_context::in_query_command_forced_region(_auto_lang,_auto_lang_reg);
 	    }
@@ -89,6 +89,16 @@ namespace seeks_plugins
 	       _auto_lang = websearch::_wconfig->_lang; // fall back is default search language.
 	       _auto_lang_reg = query_context::lang_forced_region(websearch::_wconfig->_lang);
 	    }
+	  
+	  // query hashing, with the language included.
+	  std::string q_to_hash;
+	  std::cerr << "has in query lang: " << has_in_query_lang << " -- auto lang: " << _auto_lang << std::endl;
+	  if (!has_in_query_lang && !_auto_lang.empty())
+	    q_to_hash = ":" + _auto_lang + " ";
+	  	  
+	  std::cerr << "q_to_hash: " << q_to_hash << std::endl;
+	  
+	  _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
 	  
 	  sweeper::register_sweepable(this);
 	  register_qc(); // register with websearch plugin.
@@ -130,7 +140,7 @@ namespace seeks_plugins
    uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 						  std::string &query, std::string &url_enc_query)
      {
-	query = std::string(miscutil::lookup(parameters,"q"));
+	query += std::string(miscutil::lookup(parameters,"q"));
 	char *url_enc_query_str = encode::url_encode(query.c_str());
 	url_enc_query = std::string(url_enc_query_str);
 	free(url_enc_query_str);
@@ -138,6 +148,14 @@ namespace seeks_plugins
 	return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
      }
       
+   void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	// reset expansion parameter.
+	miscutil::unmap(parameters,"expansion");
+	std::string exp_str = miscutil::to_string(_page_expansion);
+	miscutil::add_map_entry(parameters,"expansion",1,exp_str.c_str(),1);
+     }
+   
    bool query_context::sweep_me()
      {
 	// don't delete if locked.
@@ -203,10 +221,7 @@ namespace seeks_plugins
      if (_page_expansion > 0 && horizon < (int)_page_expansion)
        {
 	  // reset expansion parameter.
-	  miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
-	  std::string exp_str = miscutil::to_string(_page_expansion);
-	  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				  "expansion",1,exp_str.c_str(),1);
+	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	  return SP_ERR_OK;
        }
           
@@ -334,10 +349,42 @@ namespace seeks_plugins
 	else return (*hit).second;    
      }
 
+   bool query_context::has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				      std::string &qlang)
+     {
+	std::string query = std::string(miscutil::lookup(parameters,"q"));
+	if (query.empty() || query[0] != ':') // XXX: could chomp the query.
+	  {
+	     qlang = "";
+	     return false;
+	  }
+	try
+	  {
+	     qlang = query.substr(1,2); // : + 2 characters for the language.
+	  }
+	catch(std::exception &e)
+	  {
+	     qlang = "";
+	  }
+	
+	// check whether the language is known ! -> XXX: language table...
+	if (iso639::has_code(qlang.c_str()))
+	  {
+	     return true;
+	  }
+	else
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO,"in query command test: language code not found: %s",qlang.c_str());
+	     qlang = "";
+	     return false;
+	  }
+	return true;
+     }
+      
    bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string query = std::string(miscutil::lookup(parameters,"q"));
-	if (query[0] != ':')
+	if (query.empty() || query[0] != ':')
 	  return false;
 	std::string qlang;
 	try

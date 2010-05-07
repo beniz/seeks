@@ -90,7 +90,8 @@ namespace seeks_plugins
 					const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					bool render=true);
 
-	static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					client_state *csp);
 	
 	/* error handling. */
 	static sp_err failed_ses_connect(client_state *csp, http_response *rsp);
