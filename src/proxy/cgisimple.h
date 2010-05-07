@@ -87,18 +87,9 @@ static sp_err cgi_show_request (client_state *csp,
 static sp_err cgi_transparent_image (client_state *csp,
                                      http_response *rsp,
                                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-static sp_err cgi_send_default_logo(client_state *csp,
-				    http_response *rsp,
-				    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-static sp_err cgi_send_old_school_favicon(client_state *csp,
-					  http_response *rsp,
-					  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 static sp_err cgi_send_error_favicon (client_state *csp,
 				      http_response *rsp,
 				      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-static sp_err cgi_send_default_favicon (client_state *csp,
-                                        http_response *rsp,
-                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 static sp_err cgi_send_stylesheet(client_state *csp,
                                   http_response *rsp,
                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);

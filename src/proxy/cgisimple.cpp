@@ -428,145 +428,7 @@ sp_err cgisimple::cgi_transparent_image(client_state *csp,
    return SP_ERR_OK;
 }
 
-/*********************************************************************
- *
- * Function    :  cgi_send_default_logo
- *
- * Description :  CGI function that sends the standard Seeks logo.
- *
- * Parameters  :
- *          1  :  csp = Current client state (buffers, headers, etc...)
- *          2  :  rsp = http_response data structure for output
- *          3  :  parameters = map of cgi parameters
- *
- * CGI Parameters : None
- *
- * Returns     :  SP_ERR_OK on success
- *                SP_ERR_MEMORY on out-of-memory error.
- *
- *********************************************************************/
-sp_err cgisimple::cgi_send_default_logo(client_state *csp,
-					http_response *rsp,
-					const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-{
-   std::string seeks_logo_str = std::string(seeks_proxy::_basedir) + "/images/seeks_logo.png";
-   sp_err err = cgisimple::load_file(seeks_logo_str.c_str(),&rsp->_body,&rsp->_content_length);
    
-   if (err != SP_ERR_OK)
-     {
-	errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks logo.");
-     }
-   
-   rsp->_is_static = 1;
-   
-   return SP_ERR_OK;
-}   
-
-/*********************************************************************
- *
- * Function    :  cgi_send_old_school_favicon
- *
- * Description :  CGI function that sends an old school favicon.
- *
- * Parameters  :
- *          1  :  csp = Current client state (buffers, headers, etc...)
- *          2  :  rsp = http_response data structure for output
- *          3  :  parameters = map of cgi parameters
- *
- * CGI Parameters : None
- *
- * Returns     :  SP_ERR_OK on success
- *                SP_ERR_MEMORY on out-of-memory error.
- *
- *********************************************************************/
-sp_err cgisimple::cgi_send_old_school_favicon(client_state *csp,
-					      http_response *rsp,
-					      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-{
-   std::string seeks_favicon_str = std::string(seeks_proxy::_basedir) + "/public/images/seek_icon_16x16_transparent.ico";
-   sp_err err = cgisimple::load_file(seeks_favicon_str.c_str(),&rsp->_body,&rsp->_content_length);
-   
-   if (err != SP_ERR_OK)
-     {
-	errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks old school's favicon");
-     }
-   if (miscutil::enlist(&rsp->_headers, "Content-Type: image/x-iconn"))
-     {
-	return SP_ERR_MEMORY;
-     }
-   rsp->_is_static = 1;
-   
-   return SP_ERR_OK;
-}
-   
-/*********************************************************************
- *
- * Function    :  cgi_send_default_favicon
- *
- * Description :  CGI function that sends the standard favicon.
- *
- * Parameters  :
- *          1  :  csp = Current client state (buffers, headers, etc...)
- *          2  :  rsp = http_response data structure for output
- *          3  :  parameters = map of cgi parameters
- *
- * CGI Parameters : None
- *
- * Returns     :  SP_ERR_OK on success
- *                SP_ERR_MEMORY on out-of-memory error.  
- *
- *********************************************************************/
-sp_err cgisimple::cgi_send_default_favicon(client_state *csp,
-					   http_response *rsp,
-					   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-{
-   /* static const char default_favicon_data[] =
-      "\000\000\001\000\001\000\020\020\002\000\000\000\000\000\260"
-      "\000\000\000\026\000\000\000\050\000\000\000\020\000\000\000"
-      "\040\000\000\000\001\000\001\000\000\000\000\000\100\000\000"
-      "\000\000\000\000\000\000\000\000\000\002\000\000\000\000\000"
-      "\000\000\377\377\377\000\377\000\052\000\017\360\000\000\077"
-      "\374\000\000\161\376\000\000\161\376\000\000\361\377\000\000"
-      "\361\377\000\000\360\017\000\000\360\007\000\000\361\307\000"
-      "\000\361\307\000\000\361\307\000\000\360\007\000\000\160\036"
-      "\000\000\177\376\000\000\077\374\000\000\017\360\000\000\360"
-      "\017\000\000\300\003\000\000\200\001\000\000\200\001\000\000"
-      "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-      "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-      "\000\000\200\001\000\000\200\001\000\000\300\003\000\000\360"
-      "\017\000\000";
-   static const size_t favicon_length = sizeof(default_favicon_data) - 1;
-
-   (void)csp;
-   (void)parameters;
-
-   rsp->_body = miscutil::bindup(default_favicon_data, favicon_length);
-   rsp->_content_length = favicon_length;
-
-   if (rsp->_body == NULL)
-   {
-      return SP_ERR_MEMORY;
-   } */
-   
-   std::string seeks_favicon_str = std::string(seeks_proxy::_basedir) + "/images/seeks_favicon_32.png";
-   sp_err err = cgisimple::load_file(seeks_favicon_str.c_str(),&rsp->_body,&rsp->_content_length);
-
-   if (err != SP_ERR_OK)
-     {
-	errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks favicon");
-     }
-   
-   if (miscutil::enlist(&rsp->_headers, "Content-Type: image/x-iconn"))
-   {
-      return SP_ERR_MEMORY;
-   }
-
-   rsp->_is_static = 1;
-
-   return SP_ERR_OK;
-}
-
-
 /*********************************************************************
  *
  * Function    :  cgi_send_error_favicon
@@ -624,7 +486,6 @@ sp_err cgisimple::cgi_send_error_favicon(client_state *csp,
    rsp->_is_static = 1;
 
    return SP_ERR_OK;
-
 }
 
 
@@ -678,7 +539,6 @@ sp_err cgisimple::cgi_send_stylesheet(client_state *csp,
    }
 
    return SP_ERR_OK;
-
 }
 
 
