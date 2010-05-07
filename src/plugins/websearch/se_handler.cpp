@@ -71,7 +71,10 @@ namespace seeks_plugins
 	
 	// query.
 	int p = 31;
-	q_ggle.replace(p,6,se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_ggle.replace(p,6,qenc_str);
 	
 	// expansion = result page called...
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -115,7 +118,10 @@ namespace seeks_plugins
 	        
 	// query.
 	int p = 29;
-	q_bing.replace(p,6,se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_bing.replace(p,6,qenc_str);
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -152,7 +158,10 @@ namespace seeks_plugins
 	
 	// query.
 	int p = 29;
-	q_cuil.replace(p,6,se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_cuil.replace(p,6,qenc_str);
 
 	// language detection is done through headers.
 	//miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
@@ -197,13 +206,13 @@ namespace seeks_plugins
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
 	
 	// language, in yahoo is obtained by hitting the regional server.
-	/* std::string reg = qc->_auto_lang_reg.substr(3,2);
-	std::transform(reg.begin(),reg.end(),reg.begin(),tolower);
-	miscutil::replace_in_string(q_yahoo,"%lang",reg);*/
 	miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 	
 	// query (don't move it, depends on domain name, which is language dependent).
-	miscutil::replace_in_string(q_yahoo,"%query",se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	miscutil::replace_in_string(q_yahoo,"%query",qenc_str);
 	
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_yahoo.c_str());
@@ -227,7 +236,10 @@ namespace seeks_plugins
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
-	miscutil::replace_in_string(q_exa,"%query",std::string(query));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	miscutil::replace_in_string(q_exa,"%query",qenc_str);
 	
 	// page
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -279,51 +291,34 @@ namespace seeks_plugins
 	// query.
 	const char *q = "q";
 	const char *query = miscutil::lookup(parameters,q);
-	std::string query_str = std::string(query);
+	char *dec_query = encode::url_decode(query);
+	std::string query_str = std::string(dec_query);
+	free(dec_query);
 	
 	// known query.
 	const char *query_known = miscutil::lookup(parameters,"qknown");
-	
+		
 	// if the current query is the same as before, let's apply the current language to it
 	// (i.e. the in-query language command, if any).
 	if (query_known)
 	  {
-	     std::string query_known_str = std::string(query_known);
+	     char *dec_qknown = encode::url_decode(query_known);
+	     std::string query_known_str = std::string(dec_qknown);
+	     free(dec_qknown);
+	     	     
 	     if (query_known_str != query_str)
 	       {
 		  // look for in-query commands.
 		  std::string no_command_query = se_handler::no_command_query(query_known_str);
 		  if (no_command_query == query_str)
-		    query_str = query_known_str; // replace query with query + in-query command.
+		    {
+		       query_str = query_known_str; // replace query with query + in-query command.
+		       miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
+		       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+					       q,1,query_str.c_str(),1);
+		    }
 	       }
 	  }
-		
-	// clean up the 'pluses'.
-	miscutil::replace_in_string(query_str," ","+");
-	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
-	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				q,1,query_str.c_str(),1);
-     }
-      
-   // could be moved elsewhere...
-   std::string se_handler::cleanup_query(const std::string &oquery)
-     {
-	std::string cquery = oquery;
-	
-	// non interpreted '+' should be deduced.
-	size_t end_pos = cquery.size()-1;
-	size_t pos = 0;
-	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
-	  {
-	     // XXX: this is buggy in certain cases, such as "x++" in quotes.
-	     if (pos != end_pos)
-	       cquery.replace(pos,1," ");
-	     while(cquery[--pos] == '+') // deal with multiple pluses.
-	       {
-	       }
-	     end_pos = pos;	     
-	  }
-	return cquery;
      }
    
    std::string se_handler::no_command_query(const std::string &oquery)
@@ -331,7 +326,16 @@ namespace seeks_plugins
 	std::string cquery = oquery;
 	// remove any command from the query.
 	if (cquery[0] == ':')
-	  cquery = cquery.substr(4);
+	  {
+	     try
+	       {
+		  cquery = cquery.substr(4);
+	       }
+	     catch(std::exception &e)
+	       {
+		  // do nothing.
+	       }
+	  }
 	return cquery;
      }
       

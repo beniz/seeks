@@ -14,7 +14,7 @@
 # ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 #
 
-AC_INIT(Seeks, Bubs-0.2.1, ebenazer@seeks-project.info)
+AC_INIT(Seeks, Bubs-0.2.2, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -28,8 +28,8 @@ AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
 AC_DEFINE(SEEKS_VERSION_MINOR,"2","")
-AC_DEFINE(SEEKS_VERSION_POINT,"1","")
-AC_DEFINE(SEEKS_VERSION,"0.2.1","")
+AC_DEFINE(SEEKS_VERSION_POINT,"2","")
+AC_DEFINE(SEEKS_VERSION,"0.2.2","")
 AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
 
 # Checks for programs.
@@ -313,6 +313,16 @@ AC_SUBST(PCRE_LDADD)
 PCRE_CFLAGS=`$PCRE_CONFIG --cflags`
 AC_SUBST(PCRE_CFLAGS)
 
+#==========================================================================
+# Finding docbook2x-man
+#==========================================================================
+AC_CHECK_PROG(docbook,docbook2x-man,yes,no)
+if test $docbook = "yes"; then
+   AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
+else 
+   AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
+fi
+
 #====================================================                                                    
 # This check is incomplete. For mingw32 zlib is found                                                                
 # by configure, but not necessarily by the compiler.                                                                       
@@ -371,7 +381,7 @@ fi])
 
 # remaining configuration flags.
 AC_DEFINE(STATIC_PCRS,1,"using internal pcrs")
-AC_DEFINE(FEATURE_STATISTICS,1,"Enables statistics function)
+AC_DEFINE(FEATURE_STATISTICS,1,"Enables statistics function")
 AC_DEFINE(FEATURE_FAST_REDIRECTS,1,"Supports fast redirects")
 AC_DEFINE(FEATURE_ACL,1,"Allows the user of an ACL to control access to the proxy by IP address")
 # AC_DEFINE(FEATURE_FORCE_LOAD,1,"Bypass filtering for 1 page only")

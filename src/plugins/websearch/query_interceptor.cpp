@@ -21,6 +21,7 @@
 #include "cgi.h"
 #include "miscutil.h"
 #include "errlog.h"
+#include "encode.h"
 
 #include <iostream>
 
@@ -38,6 +39,9 @@ namespace seeks_plugins
    http_response* query_interceptor::plugin_response(client_state *csp)
      {
 	// - parse intercepted query.
+
+	std::cerr << "url: " << csp->_http._url << std::endl;
+	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *params
 	  = parse_query(&csp->_http);
 	
@@ -69,6 +73,8 @@ namespace seeks_plugins
 	// - return the response to the client.
 	// default query detection.
 	const char *intercepted_query = miscutil::lookup(params,"q");
+	char *intercepted_query_enc = encode::url_encode(intercepted_query);
+		
 	if (!intercepted_query)
 	  {
 	     return NULL; // wrong interception, cancel.
@@ -77,7 +83,8 @@ namespace seeks_plugins
 	// build up query to seeks proxy.
 	char *q = strdup(CGI_PREFIX);
 	miscutil::string_append(&q,"search?q=");
-	miscutil::string_append(&q,intercepted_query);
+	miscutil::string_append(&q,intercepted_query_enc);
+	free(intercepted_query_enc);
 	miscutil::string_append(&q,"&page=1");
 	miscutil::string_append(&q,"&expansion=1");
 	miscutil::string_append(&q,"&action=expand");

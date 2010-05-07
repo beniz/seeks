@@ -27,13 +27,11 @@ namespace seeks_plugins
    class static_renderer
      {
       public:
-	/*- cgi. -*/
-	static void register_cgi(websearch *wbs);
-	
 	/*- rendering functions. -*/
 	static void render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-				 std::string &html_encoded_query);
+				 std::string &html_encoded_query,
+				 std::string &url_encoded_query);
 	
 	static void render_clean_query(const std::string &html_encoded_query,
 				       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
@@ -51,7 +49,7 @@ namespace seeks_plugins
 				    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
 	static void render_clustered_snippets(const std::string &query_clean,
-					      const std::string &html_encoded_query,
+					      const std::string &url_encoded_query,
 					      const int &current_page,
 					      cluster *clusters,
 					      const short &K,
@@ -61,7 +59,7 @@ namespace seeks_plugins
 	
 	static std::string render_cluster_label(const cluster &cl);
 	
-	static std::string render_cluster_label_query_link(const std::string &html_encoded_query,
+	static std::string render_cluster_label_query_link(const std::string &url_encoded_query,
 							   const cluster &cl,
 							   const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
@@ -75,13 +73,13 @@ namespace seeks_plugins
 	
 	static void render_next_page_link(const int &current_page,
 					  const size_t &snippets_size,
-					  const std::string &html_encoded_query,
+					  const std::string &url_encoded_query,
 					  const std::string &expansion,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
 	static void render_prev_page_link(const int &current_page,
 					  const size_t &snippets_size,
-					  const std::string &html_encoded_query,
+					  const std::string &url_encoded_query,
 					  const std::string &expansion,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 

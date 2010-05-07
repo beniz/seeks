@@ -87,9 +87,11 @@ namespace seeks_plugins
 	/* websearch. */
 	static sp_err perform_websearch(client_state *csp,
 					http_response *rsp,
-					const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+					const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					bool render=true);
 
-	static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					client_state *csp);
 	
 	/* error handling. */
 	static sp_err failed_ses_connect(client_state *csp, http_response *rsp);
@@ -97,6 +99,7 @@ namespace seeks_plugins
       public:
 	static websearch_configuration *_wconfig;
 	static hash_map<uint32_t,query_context*,hash<uint32_t> > _active_qcontexts;
+	static double _cl_sec; // clock ticks per second.
      };
    
 } /* end of namespace. */

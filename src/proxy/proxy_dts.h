@@ -322,6 +322,7 @@ class iob
 #define CT_TABOO   0x0004U /**< DO NOT filter, irrespective of other flags. */
 #define CT_CSS     0x0005U /**< Suitable for CSS. */
 #define CT_XML     0x0006U /**< Suitable for XML. */
+#define CT_JSON    0x0007U /**< Suitable for JSON. */   
    
 /* 
  * Although these are not, strictly speaking, content types

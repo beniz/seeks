@@ -27,6 +27,7 @@
 #include "se_handler.h"
 #include "iso639.h"
 #include "seeks_proxy.h" // for mutexes
+#include "encode.h"
 
 #include <sys/time.h>
 #include <iostream>
@@ -37,6 +38,7 @@ using sp::urlmatch;
 using sp::seeks_proxy;
 using sp::errlog;
 using sp::iso639;
+using sp::encode;
 using lsh::mrf;
 
 namespace seeks_plugins
@@ -58,7 +60,6 @@ namespace seeks_plugins
 	  // reload config if file has changed.
 	  websearch::_wconfig->load_config();
 	  
-	  _query_hash = query_context::hash_query_for_context(parameters,_query); // hashing may contain a language command.
 	  struct timeval tv_now;
 	  gettimeofday(&tv_now, NULL);
 	  _creation_time = _last_time_of_use = tv_now.tv_sec;
@@ -66,20 +67,38 @@ namespace seeks_plugins
 	  grab_useful_headers(http_headers);
 	  
 	  // sets auto_lang & auto_lang_reg.
-	  if (detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)))
+	  bool has_in_query_lang = false;
+	  if ((has_in_query_lang = detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters))))
 	    {
 	       query_context::in_query_command_forced_region(_auto_lang,_auto_lang_reg);
 	    }
 	  else if (websearch::_wconfig->_lang == "auto")
 	    {
 	       _auto_lang_reg = query_context::detect_query_lang_http(http_headers);
-	       _auto_lang = _auto_lang_reg.substr(0,2);
+	       try
+		 {
+		    _auto_lang = _auto_lang_reg.substr(0,2);
+		 }
+	       catch(std::exception &e)
+		 {
+		    _auto_lang = "";
+		 }
 	    }
 	  else 
 	    {
 	       _auto_lang = websearch::_wconfig->_lang; // fall back is default search language.
 	       _auto_lang_reg = query_context::lang_forced_region(websearch::_wconfig->_lang);
 	    }
+	  
+	  // query hashing, with the language included.
+	  std::string q_to_hash;
+	  std::cerr << "has in query lang: " << has_in_query_lang << " -- auto lang: " << _auto_lang << std::endl;
+	  if (!has_in_query_lang && !_auto_lang.empty())
+	    q_to_hash = ":" + _auto_lang + " ";
+	  	  
+	  std::cerr << "q_to_hash: " << q_to_hash << std::endl;
+	  
+	  _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
 	  
 	  sweeper::register_sweepable(this);
 	  register_qc(); // register with websearch plugin.
@@ -107,7 +126,7 @@ namespace seeks_plugins
    
    std::string query_context::sort_query(const std::string &query)
      {
-	std::string clean_query = se_handler::cleanup_query(query);
+	std::string clean_query = query;
 	std::vector<std::string> tokens;
 	mrf::tokenize(clean_query,tokens," ");
 	std::sort(tokens.begin(),tokens.end(),std::less<std::string>());
@@ -119,13 +138,24 @@ namespace seeks_plugins
      }
       
    uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-						  std::string &query)
+						  std::string &query, std::string &url_enc_query)
      {
-	query = std::string(miscutil::lookup(parameters,"q"));
+	query += std::string(miscutil::lookup(parameters,"q"));
+	char *url_enc_query_str = encode::url_encode(query.c_str());
+	url_enc_query = std::string(url_enc_query_str);
+	free(url_enc_query_str);
 	std::string sorted_query = query_context::sort_query(query);
 	return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
      }
       
+   void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	// reset expansion parameter.
+	miscutil::unmap(parameters,"expansion");
+	std::string exp_str = miscutil::to_string(_page_expansion);
+	miscutil::add_map_entry(parameters,"expansion",1,exp_str.c_str(),1);
+     }
+   
    bool query_context::sweep_me()
      {
 	// don't delete if locked.
@@ -184,14 +214,14 @@ namespace seeks_plugins
      const char *expansion = miscutil::lookup(parameters,"expansion");
      int horizon = atoi(expansion);
      
+     if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
+       horizon = websearch::_wconfig->_max_expansions;
+       
      // seeks button used as a back button.
      if (_page_expansion > 0 && horizon < (int)_page_expansion)
        {
 	  // reset expansion parameter.
-	  miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
-	  std::string exp_str = miscutil::to_string(_page_expansion);
-	  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				  "expansion",1,exp_str.c_str(),1);
+	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	  return SP_ERR_OK;
        }
           
@@ -284,18 +314,6 @@ namespace seeks_plugins
 	  }
      }
    
-   void query_context::update_snippet_seeks_rank(const uint32_t &id,
-						 const double &rank)
-     {
-	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
-	if ((hit = _unordered_snippets.find(id))==_unordered_snippets.end())
-	  {
-	     // don't have this url in cache ? let's do nothing.
-	  }
-	else (*hit).second->_seeks_rank = rank;  // BEWARE: we may want to set up a proper formula here
-	                                         //         with proper weighting by the consensus rank...
-     }
-
    search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
 	std::string surl = urlmatch::strip_url(url);
@@ -331,14 +349,54 @@ namespace seeks_plugins
 	else return (*hit).second;    
      }
 
+   bool query_context::has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				      std::string &qlang)
+     {
+	std::string query = std::string(miscutil::lookup(parameters,"q"));
+	if (query.empty() || query[0] != ':') // XXX: could chomp the query.
+	  {
+	     qlang = "";
+	     return false;
+	  }
+	try
+	  {
+	     qlang = query.substr(1,2); // : + 2 characters for the language.
+	  }
+	catch(std::exception &e)
+	  {
+	     qlang = "";
+	  }
+	
+	// check whether the language is known ! -> XXX: language table...
+	if (iso639::has_code(qlang.c_str()))
+	  {
+	     return true;
+	  }
+	else
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO,"in query command test: language code not found: %s",qlang.c_str());
+	     qlang = "";
+	     return false;
+	  }
+	return true;
+     }
+      
    bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string query = std::string(miscutil::lookup(parameters,"q"));
-	if (query[0] != ':')
+	if (query.empty() || query[0] != ':')
 	  return false;
-	std::string qlang = query.substr(1,2); // : + 2 characters for the language.
-	
-	_in_query_command += query.substr(0,3);
+	std::string qlang;
+	try
+	  {
+	     qlang = query.substr(1,2); // : + 2 characters for the language.
+	     _in_query_command += query.substr(0,3);
+	  }
+	catch(std::exception &e)
+	  {
+	     qlang = "";
+	     _in_query_command = "";
+	  }
 	
 	// check whether the language is known ! -> XXX: language table...
 	if (iso639::has_code(qlang.c_str()))
@@ -367,13 +425,29 @@ namespace seeks_plugins
 		  size_t pos = lang_head.find_first_of(" ");
 		  if (pos != std::string::npos && pos+6<=lang_head.length() && lang_head[pos+3] == '-')
 		    {
-		       std::string lang_reg = lang_head.substr(pos+1,5);
+		       std::string lang_reg;
+		       try
+			 {
+			    lang_reg = lang_head.substr(pos+1,5);
+			 }
+		       catch(std::exception &e)
+			 {
+			    lang_reg = "en-US"; // default.
+			 }
 		       errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
 		       return lang_reg;
 		    }
 		  else if (pos != std::string::npos && pos+3<=lang_head.length())
 		    {
-		       std::string lang = lang_head.substr(pos+1,2);
+		       std::string lang;
+		       try
+			 {
+			    lang = lang_head.substr(pos+1,2);
+			 }
+		       catch(std::exception &e)
+			 {
+			    lang = "en"; // default.
+			 }
 		       std::string lang_reg = query_context::lang_forced_region(lang);
 		       errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
 		       return lang_reg;

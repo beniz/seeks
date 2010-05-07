@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,12 +27,15 @@
 #include "se_parser.h"
 #include "se_handler.h"
 #include "static_renderer.h"
+#include "json_renderer.h"
 #include "sort_rank.h"
 #include "content_handler.h"
 #include "oskmeans.h"
 #include "mrf.h"
 
-#include <sys/stat.h> 
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/times.h>
 #include <iostream>
 #include <algorithm>
 #include <bitset>
@@ -45,6 +48,7 @@ namespace seeks_plugins
    websearch_configuration* websearch::_wconfig = NULL;
    hash_map<uint32_t,query_context*,hash<uint32_t> > websearch::_active_qcontexts 
      = hash_map<uint32_t,query_context*,hash<uint32_t> >();
+   double websearch::_cl_sec = -1.0; // filled up at startup.
    
    websearch::websearch()
      : plugin()
@@ -98,17 +102,6 @@ namespace seeks_plugins
 	  cgi_dispatcher *cgid_wb_search_cache
 	    = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_search_cache);
-
-	  cgi_dispatcher *cgid_wb_search_similarity
-	    = new cgi_dispatcher("search_similarity", &websearch::cgi_websearch_similarity, NULL, TRUE);
-	  _cgi_dispatchers.push_back(cgid_wb_search_similarity);
-	  
-	  cgi_dispatcher *cgid_wb_search_clusterize
-	    = new cgi_dispatcher("search_clusterize", &websearch::cgi_websearch_clusterize, NULL, TRUE);
-	  _cgi_dispatchers.push_back(cgid_wb_search_clusterize);
-	  
-	  // external cgi.
-	  static_renderer::register_cgi(this);
 	  
 	  // interceptor plugins.
 	  _interceptor_plugin = new query_interceptor(this);
@@ -118,6 +111,9 @@ namespace seeks_plugins
        
 	  // initialize mrf.
 	  mrf::init_delims();
+	  
+	  // get clock ticks per sec.
+	  websearch::_cl_sec = sysconf(_SC_CLK_TCK);
        }
 
    websearch::~websearch()
@@ -279,7 +275,7 @@ namespace seeks_plugins
 	if (!parameters->empty())
 	  {
 	     const char *url = miscutil::lookup(parameters,"url"); // grab the url.
-	     query_context *qc = websearch::lookup_qc(parameters);
+	     query_context *qc = websearch::lookup_qc(parameters,csp);
 	     
 	     if (!qc)
 	       {
@@ -328,13 +324,13 @@ namespace seeks_plugins
      {
 	if (!parameters->empty())
 	  {
-	     query_context *qc = websearch::lookup_qc(parameters);
+	     query_context *qc = websearch::lookup_qc(parameters,csp);
 	     
 	     if (!qc)
 	       {
 		  // no cache, (re)do the websearch first.
-		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
-		  qc = websearch::lookup_qc(parameters);
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+		  qc = websearch::lookup_qc(parameters,csp);
 		  if (err != SP_ERR_OK)
 		    return err;
 	       }
@@ -344,7 +340,7 @@ namespace seeks_plugins
 	     	     
 	     // render result page.
 	     sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,0); // 0: urls.
-	     
+	     	     
 	     qc->_lock = false;
 	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	     
@@ -358,13 +354,13 @@ namespace seeks_plugins
      {
 	if (!parameters->empty())
 	  {
-	     query_context *qc = websearch::lookup_qc(parameters);
+	     query_context *qc = websearch::lookup_qc(parameters,csp);
 	     
 	     if (!qc)
 	       {
 		  // no cache, (re)do the websearch first.
-		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
-		  qc = websearch::lookup_qc(parameters);
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+		  qc = websearch::lookup_qc(parameters,csp);
 		  if (err != SP_ERR_OK)
 		    return err;
 	       }
@@ -374,7 +370,7 @@ namespace seeks_plugins
 	     
 	     // render result page.
 	     sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,1); // 1: titles.
-	     
+	     	     
 	     qc->_lock = false;
 	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	      
@@ -388,12 +384,17 @@ namespace seeks_plugins
      {
 	if (!parameters->empty())
 	  {
-	     query_context *qc = websearch::lookup_qc(parameters);
+	     // time measure, returned.
+	     struct tms st_cpu;
+	     struct tms en_cpu;
+	     clock_t start_time = times(&st_cpu);
+	     
+	     query_context *qc = websearch::lookup_qc(parameters,csp);
 	     if (!qc)
 	       {
 		  // no cache, (re)do the websearch first.
-		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
-		  qc = websearch::lookup_qc(parameters);
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+		  qc = websearch::lookup_qc(parameters,csp);
 		  if (err != SP_ERR_OK)
 		    return err;
 	       }
@@ -406,9 +407,24 @@ namespace seeks_plugins
 	     short K = 0;
 	     sort_rank::group_by_types(qc,clusters,K);
 	     
-	     // render result page.
-	     sp_err err = static_renderer::render_clustered_result_page_static(clusters,K,
-									       csp,rsp,parameters,qc);
+	     // time measured before rendering, since we need to write it down.
+	     clock_t end_time = times(&en_cpu);
+	     double qtime = (end_time-start_time)/websearch::_cl_sec;
+	     if (qtime<0)
+	       qtime = -1.0; // unavailable.
+	     
+	     // rendering.
+	     const char *output =miscutil::lookup(parameters,"output");
+	     sp_err err = SP_ERR_OK;
+	     if (!output || strcmp(output,"html")==0)
+	       err = static_renderer::render_clustered_result_page_static(clusters,K,
+									  csp,rsp,parameters,qc);
+	     else
+	       {
+		  csp->_content_type = CT_JSON;
+		  err = json_renderer::render_clustered_json_results(clusters,K,
+								     csp,rsp,parameters,qc,qtime);
+	       }
 	     
 	     qc->_lock = false;
 	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
@@ -423,15 +439,15 @@ namespace seeks_plugins
      {
 	if (!parameters->empty())
 	  {
-	     query_context *qc = websearch::lookup_qc(parameters);
+	     query_context *qc = websearch::lookup_qc(parameters,csp);
 	     
 	     if (!qc)
 	       {
 		  // no cache, (re)do the websearch first.
-		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
 		  if (err != SP_ERR_OK)
 		    return err;
-		  qc = websearch::lookup_qc(parameters);
+		  qc = websearch::lookup_qc(parameters,csp);
 		  if (!qc)
 		    return SP_ERR_MEMORY;
 	       }
@@ -441,9 +457,25 @@ namespace seeks_plugins
 	     qc->_lock = true;
 	     search_snippet *ref_sp = NULL;
 	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
-	     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
-								     csp,rsp,parameters,qc);
-	      
+	     
+	     if (!ref_sp)
+	       return SP_ERR_OK;
+	     
+	     const char *output = miscutil::lookup(parameters,"output");
+	     sp_err err = SP_ERR_OK;
+	     if (!output || strcmp(output,"html")==0)
+	       err = static_renderer::render_result_page_static(qc->_cached_snippets,
+								csp,rsp,parameters,qc);
+	     else
+	       {
+		  csp->_content_type = CT_JSON;
+		  err = json_renderer::render_json_results(qc->_cached_snippets,
+							   csp,rsp,parameters,qc,0.0);
+		  qc->_lock = false;
+		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  return err;
+	       }
+	     	     
 	     // reset scores.
 	     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
 	     while(vit!=qc->_cached_snippets.end())
@@ -466,13 +498,18 @@ namespace seeks_plugins
      {
 	if (!parameters->empty())
 	  {
-	     query_context *qc = websearch::lookup_qc(parameters);
+	     query_context *qc = websearch::lookup_qc(parameters,csp);
 	     
+	     // time measure, returned.
+	     struct tms st_cpu;
+	     struct tms en_cpu;
+	     clock_t start_time = times(&st_cpu);
+	     	     
 	     if (!qc)
 	       {
 		  // no cache, (re)do the websearch first.
-		  sp_err err = websearch::perform_websearch(csp,rsp,parameters);
-		  qc = websearch::lookup_qc(parameters);
+		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+		  qc = websearch::lookup_qc(parameters,csp);
 		  if (err != SP_ERR_OK)
 		    return err;
 	       }
@@ -492,9 +529,25 @@ namespace seeks_plugins
 	     km.clusterize();
 	     km.post_processing();
 	     
-	     sp_err err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
-									       csp,rsp,parameters,qc);
+	     // time measured before rendering, since we need to write it down.
+	     clock_t end_time = times(&en_cpu);
+	     double qtime = (end_time-start_time)/websearch::_cl_sec;
+	     if (qtime<0)
+	       qtime = -1.0; // unavailable.
 	     
+	     // rendering.
+	     const char *output = miscutil::lookup(parameters,"output");
+	     sp_err err = SP_ERR_OK;
+	     if (!output || strcmp(output,"html")==0)
+	       err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
+									  csp,rsp,parameters,qc);
+	     else
+	       {
+		  csp->_content_type = CT_JSON;
+		  err = json_renderer::render_clustered_json_results(km._clusters,km._K,
+								     csp,rsp,parameters,qc,qtime);
+	       }
+	     	     
 	     // reset scores.
 	     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
 	     while(vit!=qc->_cached_snippets.end())
@@ -513,10 +566,17 @@ namespace seeks_plugins
       
    /*- internal functions. -*/
    sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
-				      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+				       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				       bool render)
   {
+     // time measure, returned.
+     // XXX: not sure whether it is functional on all *nix platforms.
+     struct tms st_cpu;
+     struct tms en_cpu;
+     clock_t start_time = times(&st_cpu);
+     
      // lookup a cached context for the incoming query.
-     query_context *qc = websearch::lookup_qc(parameters);
+     query_context *qc = websearch::lookup_qc(parameters,csp);
      
      // check whether search is expanding or the user is leafing through pages.
      const char *action = miscutil::lookup(parameters,"action");
@@ -534,6 +594,11 @@ namespace seeks_plugins
 	       qc->generate(csp,rsp,parameters);
 	       qc->_lock = false;
 	       seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	    }
+	  else if (strcmp(action,"page") == 0)
+	    {
+	       //TODO: update other parameters, as needed, qc vs parameters.
+	       qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	    }
        }
      else 
@@ -563,10 +628,35 @@ namespace seeks_plugins
      seeks_proxy::mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      
-     // render the page (static).
-     sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
-							     csp,rsp,parameters,qc);
+     if (websearch::_wconfig->_extended_highlight)
+       content_handler::fetch_all_snippets_summary_and_features(qc);
 
+     // time measured before rendering, since we need to write it down.
+     clock_t end_time = times(&en_cpu);
+     double qtime = (end_time-start_time)/websearch::_cl_sec;
+     if (qtime<0)
+       qtime = -1.0; // unavailable.
+     
+     // render the page (static).
+     if (!render)
+       {
+	  qc->_lock = false;
+	  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	  return SP_ERR_OK;
+       }
+     const char *output = miscutil::lookup(parameters,"output");
+     sp_err err = SP_ERR_OK;
+     if (!output || strcmp(output,"html")==0)
+       err = static_renderer::render_result_page_static(qc->_cached_snippets,
+							csp,rsp,parameters,qc);
+     else
+       {
+	  csp->_content_type = CT_JSON;
+	  err = json_renderer::render_json_results(qc->_cached_snippets,
+						   csp,rsp,parameters,qc,
+						   qtime);
+       }
+     
      // unlock the query context.
      qc->_lock = false;
      seeks_proxy::mutex_unlock(&qc->_qc_mutex);
@@ -575,10 +665,33 @@ namespace seeks_plugins
      return err;
   }
 
-   query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+   query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				       client_state *csp)
      {
+	std::string qlang;
+	bool has_query_lang = false;
+	if (!(has_query_lang = query_context::has_query_lang(parameters,qlang)))
+	  {
+	     if (websearch::_wconfig->_lang == "auto")
+	       {
+		  std::string auto_lang_reg = query_context::detect_query_lang_http(csp->_headers);
+		  try
+		    {
+		       qlang = auto_lang_reg.substr(0,2);
+		    }
+		  catch(std::exception &e)
+		    {
+		       qlang = "";
+		    }
+	       }
+	     else qlang = websearch::_wconfig->_lang; // falling back onto default search language.
+	  }
+	
 	std::string query;
-	uint32_t query_hash = query_context::hash_query_for_context(parameters,query);
+	if (!has_query_lang && !qlang.empty())
+	  query = ":" + qlang + " ";
+	std::string url_enc_query;
+	uint32_t query_hash = query_context::hash_query_for_context(parameters,query,url_enc_query);
 	hash_map<uint32_t,query_context*,hash<uint32_t> >::iterator hit;
 	if ((hit = websearch::_active_qcontexts.find(query_hash))!=websearch::_active_qcontexts.end())
 	  {

@@ -155,7 +155,14 @@ namespace seeks_plugins
 	       {
 		  i++;
 	       }
-	     a_chars = a_chars.substr(i);
+	     try
+	       {
+		  a_chars = a_chars.substr(i);
+	       }
+	     catch (std::exception &e)
+	       {
+		  return;
+	       }
 	     miscutil::replace_in_string(a_chars,"\n"," ");
 	     miscutil::replace_in_string(a_chars,"\r"," ");
 	     if (_b_summary_flag)
@@ -179,7 +186,14 @@ namespace seeks_plugins
 	      {
 		 i++;
 	      }
-	    a_chars = a_chars.substr(i);
+	    try
+	      {
+		 a_chars = a_chars.substr(i);
+	      }
+	    catch(std::exception &e)
+	      {
+		 return;
+	      }
 	    miscutil::replace_in_string(a_chars,"\n"," ");
 	    miscutil::replace_in_string(a_chars,"\r"," ");
 	    if (_b_title_flag)

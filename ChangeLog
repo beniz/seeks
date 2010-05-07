@@ -1,5 +1,21 @@
+* Bubs-0.2.2-SOLO-stable
+This release brings some improvements and includes a JSON API for using/reusing
+the search results in third-party applications.
+
+- Highlight of most discriminative words in every search result snippet.
+	
+- Full HTML5 compliance of generated pages.
+
+- JSON API for search, clustering, type grouping, similarity ranking.
+
+- Fixed bug in ranking.
+
+- Max expansion limit for protection against potential attacks on public nodes.
+	
+- Improved stability.
+
 * Bubs-0.2.1-SOLO-stable
-This releases brings some technical improvements for stability.
+This release brings some technical improvements for stability.
 
 - Better mutexes around the concurrent treatment of queries.
 
@@ -16,7 +32,7 @@ This releases brings some technical improvements for stability.
 - Some other minor fixes here and then.
 
 * Bubs-0.2-SOLO-stable
-This releases enables a set of novel websearch features, fixes bugs
+This release enables a set of novel websearch features, fixes bugs
 in the machinery, eases the deployment of public Seeks nodes.
 As such this the first truely mature of the SOLO releases.
 
