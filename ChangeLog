@@ -1,6 +1,6 @@
 * Bubs-0.2.2-SOLO-stable
 This release brings some improvements and includes a JSON API for using/reusing
-the search results in third-parties applications.
+the search results in third-party applications.
 
 - Highlight of most discriminative words in every search result snippet.
 	
