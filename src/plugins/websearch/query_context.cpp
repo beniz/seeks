@@ -92,12 +92,8 @@ namespace seeks_plugins
 	  
 	  // query hashing, with the language included.
 	  std::string q_to_hash;
-	  std::cerr << "has in query lang: " << has_in_query_lang << " -- auto lang: " << _auto_lang << std::endl;
 	  if (!has_in_query_lang && !_auto_lang.empty())
 	    q_to_hash = ":" + _auto_lang + " ";
-	  	  
-	  std::cerr << "q_to_hash: " << q_to_hash << std::endl;
-	  
 	  _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
 	  
 	  sweeper::register_sweepable(this);
