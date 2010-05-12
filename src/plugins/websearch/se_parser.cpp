@@ -147,10 +147,11 @@ namespace seeks_plugins
 			 {
 			    errlog::log_error(LOG_LEVEL_ERROR,"libxml2 fatal error.");
 			 }
-		       else if (xep->level == 2)
+		       // XXX: too verbose, and confusing to users.
+		       /* else if (xep->level == 2)
 			 {
 			    errlog::log_error(LOG_LEVEL_ERROR,"libxml2 recoverable error");
-			 }
+			 } */
 		    }
 	       }
 	  }
