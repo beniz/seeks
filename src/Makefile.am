@@ -31,6 +31,7 @@ nobase_public_DATA=public/css/* \
 		 public/yui/3.0.0/cssreset/reset-min.css \
 		 public/yui/3.0.0/cssfonts/fonts-min.css \
 		 public/yui/3.0.0/cssgrids/grids-min.css \
-		 public/yui/3.0.0/yui/yui-min.js
+		 public/yui/3.0.0/yui/yui-min.js \
+		 lsh/swl/*.txt
 
 nobase_proxy_DATA=proxy/templates/*
