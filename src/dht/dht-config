@@ -1,0 +1,64 @@
+# number of virtual nodes for a DHT node.
+# More virtual nodes make the network stronger.
+# On personal computers, more virtual nodes means more bandwith
+# consumption, except when the routing option (see below) is set to 0.
+# In all cases, more virtual nodes means faster lookups on the DHT
+# for the node that hosts them.
+# default: 32
+number-vnodes 32
+
+# level-1 communication port. 
+# level-1 is for DHT low level coms and stabilization.
+# default: 8231
+l1-port 8231
+
+# level-1 communication max message size in bytes.
+# Don't tweak this parameter unless you know what you are doing.
+# default: 8192
+l1-server-max-msg-bytes 8192
+
+# level-1 communication timeout in seconds.
+# This is the maximum amount of time waited by a client when
+# issuing a level-1 message on the network.
+# default: 5
+l1-client-timeout 5
+
+# list of bootstrap nodes from the Seeks network.
+# IP addresses and port separated by a space or a tab.
+# This option can be repeated for every bootstrap node.
+# default: seeks-project.info 8231
+bootstrap-node seeks-project.info 8231
+
+# max number of hops allowed when looking a key up.
+# Normally the number of required hops is of the order of log(n),
+# where n is the number of virtual nodes on the network.
+# Because the DHT is dynamic, due to node leaving and others
+# entring, it is safer to cap the number of hops.
+# Normal users should not have to tweak this value.
+# default: 12
+max-hops 12
+
+# max number of keys in a virtual node successor list.
+# Successor lists allows the DHT to fix itself very quickly whenever
+# one or more nodes depart simultaneously. Maintaining a list
+# k successors allows to fix cases when up to k direct successors
+# to a node depart simultaneously. Such events have a probability
+# of an order of magnitude that decreases exponentially with k.
+# default: 10
+succlist-size 10
+
+# whether virtual nodes of this DHT node are routing queries, i.e. can
+# be contacted to help route queries around the DHT ring.
+# This is an important option. Routing means that the DHT node IP address
+# appears in the routing table of remote nodes. 
+# 
+# Setting a non routing mode (routing set to 0) is useful in the following 
+# cases:
+# - your bandwith is low, or your computer is going on & off often (i.e. a
+# laptop) so you should not bother routing other nodes lookups.
+# - you wish to hide your IP with TOR or any other similar solutions.
+# 
+# Routing is off by default for a better control of the core Seeks p2p
+# network. This may change in the future.
+# default: 0
+routing 0
