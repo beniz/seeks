@@ -26,10 +26,10 @@
 #include "rmd160.h" /* original RIPEMD-160 code. */
 #include "stl_hash.h"
 
-#define KEYNBITS 160
-//#define KEYNBITS 32
-#define KEYNBITSIZE 5  /* 160 / 32 bits (ulong) */
-//#define KEYNBITSIZE 1
+//#define KEYNBITS 160
+#define KEYNBITS 32
+//#define KEYNBITSIZE 5  /* 160 / 32 bits (ulong) */
+#define KEYNBITSIZE 1
 
 namespace dht
 {
@@ -173,7 +173,7 @@ namespace dht
 
 	static bool lowdhtkey(const DHTKey *dk1, const DHTKey *dk2)
 	  {
-	     return (dk1 < dk2);
+	     return (*dk1 < *dk2);
 	  };
 		
      };
