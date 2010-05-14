@@ -33,6 +33,19 @@ namespace dht
    /*- queries. -*/
    l1::l1_query* l1_protob_wrapper::create_l1_query(const uint32_t &fct_id,
 						    const DHTKey &recipient_dhtkey,
+						    const NetAddress &recipient_na)
+     {
+	std::vector<unsigned char> dkser = DHTKey::serialize(recipient_dhtkey);
+	std::string recipient_key(dkser.begin(),dkser.end());
+	uint32_t recipient_ip_addr = recipient_na.serialize_ip();
+	std::string recipient_net_port = recipient_na.serialize_port();
+	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,recipient_key,
+							       recipient_ip_addr,recipient_net_port);
+	return l1q;
+     }
+      
+   l1::l1_query* l1_protob_wrapper::create_l1_query(const uint32_t &fct_id,
+						    const DHTKey &recipient_dhtkey,
 						    const NetAddress &recipient_na,
 						    const DHTKey &sender_dhtkey,
 						    const NetAddress &sender_na)
@@ -43,8 +56,13 @@ namespace dht
 	std::string recipient_net_port = recipient_na.serialize_port();
 	std::vector<unsigned char> dsser = DHTKey::serialize(sender_dhtkey);
 	std::string sender_key(dsser.begin(),dsser.end());
-	uint32_t sender_ip_addr = sender_na.serialize_ip();
-	std::string sender_net_port = sender_na.serialize_port();
+	uint32_t sender_ip_addr = 0;
+	std::string sender_net_port;
+	if (!sender_na.getNetAddress().empty())
+	  {
+	     sender_ip_addr = sender_na.serialize_ip();
+	     sender_net_port = sender_na.serialize_port();
+	  }
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,recipient_key,
 							       recipient_ip_addr,recipient_net_port,
 							       sender_key,sender_ip_addr,sender_net_port);
@@ -54,13 +72,10 @@ namespace dht
    l1::l1_query* l1_protob_wrapper::create_l1_query(const uint32_t &fct_id,
 						    const DHTKey &recipient_dhtkey,
 						    const NetAddress &recipient_na,
-						    const DHTKey &sender_dhtkey,
-						    const NetAddress &sender_na,
 						    const DHTKey &node_key)
      {
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,recipient_dhtkey,
-							       recipient_na,sender_dhtkey,
-							       sender_na);
+							       recipient_na);
 	std::vector<unsigned char> dkser = DHTKey::serialize(node_key);
 	std::string node_key_str(dkser.begin(),dkser.end());
 	l1::dht_key *l1q_node_key = l1q->mutable_lookedup_key();
@@ -99,9 +114,12 @@ namespace dht
 	l1::vnodeid *l1q_sender = l1q->mutable_sender();
 	l1::dht_key *l1q_sender_key = l1q_sender->mutable_key();
 	l1q_sender_key->set_key(sender_key);
-	l1::net_address *l1q_sender_addr = l1q_sender->mutable_addr();
-	l1q_sender_addr->set_ip_addr(sender_ip_addr);
-	l1q_sender_addr->set_net_port(sender_net_port);
+	if (sender_ip_addr != 0)
+	  {
+	     l1::net_address *l1q_sender_addr = l1q_sender->mutable_addr();
+	     l1q_sender_addr->set_ip_addr(sender_ip_addr);
+	     l1q_sender_addr->set_net_port(sender_net_port);
+	  }
 	return l1q;
      }
    
@@ -288,11 +306,19 @@ namespace dht
 	short recipient_port = NetAddress::unserialize_port(recipient_net_port);
 	recipient_na = NetAddress(recipient_ip,recipient_port);
 	ser.clear();
-	std::copy(sender_key.begin(),sender_key.end(),std::back_inserter(ser));
-	sender_dhtkey = DHTKey::unserialize(ser);
-	std::string sender_ip = NetAddress::unserialize_ip(sender_ip_addr);
-	short sender_port = NetAddress::unserialize_port(sender_net_port);
-	sender_na = NetAddress(sender_ip,sender_port);
+	if (!sender_key.empty())
+	  {
+	     std::copy(sender_key.begin(),sender_key.end(),std::back_inserter(ser));
+	     sender_dhtkey = DHTKey::unserialize(ser);
+	     std::string sender_ip = NetAddress::unserialize_ip(sender_ip_addr);
+	     short sender_port = NetAddress::unserialize_port(sender_net_port);
+	     sender_na = NetAddress(sender_ip,sender_port);
+	  }
+	else
+	  {
+	     sender_dhtkey = DHTKey();
+	     sender_na = NetAddress();
+	  }
 	return DHT_ERR_OK;
      }
    

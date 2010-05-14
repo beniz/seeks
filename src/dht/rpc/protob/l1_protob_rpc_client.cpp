@@ -36,20 +36,28 @@ namespace dht
    dht_err l1_protob_rpc_client::RPC_call(const uint32_t &fct_id,
 					  const DHTKey &recipientKey,
 					  const NetAddress& recipient,
-					  const DHTKey &senderKey,
-					  const NetAddress& senderAddress,
 					  const DHTKey &nodeKey,
 					  l1::l1_response *l1r)
      {
 	// serialize.
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
 							       recipientKey,recipient,
-							       senderKey,senderAddress,
 							       nodeKey);
-	
 	return RPC_call(l1q,recipient,l1r);
      }
       
+   dht_err l1_protob_rpc_client::RPC_call(const uint32_t &fct_id,
+					  const DHTKey &recipientKey,
+					  const NetAddress &recipient,
+					  l1::l1_response *l1r)
+     {
+	// serialize.
+	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
+							       recipientKey,recipient);
+     
+	return RPC_call(l1q,recipient,l1r);
+     }
+   
    dht_err l1_protob_rpc_client::RPC_call(const uint32_t &fct_id,
 					  const DHTKey &recipientKey,
 					  const NetAddress& recipient,
@@ -57,18 +65,10 @@ namespace dht
 					  const NetAddress& senderAddress,
 					  l1::l1_response *l1r)
      {
-	//debug
-	/* std::cerr << "[Debug]: rpc client call: creating a l1 query:\n";
-	 std::cerr << "fct_id: " << fct_id << " -- recipient: " << recipient.toString()
-	 << " -- senderAddress: " << senderAddress.toString() << std::endl; */
-	//debug
-	
 	// serialize.
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
 							       recipientKey,recipient,
 							       senderKey,senderAddress);
-	
-     
 	return RPC_call(l1q,recipient,l1r);
      }
    
@@ -114,8 +114,6 @@ namespace dht
    
    dht_err l1_protob_rpc_client::RPC_getSuccessor(const DHTKey &recipientKey,
 						  const NetAddress& recipient,
-						  const DHTKey &senderKey,
-						  const NetAddress& senderAddress,
 						  DHTKey& dkres, NetAddress& na,
 						  int& status)
      {
@@ -131,7 +129,6 @@ namespace dht
 	  {
 	     err = l1_protob_rpc_client::RPC_call(hash_get_successor,
 						  recipientKey,recipient,
-						  senderKey,senderAddress,
 						  l1r);
 	  }
 	catch (dht_exception &e)
@@ -160,8 +157,6 @@ namespace dht
    
    dht_err l1_protob_rpc_client::RPC_getPredecessor(const DHTKey& recipientKey,
 						    const NetAddress& recipient,
-						    const DHTKey& senderKey,
-						    const NetAddress& senderAddress,
 						    DHTKey& dkres, NetAddress& na,
 						    int& status)
      {
@@ -177,7 +172,6 @@ namespace dht
 	  {
 	     err = l1_protob_rpc_client::RPC_call(hash_get_predecessor,
 						  recipientKey,recipient,
-						  senderKey,senderAddress,
 						  l1r);
 	  }
 	catch (dht_exception &e)
@@ -254,8 +248,6 @@ namespace dht
 
    dht_err l1_protob_rpc_client::RPC_getSuccList(const DHTKey &recipientKey,
 						 const NetAddress &recipient,
-						 const DHTKey &senderKey,
-						 const NetAddress &senderAddress,
 						 std::list<DHTKey> &dkres_list,
 						 std::list<NetAddress> &na_list,
 						 int &status)
@@ -272,7 +264,6 @@ namespace dht
 	  {
 	     err = l1_protob_rpc_client::RPC_call(hash_get_succlist,
 						  recipientKey,recipient,
-						  senderKey,senderAddress,
 						  l1r);
 	  }
 	catch (dht_exception &e)
@@ -301,8 +292,6 @@ namespace dht
       
    dht_err l1_protob_rpc_client::RPC_findClosestPredecessor(const DHTKey& recipientKey,
 							    const NetAddress& recipient,
-							    const DHTKey& senderKey,
-							    const NetAddress& senderAddress,
 							    const DHTKey& nodeKey,
 							    DHTKey& dkres, NetAddress& na,
 							    DHTKey& dkres_succ,
@@ -321,7 +310,6 @@ namespace dht
 	  {
 	     err = l1_protob_rpc_client::RPC_call(hash_find_closest_predecessor,
 						  recipientKey,recipient,
-						  senderKey,senderAddress,
 						  nodeKey,l1r);
 	  }
 	catch (dht_exception &e)
@@ -354,7 +342,6 @@ namespace dht
    dht_err l1_protob_rpc_client::RPC_joinGetSucc(const DHTKey& recipientKey,
 						 const NetAddress& recipient,
 						 const DHTKey &senderKey,
-						 const NetAddress& senderAddress,
 						 DHTKey& dkres, NetAddress& na,
 						 int& status)
      {
@@ -366,11 +353,14 @@ namespace dht
 	l1::l1_response *l1r = new l1::l1_response();
 	dht_err err = DHT_ERR_OK;
 	
+	// empty address.
+	const NetAddress senderAddress = NetAddress();
+	
 	try
 	  {
 	     err = l1_protob_rpc_client::RPC_call(hash_join_get_succ,
 						  recipientKey,recipient,
-						  senderKey,senderAddress,
+						  senderKey, senderAddress,
 						  l1r);
 	  }
 	catch (dht_exception &e)
@@ -400,8 +390,6 @@ namespace dht
 
    dht_err l1_protob_rpc_client::RPC_ping(const DHTKey& recipientKey,
 					  const NetAddress& recipient,
-					  const DHTKey& senderKey,
-					  const NetAddress& senderAddress,
 					  int& status)
      {
 	//debug
@@ -416,7 +404,6 @@ namespace dht
 	  {
 	     err = l1_protob_rpc_client::RPC_call(hash_ping,
 						  recipientKey,recipient,
-						  senderKey,senderAddress,
 						  l1r);
 	  }
 	catch (dht_exception &e)

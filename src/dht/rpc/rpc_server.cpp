@@ -20,6 +20,7 @@
 
 #include "rpc_server.h"
 #include "spsockets.h"
+#include "DHTNode.h" // for accessing dht_config.
 #include "errlog.h"
 
 #include <sys/types.h>
@@ -100,7 +101,7 @@ namespace dht
 	  }
 	
 	// get messages, one by one.
-	size_t buflen = 1024; // TODO: 128 bytes may not be enough -> use dht_configuration value.
+	size_t buflen = DHTNode::_dht_config->_l1_server_max_msg_bytes;
 	char buf[buflen];
 	struct sockaddr_in from;
 	socklen_t fromlen = sizeof(struct sockaddr_in);
@@ -112,34 +113,24 @@ namespace dht
 	
 	while(true)
 	  {
-	     //debug
-	     /* std::cerr << "[Debug]:rpc_server: listening for dgrams on " 
-	       << _na.toString() << "...\n"; */
-	     //debug
-	     
 	     int n = recvfrom(udp_sock,buf,buflen,0,(struct sockaddr*)&from,&fromlen);
 	     if (n < 0)
 	       {
-		  //debug
-		  //std::cout << "Error receiving DGRAM message\n";
-		  //debug
-		  
 		  spsockets::close_socket(udp_sock);
 		  errlog::log_error(LOG_LEVEL_ERROR, "recvfrom: error receiving DGRAM message, %E");
 		  return DHT_ERR_SOCKET; // TODO: exception.
 	       }
 	     
-	     //debug
-	     //std::cout << "rpc_server: received an " << n << " bytes datagram.\n";
-	     //debug
+	     // get our caller's address.
+	     char addr_buf[NI_MAXHOST];
+	     int retval = getnameinfo((struct sockaddr *) &from, fromlen,
+				      addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 	     
 	     // message.
-	     errlog::log_error(LOG_LEVEL_LOG, "rpc_server: received a %d bytes datagram", n);
+	     errlog::log_error(LOG_LEVEL_DHT, "rpc_server: received a %d bytes datagram from %s", n, addr_buf);
 	     std::string dtg_str = std::string(buf,n-1);
-	     	     
-	     //debug
-	     //std::cout << "rpc_server: received msg: " << dtg_str << std::endl;
-	     //debug
+	     
+	     // TODO: ACL on incoming calls.
 	     
 	     // produce and send a response.
 	     std::string resp_msg;
@@ -150,7 +141,7 @@ namespace dht
 	     catch (dht_exception ex)
 	       {
 		  spsockets::close_socket(udp_sock);
-		  errlog::log_error(LOG_LEVEL_LOG, "rpc_server exception: %s", ex.what().c_str());
+		  errlog::log_error(LOG_LEVEL_DHT, "rpc_server exception: %s", ex.what().c_str());
 		  return DHT_ERR_CALLBACK;
 	       }
 	  

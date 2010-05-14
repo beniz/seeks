@@ -72,7 +72,7 @@ namespace dht
 	     // but we won't.
 	     throw rpc_server_wrong_layer_exception();
 	  }
-		
+	
 	// decides which response to give.
 	int status = DHT_ERR_OK;
 	dht_err err = execute_callback(fct_id,recipient_key,recipient_na,
@@ -109,7 +109,6 @@ namespace dht
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_getSuccessor_cb(recipient_key,recipient_na,
-				 sender_key,sender_na,
 				 dkres,dkres_na,status);
 	     
 	     // create a response.
@@ -126,7 +125,6 @@ namespace dht
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_getPredecessor_cb(recipient_key,recipient_na,
-				   sender_key,sender_na,
 				   dkres,dkres_na,status);
 	     
 	     // create a response.
@@ -156,7 +154,6 @@ namespace dht
 	     std::list<DHTKey> dkres_list;
 	     std::list<NetAddress> na_list;
 	     RPC_getSuccList_cb(recipient_key,recipient_na,
-				sender_key,sender_na,
 				dkres_list,na_list,status);
 	     
 	     // create a response.
@@ -178,7 +175,6 @@ namespace dht
 	     DHTKey dkres, dkres_succ;
 	     NetAddress dkres_na, dkres_succ_na;
 	     RPC_findClosestPredecessor_cb(recipient_key,recipient_na,
-					   sender_key,sender_na,
 					   node_key,
 					   dkres,dkres_na,
 					   dkres_succ,dkres_succ_na,
@@ -203,7 +199,7 @@ namespace dht
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_joinGetSucc_cb(recipient_key,recipient_na,
-				sender_key,sender_na,
+				sender_key,
 				dkres,dkres_na,status);
 	     
 	     // create a response.
@@ -218,7 +214,6 @@ namespace dht
 	     //debug
 	     
 	     RPC_ping_cb(recipient_key,recipient_na,
-			 sender_key,sender_na,
 			 status);
 	     
 	     // create a reponse.
@@ -252,8 +247,6 @@ namespace dht
    /*- l1 interface. -*/
    dht_err l1_protob_rpc_server::RPC_getSuccessor_cb(const DHTKey& recipientKey,
 						     const NetAddress &recipient,
-						     const DHTKey& senderKey,
-						     const NetAddress& senderAddress,
 						     DHTKey& dkres, NetAddress& na,
 						     int& status)
      {
@@ -262,8 +255,6 @@ namespace dht
       
    dht_err l1_protob_rpc_server::RPC_getPredecessor_cb(const DHTKey& recipientKey,
 						       const NetAddress &recipient,
-						       const DHTKey& senderKey,
-						       const NetAddress& senderAddress,
 						       DHTKey& dkres, NetAddress& na,
 						       int& status)
      {
@@ -281,8 +272,6 @@ namespace dht
 
    dht_err l1_protob_rpc_server::RPC_getSuccList_cb(const DHTKey& recipientKey,
 						    const NetAddress &recipient,
-						    const DHTKey& senderKey,
-						    const NetAddress& senderAddress,
 						    std::list<DHTKey> &dkres_list,
 						    std::list<NetAddress> &na_list,
 						    int& status)
@@ -292,8 +281,6 @@ namespace dht
    
    dht_err l1_protob_rpc_server::RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 							       const NetAddress &recipient,
-							       const DHTKey& senderKey,
-							       const NetAddress& senderAddress,
 							       const DHTKey& nodeKey,
 							       DHTKey& dkres, NetAddress& na,
 							       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
@@ -306,7 +293,6 @@ namespace dht
    dht_err l1_protob_rpc_server::RPC_joinGetSucc_cb(const DHTKey& recipientKey,
 						    const NetAddress &recipient,
 						    const DHTKey& senderKey,
-						    const NetAddress& senderAddress,
 						    DHTKey& dkres, NetAddress& na,
 						    int& status)
      {
@@ -315,11 +301,9 @@ namespace dht
       
    dht_err l1_protob_rpc_server::RPC_ping_cb(const DHTKey& recipientKey,
 					     const NetAddress &recipient,
-					     const DHTKey& senderKey,
-					     const NetAddress& senderAddress,
 					     int& status)
      {
-	return _pnode->ping_cb(recipientKey,senderKey,senderAddress,status);
+	return _pnode->ping_cb(recipientKey,status);
      }
       
 } /* end of namespace. */

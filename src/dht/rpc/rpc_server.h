@@ -47,7 +47,7 @@ namespace dht
 	/*- server responses. -*/
 	virtual dht_err serve_response(const std::string &msg,
 				       std::string &resp_msg);
-		
+				       		
       public:
 	NetAddress _na;
 	pthread_t _rpc_server_thread;

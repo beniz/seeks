@@ -50,8 +50,6 @@ namespace dht
 	 * \brief getSuccessor RPC.
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's successor's identification key.
 	 * @param na target node's successor's net address.
 	 * @param status RPC result status for handling erroneous results.
@@ -59,8 +57,6 @@ namespace dht
 	 */
 	virtual dht_err RPC_getSuccessor(const DHTKey& recipientKey,
 					 const NetAddress& recipient,
-					 const DHTKey &senderKey,
-					 const NetAddress& senderAddress,
 					 DHTKey& dkres, NetAddress& na,
 					 int& status) = 0;
 	
@@ -68,8 +64,6 @@ namespace dht
 	 * \brief getPredecessor RPC.
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's predecessor's identification key.
 	 * @param na target node's predecessor's net address.
 	 * @param status RPC result status for handling erroneous results.
@@ -77,8 +71,6 @@ namespace dht
 	 */
 	virtual dht_err RPC_getPredecessor(const DHTKey& recipientKey,
 					   const NetAddress& recipient,
-					   const DHTKey& senderKey,
-					   const NetAddress& senderAddress,
 					   DHTKey& dkres, NetAddress& na,
 					   int& status) = 0;
 	
@@ -101,8 +93,6 @@ namespace dht
 	 * @param recipientKey identification key of the target node
 	 *                     (Note: this is required due to the presence of virtual nodes).
 	 * @param recipient Net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's successor list.
 	 * @param na target node's successor net address list.
 	 * @param status result status for handling erroneous results.
@@ -110,8 +100,6 @@ namespace dht
 	 */
 	virtual dht_err RPC_getSuccList(const DHTKey &recipientKey,
 					const NetAddress &recipient,
-					const DHTKey &senderKey,
-					const NetAddress &senderAddress,
 					std::list<DHTKey> &dkres_list,
 					std::list<NetAddress> &na_list,
 					int &status) = 0;
@@ -121,8 +109,6 @@ namespace dht
 	 *        the closest predecessor to nodeKey.
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient Net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param nodeKey identification key to which the closest predecessor is sought.
 	 * @param dkres result identification key of the closest predecessor to nodeKey.
 	 * @param na result net address of the closest predecessor to nodeKey.
@@ -133,8 +119,6 @@ namespace dht
 	 */
 	virtual dht_err RPC_findClosestPredecessor(const DHTKey& recipientKey,
 						   const NetAddress& recipient,
-						   const DHTKey& senderKey,
-						   const NetAddress& senderAddress,
 						   const DHTKey& nodeKey,
 						   DHTKey& dkres, NetAddress& na,
 						   DHTKey& dkres_succ,
@@ -145,7 +129,6 @@ namespace dht
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient net address of the target node.
 	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's predecessor's identification key.
 	 * @param na target node's predecessor's net address.
 	 * @param status RPC result status for handling erroneous results.
@@ -154,7 +137,6 @@ namespace dht
 	virtual dht_err RPC_joinGetSucc(const DHTKey &recipientKey,
 					const NetAddress &recipient,
 					const DHTKey &senderKey,
-					const NetAddress &senderAddress,
 					DHTKey &dkres, NetAddress &na,
 					int &status) = 0;
      
@@ -162,14 +144,10 @@ namespace dht
 	 * \brief ping: pings a remote node. 
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient node on which this function will execute.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @return error status.
 	 */
 	virtual dht_err RPC_ping(const DHTKey &recipientKey,
 				 const NetAddress &recipient,
-				 const DHTKey &senderKey,
-				 const NetAddress &senderAddress,
 				 int &status) = 0;
      };
 
@@ -187,8 +165,6 @@ namespace dht
 	 * @param recipientKey identification key of the target node
 	 *                     (Note: this is required due to the presence of virtual nodes).
 	 * @param recipient Net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's successor's identification key.
 	 * @param na target node's successor's net address.
 	 * @param status result status for handling erroneous results.
@@ -196,8 +172,6 @@ namespace dht
 	 */
 	virtual dht_err RPC_getSuccessor_cb(const DHTKey& recipientKey,
 					    const NetAddress &recipient,
-					    const DHTKey& senderKey,
-					    const NetAddress& senderAddress,
 					    DHTKey& dkres, NetAddress& na,
 					    int& status) = 0;
 	
@@ -206,8 +180,6 @@ namespace dht
 	 * @param recipientKey identification key of the target node
 	 *                     (Note: this is required due to the presence of virtual nodes).
 	 * @param recipient Net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's predecessor's identification key.
 	 * @param na target node's predecessor's net address.
 	 * @param status result status for handling erroneous results.
@@ -215,8 +187,6 @@ namespace dht
 	 */
 	virtual dht_err RPC_getPredecessor_cb(const DHTKey& recipientKey,
 					      const NetAddress &recipient,
-					      const DHTKey& senderKey, 
-					      const NetAddress& senderAddress,
 					      DHTKey& dkres, NetAddress& na,
 					      int& status) = 0;
 	
@@ -239,8 +209,6 @@ namespace dht
 	 * @param recipientKey identification key of the target node
 	 *                     (Note: this is required due to the presence of virtual nodes).
 	 * @param recipient Net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's successor list.
 	 * @param na target node's successor net address list.
 	 * @param status result status for handling erroneous results.
@@ -248,23 +216,14 @@ namespace dht
 	  */
 	virtual dht_err RPC_getSuccList_cb(const DHTKey &recipientKey,
 					   const NetAddress &recipient,
-					   const DHTKey &senderKey,
-					   const NetAddress &senderAddress,
 					   std::list<DHTKey> &dkres_list,
 					   std::list<NetAddress> &dkres_na_list,
 					   int &status) = 0;
-	
-	/**
-	 * TODO: getPredList RPC.
-	 */
-	
 	/**
 	 * \brief findClosestPredecessor RPC: ask recipient to find
 	 *        the closest predecessor to nodeKey.
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient Net address of the target node.
-	 * @param senderAddress Net address of the sender node.
-	 * @param senderKey Identification key of the sender node on the circle.
 	 * @param nodeKey identification key to which the closest predecessor is sought.
 	 * @param dkres result identification key of the closest predecessor to nodeKey.
 	 * @param na result net address of the closest predecessor to nodeKey.
@@ -275,8 +234,6 @@ namespace dht
 	 */
 	 virtual dht_err RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 						       const NetAddress &recipient,
-						       const DHTKey& senderKey,
-						       const NetAddress& senderAddress,
 						       const DHTKey& nodeKey,
 						       DHTKey& dkres, NetAddress& na,
 						       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
@@ -286,7 +243,6 @@ namespace dht
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient net address of the target node.
 	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @param dkres target node's predecessor's identification key.
 	 * @param na target node's predecessor's net address.
 	 * @param status RPC result status for handling erroneous results.
@@ -295,7 +251,6 @@ namespace dht
 	virtual dht_err RPC_joinGetSucc_cb(const DHTKey &recipientKey,
 					   const NetAddress &recipient,
 					   const DHTKey &senderKey,
-					   const NetAddress &senderAddress,
 					   DHTKey &dkres, NetAddress &na,
 					   int &status) = 0;
 	
@@ -303,14 +258,10 @@ namespace dht
 	 * \brief Ping RPC callback: returns status to caller node.
 	 * @param recipientKey identification key of the target node.
 	 * @param recipient Net address of the target node.
-	 * @param senderKey Identification key of the sender node on the circle.
-	 * @param senderAddress Net address of the sender node.
 	 * @return status.
 	 */
 	virtual dht_err RPC_ping_cb(const DHTKey& recipientKey,
 				    const NetAddress &recipient,
-				    const DHTKey& senderKey,
-				    const NetAddress& senderAddress,
 				    int& status) = 0;
       
       public:

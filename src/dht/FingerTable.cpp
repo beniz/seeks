@@ -169,7 +169,6 @@ namespace dht
 	     err = _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
 	     if (err == DHT_ERR_UNKNOWN_PEER)
 	       err = _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
-									recipientKey,na,
 									succ_pred, na_succ_pred, status);
 	     
 #ifdef DEBUG
@@ -364,20 +363,31 @@ namespace dht
 	
 	/**
 	 * notify RPC.
+	 * 
+	 * XXX: in non routing mode, there is no notify callback call. This allows the node
+	 * to remain a connected spectator: successor and predecessors of other nodes remain unchanged.
 	 */
-	err = _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
-	if (err == DHT_ERR_UNKNOWN_PEER)
-	  _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
-						     getVNodeIdKey(),getVNodeNetAddress(),
-						     status);
-	// TODO: handle successor failure, retry, then move down the successor list.
-	/**
-	 * check on RPC status.
-	 */
-	if ((dht_err)status != DHT_ERR_OK)
+	if (DHTNode::_dht_config->_routing)
 	  {
-	     errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
-	     return (dht_err)status;
+	     err = _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
+	     if (err == DHT_ERR_UNKNOWN_PEER)
+	       _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+							  getVNodeIdKey(),getVNodeNetAddress(),
+							  status);
+	     // XXX: handle successor failure, retry, then move down the successor list.
+	     /**
+	      * check on RPC status.
+	      */
+	     if ((dht_err)status != DHT_ERR_OK)
+	       {
+		  errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
+		  return (dht_err)status;
+	       }
+	  }
+	else // in non routing mode, check whether our predecessor has changed.
+	  {
+	     if (succ_loc->getDHTKey() != *_vnode->getPredecessor())
+	       _vnode->setPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress());
 	  }
 		
 	return status;	

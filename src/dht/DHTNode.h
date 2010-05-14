@@ -154,8 +154,6 @@ namespace dht
 	 * \brief ping callback.
 	 */
 	dht_err ping_cb(const DHTKey& recipientKey,
-			const DHTKey& senderKey,
-			const NetAddress& senderAddress,
 			int& status);
 	
 	/**----------------------------**/

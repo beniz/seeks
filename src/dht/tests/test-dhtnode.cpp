@@ -119,14 +119,13 @@ int main(int argc, char **argv)
 	     
 	     int bootstrap_port = atoi(vec[1]);
 	     std::cout << "bootstrap node at ip: " << vec[0] << " -- port: " << bootstrap_port << std::endl;
-	     
+	     	     
 	     std::vector<NetAddress> bootstrap_nodelist;
 	     NetAddress bootstrap_na(vec[0],bootstrap_port);
 	     bootstrap_nodelist.push_back(bootstrap_na);
 	     
 	     bool reset = true;
-	     if (joinb)
-	       dnode->join_start(bootstrap_nodelist,reset);
+	     dnode->join_start(bootstrap_nodelist,reset);
 	  }
 	else if (sbootb)
 	  dnode->self_bootstrap();

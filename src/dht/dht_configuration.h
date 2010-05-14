@@ -50,6 +50,8 @@ namespace dht
 	int _l1_client_timeout; /**< l1 client communication timeout. */
 	std::vector<NetAddress> _bootstrap_nodelist; /**< list of bootstrap nodes. */
 	int _max_hops; /**< max number of hops in finding a route around the circle. */
+	int _succlist_size; /**< max number of elements in successor list. */
+	bool _routing; /**< whether routing is activated, i.e. our nodes are active or spectators. */
      };
    
 } /* end of namespace. */

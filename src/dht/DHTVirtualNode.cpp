@@ -148,7 +148,7 @@ namespace dht
 	return _fgt->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
      }
 
-   dht_err DHTVirtualNode::ping(const DHTKey &senderKey, const NetAddress &senderAddress)
+   dht_err DHTVirtualNode::ping()
      {
 	// XXX: add protection against ping or some good reason not to respond with an OK status.
 	// alive.
@@ -172,7 +172,7 @@ namespace dht
 	DHTKey dkres;
 	NetAddress na;
 	dht_err err = _pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
-							  _idkey,_pnode->_l1_na,
+							  senderKey,
 							  dkres, na, status);
 	
 	// local errors.
@@ -227,7 +227,6 @@ namespace dht
 	dht_err loc_err = _pnode->getSuccessor_cb(dk_pred,dkres,na,status);
 	if (loc_err == DHT_ERR_UNKNOWN_PEER)
 	  _pnode->_l1_client->RPC_getSuccessor(dk_pred, na_pred, 
-					       getIdKey(), getNetAddress(),
 					       dkres, na, status);
 	if (loc_err == DHT_ERR_OK)
 	  {
@@ -314,7 +313,6 @@ namespace dht
 							     succ_key, succ_na, status);
 	     if (err == DHT_ERR_UNKNOWN_PEER)
 	       err = _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
-								    getIdKey(),getNetAddress(),
 								    nodeKey, dkres, na, 
 								    succ_key, succ_na, status);
 	     
@@ -349,7 +347,6 @@ namespace dht
 			    if (err == DHT_ERR_UNKNOWN_PEER)
 			      err = _pnode->_l1_client->RPC_findClosestPredecessor(past_loc->getDHTKey(),
 										   past_loc->getNetAddress(),
-										   getIdKey(),getNetAddress(),
 										   recipientKey,dkres,na,
 										   succ_key,succ_na,status);
 			 }
@@ -418,7 +415,7 @@ namespace dht
 		   */
 		  dht_err loc_err = _pnode->getSuccessor_cb(dkres,succ_key,succ_na,status);
 		  if (loc_err == DHT_ERR_UNKNOWN_PEER)
-		    _pnode->_l1_client->RPC_getSuccessor(dkres, na, getIdKey(), getNetAddress(), 
+		    _pnode->_l1_client->RPC_getSuccessor(dkres, na,
 							 succ_key, succ_na, status);
 		  
 		  if ((dht_err)status != DHT_ERR_OK)
@@ -475,7 +472,6 @@ namespace dht
 	     // let's ping that node.
 	     status = DHT_ERR_OK;
 	     dht_err err = _pnode->_l1_client->RPC_ping(recipientKey,na,
-							getIdKey(),getNetAddress(),
 							status);
 	     if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
 	       {

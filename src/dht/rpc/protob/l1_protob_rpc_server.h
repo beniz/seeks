@@ -48,15 +48,11 @@ namespace dht
 	/*- l1 interface. -*/
 	virtual dht_err RPC_getSuccessor_cb(const DHTKey& recipientKey,
 					    const NetAddress &recipient,
-					    const DHTKey& senderKey,
-					    const NetAddress& senderAddress,
 					    DHTKey& dkres, NetAddress& na,
 					    int& status);
 	
 	virtual dht_err RPC_getPredecessor_cb(const DHTKey& recipientKey,
 					      const NetAddress &recipient,
-					      const DHTKey& senderKey,
-					      const NetAddress& senderAddress,
 					      DHTKey& dkres, NetAddress& na,
 					      int& status);
 	
@@ -68,16 +64,12 @@ namespace dht
 	
 	virtual dht_err RPC_getSuccList_cb(const DHTKey& recipientKey,
 					   const NetAddress &recipient,
-					   const DHTKey& senderKey,
-					   const NetAddress& senderAddress,
 					   std::list<DHTKey> &dkres_list, 
 					   std::list<NetAddress> &na_list,
 					   int& status);
 	
 	virtual dht_err RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 						      const NetAddress &recipient,
-						      const DHTKey& senderKey,
-						      const NetAddress& senderAddress,
 						      const DHTKey& nodeKey,
 						      DHTKey& dkres, NetAddress& na,
 						      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
@@ -86,14 +78,11 @@ namespace dht
 	virtual dht_err RPC_joinGetSucc_cb(const DHTKey& recipientKey,
 					   const NetAddress& recipient,
 					   const DHTKey &senderKey,
-					   const NetAddress& senderAddress,
 					   DHTKey& dkres, NetAddress& na,
 					   int& status);
      
 	virtual dht_err RPC_ping_cb(const DHTKey& recipientKey,
 				    const NetAddress &recipient,
-				    const DHTKey& senderKey,
-				    const NetAddress& senderAddress,
 				    int& status);
      };
    

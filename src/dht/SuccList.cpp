@@ -98,7 +98,6 @@ namespace dht
 	dht_err loc_err = _vnode->getPNode()->getSuccList_cb(*dk_succ,dkres_list,na_list,status);
 	if (loc_err == DHT_ERR_UNKNOWN_PEER)
 	  _vnode->getPNode()->_l1_client->RPC_getSuccList(*dk_succ, loc_succ->getNetAddress(),
-							  _vnode->getIdKey(), _vnode->getNetAddress(),
 							  dkres_list, na_list, status);
 	
 	/** 

@@ -33,10 +33,18 @@ namespace dht
 #define hash_l1_client_timeout                            1673776173ul  /* "l1-client-timeout" */
 #define hash_bootstrap_node                               1741523628ul  /* "bootstrap-node" */
 #define hash_max_hops                                     1040979360ul  /* "max-hops" */
+#define hash_succlist_size                                2998048309ul  /* "succlist-size" */
+#define hash_routing                                      2057335831ul  /* "routing" */
    
    dht_configuration::dht_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
+	  //debug
+	  std::cerr << "[Debug]:dht_configuration: reading configuration file...\n";
+	  //debug
+	  
+	  errlog::log_error(LOG_LEVEL_DHT, "reading DHT configuration file %s", filename.c_str());
+	  
 	  load_config();
        }
    
@@ -48,19 +56,16 @@ namespace dht
      {
 	_nvnodes = 32; // 32 vnodes by default.
 	_l1_port = 8231;  // the 8200 range by default.
-	_l1_server_max_msg_bytes = 8192; // 1Kb for now.
+	_l1_server_max_msg_bytes = 1024; // 1Kb for now.
 	_l1_client_timeout = 5; // 5 seconds.
 	_max_hops = 12; // 12 hops ~ l(100000).
+	_succlist_size = 10; // XXX: in the future, should be reset dynamically w.r.t. estimated number of nodes on the ring.
+	_routing = true; // XXX: in stable releases, routing will be set to false.
      }
    
    void dht_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
 					     char *buf, const unsigned long &linenum)
      {
-	//debug
-	std::cerr << "[Debug]:dht_configuration: reading configuration file...\n";
-	//debug
-	//TODO: errlog.
-	
 	int vec_count;
 	char *vec[3];
 	char tmp[BUFFER_SIZE];
@@ -119,6 +124,18 @@ namespace dht
 	     _max_hops = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Sets the maximum number of hops when finding a route around the circle");
+	     break;
+	     
+	   case hash_succlist_size:
+	     _succlist_size = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets the maximum size of the successor list.");
+	     break;
+	     
+	   case hash_routing:
+	     _routing = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Whether all virtual nodes are active or spectators (safe with TOR)");
 	     break;
 	     
 	   default:

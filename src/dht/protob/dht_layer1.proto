@@ -28,7 +28,7 @@ message dht_key
 message vnodeid
 {
  required dht_key key = 1;  		/* 160bit node key. */
- required net_address addr = 2; 	/* node's net address. */
+ optional net_address addr = 2; 	/* node's net address. */
 }
 
 /* node list. */
@@ -42,7 +42,7 @@ message l1_query
 {
  required header head = 1; 		/* message head. */
  required vnodeid recipient = 2;	/* message recipient. */
- required vnodeid sender = 3; 		/* sender id. */
+ optional vnodeid sender = 3; 		/* sender id. */
  optional dht_key lookedup_key = 4;	/* node's key we're looking after. */
 }
 

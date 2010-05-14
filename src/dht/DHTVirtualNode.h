@@ -46,7 +46,6 @@ namespace dht
 {
    
    class Location;
-   //class LocationTable;
    class Stabilizer;
    class FingerTable;
    class DHTNode;
@@ -103,7 +102,7 @@ namespace dht
 	/**
 	 * \brief this virtual node is being pinged from the outside world.
 	 */
-	dht_err ping(const DHTKey &senderKey, const NetAddress &senderAddress);
+	dht_err ping();
 	
 	/**---------------------------------------**/
 	

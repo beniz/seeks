@@ -507,14 +507,14 @@ const char* errlog::get_log_level_string(int loglevel)
       case LOG_LEVEL_REDIRECTS:
 	log_level_string = "Redirect";
 	break;
-      case LOG_LEVEL_DEANIMATE:
-	log_level_string = "Gif-Deanimate";
-	break;
       case LOG_LEVEL_CRUNCH:
 	log_level_string = "Crunch";
 	break;
       case LOG_LEVEL_CGI:
 	log_level_string = "CGI";
+	break;
+      case LOG_LEVEL_DHT:
+	log_level_string = "DHT";
 	break;
       default:
 	log_level_string = "Unknown log level";

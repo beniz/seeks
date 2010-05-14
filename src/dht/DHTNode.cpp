@@ -65,7 +65,7 @@ namespace dht
 #endif
 			
 	//debug
-	std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
+	//std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
 	//debug
 	
 	if (!DHTNode::_dht_config)
@@ -82,9 +82,8 @@ namespace dht
 	 */
 	_stabilizer = new Stabilizer();
 	
-	//SuccList::_max_list_size = DHTNode::_dht_config->_nvnodes-1;
-	SuccList::_max_list_size = 5; // adhoc default...
-		
+	SuccList::_max_list_size = DHTNode::_dht_config->_succlist_size;
+	
 	/**
 	 * create the virtual nodes.
 	 * Persistance of vnodes and associated location tables works as follows:
@@ -416,6 +415,7 @@ namespace dht
 
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
      {
+	vnode_keys_ord.reserve(_vnodes.size());
 	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator vit
 	  = _vnodes.begin();
 	while(vit!=_vnodes.end())
@@ -753,8 +753,6 @@ namespace dht
      }
 
    dht_err DHTNode::ping_cb(const DHTKey& recipientKey,
-			    const DHTKey& senderKey,
-			    const NetAddress& senderAddress,
 			    int& status)
      {
 	status = DHT_ERR_OK;
@@ -772,7 +770,7 @@ namespace dht
 	/**
 	 * ping this virtual node.
 	 */
-	dht_err err = vnode->ping(senderKey, senderAddress);
+	dht_err err = vnode->ping();
 	
 	status = err;
 	return err;

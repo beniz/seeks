@@ -83,12 +83,12 @@ namespace dht
 	/**
 	 * ip or dns address.
 	 */
-	std::string _net_address; // TODO: 32bit.
+	std::string _net_address;
 	
 	/**
 	 * communication port.
 	 */
-	short _port;  // TODO: 16bit.
+	short _port;
      };
    
 } /* end of namespace. */
