@@ -111,7 +111,7 @@ namespace dht
 	     // debug
 	     
 	     spsockets::close_socket(udp_sock); // beware.
-	     errlog::log_error(LOG_LEVEL_INFO,"Error creating rpc_client socket");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error creating rpc_client socket");
 	     throw rpc_client_socket_error_exception();
 	  }
 	
