@@ -52,7 +52,7 @@ namespace dht
 			 const NetAddress& senderAddress,
 			 l1::l1_response *l1r);
 	
-	dht_err RPC_call(l1::l1_query *l1q,
+	dht_err RPC_call(l1::l1_query *&l1q,
 			 const NetAddress &recipient,
 			 l1::l1_response *l1r);
 	

@@ -72,7 +72,7 @@ namespace dht
 	return RPC_call(l1q,recipient,l1r);
      }
    
-   dht_err l1_protob_rpc_client::RPC_call(l1::l1_query *l1q,
+   dht_err l1_protob_rpc_client::RPC_call(l1::l1_query *&l1q,
 					  const NetAddress &recipient,
 					  l1::l1_response *l1r)
      {
@@ -87,24 +87,16 @@ namespace dht
 		
 	if (err != DHT_ERR_OK)
 	  {
-	     delete l1q;
-	     l1q = NULL;
 	     return err;
 	  }
 	
-	//debug
-	/* std::cerr << "[Debug]:l1_protob_rpc_client: trying to deserialize response\n";
-	 std::cerr << "response size: " << resp_str.size() << std::endl; */
-	//debug
-	  
 	// deserialize response.
 	try 
 	  {
-	     l1_protob_wrapper::deserialize(resp_str,l1r); // TODO: catch exception.
+	     l1_protob_wrapper::deserialize(resp_str,l1r);
 	  }
 	catch (l1_fail_deserialize_exception &e)
 	  {
-	     std::cerr << "response deserialization error\n";
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l1 error: %s",e.what().c_str());
 	     return DHT_ERR_NETWORK;
 	  }
@@ -147,8 +139,8 @@ namespace dht
 	  }
 	
 	// handle the response.
-     	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+     	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status,
 						  dkres,na);
 	status = error_status; // remote error status.
 	delete l1r;
@@ -192,8 +184,8 @@ namespace dht
 	  }
 		
 	// handle the response.
-	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status,
 						  dkres,na);
 	status = error_status;
 	delete l1r;
@@ -239,8 +231,8 @@ namespace dht
 	  }
 	
 	// handle the response.
-	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status);
 	status = error_status;
 	delete l1r;
 	return err;
@@ -282,8 +274,8 @@ namespace dht
 	  }
 	
 	/// handle the response.
-	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status,
 						  dkres_list,na_list);
 	status = error_status; // remote error status.
 	delete l1r;
@@ -330,8 +322,8 @@ namespace dht
 	  }
 		
 	// handle the response.
-	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status,
 						  dkres,na,
 						  dkres_succ,dkres_succ_na);
 	status = error_status;
@@ -380,8 +372,8 @@ namespace dht
 	  }
 	
 	// handle the response.
-	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status,
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status,
 						  dkres,na);
 	status = error_status;
 	delete l1r;
@@ -424,8 +416,8 @@ namespace dht
 	  }
 	
 	// handle the response.
-	uint32_t layer_id, error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,layer_id,error_status);
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status);
 	status = error_status;
 	delete l1r;
 	return err;

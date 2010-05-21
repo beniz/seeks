@@ -21,6 +21,7 @@
 #include "rpc_client.h"
 #include "DHTNode.h"
 #include "spsockets.h"
+#include "miscutil.h"
 #include "errlog.h"
 
 #include <sys/types.h>
@@ -31,9 +32,13 @@
 #include <netdb.h>
 
 #include <pthread.h>
+
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
 
 using sp::spsockets;
+using sp::miscutil;
 using sp::errlog;
 
 namespace dht
@@ -102,14 +107,26 @@ namespace dht
 				   const bool &need_response,
 				   std::string &response)
      {
+	std::string port_str = miscutil::to_string(server_na.getPort());
+	struct addrinfo hints;
+	struct addrinfo *result = NULL;
+	std::memset(&hints,0,sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM; // udp.
+	hints.ai_flags = AI_ADDRCONFIG | AI_NUMERICSERV; /* avoid service look-up */
+	
+	int err = 0;
+	if ((err = getaddrinfo(server_na.getNetAddress().c_str(),port_str.c_str(),&hints,&result)))
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT, "Cannot resolve %s: %s", server_na.getNetAddress().c_str(),
+			       gai_strerror(err));
+	     return err;
+	  }
+		
 	// create socket.
 	int udp_sock = socket(AF_INET,SOCK_DGRAM,0);
 	if (udp_sock < 0)
 	  {
-	     // debug
-	     std::cout << "Error creating rpc_client socket\n";
-	     // debug
-	     
 	     spsockets::close_socket(udp_sock); // beware.
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error creating rpc_client socket");
 	     throw rpc_client_socket_error_exception();
@@ -120,18 +137,14 @@ namespace dht
 	struct hostent *hp = gethostbyname(server_na.getNetAddress().c_str());
 	if (hp == 0)
 	  {
-	     //debug
-	     //std::cout << "Unknown host for rpc_client " << server_na.getNetAddress() << std::endl;
-	     //debug
-	     
 	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Unknown host for rpc_client %s", server_na.getNetAddress().c_str());
 	     throw rpc_client_host_error_exception(server_na.getNetAddress());
 	  }
 		
-	bcopy((char*)hp->h_addr,(char*)&server.sin_addr,hp->h_length);
+	/* bcopy((char*)hp->h_addr,(char*)&server.sin_addr,hp->h_length);
 	server.sin_port = htons(server_na.getPort());
-	int length = sizeof(struct sockaddr_in);
+	int length = sizeof(struct sockaddr_in); */
 	char msg_str[msg.length()+1];
 	for (size_t i=0;i<msg.length();i++)
 	  msg_str[i] = msg[i];
@@ -143,15 +156,32 @@ namespace dht
 	//debug
 	
 	// send the message.
-	int n = sendto(udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&server,length);
-	if (n<0)
+	bool sent = false;
+	struct addrinfo *rp;
+	for (rp=result; rp!=NULL; rp=rp->ai_next)
+	  {
+	     //int n = sendto(udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&server,length);
+	     int n = sendto(udp_sock,msg_str,sizeof(msg_str),0,rp->ai_addr,rp->ai_addrlen);
+	     if (n<0)
+	       {
+		  // try next entry until no more.
+	       }
+	       else 
+	       {
+		  sent = true;
+		  break;
+	       }
+	  }
+	
+	if (!sent)
 	  {
 	     response.clear();
+	     freeaddrinfo(result);
 	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error sending rpc_client msg");
 	     throw rpc_client_sending_error_exception();
 	  }
-		
+	
 	// receive message, if necessary.
 	if (!need_response)
 	  {
@@ -189,7 +219,8 @@ namespace dht
 	size_t buflen = 1024;
 	char buf[buflen];
 	struct sockaddr_in from;
-	n = recvfrom(udp_sock,buf,buflen,0,(struct sockaddr*)&from,(socklen_t*)&length);
+	int length = sizeof(struct sockaddr_in);
+	int n = recvfrom(udp_sock,buf,buflen,0,(struct sockaddr*)&from,(socklen_t*)&length);
 	if (n<0)
 	  {
 	     response.clear();

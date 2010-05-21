@@ -21,6 +21,7 @@
 #include "rpc_server.h"
 #include "spsockets.h"
 #include "DHTNode.h" // for accessing dht_config.
+#include "miscutil.h"
 #include "errlog.h"
 
 #include <sys/types.h>
@@ -31,9 +32,12 @@
 #include <strings.h>
 #include <errno.h>
 
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 using sp::errlog;
+using sp::miscutil;
 using sp::spsockets;
 
 namespace dht
@@ -49,59 +53,76 @@ namespace dht
    
    dht_err rpc_server::run()
      {
+	// resolve hostname.
+	std::string port_str = miscutil::to_string(_na.getPort());
+	struct addrinfo hints;
+	struct addrinfo *result = NULL;
+	std::memset(&hints,0,sizeof(struct addrinfo));
+	if (!miscutil::strcmpic(_na.getNetAddress().c_str(),"localhost"))
+	  hints.ai_family = AF_INET;
+	else hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM; // udp.
+	hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+	hints.ai_protocol = 0;
+	hints.ai_canonname = NULL;
+	hints.ai_addr = NULL;
+	hints.ai_next = NULL;
+	
+	int err = 0;
+	if ((err = getaddrinfo(_na.getNetAddress().c_str(),port_str.c_str(),&hints,&result)))
+	  {
+	     errlog::log_error(LOG_LEVEL_FATAL, "Cannot resolve %s: %s", _na.getNetAddress().c_str(),
+			       gai_strerror(err));
+	     return err;
+	  }
+	
 	// create socket.
 	int udp_sock = socket(AF_INET,SOCK_DGRAM,0);
 	
-	struct sockaddr_in server;
-	size_t length = sizeof(server);
-	bzero(&server,length);
-	server.sin_family = AF_INET; // beware, should do AF_INET6 also.
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(_na.getPort());
-	
 	// bind socket.
-	int bind_error = bind(udp_sock,(struct sockaddr*)&server,length);
-	if (bind_error < 0)
+	bool bindb = false;
+	struct addrinfo *rp;
+	for (rp=result; rp!=NULL; rp=rp->ai_next)
 	  {
-#ifdef _WIN32
-	     errno = WSAGetLastError();
-	     if (errno == WSAEADDRINUSE)
-#else
-	       if (errno == EADDRINUSE)
-#endif
-		 {
-		    spsockets::close_socket(udp_sock);
-		    
-		    //debug
-		    std::cout << "rpc_server, can't bind to " << _na.getNetAddress().c_str()
-		      << ":" << _na.getPort() << std::endl;
-		    //debug
-		    
-		    errlog::log_error(LOG_LEVEL_FATAL, "rpc_server: can't bind to %s:%d: "
-				      "There may be some other server running on port %d",
-				      _na.getNetAddress().c_str(),
-				      _na.getPort(), _na.getPort());
-		    // TODO: throw exception instead.
-		    return(-3);
-		 }
-	     else
+	     int bind_error = bind(udp_sock,rp->ai_addr,rp->ai_addrlen);
+	     
+	     if (bind_error < 0)
 	       {
-		  spsockets::close_socket(udp_sock);
-		  
-		  //debug
-		  std::cout << "rpc_server, can't bind to " << _na.getNetAddress().c_str()
-		    << ":" << _na.getPort() << std::endl;
-		  //debug
-		  
-		  errlog::log_error(LOG_LEVEL_FATAL, "can't bind to %s:%d: %E",
-				    _na.getNetAddress().c_str(), _na.getPort());
-		  // TODO: throw exception instead.
-		  return(-1);
+#ifdef _WIN32
+		  errno = WSAGetLastError();
+		  if (errno == WSAEADDRINUSE)
+#else
+		    if (errno == EADDRINUSE)
+#endif
+		      {
+			 freeaddrinfo(result);
+			 spsockets::close_socket(udp_sock);
+			 errlog::log_error(LOG_LEVEL_FATAL, "rpc_server: can't bind to %s:%d: "
+					   "There may be some other server running on port %d",
+					   _na.getNetAddress().c_str(),
+					   _na.getPort(), _na.getPort());
+			 // TODO: throw exception.
+			 return(-3);
+		      }
+	       }
+	     else 
+	       {
+		  bindb = true;
+		  break;
 	       }
 	  }
 	
+	if (!bindb)
+	  {
+	     freeaddrinfo(result);
+	     spsockets::close_socket(udp_sock);
+	     errlog::log_error(LOG_LEVEL_FATAL, "can't bind to %s:%d: %E",
+			       _na.getNetAddress().c_str(), _na.getPort());
+	     //TODO: throw exception.
+	  }
+		
 	// get messages, one by one.
-	size_t buflen = DHTNode::_dht_config->_l1_server_max_msg_bytes;
+	size_t buflen = DHTNode::_dht_config->_l1_server_max_msg_bytes;  //TODO: of transient l2 messages!
 	char buf[buflen];
 	struct sockaddr_in from;
 	socklen_t fromlen = sizeof(struct sockaddr_in);

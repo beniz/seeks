@@ -36,6 +36,15 @@ namespace dht
 	virtual dht_err serve_response(const std::string &msg,
 				       std::string &resp_msg);
 	
+	virtual void lx_server_response(const uint32_t &fct_id,
+					const DHTKey &recipient_key,
+					const NetAddress &recipient_na,
+					const DHTKey &sender_key,
+					const NetAddress &sender_na,
+					const DHTKey &node_key,
+					int &status,
+					std::string &resp_msg);
+	
 	dht_err execute_callback(const uint32_t &fct_id,
 				 const DHTKey &recipient_key,
 				 const NetAddress &recipient_na,

@@ -46,14 +46,12 @@ namespace dht
 	
 	// deserialize query message.
 	l1::l1_query l1q;
-	
 	try 
 	  {
 	     l1_protob_wrapper::deserialize(msg,&l1q);
 	  }
 	catch (l1_fail_deserialize_exception ex) 
 	  {
-	     std::cerr << "[Debug]: deserialization exception: " << ex.what() << std::endl;
 	     errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
 	     return DHT_ERR_MSG;
 	  }
@@ -68,9 +66,9 @@ namespace dht
 	// check on the layer id.
 	if (layer_id != 1)
 	  {
-	     // XXX: we could communicate something nice back the sender,
-	     // but we won't.
-	     throw rpc_server_wrong_layer_exception();
+	     int status = DHT_ERR_OK;
+	     lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,status,resp_msg);
+	     return DHT_ERR_OK;
 	  }
 	
 	// decides which response to give.
@@ -85,6 +83,20 @@ namespace dht
 	return err;
      }
    
+   void l1_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
+						 const DHTKey &recipient_key,
+						 const NetAddress &recipient_na,
+						 const DHTKey &sender_key,
+						 const NetAddress &sender_na,
+						 const DHTKey &node_key,
+						 int &status,
+						 std::string &resp_msg)
+     {
+	// XXX: we could communicate something nice back the sender,
+	// but we won't.
+	throw rpc_server_wrong_layer_exception();
+     }
+      
    dht_err l1_protob_rpc_server::execute_callback(const uint32_t &fct_id,
 						  const DHTKey &recipient_key,
 						  const NetAddress &recipient_na,
