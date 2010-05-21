@@ -35,26 +35,22 @@ namespace dht
       public:
 	NetAddress();
 	
-      public:
 	NetAddress(const std::string& naddress, const short& port);
 
-	// unserialize constructor.
+	// deserialize constructor.
 	NetAddress(const uint32_t &ip, const std::string &port);
 	
 	NetAddress(const NetAddress &na);
+	
+	~NetAddress() {};
 	
 	std::string getNetAddress() const { return _net_address; }
 	short getPort() const { return _port; }
 	void setNetAddress(const std::string& naddress) { _net_address = naddress; }
 	void setPort(const short& p) { _port = p; }      
-
+		
 	/**
 	 * \brief converts to a full address string.
-	 * @param protocol is the access 'protocol' to be used, 
-	 *        e.g "http://" or "ftp://", etc...
-	 * @param aend anything to be added to the end of the string,
-	 *        e.g. "/RPC2" for certain RPCs, etc...
-	 * @return a full address as a string, e.g. "http://whereIgo.com/RPC1".
 	 */
 	std::string toString(const std::string& protocol="",
 			     const std::string& aend="") const;
