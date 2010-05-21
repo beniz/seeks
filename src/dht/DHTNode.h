@@ -52,6 +52,11 @@ namespace dht
 	 */
 	void create_vnodes();
 	
+	/**
+	 * init servers.
+	 */
+	virtual void init_server();
+	
 	/*- persistence. -*/
 	/**
 	 * \brief loads table of virtual nodes and location tables from persistent
@@ -203,9 +208,8 @@ namespace dht
 	static dht_configuration *_dht_config;
 	
 	/**
-	 * array of DHT node. TODO: hashtable.
+	 * array of DHT virtual node.
 	 */
-	//TODO: should be made persistent.
 	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
 
 	/**

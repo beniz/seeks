@@ -103,8 +103,7 @@ namespace dht
 	/**
 	 * start rpc client & server.
 	 */
-	_l1_server = new l1_protob_rpc_server(net_addr,net_port,this);
-	_l1_client = new l1_protob_rpc_client();
+	init_server();
 	
 	/**
 	 * run the server in its own thread.
@@ -152,6 +151,12 @@ namespace dht
 	  }
      }
 
+   void DHTNode::init_server()
+     {
+	_l1_server = new l1_protob_rpc_server(_l1_na.getNetAddress(),_l1_na.getPort(),this);
+	_l1_client = new l1_protob_rpc_client();
+     }
+      
    bool DHTNode::load_vnodes_table()
      {
 	std::ifstream ifs;
