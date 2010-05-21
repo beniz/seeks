@@ -63,10 +63,8 @@ namespace dht
 		  l1::dht_key *ldkey = vid->mutable_key();
 		  ldkey->set_key(vdkser_str);
 		  l1::net_address *na = vid->mutable_addr();
-		  uint32_t na_ip_addr = loc->getNetAddress().serialize_ip();
-		  na->set_ip_addr(na_ip_addr);
-		  std::string na_net_port = loc->getNetAddress().serialize_port();
-		  na->set_net_port(na_net_port);
+		  na->set_ip_addr(loc->getNetAddress().getNetAddress());
+		  na->set_net_port(loc->getNetAddress().getPort());
 		  ++lit;
 	       }
 	  }
@@ -112,11 +110,7 @@ namespace dht
 		  DHTKey lvkey = DHTKey::unserialize(ser);
 		  ser.clear();
 		  l1::net_address *vna = vid.mutable_addr();
-		  uint32_t vna_ip_addr = vna->ip_addr();
-		  std::string vna_net_port = vna->net_port();
-		  std::string na_ip_addr = NetAddress::unserialize_ip(vna_ip_addr);
-		  short na_net_port = NetAddress::unserialize_port(vna_net_port);
-		  NetAddress na = NetAddress(na_ip_addr,na_net_port);
+		  NetAddress na = NetAddress(vna->ip_addr(),vna->net_port());
 		  Location *loc = NULL;
 		  lt->addToLocationTable(lvkey,na,loc);
 		  

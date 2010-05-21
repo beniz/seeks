@@ -58,16 +58,16 @@ namespace dht
       private:
 	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
 					     const std::string &recipient_key,
-					     const uint32_t &recipient_ip_addr,
-					     const std::string &recipient_net_port);
+					     const std::string &recipient_ip_addr,
+					     const short &recipient_net_port);
 	
 	static l1::l1_query* create_l1_query(const uint32_t &fct_id,
 					     const std::string &recipient_key,
-					     const uint32_t &recipient_ip_addr,
-					     const std::string &recipient_net_port,
+					     const std::string &recipient_ip_addr,
+					     const short &recipient_net_port,
 					     const std::string &sender_key,
-					     const uint32_t &sender_ip_addr,
-					     const std::string &sender_net_port);
+					     const std::string &sender_ip_addr,
+					     const short &sender_net_port);
       public:
 	static void serialize_to_string(const l1::l1_query *l1q, std::string &str);
 	
@@ -91,20 +91,20 @@ namespace dht
       private:
 	static l1::l1_response* create_l1_response(const uint32_t &error_status,
 						   const std::list<std::string> &result_key_list,
-						   const std::list<std::pair<uint32_t,std::string> > &result_address_list);
+						   const std::list<std::pair<std::string,uint32_t> > &result_address_list);
 	
-	static l1::l1_response* create_l1_response(const uint32_t error_status,
+	static l1::l1_response* create_l1_response(const uint32_t &error_status,
 						   const std::string &result_key,
-						   const uint32_t &result_ip_addr,
-						   const std::string &result_net_port);
+						   const std::string &result_ip_addr,
+						   const short &result_net_port);
 	
-	static l1::l1_response* create_l1_response(const uint32_t error_status,
+	static l1::l1_response* create_l1_response(const uint32_t &error_status,
 						   const std::string &result_key,
-						   const uint32_t &result_ip_addr,
-						   const std::string &result_net_port,
+						   const std::string &result_ip_addr,
+						   const short &result_net_port,
 						   const std::string &found_key,
-						   const uint32_t &found_ip_addr,
-						   const std::string &found_net_port);
+						   const std::string &found_ip_addr,
+						   const short &found_net_port);
 	
       public:
 	static void serialize_to_string(const l1::l1_response *l1r, std::string &str);
@@ -135,18 +135,17 @@ namespace dht
 				     uint32_t &layer_id,
 				     uint32_t &fct_id,
 				     std::string &recipient_key,
-				     uint32_t &recipient_ip_addr,
-				     std::string &recipient_net_port,
+				     std::string &recipient_ip_addr,
+				     uint32_t &recipient_net_port,
 				     std::string &sender_key,
-				     uint32_t &sender_ip_addr,
-				     std::string &sender_net_port);
+				     std::string &sender_ip_addr,
+				     uint32_t &sender_net_port);
       public:
 	static void deserialize(const std::string &str, l1::l1_query *l1q);
      
 	// responses.
       public:
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status,
 					DHTKey &resultKey,
 					NetAddress &resultAddress,
@@ -154,44 +153,38 @@ namespace dht
 					NetAddress &foundAddress);
 	
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status,
 					DHTKey &resultKey,
 					NetAddress &resultAddress);
 	
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status,
 					std::list<DHTKey> &dkres_list,
 					std::list<NetAddress> &na_list);
 	
       private:
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status,
 					std::list<std::string> &result_key_list,
-					std::list<std::pair<uint32_t,std::string> > &result_address_list);
+					std::list<std::pair<std::string,uint32_t> > &result_address_list);
 	
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status,
 					std::string &result_key,
-					uint32_t &result_ip_addr,
-					std::string &result_net_port,
+					std::string &result_ip_addr,
+					uint32_t &result_net_port,
 					std::string &found_key,
-					uint32_t &found_ip_addr,
-					std::string &found_net_port);
+					std::string &found_ip_addr,
+					uint32_t &found_net_port);
    
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status,
 					std::string &result_key,
-					uint32_t &result_ip_addr,
-					std::string &result_net_port);
+					std::string &result_ip_addr,
+					uint32_t &result_net_port);
 	
       public:
 	static dht_err read_l1_response(const l1::l1_response *l1r,
-					uint32_t &layer_id,
 					uint32_t &error_status);
 	
       public:
@@ -205,7 +198,7 @@ namespace dht
 	l1_fail_serialize_exception()
 	  :dht_exception()
 	    {
-	       _message = "failed serialization of message";
+	       _message = "failed serialization of l1 message";
 	    };
 	virtual ~l1_fail_serialize_exception() {};
      };
@@ -216,7 +209,7 @@ namespace dht
 	l1_fail_deserialize_exception()
 	  :dht_exception()
 	    {
-	       _message = "failed deserialization of message";
+	       _message = "failed deserialization of l1 message";
 	    };
 	virtual ~l1_fail_deserialize_exception() {};
      };
