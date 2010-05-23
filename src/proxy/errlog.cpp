@@ -507,8 +507,8 @@ const char* errlog::get_log_level_string(int loglevel)
       case LOG_LEVEL_REDIRECTS:
 	log_level_string = "Redirect";
 	break;
-      case LOG_LEVEL_DEANIMATE:
-	log_level_string = "Gif-Deanimate";
+      case LOG_LEVEL_PARSER:
+	log_level_string = "Parser";
 	break;
       case LOG_LEVEL_CRUNCH:
 	log_level_string = "Crunch";
