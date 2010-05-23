@@ -87,6 +87,9 @@ namespace seeks_plugins
       
    void oskmeans::kmeans_pp()
      {
+	if (_snippets.empty())
+	  return;
+	
 	size_t npts = _points.size();
 	
 	bool centroids[npts];
@@ -213,6 +216,9 @@ namespace seeks_plugins
      {
 	// initialize.
 	initialize(); 
+	
+	if (_snippets.empty())
+	  return;
 	
 	// clustering.
 	while(!stopping_criterion())

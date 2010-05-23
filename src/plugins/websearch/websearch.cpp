@@ -79,6 +79,8 @@ namespace seeks_plugins
 	  search_snippet::load_patterns();
 	  
 	  // cgi dispatchers.
+	  _cgi_dispatchers.reserve(6);
+	  
 	  cgi_dispatcher *cgid_wb_hp
 	    = new cgi_dispatcher("websearch-hp", &websearch::cgi_websearch_hp, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_wb_hp);
@@ -521,6 +523,24 @@ namespace seeks_plugins
 	       content_handler::fetch_all_snippets_content_and_features(qc);
 	     else content_handler::fetch_all_snippets_summary_and_features(qc);
 	     
+	     if (qc->_cached_snippets.empty())
+	       {
+		  const char *output = miscutil::lookup(parameters,"output");
+		  sp_err err = SP_ERR_OK;
+		  if (!output || strcmp(output,"html")==0)
+		    err = static_renderer::render_result_page_static(qc->_cached_snippets,
+								     csp,rsp,parameters,qc);
+		  else
+		    {
+		       csp->_content_type = CT_JSON;
+		       err = json_renderer::render_json_results(qc->_cached_snippets,
+								csp,rsp,parameters,qc,
+								0.0);
+		    }
+		  qc->_lock = false;
+		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	       }
+	     	     
 	     const char *nclust_str = miscutil::lookup(parameters,"clusters");
 	     int nclust = 2;
 	     if (nclust_str)
