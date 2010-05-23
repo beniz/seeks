@@ -343,8 +343,10 @@ namespace seeks_plugins
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  int &nresults, const query_context *qc)
   {
-    std::vector<std::string> urls;
-    std::vector<std::list<const char*>*> headers;
+     std::vector<std::string> urls;
+     urls.reserve(NSEs);
+     std::vector<std::list<const char*>*> headers;
+     headers.reserve(NSEs);
      
     // config, enabling of SEs.
     for (int i=0;i<NSEs;i++)
@@ -558,7 +560,7 @@ namespace seeks_plugins
 	  {
 	     // get more stuff from the parser.
 	     se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
-	     // suggestions (later on, we expect to do improve this with shared queries).
+	     // XXX: suggestions (later on, we expect to do improve this with shared queries).
 	     if (!se_p_ggle->_suggestion.empty())
 	       args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
 	  }

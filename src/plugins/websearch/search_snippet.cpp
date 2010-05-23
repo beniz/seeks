@@ -101,10 +101,13 @@ namespace seeks_plugins
       
    void search_snippet::highlight_discr(std::string &str)
      {
+	static int max_highlights = 3; // ad-hoc default.
+	
 	if (!_features_tfidf)
 	  return;
 	
 	std::vector<std::string> words;
+	words.reserve(max_highlights);
 	std::map<float,uint32_t,std::greater<float> > f_tfidf;
 	
 	// sort features in decreasing tf-idf order.
@@ -116,7 +119,6 @@ namespace seeks_plugins
 	     ++fit;
 	  }
 	
-	int max_highlights = 3; // ad-hoc default.
 	int i = 0;
 	std::map<float,uint32_t,std::greater<float> >::const_iterator mit = f_tfidf.begin();
 	while(mit!=f_tfidf.end())

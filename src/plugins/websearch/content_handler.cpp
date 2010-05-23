@@ -27,6 +27,7 @@
 
 #include <pthread.h>
 #include <iostream>
+#include <stdexcept>
 
 #include <assert.h>
 
@@ -82,6 +83,7 @@ namespace seeks_plugins
      {
 	size_t nsnippets = qc->_cached_snippets.size();
 	std::vector<std::string*> txt_contents;
+	txt_contents.reserve(nsnippets);
 	for (size_t i=0;i<nsnippets;i++)
 	  {
 	     if (qc->_cached_snippets.at(i)->_summary.empty())
@@ -109,9 +111,11 @@ namespace seeks_plugins
    void content_handler::fetch_all_snippets_content_and_features(query_context *qc)
      {
 	// prepare urls to fetch.
-	std::vector<std::string> urls;
-	std::vector<search_snippet*> snippets;
 	size_t ns = qc->_cached_snippets.size();
+	std::vector<std::string> urls;
+	urls.reserve(ns);
+	std::vector<search_snippet*> snippets;
+	snippets.reserve(ns);
 	for (size_t i=0;i<ns;i++)
 	  {
 	     search_snippet *sp = qc->_cached_snippets.at(i);
@@ -143,7 +147,9 @@ namespace seeks_plugins
 	
 	// compute features.
 	std::vector<search_snippet*> sps;
+	sps.reserve(nurls);
 	std::vector<std::string*> valid_contents;
+	valid_contents.reserve(nurls);
 	for (size_t i=0;i<nurls;i++)
 	  if (!txt_contents[i].empty())
 	    {
@@ -248,8 +254,18 @@ namespace seeks_plugins
 	// XXX: limit to the number of threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
-	     hash_map<uint32_t,float,id_hash_uint> *vf = sps[i]->_features_tfidf;
-	     hash_map<uint32_t,std::string,id_hash_uint> *bow = sps[i]->_bag_of_words;
+	     hash_map<uint32_t,float,id_hash_uint> *vf = NULL;
+	     hash_map<uint32_t,std::string,id_hash_uint> *bow = NULL;
+	     try
+	       {
+		  vf = sps[i]->_features_tfidf;
+		  bow = sps[i]->_bag_of_words;
+	       }
+	     catch(std::out_of_range &oor)
+	       {
+		  break;
+	       }
+	     
 	     if (vf)
 	       {
 		  delete sps[i]->_features_tfidf;
@@ -292,6 +308,7 @@ namespace seeks_plugins
 	
 	// join threads.
 	std::vector<hash_map<uint32_t,float,id_hash_uint>*> bags;
+	bags.reserve(ncontents);
 	for (size_t i=0;i<ncontents;i++)
 	  {
 	     if (feature_threads[i] != 0)
@@ -327,7 +344,16 @@ namespace seeks_plugins
 	// XXX: limits the number of threads.
 	for  (size_t i=0;i<ncontents;i++)
 	  {
-	     std::vector<uint32_t> *vf = sps[i]->_features;
+	     std::vector<uint32_t> *vf = NULL;
+	     try
+	       {
+		  vf = sps[i]->_features;
+	       }
+	     catch(std::out_of_range &oor)
+	       {
+		  break;
+	       }
+	     
 	     if (!vf)
 	       {
 		  vf = new std::vector<uint32_t>();
@@ -510,8 +536,10 @@ namespace seeks_plugins
 	  }
 	
 	std::vector<search_snippet*> sps;
+	sps.reserve(2);
 	sps.push_back(sp1);sps.push_back(sp2);
 	std::vector<std::string*> valid_content;
+	valid_content.reserve(2);
 	valid_content.push_back(&txt_contents[0]);
 	valid_content.push_back(&txt_contents[1]);
 	content_handler::extract_features_from_snippets(qc,valid_content,sps);

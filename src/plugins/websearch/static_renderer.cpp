@@ -194,6 +194,7 @@ namespace seeks_plugins
 	       }
 	     
 	     std::vector<search_snippet*> snippets;
+	     snippets.reserve(clusters[c]._cpoints.size());
 	     hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit 
 	       = clusters[c]._cpoints.begin();
 	     while(hit!=clusters[c]._cpoints.end())
@@ -637,6 +638,7 @@ namespace seeks_plugins
 	       }
 	  }
 	std::vector<search_snippet*> snippets;
+	snippets.reserve(hsnippets.size());
 	hit = hsnippets.begin();
 	while(hit!=hsnippets.end())
 	  {
