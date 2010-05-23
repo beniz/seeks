@@ -390,6 +390,7 @@ namespace dht
 	       {
 		  if (j >= nv)
 		    j = 0;
+		  vnode->addOrFindToLocationTable(*vnode_keys_ord.at(j),_l1_na);
 		  vnode->_successors._succs.push_back(vnode_keys_ord.at(j));
 		  c++;
 		  j++;
