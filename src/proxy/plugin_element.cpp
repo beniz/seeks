@@ -162,6 +162,7 @@ namespace sp
    void plugin_element::compile_patterns(const std::vector<std::string> &patterns,
 					 std::vector<url_spec*> &c_patterns)
      {
+	c_patterns.reserve(patterns.size());
 	std::vector<std::string>::const_iterator vit;
 	for (vit=patterns.begin();vit!=patterns.end();++vit)
 	  {
