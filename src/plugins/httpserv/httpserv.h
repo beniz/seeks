@@ -60,6 +60,8 @@ namespace seeks_plugins
 				    const std::string &content_type="text/html");
 	
 	/* callbacks. */
+	static void websearch_hp(struct evhttp_request *r, void *arg);
+	static void seeks_hp_css(struct evhttp_request *r, void *arg);
 	static void seeks_search_css(struct evhttp_request *r, void *arg);
 	static void file_service(struct evhttp_request *r, void *arg);
 	static void websearch(struct evhttp_request *r, void *arg);

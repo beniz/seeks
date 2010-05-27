@@ -104,6 +104,8 @@ namespace seeks_plugins
    void httpserv::init_callbacks()
      {
 	evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL);
+	evhttp_set_cb(_srv,"/websearch-hp",&httpserv::websearch_hp,NULL);
+	evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
 	evhttp_set_cb(_srv,"/seeks_search.css",&httpserv::seeks_search_css,NULL);
 	//evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
 	evhttp_set_gencb(_srv,&httpserv::file_service,NULL);
@@ -164,6 +166,46 @@ namespace seeks_plugins
 	evbuffer_free(buffer);
      }
 
+   void httpserv::websearch_hp(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+	
+	/* return requested file. */
+	sp_err serr = websearch::cgi_websearch_hp(&csp,&rsp,&parameters);
+	if (serr != SP_ERR_OK)
+	  {
+	     httpserv::reply_with_empty_body(r,404,"ERROR");
+	     return;
+	  }
+	
+	/* fill up response. */
+	std::string content = std::string(rsp._body);
+	httpserv::reply_with_body(r,200,"OK",content);
+     }
+      
+   void httpserv::seeks_hp_css(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+	
+	/* return requested file. */
+	sp_err serr = websearch::cgi_websearch_search_hp_css(&csp,&rsp,&parameters);
+	if (serr != SP_ERR_OK)
+	  {
+	     httpserv::reply_with_empty_body(r,404,"ERROR");
+	     return;
+	  }
+	
+	/* fill up response. */
+	std::string content = std::string(rsp._body);
+	httpserv::reply_with_body(r,200,"OK",content,"text/css");
+     }
+      
    void httpserv::seeks_search_css(struct evhttp_request *r, void *arg)
      {
 	client_state csp;
