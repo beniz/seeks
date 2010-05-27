@@ -11,10 +11,19 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -Iutils -Ilsh -Iproxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
 
+if HAVE_HTTPSERV_PLUGIN
+AM_CPPFLAGS+=-Iplugins/websearch
+AM_LDFLAGS+=-Lplugins/websearch
+endif
+
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD = -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
+LDADD=
+if HAVE_HTTPSERV_PLUGIN
+LDADD += -lseekswebsearchplugin -levent
+endif
+LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
 if !HAVE_FREEBSD
 LDADD += -ldl
 endif

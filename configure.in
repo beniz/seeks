@@ -325,7 +325,7 @@ fi
 
 #====================================================                                                    
 # This check is incomplete. For mingw32 zlib is found                                                                
-# by configure, but not necessarily by the compiler.                                                                       
+# by configure, but not necessarily by the compiler.
 #====================================================                                         
 AC_ARG_ENABLE(zlib,
 AC_HELP_STRING([--disable-zlib], [Don't use zlib to decompress data before filtering (default is NO)]),
@@ -359,6 +359,107 @@ if test "$_cv_stdtr1mapset" = yes; then
   AC_DEFINE(HAVE_TR1_HASH_MAP,1,"Have tr1 hash map") 
 fi 
 
+#====================================================
+# HTTP server plugin activation.
+#====================================================
+AC_ARG_ENABLE(httpserv-plugin,
+AC_HELP_STRING([--enable-httpserv-plugin],[Enable the Seeks HTTP server plugin (default is NO)]),
+[case "${enableval}" in
+        yes) httpservplugin=true ;;
+	        no) httpservplugin=false ;;
+                        *) AC_MSG_ERROR(bad_value ${enableval} for
+--enable-httpserv-plugin) ;;
+esac],[httpservplugin=false])
+AM_CONDITIONAL(HAVE_HTTPSERV_PLUGIN,test x$httpservplugin = xtrue)
+if test x$httpservplugin = xtrue; then
+   AC_DEFINE(FEATURE_HTTPSERV_PLUGIN,1,"HTTP server plugin available")
+fi
+
+#====================================================
+# libevent detection.
+#====================================================
+trylibeventdir=""
+AC_ARG_WITH(libevent,
+[  --with-libevent=PATH    specify path to libevent installation ],
+[
+        if test "x$withval" != "xno" ; then
+           trylibeventdir=$withval
+        fi
+]
+)
+
+AC_CACHE_CHECK([for libevent], ac_cv_libevent_dir, [
+                    saved_LIBS="$LIBS"
+                    saved_LDFLAGS="$LDFLAGS"
+                    saved_CFLAGS="$CFLAGS"
+                    le_found=no
+                    for ledir in $trylibeventdir "" $prefix /usr ; do
+		    	LDFLAGS="$saved_LDFLAGS"
+						LIBS="$saved_LIBS -levent"
+						# Skip the directory if it isn't there.
+          if test ! -z "$ledir" -a ! -d "$ledir" ; then
+                   continue;
+          fi
+            
+          if test ! -z "$ledir" ; then
+          if test -d "$ledir/lib" ; then
+             LDFLAGS="-L$ledir/lib $LDFLAGS"
+          else
+             LDFLAGS="-L$ledir $LDFLAGS"
+fi
+if test -d "$ledir/include" ; then CPPFLAGS="-I$ledir/include $CFLAGS"
+else CPPFLAGS="-I$ledir $CFLAGS"
+fi
+fi
+
+# attempt to compile and link
+AC_TRY_LINK([
+#include <sys/time.h>
+#include <sys/types.h>
+#include <event.h>
+], [ event_init(); ],
+[ libevent_linked=yes ],
+[ libevent_linked=no ])
+if test $libevent_linked = yes; then
+if test ! -z "$ledir" ; then
+   ac_cv_libevent_dir=$ledir
+else
+   ac_cv_libevent_dir="(system)"
+fi
+   le_found=yes
+   break
+fi
+done
+LIBS="$saved_LIBS"
+LDFLAGS="$saved_LDFLAGS"
+CPPFLAGS="$saved_CPPFLAGS"
+if test $le_found = no ; then
+if test $httpserv-plugin = true ; then
+ AC_MSG_ERROR([libevent not found!
+   You can get it here: http://www.monkey.org/~provos/libevent/
+   If it's already installed, specify its path using --with-libevent=PATH
+ ])
+fi
+fi
+])
+LIBS="$LIBS -levent"
+if test $ac_cv_libevent_dir != "(system)"; then
+   if test -d "$ac_cv_libevent_dir/lib" ; then
+      LDFLAGS="-L$ac_cv_libevent_dir/lib $LDFLAGS"
+      le_libdir="$ac_cv_libevent_dir/lib"
+   else
+      LDFLAGS="-L$ac_cv_libevent_dir $LDFLAGS"
+      le_libdir="$ac_cv_libevent_dir"
+fi
+if test -d "$ac_cv_libevent_dir/include" ; then
+ CPPFLAGS="-I$ac_cv_libevent_dir/include $CPPFLAGS"
+else
+ CPPFLAGS="-I$ac_cv_libevent_dir $CPPFLAGS"
+fi
+fi
+
+AM_CONDITIONAL(HAVE_LIBEVENT,test x$le_found = xtrue)
+
 # connection keep alive
 AC_ARG_ENABLE(keepalive,
 AC_HELP_STRING([--enable-keepalive],[Enable keeping outgoing connections alive (default is NO)]),
@@ -373,6 +474,7 @@ if test x$keepalive = xtrue; then
    AC_DEFINE(FEATURE_CONNECTION_KEEP_ALIVE,1,"Keep outgoing connections alive if possible")
 fi
 
+# extended host patterns.
 AC_ARG_ENABLE(extended-host-patterns,
 AC_HELP_STRING([--enable-extended-host-patterns Allow extended regular expressions in host patterns (default is NO)]),
 [if test $enableval = yes; then
@@ -394,6 +496,7 @@ src/proxy/tests/Makefile \
 src/plugins/Makefile \
 src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
+src/plugins/httpserv/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
