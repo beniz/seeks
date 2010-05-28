@@ -104,6 +104,7 @@ namespace seeks_plugins
    void httpserv::init_callbacks()
      {
 	evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL);
+	evhttp_set_cb(_srv,"/",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/websearch-hp",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
 	evhttp_set_cb(_srv,"/seeks_search.css",&httpserv::seeks_search_css,NULL);
