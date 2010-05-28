@@ -149,7 +149,7 @@ namespace dht
 	     
 	     // message.
 	     errlog::log_error(LOG_LEVEL_DHT, "rpc_server: received a %d bytes datagram from %s", n, addr_buf);
-	     std::string dtg_str = std::string(buf,n-1);
+	     std::string dtg_str = std::string(buf,n);
 	     
 	     // TODO: ACL on incoming calls.
 	     
@@ -171,10 +171,10 @@ namespace dht
 	     //debug
 	     
 	     // send the response back.
-	     char msg_str[resp_msg.length()+1];
+	     char msg_str[resp_msg.length()];
 	     for (size_t i=0;i<resp_msg.length();i++)
 	       msg_str[i] = resp_msg[i];
-	     msg_str[resp_msg.length()] = '\0';
+	     //msg_str[resp_msg.length()] = '\0';
 	     
 	     //debug
 	     //std::cerr << "[Debug]:sending " << sizeof(msg_str) << " bytes\n";

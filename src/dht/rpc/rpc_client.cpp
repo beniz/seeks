@@ -145,10 +145,10 @@ namespace dht
 	/* bcopy((char*)hp->h_addr,(char*)&server.sin_addr,hp->h_length);
 	server.sin_port = htons(server_na.getPort());
 	int length = sizeof(struct sockaddr_in); */
-	char msg_str[msg.length()+1];
+	char msg_str[msg.length()];
 	for (size_t i=0;i<msg.length();i++)
 	  msg_str[i] = msg[i];
-	msg_str[msg.length()] = '\0';
+	//msg_str[msg.length()] = '\0';
 	
 	//debug
 	/* std::cerr << "rpc_client: sending msg of " << sizeof(msg_str) << " bytes...\n";
@@ -234,7 +234,7 @@ namespace dht
 	//std::cerr << "received msg: " << buf << std::endl;
 	//debug
 	
-	response = std::string(buf,n-1);
+	response = std::string(buf,n);
 	
 	//debug
 	//std::cerr << "in rpc_client response size: " << response.size() << std::endl;
