@@ -48,6 +48,11 @@ namespace dht
      :_net_address(na.getNetAddress()),_port(na.getPort())
        {
        }
+
+   bool NetAddress::empty() const
+     {
+	return _net_address.empty();
+     }
       
    std::string NetAddress::toString(const std::string& protocol,
 				    const std::string& aend) const
@@ -92,7 +97,7 @@ namespace dht
      {
 	return na->print(output);
      }
-   
+
    /**
     * serialization.
     */

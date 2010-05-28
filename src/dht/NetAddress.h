@@ -44,6 +44,7 @@ namespace dht
 	
 	~NetAddress() {};
 	
+	bool empty() const;
 	std::string getNetAddress() const { return _net_address; }
 	short getPort() const { return _port; }
 	void setNetAddress(const std::string& naddress) { _net_address = naddress; }
