@@ -63,6 +63,7 @@ namespace seeks_plugins
 	static void websearch_hp(struct evhttp_request *r, void *arg);
 	static void seeks_hp_css(struct evhttp_request *r, void *arg);
 	static void seeks_search_css(struct evhttp_request *r, void *arg);
+	static void opensearch_xml(struct evhttp_request *r, void *arg);
 	static void file_service(struct evhttp_request *r, void *arg);
 	static void websearch(struct evhttp_request *r, void *arg);
 	static void unknown_path(struct evhttp_request *r, void *arg);
