@@ -47,7 +47,8 @@ namespace dht
 						    const DHTKey &recipient_dhtkey,
 						    const NetAddress &recipient_na,
 						    const DHTKey &sender_dhtkey,
-						    const NetAddress &sender_na)
+						    const NetAddress &sender_na,
+						    const DHTKey &node_key)
      {
 	std::vector<unsigned char> dkser = DHTKey::serialize(recipient_dhtkey);
 	std::string recipient_key(dkser.begin(),dkser.end());
@@ -59,6 +60,13 @@ namespace dht
 							       recipient_na.getNetAddress(),recipient_na.getPort(),
 							       sender_key,
 							       sender_na.getNetAddress(),sender_na.getPort());
+	if (node_key.count()>0)
+	  {
+	     std::vector<unsigned char> dkser = DHTKey::serialize(node_key);
+	     std::string node_key_str(dkser.begin(),dkser.end());
+	     l1::dht_key *l1q_node_key = l1q->mutable_lookedup_key();
+	     l1q_node_key->set_key(node_key_str);
+	  }
 	return l1q;
      }
    

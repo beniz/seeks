@@ -66,9 +66,11 @@ namespace dht
 					  l1::l1_response *l1r)
      {
 	// serialize.
+	DHTKey nodeKey;
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
 							       recipientKey,recipient,
-							       senderKey,senderAddress);
+							       senderKey,senderAddress,
+							       nodeKey); // emty nodeKey.
 	return RPC_call(l1q,recipient,l1r);
      }
    
