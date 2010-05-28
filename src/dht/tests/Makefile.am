@@ -9,9 +9,9 @@ grab_mac_SOURCES=grab-mac.cc
 dhtkey_gen_SOURCES=dhtkey-gen.cc
 
 AM_CPPFLAGS=-I../ -I../../utils -I../../lsh -I../../proxy -I../../utils \
-	    -I../rpc -I../rpc/protob -I../protob -Wall -g
+	    -I../rpc -I../rpc/protob -I../protob `pkg-config --cflags protobuf` -Wall -g
 AM_LDFLAGS=-L../ -L../../utils -L../../lsh -L../../proxy -L../../utils \
-	   -L../rpc -L../rpc/protob -L../protob
+	   -L../rpc -L../rpc/protob -L../protob `pkg-config --libs protobuf`
 LDADD=-lseeksdht -lseekslsh -lrmd160 -lseeksutils -lseeksproxy -lseeksplugins \
       -lseekslsh -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lpcre -lpcreposix \
       -lprotobuf -lpthread -lz @CURL_LDADD@ @XML2_LDADD@

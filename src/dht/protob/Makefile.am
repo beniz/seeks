@@ -1,6 +1,7 @@
 lib_LTLIBRARIES=libseeksdhtprotob.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe\
-	    -I../../utils -I../ -I../../proxy -I../../lsh
+	    -I../../utils -I../ -I../../proxy -I../../lsh \
+	    `pkg-config --cflags protobuf`
 libseeksdhtprotob_la_SOURCES=dht_layer1.pb.cc dht_layer1_data.pb.cc \
 		             l1_protob_wrapper.cpp l1_data_protob_wrapper.cpp
 
