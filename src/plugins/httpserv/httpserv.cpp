@@ -328,9 +328,19 @@ namespace seeks_plugins
 	     return;
 	  }
 	
+	/* fill up csp headers. */
+	const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
+	if (rheader)
+	  miscutil::enlist_unique_header(&csp._headers,"accept-language",strdup(rheader));
+	/* rheader = evhttp_find_header(r->input_headers, "host");
+	if (rheader)
+	  miscutil::enlist_unique_header(&csp._headers,"Seeks-Remote-Location",strdup(rheader)); */
+	
 	/* perform websearch. */
 	sp_err serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
 	miscutil::free_map(parameters);
+	miscutil::list_remove_all(&csp._headers);
+	
 	if (serr != SP_ERR_OK)
 	  {
 	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
