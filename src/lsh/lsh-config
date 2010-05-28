@@ -9,7 +9,7 @@ it-stopword-list italianST.txt
 es-stopword-list spanishST.txt
 pt-stopword-list portugueseST.txt
 fi-stopword-list finnishST.txt
-sv-stopword-list swedenST.txt
+sv-stopword-list swedishST.txt
 ar-stopword-list arabicST.txt
 ru-stopword-list russianST.txt
 hu-stopword-list hungarianST.txt
