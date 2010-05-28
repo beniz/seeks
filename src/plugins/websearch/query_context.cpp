@@ -430,7 +430,7 @@ namespace seeks_plugins
 			 {
 			    lang_reg = "en-US"; // default.
 			 }
-		       errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
+		       errlog::log_error(LOG_LEVEL_LOG,"Query language detection: %s",lang_reg.c_str());
 		       return lang_reg;
 		    }
 		  else if (pos != std::string::npos && pos+3<=lang_head.length())
