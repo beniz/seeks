@@ -77,10 +77,11 @@ int main(int argc, char *argv[])
    NetAddress recipient_na("10.0.0.2",8118);
    DHTKey sender_key = DHTKey::randomKey();
    NetAddress sender_na("10.0.0.1",8120);
-
+   DHTKey node_key;
+   
    l1::l1_query* l1q = l1_protob_wrapper::create_l1_query(fct_id,
 							  recipient_key,recipient_na,
-							  sender_key,sender_na);
+							  sender_key,sender_na,node_key);
    std::cout << l1q->DebugString() << std::endl;
    
    std::string str;
