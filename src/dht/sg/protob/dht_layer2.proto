@@ -1,0 +1,20 @@
+package dht.l2;
+
+import "dht_layer1.proto";
+
+/* response to subscription. */
+message l2_subscribe_response
+{
+ required uint32 error_status = 1;       /* response error status. */
+ repeated dht.l1.vnodeid sg_peers = 2;          /* sample of search group peers. */
+}
+
+/* more peers query. */
+message l2_peers_query
+{
+ required dht.l1.header head = 1;              /* message head. */
+ optional uint32 npeers = 2;            /* requested number of peers. */
+ optional uint32 date = 3;              /* reference date. */
+}
+
+/* TODO: data replication. */

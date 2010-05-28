@@ -1,0 +1,17 @@
+package dht.l2.sg;
+
+import "dht_layer1.proto";
+
+/* subscriber. */
+message subscriber
+{
+ required dht.l1.vnodeid = 1; /* subscriber's id & address. */
+ required uint32 join_date = 2; /* when the subscriber did join the group. */
+}
+
+/* search group. */
+message searchgroup
+{
+ required dht.l1.dht_key key = 1; /* group id key. */
+ repeated subscriber subscribers = 2; /* subscribers to this group. */
+}
