@@ -368,24 +368,30 @@ namespace seeks_plugins
    
    void search_snippet::set_url(const std::string &url)
      {
-	const char *url_str = url.c_str();
-	_url = url_str;
+	char *url_str = encode::url_decode(url.c_str());
+	_url = std::string(url_str);
+	free(url_str);
 	std::string surl = urlmatch::strip_url(_url);
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
    void search_snippet::set_url(const char *url)
      {
-	_url = url;
+	char *url_dec = encode::url_decode(url);
+	_url = std::string(url_dec);
+	free(url_dec);
 	std::string surl = urlmatch::strip_url(_url);
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
    void search_snippet::set_cite(const std::string &cite)
      {
+	char *cite_dec = encode::url_decode(cite.c_str());
+	std::string citer = std::string(cite_dec);
+	free(cite_dec);
 	static size_t cite_max_size = 60;
 	std::string host, path;
-	urlmatch::parse_url_host_and_path(cite,host,path);
+	urlmatch::parse_url_host_and_path(citer,host,path);
 	_cite = host + path;
 	if (_cite.length()>cite_max_size)
 	  {
