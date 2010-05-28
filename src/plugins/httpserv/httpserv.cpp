@@ -246,12 +246,19 @@ namespace seeks_plugins
 	     miscutil::add_map_entry(parameters,"file",1,uri_str.c_str(),1);
 	     serr = cgisimple::cgi_plugin_file_server(&csp,&rsp,parameters);
 	  }
-	if (miscutil::strncmpic(uri_str.c_str(),"/public",7)==0)
+	else if (miscutil::strncmpic(uri_str.c_str(),"/public",7)==0)
 	  {
 	     uri_str = uri_str.substr(8);
 	     miscutil::add_map_entry(parameters,"file",1,uri_str.c_str(),1);
 	     serr = cgisimple::cgi_file_server(&csp,&rsp,parameters);
 	  }
+	else if (miscutil::strncmpic(uri_str.c_str(),"/websearch-hp",13)==0) // to catch some errors.
+	  {
+	     miscutil::free_map(parameters);
+	     httpserv::websearch_hp(r,arg);
+	     return;
+	  }
+		
 	// XXX: other services can be routed here.
 	miscutil::free_map(parameters);
 	if (serr != SP_ERR_OK)
