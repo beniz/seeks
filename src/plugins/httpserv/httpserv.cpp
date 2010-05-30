@@ -279,7 +279,12 @@ namespace seeks_plugins
 	     httpserv::websearch_hp(r,arg);
 	     return;
 	  }
-		
+	else if (miscutil::strncmpic(uri_str.c_str(),"/robots.txt",11)==0)
+	  {
+	     miscutil::add_map_entry(parameters,"file",1,uri_str.c_str(),1); // returns public/robots.txt
+	     serr = cgisimple::cgi_file_server(&csp,&rsp,parameters);
+	  }
+	
 	// XXX: other services can be routed here.
 	miscutil::free_map(parameters);
 	if (serr != SP_ERR_OK)
