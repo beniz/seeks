@@ -152,12 +152,13 @@ namespace dht
 	     std::string dtg_str = std::string(buf,n);
 	     
 	     // TODO: ACL on incoming calls.
+	     std::string addr_str = std::string(addr_buf);
 	     
 	     // produce and send a response.
 	     std::string resp_msg;
 	     try
 	       {
-		  serve_response(dtg_str,resp_msg);
+		  serve_response(dtg_str,addr_str,resp_msg);
 	       }
 	     catch (dht_exception ex)
 	       {
@@ -220,6 +221,7 @@ namespace dht
      }
       
    dht_err rpc_server::serve_response(const std::string &msg,
+				      const std::string &addr,
 				      std::string &resp_msg)
      {
 	return DHT_ERR_OK;

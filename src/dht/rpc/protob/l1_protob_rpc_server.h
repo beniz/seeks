@@ -34,6 +34,7 @@ namespace dht
 	~l1_protob_rpc_server();
 	
 	virtual dht_err serve_response(const std::string &msg,
+				       const std::string &addr,
 				       std::string &resp_msg);
 	
 	virtual void lx_server_response(const uint32_t &fct_id,

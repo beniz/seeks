@@ -46,6 +46,7 @@ namespace dht
 	
 	/*- server responses. -*/
 	virtual dht_err serve_response(const std::string &msg,
+				       const std::string &addr,
 				       std::string &resp_msg);
 				       		
       public:

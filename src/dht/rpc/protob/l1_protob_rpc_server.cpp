@@ -23,6 +23,10 @@
 #include "DHTNode.h"
 #include "errlog.h"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 using sp::errlog;
 
 namespace dht
@@ -38,6 +42,7 @@ namespace dht
      }
    
    dht_err l1_protob_rpc_server::serve_response(const std::string &msg,
+						const std::string &addr,
 						std::string &resp_msg)
      {
 	//debug
@@ -71,6 +76,52 @@ namespace dht
 	     return DHT_ERR_OK;
 	  }
 	
+	// check on sender address, if specified, that sender is not lying.
+	if (sender_na.empty())
+	  sender_na = NetAddress(addr,0);
+	else
+	  {
+	     struct addrinfo hints, *result;
+	     memset((char *)&hints, 0, sizeof(hints));
+	     hints.ai_family = AF_UNSPEC;
+	     hints.ai_socktype = SOCK_DGRAM;
+	     hints.ai_flags = AI_ADDRCONFIG; /* avoid service look-up */
+	     int ret = getaddrinfo(sender_na.getNetAddress().c_str(), NULL, &hints, &result);
+	     if (ret != 0)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR,
+				    "Can not resolve %s: %s", sender_na.getNetAddress().c_str(), 
+				    gai_strerror(ret));
+		  sender_na = NetAddress();
+	       }
+	     else
+	       {
+		  bool lying = true;
+		  struct addrinfo *rp;
+		  for (rp = result; rp != NULL; rp = rp->ai_next)
+		    {
+		       struct sockaddr_in *ai_addr = (struct sockaddr_in*)rp->ai_addr;
+		       uint32_t v4_addr = ai_addr->sin_addr.s_addr;
+		       std::string addr_from = NetAddress::unserialize_ip(v4_addr);
+		       
+		       if (addr_from == addr)
+			 {
+			    lying = false;
+			    break;
+			 }
+		    }
+		  if (lying)
+		    {
+		       /**
+			* Seems like the sender is lying on its address.
+			* We still serve it, but we do not use the potentially
+			* fake/lying IP.
+			*/
+		       sender_na = NetAddress();
+		    }
+	       }
+	  }
+		
 	// decides which response to give.
 	int status = DHT_ERR_OK;
 	dht_err err = execute_callback(fct_id,recipient_key,recipient_na,
@@ -279,7 +330,9 @@ namespace dht
 					       const NetAddress& senderAddress,
 					       int& status)
      {
-	return _pnode->notify_cb(recipientKey,senderKey,senderAddress,status);
+	if (senderAddress.empty() || senderAddress.getPort()==0)
+	  return DHT_ERR_ADDRESS_MISMATCH;
+	else return _pnode->notify_cb(recipientKey,senderKey,senderAddress,status);
      }
 
    dht_err l1_protob_rpc_server::RPC_getSuccList_cb(const DHTKey& recipientKey,
