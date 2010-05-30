@@ -320,7 +320,8 @@ namespace seeks_plugins
 	else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = false;
-	     pc->_current_snippet->_cite = _cite;
+	     if (pc->_current_snippet->_cite.empty())
+	       pc->_current_snippet->set_cite(_cite);
 	     _cite = "";
 	     _new_link_flag = false;
 	  }
