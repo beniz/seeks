@@ -347,7 +347,8 @@ namespace dht
 	std::vector<const DHTKey*> vnode_keys_ord;
 	rank_vnodes(vnode_keys_ord);
 	int nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
-		
+	int nvsucclist = std::min(nv-2,DHTNode::_dht_config->_succlist_size-1);
+	
 	for (int i=0;i<nv;i++)
 	  {
 	     const DHTKey *dkey = vnode_keys_ord.at(i);
@@ -386,7 +387,7 @@ namespace dht
 	     
 	     // fill up successor list.
 	     int c = 0;
-	     while(c<nv-2)
+	     while(c<nvsucclist)
 	       {
 		  if (j >= nv)
 		    j = 0;
