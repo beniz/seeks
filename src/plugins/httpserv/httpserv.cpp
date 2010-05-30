@@ -260,6 +260,7 @@ namespace seeks_plugins
 	std::string uri_str = std::string(r->uri);
 	
 	/* XXX: truely, this is a hack, we're routing websearch file service. */
+	std::string ct;  // content-type.
 	sp_err serr = SP_ERR_OK;
 	if (miscutil::strncmpic(uri_str.c_str(),"/plugins",8)==0)
 	  {
@@ -283,6 +284,7 @@ namespace seeks_plugins
 	  {
 	     miscutil::add_map_entry(parameters,"file",1,uri_str.c_str(),1); // returns public/robots.txt
 	     serr = cgisimple::cgi_file_server(&csp,&rsp,parameters);
+	     ct = "text/plain";
 	  }
 	
 	// XXX: other services can be routed here.
@@ -294,17 +296,19 @@ namespace seeks_plugins
 	  }
 	
 	/* fill up response. */
-	std::string ct; // content-type.
-	std::list<const char*>::const_iterator lit = rsp._headers.begin();
-	while(lit!=rsp._headers.end())
+	if (ct.empty())
 	  {
-	     if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+	     std::list<const char*>::const_iterator lit = rsp._headers.begin();
+	     while(lit!=rsp._headers.end())
 	       {
-		  ct = std::string((*lit));
-		  ct = ct.substr(14);
-		  break;
+		  if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+		    {
+		       ct = std::string((*lit));
+		       ct = ct.substr(14);
+		       break;
+		    }
+		  ++lit;
 	       }
-	     ++lit;
 	  }
 	std::string content = std::string(rsp._body,rsp._content_length);
 	httpserv::reply_with_body(r,200,"OK",content,ct);
