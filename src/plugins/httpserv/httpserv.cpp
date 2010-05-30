@@ -370,7 +370,9 @@ namespace seeks_plugins
 	       }
 	     ++lit;
 	  }
-	std::string content = std::string(rsp._body); // XXX: beware of length.
+	std::string content;
+	if (rsp._body)
+	  content = std::string(rsp._body); // XXX: beware of length.
 	httpserv::reply_with_body(r,200,"OK",content,ct);
      }
    
