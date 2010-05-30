@@ -461,8 +461,11 @@ namespace seeks_plugins
 	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
 	     
 	     if (!ref_sp)
-	       return SP_ERR_OK;
-	     
+	       {
+		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  return SP_ERR_OK;
+	       }
+	     	     
 	     const char *output = miscutil::lookup(parameters,"output");
 	     sp_err err = SP_ERR_OK;
 	     if (!output || strcmp(output,"html")==0)
