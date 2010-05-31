@@ -36,7 +36,6 @@
 #include <pthread.h>
 #include <algorithm>
 #include <iterator>
-#include <bitset>
 #include <iostream>
 
 using namespace sp;
@@ -264,19 +263,19 @@ namespace seeks_plugins
      }
       
    /*- se_handler. -*/
-   std::string se_handler::_se_strings[NSEs] =
+   std::string se_handler::_se_strings[NSEs] =  // in alphabetical order.
     {
-      // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
-      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
-      // cuil: www.cuil.com/search?q=markov+chain&lang=en
-      "http://www.cuil.com/search?q=%query",
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
+      // cuil: www.cuil.com/search?q=markov+chain&lang=en
+      "http://www.cuil.com/search?q=%query",
+      // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
+      "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start",
+      // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
+      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
       // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
       //"http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
       "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
-      // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
-      "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
     };
 
    se_ggle se_handler::_ggle = se_ggle();
@@ -341,26 +340,48 @@ namespace seeks_plugins
       
   /*-- queries to the search engines. */  
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults, const query_context *qc)
+					  int &nresults, const query_context *qc, std::bitset<NSEs> &se_enabled)
   {
      std::vector<std::string> urls;
      urls.reserve(NSEs);
      std::vector<std::list<const char*>*> headers;
      headers.reserve(NSEs);
-     
-    // config, enabling of SEs.
-    for (int i=0;i<NSEs;i++)
-      {
-	 if (websearch::_wconfig->_se_enabled[i])
-	  {
-	     std::string url;
-	     std::list<const char*> *lheaders = NULL;
-	     se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
-	     urls.push_back(url);
-	     headers.push_back(lheaders);
-	  }
-      }
-    
+
+     // check whether we do have a request for search engines.
+     const char *engines = miscutil::lookup(parameters,"engines");
+     if (engines)
+       {
+	  std::string engines_str = std::string(engines);
+	  std::vector<std::string> vec_engines;
+	  miscutil::tokenize(engines_str,vec_engines,",");
+	  std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());	  
+	  int me = std::min((int)vec_engines.size(),NSEs); // acts as a protection to bogus parameter lines.
+	  for (int i=0;i<me;i++) 
+	    {
+	       std::string url;
+	       std::list<const char*> *lheaders = NULL;
+	       se_handler::query_to_se(parameters,vec_engines.at(i),url,qc,lheaders,se_enabled);
+	       urls.push_back(url);
+	       headers.push_back(lheaders);
+	    }
+       }
+     else // take engines from config
+       {
+	  se_enabled = websearch::_wconfig->_se_enabled;
+	  // config, enabling of SEs.
+	  for (int i=0;i<NSEs;i++)
+	    {
+	       if (se_enabled[i])
+		 {
+		    std::string url;
+		    std::list<const char*> *lheaders = NULL;
+		    se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
+		    urls.push_back(url);
+		    headers.push_back(lheaders);
+		 }
+	    }
+       }
+         
      if (urls.empty())
        {
 	  nresults = 0;
@@ -436,17 +457,63 @@ namespace seeks_plugins
       }
   }
    
+   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				std::string &se, std::string &url, const query_context *qc,
+				std::list<const char*> *&lheaders, std::bitset<NSEs> &se_enabled)
+     {
+	lheaders = new std::list<const char*>();
+	
+	/* pass the user-agent header. */
+	std::list<const char*>::const_iterator sit = qc->_useful_http_headers.begin();
+	while(sit!=qc->_useful_http_headers.end())
+	  {
+	     lheaders->push_back(strdup((*sit)));
+	     ++sit;
+	  }
+
+	/* put engine names into lower cases. */
+	std::transform(se.begin(),se.end(),se.begin(),tolower);
+	
+	if (se == "google")
+	  {
+	     _ggle.query_to_se(parameters,url,qc);
+	     se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
+	  }
+	else if (se == "cuil")
+	  {
+	     _cuil.query_to_se(parameters,url,qc);
+	     lheaders->push_back(strdup(qc->generate_lang_http_header().c_str()));
+	     se_enabled |= std::bitset<NSEs>(SE_CUIL);
+	  }
+      else if (se == "bing")
+	  {
+	     _bing.query_to_se(parameters,url,qc);
+	     se_enabled |= std::bitset<NSEs>(SE_BING);
+	  }
+      else if (se == "yahoo")
+	  {
+	     _yahoo.query_to_se(parameters,url,qc);
+	     se_enabled |= std::bitset<NSEs>(SE_YAHOO);
+	  }
+      else if (se == "exalead")
+	  {
+	     _exalead.query_to_se(parameters,url,qc);
+	     se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+	  }
+     }
+      
   /*-- parsing. --*/
   sp_err se_handler::parse_ses_output(std::string **outputs, const int &nresults,
 				      std::vector<search_snippet*> &snippets,
 				      const int &count_offset,
-				      query_context *qr)
+				      query_context *qr,
+				      const std::bitset<NSEs> &se_enabled)
   {
      // use multiple threads unless told otherwise.
      int j = 0;
      if (seeks_proxy::_config->_multi_threaded)
        {
-	  size_t active_ses = websearch::_wconfig->_se_enabled.count();
+	  size_t active_ses = se_enabled.count();
 	  pthread_t parser_threads[active_ses];
 	  ps_thread_arg* parser_args[active_ses];
 	  for (size_t i=0;i<active_ses;i++)
@@ -456,7 +523,7 @@ namespace seeks_plugins
 	  int k = 0;
 	  for (int i=0;i<NSEs;i++)
 	    {
-	       if (websearch::_wconfig->_se_enabled[i])
+	       if (se_enabled[i])
 		 {
 		    if (outputs[j])
 		      {
@@ -509,7 +576,7 @@ namespace seeks_plugins
        {
 	  for (int i=0;i<NSEs;i++)
 	    {
-	       if (websearch::_wconfig->_se_enabled[i])
+	       if (se_enabled[i])
 		 {
 		    if (outputs[j])
 		      {
