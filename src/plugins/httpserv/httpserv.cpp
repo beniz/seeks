@@ -22,6 +22,7 @@
 #include "plugin_manager.h"
 #include "websearch.h"
 #include "cgisimple.h"
+#include "sweeper.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -186,6 +187,9 @@ namespace seeks_plugins
 	/* fill up response. */
 	std::string content = std::string(rsp._body);
 	httpserv::reply_with_body(r,200,"OK",content);
+     
+	/* run the sweeper, for timed out query contexts. */
+	sweeper::sweep();
      }
       
    void httpserv::seeks_hp_css(struct evhttp_request *r, void *arg)
