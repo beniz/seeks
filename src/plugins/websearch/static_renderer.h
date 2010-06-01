@@ -46,6 +46,7 @@ namespace seeks_plugins
 	static void render_snippets(const std::string &query_clean,
 				    const int &current_page,
 				    const std::vector<search_snippet*> &snippets,
+				    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
 	static void render_clustered_snippets(const std::string &query_clean,

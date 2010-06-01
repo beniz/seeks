@@ -105,6 +105,7 @@ namespace seeks_plugins
    void static_renderer::render_snippets(const std::string &query_clean,
 					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
+					 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	const char *base_url = miscutil::lookup(exports,"base-url");
@@ -125,16 +126,29 @@ namespace seeks_plugins
 	     bool similarity = false;
 	     if (snippets.at(0)->_seeks_ir > 0)
 	       similarity = true;
-	     	     
+	     
+	     // lookup activated engines.
+	     std::bitset<NSEs> se_enabled;
+	     query_context::fillup_engines(parameters,se_enabled);
+	     
 	     // proceed with rendering.
-	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)snippets.size());
+	     int ssize = snippets.size();
+	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)ssize);
 	     size_t snistart = (current_page-1) * websearch::_wconfig->_N;
-	     for (size_t i=snistart;i<snisize;i++)
+	     size_t count = snistart;
+	     for (int i=snistart;i<ssize;i++)
 	       {
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
+		  std::bitset<NSEs> band = (snippets.at(i)->_engine & se_enabled);
+		  if (band.count() == 0)
+		    continue;
+		  
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
+		  count++;
+		  if (count == snisize)
+		    break; // end list here.
 	       }
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
@@ -179,6 +193,10 @@ namespace seeks_plugins
 	     rplcnt = "search_snippets";
 	  }
 		
+	// lookup activated engines.
+	std::bitset<NSEs> se_enabled;
+	query_context::fillup_engines(parameters,se_enabled);
+	
 	bool clusterize = false;
 	const char *action_str = miscutil::lookup(parameters,"action");
 	if (action_str && strcmp(action_str,"clusterize")==0)
@@ -200,6 +218,17 @@ namespace seeks_plugins
 	     while(hit!=clusters[c]._cpoints.end())
 	       {
 		  search_snippet *sp = qc->get_cached_snippet((*hit).first);
+		  if (sp->_doc_type == REJECTED)
+		    {
+		       ++hit;
+		       continue;
+		    }
+		  std::bitset<NSEs> band = (sp->_engine & se_enabled);
+		  if (band.count() == 0)
+		    {
+		       ++hit;
+		       continue;
+		    }
 		  snippets.push_back(sp);
 		  ++hit;
 	       }
@@ -468,7 +497,7 @@ namespace seeks_plugins
        } */
      
      // search snippets.
-     static_renderer::render_snippets(query_clean,current_page,snippets,exports);
+     static_renderer::render_snippets(query_clean,current_page,snippets,parameters,exports);
      
      // expand button.
      std::string expansion;

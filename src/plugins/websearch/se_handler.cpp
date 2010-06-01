@@ -340,45 +340,23 @@ namespace seeks_plugins
       
   /*-- queries to the search engines. */  
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults, const query_context *qc, std::bitset<NSEs> &se_enabled)
+					  int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled)
   {
      std::vector<std::string> urls;
      urls.reserve(NSEs);
      std::vector<std::list<const char*>*> headers;
      headers.reserve(NSEs);
 
-     // check whether we do have a request for search engines.
-     const char *engines = miscutil::lookup(parameters,"engines");
-     if (engines)
+     // enabling of SEs.
+     for (int i=0;i<NSEs;i++)
        {
-	  std::string engines_str = std::string(engines);
-	  std::vector<std::string> vec_engines;
-	  miscutil::tokenize(engines_str,vec_engines,",");
-	  std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());	  
-	  int me = std::min((int)vec_engines.size(),NSEs); // acts as a protection to bogus parameter lines.
-	  for (int i=0;i<me;i++) 
+	  if (se_enabled[i])
 	    {
 	       std::string url;
 	       std::list<const char*> *lheaders = NULL;
-	       se_handler::query_to_se(parameters,vec_engines.at(i),url,qc,lheaders,se_enabled);
+	       se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
 	       urls.push_back(url);
 	       headers.push_back(lheaders);
-	    }
-       }
-     else // take engines from config
-       {
-	  se_enabled = websearch::_wconfig->_se_enabled;
-	  // config, enabling of SEs.
-	  for (int i=0;i<NSEs;i++)
-	    {
-	       if (se_enabled[i])
-		 {
-		    std::string url;
-		    std::list<const char*> *lheaders = NULL;
-		    se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
-		    urls.push_back(url);
-		    headers.push_back(lheaders);
-		 }
 	    }
        }
          
@@ -457,48 +435,36 @@ namespace seeks_plugins
       }
   }
    
-   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				std::string &se, std::string &url, const query_context *qc,
-				std::list<const char*> *&lheaders, std::bitset<NSEs> &se_enabled)
+   void se_handler::set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses)
      {
-	lheaders = new std::list<const char*>();
-	
-	/* pass the user-agent header. */
-	std::list<const char*>::const_iterator sit = qc->_useful_http_headers.begin();
-	while(sit!=qc->_useful_http_headers.end())
+	int msize = std::min((int)ses.size(),NSEs);
+	for (int i=0;i<msize;i++)
 	  {
-	     lheaders->push_back(strdup((*sit)));
-	     ++sit;
-	  }
-
-	/* put engine names into lower cases. */
-	std::transform(se.begin(),se.end(),se.begin(),tolower);
-	
-	if (se == "google")
-	  {
-	     _ggle.query_to_se(parameters,url,qc);
-	     se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-	  }
-	else if (se == "cuil")
-	  {
-	     _cuil.query_to_se(parameters,url,qc);
-	     lheaders->push_back(strdup(qc->generate_lang_http_header().c_str()));
-	     se_enabled |= std::bitset<NSEs>(SE_CUIL);
-	  }
-      else if (se == "bing")
-	  {
-	     _bing.query_to_se(parameters,url,qc);
-	     se_enabled |= std::bitset<NSEs>(SE_BING);
-	  }
-      else if (se == "yahoo")
-	  {
-	     _yahoo.query_to_se(parameters,url,qc);
-	     se_enabled |= std::bitset<NSEs>(SE_YAHOO);
-	  }
-      else if (se == "exalead")
-	  {
-	     _exalead.query_to_se(parameters,url,qc);
-	     se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+	     std::string se = ses.at(i);
+	     
+	     /* put engine name into lower cases. */
+	     std::transform(se.begin(),se.end(),se.begin(),tolower);
+	     
+	     if (se == "google")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
+	       }
+	     else if (se == "cuil")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_CUIL);
+	       }
+	     else if (se == "bing")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_BING);
+	       }
+	     else if (se == "yahoo")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_YAHOO);
+	       }
+	     else if (se == "exalead")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+	       }
 	  }
      }
       

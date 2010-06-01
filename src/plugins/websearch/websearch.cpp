@@ -620,7 +620,7 @@ namespace seeks_plugins
 	    }
 	  else if (strcmp(action,"page") == 0)
 	    {
-	       //TODO: update other parameters, as needed, qc vs parameters.
+	       // XXX: update other parameters, as needed, qc vs parameters.
 	       qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	    }
        }

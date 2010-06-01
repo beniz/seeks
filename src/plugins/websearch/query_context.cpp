@@ -96,6 +96,9 @@ namespace seeks_plugins
 	    q_to_hash = ":" + _auto_lang + " ";
 	  _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
 	  
+	  // lookup requested engines, if any.
+	  query_context::fillup_engines(parameters,_engines);
+	  	  
 	  sweeper::register_sweepable(this);
 	  register_qc(); // register with websearch plugin.
        }
@@ -220,69 +223,94 @@ namespace seeks_plugins
 	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	  return SP_ERR_OK;
        }
-          
-     for (int i=_page_expansion;i<horizon;i++) // catches up with requested horizon.
+     
+     //TODO: grab requested engines, if any.
+     // if the list is not included in that of the context, update existing results and perform requested expansion.
+     // if the list is included in that of the context, perform expansion, results will be filtered later on.
+     const char *eng = miscutil::lookup(parameters,"engines");
+     if (eng)
        {
-	  // resets expansion parameter.
-	  miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
-	  std::string i_str = miscutil::to_string(i+1);
-	  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				  "expansion",1,i_str.c_str(),1);
-	  
-	  // hack for Cuil.
-	  if (i != 0)
+	  // test inclusion.
+	  std::bitset<NSEs> beng;
+	  query_context::fillup_engines(parameters,beng);
+	  std::bitset<NSEs> inc = beng;
+	  inc &= _engines;
+	  if (inc.count() == beng.count())
 	    {
-	       int expand=i+1;
-	       hash_map<int,std::string>::const_iterator hit;
-	       if ((hit=_cuil_pages.find(expand))!=_cuil_pages.end())
-		 miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-					 "cuil_npage",1,(*hit).second.c_str(),1); // beware.
+	       // included, nothing more to be done.
 	    }
-	  // hack
-	  	  
-	  // query SEs.                                                                                                 
-	  int nresults = 0;
-	  std::bitset<NSEs> se_enabled;
-	  std::string **outputs = se_handler::query_to_ses(parameters,nresults,this,se_enabled);
-	  
-	  // test for failed connection to the SEs comes here.    
-	  if (!outputs)
+	  else // test intersection.
 	    {
-	       return websearch::failed_ses_connect(csp,rsp);
+	       std::bitset<NSEs> bint;
+	       for (int b=0;b<NSEs;b++)
+		 {
+		    if (beng[b] && !inc[b])
+		      bint.set(b);
+		 }
+	       
+	       // catch up expansion with the newly activated engines.
+	       expand(csp,rsp,parameters,0,_page_expansion,bint);
+	       _engines |= bint;
 	    }
-	  
-	  // parse the output and create result search snippets.   
-	  int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
-	  
-	  se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
-	  for (int j=0;j<nresults;j++)
-	    if (outputs[j])
-	      delete outputs[j];
-	  delete[] outputs;
        }
+     
+     // perform requested expansion.
+     expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
      
      // update horizon.
      _page_expansion = horizon;
-	  
+     
      // error.
      return SP_ERR_OK;
   }
-
-   sp_err query_context::regenerate(client_state *csp,
-				    http_response *rsp,
-				    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+   
+   sp_err query_context::expand(client_state *csp,
+				http_response *rsp,
+				const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				const int &page_start, const int &page_end,
+				const std::bitset<NSEs> &se_enabled)
      {
-	// determines whether we have part of the response in cache.
-	const char *current_page = miscutil::lookup(parameters,"expansion");
-	size_t requested_page = atoi(current_page);
-	  
-	// check whether to fetch of new results.
-	size_t active_ses = websearch::_wconfig->_se_enabled.count(); // active search engines.
-	size_t cached_pages = _cached_snippets.size() / active_ses / websearch::_wconfig->_N;     
+	for (int i=page_start;i<page_end;i++) // catches up with requested horizon.
+	  {
+	     // resets expansion parameter.
+	     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
+	     std::string i_str = miscutil::to_string(i+1);
+	     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+				     "expansion",1,i_str.c_str(),1);
+	     
+	     // hack for Cuil.
+	     if (i != 0)
+	       {
+		  int expand=i+1;
+		  hash_map<int,std::string>::const_iterator hit;
+		  if ((hit=_cuil_pages.find(expand))!=_cuil_pages.end())
+		    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+					    "cuil_npage",1,(*hit).second.c_str(),1); // beware.
+	       }
+	     // hack
+	     
+	     // query SEs.                                                                                                 
+	     int nresults = 0;
+	     std::string **outputs = se_handler::query_to_ses(parameters,nresults,this,se_enabled);
+	     
+	     // test for failed connection to the SEs comes here.    
+	     if (!outputs)
+	       {
+		  return websearch::failed_ses_connect(csp,rsp);
+	       }
+	     
+	     // parse the output and create result search snippets.   
+	     int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
+	     
+	     se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
+	     for (int j=0;j<nresults;j++)
+	       if (outputs[j])
+		 delete outputs[j];
+	     delete[] outputs;
+	  }
 	
-	if (cached_pages < requested_page)
-	  return generate(csp,rsp,parameters);
-	else return SP_ERR_OK;
+	// error.
+	return SP_ERR_OK;
      }
 
    void query_context::add_to_unordered_cache(search_snippet *sr)
@@ -567,5 +595,20 @@ namespace seeks_plugins
 	if (region_lang == "en-US") // in case we are on the default language.
 	  auto_lang = "en";
      }
-	
+
+   void query_context::fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				      std::bitset<NSEs> &engines)
+     {
+	const char *eng = miscutil::lookup(parameters,"engines");
+	if (eng)
+	  {
+	     std::string engines_str = std::string(eng);
+	     std::vector<std::string> vec_engines;
+	     miscutil::tokenize(engines_str,vec_engines,",");
+	     std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());
+	     se_handler::set_engines(engines,vec_engines);
+	  }
+	else engines = websearch::_wconfig->_se_enabled;
+     }
+      
 } /* end of namespace. */
