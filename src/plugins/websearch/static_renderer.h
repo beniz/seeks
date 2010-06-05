@@ -43,6 +43,10 @@ namespace seeks_plugins
 	static void render_lang(const query_context *qc,
 				hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
+	static void render_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+				   std::string &engines);
+	
 	static void render_snippets(const std::string &query_clean,
 				    const int &current_page,
 				    const std::vector<search_snippet*> &snippets,
@@ -76,12 +80,14 @@ namespace seeks_plugins
 					  const size_t &snippets_size,
 					  const std::string &url_encoded_query,
 					  const std::string &expansion,
+					  const std::string &engines,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	
 	static void render_prev_page_link(const int &current_page,
 					  const size_t &snippets_size,
 					  const std::string &url_encoded_query,
 					  const std::string &expansion,
+					  const std::string &engines,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 
 	static void render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

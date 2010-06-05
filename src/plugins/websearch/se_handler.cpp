@@ -439,9 +439,9 @@ namespace seeks_plugins
      {
 	int msize = std::min((int)ses.size(),NSEs);
 	for (int i=0;i<msize;i++)
-	  {
+	  {	     
 	     std::string se = ses.at(i);
-	     
+	     	     
 	     /* put engine name into lower cases. */
 	     std::transform(se.begin(),se.end(),se.begin(),tolower);
 	     

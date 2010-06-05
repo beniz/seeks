@@ -224,7 +224,7 @@ namespace seeks_plugins
 	  return SP_ERR_OK;
        }
      
-     //TODO: grab requested engines, if any.
+     // grab requested engines, if any.
      // if the list is not included in that of the context, update existing results and perform requested expansion.
      // if the list is included in that of the context, perform expansion, results will be filtered later on.
      const char *eng = miscutil::lookup(parameters,"engines");
@@ -247,7 +247,7 @@ namespace seeks_plugins
 		    if (beng[b] && !inc[b])
 		      bint.set(b);
 		 }
-	       
+	       	       
 	       // catch up expansion with the newly activated engines.
 	       expand(csp,rsp,parameters,0,_page_expansion,bint);
 	       _engines |= bint;
