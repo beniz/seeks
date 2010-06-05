@@ -39,6 +39,10 @@ namespace seeks_plugins
 	
 	~httpserv();
 	
+	virtual void start();
+	
+	virtual void stop();
+	
 	void init_callbacks();
 	
 	/* responses. */

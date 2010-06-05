@@ -85,21 +85,37 @@ namespace seeks_plugins
 	  _srv = evhttp_new(_evbase);
 	  evhttp_bind_socket(_srv, _address.c_str(), _port); // server binding to the address & port.
 	  	  
-	  errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
-			    _address.c_str(),_port);	  
+	  /* errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
+			    _address.c_str(),_port); */
 	  
 	  init_callbacks();
 	  
-	  pthread_t server_thread;
+	  /* pthread_t server_thread;
 	  int err = pthread_create(&server_thread,NULL,
 				   (void*(*)(void*))&event_base_dispatch,_evbase);
-	  pthread_detach(server_thread);
+	  pthread_detach(server_thread); */
        }
    
    httpserv::~httpserv()
      {
 	evhttp_free(_srv);
 	event_base_free(_evbase);
+     }
+
+   void httpserv::start()
+     {
+	errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
+			  _address.c_str(),_port);
+	
+	pthread_t server_thread;
+	int err = pthread_create(&server_thread,NULL,
+				 (void*(*)(void*))&event_base_dispatch,_evbase);
+	pthread_detach(server_thread);
+     }
+   
+   void httpserv::stop()
+     {
+	event_base_loopbreak(_evbase);
      }
       
    void httpserv::init_callbacks()
