@@ -625,7 +625,7 @@ int spsockets::bind_port(const char *hostnam, int portnum, sp_socket *pfd)
    }
    hints.ai_socktype = SOCK_STREAM;
    hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
-   hints.ai_protocol = 0; /* Realy any stream protocol or TCP only */
+   hints.ai_protocol = 0; /* Really any stream protocol or TCP only */
    hints.ai_canonname = NULL;
    hints.ai_addr = NULL;
    hints.ai_next = NULL;
@@ -633,14 +633,14 @@ int spsockets::bind_port(const char *hostnam, int portnum, sp_socket *pfd)
    if ((retval = getaddrinfo(hostnam, servnam, &hints, &result)))
    {
       errlog::log_error(LOG_LEVEL_ERROR,
-			"Can not resolve %s: %s", hostnam, gai_strerror(retval));
+			"Cannot resolve %s: %s", hostnam, gai_strerror(retval));
       return -2;
    }
 #else
    memset((char *)&inaddr, '\0', sizeof inaddr);
 
    inaddr.sin_family      = AF_INET;
-   inaddr.sin_addr.s_addr = resolve_hostname_to_ip(hostnam);
+   inaddr.sin_addr.s_addr = spsockets::resolve_hostname_to_ip(hostnam);
 
    if (inaddr.sin_addr.s_addr == INADDR_NONE)
    {
