@@ -497,6 +497,7 @@ src/plugins/Makefile \
 src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \
+src/plugins/blocker/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
