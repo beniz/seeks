@@ -1,3 +1,24 @@
+* Bubs-0.2.3-SOLO-stable
+This releases brings two plugins, an embedded light HTTP server for easing the
+deployment or personal and public search nodes; a URL blocker for controlling
+trafic through the proxy (e.g. ad-blocking). The release has an improved
+overall stability.
+
+- Light embedded HTTP server plugin based on libevent. Support for direct
+websearch, opensearch.xml and robots.txt.
+
+- URL blocker plugin for controlling trafic through the proxy, such as
+ad-blocking and more, based on a (by default empty) list of positive and
+negative regexps.
+
+- Improved stability with the correction of some rare but critical bugs.
+
+- Fixed parsing of some engines results.
+
+- Fixed swedish stop word list.
+
+- Fixed bug when loading stopwordlist at startup for system-wide installation.
+
 * Bubs-0.2.2-SOLO-stable
 This release brings some improvements and includes a JSON API for using/reusing
 the search results in third-party applications.
