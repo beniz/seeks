@@ -26,10 +26,10 @@
 #include "rmd160.h" /* original RIPEMD-160 code. */
 #include "stl_hash.h"
 
-//#define KEYNBITS 160
-#define KEYNBITS 32
-//#define KEYNBITSIZE 5  /* 160 / 32 bits (ulong) */
-#define KEYNBITSIZE 1
+#define KEYNBITS 160
+//#define KEYNBITS 32
+#define KEYNBITSIZE 5  /* 160 / 32 bits (ulong) */
+//#define KEYNBITSIZE 1
 
 namespace dht
 {
@@ -119,7 +119,7 @@ namespace dht
 	 *   RIPEMD-160 software written by Antoon Bosselaers,
 	 *   available at http://www.esat.kuleuven.be/~cosicart/ps/AB-9601/.
 	 */
-	static byte* RMD(byte* message);
+	static byte* RMD(byte* message, byte *&hashcode);
 
 	/**
 	 * TODO: RIPEMD-160 from u_int32.
@@ -137,6 +137,13 @@ namespace dht
 	 * @return DHTKey hashed and converted from the input chain.
 	 */
 	static DHTKey hashKey(char* message);
+	
+	/**
+	 * \brief converts a 160bit hash into a 160bit DHTKey.
+	 * @param hashcode as an array of byte.
+	 * @return DHTKey converted from the hashcode.
+	 */
+	static DHTKey convert(byte *hashcode);
 	
 	/** 
 	 * \brief Random key generation functions: this is for the case

@@ -325,20 +325,21 @@ namespace dht
    /*-- RIPEMD-160 stuff --*/
 #define RMDsize 160
    
-   byte* DHTKey::RMD(byte* message)
+   byte* DHTKey::RMD(byte* message, byte *&hashcode)
      /**
       * returns RMD(message)
       * message should be a string terminated by '\0'
       **/
      {
 	dword         MDbuf[RMDsize/32];   /* contains (A, B, C, D(, E))   */
-	static byte   hashcode[RMDsize/8]; /* for final hash-value         */
+	//static byte   hashcode[RMDsize/8]; /* for final hash-value         */
 	dword         X[16];               /* current 16-word chunk        */
 	unsigned int  i;                   /* counter                      */
 	dword         length;              /* length in bytes of message   */
 	dword         nbytes;              /* # of bytes not yet processed */
 	
 	/* initialize */
+	hashcode = new byte[RMDsize/8];
 	MDinit(MDbuf);
 	length = (dword)strlen((char *)message);
 	
@@ -369,15 +370,18 @@ namespace dht
    
    void DHTKey::RMDstring(char *message, char *print)
      {
-	byte* hashcode = RMD((byte *)message);
+	byte *hashcode = NULL;
+	hashcode = RMD((byte *)message,hashcode);
 	printf("\n* message: %s\n  hashcode: ", print);
 	for (unsigned int i=0; i<RMDsize/8; i++)
 	  printf("%02x", hashcode[i]);
+	delete[] hashcode;
      }
 
    void DHTKey::RMDbits(char *message, char *print)
      {
-	byte* hashcode = RMD((byte*) message);
+	byte *hashcode = NULL;
+	hashcode = RMD((byte*) message,hashcode);
 	std::cout << "\n message: " << print << "\n hashcode: \n";
 	std::bitset<8> cb;
 	for (unsigned int i=0; i<RMDsize/8; i++)
@@ -385,6 +389,7 @@ namespace dht
 	     DHTKey::charToBits(static_cast<char>(hashcode[i]), cb);
 	     std::cout << cb; // << " ";
 	  }
+	delete[] hashcode;
      }
    
    void DHTKey::charToBits (const char &c, std::bitset<8> &bb_char)
@@ -405,8 +410,16 @@ namespace dht
 	/**
 	 * generate the RIPEMD-160 hash (40-digit hexadecimal number).
 	 */
-	byte* hashcode = RMD((byte*) message);
+	byte *hashcode = NULL;
+	hashcode = RMD((byte*)message,hashcode);
 	
+	DHTKey res = DHTKey::convert(hashcode);
+	delete[] hashcode;
+	return res;
+     }
+   
+   DHTKey DHTKey::convert(byte *hashcode)
+     {
 	/**
 	 * convert to a DHTKey.
 	 */
