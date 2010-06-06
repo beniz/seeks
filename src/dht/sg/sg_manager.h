@@ -60,6 +60,7 @@ namespace dht
 	sg_sweeper _sgsw;
 	
 	//TODO: db of sgs.
+	//TODO: db of vnodes/sg keys.
      };
    
 } /* end of namespace. */
