@@ -11,16 +11,26 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -Iutils -Ilsh -Iproxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'
 AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
-
+if HAVE_DHT
+ AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob `pkg-config --libs protobuf`
+endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD = -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
+LDADD = -lseeksutils 
+if HAVE_DHT
+LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lrmd160
+endif
+LDADD += -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
 if !HAVE_FREEBSD
 LDADD += -ldl
 endif
 
-SUBDIRS=utils lsh proxy plugins dht .
+SUBDIRS=utils 
+if HAVE_DHT
+SUBDIRS += dht 
+endif
+SUBDIRS += lsh proxy plugins .
 
 configdir=$(sysconfdir)/seeks
 config_DATA=config \

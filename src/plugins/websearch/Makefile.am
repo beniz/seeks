@@ -5,6 +5,9 @@ websearchplugindatadir = $(datadir)/seeks/plugins/websearch
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I../../utils -I../../lsh -I../../proxy
+if HAVE_DHT
+AM_CPPFLAGS += -I../../dht
+endif
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
@@ -13,7 +16,10 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 	                           query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp
-libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I../../ -I../../../lsh/osb-lsh/ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I../../ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+if HAVE_DHT
+libseekswebsearchplugin_la_CXXFLAGS += -I../../dht
+endif
 
 if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`

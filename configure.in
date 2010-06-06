@@ -380,12 +380,26 @@ AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 #############################################
 # DHT only.
 #############################################
+# check whether we are told to compile with DHT activated or not.
+AC_ARG_ENABLE(withdht,
+AC_HELP_STRING([--enable-dht],[Enable DHT at compilation and running time (default is YES)]),
+[case "${enableval}" in
+      yes) withdht=true ;;
+      no) withdht=false ;;
+      *) AC_MSG_ERROR(bad_value ${enableval} for
+--enable-dht) ;;
+esac],[withdht=true])
+AM_CONDITIONAL(HAVE_DHT,test x$withdht = xtrue)
+if test x$withdht = xtrue; then
+   AC_DEFINE(WITH_DHT,1,"Enable DHT at compilation and running time")
+fi
 
 # check on protocol buffers.
 PKG_CHECK_MODULES([protobuf], [protobuf])
 
 AC_CONFIG_FILES(Makefile doc/Makefile src/Makefile \
 src/lsh/Makefile \
+src/lsh/tests/Makefile \
 src/proxy/Makefile \
 src/proxy/tests/Makefile \
 src/plugins/Makefile \
