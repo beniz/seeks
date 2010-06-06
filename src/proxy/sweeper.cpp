@@ -113,12 +113,6 @@ namespace sp
 	 }
 
 	/* sweeps other memory dust grains, as necessary. */
-
-	//debug
-	/* std::cerr << "[Debug]:sweeper: cleaning memory dust: "
-	 << seeks_proxy::_memory_dust.size() << " remaining items\n"; */
-	//debug
-	
 	std::vector<std::vector<sweepable*>::iterator> dead_iterators;
 	std::vector<sweepable*>::iterator vit = seeks_proxy::_memory_dust.begin();
 	while(vit!=seeks_proxy::_memory_dust.end())
@@ -131,10 +125,6 @@ namespace sp
 	       }
 	     else ++vit;
 	  }
-	
-	//debug
-	//std::cerr << "[Debug]:sweeper: removed " << dead_iterators.size() << " items\n";
-	//debug
 	
        return active_threads;
      }
