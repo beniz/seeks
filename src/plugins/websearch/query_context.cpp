@@ -136,12 +136,6 @@ namespace seeks_plugins
 	struct timeval tv_now;
 	gettimeofday(&tv_now, NULL);
 	double dt = difftime(tv_now.tv_sec,_last_time_of_use);
-	
-	//debug
-	/* std::cout << "[Debug]:query_context #" << _query_hash
-	  << ": sweep_me time difference: " << dt << std::endl; */
-	//debug
-	
 	if (dt >= websearch::_wconfig->_query_context_delay)
 	  return true;
 	else return false;
