@@ -1,13 +1,13 @@
 <!DOCTYPE HTML>
 <html><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <title>qclean - Seeks Search</title>
 <link rel="search" href="opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
-<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssreset/reset-min.css" type="text/css">
-<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css">
-<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css">
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssreset/reset-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css" />
 <link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
-<link rel="stylesheet" href="seeks_search.css" type="text/css">
+<link rel="stylesheet" href="seeks_search.css" type="text/css" />
 <link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
 </head>
 
@@ -17,17 +17,17 @@
 
 <div id="search_bar">
 <form method="GET" action="@base-url@/search" id="search_form">
-<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" title="Search" value="qclean" type="text" />
+<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexpn&action=expand" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
 <!-- @if-have-clustering-start -->
-<a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=clusterize&clusters=xxnclust" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
 <!-- if-have-clustering-end@ -->
 <!-- @if-not-have-clustering-start -->
 <a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
@@ -37,7 +37,7 @@
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages"><a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=expand" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 <!-- if-have-clustered-results-head-end@ -->
 
 <a id="search_home" title="Home (ctrl+h)" href="@base-url@/websearch-hp/">&nbsp;</a>
@@ -45,9 +45,9 @@
 <div id="search_sugg">xxsugg</div>
 <div id="search_lang"><a href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Language:</a> xxlang</div>
 <div id="search_help"><a href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">help</a></div>
-<div id="sort_urls">Group by <a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=urls" title="Group by urls">urls</a></div>
-<div id="sort_titles"><a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=titles" title="Group by titles">titles</a></div>
-<div id="sort_types"><a href="@base-url@/search?q=fullquery&page=xxpage&expansion=xxexp&action=types" title="Group by types">types</a></div>
+<div id="sort_urls">Group by <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng" title="Group by urls">urls</a></div>
+<div id="sort_titles"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng" title="Group by titles">titles</a></div>
+<div id="sort_types"><a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng" title="Group by types">types</a></div>
 
 </div>
 

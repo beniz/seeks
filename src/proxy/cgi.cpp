@@ -113,19 +113,6 @@ namespace sp
 	  &cgisimple::cgi_send_error_favicon,
 	  NULL, TRUE /* Sends the favicon image for error pages. */ 
      ),
-     cgi_dispatcher(
-	  "favicon.ico",
-	  &cgisimple::cgi_send_old_school_favicon,
-	  NULL, TRUE /* Sends the favicon image for old school navigators, IE? . */
-     ),
-     cgi_dispatcher( "seeks_favicon_32.png",
-	  &cgisimple::cgi_send_default_favicon,
-	  NULL, TRUE /* Sends the default favicon image. */ 
-     ),
-      cgi_dispatcher( "seeks_logo.png",
-      &cgisimple::cgi_send_default_logo,
-	 NULL, TRUE /* Sends the default Seeks logo png image. */
-     ),
      cgi_dispatcher( "robots.txt",
 	  &cgisimple::cgi_robots_txt,
 	  NULL, TRUE /* Sends a robots.txt file to tell robots to go away. */ 
@@ -1548,6 +1535,8 @@ http_response* cgi::finish_http_response(const client_state *csp, http_response 
 	       err =  miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/css", 13);
 	     else if (csp->_content_type == CT_XML)
 	       err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: application/xml", 13);
+	     else if (csp->_content_type == CT_JSON)
+	       err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: application/json", 13);
 	     /* Other response types come here... */
 	     else
 	       err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/html; charset=UTF-8", 13);
@@ -1979,7 +1968,14 @@ sp_err cgi::template_fill_str(char **template_ptr,
 	std::string name_str = std::string(name);
 	if (*name == '$')
 	  {
-	     name_str = name_str.substr(1);
+	     try
+	       {
+		  name_str = name_str.substr(1);
+	       }
+	     catch(std::exception &e)
+	       {
+		  name_str = "";
+	       }
 	  }
 	miscutil::replace_in_string(buffer_str,name_str,std::string(value));
 	++mit;

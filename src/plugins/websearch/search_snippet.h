@@ -46,7 +46,8 @@ namespace seeks_plugins
 	CODE,
 	NEWS,
 	REAL_TIME,
-	WIKI
+	WIKI,
+	REJECTED /* user reject, for now by matching a regexp. */
      };
    
    class search_snippet
@@ -67,7 +68,8 @@ namespace seeks_plugins
 	static bool less_seeks_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     if (s1->_seeks_rank == s2->_seeks_rank)
-	       return s1->_rank < s2->_rank;
+	       return s1->_rank / static_cast<double>(s1->_engine.count()) 
+		 < s2->_rank / static_cast<double>(s2->_engine.count());
 	     else
 	       return s1->_seeks_rank < s2->_seeks_rank;
 	  };
@@ -75,7 +77,8 @@ namespace seeks_plugins
 	static bool max_seeks_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     if (s1->_seeks_rank == s2->_seeks_rank)
-	       return s1->_rank < s2->_rank;  // beware: min rank is still better.
+	       return s1->_rank / static_cast<double>(s1->_engine.count()) 
+		 < s2->_rank / static_cast<double>(s2->_engine.count());  // beware: min rank is still better.
 	     else
 	       return s1->_seeks_rank > s2->_seeks_rank;  // max seeks rank is better.
 	  };
@@ -94,8 +97,7 @@ namespace seeks_plugins
 	
 	~search_snippet();
 	
-	// set_url with url preprocessing for later comparison.
-	char* url_preprocessing(const char *url);
+	// set_url.
 	void set_url(const std::string &url);
 	void set_url(const char *url);
 	
@@ -113,7 +115,8 @@ namespace seeks_plugins
 	// sets a back link when similarity is engaged.
 	void set_back_similarity_link();
 	
-	// xml output.
+	// json output.
+	std::string to_json(const bool &thumbs);
 	
 	// html output for inclusion in search result template page.
 	std::string to_html();
@@ -124,6 +127,9 @@ namespace seeks_plugins
 	// highlights terms within the argument string.
 	static void highlight_query(std::vector<std::string> &words,
 				    std::string &str);
+	
+	// highlights the most discriminative terms (for this snippet among all snippets).
+	void highlight_discr(std::string &str);
 	
 	// tag snippet, i.e. detect its type if not already done by the parsers.
 	void tag();
@@ -183,6 +189,7 @@ namespace seeks_plugins
 	static std::vector<url_spec*> _audio_pos_patterns;
 	static std::vector<url_spec*> _video_pos_patterns;
 	static std::vector<url_spec*> _forum_pos_patterns;
+	static std::vector<url_spec*> _reject_pos_patterns;
      };
    
 } /* end of namespace. */

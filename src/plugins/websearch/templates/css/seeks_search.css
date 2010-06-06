@@ -111,6 +111,10 @@ body {
 	margin-left: 3px;
 }
 
+#search_results .highlight {
+        color: purple;
+}
+
 #search_results h3 {
 	font-weight: normal;
 }

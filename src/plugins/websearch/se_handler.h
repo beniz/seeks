@@ -23,6 +23,7 @@
 
 #include <string>
 #include <vector>
+#include <bitset>
 #include <stdint.h>
 
 using sp::sp_err;
@@ -37,13 +38,13 @@ namespace seeks_plugins
    
 #ifndef ENUM_SE
 #define ENUM_SE
-   enum SE
+   enum SE  // in alphabetical order.
      {
-	GOOGLE, // 0
-	CUIL,   // 1
-	BING,   // 2
-	YAHOO,  // 3
-	EXALEAD // 4
+	BING,
+	CUIL,
+	EXALEAD,
+	GOOGLE,
+	YAHOO
      };
 #endif
    
@@ -139,17 +140,17 @@ namespace seeks_plugins
 	/*-- query preprocessing --*/
 	static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
-	static std::string cleanup_query(const std::string &oquery);
-	
 	static std::string no_command_query(const std::string &oquery);
 	
 	/*-- querying the search engines. --*/
 	static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults, const query_context *qc);
-					  	
+					  int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled);
+	
 	static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				const SE &se, std::string &url, const query_context *qc,
 				std::list<const char*> *&lheaders);
+	
+	static void set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses);
 	
 	/*-- parsing --*/
 	static se_parser* create_se_parser(const SE &se);
@@ -157,7 +158,7 @@ namespace seeks_plugins
 	static sp_err parse_ses_output(std::string **outputs, const int &nresults,
 				       std::vector<search_snippet*> &snippets,
 				       const int &count_offset,
-				       query_context *qr);
+				       query_context *qr, const std::bitset<NSEs> &se_enabled);
 
 	static void parse_output(const ps_thread_arg &args);
 	

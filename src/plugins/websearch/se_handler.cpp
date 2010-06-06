@@ -36,7 +36,6 @@
 #include <pthread.h>
 #include <algorithm>
 #include <iterator>
-#include <bitset>
 #include <iostream>
 
 using namespace sp;
@@ -71,7 +70,10 @@ namespace seeks_plugins
 	
 	// query.
 	int p = 31;
-	q_ggle.replace(p,6,se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_ggle.replace(p,6,qenc_str);
 	
 	// expansion = result page called...
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -115,7 +117,10 @@ namespace seeks_plugins
 	        
 	// query.
 	int p = 29;
-	q_bing.replace(p,6,se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_bing.replace(p,6,qenc_str);
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -152,7 +157,10 @@ namespace seeks_plugins
 	
 	// query.
 	int p = 29;
-	q_cuil.replace(p,6,se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_cuil.replace(p,6,qenc_str);
 
 	// language detection is done through headers.
 	//miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
@@ -197,13 +205,13 @@ namespace seeks_plugins
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
 	
 	// language, in yahoo is obtained by hitting the regional server.
-	/* std::string reg = qc->_auto_lang_reg.substr(3,2);
-	std::transform(reg.begin(),reg.end(),reg.begin(),tolower);
-	miscutil::replace_in_string(q_yahoo,"%lang",reg);*/
 	miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 	
 	// query (don't move it, depends on domain name, which is language dependent).
-	miscutil::replace_in_string(q_yahoo,"%query",se_handler::no_command_query(std::string(query)));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	miscutil::replace_in_string(q_yahoo,"%query",qenc_str);
 	
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_yahoo.c_str());
@@ -227,7 +235,10 @@ namespace seeks_plugins
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
-	miscutil::replace_in_string(q_exa,"%query",std::string(query));
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	miscutil::replace_in_string(q_exa,"%query",qenc_str);
 	
 	// page
 	const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -252,19 +263,19 @@ namespace seeks_plugins
      }
       
    /*- se_handler. -*/
-   std::string se_handler::_se_strings[NSEs] =
+   std::string se_handler::_se_strings[NSEs] =  // in alphabetical order.
     {
-      // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
-      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
-      // cuil: www.cuil.com/search?q=markov+chain&lang=en
-      "http://www.cuil.com/search?q=%query",
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
+      // cuil: www.cuil.com/search?q=markov+chain&lang=en
+      "http://www.cuil.com/search?q=%query",
+      // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
+      "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start",
+      // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
+      "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
       // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
       //"http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
       "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
-      // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
-      "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
     };
 
    se_ggle se_handler::_ggle = se_ggle();
@@ -279,51 +290,34 @@ namespace seeks_plugins
 	// query.
 	const char *q = "q";
 	const char *query = miscutil::lookup(parameters,q);
-	std::string query_str = std::string(query);
+	char *dec_query = encode::url_decode(query);
+	std::string query_str = std::string(dec_query);
+	free(dec_query);
 	
 	// known query.
 	const char *query_known = miscutil::lookup(parameters,"qknown");
-	
+		
 	// if the current query is the same as before, let's apply the current language to it
 	// (i.e. the in-query language command, if any).
 	if (query_known)
 	  {
-	     std::string query_known_str = std::string(query_known);
+	     char *dec_qknown = encode::url_decode(query_known);
+	     std::string query_known_str = std::string(dec_qknown);
+	     free(dec_qknown);
+	     	     
 	     if (query_known_str != query_str)
 	       {
 		  // look for in-query commands.
 		  std::string no_command_query = se_handler::no_command_query(query_known_str);
 		  if (no_command_query == query_str)
-		    query_str = query_known_str; // replace query with query + in-query command.
+		    {
+		       query_str = query_known_str; // replace query with query + in-query command.
+		       miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
+		       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+					       q,1,query_str.c_str(),1);
+		    }
 	       }
 	  }
-		
-	// clean up the 'pluses'.
-	miscutil::replace_in_string(query_str," ","+");
-	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
-	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				q,1,query_str.c_str(),1);
-     }
-      
-   // could be moved elsewhere...
-   std::string se_handler::cleanup_query(const std::string &oquery)
-     {
-	std::string cquery = oquery;
-	
-	// non interpreted '+' should be deduced.
-	size_t end_pos = cquery.size()-1;
-	size_t pos = 0;
-	while ((pos = cquery.find_last_of('+',end_pos)) != std::string::npos)
-	  {
-	     // XXX: this is buggy in certain cases, such as "x++" in quotes.
-	     if (pos != end_pos)
-	       cquery.replace(pos,1," ");
-	     while(cquery[--pos] == '+') // deal with multiple pluses.
-	       {
-	       }
-	     end_pos = pos;	     
-	  }
-	return cquery;
      }
    
    std::string se_handler::no_command_query(const std::string &oquery)
@@ -331,30 +325,41 @@ namespace seeks_plugins
 	std::string cquery = oquery;
 	// remove any command from the query.
 	if (cquery[0] == ':')
-	  cquery = cquery.substr(4);
+	  {
+	     try
+	       {
+		  cquery = cquery.substr(4);
+	       }
+	     catch(std::exception &e)
+	       {
+		  // do nothing.
+	       }
+	  }
 	return cquery;
      }
       
   /*-- queries to the search engines. */  
    std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults, const query_context *qc)
+					  int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled)
   {
-    std::vector<std::string> urls;
-    std::vector<std::list<const char*>*> headers;
-     
-    // config, enabling of SEs.
-    for (int i=0;i<NSEs;i++)
-      {
-	 if (websearch::_wconfig->_se_enabled[i])
-	  {
-	     std::string url;
-	     std::list<const char*> *lheaders = NULL;
-	     se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
-	     urls.push_back(url);
-	     headers.push_back(lheaders);
-	  }
-      }
-    
+     std::vector<std::string> urls;
+     urls.reserve(NSEs);
+     std::vector<std::list<const char*>*> headers;
+     headers.reserve(NSEs);
+
+     // enabling of SEs.
+     for (int i=0;i<NSEs;i++)
+       {
+	  if (se_enabled[i])
+	    {
+	       std::string url;
+	       std::list<const char*> *lheaders = NULL;
+	       se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
+	       urls.push_back(url);
+	       headers.push_back(lheaders);
+	    }
+       }
+         
      if (urls.empty())
        {
 	  nresults = 0;
@@ -430,17 +435,51 @@ namespace seeks_plugins
       }
   }
    
+   void se_handler::set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses)
+     {
+	int msize = std::min((int)ses.size(),NSEs);
+	for (int i=0;i<msize;i++)
+	  {	     
+	     std::string se = ses.at(i);
+	     	     
+	     /* put engine name into lower cases. */
+	     std::transform(se.begin(),se.end(),se.begin(),tolower);
+	     
+	     if (se == "google")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
+	       }
+	     else if (se == "cuil")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_CUIL);
+	       }
+	     else if (se == "bing")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_BING);
+	       }
+	     else if (se == "yahoo")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_YAHOO);
+	       }
+	     else if (se == "exalead")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+	       }
+	  }
+     }
+      
   /*-- parsing. --*/
   sp_err se_handler::parse_ses_output(std::string **outputs, const int &nresults,
 				      std::vector<search_snippet*> &snippets,
 				      const int &count_offset,
-				      query_context *qr)
+				      query_context *qr,
+				      const std::bitset<NSEs> &se_enabled)
   {
      // use multiple threads unless told otherwise.
      int j = 0;
      if (seeks_proxy::_config->_multi_threaded)
        {
-	  size_t active_ses = websearch::_wconfig->_se_enabled.count();
+	  size_t active_ses = se_enabled.count();
 	  pthread_t parser_threads[active_ses];
 	  ps_thread_arg* parser_args[active_ses];
 	  for (size_t i=0;i<active_ses;i++)
@@ -450,7 +489,7 @@ namespace seeks_plugins
 	  int k = 0;
 	  for (int i=0;i<NSEs;i++)
 	    {
-	       if (websearch::_wconfig->_se_enabled[i])
+	       if (se_enabled[i])
 		 {
 		    if (outputs[j])
 		      {
@@ -503,7 +542,7 @@ namespace seeks_plugins
        {
 	  for (int i=0;i<NSEs;i++)
 	    {
-	       if (websearch::_wconfig->_se_enabled[i])
+	       if (se_enabled[i])
 		 {
 		    if (outputs[j])
 		      {
@@ -554,7 +593,7 @@ namespace seeks_plugins
 	  {
 	     // get more stuff from the parser.
 	     se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
-	     // suggestions (later on, we expect to do improve this with shared queries).
+	     // XXX: suggestions (later on, we expect to do improve this with shared queries).
 	     if (!se_p_ggle->_suggestion.empty())
 	       args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
 	  }

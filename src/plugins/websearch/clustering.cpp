@@ -17,9 +17,16 @@
  */
  
 #include "clustering.h"
+#include "seeks_proxy.h"
 #include "errlog.h"
+#include "miscutil.h"
+#include "lsh_configuration.h"
 
 using sp::errlog;
+using sp::miscutil;
+using sp::seeks_proxy;
+using lsh::lsh_configuration;
+using lsh::stopwordlist;
 
 namespace seeks_plugins
 {
@@ -91,7 +98,13 @@ namespace seeks_plugins
 	  }
 	f_totals.clear();
 	
-	// turn features in to word labels.
+	// we need query words and the english stopword list for rejecting labels.
+	std::vector<std::string> words;
+	miscutil::tokenize(qc->_query,words," ");
+	size_t nwords = words.size();
+	stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist("en");
+	
+	// turn features into word labels.
 	int k=0;
 	int KW = 2; // number of words per label. TODO: use weights for less/more words...
 	std::map<float,uint32_t,std::greater<float> >::iterator mit = f_mtotals.begin();
@@ -111,6 +124,30 @@ namespace seeks_plugins
 		       hash_map<uint32_t,std::string,id_hash_uint>::const_iterator bit;
 		       if ((bit=sp->_bag_of_words->find((*mit).second))!=sp->_bag_of_words->end())
 			 {
+			    // two checks needed: whether the word already belongs to the query
+			    // (can happen after successive use of cluster label queries);
+			    // whether the word belongs to the english stop word list (because
+			    // whatever the query language, some english results sometimes gets in).
+			    bool reject = false;
+			    for (size_t i=0;i<nwords;i++)
+			      {
+				 if (words.at(i) == (*bit).second) // check against query word.
+				   {
+				      reject = true;
+				      break;
+				   }
+			      }
+			    if (!reject)
+			      {
+				 reject = swl->has_word((*bit).second); // check against the english stopword list.
+			      }
+			    
+			    if (reject)
+			      {
+				 ++hit;
+				 continue;
+			      }
+			    			    
 			    /* std::cerr << "adding to label: " << (*bit).second
 			      << " --> " << (*mit).first << std::endl; */
 			    

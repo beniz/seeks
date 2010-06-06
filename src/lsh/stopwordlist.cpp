@@ -49,7 +49,8 @@ namespace lsh
    
    int stopwordlist::load_list(const std::string &filename)
      {
-	std::string fullfname = std::string(seeks_proxy::_basedir) + "/lsh/swl/" + filename;
+	std::string fullfname = (seeks_proxy::_basedir) ? std::string(seeks_proxy::_basedir) + "/lsh/swl/" + filename
+	  : seeks_proxy::_datadir + "/lsh/swl/" + filename;
 		
 	std::ifstream infile;
 	infile.open(fullfname.c_str(),std::ifstream::in);

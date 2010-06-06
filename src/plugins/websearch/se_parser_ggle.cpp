@@ -90,14 +90,19 @@ namespace seeks_plugins
 	     
 	     if (a_link)
 	       {
-		  /* if (_spell_flag)  // the spell section provides links as queries.
-		    { */
 		  std::string a_link_str = std::string(a_link);
 		  size_t p = miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
 		  if (p != 0)
 		    {
 		       size_t pos = a_link_str.find("&");
-		       a_link_str = a_link_str.substr(0,pos);
+		       try
+			 {
+			    a_link_str = a_link_str.substr(0,pos);
+			 }
+		       catch(std::exception &e)
+			 {
+			    a_link_str = ""; // will lose the snippet.
+			 }
 		    }
 		  pc->_current_snippet->set_url(a_link_str);
 		  
@@ -286,7 +291,7 @@ namespace seeks_plugins
      {
 	const char *tag = (const char*) name;
 	
-	if (pc->_current_snippet && _li_flag && strcasecmp(tag,"h3")==0)
+	if (pc->_current_snippet && _li_flag && _h3_flag && strcasecmp(tag,"h3")==0)
 	  {
 	     _h3_flag = false;
 	     pc->_current_snippet->_title = _h3;
@@ -315,7 +320,8 @@ namespace seeks_plugins
 	else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = false;
-	     pc->_current_snippet->_cite = _cite;
+	     if (pc->_current_snippet->_cite.empty())
+	       pc->_current_snippet->set_cite(_cite);
 	     _cite = "";
 	     _new_link_flag = false;
 	  }

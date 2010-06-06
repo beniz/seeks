@@ -345,12 +345,11 @@ char* encode::url_decode(const char * s)
       {
          switch (*s)
          {
-	    // removed for processing queries to search engines.
-/*            case '+':
-               s++;
-               *q++ = ' ';
-               break; */
-
+	  case '+':
+	    s++;
+	    *q++ = ' ';
+	    break;
+	    
             case '%':
                if ((*q = (char)xtoi(s + 1)) != '\0')
                {

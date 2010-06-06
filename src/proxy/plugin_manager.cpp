@@ -179,6 +179,9 @@ namespace sp
 		      plugin_manager::_ref_action_plugins.push_back(p->_action_plugin);
 		    if (p->_filter_plugin)
 		      plugin_manager::_ref_filter_plugins.push_back(p->_filter_plugin);
+		 
+		    // run start() on plugin.
+		    p->start();
 		 }
 		 
 	     ++mit;
@@ -186,6 +189,8 @@ namespace sp
 	return 0;
      }
 
+   //TODO: deinstanciate plugin = deregister + stop().
+   
    void plugin_manager::register_plugin(plugin *p)
      {
 	plugin_manager::_plugins.push_back(p);

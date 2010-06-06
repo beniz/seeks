@@ -28,12 +28,13 @@ using sp::configuration_spec;
 
 namespace seeks_plugins
 {
-   
-#define SE_GOOGLE             1U
+
+/* engines in alphabetical order. */
+#define SE_BING               1U
 #define SE_CUIL               2U
-#define SE_BING               4U
-#define SE_YAHOO              8U
-#define SE_EXALEAD           16U
+#define SE_EXALEAD            4U
+#define SE_GOOGLE             8U
+#define SE_YAHOO              16U
    
    class websearch_configuration : public configuration_spec
      {
@@ -67,6 +68,9 @@ namespace seeks_plugins
 
 	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
 	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
+	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
+
+	bool _extended_highlight;
      };
    
 } /* end of namespace. */

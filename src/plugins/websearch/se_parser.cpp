@@ -140,23 +140,24 @@ namespace seeks_plugins
 		    {
 		       std::string err_msg = std::string(xep->message);
 		       miscutil::replace_in_string(err_msg,"\n","");
-		       errlog::log_error(LOG_LEVEL_ERROR, "html level parsing error (libxml2): %s",
+		       errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
 					 err_msg.c_str());
 		       // check on error level.
 		       if (xep->level == 3) // fatal or recoverable error.
 			 {
-			    errlog::log_error(LOG_LEVEL_ERROR,"libxml2 fatal error.");
+			    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 fatal error.");
 			 }
+		       // XXX: too verbose, and confusing to users.
 		       else if (xep->level == 2)
 			 {
-			    errlog::log_error(LOG_LEVEL_ERROR,"libxml2 recoverable error");
+			    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 recoverable error");
 			 }
 		    }
 	       }
 	  }
 	catch (std::exception e)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"Error %s in xml/html parsing of search results.",
+	     errlog::log_error(LOG_LEVEL_PARSER,"Error %s in xml/html parsing of search results.",
 			       e.what());
 	  }
 	catch (...) // catch everything else to avoid crashes.

@@ -2503,10 +2503,6 @@ namespace sp
 
 
 	// loads main configuration file (seeks + proxy configuration).
-#ifdef __linux__
-	configuration_spec::init_file_notification(); // init inotify, Linux only.
-#endif
- 
 	if (seeks_proxy::_config)
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);

@@ -66,12 +66,14 @@ namespace seeks_plugins
 			const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
 	/**
-	 * \brief regenerates search result snippets as necessary.
+	 * \brief perform expansion.
 	 */
-	sp_err regenerate(client_state *csp,
-			  http_response *rsp,
-			  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
+	sp_err expand(client_state *csp,
+		      http_response *rsp,
+		      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+		      const int &page_start, const int &page_end,
+		      const std::bitset<NSEs> &se_enabled);
+		
 	/**
 	 * virtual call to evaluate the sweeping condition.
 	 */
@@ -103,7 +105,12 @@ namespace seeks_plugins
 	 * the 32 bit hash is returned.
 	 */
 	static uint32_t hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-					       std::string &query);
+					       std::string &query, std::string &url_enc_query);
+	
+	/**
+	 * \brief synchronizes qc's parameters with parameters.
+	 */
+	void update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
 	/**
 	 * \brief adds a snippet to the unordered cache set.
@@ -116,12 +123,6 @@ namespace seeks_plugins
 	 */
 	void update_unordered_cache();
 	
-	/**
-	 * \brief finds and updates a search snippet's seeks rank.
-	 */
-	void update_snippet_seeks_rank(const uint32_t &id,
-				       const double &rank);
-
 	/**
 	 * \brief returns a cached snippet if it knows it, NULL otherwise.
 	 */
@@ -143,6 +144,14 @@ namespace seeks_plugins
 	 */
 	search_snippet* get_cached_snippet_title(const char *lctitle);
 
+	/**
+	 * \brief detects whether a query contain a language command and 
+	 *        fills up the language parameter.
+	 * @return true if it does, false otherwise.
+	 */
+	static bool has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				   std::string &qlang);
+	
 	/**
 	 * \brief detect query language from the query special keywords, :en, :fr, ...
 	 * @return true if the language could be detected that way, false otherwise.
@@ -175,8 +184,15 @@ namespace seeks_plugins
 	 */
 	std::string generate_lang_http_header() const;
 	
+	/**
+	 * \brief fill up activated search engines from parameters or configuration.
+	 */
+	static void fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				   std::bitset<NSEs> &engines);
+	
       public:
 	std::string _query;
+	std::string _url_enc_query;
 	uint32_t _query_hash;
 	uint32_t _page_expansion; // expansion as fetched pages from the search engines.
 		
@@ -222,6 +238,9 @@ namespace seeks_plugins
      
 	/* mutex for threaded work on the context. */
 	sp_mutex_t _qc_mutex;
+     
+	/* search engines used in this context. */
+	std::bitset<NSEs> _engines;
      };
       
 } /* end of namespace. */
