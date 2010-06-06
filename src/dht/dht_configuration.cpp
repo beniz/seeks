@@ -39,12 +39,7 @@ namespace dht
    dht_configuration::dht_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
-	  //debug
-	  std::cerr << "[Debug]:dht_configuration: reading configuration file...\n";
-	  //debug
-	  
 	  errlog::log_error(LOG_LEVEL_DHT, "reading DHT configuration file %s", filename.c_str());
-	  
 	  load_config();
        }
    
