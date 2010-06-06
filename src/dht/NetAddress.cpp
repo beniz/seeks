@@ -114,8 +114,8 @@ namespace dht
 	return res;
      }
    
-   std::string NetAddress::unserialize_ip(const uint32_t &ip)
-     {
+   std::string NetAddress::unserialize_ip(const uint32_t &ip) // TODO: IPV6.
+      {
 	std::string res;
 	
 	unsigned int mask = 0;
