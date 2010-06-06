@@ -54,7 +54,6 @@ namespace dht
 	std::string recipient_key(dkser.begin(),dkser.end());
 	std::vector<unsigned char> dsser = DHTKey::serialize(sender_dhtkey);
 	std::string sender_key(dsser.begin(),dsser.end());
-	uint32_t sender_ip_addr = 0;
 	std::string sender_net_port;
 	l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,recipient_key,
 							       recipient_na.getNetAddress(),recipient_na.getPort(),
