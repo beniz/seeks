@@ -55,8 +55,7 @@ namespace seeks_plugins
 		  // assert previous snippet, if any.
 		  if (pc->_current_snippet)
 		    {
-		       if (pc->_current_snippet->_title.empty()
-			   || pc->_current_snippet->_url.empty())
+		       if (bad_snippet(pc->_current_snippet))
 			 {
 			    delete pc->_current_snippet;
 			    pc->_current_snippet = NULL;
@@ -248,5 +247,14 @@ namespace seeks_plugins
 	       _b_summary_flag = false;
 	  }
 	}
-   
+
+   bool se_parser_exalead::bad_snippet(search_snippet *sp)
+     {
+	if (sp->_url.empty()
+	    || sp->_title.empty()
+	    || sp->_title.find("%visible_url%")!=std::string::npos)
+	  return true;
+	else return false;
+     }
+      
 } /* end of namespace. */
