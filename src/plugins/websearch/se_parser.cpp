@@ -182,7 +182,7 @@ namespace seeks_plugins
 	  {
 	     if (strcasecmp(attributes[i],name) == 0)
 	       return attributes[i+1];
-	     i++;
+	     i+=2;
 	  }
 	return NULL;
      }
