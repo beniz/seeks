@@ -11,6 +11,9 @@ websearch, opensearch.xml and robots.txt.
 ad-blocking and more, based on a (by default empty) list of positive and
 negative regexps.
 
+- Per-query selection of search engines with parameter "engines=" in query
+URI.
+
 - Improved stability with the correction of some rare but critical bugs and
   and a memory leak.
 
