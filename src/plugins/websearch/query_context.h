@@ -66,12 +66,14 @@ namespace seeks_plugins
 			const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
 	/**
-	 * \brief regenerates search result snippets as necessary.
+	 * \brief perform expansion.
 	 */
-	sp_err regenerate(client_state *csp,
-			  http_response *rsp,
-			  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
+	sp_err expand(client_state *csp,
+		      http_response *rsp,
+		      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+		      const int &page_start, const int &page_end,
+		      const std::bitset<NSEs> &se_enabled);
+		
 	/**
 	 * virtual call to evaluate the sweeping condition.
 	 */
@@ -182,6 +184,12 @@ namespace seeks_plugins
 	 */
 	std::string generate_lang_http_header() const;
 	
+	/**
+	 * \brief fill up activated search engines from parameters or configuration.
+	 */
+	static void fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				   std::bitset<NSEs> &engines);
+	
       public:
 	std::string _query;
 	std::string _url_enc_query;
@@ -230,6 +238,9 @@ namespace seeks_plugins
      
 	/* mutex for threaded work on the context. */
 	sp_mutex_t _qc_mutex;
+     
+	/* search engines used in this context. */
+	std::bitset<NSEs> _engines;
      };
       
 } /* end of namespace. */

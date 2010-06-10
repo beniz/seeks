@@ -50,7 +50,7 @@
 #endif /* def FEATURE_FORCE_LOAD */
 #define LOG_LEVEL_RE_FILTER  0x0040
 #define LOG_LEVEL_REDIRECTS  0x0080
-#define LOG_LEVEL_DEANIMATE  0x0100
+#define LOG_LEVEL_PARSER     0x0100
 #define LOG_LEVEL_CLF        0x0200 /* Common Log File format */
 #define LOG_LEVEL_CRUNCH     0x0400
 #define LOG_LEVEL_CGI        0x0800 /* CGI / templates */

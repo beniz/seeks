@@ -52,7 +52,6 @@ namespace seeks_plugins
 			       int length);
      
       private:
-	bool _h1_flag;
 	bool _h1_sr_flag;
 	bool _results_flag;
 	bool _h3_flag;

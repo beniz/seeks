@@ -69,6 +69,9 @@ namespace sp
       
    void* pull_one_url(void *arg_cbget)
      {
+	if (!arg_cbget)
+	  return NULL;
+	
 	cbget *arg = static_cast<cbget*>(arg_cbget);
 	
 	CURL *curl;

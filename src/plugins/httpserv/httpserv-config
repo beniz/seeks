@@ -1,0 +1,7 @@
+# HTTP server listening port.
+# default: 8080
+server-port 8080
+
+# HTTP server host
+# default: localhost
+server-host localhost

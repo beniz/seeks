@@ -101,10 +101,13 @@ namespace seeks_plugins
       
    void search_snippet::highlight_discr(std::string &str)
      {
+	static int max_highlights = 3; // ad-hoc default.
+	
 	if (!_features_tfidf)
 	  return;
 	
 	std::vector<std::string> words;
+	words.reserve(max_highlights);
 	std::map<float,uint32_t,std::greater<float> > f_tfidf;
 	
 	// sort features in decreasing tf-idf order.
@@ -116,7 +119,6 @@ namespace seeks_plugins
 	     ++fit;
 	  }
 	
-	int max_highlights = 3; // ad-hoc default.
 	int i = 0;
 	std::map<float,uint32_t,std::greater<float> >::const_iterator mit = f_tfidf.begin();
 	while(mit!=f_tfidf.end())
@@ -311,7 +313,9 @@ namespace seeks_plugins
 	  {
 	     cite_enc = encode::html_encode(_url.c_str());
 	  }
-	html_content += "<br><cite>";
+	if (!_summary.empty())
+	  html_content += "<br>";
+	html_content += "<cite>";
 	html_content += cite_enc;
 	free_const(cite_enc);
 	html_content += "</cite>\n";
@@ -366,24 +370,30 @@ namespace seeks_plugins
    
    void search_snippet::set_url(const std::string &url)
      {
-	const char *url_str = url.c_str();
-	_url = url_str;
+	char *url_str = encode::url_decode(url.c_str());
+	_url = std::string(url_str);
+	free(url_str);
 	std::string surl = urlmatch::strip_url(_url);
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
    void search_snippet::set_url(const char *url)
      {
-	_url = url;
+	char *url_dec = encode::url_decode(url);
+	_url = std::string(url_dec);
+	free(url_dec);
 	std::string surl = urlmatch::strip_url(_url);
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
    void search_snippet::set_cite(const std::string &cite)
      {
+	char *cite_dec = encode::url_decode(cite.c_str());
+	std::string citer = std::string(cite_dec);
+	free(cite_dec);
 	static size_t cite_max_size = 60;
 	std::string host, path;
-	urlmatch::parse_url_host_and_path(cite,host,path);
+	urlmatch::parse_url_host_and_path(citer,host,path);
 	_cite = host + path;
 	if (_cite.length()>cite_max_size)
 	  {

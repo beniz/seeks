@@ -52,7 +52,9 @@ namespace seeks_plugins
 	void handle_characters(parser_context *pc,
 			       const xmlChar *chars,
 			       int length);
-     
+	
+	bool bad_snippet(search_snippet *sp);
+	
       private:
 	bool _result_flag;
 	bool _title_flag;

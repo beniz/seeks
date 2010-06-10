@@ -54,7 +54,8 @@ namespace seeks_plugins
 	     
 	     if (!_start_results && a_id && strcasecmp(a_id,"web") == 0)
 	       _start_results = true;
-	     else if (_begin_results && a_class && strcasecmp(a_class,"abstr") == 0)
+	     else if (_begin_results && a_class && (strcasecmp(a_class,"abstr") == 0
+						    || strcasecmp(a_class,"sm-abs") == 0))
 	       _summary_flag = true;
 	     else if (_begin_results && a_class && strncasecmp(a_class,"res",3) == 0)		      
 	       {

@@ -55,6 +55,11 @@ namespace sp
 	
 	char* print() const;
 	
+	/* start/stop plugin. */
+	virtual void  start() {};
+	
+	virtual void stop() {};
+	
 	/* accessors. */
 	std::string get_name() const { return _name; };
 	const char* get_name_cstr() const { return _name.c_str(); };

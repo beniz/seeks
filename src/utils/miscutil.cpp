@@ -168,8 +168,6 @@ namespace sp
 				  const char *name, int name_needs_copying,
 				  const char *value, int value_needs_copying)
      {
-	assert(the_map);
-
 	if ( (NULL == value)
 	     || (NULL == name) )
 	  {
@@ -214,17 +212,15 @@ namespace sp
    /* unmap. */
    sp_err miscutil::unmap(hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map, const char *name)
      {
-	assert(the_map);
-	assert(name);
-	
 	hash_map<const char*,const char*,hash<const char*>,eqstr>::iterator mit;
 	if((mit=the_map->find(name)) != the_map->end())
 	  {
-	     //free_const((*mit).first); // possible memory leak.
-	     free_const((*mit).second);
+	     const char *key = (*mit).first;
+	     const char *value = (*mit).second;
 	     the_map->erase(mit);
+	     free_const(key);
+	     free_const(value);
 	  }
-		
 	return SP_ERR_OK;
      }
 
@@ -235,9 +231,13 @@ namespace sp
 	  = the_map->begin();
 	while(mit!=the_map->end())
 	  {
-	    //free_const((*mit).first); // beware: possible memory leak.
-	     free_const((*mit).second);
+	     const char *key = (*mit).first;
+	     const char *value = (*mit).second;
+	     hash_map<const char*,const char*,hash<const char*>,eqstr>::iterator mitc = mit;
 	     ++mit;
+	     the_map->erase(mitc);
+	     free_const(key);
+	     free_const(value);
 	  }
 	delete the_map;
 	the_map = NULL;

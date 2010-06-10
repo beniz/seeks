@@ -102,9 +102,27 @@ namespace seeks_plugins
 	miscutil::add_map_entry(exports,"$xxlang",1,qc->_auto_lang.c_str(),1);
      }
       
+   void static_renderer::render_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					std::string &engines)
+     {
+	const char *eng = miscutil::lookup(parameters,"engines");
+	if (eng)
+	  {
+	     engines = std::string(eng);
+	     miscutil::add_map_entry(exports,"$xxeng",1,eng,1);
+	  }
+	else 
+	  {
+	     engines = "";
+	     miscutil::add_map_entry(exports,"$xxeng",1,strdup(""),0);
+	  }
+     }
+         
    void static_renderer::render_snippets(const std::string &query_clean,
 					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
+					 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	const char *base_url = miscutil::lookup(exports,"base-url");
@@ -125,16 +143,29 @@ namespace seeks_plugins
 	     bool similarity = false;
 	     if (snippets.at(0)->_seeks_ir > 0)
 	       similarity = true;
-	     	     
+	     
+	     // lookup activated engines.
+	     std::bitset<NSEs> se_enabled;
+	     query_context::fillup_engines(parameters,se_enabled);
+	     
 	     // proceed with rendering.
-	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)snippets.size());
+	     int ssize = snippets.size();
+	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)ssize);
 	     size_t snistart = (current_page-1) * websearch::_wconfig->_N;
-	     for (size_t i=snistart;i<snisize;i++)
+	     size_t count = snistart;
+	     for (int i=snistart;i<ssize;i++)
 	       {
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
+		  std::bitset<NSEs> band = (snippets.at(i)->_engine & se_enabled);
+		  if (band.count() == 0)
+		    continue;
+		  
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
+		  count++;
+		  if (count == snisize)
+		    break; // end list here.
 	       }
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
@@ -179,6 +210,10 @@ namespace seeks_plugins
 	     rplcnt = "search_snippets";
 	  }
 		
+	// lookup activated engines.
+	std::bitset<NSEs> se_enabled;
+	query_context::fillup_engines(parameters,se_enabled);
+	
 	bool clusterize = false;
 	const char *action_str = miscutil::lookup(parameters,"action");
 	if (action_str && strcmp(action_str,"clusterize")==0)
@@ -194,11 +229,23 @@ namespace seeks_plugins
 	       }
 	     
 	     std::vector<search_snippet*> snippets;
+	     snippets.reserve(clusters[c]._cpoints.size());
 	     hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit 
 	       = clusters[c]._cpoints.begin();
 	     while(hit!=clusters[c]._cpoints.end())
 	       {
 		  search_snippet *sp = qc->get_cached_snippet((*hit).first);
+		  if (sp->_doc_type == REJECTED)
+		    {
+		       ++hit;
+		       continue;
+		    }
+		  std::bitset<NSEs> band = (sp->_engine & se_enabled);
+		  if (band.count() == 0)
+		    {
+		       ++hit;
+		       continue;
+		    }
 		  snippets.push_back(sp);
 		  ++hit;
 	       }
@@ -297,6 +344,7 @@ namespace seeks_plugins
 					       const size_t &snippets_size,
 					       const std::string &url_encoded_query,
 					       const std::string &expansion,
+					       const std::string &engines,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	double nl = snippets_size / static_cast<double>(websearch::_wconfig->_N);
@@ -304,12 +352,13 @@ namespace seeks_plugins
 	if (current_page < nl)
 	  {
 	     const char *base_url = miscutil::lookup(exports,"base-url");
-	     std::string base_url_str = "";
+	     std::string base_url_str;
 	     if (base_url)
 	       base_url_str = std::string(base_url);
 	     std::string np_str = miscutil::to_string(current_page+1);
 	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&amp;q="
-	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\" id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
+	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
+	       + engines + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -319,6 +368,7 @@ namespace seeks_plugins
 					       const size_t &snippets_size,
 					       const std::string &url_encoded_query,
 					       const std::string &expansion,
+					       const std::string &engines,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
 	 if (current_page > 1)
@@ -329,7 +379,8 @@ namespace seeks_plugins
 	     if (base_url)
 	       base_url_str = std::string(base_url);
 	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&amp;q="
-	                   + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
+	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
+	       + engines + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
@@ -404,7 +455,7 @@ namespace seeks_plugins
 	if (websearch::_wconfig->_clustering)
 	  miscutil::add_map_entry(exports,"websearch-clustering",1,"clustering",1);
 	else miscutil::add_map_entry(exports,"websearch-clustering",1,strdup(""),0);
-	
+		
 	return exports;
      }
       
@@ -457,6 +508,12 @@ namespace seeks_plugins
      
      // language.
      static_renderer::render_lang(qc,exports);
+
+     // engines.
+     std::string engines;
+     static_renderer::render_engines(parameters,exports,engines);
+     
+     std::cerr << "engines: " << engines << std::endl;
      
      // TODO: check whether we have some results.
      /* if (snippets->empty())
@@ -467,7 +524,7 @@ namespace seeks_plugins
        } */
      
      // search snippets.
-     static_renderer::render_snippets(query_clean,current_page,snippets,exports);
+     static_renderer::render_snippets(query_clean,current_page,snippets,parameters,exports);
      
      // expand button.
      std::string expansion;
@@ -475,11 +532,11 @@ namespace seeks_plugins
      
      // next link.
      static_renderer::render_next_page_link(current_page,snippets.size(),
-					    url_encoded_query,expansion,exports);
+					    url_encoded_query,expansion,engines,exports);
      
      // previous link.
      static_renderer::render_prev_page_link(current_page,snippets.size(),
-					    url_encoded_query,expansion,exports);
+					    url_encoded_query,expansion,engines,exports);
 
      // cluster link.
      static_renderer::render_nclusters(parameters,exports);
@@ -525,6 +582,10 @@ namespace seeks_plugins
 	// language.
 	static_renderer::render_lang(qc,exports);
 	
+	// engines.
+	std::string engines;
+	static_renderer::render_engines(parameters,exports,engines);
+		
 	// search snippets.
 	static_renderer::render_clustered_snippets(query_clean,url_encoded_query,current_page,
 						   clusters,K,qc,parameters,
@@ -637,6 +698,7 @@ namespace seeks_plugins
 	       }
 	  }
 	std::vector<search_snippet*> snippets;
+	snippets.reserve(hsnippets.size());
 	hit = hsnippets.begin();
 	while(hit!=hsnippets.end())
 	  {
