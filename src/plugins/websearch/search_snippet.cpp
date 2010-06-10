@@ -313,7 +313,9 @@ namespace seeks_plugins
 	  {
 	     cite_enc = encode::html_encode(_url.c_str());
 	  }
-	html_content += "<br><cite>";
+	if (!_summary.empty())
+	  html_content += "<br>";
+	html_content += "<cite>";
 	html_content += cite_enc;
 	free_const(cite_enc);
 	html_content += "</cite>\n";
