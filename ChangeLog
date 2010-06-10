@@ -11,7 +11,8 @@ websearch, opensearch.xml and robots.txt.
 ad-blocking and more, based on a (by default empty) list of positive and
 negative regexps.
 
-- Improved stability with the correction of some rare but critical bugs.
+- Improved stability with the correction of some rare but critical bugs and
+  and a memory leak.
 
 - Fixed parsing of some engines results.
 
