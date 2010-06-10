@@ -97,10 +97,33 @@ namespace seeks_plugins
 		    }
 		  else if (a_class && strcasecmp(a_class,"title") == 0)
 		    {
-		       _title_flag = true;
+		       //_title_flag = true;
 		       const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
 		       if (a_link) 
 			 pc->_current_snippet->set_url(a_link);
+		       const char *tt_link = se_parser::get_attribute((const char**)attributes,"title");
+		       if (tt_link)
+			 {
+			    std::string a_chars = std::string(tt_link);
+			    size_t i=0;
+			    while(i<a_chars.length() && isspace(a_chars[i]))
+			      {
+				 i++;
+			      }
+			    try
+			      {
+				 a_chars = a_chars.substr(i);
+			      }
+			    catch(std::exception &e)
+			      {
+				 return;
+			      }
+			    miscutil::replace_in_string(a_chars,"\n"," ");
+			    miscutil::replace_in_string(a_chars,"\r"," ");
+			    _title = a_chars;
+			    pc->_current_snippet->_title = _title;
+			    _title = "";
+			 }
 		    }
 		  else if (a_class && strcasecmp(a_class,"cache") == 0)
 		    {
@@ -114,10 +137,10 @@ namespace seeks_plugins
 		       }
 		    }
 	       }
-	     else if (_title_flag && strcasecmp(tag,"b") == 0)
+	     /* else if (_title_flag && strcasecmp(tag,"b") == 0)
 	       {
 		  _b_title_flag = true;
-	       }
+	       } */
 	     else if (_summary_flag && strcasecmp(tag,"b") == 0)
 	       {
 		  _b_summary_flag = true;
@@ -177,7 +200,7 @@ namespace seeks_plugins
 	   miscutil::replace_in_string(a_chars,"\r"," ");
 	   _cite += a_chars;
 	}
-	else if (_title_flag) 
+	/* else if (_title_flag) 
 	 {
 	    std::string a_chars = std::string((char*)chars);
 	    size_t i=0;
@@ -200,7 +223,7 @@ namespace seeks_plugins
 	    _title += a_chars;
 	    if (_b_title_flag)
 	      _title += " ";
-	  }
+	  } */
      }
    
    void se_parser_exalead::end_element(parser_context *pc,
@@ -235,14 +258,14 @@ namespace seeks_plugins
 		  _cite = "";
 		  _cite_flag = false;
 	       }
-	     else if (_title_flag && strcasecmp(tag,"a") == 0)
+	     /* else if (_title_flag && strcasecmp(tag,"a") == 0)
 	       {
 		  pc->_current_snippet->_title = _title;
 		  _title = "";
 		  _title_flag = false;
 	       }
 	     else if (_title_flag && strcasecmp(tag,"b") == 0)
-	       _b_title_flag = false;
+	       _b_title_flag = false; */
 	     else if (_summary_flag && strcasecmp(tag,"b") == 0)
 	       _b_summary_flag = false;
 	  }
