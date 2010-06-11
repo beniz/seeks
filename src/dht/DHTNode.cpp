@@ -99,6 +99,7 @@ namespace dht
 	bool has_persistent_data = load_vnodes_table();
 	if (!has_persistent_data)
 	  create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data.
+	init_sorted_vnodes();
 	
 	/**
 	 * start rpc client & server.
@@ -151,6 +152,18 @@ namespace dht
 	  }
      }
 
+   void DHTNode::init_sorted_vnodes()
+     {
+	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+	  = _vnodes.begin();
+	while(hit!=_vnodes.end())
+	  {
+	     _sorted_vnodes_vec.push_back((*hit).second->getIdKeyPtr());
+	     ++hit;
+	  }
+	std::sort(_sorted_vnodes_vec.begin(),_sorted_vnodes_vec.end(),DHTKey::lowdhtkey);
+     }
+      
    void DHTNode::init_server()
      {
 	_l1_server = new l1_protob_rpc_server(_l1_na.getNetAddress(),_l1_na.getPort(),this);
@@ -259,6 +272,26 @@ namespace dht
 	  }
 	delete vt;
 	return true;
+     }
+
+   DHTVirtualNode* DHTNode::find_closest_vnode(const DHTKey &key) const
+     {
+	DHTVirtualNode *vnode = NULL;
+	std::vector<const DHTKey*>::const_iterator vit = _sorted_vnodes_vec.begin();
+	DHTKey vidkey = *(*vit);
+	if (key < *(*vit))
+	  vidkey = *(_sorted_vnodes_vec.back());
+	else
+	  {
+	     while(vit!=_sorted_vnodes_vec.end()
+		   && *(*vit) < key)
+	       {
+		  vidkey = *(*vit);
+		  ++vit;
+	       }
+	  }
+	vnode = findVNode(vidkey);
+	return vnode;
      }
       
    dht_err DHTNode::join_start(const std::vector<NetAddress> &btrap_nodelist,

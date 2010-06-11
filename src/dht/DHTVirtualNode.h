@@ -127,6 +127,7 @@ namespace dht
 	 * accessors.
 	 */
 	const DHTKey& getIdKey() const { return _idkey; }
+	const DHTKey* getIdKeyPtr() const { return &_idkey; }
 	DHTNode* getPNode() const { return _pnode; }
 	DHTKey* getSuccessor() const { return _successor; }
 	void setSuccessor(const DHTKey &dk);

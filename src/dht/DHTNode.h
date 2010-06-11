@@ -53,6 +53,11 @@ namespace dht
 	void create_vnodes();
 	
 	/**
+	 * fill up and sort sorted set of virtual nodes.
+	 */
+	void init_sorted_vnodes();
+	
+	/**
 	 * init servers.
 	 */
 	virtual void init_server();
@@ -74,6 +79,11 @@ namespace dht
 	 * \brief makes critical data (vnode keys and location tables) persistent.
 	 */
 	bool hibernate_vnodes_table();
+	
+	/**
+	 * \brief finds closest virtual node to the argument key.
+	 */
+	DHTVirtualNode* find_closest_vnode(const DHTKey &key) const;
 	
 	/*- main functions -*/
 	/**
@@ -208,10 +218,15 @@ namespace dht
 	static dht_configuration *_dht_config;
 	
 	/**
-	 * array of DHT virtual node.
+	 * hash map of DHT virtual nodes.
 	 */
 	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
 
+	/**
+	 * Sortable list of virtual nodes.
+	 */
+	std::vector<const DHTKey*> _sorted_vnodes_vec;
+	
 	/**
 	 * this peer net address.
 	 */
