@@ -22,7 +22,8 @@
 #define SG_API_H
 
 #include "dht_err.h"
-#include "DHTKey.h"
+#include "dht_api.h"
+#include "SGNode.h"
 #include "Location.h"
 #include "subscriber.h"
 
@@ -37,9 +38,18 @@ namespace dht
 	static void get_sg_keys(const std::string &query, std::vector<DHTKey> &sg_keys,
 				const int &min_radius, const int &max_radius);	
 	
-	static dht_err find_sg(const DHTKey &sg_key, Location &node);
+	static dht_err find_sg(const SGNode &sgnode,
+			       const DHTKey &sg_key, Location &node);
 	
-	static dht_err get_sg_peers(const DHTKey &sg_key, std::vector<Subscriber*> &peers);
+	static dht_err get_sg_peers(const SGNode &sgnode,
+				    const DHTKey &sg_key, 
+				    const Location &node,
+				    std::vector<Subscriber*> &peers);
+     
+	static dht_err get_sg_peers_and_subscribe(const SGNode &sgnode,
+						  const DHTKey &sg_key,
+						  const Location &node,
+						  std::vector<Subscriber*> &peers);
      };
     
 } /* end of namespace. */

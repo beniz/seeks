@@ -20,6 +20,7 @@
 
 #include "sg_api.h"
 #include "qprocess.h"
+#include "l2_protob_rpc_client.h"
 
 using lsh::qprocess;
 
@@ -31,5 +32,50 @@ namespace dht
 	qprocess::generate_query_hashes(query,min_radius,max_radius,sg_keys);
      }
    
-
+   dht_err sg_api::find_sg(const SGNode &sgnode,
+			   const DHTKey &sg_key, Location &node)
+     {
+	DHTKey host_key;
+	NetAddress host_na;
+	int status = DHT_ERR_OK;
+	dht_api::findClosestPredecessor(sgnode,sg_key,host_key,host_na,status);
+	node = Location(host_key,host_na);
+	return status;
+     }
+   
+   dht_err sg_api::get_sg_peers(const SGNode &sgnode,
+				const DHTKey &sg_key, 
+				const Location &node,
+				std::vector<Subscriber*> &peers)
+     {
+	// level 2 subscribe call with no subscription.
+	DHTKey senderKey;
+	NetAddress senderAddress;
+	int status = DHT_ERR_OK;
+	l2_protob_rpc_client *l2_client = static_cast<l2_protob_rpc_client*>(sgnode._l1_client);
+	l2_client->RPC_subscribe(node.getDHTKey(),
+				 node.getNetAddress(),
+				 senderKey,senderAddress, // empty
+				 sg_key,peers,status);
+	return status;
+     }
+  
+   dht_err sg_api::get_sg_peers_and_subscribe(const SGNode &sgnode,
+					      const DHTKey &sg_key,
+					      const Location &node,
+					      std::vector<Subscriber*> &peers)
+     {
+	// level 2 subscribe call with subscription.
+	DHTVirtualNode *vnode = sgnode.find_closest_vnode(node.getDHTKey()); // grab the closest virtual node.
+	DHTKey senderKey = vnode->getIdKey();
+	NetAddress senderAddress = sgnode._l1_na;
+	int status = DHT_ERR_OK;
+	l2_protob_rpc_client *l2_client = static_cast<l2_protob_rpc_client*>(sgnode._l1_client);
+	l2_client->RPC_subscribe(node.getDHTKey(),
+				 node.getNetAddress(),
+				 senderKey,senderAddress,
+				 sg_key,peers,status);
+	return status;
+     }
+   
 } /* end of namespace. */
