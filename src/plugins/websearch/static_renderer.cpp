@@ -512,9 +512,7 @@ namespace seeks_plugins
      // engines.
      std::string engines;
      static_renderer::render_engines(parameters,exports,engines);
-     
-     std::cerr << "engines: " << engines << std::endl;
-     
+          
      // TODO: check whether we have some results.
      /* if (snippets->empty())
        {
