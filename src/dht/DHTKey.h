@@ -74,7 +74,6 @@ namespace dht
 	 */ 
 	DHTKey operator+(const DHTKey& dk);
 	DHTKey operator-(const DHTKey& dk);
-	//DHTKey operator/(const DHTKey& dk);
 	DHTKey operator++();
 	DHTKey operator--();
 	bool operator<(const DHTKey& dk) const;
@@ -200,14 +199,6 @@ using dht::DHTKey;
      };
 #endif
 
-/* struct lowdhtkey
-{
-   bool operator()(const DHTKey *dk1, const DHTKey *dk2) const
-     {
-	return (dk1 < dk2);
-     }
-}; */
-
 namespace __gnu_cxx // beware
 {
    template<>
@@ -229,7 +220,7 @@ namespace __gnu_cxx // beware
 	   //std::cout << "[Debug]:hash dk_cc: " << dk_cc << std::endl;                                                                          
 	   //debug                                                                                                                               
 	   
-	   size_t res =  __stl_hash_string(dk_cc);
+	   size_t res =  __stl_hash_string(dk_cc);  //TODO: could use a different hash function.
 	   
 	   //debug                                                                                                                               
 	   //std::cout << "[Debug]:hash: dk: " << *dk << std::endl;                                                                              
