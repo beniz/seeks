@@ -58,7 +58,10 @@ namespace dht
 	
 	// sync mode memory/disk: 0 for time-delay synced, 1 for full-sync.
 	int _db_sync_mode;
-     
+	
+	// max number of returned peers in one message.
+	int _max_returned_peers;
+	
 	// one configuration across all objects that need access to it.
 	static sg_configuration *_sg_config;
      };

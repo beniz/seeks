@@ -48,10 +48,8 @@ namespace dht
 				    std::vector<Subscriber*> &peers,
 				    int &status)
      {
-	//TODO: fill up the peers list.
+	// fill up the peers list.
 	// subscribe or not.
-	// check on memory cap for sg retention.
-	// find/or create new sg if it does not exist in memory or in db.
 	// trigger a sweep (condition to alleviate the load ?)
      	
 	/* check on parameters. */
@@ -67,12 +65,31 @@ namespace dht
 	  subscribe = true;
 	
 	/* find / create searchgroup. */
-	Searchgroup *sg = _sgmanager.find_load_or_create_sg(&sgKey); //TODO.
+	Searchgroup *sg = _sgmanager.find_load_or_create_sg(&sgKey);
+	if (!sg)
+	  {
+	     status = DHT_ERR_UNKNOWN_PEER;
+	     return status;
+	  }
+		
+	/* select peers. */
+	if ((int)sg->_vec_subscribers.size() > sg_configuration::_sg_config->_max_returned_peers)
+	  sg->random_peer_selection(sg_configuration::_sg_config->_max_returned_peers,peers);
+	else peers = sg->_vec_subscribers;
 	
-	/* TODO: select peers. */
+	/* subscription. */
+	if (subscribe)
+	  {
+	     Subscriber *nsub = new Subscriber(senderKey,
+					       sender.getNetAddress(),sender.getPort());
+	     if (!sg->add_subscriber(nsub))
+	       delete nsub;
+	  }
 	
-	/* TODO: trigger a call to sweep (from sg_manager). */
+	/* trigger a call to sweep (from sg_manager). */
+	_sgmanager._sgsw.sweep();
 	
+	return DHT_ERR_OK;
      }
         
 } /* end of namespace. */

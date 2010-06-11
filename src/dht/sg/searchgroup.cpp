@@ -21,6 +21,7 @@
 #include "searchgroup.h"
 #include "seeks_proxy.h" // for mutexes.
 
+#include <algorithm>
 #include <sys/time.h>
 
 using sp::seeks_proxy;
@@ -107,5 +108,14 @@ namespace dht
 	  return true;
 	else return false;
      }
-   
+
+   void Searchgroup::random_peer_selection(const int &npeers, std::vector<Subscriber*> &rpeers)
+     {
+	rpeers = _vec_subscribers;
+	std::random_shuffle(rpeers.begin(),rpeers.end()); // XXX: uses built-in random generator.
+	std::vector<Subscriber*>::iterator vit = rpeers.begin();
+	vit += npeers;
+	rpeers.erase(vit,rpeers.end());
+     }
+      
 } /* end of namespace. */

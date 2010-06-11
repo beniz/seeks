@@ -66,7 +66,7 @@ namespace dht
    Searchgroup* sg_manager::find_sg_db(const DHTKey &sgkey)
      {
 	//TODO: find search group in db, and recreate it if found.
-	
+	return NULL;
      }
    
    bool sg_manager::remove_sg_db(const DHTKey &sgkey)

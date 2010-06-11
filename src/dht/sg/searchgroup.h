@@ -56,7 +56,10 @@ namespace dht
 	
 	//TODO: storage.
 	int move_to_db();
-		
+	
+	/* peer selection. */
+	void random_peer_selection(const int &npeers, std::vector<Subscriber*> &rpeers);
+	
       public:
 	DHTKey _idkey;  /**< searchgroup hash key. */
 	
