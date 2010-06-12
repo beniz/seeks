@@ -79,21 +79,6 @@ namespace seeks_plugins
 	  /* sets address & port. */
 	  _address = httpserv_configuration::_hconfig->_host;
 	  _port = httpserv_configuration::_hconfig->_port;
-	  
-	  /* initializing and starting server. */
-	  _evbase = event_base_new();
-	  _srv = evhttp_new(_evbase);
-	  evhttp_bind_socket(_srv, _address.c_str(), _port); // server binding to the address & port.
-	  	  
-	  /* errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
-			    _address.c_str(),_port); */
-	  
-	  init_callbacks();
-	  
-	  /* pthread_t server_thread;
-	  int err = pthread_create(&server_thread,NULL,
-				   (void*(*)(void*))&event_base_dispatch,_evbase);
-	  pthread_detach(server_thread); */
        }
    
    httpserv::~httpserv()
@@ -104,8 +89,15 @@ namespace seeks_plugins
 
    void httpserv::start()
      {
+	/* initializing and starting server. */
+	_evbase = event_base_new();
+	_srv = evhttp_new(_evbase);
+	evhttp_bind_socket(_srv, _address.c_str(), _port); // server binding to the address & port.
+	
 	errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
 			  _address.c_str(),_port);
+	
+	init_callbacks();
 	
 	pthread_t server_thread;
 	int err = pthread_create(&server_thread,NULL,
