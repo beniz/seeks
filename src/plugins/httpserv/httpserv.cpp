@@ -398,7 +398,6 @@ namespace seeks_plugins
    
    void httpserv::unknown_path(struct evhttp_request *r, void *arg)
      {
-	std::cout << "uri: " << r->uri << std::endl;
 	httpserv::reply_with_empty_body(r,404,"ERROR");
      }
 
@@ -421,8 +420,10 @@ namespace seeks_plugins
 	     std::vector<std::string> tokens;
 	     miscutil::tokenize(host_and_params.at(i),tokens,"=");
 	     if (tokens.size()!=2)
-	       return 1; // error parsing parameters.
-	     miscutil::add_map_entry(&parameters,tokens.at(0).c_str(),1,tokens.at(1).c_str(),1);
+	       {
+		  // ignore parameter.
+	       }
+	     else miscutil::add_map_entry(&parameters,tokens.at(0).c_str(),1,tokens.at(1).c_str(),1);
 	  }
 	return 0;
      }
