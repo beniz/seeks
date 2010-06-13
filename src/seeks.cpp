@@ -494,8 +494,15 @@ int main(int argc, const char *argv[])
      }
 #endif /* def _WIN32 */
    
-   seeks_proxy::listen_loop();
+   // load configuration files and initialize proxy.
+   seeks_proxy::initialize();
    
+#ifdef WITH_DHT
+   seeks_proxy::start_sgnode();
+#endif
+   
+   seeks_proxy::listen_loop();
+      
    /* NOTREACHED */
    return(-1);
 }

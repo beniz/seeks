@@ -53,6 +53,10 @@ namespace dht
        {
 	  set_join_date();
        }
+
+   Subscriber::~Subscriber()
+     {
+     }
       
    void Subscriber::set_join_date()
      {

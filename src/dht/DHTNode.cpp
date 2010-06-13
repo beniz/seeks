@@ -70,10 +70,10 @@ namespace dht
 	  DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
 	
 	// this node net l1 address.
-	//_l1_na.setNetAddress(seeks_proxy::_config->_haddr);
 	_l1_na.setNetAddress(net_addr);
-	//_l1_na.setPort(_dht_config->_l1_port);
-	_l1_na.setPort(net_port);
+	if (net_port == 0) // no netport specified, default to config port.
+	  _l1_na.setPort(_dht_config->_l1_port);
+	else _l1_na.setPort(net_port);
 	
 	/**
 	 * Create stabilizer before structures in vnodes register to it.

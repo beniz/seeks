@@ -156,6 +156,7 @@ namespace sp
 #ifdef _WIN32
 	static void w32_service_listen_loop(void *p);
 #endif
+	static void initialize();
 	static void listen_loop();
 	static sp_socket bind_port_helper(proxy_configuration *config);
 	static void chat(client_state *csp);
@@ -188,6 +189,10 @@ namespace sp
 #endif
 	
 	static char* make_path(const char *dir, const char *file);
+
+#ifdef WITH_DHT
+	static dht_err start_sgnode();
+#endif
 	
       private:
 	static const cruncher _crunchers_all[];
@@ -195,7 +200,7 @@ namespace sp
      
       public:
 #ifdef WITH_DHT
-	SGNode *_dhtnode; // DHT node.
+	static SGNode *_dhtnode; // DHT node.
 #endif
      };
      

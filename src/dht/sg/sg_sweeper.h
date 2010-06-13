@@ -24,7 +24,8 @@
 //TODO: let's schedule calls.
 //TODO: memory & disk storage...
 
-#include "sg_manager.h"
+#include "sweeper.h"
+
 #include <vector>
 
 using sp::sweepable;
@@ -36,6 +37,8 @@ namespace dht
    class sg_sweeper
      {
       public:
+	static void init(sg_manager *sgm);
+	
 	static int sweep();
 	
 	static int sweep_memory();
@@ -43,7 +46,7 @@ namespace dht
 	static int sweep_db();
      
       public:
-	sg_manager *_sgm;
+	static sg_manager *_sgm;
      };
       
 } /* end of namespace. */

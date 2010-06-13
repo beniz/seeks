@@ -23,12 +23,21 @@
 
 namespace dht
 {
+   sg_manager* sg_sweeper::_sgm = NULL; // beware.
+
+   void sg_sweeper::init(sg_manager *sgm)
+     {
+	sg_sweeper::_sgm = sgm;
+     }
+      
    int sg_sweeper::sweep()
      {
 	sweep_memory();
 	
 	//TODO: sweep_db + condition (uptime, last_db_sweep, etc...).
 	sweep_db();
+     
+	//TODO: status return.
      }
    
    int sg_sweeper::sweep_memory()
@@ -58,7 +67,7 @@ namespace dht
    
    int sg_sweeper::sweep_db()
      {
-	
+	//TODO
      }
       
 }; /* end of namespace. */

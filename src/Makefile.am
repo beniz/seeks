@@ -8,7 +8,11 @@ bin_PROGRAMS=seeks
 seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -Iutils -Ilsh -Iproxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
+	    -Iutils -Ilsh -Iproxy 
+if HAVE_DHT
+AM_CPPFLAGS += -Idht -Idht/protob -Idht/rpc -Idht/rpc/protob -Idht/sg -Idht/sg/protob -Idht/sg/rpc
+endif
+AM_CPPFLAGS += @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'
 AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
 
@@ -18,7 +22,7 @@ AM_LDFLAGS+=-Lplugins/websearch
 endif
 
 if HAVE_DHT
- AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob `pkg-config --libs protobuf`
+ AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob -Ldht/sg -Ldht/sg/rpc -Ldht/sg/protob `pkg-config --libs protobuf`
 endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
@@ -29,7 +33,7 @@ LDADD += -lseekswebsearchplugin -levent
 endif
 LDADD += -lseeksutils 
 if HAVE_DHT
-LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lrmd160
+LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
 endif
 LDADD += -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
 

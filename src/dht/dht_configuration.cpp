@@ -35,11 +35,15 @@ namespace dht
 #define hash_max_hops                                     1040979360ul  /* "max-hops" */
 #define hash_succlist_size                                2998048309ul  /* "succlist-size" */
 #define hash_routing                                      2057335831ul  /* "routing" */
+
+   dht_configuration* dht_configuration::_dht_config = NULL;
    
    dht_configuration::dht_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
 	  errlog::log_error(LOG_LEVEL_DHT, "reading DHT configuration file %s", filename.c_str());
+	  if (dht_configuration::_dht_config == NULL)
+	    dht_configuration::_dht_config = this;
 	  load_config();
        }
    

@@ -52,6 +52,11 @@
 #include "sweeper.h"
 #include "iso639.h"
 
+#ifdef WITH_DHT
+#include "dht_configuration.h"
+using dht::dht_configuration;
+#endif
+
 namespace sp
 {
    
@@ -98,6 +103,10 @@ namespace sp
    
    int seeks_proxy::_Argc = 0;
    const char** seeks_proxy::_Argv = NULL;
+
+#ifdef WITH_DHT
+   SGNode* seeks_proxy::_dhtnode = NULL;
+#endif
    
 #ifdef FEATURE_TOGGLE
    /* Seeks proxy is enabled by default. */
@@ -2394,6 +2403,28 @@ namespace sp
      }
 #endif /* def _WIN32 */
    
+   void seeks_proxy::initialize()
+     {
+	// loads main configuration file (seeks + proxy configuration).
+	if (seeks_proxy::_config)
+	  delete seeks_proxy::_config;
+	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
+	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
+	
+	if (seeks_proxy::_lsh_config)
+	  delete seeks_proxy::_lsh_config;
+	if (lsh_configuration::_config == NULL)
+	  lsh_configuration::_config = new lsh_configuration(seeks_proxy::_lshconfigfile,
+							     seeks_proxy::_basedir,
+							     seeks_proxy::_datadir);
+	seeks_proxy::_lsh_config = lsh_configuration::_config;
+	
+	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
+	
+	// loads iso639 table.
+	iso639::initialize();
+     }
+      
    /*********************************************************************
     *
     * Function    :  listen_loop
@@ -2414,7 +2445,7 @@ namespace sp
 
 
 	// loads main configuration file (seeks + proxy configuration).
-	if (seeks_proxy::_config)
+	/* if (seeks_proxy::_config)
 	  delete seeks_proxy::_config;
 	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
@@ -2427,10 +2458,10 @@ namespace sp
 							     seeks_proxy::_datadir);
 	seeks_proxy::_lsh_config = lsh_configuration::_config;
 	
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
+	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded"); */
 		
 	// loads iso639 table.
-	iso639::initialize();
+	//iso639::initialize();
 	
 	// loads plugins.
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
@@ -2887,5 +2918,16 @@ char* seeks_proxy::make_path(const char *dir, const char *file)
 	return path;
      }
 }
+   
+#ifdef WITH_DHT
+   dht_err seeks_proxy::start_sgnode()
+     {
+	seeks_proxy::_dhtnode = new SGNode(seeks_proxy::_config->_haddr,0,true);
+	bool reset = false; //TODO: reset.
+	dht_err err 
+	  = seeks_proxy::_dhtnode->join_start(dht_configuration::_dht_config->_bootstrap_nodelist,reset);
+	return err;
+     }
+#endif
    
 } /* end of namespace. */
