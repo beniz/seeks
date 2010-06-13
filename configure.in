@@ -434,12 +434,10 @@ LIBS="$saved_LIBS"
 LDFLAGS="$saved_LDFLAGS"
 CPPFLAGS="$saved_CPPFLAGS"
 if test $le_found = no ; then
-if test $httpserv-plugin = true ; then
  AC_MSG_ERROR([libevent not found!
    You can get it here: http://www.monkey.org/~provos/libevent/
    If it's already installed, specify its path using --with-libevent=PATH
  ])
-fi
 fi
 ])
 #LIBS="$LIBS -levent"
