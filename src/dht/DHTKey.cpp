@@ -351,7 +351,7 @@ namespace dht
 		  X[i] = BYTES_TO_DWORD(message);
 		  message += 4;
 	       }
-	     compress(MDbuf, X);
+	     compress_rmd(MDbuf, X);
 	  }
 	/* length mod 64 bytes left */
 	
