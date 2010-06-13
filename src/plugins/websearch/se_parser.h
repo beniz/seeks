@@ -20,7 +20,7 @@
 #define SE_PARSER_H
 
 #include "search_snippet.h"
-#include "seeks_proxy.h" // sp_mutex_t
+#include "mutexes.h"
 #include <libxml/HTMLparser.h>
 
 namespace seeks_plugins

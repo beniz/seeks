@@ -20,7 +20,6 @@
 
 #include "DHTNode.h"
 #include "FingerTable.h"
-#include "seeks_proxy.h"
 #include "net_utils.h"
 #include "errlog.h"
 #include "proxy_configuration.h"
@@ -33,7 +32,6 @@
 #include <fstream>
 
 using sp::errlog;
-using sp::seeks_proxy;
 using sp::proxy_configuration;
 
 //#define DEBUG

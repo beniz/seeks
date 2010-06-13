@@ -153,7 +153,7 @@ void gateway::remember_connection(const client_state *csp, const forward_spec *f
       return;
    }
 
-   seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 
    /* Find free socket slot. */
    for (slot = 0; slot < SZ(gateway::_reusable_connection); slot++)
@@ -174,7 +174,7 @@ void gateway::remember_connection(const client_state *csp, const forward_spec *f
       errlog::log_error(LOG_LEVEL_CONNECT,
         "No free slots found to remembering socket for %s:%d. Last slot %d.",
         http->_host, http->_port, slot);
-      seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+      mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
       spsockets::close_socket(connection->_sfd);
       return;
    }
@@ -229,7 +229,7 @@ void gateway::remember_connection(const client_state *csp, const forward_spec *f
    }
    gateway::_reusable_connection[slot]._forward_port = fwd->_forward_port;
 
-   seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 }
 
 
@@ -285,7 +285,7 @@ void gateway::forget_connection(sp_socket sfd)
 
    assert(sfd != SP_INVALID_SOCKET);
 
-   seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 
    for (slot = 0; slot < SZ(gateway::_reusable_connection); slot++)
    {
@@ -298,7 +298,7 @@ void gateway::forget_connection(sp_socket sfd)
             sfd, gateway::_reusable_connection[slot]._host,
             gateway::_reusable_connection[slot]._port, slot);
          gateway::mark_connection_closed(&gateway::_reusable_connection[slot]);
-         seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+         mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 
          return;
       }
@@ -307,7 +307,7 @@ void gateway::forget_connection(sp_socket sfd)
    errlog::log_error(LOG_LEVEL_CONNECT,
       "Socket %d already forgotten or never remembered.", sfd);
 
-   seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 }
 
 
@@ -378,7 +378,7 @@ int gateway::close_unusable_connections()
    unsigned int slot = 0;
    int connections_alive = 0;
 
-   seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 
    for (slot = 0; slot < SZ(gateway::_reusable_connection); slot++)
    {
@@ -419,7 +419,7 @@ int gateway::close_unusable_connections()
       }
    }
 
-   seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 
    return connections_alive;
 }
@@ -448,7 +448,7 @@ sp_socket gateway::get_reusable_connection(const http_request *http,
 
    gateway::close_unusable_connections();
 
-   seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 
    for (slot = 0; slot < SZ(gateway::_reusable_connection); slot++)
    {
@@ -467,7 +467,7 @@ sp_socket gateway::get_reusable_connection(const http_request *http,
       }
    }
 
-   seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 
    return sfd;
 }
@@ -493,7 +493,7 @@ int gateway::mark_connection_unused(const reusable_connection *connection)
 
    assert(connection->_sfd != SP_INVALID_SOCKET);
 
-   seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 
    for (slot = 0; slot < SZ(gateway::_reusable_connection); slot++)
    {
@@ -511,7 +511,7 @@ int gateway::mark_connection_unused(const reusable_connection *connection)
       }
    }
 
-   seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+   mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 
    return socket_found;
 }

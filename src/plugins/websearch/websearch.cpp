@@ -21,6 +21,7 @@
 #include "cgisimple.h"
 #include "encode.h"
 #include "miscutil.h"
+#include "mutexes.h"
 #include "errlog.h"
 #include "query_interceptor.h"
 #include "proxy_configuration.h"
@@ -249,17 +250,17 @@ namespace seeks_plugins
 	      * - "titles": requests a grouping by title.
 	      */
 	     sp_err err = SP_ERR_OK;
-	     if (strcmp(action,"expand") == 0 || strcmp(action,"page") == 0)
+	     if (miscutil::strcmpic(action,"expand") == 0 || miscutil::strcmpic(action,"page") == 0)
 	       err = websearch::perform_websearch(csp,rsp,parameters);
-	     else if (strcmp(action,"similarity") == 0)
+	     else if (miscutil::strcmpic(action,"similarity") == 0)
 	       err = websearch::cgi_websearch_similarity(csp,rsp,parameters);
-	     else if (strcmp(action,"clusterize") == 0)
+	     else if (miscutil::strcmpic(action,"clusterize") == 0)
 	       err = websearch::cgi_websearch_clusterize(csp,rsp,parameters);
-	     else if (strcmp(action,"urls") == 0)
+	     else if (miscutil::strcmpic(action,"urls") == 0)
 	       err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
-	     else if (strcmp(action,"titles") == 0)
+	     else if (miscutil::strcmpic(action,"titles") == 0)
 	       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
-	     else if (strcmp(action,"types") == 0)
+	     else if (miscutil::strcmpic(action,"types") == 0)
 	       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
 	     else return websearch::cgi_websearch_hp(csp,rsp,parameters);
 	     
@@ -286,7 +287,7 @@ namespace seeks_plugins
 		  return SP_ERR_OK;
 	       }
 	     
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     
 	     search_snippet *sp = NULL;
@@ -299,7 +300,7 @@ namespace seeks_plugins
 		  rsp->_is_static = 1;
 		  
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 		  
 		  return SP_ERR_OK;
 	       }
@@ -309,7 +310,7 @@ namespace seeks_plugins
 		  cgi::cgi_redirect(rsp,url);
 		  
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 		  
 		  return SP_ERR_OK;
 	       }
@@ -337,14 +338,14 @@ namespace seeks_plugins
 		    return err;
 	       }
 	   
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     	     
 	     // render result page.
 	     sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,0); // 0: urls.
 	     	     
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	     
 	     return err;
 	  }
@@ -367,14 +368,14 @@ namespace seeks_plugins
 		    return err;
 	       }
 	     
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     
 	     // render result page.
 	     sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,1); // 1: titles.
 	     	     
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	      
 	     return err;
 	  }
@@ -401,7 +402,7 @@ namespace seeks_plugins
 		    return err;
 	       }
 	     
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     
 	     // regroup search snippets by types.
@@ -418,7 +419,7 @@ namespace seeks_plugins
 	     // rendering.
 	     const char *output =miscutil::lookup(parameters,"output");
 	     sp_err err = SP_ERR_OK;
-	     if (!output || strcmp(output,"html")==0)
+	     if (!output || miscutil::strcmpic(output,"html")==0)
 	       err = static_renderer::render_clustered_result_page_static(clusters,K,
 									  csp,rsp,parameters,qc);
 	     else
@@ -429,7 +430,7 @@ namespace seeks_plugins
 	       }
 	     
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	     
 	     return err;
 	  }
@@ -455,20 +456,20 @@ namespace seeks_plugins
 	       }
 	     const char *id = miscutil::lookup(parameters,"id");
 	     
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     search_snippet *ref_sp = NULL;
 	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
 	     
 	     if (!ref_sp)
 	       {
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 		  return SP_ERR_OK;
 	       }
 	     	     
 	     const char *output = miscutil::lookup(parameters,"output");
 	     sp_err err = SP_ERR_OK;
-	     if (!output || strcmp(output,"html")==0)
+	     if (!output || miscutil::strcmpic(output,"html")==0)
 	       err = static_renderer::render_result_page_static(qc->_cached_snippets,
 								csp,rsp,parameters,qc);
 	     else
@@ -477,7 +478,7 @@ namespace seeks_plugins
 		  err = json_renderer::render_json_results(qc->_cached_snippets,
 							   csp,rsp,parameters,qc,0.0);
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 		  return err;
 	       }
 	     	     
@@ -491,7 +492,7 @@ namespace seeks_plugins
 	      
 	     ref_sp->set_similarity_link(); // reset sim_link.
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	     
 	     return err;
 	  }
@@ -519,7 +520,7 @@ namespace seeks_plugins
 		    return err;
 	       }
 	     
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     
 	     if (websearch::_wconfig->_content_analysis)
@@ -530,7 +531,7 @@ namespace seeks_plugins
 	       {
 		  const char *output = miscutil::lookup(parameters,"output");
 		  sp_err err = SP_ERR_OK;
-		  if (!output || strcmp(output,"html")==0)
+		  if (!output || miscutil::strcmpic(output,"html")==0)
 		    err = static_renderer::render_result_page_static(qc->_cached_snippets,
 								     csp,rsp,parameters,qc);
 		  else
@@ -541,7 +542,7 @@ namespace seeks_plugins
 								0.0);
 		    }
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 	       }
 	     	     
 	     const char *nclust_str = miscutil::lookup(parameters,"clusters");
@@ -561,7 +562,7 @@ namespace seeks_plugins
 	     // rendering.
 	     const char *output = miscutil::lookup(parameters,"output");
 	     sp_err err = SP_ERR_OK;
-	     if (!output || strcmp(output,"html")==0)
+	     if (!output || miscutil::strcmpic(output,"html")==0)
 	       err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
 									  csp,rsp,parameters,qc);
 	     else
@@ -580,7 +581,7 @@ namespace seeks_plugins
 	       }
 	     
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	     
 	     return err;
 	  }
@@ -608,17 +609,17 @@ namespace seeks_plugins
      bool expanded = false;
      if (qc) // we already had a context for this query.
        {
-	  if (strcmp(action,"expand") == 0)
+	  if (miscutil::strcmpic(action,"expand") == 0)
 	    {
 	       expanded = true;
 	       
-	       seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	       mutex_lock(&qc->_qc_mutex);
 	       qc->_lock = true;
 	       qc->generate(csp,rsp,parameters);
 	       qc->_lock = false;
-	       seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	       mutex_unlock(&qc->_qc_mutex);
 	    }
-	  else if (strcmp(action,"page") == 0)
+	  else if (miscutil::strcmpic(action,"page") == 0)
 	    {
 	       // XXX: update other parameters, as needed, qc vs parameters.
 	       qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
@@ -630,25 +631,25 @@ namespace seeks_plugins
 	  // to generate snippets first.
 	  expanded = true;
 	  qc = new query_context(parameters,csp->_headers);
-	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	  mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
 	  qc->_lock = false;
-	  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	  mutex_unlock(&qc->_qc_mutex);
        }
      
      // sort and rank search snippets.
      if (expanded)
        {
-	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	  mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
 	  sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
 	  qc->_compute_tfidf_features = true;
 	  qc->_lock = false;
-	  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	  mutex_unlock(&qc->_qc_mutex);
        }
      
-     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+     mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      
      if (websearch::_wconfig->_extended_highlight)
@@ -664,12 +665,12 @@ namespace seeks_plugins
      if (!render)
        {
 	  qc->_lock = false;
-	  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	  mutex_unlock(&qc->_qc_mutex);
 	  return SP_ERR_OK;
        }
      const char *output = miscutil::lookup(parameters,"output");
      sp_err err = SP_ERR_OK;
-     if (!output || strcmp(output,"html")==0)
+     if (!output || miscutil::strcmpic(output,"html")==0)
        err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							csp,rsp,parameters,qc);
      else
@@ -682,7 +683,7 @@ namespace seeks_plugins
      
      // unlock the query context.
      qc->_lock = false;
-     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+     mutex_unlock(&qc->_qc_mutex);
      
     // XXX: catch errors.
      return err;

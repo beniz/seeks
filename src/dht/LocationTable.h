@@ -23,9 +23,7 @@
 
 #include "stl_hash.h"
 #include "Location.h"
-#include "seeks_proxy.h" // for mutexes...
-
-using sp::seeks_proxy;
+#include "mutexes.h"
 
 namespace dht
 {

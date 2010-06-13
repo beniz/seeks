@@ -26,7 +26,7 @@
 #include "NetAddress.h"
 #include "LocationTable.h"
 #include "SuccList.h"
-#include "seeks_proxy.h" // for mutexes...
+#include "mutexes.h"
 
 #if (__GNUC__ >= 3)
 #include <ext/slist>
@@ -39,8 +39,6 @@ using __gnu_cxx::slist;
 #else
 using std::slist;
 #endif
-
-using sp::seeks_proxy;
 
 namespace dht
 {

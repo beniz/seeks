@@ -19,8 +19,8 @@
  */
 
 #include "mrf.h"
-#include "seeks_proxy.h" // for lsh_config.
 #include "miscutil.h"
+#include "lsh_configuration.h"
 
 #include <algorithm>
 #include <iostream>
@@ -29,7 +29,6 @@
 #include <math.h>
 #include <assert.h>
 
-using sp::seeks_proxy;
 using sp::miscutil;
 
 //#define DEBUG
@@ -187,7 +186,7 @@ namespace lsh
 
    void mrf::init_delims()
      {
-	mrf::_default_delims = seeks_proxy::_lsh_config->_lsh_delims;
+	mrf::_default_delims = lsh_configuration::_config->_lsh_delims;
      }
       
   void mrf::tokenize(const std::string &str,
@@ -255,27 +254,6 @@ namespace lsh
 	return mrf::mrf_hash(tokens);
      }
    
-   /* void mrf::mrf_features_query(const std::string &str,
-			       std::vector<uint32_t> &features,
-			       const int &min_radius,
-			       const int &max_radius,
-			       const uint32_t &window_length_default)
-  {
-     std::vector<std::string> tokens;
-     mrf::tokenize(str,tokens,mrf::_default_delims);
-     
-     int gen_radius = 0;
-     while(!tokens.empty())
-       {
-	  mrf::mrf_build(tokens,features,
-			 min_radius,max_radius,
-			 gen_radius, window_length_default);
-	  tokens.erase(tokens.begin());
-	  ++gen_radius;
-       }
-     std::sort(features.begin(),features.end());
-  } */
-
    void mrf::mrf_features(std::vector<std::string> &tokens,
 			  std::vector<uint32_t> &features,
 			  const int &max_radius,
@@ -334,108 +312,6 @@ namespace lsh
 	std::sort(features.begin(),features.end());
      }
    
-   /* void mrf::mrf_build(const std::vector<std::string> &tokens,
-		      std::vector<uint32_t> &features,
-		      const int &min_radius,
-		      const int &max_radius,
-		      const int &gen_radius,
-		      const uint32_t &window_length_default)
-     {
-    int tok = 0;
-    std::queue<str_chain> chains;
-    mrf::mrf_build(tokens,tok,chains,features,
-		   min_radius,max_radius,gen_radius,window_length_default);
-    } */
-
-/*  void mrf::mrf_build(const std::vector<std::string> &tokens,
-		      int &tok,
-		      std::queue<str_chain> &chains,
-		      std::vector<uint32_t> &features,
-		      const int &min_radius, const int &max_radius,
-		      const int &gen_radius, const uint32_t &window_length)
-  {
-    if (chains.empty())
-      {
-	 int radius_chain = window_length - std::max(1,(int)(window_length-tokens.size()));
-	 str_chain chain(tokens.at(tok),radius_chain);
-
-#ifdef DEBUG	 
-	 std::cout << "gen_radius: " << gen_radius << std::endl;
-	 std::cout << "radius_chain: " << radius_chain << std::endl;
-#endif	 
-	 
-	if (radius_chain >= min_radius
-	    && radius_chain <= max_radius)
-	  {
-	    //hash chain and add it to features set.
-	    uint32_t h = mrf::mrf_hash(chain);
-	    features.push_back(h);
-	    
-#ifdef DEBUG
-	    //debug
-	    std::cout << tokens.at(tok) << std::endl;
-	    std::cout << std::hex << h << std::endl;
-	     std::cout << "radius: " << radius_chain << std::endl;
-	    std::cout << std::endl;
-	    //debug
-#endif
-	  }
-
-	chains.push(chain);
-
-	mrf::mrf_build(tokens,tok,chains,features,
-		       min_radius,max_radius,gen_radius,window_length);
-      }
-    else 
-      {
-	++tok;
-	std::queue<str_chain> nchains;
-	
-	while(!chains.empty())
-	  {
-	    str_chain chain = chains.front();
-	    chains.pop();
-	
-	     if (chain.size() <  std::min((uint32_t)tokens.size(),window_length))
-	       {
-		// first generated chain: add a token.
-		str_chain chain1(chain);
-		chain1.add_token(tokens.at(tok));
-		chain1.decr_radius();
-		
-		if (chain1.get_radius() >= min_radius
-		    && chain1.get_radius() <= max_radius)
-		  {
-		    // hash it and add it to features.
-		    uint32_t h = mrf::mrf_hash(chain1);
-		    features.push_back(h);
-
-#ifdef DEBUG
-		    //debug
-		    chain1.print(std::cout);
-		    std::cout << std::hex << h << std::endl;
-		     std::cout << "radius: " << chain1.get_radius() << std::endl;
-		     std::cout << std::endl;
-		    //debug
-#endif
-		  }
-		
-		// second generated chain: add a 'skip' token.
-		str_chain chain2 = chain;
-		chain2.add_token("<skip>");
-		chain2.set_skip();
-		
-		nchains.push(chain1);
-		nchains.push(chain2);
-	      }
-	  }
-
-	if (!nchains.empty())
-	  mrf::mrf_build(tokens,tok,nchains,features,
-			 min_radius,max_radius,gen_radius,window_length);
-      }
-  } */
-
    /*- tf / idf. -*/
     void mrf::tokenize_and_mrf_features(const std::string &str,
 					const std::string &delim,
@@ -454,7 +330,7 @@ namespace lsh
        
        stopwordlist *swl = NULL;
        if (!lang.empty())
-	 swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+	 swl = lsh_configuration::_config->get_wordlist(lang);
 	        
        while(true)
 	 {

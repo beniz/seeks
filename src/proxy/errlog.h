@@ -61,6 +61,8 @@
 #define LOG_LEVEL_ERROR   0x2000
 #define LOG_LEVEL_FATAL   0x4000 /* Exits after writing log */
 
+#include "mutexes.h"
+
 namespace sp
 {
    class errlog
@@ -104,6 +106,10 @@ namespace sp
 #endif
 	static FILE *_logfp;
 	static int _debug;
+#if defined(FEATURE_PTHREAD) || defined(_WIN32)
+	static sp_mutex_t _log_mutex;
+#endif
+     
      };
 } /* end of namespace. */
 

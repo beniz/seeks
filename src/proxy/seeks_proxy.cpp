@@ -34,6 +34,7 @@
 #include <iostream>
 
 #include "mem_utils.h"
+#include "mutexes.h"
 #include "errlog.h"
 #include "miscutil.h"
 #include "gateway.h"
@@ -65,8 +66,7 @@ namespace sp
    
 #if defined(FEATURE_PTHREAD) || defined(_WIN32)
 #ifdef MUTEX_LOCKS_AVAILABLE
-   sp_mutex_t seeks_proxy::_log_mutex;
-   sp_mutex_t seeks_proxy::_log_init_mutex;
+   //sp_mutex_t seeks_proxy::_log_init_mutex;
    sp_mutex_t seeks_proxy::_connection_reuse_mutex;
 #ifndef HAVE_GMTIME_R
    sp_mutex_t seeks_proxy::_gmtime_mutex;
@@ -2208,16 +2208,16 @@ namespace sp
 			    csp->_sfd = SP_INVALID_SOCKET;
 			    spsockets::close_socket(csp->_cfd);
 			    csp->_cfd = SP_INVALID_SOCKET;
-			    seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+			    mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 			    if (!monitor_thread_running)
 			      {
 				 monitor_thread_running = 1;
-				 seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+				 mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 				 seeks_proxy::wait_for_alive_connections();
-				 seeks_proxy::mutex_lock(&seeks_proxy::_connection_reuse_mutex);
+				 mutex_lock(&seeks_proxy::_connection_reuse_mutex);
 				 monitor_thread_running = 0;
 			      }
-			    seeks_proxy::mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
+			    mutex_unlock(&seeks_proxy::_connection_reuse_mutex);
 			 }
 		       
 		       break;
@@ -2333,95 +2333,6 @@ namespace sp
      }
 #endif /* #if !defined(_WIN32) || defined(_WIN_CONSOLE) */
 		  
-#ifdef MUTEX_LOCKS_AVAILABLE
-   /*********************************************************************
-    *
-    * Function    :  seeks_proxy::mutex_lock
-    *
-    * Description :  Locks a mutex.
-    *
-    * Parameters  :
-    *          1  :  mutex = The mutex to lock.
-    *
-    * Returns     :  Void. May exit in case of errors.
-    *
-    *********************************************************************/
-   void seeks_proxy::mutex_lock(sp_mutex_t *mutex)
-     {
-# ifdef FEATURE_PTHREAD
-	int err = pthread_mutex_lock(mutex);
-	if (err)
-	  {
-	     if (mutex != &seeks_proxy::_log_mutex)
-	       {
-		  errlog::log_error(LOG_LEVEL_FATAL,
-				    "Mutex locking failed: %s.\n", strerror(err));
-	       }
-	     exit(1);
-	  }
-# else
-	EnterCriticalSection(mutex);
-# endif /* def FEATURE_PTHREAD */
-     }
-   
-   /*********************************************************************
-    *
-    * Function    :  seeks_proxy::mutex_unlock
-    *
-    * Description :  Unlocks a mutex.
-    *
-    * Parameters  :
-    *          1  :  mutex = The mutex to unlock.
-    *
-    * Returns     :  Void. May exit in case of errors.
-    *
-    *********************************************************************/
-   void seeks_proxy::mutex_unlock(sp_mutex_t *mutex)
-     {
-	#ifdef FEATURE_PTHREAD
-	int err = pthread_mutex_unlock(mutex);
-	if (err)
-	  {
-	     if (mutex != &seeks_proxy::_log_mutex)
-	       {
-		  errlog::log_error(LOG_LEVEL_FATAL,
-				    "Mutex unlocking failed: %s.\n", strerror(err));
-	       }
-	     exit(1);
-	  }
-#else
-	LeaveCriticalSection(mutex);
-#endif /* def FEATURE_PTHREAD */
-     }
-   
-   
-   /*********************************************************************
-     *
-     * Function    :  seeks_proxy::mutex_init
-     *
-     * Description :  Prepares a mutex.
-     *
-     * Parameters  :
-     *          1  :  mutex = The mutex to initialize.
-     *
-     * Returns     :  Void. May exit in case of errors.
-     *
-     *********************************************************************/
-   void seeks_proxy::mutex_init(sp_mutex_t *mutex)
-     {
-#ifdef FEATURE_PTHREAD
-	int err = pthread_mutex_init(mutex, 0);
-	if (err)
-	  {
-	     printf("Fatal error. Mutex initialization failed: %s.\n",
-		    strerror(err));
-	     exit(1);
-	  }
-#else
-	InitializeCriticalSection(mutex);
-#endif /* def FEATURE_PTHREAD */
-     }
-#endif /* def MUTEX_LOCKS_AVAILABLE */
    
    /*********************************************************************
     *
@@ -2440,9 +2351,9 @@ namespace sp
 	/*
 	 * Prepare global mutex semaphores
 	 */
-	seeks_proxy::mutex_init(&seeks_proxy::_log_mutex);
-	seeks_proxy::mutex_init(&seeks_proxy::_log_init_mutex);
-	seeks_proxy::mutex_init(&seeks_proxy::_connection_reuse_mutex);
+	mutex_init(&errlog::_log_mutex);
+	//mutex_init(&seeks_proxy::_log_init_mutex);
+	mutex_init(&seeks_proxy::_connection_reuse_mutex);
 	
 	/*
 	 * XXX: The assumptions below are a bit naive
@@ -2453,22 +2364,22 @@ namespace sp
 	 * thread safe.
 	 */
 #if !defined(HAVE_GETHOSTBYADDR_R) || !defined(HAVE_GETHOSTBYNAME_R)
-	seeks_proxy::mutex_init(&seeks_proxy::_resolver_mutex);
+	mutex_init(&seeks_proxy::_resolver_mutex);
 #endif /* !defined(HAVE_GETHOSTBYADDR_R) || !defined(HAVE_GETHOSTBYNAME_R) */
 	/*
 	 * XXX: should we use a single mutex for
 	 * localtime() and gmtime() as well?
 	 */
 #ifndef HAVE_GMTIME_R
-	seeks_proxy::mutex_init(&seeks_proxy::_gmtime_mutex);
+	mutex_init(&seeks_proxy::_gmtime_mutex);
 #endif /* ndef HAVE_GMTIME_R */
 	
 #ifndef HAVE_LOCALTIME_R
-	seeks_proxy::mutex_init(&seeks_proxy::_localtime_mutex);
+	mutex_init(&seeks_proxy::_localtime_mutex);
 #endif /* ndef HAVE_GMTIME_R */
 	
 #ifndef HAVE_RANDOM
-	seeks_proxy::mutex_init(&seeks_proxy::_rand_mutex);
+	mutex_init(&seeks_proxy::_rand_mutex);
 #endif /* ndef HAVE_RANDOM */
 #endif /* def MUTEX_LOCKS_AVAILABLE */
      }
@@ -2510,7 +2421,12 @@ namespace sp
 	
 	if (seeks_proxy::_lsh_config)
 	  delete seeks_proxy::_lsh_config;
-	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
+	if (lsh_configuration::_config == NULL)
+	  lsh_configuration::_config = new lsh_configuration(seeks_proxy::_lshconfigfile,
+							     seeks_proxy::_basedir,
+							     seeks_proxy::_datadir);
+	seeks_proxy::_lsh_config = lsh_configuration::_config;
+	
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
 		
 	// loads iso639 table.

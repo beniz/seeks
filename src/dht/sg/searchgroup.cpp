@@ -19,12 +19,10 @@
  */
 
 #include "searchgroup.h"
-#include "seeks_proxy.h" // for mutexes.
+#include "mutexes.h"
 
 #include <algorithm>
 #include <sys/time.h>
-
-using sp::seeks_proxy;
 
 namespace dht
 {
@@ -33,7 +31,7 @@ namespace dht
        {
 	  set_creation_time();
 	  _last_time_of_use = _creation_time;
-	  seeks_proxy::mutex_init(&_sg_mutex);
+	  mutex_init(&_sg_mutex);
        }
    
    Searchgroup::~Searchgroup()

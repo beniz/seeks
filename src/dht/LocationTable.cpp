@@ -30,7 +30,7 @@ namespace dht
    LocationTable::LocationTable()
      {	
 	// initialize mutex.
-	seeks_proxy::mutex_init(&_lt_mutex);
+	mutex_init(&_lt_mutex);
      }
 
    LocationTable::~LocationTable()
@@ -53,14 +53,14 @@ namespace dht
    Location* LocationTable::findLocation(const DHTKey& dk)
      {
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
-	seeks_proxy::mutex_lock(&_lt_mutex);
+	mutex_lock(&_lt_mutex);
 	if ((hit = _hlt.find(&dk)) != _hlt.end())
 	  {
-	     seeks_proxy::mutex_unlock(&_lt_mutex);
+	     mutex_unlock(&_lt_mutex);
 	     return (*hit).second;
 	  }
 	else {
-	   seeks_proxy::mutex_unlock(&_lt_mutex);
+	   mutex_unlock(&_lt_mutex);
 	   errlog::log_error(LOG_LEVEL_DHT, "findLocation: can't find location to key %s", dk.to_string().c_str());
 	   return NULL;  //beware: this should be handled outside this function.	
 	}
@@ -76,9 +76,9 @@ namespace dht
 	     loc = (*hit).second;
 	     return;
 	  }
-	seeks_proxy::mutex_lock(&_lt_mutex);
+	mutex_lock(&_lt_mutex);
 	_hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
-	seeks_proxy::mutex_unlock(&_lt_mutex);
+	mutex_unlock(&_lt_mutex);
      }
    
    // DEPRECATED ?
@@ -97,9 +97,9 @@ namespace dht
 	     /**
 	      * update the location.
 	      */
-	     seeks_proxy::mutex_lock(&_lt_mutex);
+	     mutex_lock(&_lt_mutex);
 	     (*hit).second->update(na);
-	     seeks_proxy::mutex_unlock(&_lt_mutex);
+	     mutex_unlock(&_lt_mutex);
 	     return (*hit).second;
 	  }
 	else 
@@ -112,7 +112,7 @@ namespace dht
    
    void LocationTable::removeLocation(Location *loc)
      {
-	seeks_proxy::mutex_lock(&_lt_mutex);
+	mutex_lock(&_lt_mutex);
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::iterator hit;
 	if ((hit = _hlt.find(&loc->getDHTKeyRef())) != _hlt.end())
 	  {
@@ -124,7 +124,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_string().c_str());
 	  }
-	seeks_proxy::mutex_unlock(&_lt_mutex);
+	mutex_unlock(&_lt_mutex);
      }
       
    void LocationTable::findClosestSuccessor(const DHTKey &dk,
@@ -134,7 +134,7 @@ namespace dht
 	min_diff.set();
 	Location *succ_loc = NULL;
 	
-	seeks_proxy::mutex_lock(&_lt_mutex);
+	mutex_lock(&_lt_mutex);
 	Location *loc = NULL;
 	hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
 	  = _hlt.begin();
@@ -161,7 +161,7 @@ namespace dht
 		  succ_loc = loc;
 	       }
 	  }
-	seeks_proxy::mutex_unlock(&_lt_mutex);
+	mutex_unlock(&_lt_mutex);
      
 	//debug
 	assert(succ_loc!=NULL);

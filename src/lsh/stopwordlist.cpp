@@ -19,15 +19,14 @@
  */
 
 #include "stopwordlist.h"
+#include "lsh_configuration.h"
 #include "errlog.h"
-#include "seeks_proxy.h" // for basedir.
 
 #include <iostream>
 #include <fstream>
 #include <strings.h>
 
 using sp::errlog;
-using sp::seeks_proxy;
 
 namespace lsh
 {
@@ -49,9 +48,9 @@ namespace lsh
    
    int stopwordlist::load_list(const std::string &filename)
      {
-	std::string fullfname = (seeks_proxy::_basedir) ? std::string(seeks_proxy::_basedir) + "/lsh/swl/" + filename
-	  : seeks_proxy::_datadir + "/lsh/swl/" + filename;
-		
+	std::string fullfname = (lsh_configuration::_basedir.empty()) ? lsh_configuration::_basedir + "/lsh/swl/" + filename
+	  : lsh_configuration::_datadir + "/lsh/swl/" + filename;
+	
 	std::ifstream infile;
 	infile.open(fullfname.c_str(),std::ifstream::in);
 	if (infile.fail())

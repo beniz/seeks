@@ -103,8 +103,8 @@ namespace dht
 	/**
 	 * Initializes mutexes.
 	 */
-	seeks_proxy::mutex_init(&_pred_mutex);
-	seeks_proxy::mutex_init(&_succ_mutex);
+	mutex_init(&_pred_mutex);
+	mutex_init(&_succ_mutex);
      }
    
    dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
@@ -494,11 +494,11 @@ namespace dht
 	assert(dk.count()>0);
 	//debug
 	
-	seeks_proxy::mutex_lock(&_succ_mutex);
+	mutex_lock(&_succ_mutex);
 	if (_successor)
 	  delete _successor;
 	_successor = new DHTKey(dk);
-	seeks_proxy::mutex_unlock(&_succ_mutex);
+	mutex_unlock(&_succ_mutex);
      }
    
    void DHTVirtualNode::setSuccessor(const DHTKey& dk, const NetAddress& na)
@@ -550,11 +550,11 @@ namespace dht
 
    void DHTVirtualNode::setPredecessor(const DHTKey &dk)
      {
-	seeks_proxy::mutex_lock(&_pred_mutex);
+	mutex_lock(&_pred_mutex);
 	if (_predecessor)
 	  delete _predecessor;
 	_predecessor = new DHTKey(dk);
-	seeks_proxy::mutex_unlock(&_pred_mutex);
+	mutex_unlock(&_pred_mutex);
      }
 
    void DHTVirtualNode::setPredecessor(const DHTKey& dk, const NetAddress& na)

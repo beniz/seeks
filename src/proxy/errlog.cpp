@@ -70,6 +70,10 @@
 namespace sp
 {
 
+#if defined(FEATURE_PTHREAD) || defined(_WIN32)
+   sp_mutex_t errlog::_log_mutex;
+#endif
+   
 /*
  * LOG_LEVEL_FATAL cannot be turned off.  (There are
  * some exceptional situations where we need to get a
@@ -361,9 +365,9 @@ size_t errlog::get_log_timestamp(char *buffer, size_t buffer_size)
 #ifdef HAVE_LOCALTIME_R
    tm_now = *localtime_r(&now, &tm_now);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-   seeks_proxy::mutex_lock(&localtime_mutex);
+   mutex_lock(&localtime_mutex);
    tm_now = *localtime(&now);
-   seeks_proxy::mutex_unlock(&localtime_mutex);
+   mutex_unlock(&localtime_mutex);
 #else
    tm_now = *localtime(&now);
 #endif
@@ -417,18 +421,18 @@ size_t errlog::get_clf_timestamp(char *buffer, size_t buffer_size)
 #ifdef HAVE_GMTIME_R
    gmt = *gmtime_r(&now, &gmt);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-   seeks_proxy::mutex_lock(&gmtime_mutex);
+   mutex_lock(&gmtime_mutex);
    gmt = *gmtime(&now);
-   seeks_proxy::mutex_unlock(&gmtime_mutex);
+   mutex_unlock(&gmtime_mutex);
 #else
    gmt = *gmtime(&now);
 #endif
 #ifdef HAVE_LOCALTIME_R
    tm_now = localtime_r(&now, &dummy);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-   seeks_proxy::mutex_lock(&localtime_mutex);
+   mutex_lock(&localtime_mutex);
    tm_now = localtime(&now);
-   seeks_proxy::mutex_unlock(&localtime_mutex);
+   mutex_unlock(&localtime_mutex);
 #else
    tm_now = localtime(&now);
 #endif

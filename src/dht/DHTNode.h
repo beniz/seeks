@@ -21,12 +21,6 @@
 #ifndef DHTNODE_H
 #define DHTNODE_H
 
-#if (__GNUC__ >= 3)
-#include <ext/hash_map>
-#else
-#include <hash_map>
-#endif
-
 #include "stl_hash.h"
 #include "dht_configuration.h"
 #include "DHTVirtualNode.h"

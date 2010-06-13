@@ -17,14 +17,12 @@
  */
 
 #include "se_parser.h"
-#include "seeks_proxy.h" // mutex_lock
 #include "miscutil.h"
 #include "errlog.h"
 
 #include <string.h>
 #include <iostream>
 
-using sp::seeks_proxy;
 using sp::miscutil;
 using sp::errlog;
 
@@ -124,7 +122,7 @@ namespace seeks_plugins
 	       NULL
 	  };
 
-	seeks_proxy::mutex_lock(&se_parser::_se_parser_mutex);
+	mutex_lock(&se_parser::_se_parser_mutex);
 	
 	try 
 	  {
@@ -167,7 +165,7 @@ namespace seeks_plugins
 	if (ctxt)
 	  htmlFreeParserCtxt(ctxt);
 	
-	seeks_proxy::mutex_unlock(&se_parser::_se_parser_mutex);	
+	mutex_unlock(&se_parser::_se_parser_mutex);	
      }
    
    // static.

@@ -1386,9 +1386,9 @@ void cgi::get_http_time(int time_offset, char *buf, size_t buffer_size)
 #if HAVE_GMTIME_R
    t = gmtime_r(&current_time, &dummy);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-   seeks_proxy::mutex_lock(&gmtime_mutex);
+   mutex_lock(&gmtime_mutex);
    t = gmtime(&current_time);
-   seeks_proxy::mutex_unlock(&gmtime_mutex);
+   mutex_unlock(&gmtime_mutex);
 #else
    t = gmtime(&current_time);
 #endif
@@ -1441,9 +1441,9 @@ void cgi::get_locale_time(char *buf, size_t buffer_size)
 #if HAVE_LOCALTIME_R
    timeptr = localtime_r(&current_time, &dummy);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-   seeks_proxy::mutex_lock(&localtime_mutex);
+   mutex_lock(&localtime_mutex);
    timeptr = localtime(&current_time);
-   seeks_proxy::mutex_unlock(&localtime_mutex);
+   mutex_unlock(&localtime_mutex);
 #else
    timeptr = localtime(&current_time);
 #endif
