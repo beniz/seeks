@@ -2401,9 +2401,9 @@ sp_err parsers::server_last_modified(client_state *csp, char **header)
 #ifdef HAVE_GMTIME_R
       gmtime_r(&now, &gmt);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-      seeks_proxy::mutex_lock(&gmtime_mutex);
+      mutex_lock(&gmtime_mutex);
       gmtime(&now);
-      seeks_proxy::mutex_unlock(&gmtime_mutex);
+      mutex_unlock(&gmtime_mutex);
 #else
       gmtime(&now);
 #endif
@@ -2434,9 +2434,9 @@ sp_err parsers::server_last_modified(client_state *csp, char **header)
 #ifdef HAVE_GMTIME_R
             timeptr = gmtime_r(&last_modified, &gmt);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-            seeks_proxy::mutex_lock(&gmtime_mutex);
+            mutex_lock(&gmtime_mutex);
             timeptr = gmtime(&last_modified);
-            seeks_proxy::mutex_unlock(&gmtime_mutex);
+            mutex_unlock(&gmtime_mutex);
 #else
             timeptr = gmtime(&last_modified);
 #endif
@@ -3178,9 +3178,9 @@ sp_err parsers::client_if_modified_since(client_state *csp, char **header)
 #ifdef HAVE_GMTIME_R
             timeptr = gmtime_r(&tm, &gmt);
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-            seeks_proxy::mutex_lock(&gmtime_mutex);
+            mutex_lock(&gmtime_mutex);
             timeptr = gmtime(&tm);
-            seeks_proxy::mutex_unlock(&gmtime_mutex);
+            mutex_unlock(&gmtime_mutex);
 #else
             timeptr = gmtime(&tm);
 #endif
@@ -4183,7 +4183,7 @@ long int parsers::pick_from_range(long int range)
 #ifdef HAVE_RANDOM
    number = random() % range + 1;
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-   seeks_proxy::mutex_lock(&rand_mutex);
+   mutex_lock(&rand_mutex);
 # ifdef _WIN32
    if (!seed)
      {
@@ -4193,7 +4193,7 @@ long int parsers::pick_from_range(long int range)
    seed = (unsigned long)((rand() << 16) + rand());
 # endif /* def _WIN32 */
    number = (unsigned long)((rand() << 16) + (rand())) % (unsigned long)(range + 1);
-   seeks_proxy::mutex_unlock(&rand_mutex);
+   mutex_unlock(&rand_mutex);
 #else
    /*
     * XXX: Which platforms reach this and are there

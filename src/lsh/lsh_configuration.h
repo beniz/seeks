@@ -39,7 +39,9 @@ namespace lsh
    class lsh_configuration : public configuration_spec
      {
       public:
-	lsh_configuration(const std::string &filename);
+	lsh_configuration(const std::string &filename,
+			  const std::string &basedir,
+			  const std::string &datadir);
 	
 	~lsh_configuration();
 	
@@ -61,6 +63,12 @@ namespace lsh
 	
 	// mutex for loading stop word list.
 	sp_mutex_t _load_swl_mutex;
+     
+	static lsh_configuration *_config;
+     
+	static std::string _basedir;
+	
+	static std::string _datadir;
      };
       
 } /* end of namespace. */

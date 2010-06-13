@@ -202,7 +202,7 @@ namespace lsh
 		      //hash chain and add it to features set.
 		      feat h = mrf_hash_c<feat>(chain);
 		      features.push_back(h);
-		      
+		      		      
 #ifdef DEBUG
 		      //debug
 		      std::cout << tokens.at(tok) << std::endl;
@@ -239,7 +239,7 @@ namespace lsh
 				// hash it and add it to features.
 				feat h = mrf_hash_c<feat>(chain1);
 				features.push_back(h);
-				
+												
 #ifdef DEBUG
 				//debug
 				chain1.print(std::cout);
