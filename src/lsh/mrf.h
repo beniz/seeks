@@ -37,6 +37,19 @@ using dht::DHTKey;
 namespace lsh
 {
 
+   class f160r
+     {
+      public:
+	f160r(char *feat, const int &radius)
+	  :_feat(feat),_radius(radius)
+	    {};
+	~f160r() {};
+	
+      public:
+	char *_feat;
+	int _radius;
+     };
+      
    uint32_t SuperFastHash(const char *data, uint32_t len);
    
    template<typename feat>
@@ -47,7 +60,7 @@ namespace lsh
      void mrf_hash_m<uint32_t>(const char *data, uint32_t len, uint32_t &f);
    
    template<>
-     void mrf_hash_m<char*>(const char *data, uint32_t len, char* &f);
+     void mrf_hash_m<f160r>(const char *data, uint32_t len, f160r &f);
    
    template<typename feat>
      void set_skip_token(feat &f)
@@ -57,7 +70,7 @@ namespace lsh
      void set_skip_token<uint32_t>(uint32_t &f);
    
    template<>
-     void set_skip_token<char*>(char *&f);
+     void set_skip_token<f160r>(f160r &f);
    
    /*- str_chain -*/
    class str_chain                         
@@ -97,7 +110,7 @@ namespace lsh
      uint32_t mrf_hash_c<uint32_t>(const str_chain &chain);
    
    template<>
-     char* mrf_hash_c<char*>(const str_chain &chain);
+     f160r mrf_hash_c<f160r>(const str_chain &chain);
       
  class mrf
   {
@@ -132,7 +145,6 @@ namespace lsh
 		 tokens.erase(tokens.begin());
 		 ++gen_radius;
 	      }
-	    std::sort(features.begin(),features.end());
 	 }
          
      static void mrf_features(std::vector<std::string> &tokens,

@@ -44,7 +44,7 @@ namespace lsh
        };
    
    template<>
-     void mrf_hash_m<char*>(const char *data, uint32_t len, char* &f)
+     void mrf_hash_m<char*>(const char *data, uint32_t len, char *&f)
        {
 	  //debug
 	  //std::cout << "data: " << data << std::endl;
@@ -104,7 +104,7 @@ namespace lsh
        };
 
    template<>
-     char* mrf_hash_c<char*>(const str_chain &chain)
+     f160r mrf_hash_c<f160r>(const str_chain &chain)
        {
 	  // rank chains which do not contain any skipped token (i.e.
 	  // no order preservation.
@@ -122,7 +122,8 @@ namespace lsh
 	    }
 	  char *hashed_token = NULL;
 	  mrf_hash_m<char*>(fchain.c_str(),fchain.size(),hashed_token);
-	  return hashed_token;
+	  f160r fr(hashed_token,chain.get_radius());
+	  return fr;
        };
    
   /*-- str_chain --*/
