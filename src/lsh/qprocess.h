@@ -22,6 +22,7 @@
 #define QPROCESS_H
 
 #include "DHTKey.h"
+#include "stl_hash.h"
 #include <string>
 #include <vector>
 
@@ -33,12 +34,12 @@ namespace lsh
       public:
 	static void compile_query(const std::string &query, std::vector<std::string> &queries);
 	
-	static void mrf_query_160(const std::string &query, std::vector<DHTKey> &features,
+	static void mrf_query_160(const std::string &query, hash_multimap<uint32_t,DHTKey,id_hash_uint> &features,
 				  const int &min_radius, const int &max_radius);
      
 	static void generate_query_hashes(const std::string &query,
 					  const int &min_radius, const int &max_radius,
-					  std::vector<DHTKey> &features);
+					  hash_multimap<uint32_t,DHTKey,id_hash_uint> &features);
      };
       
 } /* end of namespace. */

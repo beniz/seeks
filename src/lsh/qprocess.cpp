@@ -39,30 +39,31 @@ namespace lsh
 	  }
      }
    
-   void qprocess::mrf_query_160(const std::string &query, std::vector<DHTKey> &features,
+   void qprocess::mrf_query_160(const std::string &query, hash_multimap<uint32_t,DHTKey,id_hash_uint> &features,
 				const int &min_radius, const int &max_radius)
      {
-	static uint32_t window_length = 8; // default.
+	static uint32_t window_length = 5; // default.
 	
 	// get 160bit features for the requested radius.
-	std::vector<char*> char_features;
+	std::vector<f160r> char_features;
 	mrf::mrf_features_query(query,char_features,
 				min_radius,max_radius,window_length);
 	
 	// turn them into DHTKey.
 	size_t nfeatures = char_features.size();
-	features.reserve(features.size() + nfeatures);
+	//features.reserve(features.size() + nfeatures);
 	for (size_t i=0;i<nfeatures;i++)
 	  {
-	     byte *hashcode = (byte*)char_features.at(i);
-	     features.push_back(DHTKey::convert(hashcode));
+	     byte *hashcode = (byte*)char_features.at(i)._feat;
+	     features.insert(std::pair<uint32_t,DHTKey>(char_features.at(i)._radius,
+							DHTKey::convert(hashcode)));
 	     delete[] hashcode;
 	  }
      }
       
    void qprocess::generate_query_hashes(const std::string &query,
 					const int &min_radius, const int &max_radius,
-					std::vector<DHTKey> &features)
+					hash_multimap<uint32_t,DHTKey,id_hash_uint> &features)
      {
 	std::vector<std::string> queries;
 	qprocess::compile_query(query,queries);
