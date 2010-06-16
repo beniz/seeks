@@ -51,7 +51,7 @@ namespace dht
      {
      }
 
-   void rpc_client::do_rpc_call_static(rpc_call_args *args)
+   /* void rpc_client::do_rpc_call_static(rpc_call_args *args)
      {
 	try
 	  {
@@ -83,9 +83,9 @@ namespace dht
 	     args->_err = DHT_ERR_CALL;
 	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
 	  }
-     }
+     } */
    
-   dht_err rpc_client::do_rpc_call_threaded(const NetAddress &server_na,
+   /* dht_err rpc_client::do_rpc_call_threaded(const NetAddress &server_na,
 					    const std::string &msg,
 					    const bool &need_response,
 					    std::string &response)
@@ -100,8 +100,47 @@ namespace dht
 	
 	response = args._response;
 	return args._err;
+     } */
+   
+   dht_err rpc_client::do_rpc_call(const NetAddress &server_na,
+				   const std::string &msg,
+				   const bool &need_response,
+				   std::string &response,
+				   dht_err &err)
+     {
+	try
+	  {
+	     err = do_rpc_call(server_na,msg,
+			       need_response,response);
+	  }
+	catch (rpc_client_timeout_error_exception &e)
+	  {
+	     err = DHT_ERR_COM_TIMEOUT;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_reception_error_exception &e)
+	  {
+	     err = DHT_ERR_RESPONSE;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_socket_error_exception &e)
+	  {
+	     err = DHT_ERR_SOCKET;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_host_error_exception &e)
+	  {
+	     err = DHT_ERR_HOST;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	catch (rpc_client_sending_error_exception &e)
+	  {
+	     err = DHT_ERR_CALL;
+	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
+	  }
+	return err;
      }
-      
+   
    dht_err rpc_client::do_rpc_call(const NetAddress &server_na,
 				   const std::string &msg,
 				   const bool &need_response,

@@ -83,7 +83,9 @@ namespace dht
 	std::string resp_str;
 	
 	// send & get response.
-	dht_err err = do_rpc_call_threaded(recipient,msg_str,true,resp_str);
+	//dht_err err = do_rpc_call_threaded(recipient,msg_str,true,resp_str);
+	dht_err err = DHT_ERR_OK;
+	do_rpc_call(recipient,msg_str,true,resp_str,err);
 	delete l1q;
 	l1q = NULL;
 		

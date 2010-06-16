@@ -31,7 +31,7 @@ namespace dht
 {
    class rpc_client;
    
-   class rpc_call_args
+   /* class rpc_call_args
      {
       public:
 	rpc_call_args(rpc_client *client,
@@ -51,7 +51,7 @@ namespace dht
 	bool _need_response;
 	std::string _response;
 	dht_err _err;
-     };
+     }; */
       
    class rpc_client
      {
@@ -60,12 +60,18 @@ namespace dht
 	
 	virtual ~rpc_client();
 	  
-	static void do_rpc_call_static(rpc_call_args *args);
+	/* static void do_rpc_call_static(rpc_call_args *args); */
 	
-	dht_err do_rpc_call_threaded(const NetAddress &server_na,
+	/* dht_err do_rpc_call_threaded(const NetAddress &server_na,
 				     const std::string &msg,
 				     const bool &need_response,
-				     std::string &response);
+				     std::string &response); */
+	
+	dht_err do_rpc_call(const NetAddress &server_na,
+			    const std::string &msg,
+			    const bool &need_response,
+			    std::string &response,
+			    dht_err &err);
 	
 	dht_err do_rpc_call(const NetAddress &server_na,
 			    const std::string &msg,
