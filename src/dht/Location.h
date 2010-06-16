@@ -29,6 +29,8 @@ namespace dht
    class Location
      {
       public:
+	Location();
+	
 	Location(const DHTKey& key, const NetAddress& na);
 	
 	~Location();

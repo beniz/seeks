@@ -24,6 +24,10 @@
 
 namespace dht
 {
+   Location::Location()
+     {
+     }
+      
    Location::Location(const DHTKey& key, const NetAddress& na)
      : _key(key), _na(na)
        {
