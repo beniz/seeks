@@ -6,10 +6,11 @@ test_rpc_client_SOURCES=test-rpc-client.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
             -I../ -I../../ -I../../protob -I../protob -I../../../utils -I../../../proxy \
-	    `pkg-config --cflags protobuf`
+	    -I../../sg -I../../sg/rpc -I../../sg/protob `pkg-config --cflags protobuf`
 AM_LDFLAGS=-L../ -L../../ -L../../protob -L../protob -L../../../utils \
-	   -L../../../proxy -L../../../lsh `pkg-config --libs protobuf`
+	   -L../../../proxy -L../../../lsh -L../../sg -L../../sg/rpc -L../../sg/protob `pkg-config --libs protobuf`
 
 LDADD = -lseeksrpc -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lrmd160 \
-	-lseeksutils -lseeksproxy -lseeksplugins \
-        -lseekslsh -lpcre -lpcreposix -lprotobuf -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
+	-lseeksutils -lseeksproxy -lseeksplugins -lseekslsh \
+	-lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent \
+        -lpcre -lpcreposix -lprotobuf -lpthread -lz @CURL_LDADD@ @XML2_LDADD@

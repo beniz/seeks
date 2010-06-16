@@ -15,9 +15,10 @@ if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
 if HAVE_DHT
- AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/rpc/protob `pkg-config --libs protobuf`
+ AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/rpc/protob \
+               -L../../../dht/sg -L../../../dht/sg/rpc -L../../../dht/sg/protob `pkg-config --libs protobuf`
 endif
 LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
 if HAVE_DHT
- LDADD+=-lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lrmd160
+ LDADD+=-lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
 endif
