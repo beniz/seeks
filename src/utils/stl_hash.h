@@ -34,12 +34,15 @@
 // so we do backward compatibility for now.
 using __gnu_cxx::hash;
 using __gnu_cxx::hash_map;
+using __gnu_cxx::hash_multimap;
 #elif (__GNUC__ >= 3)
 using __gnu_cxx::hash;
 using __gnu_cxx::hash_map;
+using __gnu_cxx::hash_multimap;
 #else
 using std::hash;
 using std::hash_map;
+using std::hash_multimap;
 #endif
 
 #include <string.h>
