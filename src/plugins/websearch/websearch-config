@@ -71,3 +71,22 @@ ct-transfer-timeout 3
 # The highlighted words are those that discriminate the most a snippet
 # from all other snippets in the results.
 extended-highlight 1
+
+# Options below are for connection to search groups over the Seeks DHT.
+
+# Search group subscription. If enabled, your IP address will be stored
+# on the search group host along with that of other peers. This allows
+# other peers, hitting the same search group, to make direct p2p calls
+# to you for sharing information.
+# default: 0
+sg-subscription 0
+
+# Search group update delay. This is the delay in seconds between two
+# updates from a same search group.
+# default: 60
+sg-update-delay 60
+
+# Search group retry delay. This is the delay in seconds between retries 
+# for failed calls to search groups.
+# default: 5
+sg-retry-delay 5
