@@ -26,19 +26,12 @@ using lsh::qprocess;
 
 namespace dht
 {
-   void sg_api::get_sg_keys(const std::string &query, std::vector<DHTKey> &sg_keys,
-			    const int &min_radius, const int &max_radius)
-     {
-	qprocess::generate_query_hashes(query,min_radius,max_radius,sg_keys);
-     }
-   
    dht_err sg_api::find_sg(const SGNode &sgnode,
 			   const DHTKey &sg_key, Location &node)
      {
 	DHTKey host_key;
 	NetAddress host_na;
-	int status = DHT_ERR_OK;
-	dht_api::findClosestPredecessor(sgnode,sg_key,host_key,host_na,status);
+	dht_err status = dht_api::findSuccessor(sgnode,sg_key,host_key,host_na);
 	node = Location(host_key,host_na);
 	return status;
      }

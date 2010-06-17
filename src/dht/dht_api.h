@@ -34,6 +34,10 @@ namespace dht
 					      const DHTKey& nodeKey,
 					      DHTKey& dkres, NetAddress& na,
 					      int& status);
+	
+	static dht_err findSuccessor(const DHTNode &dnode,
+				     const DHTKey &nodekey,
+				     DHTKey &dkres, NetAddress &na);
      };
       
 } /* end of namespace. */

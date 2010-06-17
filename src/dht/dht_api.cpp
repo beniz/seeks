@@ -38,5 +38,17 @@ namespace dht
 				      status);
 	return status;
      }
+ 
+   dht_err dht_api::findSuccessor(const DHTNode &dnode,
+				  const DHTKey &nodekey,
+				  DHTKey &dkres, NetAddress &na)
+     {
+	// grab the closest virtual node to make the RPC call from it.
+	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
+     
+	// make the RPC call.
+	dht_err err = vnode->find_successor(nodekey,dkres,na);
+	return err;
+     }
       
 } /* end of namespace. */
