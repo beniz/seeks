@@ -49,8 +49,13 @@ namespace dht
 	 * @param na net address.
 	 */
 	void update(const NetAddress& na);
-	
 	void update_check_time();
+	
+	/**
+	 * operators.
+	 */
+	bool operator==(const Location &loc) const;
+	bool operator!=(const Location &loc) const;
 	
       private:
 	DHTKey _key;  /**< location key id. */

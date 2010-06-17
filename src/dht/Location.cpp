@@ -52,5 +52,21 @@ namespace dht
 	_last_check_time = tvz->tv_sec;
 	free(tvz);
      }
+
+   bool Location::operator==(const Location &loc) const
+     {
+	if (_key == loc.getDHTKey()
+	    && _na == loc.getNetAddress())  // XXX: do not test on _last_check_time.
+	  return true;
+	return false;
+     }
+   
+   bool Location::operator!=(const Location &loc) const
+     {
+	if (_key != loc.getDHTKey()
+	    || _na != loc.getNetAddress())
+	  return true;
+	return false;
+     }
       
 } /* end of namespace. */
