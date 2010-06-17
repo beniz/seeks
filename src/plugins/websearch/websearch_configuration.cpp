@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -37,6 +37,12 @@ namespace seeks_plugins
 #define hash_clustering             2382120344ul /* "enable-clustering" */
 #define hash_max_expansions         3838821776ul /* "max-expansions" */
 #define hash_extended_highlight     2722091897ul /* "extended-highlight" */   
+
+#ifdef WITH_DHT
+#define hash_sg_subscription        3242804198ul /* "sg-subscription" */
+#define hash_sg_update_delay        1703788085ul /* "sg-update-delay" */
+#define hash_sg_retry_delay         1941414272ul /* "sg-retry-delay" */
+#endif
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -64,7 +70,13 @@ namespace seeks_plugins
 	_ct_connect_timeout = 1; // in seconds.
 	_ct_transfer_timeout = 3; // in seconds.
 	_max_expansions = 100;
-	_extended_highlight = false; // experimental.
+	_extended_highlight = false;
+	
+#ifdef WITH_DHT
+	_sg_subscription = false;
+	_sg_update_delay = 60; // in seconds.
+	_sg_retry_delay = 5; // in seconds;
+#endif
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -167,6 +179,26 @@ namespace seeks_plugins
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enables a more discriminative word highlight scheme");
 	     break;
+	   
+#ifdef WITH_DHT
+	   case hash_sg_subscription:
+	     _sg_subscription = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enables automatic subscription to search groups");
+	     break;
+
+	   case hash_sg_update_delay:
+	     _sg_update_delay = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets delay between two calls for update to the same search group");
+	     break;
+
+	   case hash_sg_retry_delay:
+	     _sg_retry_delay = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets delay before retrying failed or timed out calls to search groups");
+	     break;
+#endif
 	     
 	   default:
 	     break;

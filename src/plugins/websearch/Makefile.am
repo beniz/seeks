@@ -6,7 +6,8 @@ websearchplugindatadir = $(datadir)/seeks/plugins/websearch
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I../../utils -I../../lsh -I../../proxy
 if HAVE_DHT
-AM_CPPFLAGS += -I../../dht
+AM_CPPFLAGS += -I../../dht -I../../dht/rpc -I../../dht/rpc/protob -I../../dht/protob \
+               -I../../dht/sg/ -I../../dht/sg/rpc -I../../dht/sg/protob
 endif
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
@@ -18,6 +19,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   clustering.cpp oskmeans.cpp json_renderer.cpp
 libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I../../ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 if HAVE_DHT
+libseekswebsearchplugin_la_SOURCES += qc_event.cpp qc_sg.cpp sg.cpp websearch_sg.cpp
 libseekswebsearchplugin_la_CXXFLAGS += -I../../dht
 endif
 

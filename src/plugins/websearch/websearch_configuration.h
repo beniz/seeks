@@ -19,6 +19,7 @@
 #ifndef WEBSEARCH_CONFIGURATION_H
 #define WEBSEARCH_CONFIGURATION_H
 
+#include "config.h"
 #include "configuration_spec.h"
 #include "se_handler.h" // NSEs.
 
@@ -63,14 +64,20 @@ namespace seeks_plugins
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */
 
-	long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
-	long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
+	int _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
+	int _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
 
-	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
-	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
+	int _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
+	int _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
 	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
 
-	bool _extended_highlight;
+	bool _extended_highlight; /**< enables extended highlights of words in search results snippets. */
+
+#ifdef WITH_DHT
+	bool _sg_subscription; /**< whether to automatically subscribe to search groups or not. */
+	int _sg_update_delay; /**< delay between two calls for update to the same search group. */
+	int _sg_retry_delay; /**< retry delay for failed or timeout calls to search groups. */
+#endif
      };
    
 } /* end of namespace. */
