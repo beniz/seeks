@@ -346,9 +346,9 @@ namespace dht
 	  {
 	     /**
 	      * look up succ_pred, add it to the location table if needed.
-	      * -> because succ_pred should be in one of the succlist/predlist anyways.
+	      * -> because succ_pred should be in the succlist or a predecessor anyways.
 	      */
-	     Location* succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
+	     Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
 	     
 	     /**
 	      * key check: if a node has taken place in between us and our
@@ -386,8 +386,9 @@ namespace dht
 	  }
 	else // in non routing mode, check whether our predecessor has changed.
 	  {
-	     if (succ_loc->getDHTKey() != *_vnode->getPredecessor())
-	       _vnode->setPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress());
+	     Location *succ_pred_loc = _vnode->findLocation(succ_pred);
+	     if (!_vnode->getPredecessor() || succ_pred_loc->getDHTKey() != *_vnode->getPredecessor())
+	       _vnode->setPredecessor(succ_pred_loc->getDHTKey(), succ_pred_loc->getNetAddress());
 	  }
 		
 	return status;	
