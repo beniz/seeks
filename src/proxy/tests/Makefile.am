@@ -12,14 +12,14 @@ endif
 AM_LDFLAGS=-L. -L../ -L../../utils -L../../lsh
 if HAVE_DHT
 AM_LDFLAGS += -L../../dht -L../../dht/rpc -L../../dht/rpc/protob -L../../dht/protob \
-	      `pkg-config --libs protobuf`
+	      -L../../dht/sg -L../../dht/sg/rpc -L../../dht/sg/protob `pkg-config --libs protobuf`
 endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
 LDADD = @CURL_LDADD@ -lseeksutils 
 if HAVE_DHT
-LDADD += -lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lrmd160
+LDADD += -lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
 endif
 LDADD +=  -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz
 if !HAVE_FREEBSD
