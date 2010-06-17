@@ -35,9 +35,6 @@ namespace dht
    class sg_api
      {
       public:
-	static void get_sg_keys(const std::string &query, std::vector<DHTKey> &sg_keys,
-				const int &min_radius, const int &max_radius);	
-	
 	static dht_err find_sg(const SGNode &sgnode,
 			       const DHTKey &sg_key, Location &node);
 	
