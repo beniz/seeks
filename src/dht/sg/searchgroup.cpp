@@ -20,6 +20,8 @@
 
 #include "searchgroup.h"
 #include "mutexes.h"
+#include "l2_protob_wrapper.h" // for serialization exceptions.
+#include "l2_data_protob_wrapper.h"
 
 #include <algorithm>
 #include <sys/time.h>
@@ -68,6 +70,7 @@ namespace dht
 	     return false;
 	  }
 	_hash_subscribers.insert(std::pair<const DHTKey*,Subscriber*>(&su->_idkey,su));
+	_vec_subscribers.push_back(su);
 	return true;
      }
    
@@ -114,6 +117,49 @@ namespace dht
 	std::vector<Subscriber*>::iterator vit = rpeers.begin();
 	vit += npeers;
 	rpeers.erase(vit,rpeers.end());
+     }
+
+   bool Searchgroup::serialize_to_string(std::string &str)
+     {
+	l2::sg::searchgroup *l2_sg = l2_data_protob_wrapper::create_l2_searchgroup(this);
+	try
+	  {
+	     l2_data_protob_wrapper::serialize_to_string(l2_sg,str);
+	  }
+	catch (l2_fail_serialize_exception &e)
+	  {
+	     //TODO: error.
+	     delete l2_sg;
+	     return false;
+	  }
+	delete l2_sg;
+	return true;
+     }
+
+   Searchgroup* Searchgroup::deserialize_from_string(const std::string &str)
+     {
+	l2::sg::searchgroup *l2_sg = new l2::sg::searchgroup();
+	try
+	  {
+	     l2_data_protob_wrapper::deserialize_from_string(str,l2_sg);
+	  }
+	catch (l2_fail_deserialize_exception &e)
+	  {
+	     //TODO: error.
+	     delete l2_sg;
+	     return NULL;
+	  }
+	
+	Searchgroup *sg = NULL;
+	dht_err err = l2_data_protob_wrapper::read_l2_searchgroup(l2_sg,sg);
+	if (err != DHT_ERR_OK)
+	  {
+	     //TODO: error.
+	     delete l2_sg;
+	     return NULL;
+	  }
+	delete l2_sg;
+	return sg;
      }
       
 } /* end of namespace. */

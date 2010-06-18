@@ -16,5 +16,3 @@ message l2_peers_query
  optional uint32 npeers = 2;            /* requested number of peers. */
  optional uint32 date = 3;              /* reference date. */
 }
-
-/* TODO: data replication. */

@@ -5,7 +5,7 @@ import "dht_layer1.proto";
 /* subscriber. */
 message subscriber
 {
- required dht.l1.vnodeid = 1; /* subscriber's id & address. */
+ required dht.l1.vnodeid id = 1; /* subscriber's id & address. */
  required uint32 join_date = 2; /* when the subscriber did join the group. */
 }
 
@@ -13,5 +13,18 @@ message subscriber
 message searchgroup
 {
  required dht.l1.dht_key key = 1; /* group id key. */
- repeated subscriber subscribers = 2; /* subscribers to this group. */
+ required uint32 radius = 2; /* replication radius. */
+ repeated subscriber subscribers = 3; /* subscribers to this group. */
+}
+
+/* replicated search groups. */
+message r_searchgroups
+{
+ repeated searchgroup rsgs = 1; /* replicated search groups. */
+}
+
+extend dht.l1.l1_query
+{
+ optional bool diff = 5; /* diff or full */
+ optional r_searchgroups rsg = 6; /* replicated search groups. */
 }

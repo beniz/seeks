@@ -44,6 +44,7 @@ message l1_query
  required vnodeid recipient = 2;	/* message recipient. */
  optional vnodeid sender = 3; 		/* sender id. */
  optional dht_key lookedup_key = 4;	/* node's key we're looking after. */
+ extensions 5 to 100;                   /* room for extensions. */
 }
 
 message l1_response
