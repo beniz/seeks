@@ -8,4 +8,4 @@ libseekslsh_la_SOURCES=mrf.cpp LSHSystemHamming.cpp LSHFunction.cpp \
 		       LSHUniformHashTableHamming.cpp Random.cpp \
 		       lsh_configuration.cpp stopwordlist.cpp qprocess.cpp
 
-SUBDIRS= . tests
+#SUBDIRS= . tests

@@ -46,6 +46,10 @@ if HAVE_DHT
 SUBDIRS += dht 
 endif
 SUBDIRS += lsh proxy plugins .
+if HAVE_DHT
+SUBDIRS += lsh/tests dht/protob/tests dht/rpc/tests dht/tests
+endif
+SUBDIRS += proxy/tests
 
 configdir=$(sysconfdir)/seeks
 config_DATA=config \
