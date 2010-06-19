@@ -22,9 +22,12 @@
 #include "mutexes.h"
 #include "l2_protob_wrapper.h" // for serialization exceptions.
 #include "l2_data_protob_wrapper.h"
+#include "errlog.h"
 
 #include <algorithm>
 #include <sys/time.h>
+
+using sp::errlog;
 
 namespace dht
 {
@@ -128,7 +131,8 @@ namespace dht
 	  }
 	catch (l2_fail_serialize_exception &e)
 	  {
-	     //TODO: error.
+	     // error.
+	     errlog::log_error(LOG_LEVEL_DHT,"Error serializing searchgroup");
 	     delete l2_sg;
 	     return false;
 	  }
@@ -145,7 +149,8 @@ namespace dht
 	  }
 	catch (l2_fail_deserialize_exception &e)
 	  {
-	     //TODO: error.
+	     // error.
+	     errlog::log_error(LOG_LEVEL_DHT,"Error deserializing searchgroup");
 	     delete l2_sg;
 	     return NULL;
 	  }
@@ -154,7 +159,8 @@ namespace dht
 	dht_err err = l2_data_protob_wrapper::read_l2_searchgroup(l2_sg,sg);
 	if (err != DHT_ERR_OK)
 	  {
-	     //TODO: error.
+	     // error.
+	     errlog::log_error(LOG_LEVEL_DHT,"Error instanciating deserialized searchgroup");
 	     delete l2_sg;
 	     return NULL;
 	  }

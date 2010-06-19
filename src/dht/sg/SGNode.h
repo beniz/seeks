@@ -47,6 +47,15 @@ namespace dht
 				 std::vector<Subscriber*> &peers,
 				 int &status);
 	
+	dht_err RPC_replicate_cb(const DHTKey &recipientKey,
+				 const NetAddress &recipient,
+				 const DHTKey &senderKey,
+				 const NetAddress &sender,
+				 const DHTKey &ownerKey,
+				 const std::vector<Searchgroup*> &sgs,
+				 const bool &sdiff,
+				 int &status);
+	
       public:
 	sg_manager _sgmanager;
      };

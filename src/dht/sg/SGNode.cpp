@@ -25,8 +25,8 @@
 namespace dht
 {
    SGNode::SGNode(const char *net_addr, const short &net_port,
-		  const bool &generate_vnode)
-     :DHTNode(net_addr,net_port,generate_vnode)
+		  const bool &generate_vnodes)
+     :DHTNode(net_addr,net_port,generate_vnodes)
      {
      }
    
@@ -91,5 +91,20 @@ namespace dht
 	
 	return DHT_ERR_OK;
      }
-        
+
+   dht_err SGNode::RPC_replicate_cb(const DHTKey &recipientKey,
+				    const NetAddress &recipient,
+				    const DHTKey &senderKey,
+				    const NetAddress &sender,
+				    const DHTKey &ownerKey,
+				    const std::vector<Searchgroup*> &sgs,
+				    const bool &sdiff,
+				    int &status)
+     {
+	//TODO: verify that sender address is non empty (empty means either not divulged, 
+	// either fake, eliminated by server).
+	//TODO: if no peer in searchgroup, simply update the replication radius.
+	
+     }
+   
 } /* end of namespace. */

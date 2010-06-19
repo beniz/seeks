@@ -19,6 +19,7 @@
  */
 
 #include "l2_protob_rpc_client.h"
+#include "l2_data_protob_wrapper.h"
 #include "errlog.h"
 
 using sp::errlog;
@@ -53,7 +54,7 @@ namespace dht
 	  }
 	catch(l1_fail_serialize_exception &e)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
+	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
 	     return DHT_ERR_CALL;
 	  }
 		     
@@ -81,13 +82,43 @@ namespace dht
 	  }
 	catch(l1_fail_serialize_exception &e)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
+	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
 	     return DHT_ERR_CALL;
 	  }
 	
 	return RPC_call(msg,recipient,l2r);
      }
-      
+
+   dht_err l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
+					  const DHTKey &recipientKey,
+					  const NetAddress &recipient,
+					  const DHTKey &senderKey,
+					  const NetAddress &sender,
+					  const DHTKey &ownerKey,
+					  const std::vector<Searchgroup*> &sgs,
+					  const bool &sdiff,
+					  l1::l1_response *l1r)
+     {
+	// serialize.
+	l1::l1_query *l2q = l2_data_protob_wrapper::create_l2_replication_query(fct_id,recipientKey,recipient,
+										senderKey,sender,ownerKey,
+										sgs,sdiff);
+	l1::header *l2q_head = l2q->mutable_head();
+	l2q_head->set_layer_id(2);
+	
+	std::string msg;
+	try
+	  {
+	     l2_data_protob_wrapper::serialize_to_string(l2q,msg);
+	  }
+	catch (l2_fail_serialize_exception &e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	return RPC_call(msg,recipient,l1r);
+     }
+   					  
    dht_err l2_protob_rpc_client::RPC_call(const std::string &msg,
 					  const NetAddress &recipient,
 					  l2::l2_subscribe_response *l2r)
@@ -115,6 +146,33 @@ namespace dht
 	return DHT_ERR_OK;
      }
    
+   dht_err l2_protob_rpc_client::RPC_call(const std::string &msg,
+					  const NetAddress &recipient,
+					  l1::l1_response *l1r)
+     {
+	
+	// send & get response.
+	std::string resp_str;
+	dht_err err = DHT_ERR_OK;
+	do_rpc_call(recipient,msg,true,resp_str,err);
+	if (err != DHT_ERR_OK)
+	  {
+	     return err;
+	  }
+	
+	// deserialize response.
+	try
+	  {
+	     l1_protob_wrapper::deserialize(resp_str,l1r);
+	  }
+	catch (l2_fail_deserialize_exception &e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
+	     return DHT_ERR_NETWORK;
+	  }
+	return DHT_ERR_OK;
+     }
+	          
    dht_err l2_protob_rpc_client::RPC_subscribe(const DHTKey &recipientKey,
 					       const NetAddress &recipient,
 					       const DHTKey &senderKey,
@@ -162,6 +220,53 @@ namespace dht
 	err = l2_protob_wrapper::read_l2_subscribe_response(l2r,error_status,peers);
 	status = error_status;
 	delete l2r;
+	return err;
+     }
+
+   dht_err l2_protob_rpc_client::RPC_replicate(const DHTKey &recipientKey,
+					       const NetAddress &recipient,
+					       const DHTKey &senderKey,
+					       const NetAddress &senderAddress,
+					       const DHTKey &ownerKey,
+					       const std::vector<Searchgroup*> &sgs,
+					       const bool &sdiff,
+					       int &status)
+     {
+	//debug
+	std::cerr << "[Debug]: RPC_replicate call\n";
+	//debug
+	
+	// do call, wait and get response.
+	l1::l1_response *l1r = new l1::l1_response();
+	dht_err err = DHT_ERR_OK;
+	
+	try
+	  {
+	     err = l2_protob_rpc_client::RPC_call(hash_replicate,
+						  recipientKey,recipient,
+						  senderKey,senderAddress,
+						  ownerKey,sgs,sdiff,l1r);
+	  }
+	catch (dht_exception &e)
+	  {
+	     delete l1r;
+	     errlog::log_error(LOG_LEVEL_DHT, "Failed replicate call to %s: %s",
+			       recipient.toString().c_str(),e.what().c_str());
+	     return DHT_ERR_CALL;
+	  }
+	
+	// check on local error status.
+	if (err != DHT_ERR_OK)
+	  {
+	     delete l1r;
+	     return err;
+	  }
+	
+	// handle the response.
+	uint32_t error_status;
+	err = l1_protob_wrapper::read_l1_response(l1r,error_status);
+	status = error_status;
+	delete l1r;
 	return err;
      }
       

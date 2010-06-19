@@ -50,9 +50,23 @@ namespace dht
 			 const DHTKey &sgKey,
 			 l2::l2_subscribe_response *l2r);
 	
+	dht_err RPC_call(const uint32_t &fct_id,
+			 const DHTKey &recipientKey,
+			 const NetAddress &recipient,
+			 const DHTKey &senderKey,
+			 const NetAddress &sender,
+			 const DHTKey &ownerKey,
+			 const std::vector<Searchgroup*> &sgs,
+			 const bool &sdiff,
+			 l1::l1_response *l1r);
+	
 	dht_err RPC_call(const std::string &msg,
 			 const NetAddress &recipient,
 			 l2::l2_subscribe_response *l2r);
+	
+	dht_err RPC_call(const std::string &msg,
+			 const NetAddress &recipient,
+			 l1::l1_response *l1r);
 	
 	/*- l2 interface. -*/
 	virtual dht_err RPC_subscribe(const DHTKey &recipientKey,
@@ -62,8 +76,18 @@ namespace dht
 				      const DHTKey &sgKey,
 				      std::vector<Subscriber*> &peers,
 				      int &status);
+	
+	virtual dht_err RPC_replicate(const DHTKey &recipientKey,
+				      const NetAddress &recipient,
+				      const DHTKey &senderKey,
+				      const NetAddress &senderAddress,
+				      const DHTKey &ownerKey,
+				      const std::vector<Searchgroup*> &sgs,
+				      const bool &sdiff,
+				      int &status);
+	
      };
-      
+   
 } /* end of namespace. */
 
 #endif

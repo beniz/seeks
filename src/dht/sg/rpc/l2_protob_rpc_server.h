@@ -36,14 +36,15 @@ namespace dht
 	
 	~l2_protob_rpc_server();
      
-	virtual void lx_response(const uint32_t &fct_id,
-				 const DHTKey &recipient_key,
-				 const NetAddress &recipient_na,
-				 const DHTKey &sender_key,
-				 const NetAddress &sender_na,
-				 const DHTKey &node_key,
-				 int &status,
-				 std::string &resp_msg);
+	virtual dht_err lx_server_response(const uint32_t &fct_id,
+					   const DHTKey &recipient_key,
+					   const NetAddress &recipient_na,
+					   const DHTKey &sender_key,
+					   const NetAddress &sender_na,
+					   const DHTKey &node_key,
+					   int &status,
+					   std::string &resp_msg,
+					   const std::string &inc_msg);
      
 	dht_err execute_callback(const uint32_t &fct_id,
 				 const DHTKey &recipient_key,
@@ -61,6 +62,15 @@ namespace dht
 					 const NetAddress &sender,
 					 const DHTKey &sgKey,
 					 std::vector<Subscriber*> &peers,
+					 int &status);
+     
+	virtual dht_err RPC_replicate_cb(const DHTKey &recipientKey,
+					 const NetAddress &recipient,
+					 const DHTKey &senderKey,
+					 const NetAddress &sender,
+					 const DHTKey &ownerKey,
+					 const std::vector<Searchgroup*> &sgs,
+					 const bool &sdiff,
 					 int &status);
      };
    
