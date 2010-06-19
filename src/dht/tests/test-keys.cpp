@@ -72,11 +72,11 @@ int main()
    std::cout << "testing predecessor: dhtk1: - 2^5: " << dhtk1.predecessor(5) << std::endl;
    
    std::cout << "testing RIPEMD-160 hashing:"; 
-   DHTKey::RMDstring("beniz@localhost","beniz@localhost");
+   DHTKey::RMDstring("me@localhost","me@localhost");
    std::cout << std::endl;
-   DHTKey::RMDbits("beniz@localhost", "beniz@localhost");
+   DHTKey::RMDbits("me@localhost", "me@localhost");
    std::cout << std::endl;
-   std::cout << DHTKey::hashKey("beniz@localhost") << std::endl;
+   std::cout << DHTKey::hashKey("me@localhost") << std::endl;
 
    std::cout << "testing random keys generation:\n";
    for (unsigned int i=0; i<10; i++)
