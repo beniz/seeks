@@ -37,16 +37,18 @@ namespace dht
 	~l1_rpc_server() {};
      
 	// response to lx calls, if any allowed.
-	virtual void lx_server_response(const uint32_t &fct_id,
-					const DHTKey &recipient_key,
-					const NetAddress &recipient_na,
-					const DHTKey &sender_key,
-					const NetAddress &sender_na,
-					const DHTKey &node_key,
-					int &status,
-					std::string &resp_msg) {};
+	virtual dht_err lx_server_response(const uint32_t &fct_id,
+					   const DHTKey &recipient_key,
+					   const NetAddress &recipient_na,
+					   const DHTKey &sender_key,
+					   const NetAddress &sender_na,
+					   const DHTKey &node_key,
+					   int &status,
+					   std::string &resp_msg,
+					   const std::string &inc_msg="") 
+	  { return DHT_ERR_OK; };
      };
-      
+   
 } /* end of namespace. */
 
 #endif

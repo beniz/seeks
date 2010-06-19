@@ -72,7 +72,8 @@ namespace dht
 	if (layer_id != 1)
 	  {
 	     int status = DHT_ERR_OK;
-	     lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,status,resp_msg);
+	     lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,
+				status,resp_msg,msg);
 	     return DHT_ERR_OK;
 	  }
 	
@@ -134,18 +135,20 @@ namespace dht
 	return err;
      }
    
-   void l1_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
-						 const DHTKey &recipient_key,
-						 const NetAddress &recipient_na,
-						 const DHTKey &sender_key,
-						 const NetAddress &sender_na,
-						 const DHTKey &node_key,
-						 int &status,
-						 std::string &resp_msg)
+   dht_err l1_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
+						    const DHTKey &recipient_key,
+						    const NetAddress &recipient_na,
+						    const DHTKey &sender_key,
+						    const NetAddress &sender_na,
+						    const DHTKey &node_key,
+						    int &status,
+						    std::string &resp_msg,
+						    const std::string &inc_msg)
      {
 	// XXX: we could communicate something nice back the sender,
 	// but we won't.
 	throw rpc_server_wrong_layer_exception();
+	return DHT_ERR_OK; // if no exception.
      }
       
    dht_err l1_protob_rpc_server::execute_callback(const uint32_t &fct_id,
