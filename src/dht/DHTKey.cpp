@@ -24,6 +24,7 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include <sstream>
 #include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
@@ -480,25 +481,25 @@ namespace dht
       
    /*-- conversion stuff --*/
    // oops, NO!
-   void DHTKey::tovchar(std::vector<unsigned char>& vuc) const
+   /* void DHTKey::tovchar(std::vector<unsigned char>& vuc) const
      {
 	vuc.clear();
 	std::string key_str = to_string();
 	for (unsigned int i=0; i<key_str.size(); i++)
 	  vuc.push_back(key_str[i]);
-     }
+     } */
    
    /**
     * ok, there must be a better way of doing this... for now, it's working.
     */
    // oops, NO!
-   DHTKey DHTKey::fromvchar(const std::vector<unsigned char>& vuc)
+   /* DHTKey DHTKey::fromvchar(const std::vector<unsigned char>& vuc)
      {
 	std::string key_str = "";
 	for (unsigned int i=0; i<vuc.size(); i++)
 	  key_str += std::string(1,vuc[i]);
 	return DHTKey(key_str);
-     }
+     } */
 
    void DHTKey::tochar(char* c_ptr) const
      {
@@ -506,6 +507,19 @@ namespace dht
 	memcpy(c_ptr, temp_str.c_str(), KEYNBITS*sizeof(char)+1);
      }
    
+   std::string DHTKey::to_rstring() const
+     {
+	std::string key_str = to_string();
+	std::ostringstream os;
+	for (size_t i=0;i<key_str.size();i+=4)
+	  {
+	     std::bitset<4> b(key_str.substr(i,i+4));
+	     os << std::hex << b.to_ulong();
+	  }
+	std::string res = os.str();
+	return res;
+     }
+      
    std::vector<unsigned char> DHTKey::serialize(const DHTKey &dk)
      {
 	std::vector<unsigned char> res;

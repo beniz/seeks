@@ -161,8 +161,8 @@ namespace dht
 	 * \brief conversion to/from a vector of unsigned char.
 	 */
 	// DEPRECATED.
-	void tovchar(std::vector<unsigned char>& vuc) const;
-	static DHTKey fromvchar(const std::vector<unsigned char>& vuc);
+	//void tovchar(std::vector<unsigned char>& vuc) const;
+	//static DHTKey fromvchar(const std::vector<unsigned char>& vuc);
 
 	/**
 	 * \brief conversion to const char* 
@@ -170,6 +170,8 @@ namespace dht
 	 */
 	void tochar(char* c_ptr) const;
      
+	std::string to_rstring() const;
+	
 	/**
 	 * \brief serialization to vector of char.
 	 */
