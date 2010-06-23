@@ -68,7 +68,7 @@ namespace dht
 	Searchgroup *sg = _sgmanager.find_load_or_create_sg(&sgKey);
 	if (!sg)
 	  {
-	     status = DHT_ERR_UNKNOWN_PEER;
+	     status = DHT_ERR_UNKNOWN_PEER; // XXX: should never happen, could use another error code.
 	     return status;
 	  }
 		
@@ -85,6 +85,9 @@ namespace dht
 	     if (!sg->add_subscriber(nsub))
 	       delete nsub;
 	  }
+	
+	/* update usage. */
+	sg->set_last_time_of_use();
 	
 	/* trigger a call to sweep (from sg_manager). */
 	_sgmanager._sgsw.sweep();
