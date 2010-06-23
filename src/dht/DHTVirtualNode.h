@@ -161,14 +161,28 @@ namespace dht
 	void estimate_nodes();
 	void estimate_nodes(unsigned long &nnodes, 
 			    unsigned long &nnvnodes);
-		
+	
+	/**
+	 * replication of content.
+	 * XXX: replication is not implemented at this level. Inherited classes
+	 * from DHTVirtualNode can define their response to replication calls.
+	 */
+	virtual dht_err replication_host_keys(const DHTKey &start_key) { return DHT_ERR_OK; };
+	
+	virtual dht_err replication_move_keys_backward(const DHTKey &start_key) { return DHT_ERR_OK; };
+	
+	virtual dht_err replication_move_keys_forward(const DHTKey &end_key) { return DHT_ERR_OK; };
+	
+	virtual dht_err replication_trickle_forward(const DHTKey &start_key,
+						    const short &start_replication_radius) { return DHT_ERR_OK; };
+	
       public:
 	/**
 	 * location table.
 	 */
 	LocationTable *_lt;
 	
-      private:
+      protected:
 	/**
 	 * virtual node's id key.
 	 */
@@ -200,7 +214,7 @@ namespace dht
 	 */
 	slist<const DHTKey*> _predecessors;
 	
-      private:
+      protected:
 	/**
 	 * finger table.
 	 */

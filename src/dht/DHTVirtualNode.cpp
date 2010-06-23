@@ -136,7 +136,30 @@ namespace dht
 	  }
 	
 	if (reset_pred)
-	  setPredecessor(senderKey, senderAddress);
+	  {
+	     Location *old_pred_loc = findLocation(*_predecessor);
+	     
+	     setPredecessor(senderKey, senderAddress);
+	  
+	     //TODO: move keys (+ catch errors ?)
+	     short start_replication_radius = 0;
+	     if (old_pred_loc->getDHTKey() > senderKey) // our old predecessor did leave or fail.
+	       {
+		  //TODO: some replicated keys we host are ours now.
+		  replication_host_keys(old_pred_loc->getDHTKey());
+	       }
+	     else if (old_pred_loc->getDHTKey() < senderKey) // our new predecessor did join the circle.
+	       {
+		  //TODO: some of our keys should now belong to our predecessor.
+		  replication_move_keys_backward(old_pred_loc->getDHTKey());
+		  start_replication_radius = 1;
+	       }
+	     
+	     //TODO: forward replication.
+	     replication_trickle_forward(old_pred_loc->getDHTKey(),start_replication_radius);
+	  
+	     //TODO: remove old_pred_loc from location table.
+	  }
 	return DHT_ERR_OK;
      }
    
