@@ -24,10 +24,12 @@ namespace dht
 {
    sg_manager::sg_manager()
      {
+	_sdb.open_db();
      }
    
    sg_manager::~sg_manager()
      {
+	_sdb.close_db();
      }
    
    Searchgroup* sg_manager::find_sg_memory(const DHTKey *sgkey)
@@ -47,7 +49,12 @@ namespace dht
       
    bool sg_manager::add_sg_memory(Searchgroup *sg)
      {
-	//TODO.
+	_searchgroups.insert(std::pair<const DHTKey*,Searchgroup*>(&sg->_idkey,sg));
+	
+	if (sg_configuration::_sg_config->_db_sync_mode == 1) // full sync.
+	  add_sg_db(sg);
+	
+	return true;
      }
       
    bool sg_manager::remove_sg_memory(const DHTKey *sgkey)
@@ -59,24 +66,32 @@ namespace dht
 	if (sg->_lock)
 	  return false;
 	_searchgroups.erase(hit);
+	
+	if (sg_configuration::_sg_config->_db_sync_mode == 1) // full sync.
+	  remove_sg_db(*sgkey);
+	
 	delete sg;
 	return true;
      }
    
    Searchgroup* sg_manager::find_sg_db(const DHTKey &sgkey)
      {
-	//TODO: find search group in db, and recreate it if found.
-	return NULL;
+	return _sdb.find_sg_db(sgkey);
      }
    
    bool sg_manager::remove_sg_db(const DHTKey &sgkey)
      {
-	
+	return _sdb.remove_sg_db(sgkey);
      }
    
    bool sg_manager::add_sg_db(Searchgroup *sg)
      {
-	
+	return _sdb.add_sg_db(sg);
+     }
+   
+   bool sg_manager::move_to_db(Searchgroup *sg)
+     {
+	return add_sg_db(sg);
      }
       
    Searchgroup* sg_manager::find_load_or_create_sg(const DHTKey *sgkey)
@@ -86,17 +101,12 @@ namespace dht
 	  return sg;
 	
 	/* search group not in memory, lookup in db. */
-	sg = find_sg_db(*sgkey); //TODO.
+	sg = find_sg_db(*sgkey);
 	if (sg)
 	  {
-	     //TODO: put it in memory cache.
-	     bool was_added = add_sg_memory(sg);
-	     if (was_added)
-	       return sg;
-	     else 
-	       {
-		  //TODO.
-	       }
+	     // put it in memory cache.
+	     add_sg_memory(sg);
+	     return sg;
 	  }
 	
 	/* search group does not exist, create it. */

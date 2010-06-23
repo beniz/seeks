@@ -32,12 +32,7 @@ namespace dht
       
    int sg_sweeper::sweep()
      {
-	sweep_memory();
-	
-	//TODO: sweep_db + condition (uptime, last_db_sweep, etc...).
-	sweep_db();
-     
-	//TODO: status return.
+	return sweep_memory();
      }
    
    int sg_sweeper::sweep_memory()
@@ -52,11 +47,19 @@ namespace dht
 	  {
 	     if ((*hit).second->sweep_me())
 	       {
-		  //TODO: check on db cap here.
-		  (*hit).second->move_to_db(); //TODO.
-		  delete (*hit).second;
+		  // check on db filesize cap.
+		  if (sg_configuration::_sg_config->_sg_db_cap > 0
+		      && sg_configuration::_sg_config->_sg_db_cap < _sgm->_sdb.disk_size())
+		    {
+		       sweep_db();
+		    }
+		  
+		  if (!(*hit).second->_hash_subscribers.empty() 
+		      && sg_configuration::_sg_config->_db_sync_mode == 0) // when not in full sync mode.
+		    _sgm->move_to_db((*hit).second);
 		  hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey>::iterator hit2 = hit;
 		  hit++;
+		  delete (*hit2).second;
 		  _sgm->_searchgroups.erase(hit2);
 		  count++;
 	       }
@@ -67,7 +70,8 @@ namespace dht
    
    int sg_sweeper::sweep_db()
      {
-	//TODO
+	_sgm->_sdb.prune();
+	return 0;
      }
       
 }; /* end of namespace. */

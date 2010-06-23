@@ -22,6 +22,7 @@
 #define SG_MANAGER_H
 
 #include "searchgroup.h"
+#include "sg_db.h"
 #include "sg_sweeper.h"
 
 namespace dht
@@ -50,16 +51,29 @@ namespace dht
 	
 	bool add_sg_db(Searchgroup *sg);
 	
+	bool move_to_db(Searchgroup *sg);
+	
 	/* general management. */
 	Searchgroup* find_load_or_create_sg(const DHTKey *sgkey);
 	
+	/* replication. */
+	void replication_decrement_all_sgs_between(const DHTKey &start_key, const DHTKey &end_key); //TODO: with db.
+	
       public:
 	hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> _searchgroups;
-        
+        std::vector<const DHTKey*> _sorted_sg_keys;
+	
+	//TODO: in db only.
+	/* hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> _replicated_searchgroups;
+	 std::vector<const DHTKey*> _sorted_replicated_sg_keys; */
+	
+	
 	// search group sweeper.
 	sg_sweeper _sgsw;
 	
 	//TODO: db of sgs.
+	sg_db _sdb;
+	
 	//TODO: db of vnodes/sg keys.
      };
    
