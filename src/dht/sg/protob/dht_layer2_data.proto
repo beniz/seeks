@@ -15,6 +15,7 @@ message searchgroup
  required dht.l1.dht_key key = 1; /* group id key. */
  required uint32 radius = 2; /* replication radius. */
  repeated subscriber subscribers = 3; /* subscribers to this group. */
+ required uint32 last_use = 4; /* last time it was updated. */
 }
 
 /* replicated search groups. */

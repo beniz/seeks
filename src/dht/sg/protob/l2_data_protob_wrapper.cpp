@@ -53,6 +53,7 @@ namespace dht
 	     l2_sg_sub_addr->set_ip_addr(sg->_vec_subscribers.at(i)->getNetAddress());
 	     l2_sg_sub_addr->set_net_port(sg->_vec_subscribers.at(i)->getPort());
 	  }
+	l2_sg->set_last_use(sg->_last_time_of_use);
 	return l2_sg;
      }
       
@@ -92,6 +93,7 @@ namespace dht
 	     Subscriber *sub = new Subscriber(sub_key,sub_addr,sub_port);
 	     sg->add_subscriber(sub);
 	  }
+	sg->_last_time_of_use = l2_sg->last_use();
 	return DHT_ERR_OK;
      }
       
@@ -180,5 +182,17 @@ namespace dht
 	     sgs.push_back(sg);
 	  }
      }
-      
+
+   void l2_data_protob_wrapper::deserialize_from_string(const std::string &str, l1::l1_query *l1q)
+     {
+	if (!l1q)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null response");
+	     throw l2_fail_deserialize_exception();
+	  }
+	if (!l1q->ParseFromString(str))
+	  throw l2_fail_deserialize_exception();
+     }
+   
+   
 } /* end of namespace. */
