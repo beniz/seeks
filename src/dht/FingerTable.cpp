@@ -161,6 +161,7 @@ namespace dht
 	DHTKey succ_pred;
 	NetAddress na_succ_pred;
 	
+	bool successor_change = false;
 	int status = 0;
 	dht_err err = DHT_ERR_RETRY;
 	std::vector<Location*> dead_locs;
@@ -229,6 +230,7 @@ namespace dht
 		       
 		       // replaces the successor and the head of the successor list as well.
 		       _vnode->setSuccessor(succ_loc->getDHTKeyRef(),succ_loc->getNetAddress());
+		       successor_change = true;
 		       
 		       // resets the error.
 		       err = status = DHT_ERR_RETRY;
@@ -239,7 +241,7 @@ namespace dht
 		       ret++;
 		    }
 	       }
-	     	     	     
+	     	     	     	     
 	     /**
 	      * Let's loop if we did change our successor.
 	      */
@@ -348,7 +350,7 @@ namespace dht
 	      * look up succ_pred, add it to the location table if needed.
 	      * -> because succ_pred should be in the succlist or a predecessor anyways.
 	      */
-	     Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
+	     //Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
 	     
 	     /**
 	      * key check: if a node has taken place in between us and our
@@ -356,8 +358,16 @@ namespace dht
 	      */
 	     if (succ_pred.between(recipientKey, *succ))
 	       {
+		   Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
 		  _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
 		  _vnode->update_successor_list_head();
+	       }
+	     else if (successor_change)
+	       {
+		  //TODO: replication, move to successor the keys with a replication radius equal to k-1,
+		  // where k is the replication factor.
+		  //TODO: beware of bootstrap.
+		  _vnode->replication_move_keys_forward(*_vnode->getSuccessor());
 	       }
 	  }
 	
@@ -386,8 +396,13 @@ namespace dht
 	  }
 	else // in non routing mode, check whether our predecessor has changed.
 	  {
-	     Location *succ_pred_loc = _vnode->findLocation(succ_pred);
-	     if (!_vnode->getPredecessor() || succ_pred_loc->getDHTKey() != *_vnode->getPredecessor())
+	     Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
+	     if (_vnode->getPredecessor() && (*_vnode->getPredecessor() == _vnode->getIdKey()))
+	       {
+		  // XXX: this should not happen. It does when self-bootstrapping in non routing mode,
+		  // a hopeless situation.
+	       }
+	     else if (!_vnode->getPredecessor() || succ_pred_loc->getDHTKey() != *_vnode->getPredecessor())
 	       _vnode->setPredecessor(succ_pred_loc->getDHTKey(), succ_pred_loc->getNetAddress());
 	  }
 		
