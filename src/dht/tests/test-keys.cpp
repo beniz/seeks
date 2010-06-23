@@ -83,14 +83,14 @@ int main()
      std::cout << "#" << i << ":\n" << DHTKey::randomKey() << std::endl;
 
    std::cout << "dhtk2 to string: " << dhtk2.to_string() << std::endl;
-   std::vector<unsigned char> vuc;
+   /* std::vector<unsigned char> vuc;
    std::cout << "testing tovchar: dhtk2: ";
    dhtk2.tovchar(vuc);
    for (unsigned i=0; i<vuc.size(); i++)
      std::cout << vuc[i];
-   std::cout << std::endl;
+   std::cout << std::endl; */
    
-   std::cout << "testing fromvchar: dhtk2: " << DHTKey::fromvchar(vuc) << std::endl;
+   //std::cout << "testing fromvchar: dhtk2: " << DHTKey::fromvchar(vuc) << std::endl;
 
    std::cout << "testing serialization:\n";
    DHTKey dk = DHTKey::randomKey();
