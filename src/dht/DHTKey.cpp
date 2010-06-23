@@ -554,5 +554,16 @@ namespace dht
 	  }
 	return dk;
      }
+
+   std::ostream& DHTKey::print(std::ostream &output) const
+     {
+	output << to_rstring();
+	return output;
+     }
+      
+   std::ostream& operator<<(std::ostream& output, const DHTKey &key)
+     {
+	return key.print(output);
+     }
       
 } /* end of namespace */

@@ -39,6 +39,8 @@ namespace dht
     */
    class DHTKey : public std::bitset<KEYNBITS>
      {
+	friend std::ostream &operator<<(std::ostream &output, const DHTKey &key);
+	
       public:
 	/**
 	 * Constructors: these come from the std::bitset class.
@@ -171,6 +173,8 @@ namespace dht
 	void tochar(char* c_ptr) const;
      
 	std::string to_rstring() const;
+	
+	std::ostream& print(std::ostream &output) const;
 	
 	/**
 	 * \brief serialization to vector of char.
