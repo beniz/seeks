@@ -58,9 +58,7 @@ namespace dht
 	bool serialize_to_string(std::string &str);
 	
 	static Searchgroup* deserialize_from_string(const std::string &str); //TODO.
-	
-	int move_to_db();
-	
+		
 	/* peer selection. */
 	void random_peer_selection(const int &npeers, std::vector<Subscriber*> &rpeers);
 	

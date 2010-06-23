@@ -87,13 +87,7 @@ namespace dht
 	  }
 	return false;
      }
-      
-   //TODO.
-   int Searchgroup::move_to_db()
-     {
-	return 0;
-     }
-      
+   
    bool Searchgroup::sweep_me()
      {
 	// don't delete if locked.
