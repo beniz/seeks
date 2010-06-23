@@ -19,6 +19,7 @@
  */
 
 #include "sg_db.h"
+#include "sg_configuration.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
 
@@ -34,11 +35,9 @@ namespace dht
      
 	// db location.
 	if (seeks_proxy::_datadir.empty())
-	  _name = "dht/sgs.db";
+	  //_name = "dht/sgs.db";
+	_name = "sgs.db";
 	else _name = seeks_proxy::_datadir + "/dht/sgs.db";
-	
-	// open the db.
-     	open_db();
      }
    
    sg_db::~sg_db()
@@ -74,7 +73,12 @@ namespace dht
 	_opened = false;
 	return 0;
      }
-      
+   
+   uint64_t sg_db::disk_size() const
+     {
+	return tchdbfsiz(_hdb);
+     }
+   
    Searchgroup* sg_db::find_sg_db(const DHTKey &sgkey)
      {
 	// sgkey to string.
@@ -132,6 +136,55 @@ namespace dht
 	     return false;
 	  }
 	return true;
+     }
+
+   void sg_db::prune()
+     {
+	// try to optimize the db first.
+	// XXX: on large db, this could put the node on hold.
+	if (!tchdboptimize(_hdb,0,-1,-1,0)) // default degragmentation.
+	  {
+	     int ecode = tchdbecode(_hdb);
+	     errlog::log_error(LOG_LEVEL_DHT,"sg db optimization error: %s",tchdberrmsg(ecode));
+	     return;
+	  }
+	if (sg_configuration::_sg_config->_sg_db_cap > disk_size())
+	  return;
+	
+	// iterate records to remove the oldest ones.
+	DHTKey oldest_r;
+	struct timeval tv_now;
+	time_t oldest_t = tv_now.tv_sec;
+	while(sg_configuration::_sg_config->_sg_db_cap < disk_size())
+	  {
+	     char *key = NULL;
+	     tchdbiterinit(_hdb);
+	     while((key = tchdbiternext2(_hdb)) != NULL)
+	       {
+		  char *value = tchdbget2(_hdb, key);
+		  if(value)
+		    {
+		       std::string str = std::string(value);
+		       free(value);
+		       Searchgroup *sg = Searchgroup::deserialize_from_string(str);
+		       if (sg->_last_time_of_use < oldest_t)
+			 {
+			    oldest_t = sg->_last_time_of_use;
+			    oldest_r = sg->_idkey;
+			 }
+		    }
+		  free(key);
+	       }
+	     remove_sg_db(oldest_r);
+	     
+	     // XXX: secure, may not be needed...
+	     if (!tchdboptimize(_hdb,0,-1,-1,0)) // default degragmentation.
+	       {
+		  int ecode = tchdbecode(_hdb);
+		  errlog::log_error(LOG_LEVEL_DHT,"sg db optimization error: %s",tchdberrmsg(ecode));
+		  return;
+	       }
+	  }
      }
       
 } /* end of namespace. */

@@ -50,6 +50,10 @@ namespace dht
 	
 	bool add_sg_db(Searchgroup *sg);
 	
+	uint64_t disk_size() const;
+	
+	void prune();
+	
       public:
 	TCHDB *_hdb;
 	bool _opened;
