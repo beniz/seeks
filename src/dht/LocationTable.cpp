@@ -61,7 +61,7 @@ namespace dht
 	  }
 	else {
 	   mutex_unlock(&_lt_mutex);
-	   errlog::log_error(LOG_LEVEL_DHT, "findLocation: can't find location to key %s", dk.to_string().c_str());
+	   errlog::log_error(LOG_LEVEL_DHT, "findLocation: can't find location to key %s", dk.to_rstring().c_str());
 	   return NULL;  //beware: this should be handled outside this function.	
 	}
      }
@@ -122,7 +122,7 @@ namespace dht
 	  }
 	else 
 	  {
-	     errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_string().c_str());
+	     errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_rstring().c_str());
 	  }
 	mutex_unlock(&_lt_mutex);
      }
