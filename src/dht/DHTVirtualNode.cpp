@@ -137,28 +137,33 @@ namespace dht
 	
 	if (reset_pred)
 	  {
-	     Location *old_pred_loc = findLocation(*_predecessor);
+	     Location *old_pred_loc = NULL;
+	     if (_predecessor)
+	       old_pred_loc = findLocation(*_predecessor);
 	     
 	     setPredecessor(senderKey, senderAddress);
 	  
 	     //TODO: move keys (+ catch errors ?)
-	     short start_replication_radius = 0;
-	     if (old_pred_loc->getDHTKey() > senderKey) // our old predecessor did leave or fail.
+	     if (old_pred_loc)
 	       {
-		  //TODO: some replicated keys we host are ours now.
-		  replication_host_keys(old_pred_loc->getDHTKey());
+		  short start_replication_radius = 0;
+		  if (old_pred_loc->getDHTKey() > senderKey) // our old predecessor did leave or fail.
+		    {
+		       //TODO: some replicated keys we host are ours now.
+		       replication_host_keys(old_pred_loc->getDHTKey());
+		    }
+		  else if (old_pred_loc->getDHTKey() < senderKey) // our new predecessor did join the circle.
+		    {
+		       //TODO: some of our keys should now belong to our predecessor.
+		       replication_move_keys_backward(old_pred_loc->getDHTKey());
+		       start_replication_radius = 1;
+		    }
+		  
+		  //TODO: forward replication.
+		  replication_trickle_forward(old_pred_loc->getDHTKey(),start_replication_radius);
+		  
+		  //TODO: remove old_pred_loc from location table.
 	       }
-	     else if (old_pred_loc->getDHTKey() < senderKey) // our new predecessor did join the circle.
-	       {
-		  //TODO: some of our keys should now belong to our predecessor.
-		  replication_move_keys_backward(old_pred_loc->getDHTKey());
-		  start_replication_radius = 1;
-	       }
-	     
-	     //TODO: forward replication.
-	     replication_trickle_forward(old_pred_loc->getDHTKey(),start_replication_radius);
-	  
-	     //TODO: remove old_pred_loc from location table.
 	  }
 	return DHT_ERR_OK;
      }
@@ -295,7 +300,8 @@ namespace dht
 	rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
 	
 	short nhops = 0;
-	while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey()))
+	while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey())
+	      && nodeKey != succloc.getDHTKey()) // equality: host node is the node with the same key as the looked up key.
 	  {
 #ifdef DEBUG
 	     //debug
@@ -416,12 +422,12 @@ namespace dht
 	     //debug
 	     std::cerr << "[Debug]:find_predecessor: dkres: " << dkres << std::endl;
 	     //debug
-#endif
 	     
 	     //debug
 	     assert(dkres.count()>0);
 	     assert(dkres != rloc.getDHTKey());
 	     //debug
+#endif
 	     
 	     rloc.setDHTKey(dkres);
 	     rloc.setNetAddress(na);
@@ -468,10 +474,12 @@ namespace dht
 	  
 	     nhops++;
 	  }
-		
+	
+#ifdef DEBUG
 	//debug
 	assert(dkres.count()>0);
 	//debug
+#endif
 	
 	return DHT_ERR_OK;	
      }
@@ -513,9 +521,11 @@ namespace dht
     */
    void DHTVirtualNode::setSuccessor(const DHTKey &dk)
      {
+#ifdef DEBUG
 	//debug
 	assert(dk.count()>0);
 	//debug
+#endif
 	
 	mutex_lock(&_succ_mutex);
 	if (_successor)
@@ -672,10 +682,12 @@ namespace dht
      {
 	estimate_nodes(_nnodes,_nnvnodes);
 	
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:estimated number of nodes on the circle: " << _nnodes
 	  << " -- and virtual nodes: " << _nnvnodes << std::endl;
 	//debug
+#endif
      }
       
    void DHTVirtualNode::estimate_nodes(unsigned long &nnodes, unsigned long &nnvnodes)
@@ -683,15 +695,19 @@ namespace dht
 	DHTKey closest_succ;
 	_lt->findClosestSuccessor(_idkey,closest_succ);
 	
+#ifdef DEBUG
 	//debug
 	assert(closest_succ.count()>0);
 	//debug
+#endif
 	
 	DHTKey diff = closest_succ - _idkey;
-	
+
+#ifdef DEBUG
 	//debug
 	assert(diff.count()>0);
 	//debug
+#endif
 	
 	DHTKey density = diff;
 	size_t lts = _lt->size();
@@ -701,9 +717,11 @@ namespace dht
 	mask <<= KEYNBITS-1;
 	p = density.topBitPos();
 	
+#ifdef DEBUG
 	//debug
 	assert(p>0);
 	//debug
+#endif
 	
 	DHTKey nodes_estimate = mask;
 	nodes_estimate.operator>>=(p); // approximates mask/density.
@@ -715,9 +733,11 @@ namespace dht
 	  }
 	catch (std::exception ovex) // overflow error if too many bits are set.
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "exception overflow when computing the number of nodes...\n";
 	     //debug
+#endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "Overflow error computing the number of nodes on the network. This is probably a bug, please report it");
 	     nnodes = 0;
