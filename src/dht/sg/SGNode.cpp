@@ -24,10 +24,30 @@
 
 namespace dht
 {
+   std::string SGNode::_sg_config_filename = "";
+   
    SGNode::SGNode(const char *net_addr, const short &net_port,
 		  const bool &generate_vnodes)
-     :DHTNode(net_addr,net_port,generate_vnodes)
+     :DHTNode(net_addr,net_port,generate_vnodes,false)
      {
+	if (SGNode::_sg_config_filename.empty())
+	  {
+#ifdef SEEKS_CONFIGDIR
+	     SGNode::_sg_config_filename = SEEKS_CONFIGDIR "sg-config"; // TODO: changes for packaging.
+#else
+	     SGNode::_sg_config_filename = "sg-config"; // XXX: could be merged with dht-config.
+#endif
+	  }
+		
+	if (!sg_configuration::_sg_config)
+	  sg_configuration::_sg_config = new sg_configuration(SGNode::_sg_config_filename);
+	
+	/* init server. */
+	init_server();
+	_l1_server->run_thread();
+	
+	/* init sweeper. */
+	sg_sweeper::init(&_sgmanager);
      }
    
    SGNode::~SGNode()

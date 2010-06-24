@@ -58,6 +58,8 @@ namespace dht
 	
       public:
 	sg_manager _sgmanager;
+	
+	static std::string _sg_config_filename;
      };
    
 } /* end of namespace. */
