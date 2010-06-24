@@ -21,6 +21,8 @@
 #include "l1_protob_rpc_client.h"
 #include "errlog.h"
 
+//#define DEBUG
+
 using sp::errlog;
 
 namespace dht
@@ -113,9 +115,11 @@ namespace dht
 						  DHTKey& dkres, NetAddress& na,
 						  int& status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_getSuccessor call\n";
 	//debug
+#endif
 	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();	
@@ -156,10 +160,12 @@ namespace dht
 						    DHTKey& dkres, NetAddress& na,
 						    int& status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_getPredecessor call\n";
 	//debug
-		
+#endif
+	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	dht_err err = DHT_ERR_OK;
@@ -202,9 +208,11 @@ namespace dht
 					    const NetAddress& senderAddress,
 					    int& status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_notify call\n";
 	//debug
+#endif
 	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
@@ -248,9 +256,11 @@ namespace dht
 						 std::list<NetAddress> &na_list,
 						 int &status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_getSuccList call\n";
 	//debug
+#endif
 	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
@@ -294,10 +304,12 @@ namespace dht
 							    NetAddress &dkres_succ_na,
 							    int& status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_findClosestPredecessor call\n";
 	//debug
-		
+#endif
+	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	dht_err err = DHT_ERR_OK;
@@ -341,10 +353,12 @@ namespace dht
 						 DHTKey& dkres, NetAddress& na,
 						 int& status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_joinGetSucc call\n";
 	//debug
-		
+#endif
+	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();
 	dht_err err = DHT_ERR_OK;
@@ -388,9 +402,11 @@ namespace dht
 					  const NetAddress& recipient,
 					  int& status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]: RPC_ping call\n";
 	//debug
+#endif
 	
 	// do call, wait and get response.
 	l1::l1_response *l1r = new l1::l1_response();

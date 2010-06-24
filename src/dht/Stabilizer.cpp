@@ -25,6 +25,8 @@
 #include <time.h>
 #include <assert.h>
 
+//#define DEBUG
+
 using lsh::Random;
 
 namespace dht
@@ -148,12 +150,14 @@ namespace dht
 	 std::cout << "tree size after insertion: " << _bstcbtree->size() << std::endl; */
 	//debug
 	
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:Stabilizer::fast_stabilize: tround: " << tround << std::endl;
 	std::cerr << "[Debug]:Stabilizer::fast_stabilize: scheduling next call around: "
 	  << tsp << std::endl;
 	//std::cout << tround << std::endl;
 	//debug
+#endif
 	
 	return 0;
      }
@@ -225,12 +229,14 @@ namespace dht
 	 std::cout << "tree size after insertion (slow): " << _bstcbtree->size() << std::endl; */
 	//debug
 	
+#ifdef DEBUG
 	//debug
-	std::cout << "[Debug]:Stabilizer::slow_stabilize: tround: " << tround << std::endl;
-	std::cout << "[Debug]:Stabilizer::slow_stabilize: scheduling next call around: "
+	std::cerr << "[Debug]:Stabilizer::slow_stabilize: tround: " << tround << std::endl;
+	std::cerr << "[Debug]:Stabilizer::slow_stabilize: scheduling next call around: "
 	  << tsp << std::endl;
 	//std::cout << tround << std::endl;
 	//debug
+#endif
 	
 	return 0;
      }

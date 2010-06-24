@@ -71,9 +71,11 @@ namespace dht
 	       {
 		  dkres = loc->getDHTKey();
 		  
+#ifdef DEBUG
 		  //debug
 		  assert(dkres.count()>0);
 		  //debug
+#endif
 		  		  		  
 		  na = loc->getNetAddress();
 		  dkres_succ = DHTKey();
@@ -94,19 +96,22 @@ namespace dht
 						   status);
 	if (dkres.count()>0)
 	  {
+#ifdef DEBUG
+	     //debug
 	     std::cerr << "[Debug]:found closest predecessor in successor list: "
 	       << dkres << std::endl;
+	     //debug
+#endif
 	     
 	     status = DHT_ERR_OK;
 	     return DHT_ERR_OK;
 	  }
 	
-	// TODO: we should never reach here...
 	/**
 	 * otherwise return current node's id key, and sets the successor
 	 * (saves an rpc later).
 	 */
-	std::cerr << "[Debug]:closest predecessor is node itself... should not happen\n";
+	std::cerr << "[Debug]:closest predecessor is node itself...\n";
 	
 	status = DHT_ERR_OK;
 	dkres = getVNodeIdKey();
@@ -117,9 +122,11 @@ namespace dht
 	  return DHT_ERR_UNKNOWN_PEER_LOCATION;
 	dkres_succ_na = succ_loc->getNetAddress();
 	
+#ifdef DEBUG
 	//debug
 	assert(dkres!=getVNodeIdKey()); // exit.
 	//debug
+#endif
 	
 	return DHT_ERR_OK;
      }
@@ -129,9 +136,11 @@ namespace dht
 	static int retries = 3;
 	int ret = 0;
 	
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:FingerTable::stabilize()\n";
 	//debug
+#endif
 	
 	DHTKey recipientKey = _vnode->getIdKey();
 	NetAddress na = getVNodeNetAddress();
@@ -307,10 +316,12 @@ namespace dht
 	  {
 	     Location *dead_loc = dead_locs.at(i);
 	     
+#ifdef DEBUG
 	     //debug
 	     assert(!_vnode->_successors.has_key(dead_loc->getDHTKey()));
 	     assert(*_vnode->getSuccessor() != dead_loc->getDHTKey());
 	     //debug
+#endif
 	     
 	     _vnode->removeLocation(dead_loc);
 	  }
@@ -417,6 +428,7 @@ namespace dht
 	// TODO: seed.
 	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
 	
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:FingerTable::fix_finger: " << rindex << std::endl;
 	//debug
@@ -425,7 +437,8 @@ namespace dht
 	assert(rindex > 0);
 	assert(rindex < KEYNBITS);
 	//debug
-     
+#endif
+	
 	/**
 	 * find_successor call.
 	 */
@@ -450,9 +463,11 @@ namespace dht
 	     return status;
 	  }
 	
+#ifdef DEBUG
 	//debug
 	assert(dkres.count()>0);
 	//debug
+#endif
 	
 	/**
 	 * lookup result, add it to the location table if needed.
@@ -479,10 +494,12 @@ namespace dht
 	     // reestimate the estimated number of nodes.
 	     _vnode->estimate_nodes();
 	  }
-		
+	
+#ifdef DEBUG
 	//debug
 	print(std::cout);
 	//debug
+#endif
 	
 	return 0;
      }

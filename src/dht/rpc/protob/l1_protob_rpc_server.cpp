@@ -27,6 +27,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+//#define DEBUG
+
 using sp::errlog;
 
 namespace dht
@@ -160,17 +162,21 @@ namespace dht
 						  int& status,
 						  std::string &resp_msg)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:execute_callback: ";
 	//debug
+#endif
 	
 	l1::l1_response *l1r = NULL;
 	
 	if (fct_id == hash_get_successor)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "get_successor\n";
 	     //debug
+#endif
 	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
@@ -184,9 +190,11 @@ namespace dht
 	  }
 	else if (fct_id == hash_get_predecessor)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "get_predecessor\n";
 	     //debug
+#endif
 	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
@@ -200,10 +208,12 @@ namespace dht
 	  }
 	else if (fct_id == hash_notify)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "notify\n";
 	     //debug
-	     	     
+#endif
+	     
 	     RPC_notify_cb(recipient_key,recipient_na,
 			   sender_key,sender_na,
 			   status);
@@ -213,9 +223,11 @@ namespace dht
 	  }
 	else if (fct_id == hash_get_succlist)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "get_succlist\n";
 	     //debug
+#endif
 	     
 	     std::list<DHTKey> dkres_list;
 	     std::list<NetAddress> na_list;
@@ -229,14 +241,18 @@ namespace dht
 	  }
 	else if (fct_id == hash_find_closest_predecessor)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "find_closest_predecessor\n";
 	     //debug
+#endif
 	     
+#ifdef DEBUG
 	     //debug
 	     //TODO: catch this error.
 	     assert(node_key.count()>0);
 	     //debug
+#endif
 	     
 	     DHTKey dkres, dkres_succ;
 	     NetAddress dkres_na, dkres_succ_na;
@@ -258,10 +274,12 @@ namespace dht
 	  }
 	else if (fct_id == hash_join_get_succ)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "join_get_succ\n";
 	     //debug
-	     	     
+#endif
+	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_joinGetSucc_cb(recipient_key,recipient_na,
@@ -275,9 +293,11 @@ namespace dht
 	  }
 	else if (fct_id == hash_ping)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "ping\n";
 	     //debug
+#endif
 	     
 	     RPC_ping_cb(recipient_key,recipient_na,
 			 status);
@@ -289,9 +309,11 @@ namespace dht
 	  {
 	     // TODO: unknown cb.
 	     
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "[Debug]:unknown callback.\n";
 	     //debug
+#endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "Couldn't find callback with id %u", fct_id);
 	     return DHT_ERR_CALLBACK;
