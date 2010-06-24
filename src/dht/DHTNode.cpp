@@ -43,7 +43,8 @@ namespace dht
    
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
-		    const bool &generate_vnodes)
+		    const bool &generate_vnodes,
+		    const bool &start_server)
      : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
@@ -67,7 +68,7 @@ namespace dht
 	//debug
 	
 	if (!DHTNode::_dht_config)
-	  DHTNode::_dht_config = new dht_configuration(_dht_config_filename);
+	  DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	
 	// this node net l1 address.
 	_l1_na.setNetAddress(net_addr);
@@ -102,12 +103,14 @@ namespace dht
 	/**
 	 * start rpc client & server.
 	 */
-	init_server();
+	if (start_server)
+	  init_server();
 	
 	/**
 	 * run the server in its own thread.
 	 */
-	_l1_server->run_thread();
+	if (start_server)
+	  _l1_server->run_thread();
      }
       
    DHTNode::~DHTNode()

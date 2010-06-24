@@ -37,7 +37,8 @@ namespace dht
 	 * \brief constructor.
 	 */
 	DHTNode(const char *net_addr, const short &net_port=0,
-		const bool &generate_vnodes=true);
+		const bool &generate_vnodes=true,
+		const bool &start_server=true);
 
 	~DHTNode();
 	
