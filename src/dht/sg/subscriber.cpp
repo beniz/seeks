@@ -64,6 +64,17 @@ namespace dht
 	gettimeofday(&tv_now,NULL);
 	_join_date = tv_now.tv_sec;
      }
-      
+
+   std::ostream& Subscriber::print(std::ostream &output) const
+     {
+	output << "idkey: " << _idkey << " / ";
+	output << *this;
+	return output;
+     }
    
+   std::ostream& operator<<(std::ostream &output, const Subscriber &su)
+     {
+	return su.print(output);
+     }
+      
 } /* end of namespace. */

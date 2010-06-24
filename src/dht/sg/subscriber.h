@@ -25,12 +25,15 @@
 #include "NetAddress.h"
 
 #include <time.h>
+#include <iostream>
 
 namespace dht
 {
    
    class Subscriber : public NetAddress
      {
+	friend std::ostream &operator<<(std::ostream &output, const Subscriber &su);
+      
       public:
 	/**
 	 * \brief default object constructor.
@@ -63,6 +66,11 @@ namespace dht
 	 * \brief time of day as join date.
 	 */
 	void set_join_date();
+
+	/**
+	 * \brief print output.
+	 */
+	std::ostream& print(std::ostream &output) const;
 	
       public:
 	DHTKey _idkey;  /**< subscriber's virtual node key on the ring. */
