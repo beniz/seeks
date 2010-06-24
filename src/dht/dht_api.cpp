@@ -50,5 +50,31 @@ namespace dht
 	dht_err err = vnode->find_successor(nodekey,dkres,na);
 	return err;
      }
+
+   dht_err dht_api::findPredecessor(const DHTNode &dnode,
+				    const DHTKey &nodekey,
+				    DHTKey &dkres, NetAddress &na)
+     {
+	// grab the closest virtual node to make the RPC call from it.
+	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
+     
+	// make the RPC call.
+	dht_err err = vnode->find_predecessor(nodekey,dkres,na);
+	return err;
+     }
+
+   dht_err dht_api::ping(const DHTNode &dnode,
+			 const DHTKey &nodekey,
+			 const NetAddress &na,
+			 bool &alive)
+     {
+	// grab the closest virtual node to make the RPC call from it.
+	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
+	
+	// make the RPC call.
+	dht_err err;
+	alive = !vnode->is_dead(nodekey,na,err);
+	return err;
+     }
       
 } /* end of namespace. */

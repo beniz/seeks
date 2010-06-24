@@ -38,6 +38,15 @@ namespace dht
 	static dht_err findSuccessor(const DHTNode &dnode,
 				     const DHTKey &nodekey,
 				     DHTKey &dkres, NetAddress &na);
+     
+	static dht_err findPredecessor(const DHTNode &dnode,
+				       const DHTKey &nodekey,
+				       DHTKey &dkres, NetAddress &na);
+	
+	static dht_err ping(const DHTNode &dnode,
+			    const DHTKey &nodekey,
+			    const NetAddress &na,
+			    bool &alive);
      };
       
 } /* end of namespace. */
