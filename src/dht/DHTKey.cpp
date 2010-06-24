@@ -519,7 +519,25 @@ namespace dht
 	std::string res = os.str();
 	return res;
      }
-      
+
+   DHTKey DHTKey::from_rstring(const std::string &str)
+     {
+	DHTKey res;
+	int k = KEYNBITS-1;
+	for (size_t i=0;i<str.size();i++)
+	  {
+	     char chars[2] = { str[i], '\0'};
+	     unsigned long u = strtoul(chars, NULL, 16);
+	     
+	     std::bitset<4> b(u);
+	     for (int j=3;j>=0;j--)
+	       {
+		  res.set(k--,b.test(j));
+	       }
+	  }
+	return res;
+     }
+        
    std::vector<unsigned char> DHTKey::serialize(const DHTKey &dk)
      {
 	std::vector<unsigned char> res;

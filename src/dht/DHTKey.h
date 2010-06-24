@@ -174,6 +174,8 @@ namespace dht
      
 	std::string to_rstring() const;
 	
+	static DHTKey from_rstring(const std::string &str);
+	
 	std::ostream& print(std::ostream &output) const;
 	
 	/**
