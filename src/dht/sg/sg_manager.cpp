@@ -19,17 +19,20 @@
  */
 
 #include "sg_manager.h"
+#include "dht_configuration.h"
 
 namespace dht
 {
    sg_manager::sg_manager()
      {
-	_sdb.open_db();
+	if (dht_configuration::_dht_config->_routing)
+	  _sdb.open_db();
      }
    
    sg_manager::~sg_manager()
      {
-	_sdb.close_db();
+	if (_sdb._opened)
+	  _sdb.close_db();
      }
    
    Searchgroup* sg_manager::find_sg_memory(const DHTKey *sgkey)
