@@ -59,8 +59,9 @@ namespace dht
 		    _sgm->move_to_db((*hit).second);
 		  hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey>::iterator hit2 = hit;
 		  hit++;
-		  delete (*hit2).second;
+		  Searchgroup *dsg = (*hit2).second;
 		  _sgm->_searchgroups.erase(hit2);
+		  delete dsg;
 		  count++;
 	       }
 	     else ++hit;
