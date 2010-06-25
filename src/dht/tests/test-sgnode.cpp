@@ -105,6 +105,11 @@ int main(int argc, char **argv)
 		       std::cout << "dht config: " << DHTNode::_dht_config_filename << std::endl;
 		       i+=2;
 		    }
+		  else 
+		    {
+		       std::cout << usage << std::endl;
+		       exit(0);
+		    }
 	       }
 	  }
 	
