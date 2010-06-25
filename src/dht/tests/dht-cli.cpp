@@ -70,6 +70,7 @@ int exec_command(std::vector<std::string> &tokens,
 	output = "help\t\t\t\t\tThis message\n";
 	output += "ping <dhtkey> <addr:port>\t\tPing a node\n";
 	output += "find <dht or sg key>\t\t\tFind the host node to a key\n"; 
+	output += "subscribe\t\t\tPoll a search group without subscribing\n";
 	output += "subscribe_sg <sg key>\t\t\tSubscribe to a search group\n";
 	output += "quit\t\t\t\t\tLeave";
      }
@@ -127,7 +128,7 @@ int exec_command(std::vector<std::string> &tokens,
 	  + node->getDHTKey().to_rstring() + " at " + node->getNetAddress().toString();
 	return 0;
      }
-   else if (command == "subscribe_sg")
+   else if (command == "subscribe" || command == "subscribe_sg")
      {
 	if (tokens.size() != 2)
 	  {
@@ -135,12 +136,13 @@ int exec_command(std::vector<std::string> &tokens,
 	     return 1;
 	  }
 	DHTKey key = DHTKey::from_rstring(tokens.at(1));
-	//DHTVirtualNode *vnode = sgnode.find_closest_vnode(key);
 	std::vector<Subscriber*> peers;
 	assert(node != NULL);
-	//std::cout << "node: " << node->getNetAddress() << std::endl;
-	dht_err err = sg_api::get_sg_peers_and_subscribe(sgnode,key,*node,peers);
-	//dht_err err = sg_api::get_sg_peers(sgnode,key,*node,peers);	
+	dht_err err;
+	if (command == "subscribe_sg")
+	  err = sg_api::get_sg_peers_and_subscribe(sgnode,key,*node,peers);
+	else if (command == "subscribe")
+	  err = sg_api::get_sg_peers(sgnode,key,*node,peers);	
 	if (err != DHT_ERR_OK)
 	  {
 	     output = "no closest node found";
@@ -160,7 +162,9 @@ int exec_command(std::vector<std::string> &tokens,
 	       {
 		  Subscriber *su = peers.at(i);
 		  if (su) // XXX: should never be NULL.
-		    os << *su << std::endl;
+		    os << *su;
+		  if (i != peers.size()-1)
+		    os << std::endl;
 	       }
 	     output += os.str();
 	  }
@@ -234,6 +238,9 @@ int main(int argc, char **argv)
 		  exit(0);
 	       }
 	  }
+	
+	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	DHTNode::_dht_config->_routing = false;
 	
 	dnode = new SGNode(net_addr,net_port);
 	
