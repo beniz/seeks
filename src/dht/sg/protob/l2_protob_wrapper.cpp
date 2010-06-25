@@ -35,7 +35,7 @@ namespace dht
 	size_t npeers = peers.size();
 	for (size_t i=0;i<npeers;i++)
 	  {
-	     l1::vnodeid *l2r_peer = l2r->mutable_sg_peers(i);
+	     l1::vnodeid *l2r_peer = l2r->add_sg_peers();
 	     dkresult = DHTKey::serialize(peers.at(i)->_idkey);
 	     std::string key_str(dkresult.begin(),dkresult.end());
 	     dkresult.clear();
@@ -66,15 +66,19 @@ namespace dht
 	error_status = l2r->error_status();
 	int npeers = l2r->sg_peers_size();
 	peers.reserve(npeers);
+	std::vector<unsigned char> ser;
 	for (int i=0;i<npeers;i++)
 	  {
 	     l1::vnodeid l2r_peer = l2r->sg_peers(i);
 	     l1::dht_key l2r_key = l2r_peer.key();
 	     std::string key_str = l2r_key.key();
+	     std::copy(key_str.begin(),key_str.end(),std::back_inserter(ser));
+	     DHTKey skey = DHTKey::unserialize(ser);
+	     ser.clear();
 	     l1::net_address l2r_addr = l2r_peer.addr();
 	     std::string ip_addr = l2r_addr.ip_addr();
 	     uint32_t net_port = l2r_addr.net_port();
-	     Subscriber *su = new Subscriber(key_str,ip_addr,net_port);
+	     Subscriber *su = new Subscriber(skey,ip_addr,net_port);
 	     peers.push_back(su);
 	  }
 	return error_status;
