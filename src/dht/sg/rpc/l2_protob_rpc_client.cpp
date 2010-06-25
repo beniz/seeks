@@ -184,14 +184,14 @@ namespace dht
 	//debug
 	std::cerr << "[Debug]: RPC_subscribe call\n";
 	//debug
-	
+		
 	// do call, wait and get response.
 	l2::l2_subscribe_response *l2r = new l2::l2_subscribe_response();
 	dht_err err = DHT_ERR_OK;
 	
 	try
 	  {
-	     if (senderKey.count() != 0)
+	     if (senderKey.count() == 0)
 	       err = l2_protob_rpc_client::RPC_call(hash_subscribe,
 						    recipientKey,recipient,
 						    sgKey,l2r);
