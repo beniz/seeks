@@ -24,6 +24,8 @@
 #include "l2_data_protob_wrapper.h"
 #include "errlog.h"
 
+//#define DEBUG
+
 using sp::errlog;
 
 namespace dht
@@ -48,16 +50,20 @@ namespace dht
 						    std::string &resp_msg,
 						    const std::string &inc_msg)
      {
+#ifdef DEBUG
 	//debug
 	std::cout << "[Debug]:l2 lx_server_response:\n";
 	//debug
-     
+#endif
+	
 	if (fct_id == hash_subscribe)
 	  {
+#ifdef DEBUG
 	     //debug
 	     std::cerr << "subscribe\n";
 	     //debug
-	     	     
+#endif
+	     
 	     // callback.
 	     std::vector<Subscriber*> peers;
 	     RPC_subscribe_cb(recipient_key,recipient_na,
@@ -69,7 +75,7 @@ namespace dht
 	       {
 		  l2::l2_subscribe_response *l2r 
 		    = l2_protob_wrapper::create_l2_subscribe_response(status,peers);
-		  
+		  		  
 		  // serialize the response.
 		  l2_protob_wrapper::serialize_to_string(l2r,resp_msg);
 		  delete l2r;

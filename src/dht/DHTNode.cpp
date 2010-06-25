@@ -730,9 +730,11 @@ namespace dht
 				   DHTKey &dkres, NetAddress &na,
 				   int &status)
      {
+#ifdef DEBUG
 	//debug
 	std::cerr << "[Debug]:executing joinGetSucc_cb.\n";
 	//debug
+#endif
 	
 	// if recipientKey is not specified, find the closest VNode to senderkey.
 	DHTVirtualNode *vnode = NULL;
