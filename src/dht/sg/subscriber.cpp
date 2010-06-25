@@ -67,8 +67,8 @@ namespace dht
 
    std::ostream& Subscriber::print(std::ostream &output) const
      {
-	output << "idkey: " << _idkey << " / ";
-	output << *this;
+	output << "idkey: " << _idkey << " * ";
+	output << *(NetAddress*)this;
 	return output;
      }
    
