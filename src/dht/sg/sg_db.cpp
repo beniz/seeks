@@ -58,6 +58,9 @@ namespace dht
 	     _opened = false;
 	     return ecode;
 	  }
+	uint64_t rn = number_records();
+	errlog::log_error(LOG_LEVEL_DHT,"opened sg db %s, (%u search groups)",
+			  _name.c_str(),rn);
 	_opened = true;
 	return 0;
      }
@@ -78,17 +81,27 @@ namespace dht
      {
 	return tchdbfsiz(_hdb);
      }
-   
+
+   uint64_t sg_db::number_records() const
+     {
+	return tchdbrnum(_hdb);
+     }
+      
    Searchgroup* sg_db::find_sg_db(const DHTKey &sgkey)
      {
 	// sgkey to string.
 	std::string key_str = sgkey.to_rstring();
 	
-	char *value = tchdbget2(_hdb,key_str.c_str());
+	int value_size;
+	char keyc[key_str.length()];
+	for (size_t i=0;i<key_str.length();i++)
+	  keyc[i] = key_str[i];
+	void *value = tchdbget(_hdb, keyc, sizeof(keyc), &value_size);
 	if(value)
 	  {
 	     // deserialize value into a search group object.
-	     Searchgroup *sg = Searchgroup::deserialize_from_string(value);
+	     std::string str = std::string((char*)value,value_size);
+	     Searchgroup *sg = Searchgroup::deserialize_from_string(str);
 	     free(value);
 	     
 	     if (!sg)
@@ -128,8 +141,13 @@ namespace dht
 		
 	// sgkey to string.
 	std::string key_str = sg->_idkey.to_rstring();
-	
-	if (!tchdbput2(_hdb,key_str.c_str(),str.c_str())) // XXX: overwrites existing record if any.
+	char keyc[key_str.length()];
+	for (size_t i=0;i<key_str.length();i++)
+	  keyc[i] = key_str[i];
+	char valc[str.length()];
+	for (size_t i=0;i<str.length();i++)
+	  valc[i] = str[i];
+	if (!tchdbput(_hdb,keyc,sizeof(keyc),valc,sizeof(valc)))
 	  {
 	     int ecode = tchdbecode(_hdb);
 	     errlog::log_error(LOG_LEVEL_DHT,"sg db adding record error: %s",tchdberrmsg(ecode));
@@ -157,14 +175,16 @@ namespace dht
 	time_t oldest_t = tv_now.tv_sec;
 	while(sg_configuration::_sg_config->_sg_db_cap < disk_size())
 	  {
-	     char *key = NULL;
+	     void *key = NULL;
+	     int key_size;
 	     tchdbiterinit(_hdb);
-	     while((key = tchdbiternext2(_hdb)) != NULL)
+	     while((key = tchdbiternext(_hdb,&key_size)) != NULL)
 	       {
-		  char *value = tchdbget2(_hdb, key);
+		  int value_size;
+		  void *value = tchdbget(_hdb, key, key_size, &value_size);
 		  if(value)
 		    {
-		       std::string str = std::string(value);
+		       std::string str = std::string((char*)value,value_size);
 		       free(value);
 		       Searchgroup *sg = Searchgroup::deserialize_from_string(str);
 		       if (sg->_last_time_of_use < oldest_t)
@@ -184,6 +204,28 @@ namespace dht
 		  errlog::log_error(LOG_LEVEL_DHT,"sg db optimization error: %s",tchdberrmsg(ecode));
 		  return;
 	       }
+	  }
+     }
+
+   void sg_db::read()
+     {
+	/* traverse records */
+	void *key;
+	void *value;
+	int key_size;
+	tchdbiterinit(_hdb);
+	while((key = tchdbiternext(_hdb,&key_size)) != NULL)
+	  {
+	     int value_size;
+	     value = tchdbget(_hdb, key, key_size, &value_size);
+	     if(value)
+	       {
+		  std::string str = std::string((char*)value,value_size);
+		  Searchgroup *sg = Searchgroup::deserialize_from_string(str);
+		  std::cerr << "sg " << sg->_idkey << " - number of subscribers: " << sg->_vec_subscribers.size() << std::endl;
+		  free(value);
+	       }
+	     free(key);
 	  }
      }
       

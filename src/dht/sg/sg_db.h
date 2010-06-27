@@ -52,7 +52,11 @@ namespace dht
 	
 	uint64_t disk_size() const;
 	
+	uint64_t number_records() const;
+	
 	void prune();
+	
+	void read();
 	
       public:
 	TCHDB *_hdb;
