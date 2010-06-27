@@ -34,7 +34,8 @@ using sp::errlog;
 const char *usage = "Usage: test_sgnode <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file)\n";
 
 bool persistence = false;
-DHTNode *dnode = NULL;
+bool db_sync = false;
+SGNode *dnode = NULL;
 
 void sig_handler(int the_signal)
 {
@@ -45,7 +46,9 @@ void sig_handler(int the_signal)
       case SIGHUP:
 	if (persistence)
 	  dnode->hibernate_vnodes_table();
-	//TODO: close sg db.
+	dnode->_sgmanager.sync(); // sync sgs db.
+	dnode->_sgmanager._sdb.close_db();
+	//delete dnode;
 	exit(the_signal);
 	break;
       default:
@@ -76,43 +79,54 @@ int main(int argc, char **argv)
    bool sbootb = false;
    if (argc > 2)
      {
-	const char *joinopt = argv[2];
-	
-	if (strcmp(joinopt,"--join")==0)
-	  joinb = true;
-	else if (strcmp(joinopt,"--self-bootstrap")==0)
-	  sbootb = true;
-	else 
+	std::vector<NetAddress> bootstrap_nodelist;
+	int i=2;
+	while(i<argc)
 	  {
-	     std::cout << usage;
-	     exit(0);
-	  }
-
-	if (argc > 3)
-	  {
-	     int i = 3;
-	     while(i<argc)
+	     const char *arg = argv[i];
+	     if (strcmp(arg,"--join")==0)
 	       {
-		  const char *arg = argv[i];
-		  if (strcmp(arg,"--persist") == 0)
-		    {
-		       persistence = true;
-		       i++;
-		    }
-		  else if (strcmp(arg,"--config") == 0)
-		    {
-		       DHTNode::_dht_config_filename = argv[i+1];
-		       std::cout << "dht config: " << DHTNode::_dht_config_filename << std::endl;
-		       i+=2;
-		    }
-		  else 
-		    {
-		       std::cout << usage << std::endl;
-		       exit(0);
-		    }
+		  joinb = true;
+		  char *bootnode = argv[i+1];
+		  char* vec[2];
+		  miscutil::ssplit(bootnode,":",vec,SZ(vec),0,0);
+		  int bootstrap_port = atoi(vec[1]);
+		  std::cout << "bootstrap node at ip: " << vec[0] << " -- port: " << bootstrap_port << std::endl;
+		  NetAddress bootstrap_na(vec[0],bootstrap_port);
+		  bootstrap_nodelist.push_back(bootstrap_na);
+		  i+=2;
+	       }
+	     else if (strcmp(arg,"--self-bootstrap")==0)
+	       {
+		  sbootb = true;
+		  i++;
+	       }
+	     else if (strcmp(arg,"--persist") == 0)
+	       {
+		  persistence = true;
+		  i++;
+	       }
+	     else if (strcmp(arg,"--config") == 0)
+	       {
+		  DHTNode::_dht_config_filename = argv[i+1];
+		  std::cout << "dht config: " << DHTNode::_dht_config_filename << std::endl;
+		  i+=2;
+	       }
+	     else if (strcmp(arg,"--sync") == 0)
+	       {
+		  db_sync = true;
+		  i++;
+	       }
+	     else 
+	       {
+		  std::cout << usage << std::endl;
+		  exit(0);
 	       }
 	  }
 	
+	sg_configuration::_sg_config = new sg_configuration(DHTNode::_dht_config_filename);
+	if (db_sync)
+	  sg_configuration::_sg_config->_db_sync_mode = 1; // sync.
 	dnode = new SGNode(net_addr,net_port);
 	
 	/**
@@ -133,17 +147,6 @@ int main(int argc, char **argv)
 	 */
 	if (joinb)
 	  {
-	     char *bootnode = argv[3];
-	     char* vec[2];
-	     miscutil::ssplit(bootnode,":",vec,SZ(vec),0,0);
-	     
-	     int bootstrap_port = atoi(vec[1]);
-	     std::cout << "bootstrap node at ip: " << vec[0] << " -- port: " << bootstrap_port << std::endl;
-	     	     
-	     std::vector<NetAddress> bootstrap_nodelist;
-	     NetAddress bootstrap_na(vec[0],bootstrap_port);
-	     bootstrap_nodelist.push_back(bootstrap_na);
-	     
 	     bool reset = true;
 	     dnode->join_start(bootstrap_nodelist,reset);
 	  }
