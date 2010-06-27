@@ -32,13 +32,9 @@ namespace dht
      {
 	if (SGNode::_sg_config_filename.empty())
 	  {
-#ifdef SEEKS_CONFIGDIR
-	     SGNode::_sg_config_filename = SEEKS_CONFIGDIR "sg-config"; // TODO: changes for packaging.
-#else
-	     SGNode::_sg_config_filename = "sg-config"; // XXX: could be merged with dht-config.
-#endif
+	     SGNode::_sg_config_filename = DHTNode::_dht_config_filename;
 	  }
-		
+	
 	if (!sg_configuration::_sg_config)
 	  sg_configuration::_sg_config = new sg_configuration(SGNode::_sg_config_filename);
 	
