@@ -62,3 +62,43 @@ succlist-size 10
 # network. This may change in the future.
 # default: 0
 routing 0
+
+# Search group options are below.
+
+# Maximum memory size allocated to the storage of searchgroup.
+# I can be understood as the search groups in-memory cache size.
+# default: 104857600 (a 100 Mo).
+sg-mem-cap 104857600
+
+# Retention delay for in-memory search groups cache, in seconds.
+# default: 1800 (30 minutes).
+sg-mem-delay 1800
+
+# Maximum file size for the database of search groups.
+# Set to -1 means the size is considered 'infinite'.
+# default: 104857600 (a 100 Mo).
+sg-db-cap 104857600
+
+# Retention delay for search groups in db, in seconds.
+# default: 864000 (10 days).
+sg-db-delay 864000
+
+# database sync mode. 
+# Set to 0 uses a time-based sync, controlled by the db-sync-delay
+# option. Set to 1, the db-sync-delay option is ignored and every
+# change to the in-memory cache of search groups is immediately 
+# sync to the db.
+# default: 0
+db-sync-mode 0
+
+# sync delay between the in-memory cache of search groups on the
+# on-disk retention database. If db-sync-mode is set to 1, this
+# option is ignored.
+# default: 300 (5 minutes).
+db-sync-delay 300
+
+# Maximum number of peers returned per search group, per call.
+# Every of these peers can then be contacted directly by the
+# client.
+# default 20
+max-returned-peers 20
