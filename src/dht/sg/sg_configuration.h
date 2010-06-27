@@ -56,8 +56,11 @@ namespace dht
 	// delay for removal from disk.
 	double _sg_db_delay;
 	
-	// sync mode memory/disk: 0 for time-delay synced, 1 for full-sync.
+	// sync mode memory/disk: 0 for time-delay sync, 1 for full-sync.
 	int _db_sync_mode;
+	
+	// sync delay.
+	double _db_sync_delay;
 	
 	// max number of returned peers in one message.
 	int _max_returned_peers;

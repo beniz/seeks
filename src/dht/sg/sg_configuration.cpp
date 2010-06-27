@@ -32,6 +32,7 @@ namespace dht
 #define hash_sg_dp_cap                   1951343971ul  /* "sg-db-cap" */
 #define hash_sg_db_delay                 1236646847ul  /* "sg-db-delay" */
 #define hash_db_sync_mode                 225381993ul  /* "db-sync-mode" */
+#define hash_db_sync_delay               2907431392ul  /* "db-sync-delay" */
 #define hash_max_returned_peers          3096475189ul  /* "max-returned-peers" */
    
    sg_configuration* sg_configuration::_sg_config = NULL;
@@ -54,6 +55,8 @@ namespace dht
 	_sg_mem_delay = 1800; // 30 mins.
 	_sg_db_cap = 104857600; // 100Mo.
 	_sg_db_delay = 864000; // 10 days.
+	_db_sync_mode = 0; // time-delay sync.
+	_db_sync_delay = 300; // 5 mins.
 	_max_returned_peers = 20; // 20 peers.
      }
      
@@ -90,6 +93,12 @@ namespace dht
 	     _db_sync_mode = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Sets the sync mode of search group retention memory and disk.");
+	     break;
+	     
+	   case hash_db_sync_delay:
+	     _db_sync_delay = strtod(arg,NULL);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Sets the sync delay between the search group retention memory and disk.");
 	     break;
 	     
 	   case hash_max_returned_peers:
