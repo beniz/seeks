@@ -22,7 +22,7 @@ AM_LDFLAGS+=-Lplugins/websearch
 endif
 
 if HAVE_DHT
- AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob -Ldht/sg -Ldht/sg/rpc -Ldht/sg/protob `pkg-config --libs protobuf`
+ AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob -Ldht/sg -Ldht/sg/rpc -Ldht/sg/protob `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`

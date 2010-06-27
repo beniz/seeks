@@ -12,7 +12,7 @@ endif
 AM_LDFLAGS=-L. -L../ -L../../utils -L../../lsh
 if HAVE_DHT
 AM_LDFLAGS += -L../../dht -L../../dht/rpc -L../../dht/rpc/protob -L../../dht/protob \
-	      -L../../dht/sg -L../../dht/sg/rpc -L../../dht/sg/protob `pkg-config --libs protobuf`
+	      -L../../dht/sg -L../../dht/sg/rpc -L../../dht/sg/protob `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
