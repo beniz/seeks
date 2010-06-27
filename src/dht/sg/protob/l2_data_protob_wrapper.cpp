@@ -36,13 +36,14 @@ namespace dht
 	l2::sg::searchgroup *l2_sg = new l2::sg::searchgroup();
 	std::vector<unsigned char> dkser = DHTKey::serialize(sg->_idkey);
 	std::string sg_key_str(dkser.begin(),dkser.end());
+	dkser.clear();
 	l1::dht_key *l2_sg_key = l2_sg->mutable_key();
 	l2_sg_key->set_key(sg_key_str);
-	dkser.clear();
+	l2_sg->set_radius(sg->_replication_level);
 	size_t vsize = sg->_vec_subscribers.size();
 	for (size_t i=0;i<vsize;i++)
 	  {
-	     l2::sg::subscriber *l2_sg_sub = l2_sg->mutable_subscribers(i);
+	     l2::sg::subscriber *l2_sg_sub = l2_sg->add_subscribers();
 	     l1::vnodeid *l2_sg_vnode = l2_sg_sub->mutable_id();
 	     l1::dht_key *l2_sg_sub_key = l2_sg_vnode->mutable_key();
 	     dkser = DHTKey::serialize(sg->_vec_subscribers.at(i)->_idkey);
@@ -52,6 +53,7 @@ namespace dht
 	     l1::net_address *l2_sg_sub_addr = l2_sg_vnode->mutable_addr();
 	     l2_sg_sub_addr->set_ip_addr(sg->_vec_subscribers.at(i)->getNetAddress());
 	     l2_sg_sub_addr->set_net_port(sg->_vec_subscribers.at(i)->getPort());
+	     l2_sg_sub->set_join_date(sg->_vec_subscribers.at(i)->_join_date);
 	  }
 	l2_sg->set_last_use(sg->_last_time_of_use);
 	return l2_sg;
@@ -77,6 +79,7 @@ namespace dht
 	DHTKey sg_key = DHTKey::unserialize(ser);
 	ser.clear();
 	sg = new Searchgroup(sg_key);
+	sg->_replication_level = l2_sg->radius();
 	int nsubs = l2_sg->subscribers_size();
 	for (int i=0;i<nsubs;i++)
 	  {
@@ -91,6 +94,7 @@ namespace dht
 	     std::string sub_addr = l2_sg_sub_addr->ip_addr();
 	     uint32_t sub_port = l2_sg_sub_addr->net_port();
 	     Subscriber *sub = new Subscriber(sub_key,sub_addr,sub_port);
+	     sub->_join_date = l2_sg_sub.join_date();
 	     sg->add_subscriber(sub);
 	  }
 	sg->_last_time_of_use = l2_sg->last_use();
