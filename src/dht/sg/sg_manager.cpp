@@ -20,6 +20,9 @@
 
 #include "sg_manager.h"
 #include "dht_configuration.h"
+#include "errlog.h"
+
+using sp::errlog;
 
 namespace dht
 {
@@ -47,16 +50,16 @@ namespace dht
      {
 	Searchgroup *sg = new Searchgroup(sgkey);
 	_searchgroups.insert(std::pair<const DHTKey*,Searchgroup*>(&sg->_idkey,sg));
+	
+	if (sg_configuration::_sg_config->_db_sync_mode == 1) // full sync.
+	  add_sg_db(sg);
+	
 	return sg;
      }
       
    bool sg_manager::add_sg_memory(Searchgroup *sg)
      {
 	_searchgroups.insert(std::pair<const DHTKey*,Searchgroup*>(&sg->_idkey,sg));
-	
-	if (sg_configuration::_sg_config->_db_sync_mode == 1) // full sync.
-	  add_sg_db(sg);
-	
 	return true;
      }
       
@@ -89,6 +92,7 @@ namespace dht
    
    bool sg_manager::add_sg_db(Searchgroup *sg)
      {
+	std::cerr << "add sg " << sg->_idkey << " to db\n";
 	return _sdb.add_sg_db(sg);
      }
    
@@ -115,6 +119,22 @@ namespace dht
 	/* search group does not exist, create it. */
 	sg = create_sg_memory(*sgkey);
 	return sg;
+     }
+      
+   bool sg_manager::sync()
+     {
+	hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey>::iterator hit
+	  = _searchgroups.begin();
+	while(hit!=_searchgroups.end())
+	  {
+	     std::cerr << "moving sg " << (*hit).second->_idkey << std::endl;
+	     if (!move_to_db((*hit).second))
+	       return false;
+	     ++hit;
+	  }
+	errlog::log_error(LOG_LEVEL_DHT,"sg db sync successful (%u searchgroups)",
+			  _sdb.number_records());
+	return true;
      }
       
 } /* end of namespace. */

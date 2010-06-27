@@ -56,6 +56,8 @@ namespace dht
 	/* general management. */
 	Searchgroup* find_load_or_create_sg(const DHTKey *sgkey);
 	
+	bool sync();
+	
 	/* replication. */
 	void replication_decrement_all_sgs_between(const DHTKey &start_key, const DHTKey &end_key); //TODO: with db.
 	
