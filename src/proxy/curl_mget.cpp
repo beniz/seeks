@@ -23,7 +23,6 @@
 #include "errlog.h"
 
 #include <pthread.h>
-#include <curl/curl.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -74,15 +73,20 @@ namespace sp
 	
 	cbget *arg = static_cast<cbget*>(arg_cbget);
 	
-	CURL *curl;
+	CURL *curl = NULL;
 	
-	curl = curl_easy_init();
-	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	if (!arg->_handler)
+	  {
+	     curl = curl_easy_init();
+	     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+	     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	  }
+	else curl = arg->_handler;
+		
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, arg->_connect_timeout_sec);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, arg->_transfer_timeout_sec);
+	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, arg);
 	
@@ -105,7 +109,6 @@ namespace sp
 		  ++sit;
 		 }
 	  }
-	
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
@@ -132,8 +135,9 @@ namespace sp
 	catch (...)
 	  {
 	  }
-		
-	curl_easy_cleanup(curl);
+	
+	if (!arg->_handler)
+	  curl_easy_cleanup(curl);
 	
 	if (slist)
 	  curl_slist_free_all(slist);
@@ -143,7 +147,7 @@ namespace sp
    
    std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
 				     const std::vector<std::list<const char*>*> *headers,
-				     const bool &proxy)
+				     const bool &proxy, std::vector<CURL*> *chandlers)
      {
 	assert((int)urls.size() == nrequests); // check.
 	
@@ -161,7 +165,8 @@ namespace sp
 	     arg_cbget->_proxy = proxy;
 	     if (headers)
 	       arg_cbget->_headers = headers->at(i); // headers are url dependent.
-	     
+	     if (chandlers)
+	       arg_cbget->_handler = chandlers->at(i);
 	     _cbgets[i] = arg_cbget;
 	     
 	     int error = pthread_create(&tid[i],

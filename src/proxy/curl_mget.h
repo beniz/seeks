@@ -23,12 +23,14 @@
 #include <vector>
 #include <list>
 
+#include <curl/curl.h>
+
 namespace sp
 {
    typedef struct _cbget
      {
 	_cbget()
-	  :_url(NULL),_output(NULL),_proxy(false),_headers(NULL)
+	  :_url(NULL),_output(NULL),_proxy(false),_headers(NULL),_handler(NULL)
 	  {};
 	
 	~_cbget()
@@ -41,6 +43,7 @@ namespace sp
 	long _transfer_timeout_sec;
 	bool _proxy;
 	const std::list<const char*> *_headers; // forced http headers
+	CURL *_handler; // optional
      } cbget;
    
     void* pull_one_url(void *arg_cbget);
@@ -59,7 +62,7 @@ namespace sp
 	// direct connection.
 	std::string** www_mget(const std::vector<std::string> &urls, const int &nrequests,
 			       const std::vector<std::list<const char*>*> *headers,
-			       const bool &proxy);
+			       const bool &proxy, std::vector<CURL*> *chandlers=NULL);
      
       public:
 	int _nrequests;

@@ -284,6 +284,32 @@ namespace seeks_plugins
    se_yahoo se_handler::_yahoo = se_yahoo();
    se_exalead se_handler::_exalead = se_exalead();
    
+   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
+   
+   /*-- initialization. --*/
+   void se_handler::init_handlers(const int &num)
+     {
+	if (!_curl_handlers.empty())
+	  {
+	     std::vector<CURL*>::iterator vit = _curl_handlers.begin();
+	     while(vit!=_curl_handlers.end())
+	       {
+		  curl_easy_cleanup((*vit));
+		  vit = _curl_handlers.erase(vit);
+	       }
+	  }
+	_curl_handlers.reserve(num);
+	for (int i=0;i<num;i++)
+	  {
+	     CURL *curl = curl_easy_init();
+	     _curl_handlers.push_back(curl);
+	     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+	     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1); // cache forever.
+	  }
+     }
+      
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -367,10 +393,15 @@ namespace seeks_plugins
        }
      else nresults = urls.size();
     
+     if (_curl_handlers.size() != urls.size())
+       {
+	  se_handler::init_handlers(urls.size()); // reinitializes the curl handlers.
+       }
+          
      // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		   websearch::_wconfig->_se_connect_timeout,0);
-     cmg.www_mget(urls,urls.size(),&headers,false); // don't go through the proxy, or will loop til death!
+     cmg.www_mget(urls,urls.size(),&headers,false,&se_handler::_curl_handlers); // don't go through the proxy, or will loop til death!
     
      std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;

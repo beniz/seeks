@@ -26,6 +26,8 @@
 #include <bitset>
 #include <stdint.h>
 
+#include <curl/curl.h>
+
 using sp::sp_err;
 
 namespace seeks_plugins
@@ -137,6 +139,9 @@ namespace seeks_plugins
    class se_handler
      {
       public:
+	/*-- initialization --*/
+	static void init_handlers(const int &num);
+	
 	/*-- query preprocessing --*/
 	static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
@@ -172,6 +177,7 @@ namespace seeks_plugins
 	static se_bing _bing;
 	static se_yahoo _yahoo;
 	static se_exalead _exalead;
+	static std::vector<CURL*> _curl_handlers;
      };
       
 } /* end of namespace. */
