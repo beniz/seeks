@@ -145,7 +145,9 @@ namespace seeks_plugins
 	  {
 	     if (words.at(i).length() > 2)
 	       {
-		  std::string bold_str = "<span class=\"highlight\">" + words.at(i) + "</span>";
+		  char *wenc = encode::url_encode(words.at(i).c_str());
+		  std::string bold_str = "<span class=\"highlight\"><a href=\"/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + words.at(i) + "</a></span>";
+		  free(wenc);
 		  miscutil::ci_replace_in_string(str,words.at(i),bold_str);
 	       }
 	  }

@@ -77,6 +77,10 @@ body {
 	background-position: center center;
 }
 
+#search_results .search_snippet .search_engine a {
+        text-decoration: none;
+}
+
 #search_results .search_snippet .search_engine_bing {
 	background-image: url(base-url/plugins/websearch/public/images/search_engines/bing_12x12_transparent.png);
 }
@@ -113,6 +117,11 @@ body {
 
 #search_results .highlight {
         color: purple;
+}
+
+#search_results .highlight a {
+        color: purple;
+	text-decoration: none;
 }
 
 #search_results h3 {
