@@ -236,7 +236,9 @@ namespace seeks_plugins
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
 						      const std::string &base_url_str)
      {
-	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\">&nbsp;</span>";
+	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
+	
+				       //&nbsp;</span>";
 	std::string html_content = "<li class=\"search_snippet\"";
 /*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
@@ -260,6 +262,7 @@ namespace seeks_plugins
 	     std::string ggle_se_icon = se_icon;
 	     miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
 	     miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
+	     miscutil::replace_in_string(ggle_se_icon,"seeng","google");
 	     html_content += ggle_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_CUIL)
@@ -267,6 +270,7 @@ namespace seeks_plugins
 	     std::string cuil_se_icon = se_icon;
 	     miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
 	     miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
+	     miscutil::replace_in_string(cuil_se_icon,"seeng","cuil");
 	     html_content += cuil_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_BING)
@@ -274,6 +278,7 @@ namespace seeks_plugins
 	     std::string bing_se_icon = se_icon;
 	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
 	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
+	     miscutil::replace_in_string(bing_se_icon,"seeng","bing");
 	     html_content += bing_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_YAHOO)
@@ -281,6 +286,7 @@ namespace seeks_plugins
 	     std::string yahoo_se_icon = se_icon;
 	     miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
 	     miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
+	     miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
 	     html_content += yahoo_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_EXALEAD)
@@ -288,6 +294,7 @@ namespace seeks_plugins
 	     std::string exalead_se_icon = se_icon;
 	     miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
 	     miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
+	     miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
 	     html_content += exalead_se_icon;
 	  }
 			
