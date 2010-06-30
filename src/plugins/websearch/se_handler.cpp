@@ -22,7 +22,7 @@
 #include "curl_mget.h"
 #include "encode.h"
 #include "errlog.h"
-#include "seeks_proxy.h" // for configuration.
+#include "seeks_proxy.h" // for configuration and mutexes.
 #include "proxy_configuration.h"
 #include "query_context.h"
 
@@ -285,10 +285,12 @@ namespace seeks_plugins
    se_exalead se_handler::_exalead = se_exalead();
    
    std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
+   sp_mutex_t se_handler::_curl_mutex;
    
    /*-- initialization. --*/
    void se_handler::init_handlers(const int &num)
      {
+	seeks_proxy::mutex_init(&_curl_mutex);
 	if (!_curl_handlers.empty())
 	  {
 	     std::vector<CURL*>::iterator vit = _curl_handlers.begin();
@@ -401,8 +403,10 @@ namespace seeks_plugins
      // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		   websearch::_wconfig->_se_connect_timeout,0);
+     seeks_proxy::mutex_lock(&_curl_mutex);
      cmg.www_mget(urls,urls.size(),&headers,false,&se_handler::_curl_handlers); // don't go through the proxy, or will loop til death!
-    
+     seeks_proxy::mutex_unlock(&_curl_mutex);
+     
      std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;
      for (size_t i=0;i<urls.size();i++)

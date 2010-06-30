@@ -99,7 +99,7 @@ namespace seeks_plugins
 	  }
      }
       
-   void search_snippet::highlight_discr(std::string &str)
+   void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str)
      {
 	static int max_highlights = 3; // ad-hoc default.
 	
@@ -146,7 +146,7 @@ namespace seeks_plugins
 	     if (words.at(i).length() > 2)
 	       {
 		  char *wenc = encode::url_encode(words.at(i).c_str());
-		  std::string bold_str = "<span class=\"highlight\"><a href=\"/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + words.at(i) + "</a></span>";
+		  std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + words.at(i) + "</a></span>";
 		  free(wenc);
 		  miscutil::ci_replace_in_string(str,words.at(i),bold_str);
 	       }
@@ -238,9 +238,7 @@ namespace seeks_plugins
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
 						      const std::string &base_url_str)
      {
-	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
-	
-				       //&nbsp;</span>";
+	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
 	std::string html_content = "<li class=\"search_snippet\"";
 /*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
@@ -308,7 +306,7 @@ namespace seeks_plugins
 	     std::string summary = _summary;
 	     search_snippet::highlight_query(words,summary);
 	     if (websearch::_wconfig->_extended_highlight)
-	       highlight_discr(summary);
+	       highlight_discr(summary,base_url_str);
 	     html_content += summary;
 	  }
 	else html_content += "<div>";

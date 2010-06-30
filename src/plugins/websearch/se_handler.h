@@ -30,6 +30,8 @@
 
 using sp::sp_err;
 
+typedef pthread_mutex_t sp_mutex_t;
+
 namespace seeks_plugins
 {
    class se_parser;
@@ -178,6 +180,7 @@ namespace seeks_plugins
 	static se_yahoo _yahoo;
 	static se_exalead _exalead;
 	static std::vector<CURL*> _curl_handlers;
+	static sp_mutex_t _curl_mutex;
      };
       
 } /* end of namespace. */
