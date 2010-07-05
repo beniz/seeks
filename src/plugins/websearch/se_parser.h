@@ -41,6 +41,9 @@ namespace seeks_plugins
 	
 	virtual ~se_parser();
 	
+	void parse_output_xml(char *output, std::vector<search_snippet*> *snippets,
+			      const int &count_offset);
+	
 	void parse_output(char *output, std::vector<search_snippet*> *snippets,
 			  const int &count_offset);
      
