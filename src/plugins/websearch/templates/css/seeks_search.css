@@ -248,10 +248,22 @@ body {
        position: absolute;
        left: 678px;
        top: 77px;
-       font-sizez: 90%;
+       font-size: 90%;
 }
 
 #sort_types a {
+      font-weight: bold;
+      text-decoration: none;
+}
+
+#search_img {
+      position: absolute;
+      left: 470px;
+      top: 77px;
+      font-size: 90%;
+}
+
+#search_img a {
       font-weight: bold;
       text-decoration: none;
 }
