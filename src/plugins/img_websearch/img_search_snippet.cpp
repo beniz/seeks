@@ -1,0 +1,173 @@
+/**
+ * The Seeks proxy and plugin framework are part of the SEEKS project.
+ * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+#include "img_search_snippet.h"
+#include "query_context.h"
+#include "miscutil.h"
+#include "mem_utils.h"
+#include "encode.h"
+#include "urlmatch.h"
+#include <assert.h>
+
+using sp::miscutil;
+using sp::encode;
+using sp::urlmatch;
+
+namespace seeks_plugins
+{
+   
+   img_search_snippet::img_search_snippet()
+     :search_snippet(),_cached_image(NULL),_surf_keypoints(NULL),_surf_descriptors(NULL),
+      _surf_storage(NULL)
+       {
+       }
+   
+   img_search_snippet::img_search_snippet(const short &rank)
+     :search_snippet(rank),_cached_image(NULL),_surf_keypoints(NULL),_surf_descriptors(NULL)
+       {
+	  _surf_storage = cvCreateMemStorage(0);
+       }
+   
+   img_search_snippet::~img_search_snippet()
+     {
+	if (_cached_image)
+	  delete _cached_image;
+
+	if (_surf_keypoints)
+	  cvClearSeq(_surf_keypoints);
+	if (_surf_descriptors)
+	  cvClearSeq(_surf_descriptors);
+	if (_surf_storage)
+	  cvReleaseMemStorage(&_surf_storage);
+     }
+   
+   std::string img_search_snippet::to_html_with_highlight(std::vector<std::string> &words,
+							  const std::string &base_url_str)
+     {
+	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
+	std::string html_content = "<li class=\"search_snippet\"";
+	html_content += ">";
+	
+	html_content += "<h3><a href=\"";
+	html_content += _url + "\"><img src=\"";
+	html_content += _cached;
+	html_content += "\"></a><div>";
+		
+	const char *title_enc = encode::html_encode(_title.c_str());
+	html_content += title_enc;
+	free_const(title_enc);
+	//html_content += "</div>";
+	
+	if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
+	  {
+	     std::string ggle_se_icon = se_icon;
+	     miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
+	     miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
+	     miscutil::replace_in_string(ggle_se_icon,"seeng","google");
+	     html_content += ggle_se_icon;
+	  }
+	if (_img_engine.to_ulong()&SE_BING_IMG)
+	  {
+	     
+	     std::string bing_se_icon = se_icon;
+	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
+	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
+	     miscutil::replace_in_string(bing_se_icon,"seeng","bing");
+	     html_content += bing_se_icon;
+	  }
+	html_content += "</h3><div>";
+	const char *cite_enc = NULL;
+	if (!_cite.empty())
+	  {
+	     std::string cite_host;
+	     std::string cite_path;
+	     urlmatch::parse_url_host_and_path(_cite,cite_host,cite_path);
+	     cite_enc = encode::html_encode(cite_host.c_str());
+	  }
+	else
+	  {
+	     std::string cite_host;
+	     std::string cite_path;
+	     urlmatch::parse_url_host_and_path(_url,cite_host,cite_path);
+	     cite_enc = encode::html_encode(cite_host.c_str());
+	  }
+	html_content += "<cite>";
+	html_content += cite_enc;
+	free_const(cite_enc);
+	html_content += "</cite><br>";
+	
+	if (!_cached.empty())
+	  {
+	     char *enc_cached = encode::html_encode(_cached.c_str());
+	     miscutil::chomp(enc_cached);
+	     html_content += "<a class=\"search_cache\" href=\"";
+	     html_content += enc_cached;
+	     html_content += "\">Cached</a>";
+	     free_const(enc_cached);
+	  }
+	
+	if (!_sim_back)
+	  {
+	     set_similarity_link();
+	     html_content += "<a class=\"search_cache\" href=\"";
+	  }
+	else
+	  {
+	     set_back_similarity_link();
+	     html_content += "<a class=\"search_similarity\" href=\"";
+	  }
+	
+	html_content += base_url_str + _sim_link;
+	if (!_sim_back)
+	  html_content += "\">Similar</a>";
+	else html_content += "\">Back</a>";
+	html_content += "</div></li>\n";
+	return html_content;
+     }
+
+   bool img_search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	// XXX: this is a hack, truely. Should get rid of the bitset for vector<bool> instead.
+	std::bitset<NSEs> se_enabled;
+	query_context::fillup_engines(parameters,se_enabled);
+	assert(IMG_NSEs <= NSEs); // hack comes below.
+	std::bitset<NSEs> img_enabled;
+	for (size_t i=0;i<IMG_NSEs;i++)
+	  if (_img_engine.test(i))
+	    img_enabled.set(i);
+	std::bitset<NSEs> band = img_enabled & se_enabled;
+	return (band.count() != 0);
+     }
+   
+   void img_search_snippet::set_similarity_link()
+     {
+	_sim_link = "/search_img?q=" + _qc->_url_enc_query
+	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
+	    + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id);
+	_sim_back = false;
+     }
+   
+   void img_search_snippet::set_back_similarity_link()
+     {
+	_sim_link = "/search_img?q=" + _qc->_url_enc_query
+	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
+	    + "&amp;action=expand";
+	_sim_back = true;
+     }
+      
+} /* end of namespace. */
