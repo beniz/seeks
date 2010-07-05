@@ -8,22 +8,18 @@ bin_PROGRAMS=seeks
 seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -Iutils -Ilsh -Iproxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
-AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
-
-if HAVE_HTTPSERV_PLUGIN
-AM_CPPFLAGS+=-Iplugins/websearch
-AM_LDFLAGS+=-Lplugins/websearch
-endif
+	    -Iutils -Ilsh -Iproxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
+	    -Iplugins/websearch `pkg-config opencv --cflags`
+AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch
 
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=
+LDADD=-lseekswebsearchplugin
 if HAVE_HTTPSERV_PLUGIN
-LDADD += -lseekswebsearchplugin -levent
+LDADD += -levent
 endif
-LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
+LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
 if !HAVE_FREEBSD
 LDADD += -ldl
 endif
