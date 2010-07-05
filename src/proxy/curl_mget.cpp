@@ -41,7 +41,7 @@ namespace sp
 	if (!arg->_output)
 	  arg->_output = new std::string();
 	
-	*arg->_output += buffer;
+	arg->_output->append(buffer,size);
 	
 	return size;
      }
