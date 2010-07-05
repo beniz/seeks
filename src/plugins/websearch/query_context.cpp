@@ -100,7 +100,6 @@ namespace seeks_plugins
 	  query_context::fillup_engines(parameters,_engines);
 	  	  
 	  sweeper::register_sweepable(this);
-	  register_qc(); // register with websearch plugin.
        }
    
    query_context::~query_context()
@@ -190,14 +189,14 @@ namespace seeks_plugins
    
   void query_context::unregister()
   {
-    hash_map<uint32_t,query_context*,hash<uint32_t> >::iterator hit;
+    hash_map<uint32_t,query_context*,id_hash_uint>::iterator hit;
     if ((hit = websearch::_active_qcontexts.find(_query_hash))==websearch::_active_qcontexts.end())
       {
 	/**
-	 * We should not reach here.
+	 * We should not reach here, unless the destructor is called by a derived class.
 	 */
-	 errlog::log_error(LOG_LEVEL_ERROR,"Cannot find query context when unregistering for query %s",
-			   _query.c_str());
+	 /* errlog::log_error(LOG_LEVEL_ERROR,"Cannot find query context when unregistering for query %s",
+			   _query.c_str()); */
 	 return;
       }
     else

@@ -41,6 +41,7 @@ namespace seeks_plugins
 	FORUM,
 	FILE_DOC,
 	SOFTWARE,
+	IMAGE,
 	VIDEO,
 	AUDIO,
 	CODE,
@@ -110,19 +111,23 @@ namespace seeks_plugins
 	void set_archive_link();
 
 	// sets a link to a sorting of snippets wrt. to their similarity to this snippet.
-	void set_similarity_link();
+	virtual void set_similarity_link();
 
 	// sets a back link when similarity is engaged.
-	void set_back_similarity_link();
+	virtual void set_back_similarity_link();
 	
 	// json output.
 	std::string to_json(const bool &thumbs);
 	
 	// html output for inclusion in search result template page.
 	std::string to_html();
-	std::string to_html_with_highlight(std::vector<std::string> &words,
-					   const std::string &base_url);
+	virtual std::string to_html_with_highlight(std::vector<std::string> &words,
+						   const std::string &base_url);
 
+	// whether this snippet's engine(s) is(are) enabled.
+	// used in result page rendering.
+	virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
 	// static functions.
 	// highlights terms within the argument string.
 	static void highlight_query(std::vector<std::string> &words,

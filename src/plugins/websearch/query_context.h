@@ -61,9 +61,9 @@ namespace seeks_plugins
 	 * \brief generates search result snippets, either from querying the
 	 * search engines, or by looking up the current query context's cache.
 	 */
-	sp_err generate(client_state *csp,
-			http_response *rsp,
-			const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	virtual sp_err generate(client_state *csp,
+				http_response *rsp,
+				const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
 	/**
 	 * \brief perform expansion.
@@ -82,12 +82,12 @@ namespace seeks_plugins
 	/**
 	 * registers context with the websearch plugin.
 	 */
-	void register_qc();
+	virtual void register_qc();
 
 	/**
 	 * unregisters from the websearch plugin.
 	 */
-	void unregister();
+	virtual void unregister();
 	
 	/**
 	 * update last time of use.
@@ -211,7 +211,7 @@ namespace seeks_plugins
 	                                       // on cuil. No other way that I know but to grab
 					       // them from the webpage and store them here.
 
-	std::vector<std::string> _suggestions; // suggered related queries.
+	std::vector<std::string> _suggestions; // suggested related queries.
 
 	/* LSH subsystem for regrouping textual elements. */
 	LSHSystemHamming *_lsh_ham;

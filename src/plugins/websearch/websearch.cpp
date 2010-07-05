@@ -46,8 +46,8 @@ using namespace sp;
 namespace seeks_plugins
 {
    websearch_configuration* websearch::_wconfig = NULL;
-   hash_map<uint32_t,query_context*,hash<uint32_t> > websearch::_active_qcontexts 
-     = hash_map<uint32_t,query_context*,hash<uint32_t> >();
+   hash_map<uint32_t,query_context*,id_hash_uint > websearch::_active_qcontexts 
+     = hash_map<uint32_t,query_context*,id_hash_uint >();
    double websearch::_cl_sec = -1.0; // filled up at startup.
    
    websearch::websearch()
@@ -462,6 +462,7 @@ namespace seeks_plugins
 	     
 	     if (!ref_sp)
 	       {
+		  qc->_lock = false;
 		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 		  return SP_ERR_OK;
 	       }
@@ -630,6 +631,7 @@ namespace seeks_plugins
 	  // to generate snippets first.
 	  expanded = true;
 	  qc = new query_context(parameters,csp->_headers);
+	  qc->register_qc();
 	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters);
@@ -691,6 +693,12 @@ namespace seeks_plugins
    query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				       client_state *csp)
      {
+	return websearch::lookup_qc(parameters,csp,websearch::_active_qcontexts);
+     }
+   
+   query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				       client_state *csp, hash_map<uint32_t,query_context*,id_hash_uint> &active_qcontexts)
+     {
 	std::string qlang;
 	bool has_query_lang = false;
 	if (!(has_query_lang = query_context::has_query_lang(parameters,qlang)))
@@ -715,8 +723,8 @@ namespace seeks_plugins
 	  query = ":" + qlang + " ";
 	std::string url_enc_query;
 	uint32_t query_hash = query_context::hash_query_for_context(parameters,query,url_enc_query);
-	hash_map<uint32_t,query_context*,hash<uint32_t> >::iterator hit;
-	if ((hit = websearch::_active_qcontexts.find(query_hash))!=websearch::_active_qcontexts.end())
+	hash_map<uint32_t,query_context*,id_hash_uint >::iterator hit;
+	if ((hit = active_qcontexts.find(query_hash))!=active_qcontexts.end())
 	  {
 	     /**
 	      * Already have a context for this query, update its flags, and return it.

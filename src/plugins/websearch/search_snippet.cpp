@@ -374,7 +374,15 @@ namespace seeks_plugins
 		
 	return html_content;
      }
-   
+
+   bool search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	std::bitset<NSEs> se_enabled;
+	query_context::fillup_engines(parameters,se_enabled);
+	std::bitset<NSEs> band = _engine & se_enabled;
+	return (band.count() != 0);
+     }
+      
    void search_snippet::set_url(const std::string &url)
      {
 	char *url_str = encode::url_decode(url.c_str());

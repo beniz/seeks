@@ -72,7 +72,8 @@ namespace seeks_plugins
      }
    
    void static_renderer::render_suggestions(const query_context *qc,
-					    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+					    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					    const std::string &cgi_base)
      {
 	if (!qc->_suggestions.empty())
 	  {
@@ -86,7 +87,7 @@ namespace seeks_plugins
 	     const char *sugg_enc = encode::html_encode(suggested_q_str.c_str());
 	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
-	     suggestion_str += base_url_str + "/search?q=" + qc->_in_query_command + " " 
+	     suggestion_str += base_url_str + cgi_base + "q=" + qc->_in_query_command + " " 
 	       + sugg_enc_str + "&amp;expansion=1&amp;action=expand";
 	     suggestion_str += "\">";
 	     suggestion_str += sugg_enc_str;
@@ -145,22 +146,25 @@ namespace seeks_plugins
 	       similarity = true;
 	     
 	     // lookup activated engines.
-	     std::bitset<NSEs> se_enabled;
-	     query_context::fillup_engines(parameters,se_enabled);
-	     
+	     /* std::bitset<NSEs> se_enabled;
+	      query_context::fillup_engines(parameters,se_enabled); */
+	      
 	     // proceed with rendering.
 	     int ssize = snippets.size();
 	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)ssize);
 	     size_t snistart = (current_page-1) * websearch::_wconfig->_N;
 	     size_t count = snistart;
+	     	     
 	     for (int i=snistart;i<ssize;i++)
 	       {
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
-		  std::bitset<NSEs> band = (snippets.at(i)->_engine & se_enabled);
-		  if (band.count() == 0)
+		  /* std::bitset<NSEs> band = (snippets.at(i)->_engine & se_enabled);
+		   if (band.count() == 0)
+		   continue; */
+		  if (!snippets.at(i)->is_se_enabled(parameters))
 		    continue;
-		  
+		    
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
 		  count++;
@@ -290,7 +294,8 @@ namespace seeks_plugins
       
    std::string static_renderer::render_cluster_label_query_link(const std::string &url_encoded_query,
 								const cluster &cl,
-								const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+								const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+								const std::string &cgi_base)
      {
 	const char *base_url = miscutil::lookup(exports,"base-url");
 	std::string base_url_str = "";
@@ -309,7 +314,7 @@ namespace seeks_plugins
 	free(slabel_html_enc);
 		
 	std::string label_query = url_encoded_query + "+" + clabel_url_enc_str;
-	std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + "/search?q=" + label_query
+	std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + cgi_base + "q=" + label_query
 	  + "&amp;page=1&amp;expansion=1&amp;action=expand\">" + clabel_html_enc_str 
 	  + "</a><font size=\"2\"> " + slabel_html_enc_str + "</font></h2><br><ol>";
 	return html_label;
@@ -345,7 +350,8 @@ namespace seeks_plugins
 					       const std::string &url_encoded_query,
 					       const std::string &expansion,
 					       const std::string &engines,
-					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					       const std::string &cgi_base)
      {
 	double nl = snippets_size / static_cast<double>(websearch::_wconfig->_N);
 	     
@@ -356,7 +362,7 @@ namespace seeks_plugins
 	     if (base_url)
 	       base_url_str = std::string(base_url);
 	     std::string np_str = miscutil::to_string(current_page+1);
-	     std::string np_link = "<a href=\"" + base_url_str + "/search?page=" + np_str + "&amp;q="
+	     std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
 	       + engines + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
@@ -369,7 +375,8 @@ namespace seeks_plugins
 					       const std::string &url_encoded_query,
 					       const std::string &expansion,
 					       const std::string &engines,
-					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					       const std::string &cgi_base)
      {
 	 if (current_page > 1)
 	  {
@@ -378,7 +385,7 @@ namespace seeks_plugins
 	     std::string base_url_str = "";
 	     if (base_url)
 	       base_url_str = std::string(base_url);
-	     std::string pp_link = "<a href=\"" + base_url_str + "/search?page=" + pp_str + "&amp;q="
+	     std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
 	       + engines + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
@@ -456,6 +463,10 @@ namespace seeks_plugins
 	  miscutil::add_map_entry(exports,"websearch-clustering",1,"clustering",1);
 	else miscutil::add_map_entry(exports,"websearch-clustering",1,strdup(""),0);
 		
+	// image websearch, if available.
+#ifndef FEATURE_IMG_WEBSEARCH_PLUGIN
+	cgi::map_block_killer(exports,"img-websearch");
+#endif
 	return exports;
      }
       
@@ -479,11 +490,20 @@ namespace seeks_plugins
 						    client_state *csp, http_response *rsp,
 						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						    const query_context *qc)
-  {
-     static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
-     
-     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-       = static_renderer::websearch_exports(csp);
+     {
+	static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
+	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc,result_tmpl_name);
+     }
+   
+   sp_err static_renderer::render_result_page_static(const std::vector<search_snippet*> &snippets,
+						     client_state *csp, http_response *rsp,
+						     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+						     const query_context *qc,
+						     const std::string &result_tmpl_name,
+						     const std::string &cgi_base)
+     {
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
 
      // one-column results.
      cgi::map_block_killer(exports,"have-clustered-results");
@@ -504,7 +524,7 @@ namespace seeks_plugins
      static_renderer::render_current_page(parameters,exports,current_page);
      
      // suggestions.
-     static_renderer::render_suggestions(qc,exports);
+     static_renderer::render_suggestions(qc,exports,cgi_base);
      
      // language.
      static_renderer::render_lang(qc,exports);
@@ -530,17 +550,17 @@ namespace seeks_plugins
      
      // next link.
      static_renderer::render_next_page_link(current_page,snippets.size(),
-					    url_encoded_query,expansion,engines,exports);
+					    url_encoded_query,expansion,engines,exports,cgi_base);
      
      // previous link.
      static_renderer::render_prev_page_link(current_page,snippets.size(),
-					    url_encoded_query,expansion,engines,exports);
+					    url_encoded_query,expansion,engines,exports,cgi_base);
 
      // cluster link.
      static_renderer::render_nclusters(parameters,exports);
      
      // rendering.
-     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,
+     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),
 					     (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
 					      : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 					     exports,rsp);

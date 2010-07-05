@@ -599,7 +599,7 @@ namespace seeks_plugins
 
    void se_handler::parse_output(const ps_thread_arg &args)
      {
-	se_parser *se = se_handler::create_se_parser(args._se);
+	se_parser *se = se_handler::create_se_parser((SE)args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
 	// link the snippets to the query context
