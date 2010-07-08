@@ -134,7 +134,8 @@ namespace seeks_plugins
 				    std::string &str);
 	
 	// highlights the most discriminative terms (for this snippet among all snippets).
-	void highlight_discr(std::string &str, const std::string &base_url_str);
+	void highlight_discr(std::string &str, const std::string &base_url_str,
+			     const std::vector<std::string> &query_words);
 	
 	// tag snippet, i.e. detect its type if not already done by the parsers.
 	void tag();

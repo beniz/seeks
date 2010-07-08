@@ -99,7 +99,8 @@ namespace seeks_plugins
 	  }
      }
       
-   void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str)
+   void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
+					const std::vector<std::string> &query_words)
      {
 	static int max_highlights = 3; // ad-hoc default.
 	
@@ -119,6 +120,7 @@ namespace seeks_plugins
 	     ++fit;
 	  }
 	
+	size_t nqw = query_words.size();
 	int i = 0;
 	std::map<float,uint32_t,std::greater<float> >::const_iterator mit = f_tfidf.begin();
 	while(mit!=f_tfidf.end())
@@ -126,7 +128,12 @@ namespace seeks_plugins
 	     hash_map<uint32_t,std::string,id_hash_uint>::const_iterator bit;
 	     if ((bit=_bag_of_words->find((*mit).second))!=_bag_of_words->end())
 	       {
-		  words.push_back((*bit).second);
+		  bool add = true;
+		  for (size_t j=0;j<nqw;j++)
+		    if (query_words.at(j) == (*bit).second)
+		      add = false;
+		  if (add)
+		    words.push_back((*bit).second);
 		  i++;
 		  if (i>=max_highlights)
 		    break;
@@ -146,9 +153,10 @@ namespace seeks_plugins
 	     if (words.at(i).length() > 2)
 	       {
 		  char *wenc = encode::url_encode(words.at(i).c_str());
-		  std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + words.at(i) + "</a></span>";
+		  std::string rword = " " + words.at(i) + " ";
+		  std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + rword + "</a></span>";
 		  free(wenc);
-		  miscutil::ci_replace_in_string(str,words.at(i),bold_str);
+		  miscutil::ci_replace_in_string(str,rword,bold_str);
 	       }
 	  }
      }
@@ -306,7 +314,7 @@ namespace seeks_plugins
 	     std::string summary = _summary;
 	     search_snippet::highlight_query(words,summary);
 	     if (websearch::_wconfig->_extended_highlight)
-	       highlight_discr(summary,base_url_str);
+	       highlight_discr(summary,base_url_str,words);
 	     html_content += summary;
 	  }
 	else html_content += "<div>";
