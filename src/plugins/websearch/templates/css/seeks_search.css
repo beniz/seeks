@@ -54,7 +54,7 @@ body {
 
 #search_results .search_snippet {
 	padding-bottom: 10px;
-	clear:both;
+	clear: both;
 }
 
 #search_results .search_snippet .preview {
@@ -76,6 +76,10 @@ body {
 	background-repeat: no-repeat;
 	background-position: center center;
 }
+
+/* #search_results table td {
+	padding: 0px 5px 5px 0px;
+} */
 
 #search_results .search_snippet .search_engine a {
         text-decoration: none;
@@ -315,6 +319,18 @@ body {
 	height: 57px;
 	left: 410px;
 	background-image: url(/plugins/websearch/public/images/search_expansion_5.png);
+}
+
+.img_websearch .search_snippet {
+	width: 172px;
+	float: right;
+	display: inline;
+	clear: none;
+}
+
+.img_websearch .search_snippet {
+	text-align: center;
+	clear: none !important;
 }
 
 .expansion_, .expansion_1 { background-image: url(base-url/plugins/websearch/public/images/search_expansion_1.png) !important; }
