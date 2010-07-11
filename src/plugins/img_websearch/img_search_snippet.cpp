@@ -60,7 +60,7 @@ namespace seeks_plugins
 							  const std::string &base_url_str)
      {
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
-	std::string html_content = "<li class=\"search_snippet\"";
+	std::string html_content = "<li class=\"search_snippet search_snippet_img\"";
 	html_content += ">";
 	
 	html_content += "<h3><a href=\"";
