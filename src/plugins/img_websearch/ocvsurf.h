@@ -26,6 +26,20 @@
 namespace seeks_plugins
 {
    
+   class surf_pair
+     {
+      public:
+	surf_pair(const int &i, const int &j,
+		  const double &dist)
+	  :_i(i),_j(j),_dist(dist)
+	    {};
+	~surf_pair() {};
+
+	int _i;
+	int _j;
+	double _dist;
+     };
+      
    class ocvsurf
      {
       public:
@@ -36,7 +50,7 @@ namespace seeks_plugins
 	
 	static void flannFindPairs(CvSeq *o1desc,
 				   CvSeq *o2desc,
-				   std::vector<int> &ptpairs);
+				   std::vector<surf_pair> &ptpairs);
 	
 	static CvSURFParams _surf_params;
      };
