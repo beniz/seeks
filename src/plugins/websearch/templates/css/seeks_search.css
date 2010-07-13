@@ -71,7 +71,7 @@ body {
 #search_results .search_snippet {
 	padding-bottom: 10px;
 	clear: both;
-	width: 720px;
+	max-width: 720px;
 }
 
 #search_results .search_snippet .preview {
@@ -230,6 +230,10 @@ body {
 	height: 60px;
 	left: 504px;
 }
+
+/* .cluster .search_snippet {
+	width: auto !important;
+} */
 
 #search_results h2 {
     color: gray;
