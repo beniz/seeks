@@ -1,5 +1,4 @@
 body {
-	width: 700px;
 	left: 0px;
 	position: absolute;
 }
@@ -72,6 +71,7 @@ body {
 #search_results .search_snippet {
 	padding-bottom: 10px;
 	clear: both;
+	width: 720px;
 }
 
 #search_results .search_snippet .preview {
@@ -121,6 +121,7 @@ body {
 #search_results .search_snippet_img {
 	width: 172px;
 	height: 220px;
+	overflow: hidden;
 	float: left;
 	display: inline;
 	text-align: center;
