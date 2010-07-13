@@ -682,11 +682,13 @@ namespace seeks_plugins
 						   qtime);
        }
      
-     // unlock the query context.
+     // unlock or destroy the query context.
      qc->_lock = false;
      seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+     if (qc->empty())
+       delete qc;
      
-    // XXX: catch errors.
+     // XXX: catch errors.
      return err;
   }
 

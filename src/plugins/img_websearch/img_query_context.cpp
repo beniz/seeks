@@ -43,7 +43,10 @@ namespace seeks_plugins
    
    img_query_context::~img_query_context()
      {
+	if (_registered)
+	  return;
 	unregister();
+	_registered = true;
      }
    
    void img_query_context::register_qc()
@@ -53,6 +56,8 @@ namespace seeks_plugins
    
    void img_query_context::unregister()
      {
+	if (!_registered)
+	  return;
 	hash_map<uint32_t,query_context*,id_hash_uint>::iterator hit;
 	if ((hit = img_websearch::_active_img_qcontexts.find(_query_hash))
 	    ==img_websearch::_active_img_qcontexts.end())
@@ -67,6 +72,7 @@ namespace seeks_plugins
 	else
 	  {
 	     img_websearch::_active_img_qcontexts.erase(hit);  // deletion is controlled elsewhere.
+	     _registered = false;
 	  }
      }
       

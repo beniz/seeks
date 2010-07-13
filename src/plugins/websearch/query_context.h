@@ -190,6 +190,11 @@ namespace seeks_plugins
 	static void fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				   std::bitset<NSEs> &engines);
 	
+	/**
+	 * \brief true if context has no results.
+	 */
+	bool empty() const { return _cached_snippets.empty(); };
+	
       public:
 	std::string _query;
 	std::string _url_enc_query;
@@ -241,6 +246,9 @@ namespace seeks_plugins
      
 	/* search engines used in this context. */
 	std::bitset<NSEs> _engines;
+     
+	/* whether this context is registered or not. */
+	bool _registered;
      };
       
 } /* end of namespace. */
