@@ -93,17 +93,40 @@ namespace seeks_plugins
 	     img_search_snippet *sp = static_cast<img_search_snippet*>(sps[i]);
 	     if (sp->_surf_keypoints)
 	       {
-		  std::vector<int> ptpairs;
+		  std::vector<surf_pair> ptpairs;
 		  ocvsurf::flannFindPairs(ref_isp->_surf_descriptors,
 					  sp->_surf_descriptors,
 					  ptpairs);
 		  double den = ref_isp->_surf_keypoints->total + sp->_surf_keypoints->total;
-		  sp->_seeks_ir = ptpairs.size() / den;
+		  //sp->_seeks_ir = ptpairs.size() / den;
+		  
+		  den /= ref_isp->_surf_keypoints->total;
+		  double num = 1.0;
+		  sp->_seeks_ir = 1.0;
+		  for (size_t j=0;j<ptpairs.size();j++)
+		    {
+		       if (ptpairs.at(j)._dist < 0.5)
+			 num += 1;// / (ptpairs.at(j)._dist+0.1);
+			 //num += 1.0/(ptpairs.at(j)._dist+0.1) * (ptpairs.at(j)._dist+0.1);
+			 /* sp->_seeks_ir += 1.0; */
+		       //else sp->_seeks_ir += 1;// / (ptpairs.at(j)._dist+0.1);
+		       else sp->_seeks_ir += (ptpairs.at(j)._dist+0.1) * (ptpairs.at(j)._dist+0.1);
+		    }
+		  //sp->_seeks_ir /= den;
+		  //sp->_seeks_ir = sqrt(sp->_seeks_ir);
+		  /* if (sp->_seeks_ir > 0.0)
+		    sp->_seeks_ir = sqrt(1/num) / sqrt(sp->_seeks_ir);// * sp->_seeks_ir); */
+		  //sp->_seeks_ir = num / den;
+		  
+		  sp->_seeks_ir = num * num * num / (sp->_seeks_ir*sp->_seeks_ir * sp->_seeks_ir);
 		  
 		  //debug
 		  /* std::cerr << "[Debug]: url: " << sp->_url
 		    << " -- score: " << sp->_seeks_ir << std::endl; */
 		  //debug
+		  
+		  /* if (sp->_seeks_ir < 1e-5)
+		    sp->_seeks_ir = 0.0; */
 	       }
 	  }
      }

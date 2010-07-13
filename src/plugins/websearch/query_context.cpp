@@ -46,14 +46,16 @@ namespace seeks_plugins
    std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
    
    query_context::query_context()
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+      _registered(false)
        {
 	  seeks_proxy::mutex_init(&_qc_mutex);
        }
       
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				const std::list<const char*> &http_headers)
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+      _registered(false)
        {
 	  seeks_proxy::mutex_init(&_qc_mutex);
 	  
@@ -184,11 +186,16 @@ namespace seeks_plugins
       
   void query_context::register_qc()
   {
+     if (_registered)
+       return;
      websearch::_active_qcontexts.insert(std::pair<uint32_t,query_context*>(_query_hash,this));
+     _registered = true;
   }
    
   void query_context::unregister()
   {
+    if (!_registered)
+       return;
     hash_map<uint32_t,query_context*,id_hash_uint>::iterator hit;
     if ((hit = websearch::_active_qcontexts.find(_query_hash))==websearch::_active_qcontexts.end())
       {
@@ -201,7 +208,8 @@ namespace seeks_plugins
       }
     else
       {
-	websearch::_active_qcontexts.erase(hit);  // deletion is controlled elsewhere.
+	 websearch::_active_qcontexts.erase(hit);  // deletion is controlled elsewhere.
+	 _registered = false;
       }
   }
 

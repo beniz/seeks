@@ -73,7 +73,7 @@ namespace seeks_plugins
 							      &sorted_snippets.at(0),ref_sp);
 	
 	// sort snippets according to computed scores.
-	std::stable_sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
+	std::sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
      }
    
 } /* end of namespace. */

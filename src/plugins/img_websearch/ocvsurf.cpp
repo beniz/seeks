@@ -63,7 +63,7 @@ namespace seeks_plugins
    
    void ocvsurf::flannFindPairs(CvSeq *o1desc,
 				CvSeq *o2desc,
-				std::vector<int> &ptpairs)
+				std::vector<surf_pair> &ptpairs)
      {
 	int length = (int)(o1desc->elem_size/sizeof(float));
 	
@@ -97,17 +97,18 @@ namespace seeks_plugins
 	cv::Mat m_indices(o1desc->total, 2, CV_32S);
 	cv::Mat m_dists(o1desc->total, 2, CV_32F);
 	cv::flann::Index flann_index(m_image, cv::flann::KDTreeIndexParams(4));  // using 4 randomized kdtrees
-	flann_index.knnSearch(m_object, m_indices, m_dists, 2, cv::flann::SearchParams(64) ); // maximum number of leafs checked
+	flann_index.knnSearch(m_object, m_indices, m_dists, 2, cv::flann::SearchParams(64) ); // 64 is maximum number of leafs checked
 	
 	int* indices_ptr = m_indices.ptr<int>(0);
 	float* dists_ptr = m_dists.ptr<float>(0);
 	for (int i=0;i<m_indices.rows;++i) 
 	  {
-	     if (dists_ptr[2*i]<0.6*dists_ptr[2*i+1]) 
+	     /* if (dists_ptr[2*i]<0.6*dists_ptr[2*i+1]) 
 	       {
 		  ptpairs.push_back(i);
 		  ptpairs.push_back(indices_ptr[2*i]);
-	       }
+	       } */
+	     ptpairs.push_back(surf_pair(i,indices_ptr[2*i],dists_ptr[2*i]/static_cast<double>(dists_ptr[2*i+1])));
 	  }
 	
 	//debug

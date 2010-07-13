@@ -219,8 +219,12 @@ namespace seeks_plugins
 								(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name 
 								 : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
 								"/search_img?");
+	
+	// unlock or destroy the query context.
 	qc->_lock = false;
 	seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	if (qc->empty())
+	  delete qc;
 	
 	return err;
      }
