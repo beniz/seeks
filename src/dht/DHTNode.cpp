@@ -45,7 +45,7 @@ namespace dht
 		    const short &net_port,
 		    const bool &generate_vnodes,
 		    const bool &start_server)
-     : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false)
+     : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false),_has_persistent_data(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
 	  {
@@ -95,8 +95,8 @@ namespace dht
 	 * - at starting time, if we do not have persistent data or if we are told to generate
 	 *   the vnodes, we do so from scratch.
 	 */
-	bool has_persistent_data = load_vnodes_table();
-	if (!has_persistent_data)
+	_has_persistent_data = load_vnodes_table();
+	if (!_has_persistent_data)
 	  create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data.
 	init_sorted_vnodes();
 	
@@ -151,6 +151,7 @@ namespace dht
 	      */
 	     _stabilizer->add_slow(&dvn->_successors);
 	  }
+	errlog::log_error(LOG_LEVEL_DHT, "Successfully generated %u virtual nodes", _vnodes.size());
      }
 
    void DHTNode::init_sorted_vnodes()
@@ -225,6 +226,8 @@ namespace dht
 	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
 								     dvn));
 	  
+	     errlog::log_error(LOG_LEVEL_DHT, "Loaded pervistent virtual node %s", dvn->getIdKey().to_rstring().c_str());
+	     
 	     /**
 	      * register vnode routing structures to the stabilizer:
 	      * - stabilize on successor continuously,

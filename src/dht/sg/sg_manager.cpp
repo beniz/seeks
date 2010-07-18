@@ -101,6 +101,11 @@ namespace dht
 	return add_sg_db(sg);
      }
       
+   bool sg_manager::clear_sg_db()
+     {
+	return _sdb.clear_db();
+     }
+   
    Searchgroup* sg_manager::find_load_or_create_sg(const DHTKey *sgkey)
      {
 	Searchgroup *sg = find_sg_memory(sgkey);

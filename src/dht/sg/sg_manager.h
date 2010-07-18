@@ -53,6 +53,8 @@ namespace dht
 	
 	bool move_to_db(Searchgroup *sg);
 	
+	bool clear_sg_db();
+	
 	/* general management. */
 	Searchgroup* find_load_or_create_sg(const DHTKey *sgkey);
 	

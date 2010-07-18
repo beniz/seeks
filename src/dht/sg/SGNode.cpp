@@ -38,6 +38,10 @@ namespace dht
 	if (!sg_configuration::_sg_config)
 	  sg_configuration::_sg_config = new sg_configuration(SGNode::_sg_config_filename);
 	
+	/* check whether our search groups are in sync with our virtual nodes. */
+	if (!_has_persistent_data) // set in DHTNode constructor.
+	  reset_vnodes_dependent(); // resets data that is dependent on virtual nodes.
+	
 	/* init server. */
 	init_server();
 	_l1_server->run_thread();
@@ -56,6 +60,12 @@ namespace dht
 	_l1_client = new l2_protob_rpc_client(); 
      }
    
+   void SGNode::reset_vnodes_dependent()
+     {
+	// resets searchgroup data, as it is dependent on the virtual nodes.
+	_sgmanager.clear_sg_db();
+     }
+      
    dht_err SGNode::RPC_subscribe_cb(const DHTKey &recipientKey,
 				    const NetAddress &recipient,
 				    const DHTKey &senderKey,

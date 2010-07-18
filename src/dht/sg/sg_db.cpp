@@ -48,7 +48,7 @@ namespace dht
 	// delete db.
 	tchdbdel(_hdb);
      }
-   
+
    int sg_db::open_db()
      {
 	if(!tchdbopen(_hdb, _name.c_str(), HDBOWRITER | HDBOCREAT))
@@ -77,6 +77,17 @@ namespace dht
 	return 0;
      }
    
+   int sg_db::clear_db()
+     {
+	if(!tchdbvanish(_hdb))
+	  {
+	     int ecode = tchdbecode(_hdb);
+	     errlog::log_error(LOG_LEVEL_DHT,"sg db clearing error: %s",tchdberrmsg(ecode));
+	     return ecode;
+	  }
+	return 0;
+     }
+      
    uint64_t sg_db::disk_size() const
      {
 	return tchdbfsiz(_hdb);

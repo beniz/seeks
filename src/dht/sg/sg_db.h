@@ -44,6 +44,8 @@ namespace dht
 	
 	int close_db();
 	
+	int clear_db();
+	
 	Searchgroup* find_sg_db(const DHTKey &sgkey);
 	
 	bool remove_sg_db(const DHTKey &sgkey);

@@ -37,7 +37,9 @@ namespace dht
 	~SGNode();
 	
 	virtual void init_server();
-     
+
+	virtual void reset_vnodes_dependent();
+	
 	/*- RPC callbacks. -*/
 	dht_err RPC_subscribe_cb(const DHTKey &recipientKey,
 				 const NetAddress &recipient,

@@ -57,6 +57,11 @@ namespace dht
 	 */
 	virtual void init_server();
 	
+	/**
+	 * resets data and structures that are dependent on the virtual nodes.
+	 */
+	virtual void reset_vnodes_dependent() {};
+	
 	/*- persistence. -*/
 	/**
 	 * \brief loads table of virtual nodes and location tables from persistent
@@ -258,6 +263,13 @@ namespace dht
 	 * (i.e. at least one of its virtual nodes is).
 	 */
 	bool _connected;
+     
+	/**
+	 * whether this node is running on persistent data
+	 * (virtual node keys that were created and left by
+	 * another object, another run).
+	 */
+	bool _has_persistent_data;
      };
    
 } /* end of namespace. */
