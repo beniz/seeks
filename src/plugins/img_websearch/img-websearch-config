@@ -1,0 +1,10 @@
+# one or more enabled search engines
+# google, bing
+img-search-engine google
+img-search-engine bing
+
+# enables background download of image thumbnails and their analysis 
+# for detecting identical and near-identical images.
+# Expected to be both slower and more bandwith demanding than when
+# not activated.
+img-content-analysis 0

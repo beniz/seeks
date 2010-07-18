@@ -51,6 +51,10 @@ namespace seeks_plugins
      
 	// main options.
 	std::bitset<IMG_NSEs> _img_se_enabled; /**< enabled image search engines. */
+	bool _img_content_analysis; /**< whether to download image thumbnails to detect identical images, or not. */
+	
+	// configuration object.
+	static img_websearch_configuration *_img_wconfig;
      };
 
 } /* end of namespace. */
