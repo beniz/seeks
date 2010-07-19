@@ -19,6 +19,7 @@
 #ifndef HTTPSERV_H
 #define HTTPSERV_H
 
+#include "config.h"
 #include "plugin.h"
 
 #include <event.h>
@@ -70,6 +71,9 @@ namespace seeks_plugins
 	static void opensearch_xml(struct evhttp_request *r, void *arg);
 	static void file_service(struct evhttp_request *r, void *arg);
 	static void websearch(struct evhttp_request *r, void *arg);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+	static void img_websearch(struct evhttp_request *r, void *arg);
+#endif
 	static void unknown_path(struct evhttp_request *r, void *arg);
 	
 	/* utils. */

@@ -5,6 +5,9 @@ httpservplugindatadir = $(datadir)/seeks/plugins/httpserv
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I../websearch -I../../utils -I../../lsh -I../../proxy
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_CPPFLAGS+=-I../img_websearch
+endif
 ACLOCAL_AMFLAGS=-I m4
 httpservpluginlib_LTLIBRARIES=libseekshttpservplugin.la
 libseekshttpservplugin_la_SOURCES=httpserv_configuration.cpp httpserv.cpp

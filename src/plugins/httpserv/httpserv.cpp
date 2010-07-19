@@ -26,6 +26,10 @@
 #include "miscutil.h"
 #include "errlog.h"
 
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch.h"
+#endif
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -113,6 +117,9 @@ namespace seeks_plugins
    void httpserv::init_callbacks()
      {
 	evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+	evhttp_set_cb(_srv,"/search_img",&httpserv::img_websearch,NULL);
+#endif
 	evhttp_set_cb(_srv,"/",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/websearch-hp",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
@@ -387,7 +394,68 @@ namespace seeks_plugins
 	  content = std::string(rsp._body); // XXX: beware of length.
 	httpserv::reply_with_body(r,200,"OK",content,ct);
      }
-   
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+   void httpserv::img_websearch(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+     
+	 /* parse query. */
+	const char *uri_str = r->uri;
+	int err = 0;
+	if (uri_str)
+	  {
+	     std::string uri = std::string(r->uri);
+	     err = httpserv::parse_query(uri,*parameters);
+	  }
+	if (err != 0 || !uri_str)
+	  {
+	     // send 400 error response.
+	     httpserv::reply_with_error_400(r);
+	     return;
+	  }
+	
+	/* fill up csp headers. */
+	 const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
+	if (rheader)
+	  miscutil::enlist_unique_header(&csp._headers,"accept-language",strdup(rheader));
+	
+	/* perform websearch. */
+	sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
+	miscutil::free_map(parameters);
+	miscutil::list_remove_all(&csp._headers);
+	
+	if (serr != SP_ERR_OK)
+	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
+             httpserv::reply_with_error(r,500,"ERROR",error_message);
+             return;
+          }
+	
+	/* fill up response. */
+	std::string ct; // content-type.
+	std::list<const char*>::const_iterator lit = rsp._headers.begin();
+	while(lit!=rsp._headers.end())
+	  {
+	     if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+	       {
+		  ct = std::string((*lit));
+		  ct = ct.substr(14);
+		  break;
+	       }
+	     ++lit;
+	  }
+	std::string content;
+	if (rsp._body)
+	  content = std::string(rsp._body); // XXX: beware of length.
+	httpserv::reply_with_body(r,200,"OK",content,ct);
+     }
+#endif
+      
    void httpserv::unknown_path(struct evhttp_request *r, void *arg)
      {
 	httpserv::reply_with_empty_body(r,404,"ERROR");
