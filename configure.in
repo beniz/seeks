@@ -393,7 +393,7 @@ fi
 
 # Requires OpenCV >= 2.0
 if test x$imgwebsearch = xtrue; then
-   PKG_CHECK_MODULES([opencv],[opencv])
+   PKG_CHECK_MODULES([opencv],[opencv >= 2.0],AC_DEFINE(FEATURE_OPENCV2,1,"OpenCV library is there"))
 fi
 
 #====================================================
@@ -464,7 +464,7 @@ fi
 fi
 ])
 #LIBS="$LIBS -levent"
-if test $ac_cv_libevent_dir != "(system)"; then
+if test "$ac_cv_libevent_dir" != "(system)"; then
    if test -d "$ac_cv_libevent_dir/lib" ; then
       LDFLAGS="-L$ac_cv_libevent_dir/lib $LDFLAGS"
       le_libdir="$ac_cv_libevent_dir/lib"
