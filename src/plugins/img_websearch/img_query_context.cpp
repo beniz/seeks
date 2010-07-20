@@ -43,10 +43,7 @@ namespace seeks_plugins
    
    img_query_context::~img_query_context()
      {
-	if (_registered)
-	  return;
 	unregister();
-	_registered = true;
      }
    
    void img_query_context::register_qc()
