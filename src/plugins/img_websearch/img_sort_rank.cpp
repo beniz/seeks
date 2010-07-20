@@ -1,3 +1,4 @@
+
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
@@ -18,6 +19,7 @@
 
 #include "img_sort_rank.h"
 #include "img_content_handler.h"
+#include "ocvsurf.h"
 
 namespace seeks_plugins
 {
@@ -25,7 +27,22 @@ namespace seeks_plugins
    void img_sort_rank::sort_rank_and_merge_snippets(img_query_context *qc,
 						    std::vector<search_snippet*> &snippets)
      {
-	static double st = 0.9; // similarity threshold.
+	static double st = 0.47; // similarity threshold.
+	
+#ifdef FEATURE_OPENCV2
+	if (img_websearch_configuration::_img_wconfig->_img_content_analysis)
+	  {
+	     // fill up the cache first.
+	     qc->update_unordered_cache();
+	     
+	     // fetch all image thumbnails and compute SURF features.
+	     // XXX: time consuming.
+	     img_content_handler::fetch_all_img_snippets_and_features(qc);
+	  
+	     // clear unordered cache.
+	     qc->_unordered_snippets.clear();
+	  }
+#endif
 	
 	std::vector<search_snippet*>::iterator it = snippets.begin();
 	img_search_snippet *c_sp = NULL;
@@ -36,8 +53,69 @@ namespace seeks_plugins
 	       {
 		  if ((c_sp = static_cast<img_search_snippet*>(qc->get_cached_snippet(sp->_id)))!=NULL)
 		    {
-		       //TODO: merge image snippets.
+		       // merge image snippets.
+		       std::cerr << "merging into " << c_sp->_url << std::endl;
+		       img_search_snippet::merge_img_snippets(c_sp,sp);
+		       c_sp->_seeks_rank = c_sp->_img_engine.count();
+		       it = snippets.erase(it);
+		       delete sp;
+		       sp = NULL;
+		       continue;
 		    }
+#ifdef FEATURE_OPENCV2
+		  if (img_websearch_configuration::_img_wconfig->_img_content_analysis) // compare to other snippets to detect identical images. 
+		    {
+		       // check on similarity w.r.t. other thumbnails.
+		       if (sp->_surf_keypoints)
+			 {
+			    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator sit = qc->_unordered_snippets.begin();
+			    while(sit!=qc->_unordered_snippets.end())
+			      {
+				 if ((*sit).second == (*it))
+				   {
+				      ++sit;
+				      continue;
+				   }
+				 
+				 img_search_snippet *ssp = static_cast<img_search_snippet*>((*sit).second);
+				 if (!ssp->_surf_keypoints)
+				   {
+				      ++sit;
+				      continue;
+				   }
+				 				 
+				 std::vector<surf_pair> ptpairs;
+				 ocvsurf::flannFindPairs(sp->_surf_descriptors,ssp->_surf_descriptors,
+							 ptpairs);
+				 double den = sp->_surf_keypoints->total + ssp->_surf_keypoints->total;
+				 size_t npt = ptpairs.size();
+				 int np = 0;
+				 for (size_t j=0;j<npt;j++)
+				   {
+				      if (ptpairs.at(j)._dist < 0.6)
+					np++;
+				   }
+				 double score = 2.0 * np / den;
+				 
+				 if (score > st) // over threshold, that is > ~0.5
+				   {
+				      // merge current image snippet and delete it.
+				      std::cerr << "merging (" << score << ") " << sp->_url << " into " << ssp->_url << std::endl;
+				      img_search_snippet::merge_img_snippets(ssp,sp);
+				      ssp->_seeks_rank = ssp->_img_engine.count();
+				      it = snippets.erase(it);
+				      //qc->remove_from_unordered_cache(sp->_id);
+				      delete sp;
+				      sp = NULL;
+				      break;
+				   }
+				 else ++sit;
+			      }
+			 }
+		    }
+#endif
+		  if (!sp)
+		    continue;
 		  
 		  sp->_seeks_rank = sp->_img_engine.count();
 		  sp->_new = false;
