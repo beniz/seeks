@@ -14,6 +14,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * Portions of the code below appear in the sample code from OpenCV with
+ * the following comment:
+ * A Demo to OpenCV Implementation of SURF
+ * Further Information Refer to "SURF: Speed-Up Robust Feature"
+ * Author: Liu Liu
+ * liuliu.1987+opencv@gmail.com
  */
 
 #include "ocvsurf.h"
@@ -60,7 +67,7 @@ namespace seeks_plugins
 	 std::cerr << "keypoints: " << objectKeypoints->total << " -- descriptors: " << objectDescriptors->total << std::endl; */
 	//debug
      }
-   
+
    void ocvsurf::flannFindPairs(CvSeq *o1desc,
 				CvSeq *o2desc,
 				std::vector<surf_pair> &ptpairs)
@@ -97,7 +104,7 @@ namespace seeks_plugins
 	cv::Mat m_indices(o1desc->total, 2, CV_32S);
 	cv::Mat m_dists(o1desc->total, 2, CV_32F);
 	cv::flann::Index flann_index(m_image, cv::flann::KDTreeIndexParams(4));  // using 4 randomized kdtrees
-	flann_index.knnSearch(m_object, m_indices, m_dists, 2, cv::flann::SearchParams(64) ); // 64 is maximum number of leafs checked
+	flann_index.knnSearch(m_object, m_indices, m_dists, 2, cv::flann::SearchParams(64) ); // 64 is maximum number of leaves being checked
 	
 	int* indices_ptr = m_indices.ptr<int>(0);
 	float* dists_ptr = m_dists.ptr<float>(0);
@@ -115,6 +122,8 @@ namespace seeks_plugins
 	//std::cout << "ptpairs size: " << ptpairs.size() << std::endl;
 	//debug
      }
-      
+
+   
+   
 } /* end of namespace. */
   
