@@ -197,7 +197,11 @@ namespace seeks_plugins
 	std::list<const char*>::const_iterator sit = qc->_useful_http_headers.begin();
 	while(sit!=qc->_useful_http_headers.end())
 	  {
-	     lheaders->push_back(strdup((*sit)));
+	     if (se == GOOGLE_IMG && miscutil::strncmpic((*sit),"user-agent:",11) == 0)
+	       {
+		  // XXX: ggle seems to render queries based on the user agent.
+	       }
+	     else lheaders->push_back(strdup((*sit)));
 	     ++sit;
 	  }
 	
