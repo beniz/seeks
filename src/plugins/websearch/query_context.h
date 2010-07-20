@@ -118,6 +118,11 @@ namespace seeks_plugins
 	void add_to_unordered_cache(search_snippet *sr);
 	
 	/**
+	 * \brief removes a snippet from the unordered cache set.
+	 */
+	void remove_from_unordered_cache(const uint32_t &id);
+	
+	/**
 	 * \brief updates unordered cached snippets. This set is for fast access
 	 * and update to the snippets in the cache.
 	 */

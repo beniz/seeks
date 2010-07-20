@@ -330,6 +330,15 @@ namespace seeks_plugins
 	else _unordered_snippets.insert(std::pair<uint32_t,search_snippet*>(sr->_id,sr));
      }
       
+   void query_context::remove_from_unordered_cache(const uint32_t &id)
+     {
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	if ((hit=_unordered_snippets.find(id))!=_unordered_snippets.end())
+	  {
+	     _unordered_snippets.erase(hit);
+	  }
+     }
+      
    void query_context::update_unordered_cache()
      {
 	size_t cs_size = _cached_snippets.size();
