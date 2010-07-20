@@ -26,6 +26,10 @@
 #include "static_renderer.h"
 #include "seeks_proxy.h"
 
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/times.h>
+
 using namespace sp;
 
 namespace seeks_plugins
@@ -41,10 +45,21 @@ namespace seeks_plugins
 	  _version_major = "0";
 	  _version_minor = "1";
 	  
-	  //TODO: config filename.
+	  // config filename.
+	  if (seeks_proxy::_datadir.empty())
+	    _config_filename = plugin_manager::_plugin_repository + "img_websearch/img-websearch-config";
+	  else _config_filename = seeks_proxy::_datadir + "/plugins/img_websearch/img-websearch-config";
+	  
+#ifdef SEEKS_CONFIGDIR
+	  struct stat stFileInfo;
+	  if (!stat(_config_filename.c_str(), &stFileInfo)  == 0)
+	    {
+	       _config_filename = SEEKS_CONFIGDIR "/img-websearch-config";
+	    }
+#endif
 	  
 	  if (img_websearch::_iwconfig == NULL)
-	    img_websearch::_iwconfig = new img_websearch_configuration("img-websearch-config"); //TODO: filename.
+	    img_websearch::_iwconfig = new img_websearch_configuration(_config_filename);
 	  
 	  // cgi dispatchers.
 	  cgi_dispatcher *cgid_img_wb_search
@@ -223,8 +238,8 @@ namespace seeks_plugins
 	// unlock or destroy the query context.
 	qc->_lock = false;
 	seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-	if (qc->empty())
-	  delete qc;
+	/* if (qc->empty())
+	  delete qc; */
 	
 	return err;
      }
