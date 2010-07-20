@@ -32,13 +32,12 @@ namespace seeks_plugins
 {
    
    img_search_snippet::img_search_snippet()
-     :search_snippet(),_cached_image(NULL),_surf_keypoints(NULL),_surf_descriptors(NULL),
-      _surf_storage(NULL)
+     :search_snippet(),_surf_keypoints(NULL),_surf_descriptors(NULL),_surf_storage(NULL),_cached_image(NULL)
        {
        }
    
    img_search_snippet::img_search_snippet(const short &rank)
-     :search_snippet(rank),_cached_image(NULL),_surf_keypoints(NULL),_surf_descriptors(NULL)
+     :search_snippet(rank),_surf_keypoints(NULL),_surf_descriptors(NULL),_cached_image(NULL)
        {
 	  _surf_storage = cvCreateMemStorage(0);
        }
@@ -106,9 +105,12 @@ namespace seeks_plugins
 	     urlmatch::parse_url_host_and_path(_url,cite_host,cite_path);
 	     cite_enc = encode::html_encode(cite_host.c_str());
 	  }
-	html_content += "<cite>";
-	html_content += cite_enc;
+	std::string cite_enc_str = std::string(cite_enc);
+	if (cite_enc_str.size()>4 && cite_enc_str.substr(0,4)=="www.") //TODO: tolower.
+	  cite_enc_str = cite_enc_str.substr(4);
 	free_const(cite_enc);
+	html_content += "<cite>";
+	html_content += cite_enc_str;
 	html_content += "</cite><br>";
 	
 	if (!_cached.empty())
@@ -168,6 +170,21 @@ namespace seeks_plugins
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
 	    + "&amp;action=expand";
 	_sim_back = true;
+     }
+
+   void img_search_snippet::merge_img_snippets(img_search_snippet *s1,
+					       const img_search_snippet *s2)
+     {
+	search_snippet::merge_snippets(s1,s2);
+	
+	std::bitset<IMG_NSEs> setest = s1->_img_engine;
+	setest &= s2->_img_engine;
+	if (setest.count()>0)
+	  return;
+	s1->_img_engine |= s2->_img_engine;
+     
+	if (!s1->_cached_image && s2->_cached_image)
+	  s1->_cached_image = new std::string(*s2->_cached_image);
      }
       
 } /* end of namespace. */

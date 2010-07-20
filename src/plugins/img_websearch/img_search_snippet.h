@@ -57,6 +57,10 @@ namespace seeks_plugins
 	
 	virtual void set_back_similarity_link();
 	
+	static void merge_img_snippets(img_search_snippet *s1,
+				       const img_search_snippet *s2);
+	
+	// variables.
 	std::bitset<IMG_NSEs> _img_engine;
 	
 	// OpenCV feature format.
