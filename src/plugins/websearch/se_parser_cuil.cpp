@@ -81,7 +81,7 @@ namespace seeks_plugins
 		       return; // stop here, do not create the snippet.
 		    }
 		  int count = atoi(count_str.c_str());
-		  search_snippet *sp = new search_snippet(count-1);
+		  search_snippet *sp = new search_snippet(count);
 		  sp->_engine |= std::bitset<NSEs>(SE_CUIL);
 		  pc->_current_snippet = sp;
 		  _screening = true;
