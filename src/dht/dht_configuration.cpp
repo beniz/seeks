@@ -35,7 +35,8 @@ namespace dht
 #define hash_max_hops                                     1040979360ul  /* "max-hops" */
 #define hash_succlist_size                                2998048309ul  /* "succlist-size" */
 #define hash_routing                                      2057335831ul  /* "routing" */
-
+#define hash_rejoin_timeout                               2877119161ul  /* "rejoin-timeout" */
+   
    dht_configuration* dht_configuration::_dht_config = NULL;
    
    dht_configuration::dht_configuration(const std::string &filename)
@@ -60,6 +61,7 @@ namespace dht
 	_max_hops = 12; // 12 hops ~ l(100000).
 	_succlist_size = 10; // XXX: in the future, should be reset dynamically w.r.t. estimated number of nodes on the ring.
 	_routing = true; // XXX: in stable releases, routing will be set to false.
+	_rejoin_timeout = 30; // periodic rejoin check every 30 seconds after being cut from the network.
      }
    
    void dht_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -135,6 +137,12 @@ namespace dht
 	     _routing = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Whether all virtual nodes are active or spectators (safe with TOR)");
+	     break;
+	     
+	   case hash_rejoin_timeout:
+	     _rejoin_timeout = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Timeout between two attempts to rejoin the circle of DHT nodes");
 	     break;
 	     
 	   default:

@@ -45,6 +45,9 @@ namespace dht
 #else
 	  _idkey = DHTNode::generate_uniform_key();
 #endif
+	  
+	  errlog::log_error(LOG_LEVEL_DHT, "Generated virtual node %s", _idkey.to_rstring().c_str());
+	  
 	  /**
 	   * initialize other structures.
 	   */
@@ -162,7 +165,9 @@ namespace dht
 		  //TODO: forward replication.
 		  replication_trickle_forward(old_pred_loc->getDHTKey(),start_replication_radius);
 		  
-		  //TODO: remove old_pred_loc from location table.
+		  // remove old_pred_loc from location table.
+		  if (!_successors.has_key(old_pred_loc->getDHTKey())) // XXX: prevents rare case in which our predecessor is also our successor (two-nodes ring).
+		    removeLocation(old_pred_loc);
 	       }
 	  }
 	return DHT_ERR_OK;
@@ -220,7 +225,7 @@ namespace dht
 	
 	return err;
      }
-   
+      
    dht_err DHTVirtualNode::find_successor(const DHTKey& nodeKey,
 					  DHTKey& dkres, NetAddress& na)
      {
@@ -627,6 +632,11 @@ namespace dht
 	  }
      }
 
+   LocationTable* DHTVirtualNode::getLocationTable() const
+     {
+	return _lt;
+     }
+      
    Location* DHTVirtualNode::findLocation(const DHTKey& dk) const
      {
 	return _lt->findLocation(dk);

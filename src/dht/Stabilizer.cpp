@@ -20,6 +20,8 @@
 
 #include "Stabilizer.h"
 #include "Random.h"
+#include "DHTVirtualNode.h"
+#include "dht_configuration.h"
 #include <math.h>
 #include <iostream>
 #include <time.h>
@@ -265,6 +267,50 @@ namespace dht
 	return true;
      }
    
-     
-   
+   int Stabilizer::rejoin(DHTVirtualNode *vnode)
+     {
+	// grab a bootstrap node list.
+	std::vector<NetAddress> bootstrap_nodelist 
+	  = dht_configuration::_dht_config->_dht_config->_bootstrap_nodelist;
+	
+	// try to bootstrap.
+	bool success = false;
+	std::vector<NetAddress>::const_iterator vit = bootstrap_nodelist.begin();
+	while(vit!=bootstrap_nodelist.end())
+	  {
+	     NetAddress na_boot = (*vit);
+	     
+	     // try to bootstrap from every node in the list.
+	     dht_err status = DHT_ERR_OK;
+	     DHTKey dk_bootstrap; // empty key is handled by the called node when asking for a bootstrap.
+	     dht_err err = vnode->join(dk_bootstrap,na_boot,
+				       vnode->getIdKey(),status);
+	     
+	     // check on error and reschedule a rejoin call if needed.
+	     if (err != DHT_ERR_OK || (dht_err) status != DHT_ERR_OK)
+		 {
+		    // failure, try next bootstrap node.
+		    ++vit;
+		    continue;
+		 }
+	     
+	     success = true;
+	     break;
+	  }
+		     
+	// if unsuccessful, schedule another rejoin call.
+	if (!success)
+	  {
+	     timespec tsp, tsnow;
+	     clock_gettime(CLOCK_REALTIME,&tsnow);
+	     tsp.tv_sec = tsnow.tv_sec + dht_configuration::_dht_config->_rejoin_timeout; // XXX: we leave nanoseconds to 0.
+	     bool output = false;
+	     callback<int>::ref fscb= wrap(this, &Stabilizer::rejoin, vnode);
+	     insert(tsp, fscb);
+	     return 0;
+	  }
+	
+	return 1;
+     }
+      
 } /* end of namespace. */

@@ -19,6 +19,7 @@
  */
 
 #include "LocationTable.h"
+#include "DHTNode.h"
 #include "errlog.h"
 
 #include <assert.h>
@@ -61,7 +62,7 @@ namespace dht
 	  }
 	else {
 	   mutex_unlock(&_lt_mutex);
-	   errlog::log_error(LOG_LEVEL_DHT, "findLocation: can't find location to key %s", dk.to_rstring().c_str());
+	   //errlog::log_error(LOG_LEVEL_DHT, "findLocation: can't find location to key %s", dk.to_rstring().c_str());
 	   return NULL;  //beware: this should be handled outside this function.	
 	}
      }
@@ -168,6 +169,20 @@ namespace dht
 	//debug
 	
 	dkres = succ_loc->getDHTKey();
+     }
+
+   bool LocationTable::has_only_virtual_nodes(DHTNode *pnode) const
+     {
+	hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::const_iterator
+	  hit = _hlt.begin();
+	while(hit!=_hlt.end())
+	  {
+	     DHTKey lkey = (*hit).second->getDHTKey();
+	     if (!pnode->findVNode(lkey))
+	       return false;
+	     ++hit;
+	  }
+	return true;
      }
       
    void LocationTable::print(std::ostream &out) const 

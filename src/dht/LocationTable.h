@@ -27,6 +27,8 @@
 
 namespace dht
 {
+   class DHTNode;
+   
    class LocationTable
      {
       private:
@@ -86,6 +88,12 @@ namespace dht
 				  DHTKey &dkres);
 	
 	/**
+	 * \brief checks whether this table contains only local virtual nodes.
+	 * @return true if it does, false otherwise.
+	 */
+	bool has_only_virtual_nodes(DHTNode *pnode) const;
+	
+	/**
 	 * \brief prints the location table.
 	 */
 	void print(std::ostream &out) const;
@@ -96,16 +104,7 @@ namespace dht
 	 * TODO: should we add the local virtual nodes to it ? (why not?).
 	 */
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey> _hlt;
-	
-	/**
-	 * (TODO: table of ranked known peers on this system ?) PatTree ?.
-	 */
-	
-	
-	/**
-	 * TODO: set of cached peers (locations) ?.
-	 */
-	
+		
 	/**
 	 * mutex for table.
 	 */

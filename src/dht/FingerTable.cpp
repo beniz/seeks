@@ -25,6 +25,8 @@
 
 #include <assert.h>
 
+//#define DEBUG
+
 using lsh::Random;
 using sp::errlog;
 
@@ -163,7 +165,13 @@ namespace dht
 	 * lookup for the peer.
 	 */
 	Location* succ_loc = findLocation(*succ);
-	
+	if (!succ_loc)
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT,"Stabilize: cannot find successor %s in location table",
+			       succ->to_rstring().c_str());
+	     return DHT_ERR_UNKNOWN_PEER_LOCATION;
+	  }
+		
         /**
 	 * RPC call to get the predecessor.
 	 */
@@ -336,10 +344,24 @@ namespace dht
 	//TODO: rejoin + wrong test here.
 	if (_vnode->_successors.empty())
 	  {
-	     std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n";
-	     exit(0);
+	     /* std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n"; */
+	     errlog::log_error(LOG_LEVEL_DHT,"Node %s has no more successors",_vnode->getIdKey().to_rstring().c_str());
+	     
+	     // single virtual node rejoin scheme.
+	     _vnode->getPNode()->_stabilizer->rejoin(_vnode);
+	     
+	     //exit(0);
 	  }
-		
+	else if (successor_change)
+	  {
+	     // check wether we are on a ring of our virtual nodes only,
+	     // that is if we are not cut from the network, and need to
+	     // rejoin.
+	     // XXX: this should occur after the DHT node has lost connection
+	     // with the outside world from all of its virtual nodes.
+	     _vnode->getPNode()->rejoin();
+	  }
+	
 	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
 	  {
 #ifdef DEBUG
@@ -459,7 +481,7 @@ namespace dht
 	     //debug
 #endif
 	     
-	     errlog::log_error(LOG_LEVEL_DHT, "Error finding successor when fixing finger.\n");
+	     errlog::log_error(LOG_LEVEL_DHT, "Error finding successor when fixing finger.");
 	     return status;
 	  }
 	

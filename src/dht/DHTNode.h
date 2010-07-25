@@ -87,12 +87,12 @@ namespace dht
 	
 	/*- main functions -*/
 	/**
-	 * DHTNode key generation, one per virtual node.
+	 * \brief DHTNode key generation, one per virtual node.
 	 */
 	static DHTKey generate_uniform_key();
 	
 	/**
-	 * join at startup.
+	 * \brief join at startup.
 	 * tries from the list in configuration file and with the LocationTable information if any, 
 	 * and if reset is not true.
 	 */
@@ -100,7 +100,12 @@ namespace dht
 			   const bool &reset);
 	
 	/**
-	 * self-boostrap.
+	 * \brief rejoin all virtual nodes.
+	 */
+	dht_err rejoin();
+	
+	/**
+	 * \brief self-boostrap.
 	 * Bootstraps itself by building a circle of its virtual nodes.
 	 * Useful only for the first node of a circle.
 	 */
@@ -112,6 +117,8 @@ namespace dht
       public:
 	void estimate_nodes(const unsigned long &nnodes,
 			    const unsigned long &nnvnodes);
+	
+	bool on_ring_of_virtual_nodes();
 	
       public:
 	/**

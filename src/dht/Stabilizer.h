@@ -70,6 +70,8 @@ namespace dht
 	int _stabilizing_fast;
 	int _stabilizing_slow;
      };
+
+   class DHTVirtualNode;
    
    class Stabilizer : public BstTimeCbTree 
      {
@@ -109,6 +111,12 @@ namespace dht
 	 */
 	bool fast_stabilizing() const;
 	bool slow_stabilizing() const;
+	
+	/**
+	 * \brief rejoin scheme for virtual nodes that for some random reason (network problem,
+	 * latency, ...) may have left the circle.
+	 */
+	int rejoin(DHTVirtualNode *vnode);
 	
       private:
 	/**

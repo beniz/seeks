@@ -353,9 +353,12 @@ namespace dht
 	  {
 	     NetAddress na = (*nit);
 	     
-	     std::cerr << "[Debug]: trying to bootstrap from " << na.toString() << std::endl;
+	     // XXX: we don't ping the bootstrap node because we do not have its key.
+	     // we could ping the machine but the result would be the same as trying to
+	     // bootstrap from it, since any alive node can be used as a bootstrap.
 	     
-	     // TODO: errlog.
+	     // output.
+	     errlog::log_error(LOG_LEVEL_DHT,"trying to bootstrap from %s",na.toString().c_str());
 	     
 	     // join.
 	     DHTKey key;
@@ -374,6 +377,18 @@ namespace dht
 	return DHT_ERR_BOOTSTRAP; // TODO: check on error status.
      }
 
+   dht_err DHTNode::rejoin()
+     {
+	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator
+	  hit = _vnodes.begin();
+	while(hit!=_vnodes.end())
+	  {
+	     _stabilizer->rejoin((*hit).second);
+	     ++hit;
+	  }
+	return DHT_ERR_OK;
+     }
+      
    dht_err DHTNode::self_bootstrap()
      {
 	//debug
@@ -835,7 +850,7 @@ namespace dht
 	  {
 	     DHTVirtualNode *vnode = (*hit).second;
 	     int status = 0;
-	     dht_err err = vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // TODO: could make a single call instead ?
+	     dht_err err = vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // XXX: could make a single call instead ?
 	     
 	     // local errors.
 	     if (err != DHT_ERR_OK)
@@ -1026,4 +1041,17 @@ namespace dht
 	  }
      }
         
+   bool DHTNode::on_ring_of_virtual_nodes()
+     {
+	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator
+	  hit = _vnodes.begin();
+	while(hit!=_vnodes.end())
+	  {
+	     if (!(*hit).second->getLocationTable()->has_only_virtual_nodes(this))
+	       return false;
+	     ++hit;
+	  }
+	return true;
+     }
+      
 } /* end of namespace. */

@@ -52,7 +52,8 @@ namespace dht
 	int _max_hops; /**< max number of hops when finding a route around the circle. */
 	int _succlist_size; /**< max number of elements in successor list. */
 	bool _routing; /**< whether routing is activated, i.e. our nodes are active or spectators. */
-     
+	short _rejoin_timeout; /**< timeout between two rejoin attempts, in seconds. */
+	
 	static dht_configuration *_dht_config;
      };
    

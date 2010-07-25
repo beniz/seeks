@@ -105,11 +105,11 @@ namespace dht
 	/**---------------------------------------**/
 	
 	/**-- functions using RPCs. --**/
-	dht_err join(const DHTKey& dk_boostrap,
-		     const NetAddress &dk_boostrap_na,
+	dht_err join(const DHTKey& dk_bootstrap,
+		     const NetAddress &dk_bootstrap_na,
 		     const DHTKey& senderKey,
 		     int& status);
-	
+			       
 	dht_err find_successor(const DHTKey& nodeKey,
 			       DHTKey& dkres, NetAddress& na);
 	
