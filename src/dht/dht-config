@@ -63,6 +63,11 @@ succlist-size 10
 # default: 0
 routing 0
 
+# Timeout in seconds between to rejoin trials after being cut off from
+# the network.
+# default: 30
+rejoing-timeout 30
+
 # Search group options are below.
 
 # Maximum memory size allocated to the storage of searchgroup.
