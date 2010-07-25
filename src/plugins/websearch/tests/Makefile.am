@@ -16,7 +16,8 @@ if USE_PERL
 endif
 if HAVE_DHT
  AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/rpc/protob \
-               -L../../../dht/sg -L../../../dht/sg/rpc -L../../../dht/sg/protob `pkg-config --libs protobuf`
+               -L../../../dht/sg -L../../../dht/sg/rpc -L../../../dht/sg/protob `pkg-config --libs protobuf` \
+	       `pkg-config --libs tokyocabinet`
 endif
 LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
 if HAVE_DHT
