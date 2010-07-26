@@ -63,8 +63,9 @@ namespace sp
 	     std::list<const char*>::iterator lit = _headers.begin();
 	     while(lit!=_headers.end())
 	       {
-		  //free_const((*lit));
-		  ++lit;
+		  const char *head = (*lit);
+		  lit = _headers.erase(lit);
+		  free_const(head);
 	       }
 	  }
 	_head_length = 0;
