@@ -17,8 +17,11 @@ AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
 LDADD=-lseekswebsearchplugin
 if HAVE_HTTPSERV_PLUGIN
-AM_LDFLAGS+=-Lplugins/img_websearch
-LDADD += -levent -lseeksimgwebsearchplugin
+LDADD += -levent
+endif
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_LDFLAGS += -Lplugins/img_websearch
+LDADD += -lseeksimgwebsearchplugin
 endif
 LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
 if !HAVE_FREEBSD
