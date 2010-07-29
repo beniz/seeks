@@ -1429,3 +1429,4 @@ socket-timeout 300
 #hide-console
 #
 #
+activated-plugin httpserv
