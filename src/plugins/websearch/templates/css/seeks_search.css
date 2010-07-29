@@ -143,11 +143,11 @@ body {
 }
 
 #search_results .highlight {
-        color: purple;
+        color: #6666FF;
 }
 
 #search_results .highlight a {
-        color: purple;
+        color: #6666FF;
 	text-decoration: none;
 }
 
