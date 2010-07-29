@@ -27,9 +27,10 @@ Compilation options can be listed with ./configure --help
 This is an early version of Seeks, it is recommended your run it from the
 repository you compiled it from.
 
-do ./seeks
-see ./seeks --help
-for options.
+cd src
+./seeks
+
+see ./seeks --help for options.
 
 For example, by default seeks does not run as a daemon. If you would like
 to have it so, run ./seeks --daemon
