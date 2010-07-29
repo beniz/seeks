@@ -25,6 +25,7 @@
 
 #include "ocvsurf.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #include <iostream>
 #include <fstream>
@@ -32,6 +33,7 @@
 #include <unistd.h>
 
 using sp::miscutil;
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -64,8 +66,17 @@ namespace seeks_plugins
 	unlink(tfname.c_str());
 	
 	// extract SURF features.
-	cvExtractSURF(img, 0, &objectKeypoints, &objectDescriptors, 
-		      sg->_surf_storage, ocvsurf::_surf_params);
+	try
+	  {
+	     cvExtractSURF(img, 0, &objectKeypoints, &objectDescriptors, 
+			   sg->_surf_storage, ocvsurf::_surf_params);
+	  }
+	catch (cv::Exception e)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error extracting features from image loaded from %s: %s", tfname.c_str(),
+			       e.err.c_str());
+	     return; // failure.
+	  }
 	
 	//debug
 	/* std::cerr << "extracted features for img " << sg->_cached << std::endl;
