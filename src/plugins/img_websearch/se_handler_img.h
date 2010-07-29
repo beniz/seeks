@@ -62,6 +62,8 @@ namespace seeks_plugins
 				const IMG_SE &se, std::string &url, const query_context *qc,
 				std::list<const char*> *&lheaders);
 	
+	static void set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses);
+	
 	/*-- parsing --*/
 	static se_parser* create_se_parser(const IMG_SE &se);
 	

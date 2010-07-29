@@ -215,7 +215,29 @@ namespace seeks_plugins
 	     break;
 	  }
      }
-   
+
+   void se_handler_img::set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses)
+     {
+	int msize = std::min((int)ses.size(),IMG_NSEs);
+	for (int i=0;i<msize;i++)
+	  {
+	     std::string se = ses.at(i);
+	     
+	     /* put engine name into lower cases. */
+	     std::transform(se.begin(),se.end(),se.begin(),tolower);
+	     
+	     if (se == "google")
+	       {
+		  se_enabled |= std::bitset<IMG_NSEs>(SE_GOOGLE_IMG);
+	       }
+	     else if (se == "bing")
+	       {
+		  se_enabled |= std::bitset<IMG_NSEs>(SE_BING_IMG);
+	       }
+	     // XXX: other engines come here.
+	  }
+     }
+      
    sp_err se_handler_img::parse_ses_output(std::string **outputs, const int &nresults,
 					   std::vector<search_snippet*> &snippets,
 					   const int &count_offset,

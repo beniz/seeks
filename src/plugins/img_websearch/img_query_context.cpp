@@ -93,7 +93,36 @@ namespace seeks_plugins
 	     return SP_ERR_OK;
 	  }
 	
-	//TODO: optional engines.
+	// grab requested engines, if any.
+	// if the list is not included in that of the context, update existing results and perform requested expansion.
+	// if the list is included in that of the context, perform expansion, results will be filtered later on.
+	const char *eng = miscutil::lookup(parameters,"engines");
+	if (eng)
+	  {
+	     // test inclusion.
+	     std::bitset<IMG_NSEs> beng;
+	     img_query_context::fillup_img_engines(parameters,beng);
+	     std::bitset<IMG_NSEs> inc = beng;
+	     inc &= _img_engines;
+	     
+	     if (inc.count() == beng.count())
+	       {
+		  // included, nothing more to be done.
+	       }
+	     else // test intersection.
+	       {
+		  std::bitset<IMG_NSEs> bint;
+		  for (int b=0;b<IMG_NSEs;b++)
+		    {
+		       if (beng[b] && !inc[b])
+			 bint.set(b);
+		    }
+		  
+		  // catch up expansion with the newly activated engines.
+		  expand_img(csp,rsp,parameters,0,_page_expansion,bint);
+		  _img_engines |= bint;
+	       }
+	  }
 	
 	// perform requested expansion.
 	expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
@@ -138,6 +167,22 @@ namespace seeks_plugins
 		 delete outputs[j];
 	     delete[] outputs;
 	  }
+	return SP_ERR_OK;
+     }
+
+   void img_query_context::fillup_img_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					      std::bitset<IMG_NSEs> &engines)
+     {
+	const char *eng = miscutil::lookup(parameters,"engines");
+	if (eng)
+	  {
+	     std::string engines_str = std::string(eng);
+	     std::vector<std::string> vec_engines;
+	     miscutil::tokenize(engines_str,vec_engines,",");
+	     std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());
+	     se_handler_img::set_engines(engines,vec_engines);
+	  }
+	else engines = img_websearch_configuration::_img_wconfig->_img_se_enabled;
      }
       
 } /* end of namespace. */

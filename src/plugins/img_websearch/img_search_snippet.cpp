@@ -18,6 +18,7 @@
  
 #include "img_search_snippet.h"
 #include "query_context.h"
+#include "img_query_context.h"
 #include "miscutil.h"
 #include "mem_utils.h"
 #include "encode.h"
@@ -183,15 +184,9 @@ namespace seeks_plugins
       
    bool img_search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
-	// XXX: this is a hack, truely. Should get rid of the bitset for vector<bool> instead.
-	std::bitset<NSEs> se_enabled;
-	query_context::fillup_engines(parameters,se_enabled);
-	assert(IMG_NSEs <= NSEs); // hack comes below.
-	std::bitset<NSEs> img_enabled;
-	for (size_t i=0;i<IMG_NSEs;i++)
-	  if (_img_engine.test(i))
-	    img_enabled.set(i);
-	std::bitset<NSEs> band = img_enabled & se_enabled;
+	std::bitset<IMG_NSEs> se_enabled;
+	img_query_context::fillup_img_engines(parameters,se_enabled);
+	std::bitset<IMG_NSEs> band = _img_engine & se_enabled;
 	return (band.count() != 0);
      }
    

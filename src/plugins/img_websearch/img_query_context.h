@@ -50,6 +50,9 @@ namespace seeks_plugins
 			  const int &page_start, const int &page_end,
 			  const std::bitset<IMG_NSEs> &se_enabled);
      
+	static void fillup_img_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				       std::bitset<IMG_NSEs> &engines);
+	
       public:
 	std::bitset<IMG_NSEs> _img_engines;
      };
