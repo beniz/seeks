@@ -23,6 +23,7 @@
 #include "cgi.h"
 #include "cgisimple.h"
 #include "miscutil.h"
+#include "json_renderer.h"
 #include "static_renderer.h"
 #include "seeks_proxy.h"
 
@@ -137,13 +138,13 @@ namespace seeks_plugins
 	     
 	     const char *output = miscutil::lookup(parameters,"output");
 	     sp_err err = SP_ERR_OK;
-	     //if (!output || strcmp(output,"html")==0)
-	     err = static_renderer::render_result_page_static(qc->_cached_snippets,
-							      csp,rsp,parameters,qc,
-							      (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name
-							       : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-							      "/search_img?");
-	     /* else
+	     if (!output || strcmp(output,"html")==0)
+	       err = static_renderer::render_result_page_static(qc->_cached_snippets,
+								csp,rsp,parameters,qc,
+								(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name
+								 : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
+								"/search_img?");
+	     else
 	       {
 		  csp->_content_type = CT_JSON;
 		  err = json_renderer::render_json_results(qc->_cached_snippets,
@@ -151,7 +152,7 @@ namespace seeks_plugins
 		  qc->_lock = false;
 		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 		  return err;
-	       } */
+	       }
 	     
 	     // reset scores.
 	     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
@@ -176,6 +177,12 @@ namespace seeks_plugins
      {
 	static std::string tmpl_name = "templates/seeks_result_template.html";
 	
+	// time measure, returned.
+	// XXX: not sure whether it is functional on all *nix platforms.
+	struct tms st_cpu;
+	struct tms en_cpu;
+	clock_t start_time = times(&st_cpu);
+		
 	// lookup a cached context for the incoming query.
 	img_query_context *qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,csp,_active_img_qcontexts));
 		
@@ -228,12 +235,36 @@ namespace seeks_plugins
 	  }
 		
 	// rendering.
+	seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	qc->_lock = true;
-	sp_err err = static_renderer::render_result_page_static(qc->_cached_snippets,
-								csp,rsp,parameters,qc,
-								(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name 
-								 : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-								"/search_img?");
+	
+	// time measured before rendering, since we need to write it down.
+	clock_t end_time = times(&en_cpu);
+	double qtime = (end_time-start_time)/websearch::_cl_sec;
+	if (qtime<0)
+	  qtime = -1.0; // unavailable.
+	
+	if (!render)
+	  {
+	     qc->_lock = false;
+	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);    
+	     return SP_ERR_OK;
+	  }
+	const char *output = miscutil::lookup(parameters,"output");
+	sp_err err = SP_ERR_OK;
+	if (!output || strcmp(output,"html")==0)
+	  err = static_renderer::render_result_page_static(qc->_cached_snippets,
+							   csp,rsp,parameters,qc,
+							   (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name 
+							    : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
+							   "/search_img?");
+	else
+	  {
+	     csp->_content_type = CT_JSON;
+	     err = json_renderer::render_json_results(qc->_cached_snippets,
+						      csp,rsp,parameters,qc,
+						      qtime);
+	  }
 	
 	// unlock or destroy the query context.
 	qc->_lock = false;

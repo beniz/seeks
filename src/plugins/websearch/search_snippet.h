@@ -91,6 +91,13 @@ namespace seeks_plugins
 	     else return s1->_seeks_ir > s2->_seeks_ir;
 	  };
 	
+	static bool min_seeks_ir(const search_snippet *s1, const search_snippet *s2)
+	  {
+	     if (s1->_seeks_ir == s2->_seeks_ir)
+	       return search_snippet::less_seeks_rank(s1,s2); // XXX: beware, may not apply to inherited classes.
+	     else return s1->_seeks_ir < s2->_seeks_ir;
+	  };
+		
 	// constructors.
       public:
 	search_snippet();
@@ -117,7 +124,7 @@ namespace seeks_plugins
 	virtual void set_back_similarity_link();
 	
 	// json output.
-	std::string to_json(const bool &thumbs);
+	virtual std::string to_json(const bool &thumbs);
 	
 	// html output for inclusion in search result template page.
 	std::string to_html();

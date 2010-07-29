@@ -142,6 +142,45 @@ namespace seeks_plugins
 	return html_content;
      }
 
+   std::string img_search_snippet::to_json(const bool &thumbs)
+     {
+	std::string json_str;
+	json_str += "{";
+	json_str += "\"id\":" + miscutil::to_string(_id) + ",";
+	json_str += "\"title\":\"" + _title + "\",";
+	json_str += "\"url\":\"" + _url + "\",";
+	json_str += "\"summary\":\"" + _summary + "\",";
+	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
+	double rank = _rank / static_cast<double>(_img_engine.count());
+	json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
+	json_str += "\"cite\":\"";
+	if (!_cite.empty())
+	  json_str += _cite + "\",";
+	else json_str += _url + "\",";
+	if (!_cached.empty())
+	  json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
+	json_str += "\"engines\":[";
+	std::string json_str_eng = "";
+	if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
+	  json_str_eng += "\"google\"";
+	if (_img_engine.to_ulong()&SE_BING_IMG)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"bing\"";
+	  }
+	/* if (_img_engine.to_ulong()&SE_YAHOO_IMG)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"yahoo\"";
+	  } */
+	json_str += json_str_eng + "]";
+	json_str += "}";
+	return json_str;
+	
+     }
+      
    bool img_search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	// XXX: this is a hack, truely. Should get rid of the bitset for vector<bool> instead.

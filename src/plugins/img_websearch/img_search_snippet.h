@@ -47,9 +47,10 @@ namespace seeks_plugins
 	
 	~img_search_snippet();
 	
-	/* virtual std::string to_html() { return ""; }; //TODO. */
 	virtual std::string to_html_with_highlight(std::vector<std::string> &words,
 						   const std::string &base_url);
+	
+	virtual std::string to_json(const bool &thumbs);
 	
 	virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
