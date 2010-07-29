@@ -41,7 +41,8 @@ namespace seeks_plugins
 	
 	virtual sp_err generate(client_state *csp,
 				http_response *rsp,
-				const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+				const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				bool &expanded);
 	
 	sp_err expand_img(client_state *csp,
 			  http_response *rsp,

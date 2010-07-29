@@ -615,7 +615,7 @@ namespace seeks_plugins
 	       
 	       seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	       qc->_lock = true;
-	       qc->generate(csp,rsp,parameters);
+	       qc->generate(csp,rsp,parameters,expanded);
 	       qc->_lock = false;
 	       seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	    }
@@ -634,7 +634,7 @@ namespace seeks_plugins
 	  qc->register_qc();
 	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
-	  qc->generate(csp,rsp,parameters);
+	  qc->generate(csp,rsp,parameters,expanded);
 	  qc->_lock = false;
 	  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
        }
@@ -653,7 +653,8 @@ namespace seeks_plugins
      seeks_proxy::mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      
-     if (websearch::_wconfig->_extended_highlight)
+     // XXX: we do not recompute features if nothing has changed.
+     if (expanded && websearch::_wconfig->_extended_highlight)
        content_handler::fetch_all_snippets_summary_and_features(qc);
 
      // time measured before rendering, since we need to write it down.

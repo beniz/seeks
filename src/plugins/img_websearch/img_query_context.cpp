@@ -75,7 +75,8 @@ namespace seeks_plugins
       
    sp_err img_query_context::generate(client_state *csp,
 				      http_response *rsp,
-				      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+				      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				      bool &expanded)
      {
 	const char *expansion = miscutil::lookup(parameters,"expansion");
 	int horizon = atoi(expansion);
@@ -88,6 +89,7 @@ namespace seeks_plugins
 	  {  
 	     // reset expansion parameter.
 	     query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+	     expanded = false;
 	     return SP_ERR_OK;
 	  }
 	
@@ -95,7 +97,8 @@ namespace seeks_plugins
 	
 	// perform requested expansion.
 	expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
-     
+	expanded = true;
+	
 	// update horizon.
 	_page_expansion = horizon;
 	

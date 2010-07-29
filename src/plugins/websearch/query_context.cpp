@@ -215,7 +215,8 @@ namespace seeks_plugins
 
   sp_err query_context::generate(client_state *csp,
 				 http_response *rsp,
-				 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+				 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				 bool &expanded)
   {
      const char *expansion = miscutil::lookup(parameters,"expansion");
      int horizon = atoi(expansion);
@@ -224,10 +225,11 @@ namespace seeks_plugins
        horizon = websearch::_wconfig->_max_expansions;
        
      // seeks button used as a back button.
-     if (_page_expansion > 0 && horizon < (int)_page_expansion)
+     if (_page_expansion > 0 && horizon <= (int)_page_expansion)
        {
 	  // reset expansion parameter.
 	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+	  expanded = false;
 	  return SP_ERR_OK;
        }
      
@@ -263,6 +265,7 @@ namespace seeks_plugins
      
      // perform requested expansion.
      expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
+     expanded = true;
      
      // update horizon.
      _page_expansion = horizon;

@@ -199,7 +199,7 @@ namespace seeks_plugins
 		  
 		  seeks_proxy::mutex_lock(&qc->_qc_mutex);
 		  qc->_lock = true;
-		  qc->generate(csp,rsp,parameters);
+		  qc->generate(csp,rsp,parameters,expanded);
 		  qc->_lock = false;
 		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	       }
@@ -218,7 +218,7 @@ namespace seeks_plugins
 	     qc->register_qc();
 	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
-	     qc->generate(csp,rsp,parameters);
+	     qc->generate(csp,rsp,parameters,expanded);
 	     qc->_lock = false;     
 	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	  }
