@@ -54,6 +54,11 @@ namespace seeks_plugins
 	ofile.write(img_content->c_str(),img_content->length());
 	
 	IplImage *img = cvLoadImage(tfname.c_str(),CV_LOAD_IMAGE_GRAYSCALE);
+	if (!img) // failed loading image, usually from a broken transfer earlier...
+	  {
+	     unlink(tfname.c_str());
+	     return;
+	  }
 	
 	// remove file.
 	unlink(tfname.c_str());

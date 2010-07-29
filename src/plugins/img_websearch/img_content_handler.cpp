@@ -19,6 +19,9 @@
 #include "img_content_handler.h"
 #include "content_handler.h"
 #include "ocvsurf.h"
+#include "errlog.h"
+
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -60,7 +63,8 @@ namespace seeks_plugins
 	  {
 	     if (outputs[i])
 	       {
-		  img_search_snippet *sp = static_cast<img_search_snippet*>(qc->get_cached_snippet(urls[i]));
+		  search_snippet *spsp = qc->get_cached_snippet(urls[i]);
+		  img_search_snippet *sp = static_cast<img_search_snippet*>(spsp);
 		  sp->_cached_image = outputs[i]; // cache fetched content.
 		  valid_contents.push_back(sp->_cached_image);
 		  sps.push_back(sp);
@@ -82,11 +86,16 @@ namespace seeks_plugins
      {
 	if (!ref_sp)
 	  {
-	     std::cerr << "no ref_sp!\n";
-	     return; // we should never reach here.
+	     errlog::log_error(LOG_LEVEL_ERROR,"Failed getting referer image: cannot compute image similarity");
+	     return;
 	  }
 	img_search_snippet *ref_isp = static_cast<img_search_snippet*>(ref_sp);	
-	
+	if (!ref_isp->_surf_descriptors)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Failed getting referer image descriptors: cannot compute image similarity");
+	     return;
+	  }
+		
 	// compute scores.
 	for (size_t i=0;i<nsps;i++)
 	  {
