@@ -27,11 +27,9 @@
 <a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
 <!-- @if-have-clustering-start -->
-<a href="@base-url@/search_img?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- <a href="@base-url@/search_img?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a> -->
 <!-- if-have-clustering-end@ -->
-<!-- @if-not-have-clustering-start -->
-<a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
-<!-- if-not-have-clustering-end@ -->
+<a href="" title="Cluster (not yet available for images)" id="cluster" class="cluster_inactive">&nbsp;</a>
 
 <!-- @if-have-one-column-results-head-start -->
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
