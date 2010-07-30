@@ -49,7 +49,6 @@
 #include "filter_plugin.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
-#include "iso639.h"
 
 namespace sp
 {
@@ -98,6 +97,9 @@ namespace sp
    
    int seeks_proxy::_Argc = 0;
    const char** seeks_proxy::_Argv = NULL;
+   
+   bool seeks_proxy::_run_proxy = true;
+   pthread_t* seeks_proxy::_httpserv_thread = NULL;
    
 #ifdef FEATURE_TOGGLE
    /* Seeks proxy is enabled by default. */
@@ -2498,25 +2500,6 @@ namespace sp
 	
 	unsigned int active_threads = 0;
 
-
-	// loads main configuration file (seeks + proxy configuration).
-	if (seeks_proxy::_config)
-	  delete seeks_proxy::_config;
-	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
-	
-	if (seeks_proxy::_lsh_config)
-	  delete seeks_proxy::_lsh_config;
-	seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
-		
-	// loads iso639 table.
-	iso639::initialize();
-	
-	// loads plugins.
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
-	plugin_manager::load_all_plugins();
-		
 #ifdef FEATURE_CONNECTION_KEEP_ALIVE
 	/*
 	 * XXX: Should be relocated once it no

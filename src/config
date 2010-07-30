@@ -299,7 +299,10 @@ logfile logfile
 #	a warning. In such case, the plugin that was loaded the
 #	last is the one remaining available under that name.
 #
-#activated-plugin websearch
+activated-plugin websearch
+activated-plugin blocker
+activated-plugin image-websearch
+#activated-plugin httpserv
 #
 #
 # 2.7. datadir
@@ -328,6 +331,27 @@ logfile logfile
 #      Use --data-repository your_repository to override the value at startup.
 #
 # datadir /usr/local/share/seeks
+#
+#
+#  2.8. automatic-proxy-disable
+#  ============================
+#
+# Specifies:
+#
+#     In case the HTTP server plugin is running, the proxy is automatically
+#     disabled.
+#
+# Type of value:
+#
+#     0 or 1
+#
+# Default value:
+#
+#     1, the proxy is automatically disabled when the HTTP server plugin is
+#        running.
+#
+#automatic-proxy-disable 1
+#
 #
 #  3. DEBUGGING
 #  =============
@@ -1429,4 +1453,3 @@ socket-timeout 300
 #hide-console
 #
 #
-activated-plugin httpserv

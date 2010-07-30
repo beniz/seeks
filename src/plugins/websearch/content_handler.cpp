@@ -62,8 +62,12 @@ namespace seeks_plugins
 	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
 		      websearch::_wconfig->_ct_transfer_timeout,0);
 	if (websearch::_wconfig->_background_proxy_addr.empty() && proxy)
-	  cmg.www_mget(urls,urls.size(),NULL,
-		       seeks_proxy::_config->_haddr,seeks_proxy::_config->_hport);
+	  {
+	     if (seeks_proxy::_run_proxy)
+	       cmg.www_mget(urls,urls.size(),NULL,
+			    seeks_proxy::_config->_haddr,seeks_proxy::_config->_hport);
+	     else cmg.www_mget(urls,urls.size(),NULL,"",0);
+	  }
 	else if (websearch::_wconfig->_background_proxy_addr.empty())
 	  cmg.www_mget(urls,urls.size(),NULL,"",0); // noproxy
 	else cmg.www_mget(urls,urls.size(),NULL,

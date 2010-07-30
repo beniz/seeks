@@ -153,6 +153,9 @@ namespace sp
 	/* Access control list. */
 	access_control_list *_acl;
 #endif     
+
+	/* automatically disable proxy. */
+	bool _automatic_proxy_disable;
      };
    
 } /* end of namespace. */

@@ -189,6 +189,10 @@ namespace sp
       private:
 	static const cruncher _crunchers_all[];
 	static const cruncher _crunchers_light[];
+     
+      public:
+	static bool _run_proxy;
+	static pthread_t *_httpserv_thread; // running HTTP server plugin thread, if any.
      };
      
 } /* end of namespace. */

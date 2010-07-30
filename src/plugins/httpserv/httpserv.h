@@ -85,8 +85,9 @@ namespace seeks_plugins
 	u_short _port;
 	struct evhttp *_srv;
 	struct event_base *_evbase;
+	pthread_t _server_thread;
      };
-      
+   
 } /* end of namespace. */
 
 #endif

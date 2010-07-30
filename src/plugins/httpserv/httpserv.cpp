@@ -103,10 +103,11 @@ namespace seeks_plugins
 	
 	init_callbacks();
 	
-	pthread_t server_thread;
-	int err = pthread_create(&server_thread,NULL,
+	int err = pthread_create(&_server_thread,NULL,
 				 (void*(*)(void*))&event_base_dispatch,_evbase);
-	pthread_detach(server_thread);
+	seeks_proxy::_httpserv_thread = &_server_thread;
+	if (seeks_proxy::_run_proxy)
+	  pthread_detach(_server_thread); // detach if proxy is running, else no (join).
      }
    
    void httpserv::stop()
