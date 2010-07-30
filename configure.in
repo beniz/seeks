@@ -14,7 +14,7 @@
 # ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 #
 
-AC_INIT(Seeks, Bubs-0.2.4, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.2.4, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
