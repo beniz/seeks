@@ -30,7 +30,7 @@ namespace sp
    typedef struct _cbget
      {
 	_cbget()
-	  :_url(NULL),_output(NULL),_proxy(false),_headers(NULL),_handler(NULL)
+	  :_url(NULL),_output(NULL),_proxy_port(0),_headers(NULL),_handler(NULL)
 	  {};
 	
 	~_cbget()
@@ -41,7 +41,8 @@ namespace sp
 	
 	long _connect_timeout_sec;
 	long _transfer_timeout_sec;
-	bool _proxy;
+	std::string _proxy_addr;
+	short _proxy_port;
 	const std::list<const char*> *_headers; // forced http headers
 	CURL *_handler; // optional
      } cbget;
@@ -62,8 +63,9 @@ namespace sp
 	// direct connection.
 	std::string** www_mget(const std::vector<std::string> &urls, const int &nrequests,
 			       const std::vector<std::list<const char*>*> *headers,
-			       const bool &proxy, std::vector<CURL*> *chandlers=NULL);
-     
+			       const std::string &proxy_addr, const short &proxy_port,
+			       std::vector<CURL*> *chandlers=NULL);
+	
       public:
 	int _nrequests;
 	long _connect_timeout_sec;

@@ -90,10 +90,10 @@ namespace sp
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, arg);
 	
-	if (arg->_proxy)
+	if (!arg->_proxy_addr.empty())
 	  {
-	     std::string proxy_str = seeks_proxy::_config->_haddr;
-	     proxy_str += ":" + miscutil::to_string(seeks_proxy::_config->_hport);
+	     //std::string proxy_str = seeks_proxy::_config->_haddr;
+	     std::string proxy_str = arg->_proxy_addr + ":" + miscutil::to_string(arg->_proxy_port);//+ miscutil::to_string(seeks_proxy::_config->_hport);
 	     curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
 	  }
 	
@@ -147,7 +147,8 @@ namespace sp
    
    std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
 				     const std::vector<std::list<const char*>*> *headers,
-				     const bool &proxy, std::vector<CURL*> *chandlers)
+				     const std::string &proxy_addr, const short &proxy_port,
+				     std::vector<CURL*> *chandlers)
      {
 	assert((int)urls.size() == nrequests); // check.
 	
@@ -162,7 +163,8 @@ namespace sp
 	     arg_cbget->_url = urls[i].c_str();
 	     arg_cbget->_transfer_timeout_sec = _transfer_timeout_sec;
 	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
-	     arg_cbget->_proxy = proxy;
+	     arg_cbget->_proxy_addr = proxy_addr;
+	     arg_cbget->_proxy_port = proxy_port;
 	     if (headers)
 	       arg_cbget->_headers = headers->at(i); // headers are url dependent.
 	     if (chandlers)

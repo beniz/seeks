@@ -37,16 +37,16 @@ int main(int argc, char **argv)
    for (int i=0;i<n_requests;i++)
      {
 	addr.push_back(std::string(argv[i+2]));
-	std::cout << "addr #" << i << ": " << argv[i+2] << std::endl;
+	//std::cout << "addr #" << i << ": " << argv[i+2] << std::endl;
      }
    
    curl_mget cmg(n_requests,60,0,60,0); // 60 seconds connection & transfer timeout.
-   std::string **outputs = cmg.www_mget(addr,n_requests,NULL,false); // don't use a proxy.
+   std::string **outputs = cmg.www_mget(addr,n_requests,NULL,"",0); // don't use a proxy.
 
-   std::cout << "outputs:\n";
+   //std::cout << "outputs:\n";
    for (int i=0;i<n_requests;i++)
      {
-	std::cout << "\n\n";
+	//std::cout << "\n\n";
 	std::cout << *outputs[i] << std::endl;
      }
 }

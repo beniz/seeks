@@ -71,6 +71,9 @@ namespace seeks_plugins
 	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
 
 	bool _extended_highlight;
+	
+	std::string _background_proxy_addr; /**< address of a proxy through which to fetch URLs. */
+	int _background_proxy_port; /** < proxy port. */
      };
    
 } /* end of namespace. */

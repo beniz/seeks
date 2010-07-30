@@ -22,6 +22,8 @@
 #include "html_txt_parser.h"
 #include "websearch.h"
 #include "oskmeans.h"
+#include "seeks_proxy.h"
+#include "proxy_configuration.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -33,6 +35,8 @@
 
 using sp::curl_mget;
 using sp::miscutil;
+using sp::seeks_proxy;
+using sp::proxy_configuration;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -57,7 +61,14 @@ namespace seeks_plugins
 	// fetch content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
 		      websearch::_wconfig->_ct_transfer_timeout,0);
-	cmg.www_mget(urls,urls.size(),NULL,proxy);
+	if (websearch::_wconfig->_background_proxy_addr.empty() && proxy)
+	  cmg.www_mget(urls,urls.size(),NULL,
+		       seeks_proxy::_config->_haddr,seeks_proxy::_config->_hport);
+	else if (websearch::_wconfig->_background_proxy_addr.empty())
+	  cmg.www_mget(urls,urls.size(),NULL,"",0); // noproxy
+	else cmg.www_mget(urls,urls.size(),NULL,
+			  websearch::_wconfig->_background_proxy_addr,
+			  websearch::_wconfig->_background_proxy_port);
 	
 	std::string **outputs = new std::string*[urls.size()];
 	int k = 0;

@@ -404,7 +404,13 @@ namespace seeks_plugins
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		   websearch::_wconfig->_se_connect_timeout,0);
      seeks_proxy::mutex_lock(&_curl_mutex);
-     cmg.www_mget(urls,urls.size(),&headers,false,&se_handler::_curl_handlers); // don't go through the proxy, or will loop til death!
+     if (websearch::_wconfig->_background_proxy_addr.empty())
+       cmg.www_mget(urls,urls.size(),&headers,
+		    "",0,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
+     else cmg.www_mget(urls,urls.size(),&headers,
+		       websearch::_wconfig->_background_proxy_addr,
+		       websearch::_wconfig->_background_proxy_port,
+		       &se_handler::_curl_handlers);
      seeks_proxy::mutex_unlock(&_curl_mutex);
      
      std::string **outputs = new std::string*[urls.size()];

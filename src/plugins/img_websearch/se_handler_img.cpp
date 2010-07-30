@@ -157,8 +157,12 @@ namespace seeks_plugins
 	// get content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		      websearch::_wconfig->_se_connect_timeout,0);
-	cmg.www_mget(urls,urls.size(),&headers,false);  // don't go through the proxy, or will loop til death!
-		
+	if (websearch::_wconfig->_background_proxy_addr.empty())
+	  cmg.www_mget(urls,urls.size(),&headers,"",0); // don't go through the seeks' proxy, or will loop til death!
+	else cmg.www_mget(urls,urls.size(),&headers,
+			  websearch::_wconfig->_background_proxy_addr,
+			  websearch::_wconfig->_background_proxy_port);
+			
 	std::string **outputs = new std::string*[urls.size()];
 	bool have_outputs = false;
 	for (size_t i=0;i<urls.size();i++)
