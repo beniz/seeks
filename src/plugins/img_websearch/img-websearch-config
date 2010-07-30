@@ -7,4 +7,5 @@ img-search-engine bing
 # for detecting identical and near-identical images.
 # Expected to be both slower and more bandwith demanding than when
 # not activated.
+# default: 0
 img-content-analysis 0
