@@ -203,8 +203,7 @@ namespace sp
 	       }
 	  }
 	
-	std::pair<const char*,const char*> n_entry = std::pair<const char*,const char*>(name,value);
-	the_map->insert(n_entry);
+	the_map->insert(std::pair<const char*,const char*>(name,value));
 
 	return SP_ERR_OK;
      }
@@ -237,7 +236,8 @@ namespace sp
 	     ++mit;
 	     the_map->erase(mitc);
 	     free_const(key);
-	     free_const(value);
+	     if (value)
+	       free_const(value);
 	  }
 	delete the_map;
 	the_map = NULL;

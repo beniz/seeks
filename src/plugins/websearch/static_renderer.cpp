@@ -135,7 +135,7 @@ namespace seeks_plugins
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 	
 	cgi::map_block_killer(exports,"have-clustered-results-head");
-	cgi::map_block_killer(exports,"have-clustered-results");
+	cgi::map_block_killer(exports,"have-clustered-results-body");
 	
 	std::string snippets_str;
 	if (!snippets.empty())
@@ -210,7 +210,7 @@ namespace seeks_plugins
 	  cgi::map_block_killer(exports,"have-one-column-results");
 	else 
 	  {
-	     cgi::map_block_killer(exports,"have-clustered-results");
+	     cgi::map_block_killer(exports,"have-clustered-results-body");
 	     rplcnt = "search_snippets";
 	  }
 		
@@ -505,9 +505,6 @@ namespace seeks_plugins
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 
-     // one-column results.
-     cgi::map_block_killer(exports,"have-clustered-results");
-     
      // query.
      std::string html_encoded_query;
      std::string url_encoded_query;

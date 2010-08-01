@@ -308,6 +308,8 @@ namespace seeks_plugins
 		    {
 		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating feature generator thread.");
 		       feature_threads[i] = 0;
+		       delete vf;
+		       delete bow;
 		       delete args;
 		       feature_args[i] = NULL;
 		       continue;
@@ -343,6 +345,9 @@ namespace seeks_plugins
 		  sps[i]->_bag_of_words = feature_args[i]->_bow; // cache words.
 		  //std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
 		  delete feature_args[i];
+	       }
+	     else 
+	       {
 	       }
 	  }
 	qc->_compute_tfidf_features = false;

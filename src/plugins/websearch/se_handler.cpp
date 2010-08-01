@@ -437,7 +437,9 @@ namespace seeks_plugins
 	  delete[] outputs;
 	  outputs = NULL;
        }
-          
+     
+     delete[] cmg._outputs;
+     
     return outputs;
   }
    
