@@ -33,14 +33,24 @@ namespace seeks_plugins
 {
    
    img_search_snippet::img_search_snippet()
-     :search_snippet(),_surf_keypoints(NULL),_surf_descriptors(NULL),_surf_storage(NULL),_cached_image(NULL)
+     :search_snippet()
+#ifdef FEATURE_OPENCV2
+   ,_surf_keypoints(NULL),_surf_descriptors(NULL),_surf_storage(NULL)
+#endif
+	 , _cached_image(NULL)
        {
        }
    
    img_search_snippet::img_search_snippet(const short &rank)
-     :search_snippet(rank),_surf_keypoints(NULL),_surf_descriptors(NULL),_cached_image(NULL)
+     :search_snippet(rank)
+#ifdef FEATURE_OPENCV2
+   ,_surf_keypoints(NULL),_surf_descriptors(NULL)
+#endif
+	 , _cached_image(NULL)
        {
+#ifdef FEATURE_OPENCV2
 	  _surf_storage = cvCreateMemStorage(0);
+#endif
        }
    
    img_search_snippet::~img_search_snippet()
@@ -48,12 +58,14 @@ namespace seeks_plugins
 	if (_cached_image)
 	  delete _cached_image;
 
+#ifdef FEATURE_OPENCV2
 	if (_surf_keypoints)
 	  cvClearSeq(_surf_keypoints);
 	if (_surf_descriptors)
 	  cvClearSeq(_surf_descriptors);
 	if (_surf_storage)
 	  cvReleaseMemStorage(&_surf_storage);
+#endif
      }
    
    std::string img_search_snippet::to_html_with_highlight(std::vector<std::string> &words,
@@ -71,8 +83,7 @@ namespace seeks_plugins
 	const char *title_enc = encode::html_encode(_title.c_str());
 	html_content += title_enc;
 	free_const(title_enc);
-	//html_content += "</div>";
-	
+		
 	if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
 	  {
 	     std::string ggle_se_icon = se_icon;
@@ -124,6 +135,7 @@ namespace seeks_plugins
 	     free_const(enc_cached);
 	  }
 	
+#ifdef FEATURE_OPENCV2
 	if (!_sim_back)
 	  {
 	     set_similarity_link();
@@ -139,6 +151,7 @@ namespace seeks_plugins
 	if (!_sim_back)
 	  html_content += "\">Similar</a>";
 	else html_content += "\">Back</a>";
+#endif
 	html_content += "</div></li>\n";
 	return html_content;
      }

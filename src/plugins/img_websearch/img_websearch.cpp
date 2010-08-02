@@ -95,13 +95,16 @@ namespace seeks_plugins
 	     sp_err err = SP_ERR_OK;
 	     if (strcmp(action,"expand") == 0 || strcmp(action,"page") == 0)
 	       err = img_websearch::perform_img_websearch(csp,rsp,parameters);
+#ifdef FEATURE_OPENCV2
 	     else if (strcmp(action,"similarity") == 0)
 	       err = img_websearch::cgi_img_websearch_similarity(csp,rsp,parameters);
+#endif
 	     return err;
 	  }
 	else return SP_ERR_OK;
      }			  
    
+#ifdef FEATURE_OPENCV2
    sp_err img_websearch::cgi_img_websearch_similarity(client_state *csp, http_response *rsp,
 						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -168,7 +171,8 @@ namespace seeks_plugins
 	  }
 	else return SP_ERR_OK;
      }
-      
+#endif
+   
    // internal functions.
    sp_err img_websearch::perform_img_websearch(client_state *csp,
 					       http_response *rsp,

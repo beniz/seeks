@@ -393,8 +393,13 @@ fi
 
 # Requires OpenCV >= 2.0
 if test x$imgwebsearch = xtrue; then
-   PKG_CHECK_MODULES([opencv],[opencv >= 2.0],AC_DEFINE(FEATURE_OPENCV2,1,"OpenCV library is there"))
+   PKG_CHECK_MODULES([opencv],[opencv >= 2.0],opencv2=true,opencv2=false)
 fi
+if test x$opencv2 = xtrue; then
+   AC_DEFINE(FEATURE_OPENCV2,1,"OpenCV library is there")
+fi
+AM_CONDITIONAL(HAVE_OPENCV2,test x$opencv2 = xtrue)
+
 
 #====================================================
 # libevent detection.

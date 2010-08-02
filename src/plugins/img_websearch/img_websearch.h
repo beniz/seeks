@@ -47,9 +47,11 @@ namespace seeks_plugins
 					       http_response *rsp,
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
+#ifdef FEATURE_OPENCV2
 	static sp_err cgi_img_websearch_similarity(client_state *csp,
 						   http_response *rsp,
 						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+#endif
 	
 	/* image websearch. */
 	static sp_err perform_img_websearch(client_state *csp,

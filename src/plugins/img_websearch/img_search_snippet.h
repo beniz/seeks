@@ -22,8 +22,10 @@
 #include "search_snippet.h" // from websearch plugin.
 #include "img_websearch_configuration.h"
 
+#ifdef FEATURE_OPENCV2
 #include "cv.h" // OpenCV.
 #include "highgui.h"
+#endif
 
 namespace seeks_plugins
 {
@@ -63,11 +65,13 @@ namespace seeks_plugins
 	
 	// variables.
 	std::bitset<IMG_NSEs> _img_engine;
-	
+
+#ifdef FEATURE_OPENCV2
 	// OpenCV feature format.
 	CvSeq *_surf_keypoints;
 	CvSeq *_surf_descriptors;
 	CvMemStorage *_surf_storage;
+#endif
 	
 	// cached image.
 	std::string *_cached_image;

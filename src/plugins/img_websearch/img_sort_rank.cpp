@@ -18,8 +18,11 @@
  */
 
 #include "img_sort_rank.h"
+
+#ifdef FEATURE_OPENCV2
 #include "img_content_handler.h"
 #include "ocvsurf.h"
+#endif
 
 namespace seeks_plugins
 {
@@ -27,9 +30,8 @@ namespace seeks_plugins
    void img_sort_rank::sort_rank_and_merge_snippets(img_query_context *qc,
 						    std::vector<search_snippet*> &snippets)
      {
-	static double st = 0.47; // similarity threshold.
-	
 #ifdef FEATURE_OPENCV2
+	static double st = 0.47; // similarity threshold.
 	if (img_websearch_configuration::_img_wconfig->_img_content_analysis)
 	  {
 	     // fill up the cache first.
@@ -131,6 +133,7 @@ namespace seeks_plugins
 			 img_search_snippet::max_seeks_rank);
      }
 
+#ifdef FEATURE_OPENCV2
    void img_sort_rank::score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
 						    img_search_snippet *&ref_sp,
 						    std::vector<search_snippet*> &sorted_snippets)
@@ -153,5 +156,6 @@ namespace seeks_plugins
 	// sort snippets according to computed scores.
 	std::sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
      }
+#endif
    
 } /* end of namespace. */
