@@ -1727,6 +1727,7 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
      }
    
    full_path = seeks_proxy::make_path(templates_dir_path, templatename);
+   free_const(templates_dir_path);
    
    if (full_path == NULL)
      {
