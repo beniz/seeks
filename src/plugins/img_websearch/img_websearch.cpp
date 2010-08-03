@@ -142,11 +142,20 @@ namespace seeks_plugins
 	     const char *output = miscutil::lookup(parameters,"output");
 	     sp_err err = SP_ERR_OK;
 	     if (!output || strcmp(output,"html")==0)
-	       err = static_renderer::render_result_page_static(qc->_cached_snippets,
-								csp,rsp,parameters,qc,
-								(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name
-								 : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-								"/search_img?");
+	       {
+		  // sets the number of images per page, if not already set.
+		  const char *rpp = miscutil::lookup(parameters,"rpp");
+		  if (!rpp)
+		    {
+		       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"rpp",1,
+					       miscutil::to_string(img_websearch_configuration::_img_wconfig->_N).c_str(),1);
+		    }
+		  err = static_renderer::render_result_page_static(qc->_cached_snippets,
+								   csp,rsp,parameters,qc,
+								   (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name
+								    : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
+								   "/search_img?");
+	       }
 	     else
 	       {
 		  csp->_content_type = CT_JSON;
@@ -188,7 +197,10 @@ namespace seeks_plugins
 	clock_t start_time = times(&st_cpu);
 		
 	// lookup a cached context for the incoming query.
-	img_query_context *qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,csp,_active_img_qcontexts));
+	query_context *vqc = websearch::lookup_qc(parameters,csp,_active_img_qcontexts);
+	img_query_context *qc = NULL;
+	if (vqc)
+	  qc = dynamic_cast<img_query_context*>(vqc);
 		
 	// check whether search is expanding or the user is leafing through pages.
 	const char *action = miscutil::lookup(parameters,"action");
@@ -257,11 +269,20 @@ namespace seeks_plugins
 	const char *output = miscutil::lookup(parameters,"output");
 	sp_err err = SP_ERR_OK;
 	if (!output || strcmp(output,"html")==0)
-	  err = static_renderer::render_result_page_static(qc->_cached_snippets,
-							   csp,rsp,parameters,qc,
-							   (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name 
-							    : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-							   "/search_img?");
+	  {
+	     // sets the number of images per page, if not already set.
+	     const char *rpp = miscutil::lookup(parameters,"rpp");
+	     if (!rpp)
+	       {
+		  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"rpp",1,
+					  miscutil::to_string(img_websearch_configuration::_img_wconfig->_N).c_str(),1);
+	       }
+	     err = static_renderer::render_result_page_static(qc->_cached_snippets,
+							      csp,rsp,parameters,qc,
+							      (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name 
+							       : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
+							      "/search_img?");
+	  }
 	else
 	  {
 	     csp->_content_type = CT_JSON;

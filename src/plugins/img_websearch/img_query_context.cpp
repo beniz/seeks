@@ -46,9 +46,28 @@ namespace seeks_plugins
 	unregister();
      }
    
+   bool img_query_context::sweep_me()
+     {
+	// don't delete if locked.
+	if (_lock)
+	  return false;
+		
+	// check last_time_of_use + delay against current time.
+	struct timeval tv_now;
+	gettimeofday(&tv_now, NULL);
+	double dt = difftime(tv_now.tv_sec,_last_time_of_use);
+	
+	if (dt >= websearch::_wconfig->_query_context_delay)
+	  return true;
+	else return false;
+     }
+      
    void img_query_context::register_qc()
      {
+	if (_registered)
+	  return;
 	img_websearch::_active_img_qcontexts.insert(std::pair<uint32_t,query_context*>(_query_hash,this));
+	_registered = true;
      }
    
    void img_query_context::unregister()
@@ -159,7 +178,7 @@ namespace seeks_plugins
 	       }
 	     
 	     // parse the output and create result search snippets.
-	     int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
+	     int rank_offset = (i > 0) ? i * img_websearch_configuration::_img_wconfig->_N : 0;
 	     
 	     se_handler_img::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
 	     for (int j=0;j<nresults;j++)

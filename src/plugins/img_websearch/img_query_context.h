@@ -33,6 +33,8 @@ namespace seeks_plugins
 	img_query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 			  const std::list<const char*> &http_headers);
 	
+	virtual bool sweep_me();
+	
 	virtual void register_qc();
 	
 	virtual void unregister();

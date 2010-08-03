@@ -9,3 +9,7 @@ img-search-engine bing
 # not activated.
 # default: 0
 img-content-analysis 0
+
+# number of images per page.
+# default: 30
+img-per-page 30

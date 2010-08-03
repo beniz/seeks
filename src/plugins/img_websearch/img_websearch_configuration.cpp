@@ -25,6 +25,7 @@ namespace seeks_plugins
    
 #define hash_img_se     3083524283ul /* "img-search-engine" */
 #define hash_img_ca     3745160171ul /* "img-content-analysis" */
+#define hash_img_n      3311685141ul /* "img-per-page" */
    
    img_websearch_configuration *img_websearch_configuration::_img_wconfig = NULL;
    
@@ -46,6 +47,7 @@ namespace seeks_plugins
      {
 	_img_se_enabled.set(); // all engines is default.
 	_img_content_analysis = false; // no download of image thumbnails is default.
+	_N = 30; // default number of images per page.
      }
    
    void img_websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -66,6 +68,12 @@ namespace seeks_plugins
 	     _img_content_analysis = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enable the downloading of image snippets and comparison operations to detect identical images");
+	     break;
+	     
+	   case hash_img_n:
+	     _N = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Number of images per page");
 	     break;
 	     
 	   default:
