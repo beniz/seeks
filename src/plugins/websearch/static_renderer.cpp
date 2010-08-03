@@ -137,6 +137,11 @@ namespace seeks_plugins
 	cgi::map_block_killer(exports,"have-clustered-results-head");
 	cgi::map_block_killer(exports,"have-clustered-results-body");
 	
+	int rpp = websearch::_wconfig->_N;
+	const char *rpp_str = miscutil::lookup(parameters,"rpp");
+	if (rpp_str)
+	  rpp = atoi(rpp_str);
+		
 	std::string snippets_str;
 	if (!snippets.empty())
 	  {
@@ -144,24 +149,17 @@ namespace seeks_plugins
 	     bool similarity = false;
 	     if (snippets.at(0)->_seeks_ir > 0)
 	       similarity = true;
-	     
-	     // lookup activated engines.
-	     /* std::bitset<NSEs> se_enabled;
-	      query_context::fillup_engines(parameters,se_enabled); */
-	      
+	     	      
 	     // proceed with rendering.
 	     int ssize = snippets.size();
-	     size_t snisize = std::min(current_page*websearch::_wconfig->_N,(int)ssize);
-	     size_t snistart = (current_page-1) * websearch::_wconfig->_N;
+	     size_t snisize = std::min(current_page*rpp,(int)ssize);
+	     size_t snistart = (current_page-1) * rpp;
 	     size_t count = snistart;
 	     	     
 	     for (int i=snistart;i<ssize;i++)
 	       {
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
-		  /* std::bitset<NSEs> band = (snippets.at(i)->_engine & se_enabled);
-		   if (band.count() == 0)
-		   continue; */
 		  if (!snippets.at(i)->is_se_enabled(parameters))
 		    continue;
 		    
@@ -173,6 +171,7 @@ namespace seeks_plugins
 	       }
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
+	miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
@@ -350,10 +349,15 @@ namespace seeks_plugins
 					       const std::string &url_encoded_query,
 					       const std::string &expansion,
 					       const std::string &engines,
+					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					       const std::string &cgi_base)
      {
-	double nl = snippets_size / static_cast<double>(websearch::_wconfig->_N);
+	int rpp = websearch::_wconfig->_N;
+	const char *rpp_str = miscutil::lookup(parameters,"rpp");
+	if (rpp_str)
+	  rpp = atoi(rpp_str);
+	double nl = snippets_size / static_cast<double>(rpp);
 	     
 	if (current_page < nl)
 	  {
@@ -361,10 +365,13 @@ namespace seeks_plugins
 	     std::string base_url_str;
 	     if (base_url)
 	       base_url_str = std::string(base_url);
+	     std::string rpp_s;
+	     if (rpp_str)
+	       rpp_s = rpp_str;
 	     std::string np_str = miscutil::to_string(current_page+1);
 	     std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
-	       + engines + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
+	       + engines + "&amp;rpp=" + rpp_s + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -375,6 +382,7 @@ namespace seeks_plugins
 					       const std::string &url_encoded_query,
 					       const std::string &expansion,
 					       const std::string &engines,
+					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					       const std::string &cgi_base)
      {
@@ -385,9 +393,13 @@ namespace seeks_plugins
 	     std::string base_url_str = "";
 	     if (base_url)
 	       base_url_str = std::string(base_url);
+	     std::string rpp_s;
+	     const char *rpp_str = miscutil::lookup(parameters,"rpp");
+	     if (rpp_str)
+	       rpp_s = rpp_str;
 	     std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
-	       + engines + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
+	       + engines + "&amp;rpp=" + rpp_s + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
@@ -547,11 +559,13 @@ namespace seeks_plugins
      
      // next link.
      static_renderer::render_next_page_link(current_page,snippets.size(),
-					    url_encoded_query,expansion,engines,exports,cgi_base);
+					    url_encoded_query,expansion,engines,parameters,
+					    exports,cgi_base);
      
      // previous link.
      static_renderer::render_prev_page_link(current_page,snippets.size(),
-					    url_encoded_query,expansion,engines,exports,cgi_base);
+					    url_encoded_query,expansion,engines,
+					    parameters,exports,cgi_base);
 
      // cluster link.
      static_renderer::render_nclusters(parameters,exports);

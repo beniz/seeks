@@ -83,6 +83,7 @@ namespace seeks_plugins
 					  const std::string &url_encoded_query,
 					  const std::string &expansion,
 					  const std::string &engines,
+					  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					  const std::string &cgi_base="/search?");
 	
@@ -91,6 +92,7 @@ namespace seeks_plugins
 					  const std::string &url_encoded_query,
 					  const std::string &expansion,
 					  const std::string &engines,
+					  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					  const std::string &cgi_base="/search?");
 
