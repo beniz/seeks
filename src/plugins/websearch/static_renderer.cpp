@@ -171,7 +171,9 @@ namespace seeks_plugins
 	       }
 	  }
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
-	miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
+	if (rpp_str)
+	  miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
+	else miscutil::add_map_entry(exports,"$xxrpp",1,strdup(""),0);
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
