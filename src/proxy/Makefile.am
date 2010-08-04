@@ -53,4 +53,32 @@ endif
 
 SUBDIRS= . tests
 
-EXTRA_DIST = templates
+EXTRA_DIST = \ 
+	    templates/blocked
+	    templates/cgi-error-404
+	    templates/cgi-error-bad-param
+	    templates/cgi-error-disabled \
+	    templates/cgi-error-file \
+	    templates/cgi-error-file-read-only \
+	    templates/cgi-error-modified \
+	    templates/cgi-error-parse \
+	    templates/cgi-style.css \
+	    templates/connect-failed \
+	    templates/connection-timeout \
+	    templates/default \
+	    templates/forwarding-failed \
+	    templates/info-head \
+	    templates/mod-support-and-service \
+	    templates/mod-title \
+	    templates/mod-unstable-warning \
+	    templates/no-server-data \
+	    templates/no-such-domain \
+	    templates/show-request \
+	    templates/show-status \
+	    templates/show-status-file \
+	    templates/show-status-plugin \
+	    templates/show-url-info \
+	    templates/show-version \
+	    templates/toggle \
+	    templates/toggle-mini \
+	    templates/url-info-osd.xml
