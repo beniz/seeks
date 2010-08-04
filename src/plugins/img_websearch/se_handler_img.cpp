@@ -25,6 +25,7 @@
 
 #include "se_parser_bing_img.h"
 #include "se_parser_ggle_img.h"
+#include "se_parser_flickr.h"
 
 using namespace sp;
 
@@ -112,19 +113,57 @@ namespace seeks_plugins
 	
 	url = q_ggle;
      }
+
+   se_flickr::se_flickr()
+     :search_engine()
+       {
+       }
    
+   se_flickr::~se_flickr()
+     {
+     }
+   
+   void se_flickr::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			       std::string &url, const query_context *qc)
+     {
+	std::string q_fl = se_handler_img::_se_strings[FLICKR]; // query to flickr.
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// query.
+	int p = 32;
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_fl.replace(p,6,qenc_str);
+	
+	// expansion = page requested.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	std::string pp_str = expansion;
+	miscutil::replace_in_string(q_fl,"%start",pp_str);
+	
+	// XXX: could try to limit the number of results.
+	
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying flickr: %s", q_fl.c_str());
+	
+	url = q_fl;
+     }
+      
    /*- se_handler_img -*/
    std::string se_handler_img::_se_strings[IMG_NSEs] =  // in alphabetical order.
      {
 	// bing: www.bing.com/images/search?q=markov+chain&go=&form=QBIR
 	"http://www.bing.com/images/search?q=%query&first=%start&mkt=%lang",
+	// flickr: www.flickr.com/search/?q=markov+chain&z=e
+	"http://www.flickr.com/search/?q=%query&page=%start",
 	// ggle: www.google.com/images?q=markov+chain&hl=en&safe=off&prmd=mi&source=lnms&tbs=isch:1&sa=X&oi=mode_link&ct=mode
      	"http://www.google.com/images?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding"
      };
    
    se_bing_img se_handler_img::_img_bing = se_bing_img();
    se_ggle_img se_handler_img::_img_ggle = se_ggle_img();
-
+   se_flickr se_handler_img::_img_flickr = se_flickr();
+   
    /*-- queries to the image search engines. --*/
    std::string** se_handler_img::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					      int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled)
@@ -153,7 +192,7 @@ namespace seeks_plugins
 	     return NULL; // beware.
 	  }
 	else nresults = urls.size();
-	
+		
 	// get content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		      websearch::_wconfig->_se_connect_timeout,0);
@@ -217,6 +256,9 @@ namespace seeks_plugins
 	   case BING_IMG:
 	     _img_bing.query_to_se(parameters,url,qc);
 	     break;
+	   case FLICKR:
+	     _img_flickr.query_to_se(parameters,url,qc);
+	     break;
 	  }
      }
 
@@ -237,6 +279,10 @@ namespace seeks_plugins
 	     else if (se == "bing")
 	       {
 		  se_enabled |= std::bitset<IMG_NSEs>(SE_BING_IMG);
+	       }
+	     else if (se == "flickr")
+	       {
+		  se_enabled |= std::bitset<IMG_NSEs>(SE_FLICKR);
 	       }
 	     // XXX: other engines come here.
 	  }
@@ -336,6 +382,9 @@ namespace seeks_plugins
 	     break;
 	   case BING_IMG:
 	     sep = new se_parser_bing_img();
+	     break;
+	   case FLICKR:
+	     sep = new se_parser_flickr();
 	     break;
 	  }
 	return sep;

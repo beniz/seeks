@@ -42,7 +42,7 @@ namespace seeks_plugins
    img_websearch::img_websearch()
      : plugin()
        {
-	  _name = "image-websearch";
+	  _name = "img_websearch";
 	  _version_major = "0";
 	  _version_minor = "1";
 	  
@@ -63,6 +63,12 @@ namespace seeks_plugins
 	    img_websearch::_iwconfig = new img_websearch_configuration(_config_filename);
 	  
 	  // cgi dispatchers.
+	  _cgi_dispatchers.reserve(2);
+	  
+	  cgi_dispatcher *cgid_wb_seeks_img_search_css
+	    = new cgi_dispatcher("seeks_img_search.css", &img_websearch::cgi_img_websearch_search_css, NULL, TRUE);
+	  _cgi_dispatchers.push_back(cgid_wb_seeks_img_search_css);
+	  
 	  cgi_dispatcher *cgid_img_wb_search
 	    = new cgi_dispatcher("search_img", &img_websearch::cgi_img_websearch_search, NULL, TRUE);
 	  _cgi_dispatchers.push_back(cgid_img_wb_search);
@@ -73,6 +79,31 @@ namespace seeks_plugins
      }
       
    // CGI calls.
+   sp_err img_websearch::cgi_img_websearch_search_css(client_state *csp,
+						      http_response *rsp,
+						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	assert(csp);
+	assert(rsp);
+	assert(parameters);
+	
+	std::string seeks_search_css_str = "img_websearch/templates/css/seeks_img_search.css";
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
+	  = static_renderer::websearch_exports(csp);
+	csp->_content_type = CT_CSS;
+	sp_err err = cgi::template_fill_for_cgi_str(csp,seeks_search_css_str.c_str(),
+						    (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
+						     : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+						    exports,rsp);
+	if (err != SP_ERR_OK)
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR, "Could not load seeks_img_search.css");
+	  }
+	rsp->_is_static = 1;
+	
+	return SP_ERR_OK;
+     }
+      
    sp_err img_websearch::cgi_img_websearch_search(client_state *csp,
 						  http_response *rsp,
 						  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)

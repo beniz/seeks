@@ -29,10 +29,11 @@ namespace seeks_plugins
 {
 
 /* engines in alphabetical order. */
-#define IMG_NSEs 2 // number of image engines.
+#define IMG_NSEs 3 // number of image engines.
    
 #define SE_BING_IMG            1U
-#define SE_GOOGLE_IMG          2U
+#define SE_FLICKR              2U
+#define SE_GOOGLE_IMG          4U
    
    class img_websearch_configuration : public configuration_spec
      {

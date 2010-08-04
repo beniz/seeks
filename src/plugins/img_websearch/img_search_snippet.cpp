@@ -94,12 +94,19 @@ namespace seeks_plugins
 	  }
 	if (_img_engine.to_ulong()&SE_BING_IMG)
 	  {
-	     
 	     std::string bing_se_icon = se_icon;
 	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
 	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
 	     miscutil::replace_in_string(bing_se_icon,"seeng","bing");
 	     html_content += bing_se_icon;
+	  }
+	if (_img_engine.to_ulong()&SE_FLICKR)
+	  {
+	     std::string flickr_se_icon = se_icon;
+	     miscutil::replace_in_string(flickr_se_icon,"icon","search_engine_flickr");
+	     miscutil::replace_in_string(flickr_se_icon,"setitle","Flickr");
+	     miscutil::replace_in_string(flickr_se_icon,"seeng","flickr");
+	     html_content += flickr_se_icon;
 	  }
 	html_content += "</h3><div>";
 	const char *cite_enc = NULL;

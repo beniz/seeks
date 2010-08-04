@@ -28,6 +28,7 @@ namespace seeks_plugins
    enum IMG_SE // in alphabetical order.
      {
 	BING_IMG,
+	FLICKR,
 	GOOGLE_IMG
      };
    
@@ -50,7 +51,17 @@ namespace seeks_plugins
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
      };
-         
+   
+   class se_flickr : public search_engine
+     {
+      public:
+	se_flickr();
+	~se_flickr();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+      
    class se_handler_img
      {
       public:
@@ -78,6 +89,7 @@ namespace seeks_plugins
       public:
 	static se_bing_img _img_bing;
 	static se_ggle_img _img_ggle;
+	static se_flickr _img_flickr;
 	static std::string _se_strings[IMG_NSEs];
      };
         

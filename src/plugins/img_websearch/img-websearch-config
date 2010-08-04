@@ -2,6 +2,7 @@
 # google, bing
 img-search-engine google
 img-search-engine bing
+img-search-engine flickr
 
 # enables background download of image thumbnails and their analysis 
 # for detecting identical and near-identical images.
@@ -11,5 +12,5 @@ img-search-engine bing
 img-content-analysis 0
 
 # number of images per page.
-# default: 30
-img-per-page 30
+# default: 60
+img-per-page 60
