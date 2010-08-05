@@ -1,4 +1,4 @@
-noinst_PROGRAMS=test_bing_img_parser test_ggle_img_parser test_flickr_parser
+noinst_PROGRAMS=test_bing_img_parser test_ggle_img_parser test_flickr_parser test_yahoo_img_parser
 if HAVE_OPENCV2
 noinst_PROGRAMS += test_surf_sim
 endif
@@ -6,6 +6,7 @@ endif
 test_bing_img_parser_SOURCES=test-bing-img-parser.cpp
 test_ggle_img_parser_SOURCES=test-ggle-img-parser.cpp
 test_flickr_parser_SOURCES=test-flickr-parser.cpp
+test_yahoo_img_parser_SOURCES=test-yahoo-img-parser.cpp
 if HAVE_OPENCV2
 test_surf_sim_SOURCES=test-surf-sim.cpp
 endif

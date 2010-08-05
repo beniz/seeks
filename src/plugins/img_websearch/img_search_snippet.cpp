@@ -108,6 +108,14 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(flickr_se_icon,"seeng","flickr");
 	     html_content += flickr_se_icon;
 	  }
+	if (_img_engine.to_ulong()&SE_YAHOO_IMG)
+	  {
+	     std::string yahoo_se_icon = se_icon;
+	     miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
+	     miscutil::replace_in_string(yahoo_se_icon,"setitle","yahoo");
+	     miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
+	     html_content += yahoo_se_icon;
+	  }
 	html_content += "</h3><div>";
 	const char *cite_enc = NULL;
 	if (!_cite.empty())
@@ -190,12 +198,18 @@ namespace seeks_plugins
 	       json_str_eng += ",";
 	     json_str_eng += "\"bing\"";
 	  }
-	/* if (_img_engine.to_ulong()&SE_YAHOO_IMG)
+	if (_img_engine.to_ulong()&SE_FLICKR)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"flickr\"";
+	  }
+	if (_img_engine.to_ulong()&SE_YAHOO_IMG)
 	  {
 	     if (!json_str_eng.empty())
 	       json_str_eng += ",";
 	     json_str_eng += "\"yahoo\"";
-	  } */
+	  }
 	json_str += json_str_eng + "]";
 	json_str += "}";
 	return json_str;

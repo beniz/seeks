@@ -26,6 +26,7 @@
 #include "se_parser_bing_img.h"
 #include "se_parser_ggle_img.h"
 #include "se_parser_flickr.h"
+#include "se_parser_yahoo_img.h"
 
 using namespace sp;
 
@@ -148,6 +149,43 @@ namespace seeks_plugins
 	
 	url = q_fl;
      }
+
+   se_yahoo_img::se_yahoo_img()
+     :search_engine()
+       {
+       }
+   
+   se_yahoo_img::~se_yahoo_img()
+     {
+     }
+   
+   void se_yahoo_img::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				  std::string &url, const query_context *qc)
+     {
+	std::string q_ya = se_handler_img::_se_strings[YAHOO_IMG]; // query to yahoo.
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// query.
+	int p = 56;
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	q_ya.replace(p,6,qenc_str);
+     
+	// page.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_ya,"%start",pp_str);
+	
+	// language.
+	miscutil::replace_in_string(q_ya,"%lang",qc->_auto_lang);
+	
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_ya.c_str());
+	
+	url = q_ya;
+     }
       
    /*- se_handler_img -*/
    std::string se_handler_img::_se_strings[IMG_NSEs] =  // in alphabetical order.
@@ -157,12 +195,15 @@ namespace seeks_plugins
 	// flickr: www.flickr.com/search/?q=markov+chain&z=e
 	"http://www.flickr.com/search/?q=%query&page=%start",
 	// ggle: www.google.com/images?q=markov+chain&hl=en&safe=off&prmd=mi&source=lnms&tbs=isch:1&sa=X&oi=mode_link&ct=mode
-     	"http://www.google.com/images?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding"
+     	"http://www.google.com/images?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
+        // images.search.yahoo.com/search/images?ei=UTF-8&p=lapin&js=0&lang=fr&b=21
+	"http://images.search.yahoo.com/search/images?ei=UTF-8&p=%query&js=0&vl=lang_%lang&b=%start" 
      };
    
    se_bing_img se_handler_img::_img_bing = se_bing_img();
    se_ggle_img se_handler_img::_img_ggle = se_ggle_img();
    se_flickr se_handler_img::_img_flickr = se_flickr();
+   se_yahoo_img se_handler_img::_img_yahoo = se_yahoo_img();
    
    /*-- queries to the image search engines. --*/
    std::string** se_handler_img::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
@@ -259,6 +300,9 @@ namespace seeks_plugins
 	   case FLICKR:
 	     _img_flickr.query_to_se(parameters,url,qc);
 	     break;
+	   case YAHOO_IMG:
+	     _img_yahoo.query_to_se(parameters,url,qc);
+	     break;
 	  }
      }
 
@@ -283,6 +327,10 @@ namespace seeks_plugins
 	     else if (se == "flickr")
 	       {
 		  se_enabled |= std::bitset<IMG_NSEs>(SE_FLICKR);
+	       }
+	     else if (se == "yahoo")
+	       {
+		  se_enabled |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
 	       }
 	     // XXX: other engines come here.
 	  }
@@ -385,6 +433,9 @@ namespace seeks_plugins
 	     break;
 	   case FLICKR:
 	     sep = new se_parser_flickr();
+	     break;
+	   case YAHOO_IMG:
+	     sep = new se_parser_yahoo_img();
 	     break;
 	  }
 	return sep;

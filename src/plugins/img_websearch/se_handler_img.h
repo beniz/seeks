@@ -29,7 +29,8 @@ namespace seeks_plugins
      {
 	BING_IMG,
 	FLICKR,
-	GOOGLE_IMG
+	GOOGLE_IMG,
+        YAHOO_IMG
      };
    
    class se_bing_img : public search_engine
@@ -57,6 +58,17 @@ namespace seeks_plugins
       public:
 	se_flickr();
 	~se_flickr();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+      
+   class se_yahoo_img : public search_engine
+     {
+	
+      public:
+	se_yahoo_img();
+	~se_yahoo_img();
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
@@ -90,6 +102,8 @@ namespace seeks_plugins
 	static se_bing_img _img_bing;
 	static se_ggle_img _img_ggle;
 	static se_flickr _img_flickr;
+	static se_yahoo_img _img_yahoo;
+	
 	static std::string _se_strings[IMG_NSEs];
      };
         

@@ -1,8 +1,9 @@
 # one or more enabled search engines
-# google, bing
+# google, bing, flickr, yahoo
 img-search-engine google
 img-search-engine bing
 img-search-engine flickr
+img-search-engine yahoo
 
 # enables background download of image thumbnails and their analysis 
 # for detecting identical and near-identical images.
