@@ -301,7 +301,7 @@ logfile logfile
 #
 activated-plugin websearch
 activated-plugin blocker
-activated-plugin image-websearch
+activated-plugin img_websearch
 #activated-plugin httpserv
 #
 #
