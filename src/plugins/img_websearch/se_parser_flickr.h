@@ -55,9 +55,6 @@ namespace seeks_plugins
       private:
 	bool _results_flag;
 	bool _span_flag;
-		
-	std::string _link;
-	std::string _title;
      };
       
 } /* end of namespace. */
