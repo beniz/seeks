@@ -120,6 +120,7 @@ namespace seeks_plugins
 	evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL);
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
 	evhttp_set_cb(_srv,"/search_img",&httpserv::img_websearch,NULL);
+	evhttp_set_cb(_srv,"/seeks_img_search.css",&httpserv::seeks_img_search_css,NULL);
 #endif
 	evhttp_set_cb(_srv,"/",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/websearch-hp",&httpserv::websearch_hp,NULL);
@@ -456,6 +457,26 @@ namespace seeks_plugins
 	if (rsp._body)
 	  content = std::string(rsp._body); // XXX: beware of length.
 	httpserv::reply_with_body(r,200,"OK",content,ct);
+     }
+   
+   void httpserv::seeks_img_search_css(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;          
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+	
+	/* return requested file. */
+	sp_err serr = img_websearch::cgi_img_websearch_search_css(&csp,&rsp,&parameters);
+	if (serr != SP_ERR_OK)
+	  {
+	     httpserv::reply_with_empty_body(r,404,"ERROR");
+	     return;
+	  }
+	
+	/* fill up response. */
+	std::string content = std::string(rsp._body);
+	httpserv::reply_with_body(r,200,"OK",content,"text/css");
      }
 #endif
       

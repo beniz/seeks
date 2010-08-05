@@ -73,6 +73,7 @@ namespace seeks_plugins
 	static void websearch(struct evhttp_request *r, void *arg);
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
 	static void img_websearch(struct evhttp_request *r, void *arg);
+	static void seeks_img_search_css(struct evhttp_request *r, void *arg);
 #endif
 	static void unknown_path(struct evhttp_request *r, void *arg);
 	
