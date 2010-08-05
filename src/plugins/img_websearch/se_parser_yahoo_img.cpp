@@ -83,14 +83,15 @@ namespace seeks_plugins
 		  if (pos != std::string::npos && pos+7 < furl.size())
 		    {
 		       std::string imgurl = furl.substr(pos+7);
-		       pos = imgurl.find("%26");
+		       char *imgurl_str = encode::url_decode(imgurl.c_str());
+		       imgurl = imgurl_str;
+		       free(imgurl_str);
+		       pos = imgurl.find("&");
 		       if (pos != std::string::npos)
 			 {
 			    imgurl = imgurl.substr(0,pos);
 			    imgurl = "http://" + imgurl;
-			    char *imgurl_str = encode::url_decode(imgurl.c_str());
-			    pc->_current_snippet->set_url(imgurl_str);
-			    free(imgurl_str);
+			    pc->_current_snippet->set_url(imgurl);
 			 }
 		    }
 	       }
