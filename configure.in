@@ -31,6 +31,7 @@ AC_DEFINE(SEEKS_VERSION_MINOR,"2","")
 AC_DEFINE(SEEKS_VERSION_POINT,"4","")
 AC_DEFINE(SEEKS_VERSION,"0.2.4","")
 AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
+cstatus=experimental
 
 # Checks for programs.
 AC_PROG_CXX
@@ -385,7 +386,7 @@ AC_HELP_STRING([--enable-image-websearch-plugin],[Enable the Seeks image websear
                 no) imgwebsearch=false ;;
                         *) AC_MSG_ERROR(bad_value ${enableval} for
 --enable-image-websearch-plugin) ;;
-esac],[imgwebsearch=false])
+esac],[imgwebsearch=true])
 AM_CONDITIONAL(HAVE_IMG_WEBSEARCH_PLUGIN,test x$imgwebsearch = xtrue)
 if test x$imgwebsearch = xtrue; then
    AC_DEFINE(FEATURE_IMG_WEBSEARCH_PLUGIN,1,"Image websearch plugin available")
@@ -529,3 +530,21 @@ src/plugins/blocker/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
+
+AC_MSG_NOTICE([Configured bo build seeks:
+
+ Seeks version:		  ${VERSION}
+ Code status:		  ${cstatus}
+ Host setup:		  ${host}
+ Install prefix:	  ${prefix}
+ Compiler:		  ${CC} 
+ 
+ Dependencies:
+ OpenCV-2.x:		  ${opencv2}
+ libevent:		  ${le_found}
+
+ Enabled plugins:
+ image websearch:	  ${imgwebsearch}
+ HTTP server		  ${httpservplugin}
+ 
+])
