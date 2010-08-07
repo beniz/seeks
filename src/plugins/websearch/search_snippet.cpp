@@ -409,6 +409,13 @@ namespace seeks_plugins
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
+   void search_snippet::set_url_no_decode(const std::string &url)
+     {
+	_url = url;
+	std::string surl = urlmatch::strip_url(_url);
+	_id = mrf::mrf_single_feature(surl,"");
+     }
+      
    void search_snippet::set_cite(const std::string &cite)
      {
 	char *cite_dec = encode::url_decode(cite.c_str());
