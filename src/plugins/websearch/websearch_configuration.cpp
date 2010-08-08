@@ -43,6 +43,7 @@ namespace seeks_plugins
 #define hash_max_expansions         3838821776ul /* "max-expansions" */
 #define hash_extended_highlight     2722091897ul /* "extended-highlight" */   
 #define hash_background_proxy        682905808ul /* "background-proxy" */
+#define hash_show_node_ip           4288369354ul /* "show-node-ip" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -73,6 +74,7 @@ namespace seeks_plugins
 	_extended_highlight = false; // experimental.
 	_background_proxy_addr = ""; // no specific background proxy (means seeks' proxy).
 	_background_proxy_port = 0;
+	_show_node_ip = false;
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -192,6 +194,12 @@ namespace seeks_plugins
 	       }
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Background proxy for fetching URLs");
+	     break;
+	     
+	   case hash_show_node_ip:
+	     _show_node_ip = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enable rendering of the node IP address in the info bar");
 	     break;
 	     
 	   default:

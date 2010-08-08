@@ -481,6 +481,11 @@ namespace seeks_plugins
 #ifndef FEATURE_IMG_WEBSEARCH_PLUGIN
 	cgi::map_block_killer(exports,"img-websearch");
 #endif
+	
+	// node IP rendering.
+	if (!websearch::_wconfig->_show_node_ip)
+	  cgi::map_block_killer(exports,"have-show-node-ip");
+	
 	return exports;
      }
       

@@ -77,3 +77,7 @@ extended-highlight 1
 # to grab search engine results and content, as required.
 # default:
 #background-proxy-addr your_proxy:your_port
+
+# Renders the node IP address in the info bar, or not.
+# default: 0
+show-node-ip 0
