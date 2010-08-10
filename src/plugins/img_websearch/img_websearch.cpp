@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/times.h>
+#include <assert.h>
 
 using namespace sp;
 
