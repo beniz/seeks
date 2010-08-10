@@ -376,6 +376,10 @@ namespace seeks_plugins
 	  {
 	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
 	     httpserv::reply_with_error(r,500,"ERROR",error_message);
+	     
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     
 	     return;
 	  }
 	
@@ -396,6 +400,9 @@ namespace seeks_plugins
 	if (rsp._body)
 	  content = std::string(rsp._body); // XXX: beware of length.
 	httpserv::reply_with_body(r,200,"OK",content,ct);
+     
+	/* run the sweeper, for timed out query contexts. */
+	sweeper::sweep();
      }
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
@@ -437,7 +444,11 @@ namespace seeks_plugins
 	  {
 	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
              httpserv::reply_with_error(r,500,"ERROR",error_message);
-             return;
+             
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     
+	     return;
           }
 	
 	/* fill up response. */
@@ -457,6 +468,9 @@ namespace seeks_plugins
 	if (rsp._body)
 	  content = std::string(rsp._body); // XXX: beware of length.
 	httpserv::reply_with_body(r,200,"OK",content,ct);
+     
+	/* run the sweeper, for timed out query contexts. */
+	sweeper::sweep();
      }
    
    void httpserv::seeks_img_search_css(struct evhttp_request *r, void *arg)
