@@ -27,6 +27,8 @@
 #include "miscutil.h"
 #include "errlog.h"
 
+#include <cxflann.h>
+
 #include <iostream>
 #include <fstream>
 

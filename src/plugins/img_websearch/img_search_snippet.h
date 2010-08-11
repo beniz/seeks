@@ -19,13 +19,17 @@
 #ifndef IMG_SEARCH_SNIPPET_H
 #define IMG_SEARCH_SNIPPET_H
 
-#include "search_snippet.h" // from websearch plugin.
-#include "img_websearch_configuration.h"
+#include "config.h"
 
 #ifdef FEATURE_OPENCV2
-#include "cv.h" // OpenCV.
-#include "highgui.h"
+#undef HAVE_CONFIG_H
+#include <cv.h> // OpenCV.
+#include <highgui.h>
+#define HAVE_CONFIG_H
 #endif
+
+#include "search_snippet.h" // from websearch plugin.
+#include "img_websearch_configuration.h"
 
 namespace seeks_plugins
 {
