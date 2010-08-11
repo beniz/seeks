@@ -216,7 +216,7 @@ namespace seeks_plugins
 	  {
 	     if (!json_str_eng.empty())
 	       json_str_eng += ",";
-	     json_str_eng += "\wcommons\"";
+	     json_str_eng += "\"wcommons\"";
 	  }
 	if (_img_engine.to_ulong()&SE_YAHOO_IMG)
 	  {
