@@ -174,6 +174,8 @@ namespace seeks_plugins
 	if (rpp_str)
 	  miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
 	else miscutil::add_map_entry(exports,"$xxrpp",1,strdup(""),0);
+	miscutil::add_map_entry(exports,"$xxtrpp",1,
+				miscutil::to_string(websearch::_wconfig->_N).c_str(),1);
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
