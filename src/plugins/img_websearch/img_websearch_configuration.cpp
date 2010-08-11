@@ -66,6 +66,8 @@ namespace seeks_plugins
 	       _img_se_enabled |= std::bitset<IMG_NSEs>(SE_FLICKR);
 	     else if (strcasecmp(arg,"yahoo") == 0)
 	       _img_se_enabled |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
+	     else if (strcasecmp(arg,"wcommons") == 0)
+	       _img_se_enabled |= std::bitset<IMG_NSEs>(SE_WCOMMONS);
 	     break;
 	     
 	   case hash_img_ca:

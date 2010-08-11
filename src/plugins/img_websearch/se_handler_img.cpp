@@ -26,6 +26,7 @@
 #include "se_parser_bing_img.h"
 #include "se_parser_ggle_img.h"
 #include "se_parser_flickr.h"
+#include "se_parser_wcommons.h"
 #include "se_parser_yahoo_img.h"
 
 using namespace sp;
@@ -91,7 +92,7 @@ namespace seeks_plugins
 	free(qenc);
 	q_ggle.replace(p,6,qenc_str);
 	
-	// expansion = result page called...
+	// expansion = result page called.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
 	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
 	std::string pp_str = miscutil::to_string(pp);
@@ -109,6 +110,7 @@ namespace seeks_plugins
 	if (websearch::_wconfig->_lang == "auto")
 	  miscutil::replace_in_string(q_ggle,"%lang",qc->_auto_lang);
 	else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
+	
 	// log the query.
 	errlog::log_error(LOG_LEVEL_INFO, "Querying ggle: %s", q_ggle.c_str());
 	
@@ -186,6 +188,45 @@ namespace seeks_plugins
 	
 	url = q_ya;
      }
+
+   se_wcommons::se_wcommons()
+     {
+     }
+   
+   se_wcommons::~se_wcommons()
+     {
+     }
+   
+   void se_wcommons::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc)
+     {
+	std::string q_wcom = se_handler_img::_se_strings[WCOMMONS]; // query to wikimedia commons.
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// query.
+	int p = 71;
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	//q_wcom.replace(p,6,qenc_str);
+	miscutil::replace_in_string(q_wcom,"%query",qenc_str);
+	
+	// expansion.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_wcom,"%start",pp_str);
+	
+	// number of results.
+	int num = img_websearch_configuration::_img_wconfig->_N; // by default.
+	std::string num_str = miscutil::to_string(num);
+	miscutil::replace_in_string(q_wcom,"%num",num_str);
+     
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying wikimedia commons: %s", q_wcom.c_str()); 
+	
+	url = q_wcom;
+     }
       
    /*- se_handler_img -*/
    std::string se_handler_img::_se_strings[IMG_NSEs] =  // in alphabetical order.
@@ -196,13 +237,16 @@ namespace seeks_plugins
 	"http://www.flickr.com/search/?q=%query&page=%start",
 	// ggle: www.google.com/images?q=markov+chain&hl=en&safe=off&prmd=mi&source=lnms&tbs=isch:1&sa=X&oi=mode_link&ct=mode
      	"http://www.google.com/images?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
-        // images.search.yahoo.com/search/images?ei=UTF-8&p=lapin&js=0&lang=fr&b=21
+	// wcommons: commons.wikimedia.org/w/index.php?title=Special:Search&limit=20&offset=20&search=markov+chain
+	"http://commons.wikimedia.org/w/index.php?search=%query&limit=%num&offset=%start",
+	// images.search.yahoo.com/search/images?ei=UTF-8&p=lapin&js=0&lang=fr&b=21
 	"http://images.search.yahoo.com/search/images?ei=UTF-8&p=%query&js=0&vl=lang_%lang&b=%start" 
      };
    
    se_bing_img se_handler_img::_img_bing = se_bing_img();
    se_ggle_img se_handler_img::_img_ggle = se_ggle_img();
    se_flickr se_handler_img::_img_flickr = se_flickr();
+   se_wcommons se_handler_img::_img_wcommons = se_wcommons();
    se_yahoo_img se_handler_img::_img_yahoo = se_yahoo_img();
    
    /*-- queries to the image search engines. --*/
@@ -281,7 +325,8 @@ namespace seeks_plugins
 	std::list<const char*>::const_iterator sit = qc->_useful_http_headers.begin();
 	while(sit!=qc->_useful_http_headers.end())
 	  {
-	     if (se == GOOGLE_IMG && miscutil::strncmpic((*sit),"user-agent:",11) == 0)
+	     if (se == GOOGLE_IMG
+		 && miscutil::strncmpic((*sit),"user-agent:",11) == 0)
 	       {
 		  // XXX: ggle seems to render queries based on the user agent.
 	       }
@@ -299,6 +344,9 @@ namespace seeks_plugins
 	     break;
 	   case FLICKR:
 	     _img_flickr.query_to_se(parameters,url,qc);
+	     break;
+	   case WCOMMONS:
+	     _img_wcommons.query_to_se(parameters,url,qc);
 	     break;
 	   case YAHOO_IMG:
 	     _img_yahoo.query_to_se(parameters,url,qc);
@@ -327,6 +375,10 @@ namespace seeks_plugins
 	     else if (se == "flickr")
 	       {
 		  se_enabled |= std::bitset<IMG_NSEs>(SE_FLICKR);
+	       }
+	     else if (se == "wcommons")
+	       {
+		  se_enabled |= std::bitset<IMG_NSEs>(SE_WCOMMONS);
 	       }
 	     else if (se == "yahoo")
 	       {
@@ -433,6 +485,9 @@ namespace seeks_plugins
 	     break;
 	   case FLICKR:
 	     sep = new se_parser_flickr();
+	     break;
+	   case WCOMMONS:
+	     sep = new se_parser_wcommons();
 	     break;
 	   case YAHOO_IMG:
 	     sep = new se_parser_yahoo_img();

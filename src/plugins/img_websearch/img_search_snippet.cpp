@@ -108,6 +108,14 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(flickr_se_icon,"seeng","flickr");
 	     html_content += flickr_se_icon;
 	  }
+	if (_img_engine.to_ulong()&SE_WCOMMONS)
+	  {
+	     std::string wcommons_se_icon = se_icon;
+	     miscutil::replace_in_string(wcommons_se_icon,"icon","search_engine_wcommons");
+             miscutil::replace_in_string(wcommons_se_icon,"setitle","Wikimedia Commons");
+             miscutil::replace_in_string(wcommons_se_icon,"seeng","wcommons");
+             html_content += wcommons_se_icon;
+	  }
 	if (_img_engine.to_ulong()&SE_YAHOO_IMG)
 	  {
 	     std::string yahoo_se_icon = se_icon;
@@ -203,6 +211,12 @@ namespace seeks_plugins
 	     if (!json_str_eng.empty())
 	       json_str_eng += ",";
 	     json_str_eng += "\"flickr\"";
+	  }
+	if (_img_engine.to_ulong()&SE_WCOMMONS)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\wcommons\"";
 	  }
 	if (_img_engine.to_ulong()&SE_YAHOO_IMG)
 	  {

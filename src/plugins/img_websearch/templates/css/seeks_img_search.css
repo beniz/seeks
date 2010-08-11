@@ -3,3 +3,7 @@
 #search_results .search_snippet .search_engine_flickr {
     background-image: url(base-url/plugins/img_websearch/public/images/search_engines/flickr_12x12.png);
 }
+
+#search_results .search_snippet .search_engine_wcommons {
+    background-image: url(base-url/plugins/img_websearch/public/images/search_engines/wcommons_12x12.png);
+}

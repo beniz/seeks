@@ -30,6 +30,7 @@ namespace seeks_plugins
 	BING_IMG,
 	FLICKR,
 	GOOGLE_IMG,
+	WCOMMONS,
         YAHOO_IMG
      };
    
@@ -74,6 +75,16 @@ namespace seeks_plugins
 				 std::string &url, const query_context *qc);
      };
       
+   class se_wcommons : public search_engine
+     {
+      public:
+	se_wcommons();
+	~se_wcommons();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+      
    class se_handler_img
      {
       public:
@@ -103,6 +114,7 @@ namespace seeks_plugins
 	static se_ggle_img _img_ggle;
 	static se_flickr _img_flickr;
 	static se_yahoo_img _img_yahoo;
+	static se_wcommons _img_wcommons;
 	
 	static std::string _se_strings[IMG_NSEs];
      };
