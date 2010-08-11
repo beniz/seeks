@@ -326,10 +326,12 @@ namespace seeks_plugins
 	// unlock or destroy the query context.
 	qc->_lock = false;
 	seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-	sweeper::unregister_sweepable(qc);
 	if (qc->empty())
-	  delete qc;
-	
+	  {
+	     sweeper::unregister_sweepable(qc);
+	     delete qc;
+	  }
+		
 	return err;
      }
 
