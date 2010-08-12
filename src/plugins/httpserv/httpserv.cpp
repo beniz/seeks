@@ -353,6 +353,8 @@ namespace seeks_plugins
 	if (!parameters || !uri_str)
 	  {
 	     // send 400 error response.
+	     if (parameters)
+	       miscutil::free_map(parameters);
 	     httpserv::reply_with_error_400(r);
 	     return;
 	  }
@@ -421,6 +423,8 @@ namespace seeks_plugins
 	if (!parameters || !uri_str)
 	  {
 	     // send 400 error response.
+	     if (parameters)
+	       miscutil::free_map(parameters);
 	     httpserv::reply_with_error_400(r);
 	     return;
 	  }
