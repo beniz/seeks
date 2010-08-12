@@ -80,8 +80,6 @@ namespace seeks_plugins
 		  _count++;
 		  sp->_img_engine |= std::bitset<IMG_NSEs>(SE_WCOMMONS);
 		  pc->_current_snippet = sp;
-		  
-		  std::cout << "created snippet\n";
 	       }
 	  }
 	else if (_results_flag && strcasecmp(tag,"img") == 0)
