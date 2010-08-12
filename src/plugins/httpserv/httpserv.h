@@ -78,9 +78,8 @@ namespace seeks_plugins
 	static void unknown_path(struct evhttp_request *r, void *arg);
 	
 	/* utils. */
-	static int parse_query(const std::string &str,
-			       hash_map<const char*,const char*,hash<const char*>,eqstr> &parameters);
-	
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* parse_query(const std::string &str);
+		
       public:
 	std::string _address;
 	u_short _port;

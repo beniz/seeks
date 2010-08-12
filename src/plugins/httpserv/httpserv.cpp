@@ -25,6 +25,7 @@
 #include "sweeper.h"
 #include "miscutil.h"
 #include "errlog.h"
+#include "cgi.h"
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
 #include "img_websearch.h"
@@ -340,21 +341,18 @@ namespace seeks_plugins
 	client_state csp;
 	csp._config = seeks_proxy::_config;
 	http_response rsp;
-	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
-	
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+		
 	/* parse query. */
 	const char *uri_str = r->uri;
-	int err = 0;
 	if (uri_str)
 	  {
 	     std::string uri = std::string(r->uri);
-	     err = httpserv::parse_query(uri,*parameters);
+	     parameters = httpserv::parse_query(uri);
 	  }
-	if (err != 0 || !uri_str)
+	if (!parameters || !uri_str)
 	  {
 	     // send 400 error response.
-	     miscutil::free_map(parameters);
 	     httpserv::reply_with_error_400(r);
 	     return;
 	  }
@@ -411,21 +409,18 @@ namespace seeks_plugins
 	client_state csp;
 	csp._config = seeks_proxy::_config;
 	http_response rsp;
-	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
-     
-	 /* parse query. */
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+	     
+	/* parse query. */
 	const char *uri_str = r->uri;
-	int err = 0;
 	if (uri_str)
 	  {
 	     std::string uri = std::string(r->uri);
-	     err = httpserv::parse_query(uri,*parameters);
+	     parameters = httpserv::parse_query(uri);
 	  }
-	if (err != 0 || !uri_str)
+	if (!parameters || !uri_str)
 	  {
 	     // send 400 error response.
-	     miscutil::free_map(parameters);
 	     httpserv::reply_with_error_400(r);
 	     return;
 	  }
@@ -498,9 +493,8 @@ namespace seeks_plugins
      {
 	httpserv::reply_with_empty_body(r,404,"ERROR");
      }
-
-   int httpserv::parse_query(const std::string &uri,
-			     hash_map<const char*,const char*,hash<const char*>,eqstr> &parameters)
+   
+   hash_map<const char*,const char*,hash<const char*>,eqstr>* httpserv::parse_query(const std::string &uri)
      {
 	/* decode uri. */
 	char *dec_uri_str = evhttp_decode_uri(uri.c_str());
@@ -508,22 +502,10 @@ namespace seeks_plugins
 	free(dec_uri_str);
 	
 	/* parse query. */
-	std::vector<std::string> host_and_params;
-	miscutil::tokenize(dec_uri,host_and_params,"?&");
-	if (host_and_params.size()<2)
-	  return 1; // error parsing parameters.
-	size_t nparams = host_and_params.size();
-	for (size_t i=1;i<nparams;i++)
-	  {
-	     std::vector<std::string> tokens;
-	     miscutil::tokenize(host_and_params.at(i),tokens,"=");
-	     if (tokens.size()!=2)
-	       {
-		  // ignore parameter.
-	       }
-	     else miscutil::add_map_entry(&parameters,tokens.at(0).c_str(),1,tokens.at(1).c_str(),1);
-	  }
-	return 0;
+	char *argstring = strdup(uri.c_str());
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters =  cgi::parse_cgi_parameters(argstring);
+	free(argstring);
+	return parameters;
      }
          
    /* auto-registration */
