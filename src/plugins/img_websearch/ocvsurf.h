@@ -19,8 +19,10 @@
 #ifndef OCVSURF_H
 #define OCVSURF_H
 
+#undef HAVE_CONFIG_H
 #include "cv.h" // OpenCV.
 #include "highgui.h"
+#define HAVE_CONFIG_H
 #include "img_search_snippet.h"
 
 namespace seeks_plugins
