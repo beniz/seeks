@@ -73,7 +73,7 @@ namespace seeks_plugins
 	     cvExtractSURF(img, 0, &objectKeypoints, &objectDescriptors, 
 			   sg->_surf_storage, ocvsurf::_surf_params);
 	  }
-	catch (cv::Exception e)
+	catch (cv::Exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error extracting features from image loaded from %s: %s", tfname.c_str(),
 			       e.err.c_str());
