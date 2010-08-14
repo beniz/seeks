@@ -17,6 +17,7 @@
  */
 
 #include "se_handler_img.h"
+#include "img_query_context.h"
 #include "websearch.h"
 #include "curl_mget.h"
 #include "miscutil.h"
@@ -33,6 +34,7 @@ using namespace sp;
 
 namespace seeks_plugins
 {
+   std::string se_bing_img::_safe_search_cookie = "SRCHHPGUSR=\"NEWWND=0&ADLT=OFF&NRSLT=10&NRSPH=2&SRCHLANG=\"";
    se_bing_img::se_bing_img()
      :search_engine()
        {
@@ -152,6 +154,7 @@ namespace seeks_plugins
 	url = q_fl;
      }
 
+   std::string se_yahoo_img::_safe_search_cookie = "sB=vm=p\\&v=1";
    se_yahoo_img::se_yahoo_img()
      :search_engine()
        {
@@ -204,7 +207,7 @@ namespace seeks_plugins
 	const char *query = miscutil::lookup(parameters,"q");
 	
 	// query.
-	int p = 71;
+	//int p = 71;
 	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
 	std::string qenc_str = std::string(qenc);
 	free(qenc);
@@ -257,6 +260,8 @@ namespace seeks_plugins
 	urls.reserve(IMG_NSEs);
 	std::vector<std::list<const char*>*> headers;
 	headers.reserve(IMG_NSEs);
+	std::vector<std::string> cookies;
+	cookies.reserve(IMG_NSEs);
 	
 	// enabling of SEs.
 	for (int i=0;i<IMG_NSEs;i++)
@@ -268,6 +273,11 @@ namespace seeks_plugins
 		  se_handler_img::query_to_se(parameters,(IMG_SE)i,url,qc,lheaders);
 		  urls.push_back(url);
 		  headers.push_back(lheaders);
+		  if ((IMG_SE)i == BING_IMG)  // safe search cookies.
+		    cookies.push_back(se_bing_img::_safe_search_cookie.c_str());
+		  else if ((IMG_SE)i == YAHOO_IMG)
+		    cookies.push_back(se_yahoo_img::_safe_search_cookie.c_str());
+		  else cookies.push_back("");
 	       }
 	  }
 	
@@ -279,13 +289,19 @@ namespace seeks_plugins
 	else nresults = urls.size();
 		
 	// get content.
+	std::vector<std::string> *safesearch_cookies = NULL;
+	const char *safesearch_p = miscutil::lookup(parameters,"safesearch");
+	if ((safesearch_p && strcasecmp(safesearch_p,"off") == 0)
+	    || (!safesearch_p && !img_websearch_configuration::_img_wconfig->_safe_search))
+	  safesearch_cookies = &cookies;
 	curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		      websearch::_wconfig->_se_connect_timeout,0);
 	if (websearch::_wconfig->_background_proxy_addr.empty())
-	  cmg.www_mget(urls,urls.size(),&headers,"",0); // don't go through the seeks' proxy, or will loop til death!
+	  cmg.www_mget(urls,urls.size(),&headers,"",0,NULL,safesearch_cookies); // don't go through the seeks' proxy, or will loop til death!
 	else cmg.www_mget(urls,urls.size(),&headers,
 			  websearch::_wconfig->_background_proxy_addr,
-			  websearch::_wconfig->_background_proxy_port);
+			  websearch::_wconfig->_background_proxy_port,
+			  NULL,safesearch_cookies);
 			
 	std::string **outputs = new std::string*[urls.size()];
 	bool have_outputs = false;
@@ -457,7 +473,8 @@ namespace seeks_plugins
    
    void se_handler_img::parse_output(const ps_thread_arg &args)
      {
-	se_parser *se = se_handler_img::create_se_parser((IMG_SE)args._se);
+	se_parser *se = se_handler_img::create_se_parser((IMG_SE)args._se,
+							 static_cast<img_query_context*>(args._qr)->_safesearch);
 	if ((IMG_SE)args._se == BING_IMG)
 	  se->parse_output_xml(args._output,args._snippets,args._offset);
 	else se->parse_output(args._output,args._snippets,args._offset);
@@ -472,16 +489,21 @@ namespace seeks_plugins
 	delete se;
      }
    
-   se_parser* se_handler_img::create_se_parser(const IMG_SE &se)
+   se_parser* se_handler_img::create_se_parser(const IMG_SE &se,
+					       const bool &safesearch)
      {
 	se_parser *sep = NULL;
+	se_parser_bing_img *sepb = NULL;
+	se_parser_yahoo_img *sepy = NULL;
 	switch(se)
 	  {
 	   case GOOGLE_IMG:
 	     sep = new se_parser_ggle_img();
 	     break;
 	   case BING_IMG:
-	     sep = new se_parser_bing_img();
+	     sepb = new se_parser_bing_img();
+	     sepb->_safesearch = safesearch;
+	     sep = sepb;
 	     break;
 	   case FLICKR:
 	     sep = new se_parser_flickr();
@@ -490,7 +512,9 @@ namespace seeks_plugins
 	     sep = new se_parser_wcommons();
 	     break;
 	   case YAHOO_IMG:
-	     sep = new se_parser_yahoo_img();
+	     sepy = new se_parser_yahoo_img();
+	     sepy->_safesearch = safesearch;
+	     sep = sepy;
 	     break;
 	  }
 	return sep;

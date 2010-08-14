@@ -57,6 +57,9 @@ namespace seeks_plugins
 	
       public:
 	std::bitset<IMG_NSEs> _img_engines;
+	unsigned short _exp_safesearch_on;
+	unsigned short _exp_safesearch_off;
+	bool _safesearch;
      };
       
 } /* end of namespace. */

@@ -99,7 +99,8 @@ namespace seeks_plugins
 	static void render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 	  
-	static hash_map<const char*,const char*,hash<const char*>,eqstr>* websearch_exports(client_state *csp);
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* websearch_exports(client_state *csp,
+											    const std::vector<std::pair<std::string,std::string> > *param_exports = NULL);
 	
 	/*- renderer. -*/
 	static sp_err render_hp(client_state *csp, http_response *rsp);
@@ -114,7 +115,8 @@ namespace seeks_plugins
 						const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						const query_context *qc,
 						const std::string &result_tmpl_name,
-						const std::string &cgi_base="/search?");
+						const std::string &cgi_base="/search?",
+						const std::vector<std::pair<std::string,std::string> > *param_exports=NULL);
 	
 	static sp_err render_clustered_result_page_static(cluster *clusters,
 							  const short &K,

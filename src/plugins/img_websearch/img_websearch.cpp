@@ -182,11 +182,15 @@ namespace seeks_plugins
 		       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"rpp",1,
 					       miscutil::to_string(img_websearch_configuration::_img_wconfig->_N).c_str(),1);
 		    }
+		  std::vector<std::pair<std::string,std::string> > *param_exports 
+		    = img_websearch::safesearch_exports(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 		  err = static_renderer::render_result_page_static(qc->_cached_snippets,
 								   csp,rsp,parameters,qc,
 								   (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name
 								    : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-								   "/search_img?");
+								   "/search_img?",param_exports);
+		  if (param_exports)
+		    delete param_exports;
 	       }
 	     else
 	       {
@@ -301,7 +305,7 @@ namespace seeks_plugins
 	const char *output = miscutil::lookup(parameters,"output");
 	sp_err err = SP_ERR_OK;
 	if (!output || strcmp(output,"html")==0)
-	  {
+	  {	     
 	     // sets the number of images per page, if not already set.
 	     const char *rpp = miscutil::lookup(parameters,"rpp");
 	     if (!rpp)
@@ -309,11 +313,15 @@ namespace seeks_plugins
 		  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"rpp",1,
 					  miscutil::to_string(img_websearch_configuration::_img_wconfig->_N).c_str(),1);
 	       }
+	     std::vector<std::pair<std::string,std::string> > *param_exports 
+	       = img_websearch::safesearch_exports(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	     err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							      csp,rsp,parameters,qc,
 							      (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name 
-							       : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-							      "/search_img?");
+								: std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
+							      "/search_img?",param_exports);
+	     if (param_exports)
+	       delete param_exports;
 	  }
 	else
 	  {
@@ -334,7 +342,31 @@ namespace seeks_plugins
 		
 	return err;
      }
-
+   
+   std::vector<std::pair<std::string,std::string> >* img_websearch::safesearch_exports(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	std::vector<std::pair<std::string,std::string> > *param_exports = NULL;
+	const char *safesearch_p = miscutil::lookup(parameters,"safesearch");
+	param_exports = new std::vector<std::pair<std::string,std::string> >();
+	if (safesearch_p && (strcasecmp(safesearch_p,"on")==0 || strcasecmp(safesearch_p,"off") == 0))
+	  {
+	     param_exports->push_back(std::pair<std::string,std::string>("$xxsafe",safesearch_p));
+	     param_exports->push_back(std::pair<std::string,std::string>("$xxoppsafe",strcasecmp(safesearch_p,"on")==0 ?
+									 "off" : "on"));
+	  }
+	else 
+	  {
+	     param_exports->push_back(std::pair<std::string,std::string>("$xxsafe",img_websearch_configuration::_img_wconfig->_safe_search ?
+									 "on" : "off"));
+	     param_exports->push_back(std::pair<std::string,std::string>("$xxoppsafe",!img_websearch_configuration::_img_wconfig->_safe_search ?
+									 "on" : "off"));
+	     if (!safesearch_p)
+	       miscutil::add_map_entry(parameters,"safesearch",1,
+				       img_websearch_configuration::_img_wconfig->_safe_search ? "on" : "off",1);
+	  }
+	return param_exports;
+     }
+      
    /* auto-registration. */
    extern "C"
      {

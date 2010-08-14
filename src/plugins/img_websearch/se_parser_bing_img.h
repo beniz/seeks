@@ -59,6 +59,9 @@ namespace seeks_plugins
 	
 	std::string _link;
 	std::string _title;
+      
+      public:
+	bool _safesearch;
      };
       
 } /* end of namespace. */

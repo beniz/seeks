@@ -31,7 +31,7 @@ namespace seeks_plugins
 {
    
    se_parser_yahoo_img::se_parser_yahoo_img()
-     :se_parser(),_results_flag(false),_cite_flag(false)
+     :se_parser(),_results_flag(false),_cite_flag(false),_safesearch(true)
        {
        }
    
@@ -58,9 +58,9 @@ namespace seeks_plugins
 	     // assert previous snippet if any.
 	     if (pc->_current_snippet)
 	       {
-		  if (0/* pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
+		  if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
 		      ||  pc->_current_snippet->_url.empty()
-		      || pc->_current_snippet->_cached.empty() */)
+		      || pc->_current_snippet->_cached.empty())
 		    {
 		       delete pc->_current_snippet;
 		       pc->_current_snippet = NULL;
@@ -69,6 +69,7 @@ namespace seeks_plugins
 		  else pc->_snippets->push_back(pc->_current_snippet);
 	       }
 	     img_search_snippet *sp = new img_search_snippet(_count+1);
+	     sp->_safe = _safesearch;
 	     _count++;
 	     sp->_img_engine |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
 	     pc->_current_snippet = sp;

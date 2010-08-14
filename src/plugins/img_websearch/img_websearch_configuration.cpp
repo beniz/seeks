@@ -26,6 +26,7 @@ namespace seeks_plugins
 #define hash_img_se     3083524283ul /* "img-search-engine" */
 #define hash_img_ca     3745160171ul /* "img-content-analysis" */
 #define hash_img_n      3311685141ul /* "img-per-page" */
+#define hash_safesearch 3304310928ul /* "safe-search" */
    
    img_websearch_configuration *img_websearch_configuration::_img_wconfig = NULL;
    
@@ -48,6 +49,7 @@ namespace seeks_plugins
 	_img_se_enabled.set(); // all engines is default.
 	_img_content_analysis = false; // no download of image thumbnails is default.
 	_N = 30; // default number of images per page.
+	_safe_search = true; // default is on.
      }
    
    void img_websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -80,6 +82,12 @@ namespace seeks_plugins
 	     _N = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Number of images per page");
+	     break;
+	     
+	   case hash_safesearch:
+	     _safe_search = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enable the safe search (no pornographic images");
 	     break;
 	     
 	   default:

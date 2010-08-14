@@ -204,6 +204,11 @@ namespace seeks_plugins
 	static std::vector<url_spec*> _video_pos_patterns;
 	static std::vector<url_spec*> _forum_pos_patterns;
 	static std::vector<url_spec*> _reject_pos_patterns;
+     
+	// generic 'safe' tag, mostly for pornographic images.
+	// XXX: may be used later as a generic flag for marking content that 
+	// cannot be considered to be 'safe' for everyone to read/see.
+	bool _safe;
      };
    
 } /* end of namespace. */

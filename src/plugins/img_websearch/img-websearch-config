@@ -16,3 +16,7 @@ img-content-analysis 0
 # number of images per page.
 # default: 60
 img-per-page 60
+
+# enables safe search of images (1 for on, 0 for off).
+# default: 1
+safe-search 1

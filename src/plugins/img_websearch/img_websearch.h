@@ -63,8 +63,8 @@ namespace seeks_plugins
 					    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					    bool render=true);
 	
-	/* error handling. */
-     
+	static std::vector<std::pair<std::string,std::string> >* safesearch_exports(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
       public:
 	static img_websearch_configuration *_iwconfig;
 	static hash_map<uint32_t,query_context*,id_hash_uint> _active_img_qcontexts;

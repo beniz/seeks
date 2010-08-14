@@ -55,13 +55,13 @@ namespace seeks_plugins
    
    search_snippet::search_snippet()
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
-      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
+      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
-      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
+      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
        {
        }
       

@@ -142,6 +142,12 @@ namespace seeks_plugins
 	if (rpp_str)
 	  rpp = atoi(rpp_str);
 		
+	// checks for safe snippets (for now, only used for images).
+	const char* safesearch_p = miscutil::lookup(parameters,"safesearch");
+	bool safesearch_off = false;
+	if (safesearch_p)
+	  safesearch_off = strcasecmp(safesearch_p,"on") == 0 ? false : true;
+		
 	std::string snippets_str;
 	if (!snippets.empty())
 	  {
@@ -161,6 +167,8 @@ namespace seeks_plugins
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
 		  if (!snippets.at(i)->is_se_enabled(parameters))
+		    continue;
+		  if (!safesearch_off && !snippets.at(i)->_safe)
 		    continue;
 		    
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
@@ -432,7 +440,8 @@ namespace seeks_plugins
 	  }
      }
    
-   hash_map<const char*,const char*,hash<const char*>,eqstr>* static_renderer::websearch_exports(client_state *csp)
+   hash_map<const char*,const char*,hash<const char*>,eqstr>* static_renderer::websearch_exports(client_state *csp,
+												 const std::vector<std::pair<std::string,std::string> > *param_exports)
      {
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = cgi::default_exports(csp,"");
@@ -487,7 +496,17 @@ namespace seeks_plugins
 	// node IP rendering.
 	if (!websearch::_wconfig->_show_node_ip)
 	  cgi::map_block_killer(exports,"have-show-node-ip");
-	
+
+	// other parameters.
+	if (param_exports)
+	  {
+	     for (size_t i=0;i<param_exports->size();i++)
+	       {
+		  miscutil::add_map_entry(exports,param_exports->at(i).first.c_str(),1,
+					  param_exports->at(i).second.c_str(),1);
+	       }
+	  }
+		
 	return exports;
      }
       
@@ -521,10 +540,11 @@ namespace seeks_plugins
 						     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						     const query_context *qc,
 						     const std::string &result_tmpl_name,
-						     const std::string &cgi_base)
+						     const std::string &cgi_base,
+						     const std::vector<std::pair<std::string,std::string> > *param_exports)
      {
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
-	  = static_renderer::websearch_exports(csp);
+	  = static_renderer::websearch_exports(csp,param_exports);
 
      // query.
      std::string html_encoded_query;

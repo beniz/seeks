@@ -45,6 +45,7 @@ namespace sp
 	short _proxy_port;
 	const std::list<const char*> *_headers; // forced http headers
 	CURL *_handler; // optional
+	std::string _cookies; // optional
      } cbget;
    
     void* pull_one_url(void *arg_cbget);
@@ -64,7 +65,8 @@ namespace sp
 	std::string** www_mget(const std::vector<std::string> &urls, const int &nrequests,
 			       const std::vector<std::list<const char*>*> *headers,
 			       const std::string &proxy_addr, const short &proxy_port,
-			       std::vector<CURL*> *chandlers=NULL);
+			       std::vector<CURL*> *chandlers=NULL,
+			       std::vector<std::string> *cookies=NULL);
 	
       public:
 	int _nrequests;

@@ -42,6 +42,8 @@ namespace seeks_plugins
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
+	
+	static std::string _safe_search_cookie;
      };
    
    class se_ggle_img : public search_engine
@@ -73,6 +75,8 @@ namespace seeks_plugins
 	
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
+	
+	static std::string _safe_search_cookie;
      };
       
    class se_wcommons : public search_engine
@@ -99,7 +103,7 @@ namespace seeks_plugins
 	static void set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses);
 	
 	/*-- parsing --*/
-	static se_parser* create_se_parser(const IMG_SE &se);
+	static se_parser* create_se_parser(const IMG_SE &se, const bool &safesearch);
 	
 	static sp_err parse_ses_output(std::string **outputs, const int &nresults,
 				       std::vector<search_snippet*> &snippets,

@@ -89,6 +89,9 @@ namespace sp
 	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, arg);
+
+	if (!arg->_cookies.empty())
+	  curl_easy_setopt(curl, CURLOPT_COOKIE, arg->_cookies.c_str()); 
 	
 	if (!arg->_proxy_addr.empty())
 	  {
@@ -148,7 +151,8 @@ namespace sp
    std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
 				     const std::vector<std::list<const char*>*> *headers,
 				     const std::string &proxy_addr, const short &proxy_port,
-				     std::vector<CURL*> *chandlers)
+				     std::vector<CURL*> *chandlers,
+				     std::vector<std::string> *cookies)
      {
 	assert((int)urls.size() == nrequests); // check.
 	
@@ -169,8 +173,10 @@ namespace sp
 	       arg_cbget->_headers = headers->at(i); // headers are url dependent.
 	     if (chandlers)
 	       arg_cbget->_handler = chandlers->at(i);
+	     if (cookies)
+	       arg_cbget->_cookies = cookies->at(i);
 	     _cbgets[i] = arg_cbget;
-	     
+	     	     
 	     int error = pthread_create(&tid[i],
 					NULL, /* default attributes please */ 
 					pull_one_url,
