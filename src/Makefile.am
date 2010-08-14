@@ -1,8 +1,5 @@
-
-
 publicdir=$(datadir)/seeks
 proxydir=$(datadir)/seeks
-
 
 bin_PROGRAMS=seeks
 seeks_SOURCES=seeks.cpp
@@ -24,7 +21,7 @@ AM_LDFLAGS += -Lplugins/img_websearch
 LDADD += -lseeksimgwebsearchplugin
 endif
 LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
-if !HAVE_FREEBSD
+if !HAVE_BSD
 LDADD += -ldl
 endif
 

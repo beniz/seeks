@@ -14,6 +14,6 @@ if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
 LDADD = @CURL_LDADD@ -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz 
-if !HAVE_FREEBSD
+if !HAVE_BSD
 LDADD += -ldl
 endif

@@ -218,7 +218,7 @@ case "$host" in
  SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
 ;;
 esac
-AM_CONDITIONAL(HAVE_FREEBSD,test x$freebsd = xtrue)
+AM_CONDITIONAL(HAVE_BSD,test x$freebsd = xtrue)
 
 # Checks for RFC 2553 resolver and socket functions 
 
@@ -228,6 +228,29 @@ AC_CHECK_FUNC([getaddrinfo],
          [Define if RFC 2553 resolver functions like getaddrinfo(3) and
           getnameinfo(3) present])
       ])
+])
+
+# pcre
+#AC_CHECK_LIB(pcre, pcre_compile)
+
+#=================================================================
+# NetBSD specific
+#=================================================================
+case "$host" in
+*-netbsd*) netbsd=true;
+ SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+;;
+esac
+AM_CONDITIONAL(HAVE_BSD,test x$netbsd = xtrue)
+
+# Checks for RFC 2553 resolver and socket functions
+
+AC_CHECK_FUNC([getaddrinfo],
+[AC_CHECK_FUNC([getnameinfo],
+[AC_DEFINE([HAVE_RFC2553], [1],
+[Define if RFC 2553 resolver functions like getaddrinfo(3) and
+getnameinfo(3) present])
+])
 ])
 
 # pcre
