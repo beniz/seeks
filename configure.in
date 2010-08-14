@@ -215,10 +215,11 @@ esac
 #=================================================================
 case "$host" in
 *-freebsd*) freebsd=true;
- SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+ SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
+ AM_CONDITIONAL(HAVE_BSD,true)
 ;;
 esac
-AM_CONDITIONAL(HAVE_BSD,test x$freebsd = xtrue)
+AM_CONDITIONAL(HAVE_BSD,test x${freebsd} = xtrue)
 
 # Checks for RFC 2553 resolver and socket functions 
 
@@ -238,10 +239,10 @@ AC_CHECK_FUNC([getaddrinfo],
 #=================================================================
 case "$host" in
 *-netbsd*) netbsd=true;
- SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+ SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
+ AM_CONDITIONAL(HAVE_BSD,true)
 ;;
 esac
-AM_CONDITIONAL(HAVE_BSD,test x$netbsd = xtrue)
 
 # Checks for RFC 2553 resolver and socket functions
 
