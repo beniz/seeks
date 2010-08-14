@@ -62,6 +62,7 @@ namespace seeks_plugins
 	  
 	  if (img_websearch::_iwconfig == NULL)
 	    img_websearch::_iwconfig = new img_websearch_configuration(_config_filename);
+	  _configuration = img_websearch::_iwconfig;
 	  
 	  // cgi dispatchers.
 	  _cgi_dispatchers.reserve(2);

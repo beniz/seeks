@@ -1332,8 +1332,10 @@ sp_err cgisimple::cgi_show_plugin(client_state *csp,
 				  http_response *rsp,
 				  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
 {
-   unsigned i;
-   cgi::get_number_param(csp, parameters, (char*)"index", &i);
+   unsigned i = -1;
+   sp_err err = cgi::get_number_param(csp, parameters, (char*)"index", &i);
+   if (err == SP_ERR_CGI_PARAMS)
+     return err;
    
    unsigned c = 0;
    
@@ -1396,7 +1398,8 @@ sp_err cgisimple::cgi_show_plugin(client_state *csp,
 	     return SP_ERR_MEMORY;
 	  }
 	
-	if (miscutil::add_map_entry(exports,"options",1,pl->_configuration->_config_args,1))
+	if (pl->_configuration &&
+	    miscutil::add_map_entry(exports,"options",1,pl->_configuration->_config_args,1))
 	  {
 	     miscutil::free_map(exports);
 	     return SP_ERR_MEMORY;

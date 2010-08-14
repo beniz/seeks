@@ -70,6 +70,8 @@ namespace seeks_plugins
 	       _img_se_enabled |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
 	     else if (strcasecmp(arg,"wcommons") == 0)
 	       _img_se_enabled |= std::bitset<IMG_NSEs>(SE_WCOMMONS);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enabled image search engine");
 	     break;
 	     
 	   case hash_img_ca:
