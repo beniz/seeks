@@ -240,17 +240,24 @@ namespace seeks_plugins
    
    void img_search_snippet::set_similarity_link()
      {
+	std::string sfsearch = "on";
+	if (!static_cast<img_query_context*>(_qc)->_safesearch)
+	  sfsearch = "off";
 	_sim_link = "/search_img?q=" + _qc->_url_enc_query
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-	    + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id);
+	    + "&amp;action=similarity&safesearch=" + sfsearch 
+	  + "&amp;id=" + miscutil::to_string(_id);
 	_sim_back = false;
      }
    
    void img_search_snippet::set_back_similarity_link()
      {
+	std::string sfsearch = "on";
+	if (!static_cast<img_query_context*>(_qc)->_safesearch)
+	  sfsearch = "off";
 	_sim_link = "/search_img?q=" + _qc->_url_enc_query
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-	    + "&amp;action=expand";
+	    + "&amp;action=expand&safesearch=" + sfsearch;
 	_sim_back = true;
      }
 
