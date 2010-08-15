@@ -41,7 +41,7 @@ namespace seeks_plugins
 {
 #define EXTENDED_DESCRIPTOR 1
    
-   CvSURFParams ocvsurf::_surf_params = cvSURFParams(500,EXTENDED_DESCRIPTOR);
+   CvSURFParams ocvsurf::_surf_params = cvSURFParams(600,EXTENDED_DESCRIPTOR);
          
    void ocvsurf::generate_surf_features(const std::string *img_content,
 					CvSeq *&objectKeypoints,
