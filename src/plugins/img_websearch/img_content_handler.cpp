@@ -18,8 +18,8 @@
 
 #include "img_content_handler.h"
 #include "content_handler.h"
-#include "ocvsurf.h"
 #include "errlog.h"
+#include "ocvsurf.h"
 
 using sp::errlog;
 
@@ -102,44 +102,57 @@ namespace seeks_plugins
 	     img_search_snippet *sp = static_cast<img_search_snippet*>(sps[i]);
 	     if (sp->_surf_keypoints)
 	       {
+		  /* if (sp->_surf_keypoints->total < 0.5*ref_isp->_surf_keypoints->total) // at least 50% as many feature as reference image.
+		    continue;
+		  
 		  std::vector<surf_pair> ptpairs;
 		  ocvsurf::flannFindPairs(ref_isp->_surf_descriptors,
 					  sp->_surf_descriptors,
 					  ptpairs);
-		  double den = ref_isp->_surf_keypoints->total + sp->_surf_keypoints->total;
+		  double den = ref_isp->_surf_keypoints->total + sp->_surf_keypoints->total; */
 		  //sp->_seeks_ir = ptpairs.size() / den;
 		  
-		  den /= ref_isp->_surf_keypoints->total;
-		  double num = 1.0;
+		  //OLD: den /= ref_isp->_surf_keypoints->total;
+		  /* double num = 1.0;
 		  sp->_seeks_ir = 1.0;
 		  for (size_t j=0;j<ptpairs.size();j++)
 		    {
-		       if (ptpairs.at(j)._dist < 0.5)
-			 num += 1;// / (ptpairs.at(j)._dist+0.1);
+		       if (ptpairs.at(j)._dist < 0.4)
+			 num += 1+ptpairs.at(j)._dist;// / (ptpairs.at(j)._dist+0.1); */
 			 //num += 1.0/(ptpairs.at(j)._dist+0.1) * (ptpairs.at(j)._dist+0.1);
 			 /* sp->_seeks_ir += 1.0; */
 		       //else sp->_seeks_ir += 1;// / (ptpairs.at(j)._dist+0.1);
-		       else sp->_seeks_ir += (ptpairs.at(j)._dist+0.1) * (ptpairs.at(j)._dist+0.1);
-		    }
-		  //sp->_seeks_ir /= den;
+		       //OLD: else sp->_seeks_ir += (ptpairs.at(j)._dist+0.1) * (ptpairs.at(j)._dist+0.1);
+	       /* } */
+		  //sp->_seeks_ir = num / den;
+	     /* sp->_seeks_ir = num / static_cast<double>(ref_isp->_surf_keypoints->total); */
 		  //sp->_seeks_ir = sqrt(sp->_seeks_ir);
 		  /* if (sp->_seeks_ir > 0.0)
 		    sp->_seeks_ir = sqrt(1/num) / sqrt(sp->_seeks_ir);// * sp->_seeks_ir); */
 		  //sp->_seeks_ir = num / den;
 		  
-		  sp->_seeks_ir = num * num * num / (sp->_seeks_ir*sp->_seeks_ir * sp->_seeks_ir);
+		  //OLD/ sp->_seeks_ir = num * num * num / (sp->_seeks_ir*sp->_seeks_ir * sp->_seeks_ir);
 		  
 		  //debug
 		  /* std::cerr << "[Debug]: url: " << sp->_url
-		    << " -- score: " << sp->_seeks_ir << std::endl; */
+		    << " -- score: " << sp->_seeks_ir 
+		    << " -- surf keypoints: " << sp->_surf_keypoints->total << std::endl; */
 		  //debug
 		  
 		  /* if (sp->_seeks_ir < 1e-5)
-		    sp->_seeks_ir = 0.0; */
+		   sp->_seeks_ir = 0.0; */
+		  
+		  CvMat *points1 = NULL;
+		  CvMat *points2 = NULL;
+		  sp->_seeks_ir = ocvsurf::bruteMatch(points1,points2,
+						      ref_isp->_surf_keypoints,ref_isp->_surf_descriptors,
+						      sp->_surf_keypoints,sp->_surf_descriptors,false); // false: no filtering.
+		  /* if (points1 && points2)
+		    sp->_seeks_ir = ocvsurf::removeOutliers(points1,points2); */
 	       }
 	  }
      }
-      
+   
    void img_content_handler::extract_surf_features_from_snippets(img_query_context *qc,
 								 const std::vector<std::string*> &img_contents,
 								 const std::vector<img_search_snippet*> &sps)

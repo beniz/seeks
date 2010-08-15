@@ -39,7 +39,9 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-   CvSURFParams ocvsurf::_surf_params = cvSURFParams(500,1);
+#define EXTENDED_DESCRIPTOR 1
+   
+   CvSURFParams ocvsurf::_surf_params = cvSURFParams(500,EXTENDED_DESCRIPTOR);
          
    void ocvsurf::generate_surf_features(const std::string *img_content,
 					CvSeq *&objectKeypoints,
@@ -121,7 +123,7 @@ namespace seeks_plugins
 	// find nearest neighbors using FLANN
 	cv::Mat m_indices(o1desc->total, 2, CV_32S);
 	cv::Mat m_dists(o1desc->total, 2, CV_32F);
-	cv::flann::Index flann_index(m_image, cv::flann::KDTreeIndexParams(4));  // using 4 randomized kdtrees
+	cv::flann::Index flann_index(m_image, cv::flann::KDTreeIndexParams(8));  // using 8 randomized kdtrees
 	flann_index.knnSearch(m_object, m_indices, m_dists, 2, cv::flann::SearchParams(64) ); // 64 is maximum number of leaves being checked
 	
 	int* indices_ptr = m_indices.ptr<int>(0);
@@ -141,7 +143,157 @@ namespace seeks_plugins
 	//debug
      }
 
+#define CORRELATION_THRESHOLD 0.9
+   // brute-force attempt at correlating the two sets of features
+   int ocvsurf::bruteMatch(CvMat *&points1, CvMat *&points2,
+			   CvSeq *kp1, CvSeq *desc1, CvSeq *kp2, CvSeq *desc2,
+			   const bool &filter) 
+     {
+      int i,j,k;
+	double* avg1 = (double*)malloc(sizeof(double)*kp1->total);
+        double* avg2 = (double*)malloc(sizeof(double)*kp2->total);
+        double* dev1 = (double*)malloc(sizeof(double)*kp1->total);
+        double* dev2 = (double*)malloc(sizeof(double)*kp2->total);
+        int* best1 = (int*)malloc(sizeof(int)*kp1->total);
+	int* best2 = (int*)malloc(sizeof(int)*kp2->total);
+        double* best1corr = (double*)malloc(sizeof(double)*kp1->total);
+        double* best2corr = (double*)malloc(sizeof(double)*kp2->total);
+        float *seq1, *seq2;
+        int descriptor_size = EXTENDED_DESCRIPTOR ? 128 : 64;
+        for (i=0; i<kp1->total; i++) 
+	  {
+	   // find average and standard deviation of each descriptor
+	   avg1[i] = 0;
+	   dev1[i] = 0;
+	   seq1 = (float*)cvGetSeqElem(desc1, i);
+	   for (k=0; k<descriptor_size; k++) avg1[i] += seq1[k];
+	   avg1[i] /= descriptor_size;
+	   for (k=0; k<descriptor_size; k++) dev1[i] +=
+	     (seq1[k]-avg1[i])*(seq1[k]-avg1[i]);
+	   dev1[i] = sqrt(dev1[i]/descriptor_size);
+	   
+	   // initialize best1 and best1corr
+	   best1[i] = -1;
+	   best1corr[i] = -1.;
+        }
+        for (j=0; j<kp2->total; j++) 
+	  {
+	   // find average and standard deviation of each descriptor
+	     avg2[j] = 0;
+	     dev2[j] = 0;
+	     seq2 = (float*)cvGetSeqElem(desc2, j);
+	     for (k=0; k<descriptor_size; k++) avg2[j] += seq2[k];
+	     avg2[j] /= descriptor_size;
+	     for (k=0; k<descriptor_size; k++) dev2[j] +=
+	       (seq2[k]-avg2[j])*(seq2[k]-avg2[j]);
+	     dev2[j] = sqrt(dev2[j]/descriptor_size);
+	     
+	     // initialize best2 and best2corr
+	     best2[j] = -1;
+	     best2corr[j] = -1.;
+	  }
+        double corr;
+        for (i = 0; i < kp1->total; ++i) 
+	  {
+	     seq1 = (float*)cvGetSeqElem(desc1, i);
+	     for (j = 0; j < kp2->total; ++j) {
+                corr = 0;
+                seq2 = (float*)cvGetSeqElem(desc2, j);
+                for (k = 0; k < descriptor_size; ++k)
+		  corr += (seq1[k]-avg1[i])*(seq2[k]-avg2[j]);
+                corr /= (descriptor_size-1)*dev1[i]*dev2[j];
+                if (corr > best1corr[i]) {
+		   best1corr[i] = corr;
+		   best1[i] = j;
+                }
+                if (corr > best2corr[j]) 
+		  {
+		     best2corr[j] = corr;
+		     best2[j] = i;
+		  }
+	     }
+	  }
+        j = 0;
+        for (i = 0; i < kp1->total; i++)
+	  if (best2[best1[i]] == i && best1corr[i] > CORRELATION_THRESHOLD)
+	    j++;
+	
+	if (j>0 && filter)
+	  {
+	     points1 = cvCreateMat(1,j,CV_32FC2);
+	     points2 = cvCreateMat(1,j,CV_32FC2);
+	     CvPoint2D32f *p1, *p2;
+	     j = 0;
+	     for (i = 0; i < kp1->total; i++) 
+	       {
+		  if (best2[best1[i]] == i && best1corr[i] > CORRELATION_THRESHOLD) 
+		    {
+		       p1 = &((CvSURFPoint*)cvGetSeqElem(kp1,i))->pt;
+		       p2 = &((CvSURFPoint*)cvGetSeqElem(kp2,best1[i]))->pt;
+		       points1->data.fl[j*2] = p1->x;
+		       points1->data.fl[j*2+1] = p1->y;
+		       points2->data.fl[j*2] = p2->x;
+		       points2->data.fl[j*2+1] = p2->y;
+		       j++;
+		    }
+	       }
+	  }
+		
+        free(best2corr);
+        free(best1corr);
+        free(best2);
+        free(best1);
+        free(avg1);
+        free(avg2);
+        free(dev1);
+        free(dev2);
+	return j;
+     } 
    
+   int ocvsurf::removeOutliers(CvMat *&points1, CvMat *&points2) 
+     {
+	CvMat *F = cvCreateMat(3,3,CV_32FC1); //TODO: free F ?
+	CvMat *status = cvCreateMat(1,points1->cols,CV_8UC1); //TODO: free status.
+	int fm_count = cvFindFundamentalMat(points1,points2,F,
+					    CV_FM_RANSAC,1.,0.99,status );
+	
+	// iterates the set of putative correspondences and removes correspondences
+	// marked as outliers by cvFindFundamentalMat()
+	int count = 0;
+	int j = 0;
+	for (int i = 0; i < status->cols; i++) if (CV_MAT_ELEM(*status,unsigned
+							       char,0,i)) count++;
+	CvMat *points1_ = points1;
+	CvMat *points2_ = points2;
+	if (!count) 
+	  { // no inliers
+	     points1 = NULL;
+	     points2 = NULL; // beware: leak ?
+	     return j;
+	  }
+	else 
+	  {
+	     points1 = cvCreateMat(1,count,CV_32FC2);
+	     points2 = cvCreateMat(1,count,CV_32FC2);
+	     int j = 0;
+	     for (int i = 0; i < status->cols; i++) {
+		if (CV_MAT_ELEM(*status,unsigned char,0,i)) {
+		   points1->data.fl[j*2] = points1_->data.fl[i*2];
+		   // //p1->x
+		   points1->data.fl[j*2+1] = points1_->data.fl[i*2+1];
+		   //p1->y
+		   points2->data.fl[j*2] = points2_->data.fl[i*2];
+		   // //p2->x
+		   points2->data.fl[j*2+1] = points2_->data.fl[i*2+1];
+		   // //p2->y
+		   j++;
+		}
+	     }
+          }
+	cvReleaseMat(&points1_);
+	cvReleaseMat(&points2_);
+	return j;
+     }
    
 } /* end of namespace. */
   

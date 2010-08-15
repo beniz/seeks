@@ -54,6 +54,12 @@ namespace seeks_plugins
 				   CvSeq *o2desc,
 				   std::vector<surf_pair> &ptpairs);
 	
+	static int bruteMatch(CvMat *&points1, CvMat *&points2,
+			      CvSeq *kp1, CvSeq *desc1, CvSeq *kp2, CvSeq *desc2,
+			      const bool &filter);
+	
+	static int removeOutliers(CvMat *&points1, CvMat *&points2);
+	
 	static CvSURFParams _surf_params;
      };
    
