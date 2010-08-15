@@ -416,9 +416,9 @@ if test x$imgwebsearch = xtrue; then
    AC_DEFINE(FEATURE_IMG_WEBSEARCH_PLUGIN,1,"Image websearch plugin available")
 fi
 
-# Requires OpenCV >= 2.0
+# Requires OpenCV >= 2.1
 if test x$imgwebsearch = xtrue; then
-   PKG_CHECK_MODULES([opencv],[opencv >= 2.0],opencv2=true,opencv2=false)
+   PKG_CHECK_MODULES([opencv],[opencv >= 2.1],opencv2=true,opencv2=false)
 fi
 if test x$opencv2 = xtrue; then
    AC_DEFINE(FEATURE_OPENCV2,1,"OpenCV library is there")
