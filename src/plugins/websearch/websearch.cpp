@@ -640,15 +640,13 @@ namespace seeks_plugins
        }
      
      // sort and rank search snippets.
+     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+     qc->_lock = true;
+     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
      if (expanded)
-       {
-	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
-	  qc->_lock = true;
-	  sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
-	  qc->_compute_tfidf_features = true;
-	  qc->_lock = false;
-	  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-       }
+       qc->_compute_tfidf_features = true;
+     qc->_lock = false;
+     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
      
      seeks_proxy::mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;

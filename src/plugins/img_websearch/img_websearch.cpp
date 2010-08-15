@@ -200,7 +200,6 @@ namespace seeks_plugins
 							   csp,rsp,parameters,qc,0.0);
 		  qc->_lock = false;
 		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-		  return err;
 	       }
 	     
 	     // reset scores.
@@ -277,16 +276,13 @@ namespace seeks_plugins
 	  }
 	
 	// sort and rank search snippets.
-	if (expanded)
-	  {
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
-	     qc->_lock = true;
-	     img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets);
-	     qc->_compute_tfidf_features = true;
-	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-	  }
-		
+	seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	qc->_lock = true;
+	img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets);
+	//qc->_compute_tfidf_features = true;
+	qc->_lock = false;
+	seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+			
 	// rendering.
 	seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	qc->_lock = true;
