@@ -120,8 +120,8 @@ namespace seeks_plugins
 	const char *current_page_str = miscutil::lookup(parameters,"page");
 	if (!current_page_str)
 	  {
-	     // 404.
-	     return cgisimple::cgi_error_404(csp,rsp,NULL); // XXX: returns html...
+	     //XXX: no page argument, we default to first page.
+	     current_page_str = "1";
 	  }
 	int current_page = atoi(current_page_str);
 	
