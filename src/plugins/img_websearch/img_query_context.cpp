@@ -38,7 +38,7 @@ namespace seeks_plugins
 					const std::list<const char*> &http_headers)
      : query_context(parameters,http_headers),_exp_safesearch_on(0),_exp_safesearch_off(0)
        {
-	  _img_engines = img_websearch::_iwconfig->_img_se_enabled; //TODO: engine selection.
+	  img_query_context::fillup_img_engines(parameters,_img_engines);
 	  _safesearch = img_websearch::_iwconfig->_safe_search;
        }
    
