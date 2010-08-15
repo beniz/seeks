@@ -88,7 +88,7 @@ namespace seeks_plugins
 	//debug
      }
 
-   void ocvsurf::flannFindPairs(CvSeq *o1desc,
+   /* void ocvsurf::flannFindPairs(CvSeq *o1desc,
 				CvSeq *o2desc,
 				std::vector<surf_pair> &ptpairs)
      {
@@ -129,19 +129,19 @@ namespace seeks_plugins
 	int* indices_ptr = m_indices.ptr<int>(0);
 	float* dists_ptr = m_dists.ptr<float>(0);
 	for (int i=0;i<m_indices.rows;++i) 
-	  {
+	  { */
 	     /* if (dists_ptr[2*i]<0.6*dists_ptr[2*i+1]) 
 	       {
 		  ptpairs.push_back(i);
 		  ptpairs.push_back(indices_ptr[2*i]);
 	       } */
-	     ptpairs.push_back(surf_pair(i,indices_ptr[2*i],dists_ptr[2*i]/static_cast<double>(dists_ptr[2*i+1])));
+	    /* ptpairs.push_back(surf_pair(i,indices_ptr[2*i],dists_ptr[2*i]/static_cast<double>(dists_ptr[2*i+1])));
 	  }
 	
 	//debug
 	//std::cout << "ptpairs size: " << ptpairs.size() << std::endl;
 	//debug
-     }
+     } */
 
 #define CORRELATION_THRESHOLD 0.9
    // brute-force attempt at correlating the two sets of features

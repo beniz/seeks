@@ -87,7 +87,7 @@ namespace seeks_plugins
 				   }
 				 				 
 				 std::vector<surf_pair> ptpairs;
-				 ocvsurf::flannFindPairs(sp->_surf_descriptors,ssp->_surf_descriptors,
+				 /* ocvsurf::flannFindPairs(sp->_surf_descriptors,ssp->_surf_descriptors,
 							 ptpairs);
 				 double den = sp->_surf_keypoints->total + ssp->_surf_keypoints->total;
 				 size_t npt = ptpairs.size();
@@ -97,7 +97,11 @@ namespace seeks_plugins
 				      if (ptpairs.at(j)._dist < 0.6)
 					np++;
 				   }
-				 double score = 2.0 * np / den;
+				 double score = 2.0 * np / den; */
+				 CvMat *points1 = NULL;
+				 CvMat *points2 = NULL;
+				 double score = ocvsurf::bruteMatch(points1,points2,sp->_surf_keypoints,sp->_surf_descriptors,
+								    ssp->_surf_keypoints,ssp->_surf_descriptors,false);
 				 
 				 if (score > st) // over threshold, that is > ~0.5
 				   {
@@ -155,6 +159,16 @@ namespace seeks_plugins
 	
 	// sort snippets according to computed scores.
 	std::sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
+     
+	//debug
+	/* for (size_t i=0;i<sorted_snippets.size();i++)
+	  {
+	     img_search_snippet *iss = static_cast<img_search_snippet*>(sorted_snippets.at(i));
+	     if (iss->_surf_keypoints)
+	       std::cerr << "[Debug]: url: " << iss->_url
+	       << " -- score: " << iss->_seeks_ir << " -- surf keypoints: " << iss->_surf_keypoints->total << std::endl;
+	  } */
+	//debug
      }
 #endif
    

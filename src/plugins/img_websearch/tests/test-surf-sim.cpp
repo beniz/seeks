@@ -54,7 +54,7 @@ int main(int argc, char **argv)
    std::cout << "keypoints2 size: " << o2points->total << std::endl;
    std::cout << "descriptors2 size: " << o2desc->total << std::endl;
    
-   std::vector<surf_pair> ptpairs;
+   /* std::vector<surf_pair> ptpairs;
    ocvsurf::flannFindPairs(o1desc,o2desc,
-			   ptpairs);
+   ptpairs); */
 }

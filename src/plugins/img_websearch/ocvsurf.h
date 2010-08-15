@@ -50,9 +50,9 @@ namespace seeks_plugins
 					   CvSeq *&objectDescriptors,
 					   const img_search_snippet *sp);
 	
-	static void flannFindPairs(CvSeq *o1desc,
+	/* static void flannFindPairs(CvSeq *o1desc,
 				   CvSeq *o2desc,
-				   std::vector<surf_pair> &ptpairs);
+				   std::vector<surf_pair> &ptpairs); */
 	
 	static int bruteMatch(CvMat *&points1, CvMat *&points2,
 			      CvSeq *kp1, CvSeq *desc1, CvSeq *kp2, CvSeq *desc2,
