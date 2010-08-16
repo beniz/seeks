@@ -44,31 +44,19 @@ namespace seeks_plugins
         {
                 const char *tag = (const char*)name;
 
-                if (strcasecmp(tag, "legend") == 0)
+                if (strcasecmp(tag, "ul") == 0)
                 {
-                        _end_search = true;
-                        std::cout << "[END]" << std::endl;
+                        const char *a_class = se_parser::get_attribute((const char**)attributes, "class");
+                        if (a_class && strcasecmp(a_class, "mw-search-results") == 0)
+                        {
+                                std::cout << "[START]" << std::endl;
+                                _end_search = false;
+                        }
                 }
                 if (!_end_search && strcasecmp(tag, "li") == 0)
                 {
                         std::cout << "<li>" << std::endl;
                         _li_sr_flag = true;
-
-                        // assert previous snippet if any.
-                        if (pc->_current_snippet)
-                        {
-                                if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-                                        || pc->_current_snippet->_url.empty()
-                                        || pc->_current_snippet->_summary.empty()
-                                        || pc->_current_snippet->_cite.empty())
-                                {
-                                        std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << " summary: " << pc->_current_snippet->_summary.empty() << " cite de mes deux: " << pc->_current_snippet->_cite.empty() << std::endl;
-                                        delete pc->_current_snippet;
-                                        pc->_current_snippet = NULL;
-                                        _count--;
-                                }
-                                else pc->_snippets->push_back(pc->_current_snippet);
-                        }
 
                         // create new snippet.
                         search_snippet *sp = new search_snippet(_count + 1);
@@ -140,6 +128,9 @@ namespace seeks_plugins
         {
                 const char *tag = (const char*) name;
 
+                if (!_end_search && strcasecmp(tag, "ul") == 0)
+                        _end_search = true;
+
                 if (!_results_flag)
                         return;
 
@@ -147,6 +138,23 @@ namespace seeks_plugins
                 {
                         std::cout << "</li>" << std::endl;
                         _li_sr_flag = false;
+
+                        // assert previous snippet if any.
+                        if (pc->_current_snippet)
+                        {
+                                if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
+                                        || pc->_current_snippet->_url.empty()
+                                        || pc->_current_snippet->_summary.empty()
+                                        || pc->_current_snippet->_cite.empty())
+                                {
+                                        std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << " summary: " << pc->_current_snippet->_summary.empty() << " cite de mes deux: " << pc->_current_snippet->_cite.empty() << std::endl;
+                                        delete pc->_current_snippet;
+                                        pc->_current_snippet = NULL;
+                                        _count--;
+                                }
+                                else pc->_snippets->push_back(pc->_current_snippet);
+                        }
+
                 }
 
                 if (_a_sr_flag && strcasecmp(tag,"a") == 0)
