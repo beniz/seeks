@@ -85,6 +85,11 @@
 #include "errlog.h"
 #include "miscutil.h"
 
+/* Some systems do not have AI_ADDRCONFIG */
+#ifndef AI_ADDRCONFIG
+#define AI_ADDRCONFIG 0
+#endif
+
 /* Mac OSX doesn't define AI_NUMERICSESRV */
 #ifndef AI_NUMERICSERV
 #define AI_NUMERICSERV 0
