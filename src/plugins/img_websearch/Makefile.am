@@ -4,7 +4,10 @@ imgwebsearchpluginlibdir = $(libdir)/seeks/plugins/img_websearch
 imgwebsearchplugindatadir = $(datadir)/seeks/plugins/img_websearch
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
-            -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy -I${srcdir}/../websearch `pkg-config opencv --cflags`
+            -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy -I${srcdir}/../websearch 
+if HAVE_OPENCV2
+AM_CPPFLAGS += `pkg-config opencv --cflags`
+endif
 ACLOCAL_AMFLAGS=-I m4
 
 imgwebsearchpluginlib_LTLIBRARIES=libseeksimgwebsearchplugin.la
