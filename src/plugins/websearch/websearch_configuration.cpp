@@ -17,8 +17,13 @@
  */
 
 #include "websearch_configuration.h"
+#include "miscutil.h"
+#include "errlog.h"
 
 #include <iostream>
+
+using sp::miscutil;
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -37,6 +42,8 @@ namespace seeks_plugins
 #define hash_clustering             2382120344ul /* "enable-clustering" */
 #define hash_max_expansions         3838821776ul /* "max-expansions" */
 #define hash_extended_highlight     2722091897ul /* "extended-highlight" */   
+#define hash_background_proxy        682905808ul /* "background-proxy" */
+#define hash_show_node_ip           4288369354ul /* "show-node-ip" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -52,7 +59,7 @@ namespace seeks_plugins
    void websearch_configuration::set_default_config()
      {
 	_lang = "auto";
-	_N = 10;
+	_Nr = 10;
 	_thumbs = false;
 	_se_enabled.set(); // all engines is default.
 	_query_context_delay = 300; // in seconds, 5 minutes.
@@ -65,11 +72,15 @@ namespace seeks_plugins
 	_ct_transfer_timeout = 3; // in seconds.
 	_max_expansions = 100;
 	_extended_highlight = false; // experimental.
+	_background_proxy_addr = ""; // no specific background proxy (means seeks' proxy).
+	_background_proxy_port = 0;
+	_show_node_ip = false;
      }
    
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
 						   char *buf, const unsigned long &linenum)
      {
+	std::vector<std::string> bpvec;
 	switch(cmd_hash)
 	  {
 	   case hash_lang :
@@ -79,7 +90,7 @@ namespace seeks_plugins
 	     break;
 	     
 	   case hash_n :
-	       _N = atoi(arg);
+	       _Nr = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Number of websearch results per page");
 	     break;
@@ -166,6 +177,29 @@ namespace seeks_plugins
 	     _extended_highlight = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enables a more discriminative word highlight scheme");
+	     break;
+	     
+	   case hash_background_proxy:
+	     _background_proxy_addr = std::string(arg);
+	     miscutil::tokenize(_background_proxy_addr,bpvec,":");
+	     if (bpvec.size()!=2)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "wrong address:port for background proxy: %s",_background_proxy_addr.c_str());
+		  _background_proxy_addr = "";
+	       }
+	     else
+	       {
+		  _background_proxy_addr = bpvec.at(0);
+		  _background_proxy_port = atoi(bpvec.at(1).c_str());
+	       }
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Background proxy for fetching URLs");
+	     break;
+	     
+	   case hash_show_node_ip:
+	     _show_node_ip = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Enable rendering of the node IP address in the info bar");
 	     break;
 	     
 	   default:

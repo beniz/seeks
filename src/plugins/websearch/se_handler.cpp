@@ -22,7 +22,7 @@
 #include "curl_mget.h"
 #include "encode.h"
 #include "errlog.h"
-#include "seeks_proxy.h" // for configuration.
+#include "seeks_proxy.h" // for configuration and mutexes.
 #include "proxy_configuration.h"
 #include "query_context.h"
 
@@ -77,12 +77,12 @@ namespace seeks_plugins
 	
 	// expansion = result page called...
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_ggle,"%start",pp_str);
 	
 	// number of results.
-	int num = websearch::_wconfig->_N; // by default.
+	int num = websearch::_wconfig->_Nr; // by default.
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_ggle,"%num",num_str);
 	
@@ -124,7 +124,7 @@ namespace seeks_plugins
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_bing,"%start",pp_str);
 	
@@ -167,7 +167,7 @@ namespace seeks_plugins
 
 	// expansion + hack for getting Cuil's next pages.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	if (pp > 1)
 	  {
 	     const char *cuil_npage = miscutil::lookup(parameters,"cuil_npage");
@@ -199,7 +199,7 @@ namespace seeks_plugins
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp =  (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp =  (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	if (pp>1) pp++;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
@@ -242,12 +242,12 @@ namespace seeks_plugins
 	
 	// page
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_exa,"%start",pp_str);
 	
 	// number of results.
-	int num = websearch::_wconfig->_N;
+	int num = websearch::_wconfig->_Nr;
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_exa,"%num",num_str);
      
@@ -284,6 +284,34 @@ namespace seeks_plugins
    se_yahoo se_handler::_yahoo = se_yahoo();
    se_exalead se_handler::_exalead = se_exalead();
    
+   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
+   sp_mutex_t se_handler::_curl_mutex;
+   
+   /*-- initialization. --*/
+   void se_handler::init_handlers(const int &num)
+     {
+	seeks_proxy::mutex_init(&_curl_mutex);
+	if (!_curl_handlers.empty())
+	  {
+	     std::vector<CURL*>::iterator vit = _curl_handlers.begin();
+	     while(vit!=_curl_handlers.end())
+	       {
+		  curl_easy_cleanup((*vit));
+		  vit = _curl_handlers.erase(vit);
+	       }
+	  }
+	_curl_handlers.reserve(num);
+	for (int i=0;i<num;i++)
+	  {
+	     CURL *curl = curl_easy_init();
+	     _curl_handlers.push_back(curl);
+	     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+	     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1); // cache forever.
+	  }
+     }
+      
    /*-- preprocessing queries. */
    void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -367,11 +395,24 @@ namespace seeks_plugins
        }
      else nresults = urls.size();
     
+     if (_curl_handlers.size() != urls.size())
+       {
+	  se_handler::init_handlers(urls.size()); // reinitializes the curl handlers.
+       }
+          
      // get content.
      curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
 		   websearch::_wconfig->_se_connect_timeout,0);
-     cmg.www_mget(urls,urls.size(),&headers,false); // don't go through the proxy, or will loop til death!
-    
+     seeks_proxy::mutex_lock(&_curl_mutex);
+     if (websearch::_wconfig->_background_proxy_addr.empty())
+       cmg.www_mget(urls,urls.size(),&headers,
+		    "",0,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
+     else cmg.www_mget(urls,urls.size(),&headers,
+		       websearch::_wconfig->_background_proxy_addr,
+		       websearch::_wconfig->_background_proxy_port,
+		       &se_handler::_curl_handlers);
+     seeks_proxy::mutex_unlock(&_curl_mutex);
+     
      std::string **outputs = new std::string*[urls.size()];
      bool have_outputs = false;
      for (size_t i=0;i<urls.size();i++)
@@ -396,7 +437,9 @@ namespace seeks_plugins
 	  delete[] outputs;
 	  outputs = NULL;
        }
-          
+     
+     delete[] cmg._outputs;
+     
     return outputs;
   }
    
@@ -564,7 +607,7 @@ namespace seeks_plugins
 
    void se_handler::parse_output(const ps_thread_arg &args)
      {
-	se_parser *se = se_handler::create_se_parser(args._se);
+	se_parser *se = se_handler::create_se_parser((SE)args._se);
 	se->parse_output(args._output,args._snippets,args._offset);
 
 	// link the snippets to the query context

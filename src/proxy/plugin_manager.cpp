@@ -132,7 +132,7 @@ namespace sp
 	  }
 	//debug
 	
-	plugin_manager::instanciate_plugins();
+	//plugin_manager::instanciate_plugins();
 	
 	return 1;
      }
@@ -279,5 +279,5 @@ namespace sp
 	  << csp->_interceptor_plugins.size() << std::endl; */
 	//debug
      }
-
+   
 } /* end of namespace. */

@@ -91,6 +91,7 @@ namespace sp
    #define hash_log_max_lines                 2725447368ul /* "log-max-lines" */
    #define hash_log_messages                  2667424627ul /* "log-messages" */
    #define hash_show_on_task_bar              4011152997ul /* "show-on-task-bar" */
+   #define hash_auto_proxy_disable             312503207ul /* "automatic-proxy-disable" */
    
    proxy_configuration::proxy_configuration(const std::string &filename)
      :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
@@ -102,7 +103,7 @@ namespace sp
 #ifdef FEATURE_CONNECTION_KEEP_ALIVE
      ,_keep_alive_timeout(0)
 #endif
-     ,_need_bind(0)
+     ,_need_bind(0),_automatic_proxy_disable(true)
       {
 	 load_config();
       }
@@ -144,6 +145,8 @@ namespace sp
 	_feature_flags            &= ~RUNTIME_FEATURE_ACCEPT_INTERCEPTED_REQUESTS;
      
 	_activated_plugins.insert(std::pair<const char*,bool>("websearch",true)); // websearch plugin activated by default.
+     
+	_automatic_proxy_disable = true;
      }
    
    void proxy_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -807,6 +810,13 @@ namespace sp
 	      */
 	     free_const(_usermanual);
 	     _usermanual = strdup(arg);
+	     break;
+	     
+	     /*************************************************************************
+	      * automatic proxy disable
+	      *************************************************************************/
+	   case hash_auto_proxy_disable:
+	     _automatic_proxy_disable = static_cast<bool>(atoi(arg));
 	     break;
 	     
 	     /*************************************************************************

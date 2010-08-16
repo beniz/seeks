@@ -23,7 +23,6 @@
 #include "errlog.h"
 
 #include <pthread.h>
-#include <curl/curl.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +41,7 @@ namespace sp
 	if (!arg->_output)
 	  arg->_output = new std::string();
 	
-	*arg->_output += buffer;
+	arg->_output->append(buffer,size);
 	
 	return size;
      }
@@ -74,22 +73,30 @@ namespace sp
 	
 	cbget *arg = static_cast<cbget*>(arg_cbget);
 	
-	CURL *curl;
+	CURL *curl = NULL;
 	
-	curl = curl_easy_init();
-	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	if (!arg->_handler)
+	  {
+	     curl = curl_easy_init();
+	     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+	     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
+	  }
+	else curl = arg->_handler;
+		
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, arg->_connect_timeout_sec);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, arg->_transfer_timeout_sec);
+	curl_easy_setopt(curl, CURLOPT_URL, arg->_url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, arg);
+
+	if (!arg->_cookies.empty())
+	  curl_easy_setopt(curl, CURLOPT_COOKIE, arg->_cookies.c_str()); 
 	
-	if (arg->_proxy)
+	if (!arg->_proxy_addr.empty())
 	  {
-	     std::string proxy_str = seeks_proxy::_config->_haddr;
-	     proxy_str += ":" + miscutil::to_string(seeks_proxy::_config->_hport);
+	     //std::string proxy_str = seeks_proxy::_config->_haddr;
+	     std::string proxy_str = arg->_proxy_addr + ":" + miscutil::to_string(arg->_proxy_port);//+ miscutil::to_string(seeks_proxy::_config->_hport);
 	     curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
 	  }
 	
@@ -105,7 +112,6 @@ namespace sp
 		  ++sit;
 		 }
 	  }
-	
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 	
 	char errorbuffer[CURL_ERROR_SIZE];
@@ -132,8 +138,9 @@ namespace sp
 	catch (...)
 	  {
 	  }
-		
-	curl_easy_cleanup(curl);
+	
+	if (!arg->_handler)
+	  curl_easy_cleanup(curl);
 	
 	if (slist)
 	  curl_slist_free_all(slist);
@@ -143,7 +150,9 @@ namespace sp
    
    std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
 				     const std::vector<std::list<const char*>*> *headers,
-				     const bool &proxy)
+				     const std::string &proxy_addr, const short &proxy_port,
+				     std::vector<CURL*> *chandlers,
+				     std::vector<std::string> *cookies)
      {
 	assert((int)urls.size() == nrequests); // check.
 	
@@ -158,12 +167,16 @@ namespace sp
 	     arg_cbget->_url = urls[i].c_str();
 	     arg_cbget->_transfer_timeout_sec = _transfer_timeout_sec;
 	     arg_cbget->_connect_timeout_sec = _connect_timeout_sec;
-	     arg_cbget->_proxy = proxy;
+	     arg_cbget->_proxy_addr = proxy_addr;
+	     arg_cbget->_proxy_port = proxy_port;
 	     if (headers)
 	       arg_cbget->_headers = headers->at(i); // headers are url dependent.
-	     
+	     if (chandlers)
+	       arg_cbget->_handler = chandlers->at(i);
+	     if (cookies)
+	       arg_cbget->_cookies = cookies->at(i);
 	     _cbgets[i] = arg_cbget;
-	     
+	     	     
 	     int error = pthread_create(&tid[i],
 					NULL, /* default attributes please */ 
 					pull_one_url,

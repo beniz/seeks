@@ -37,7 +37,7 @@ namespace lsh
      {
       public:
 	LSHSystem(const unsigned int &k, const unsigned int &L) 
-	  :_k(k),_L(L)
+	  :_k(k),_Ld(L)
 	  {};
 	
 	~LSHSystem() {};
@@ -59,14 +59,14 @@ namespace lsh
 	 * to the hashtable to get all the nearest neighbors within a certain distance
 	 * to the query.
 	 */
-	unsigned int _L;
+	unsigned int _Ld;
 
 	/**
 	 * Accessors.
 	 */
 	int getK () { return _k; };
 	
-	int getL () { return _L; };
+	int getL () { return _Ld; };
 		
 	/**
 	 * Maximum hashing random 32 bit integer as 2^29.

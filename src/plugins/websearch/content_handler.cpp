@@ -22,6 +22,8 @@
 #include "html_txt_parser.h"
 #include "websearch.h"
 #include "oskmeans.h"
+#include "seeks_proxy.h"
+#include "proxy_configuration.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -33,6 +35,8 @@
 
 using sp::curl_mget;
 using sp::miscutil;
+using sp::seeks_proxy;
+using sp::proxy_configuration;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -57,7 +61,18 @@ namespace seeks_plugins
 	// fetch content.
 	curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
 		      websearch::_wconfig->_ct_transfer_timeout,0);
-	cmg.www_mget(urls,urls.size(),NULL,proxy);
+	if (websearch::_wconfig->_background_proxy_addr.empty() && proxy)
+	  {
+	     if (seeks_proxy::_run_proxy)
+	       cmg.www_mget(urls,urls.size(),NULL,
+			    seeks_proxy::_config->_haddr,seeks_proxy::_config->_hport);
+	     else cmg.www_mget(urls,urls.size(),NULL,"",0);
+	  }
+	else if (websearch::_wconfig->_background_proxy_addr.empty())
+	  cmg.www_mget(urls,urls.size(),NULL,"",0); // noproxy
+	else cmg.www_mget(urls,urls.size(),NULL,
+			  websearch::_wconfig->_background_proxy_addr,
+			  websearch::_wconfig->_background_proxy_port);
 	
 	std::string **outputs = new std::string*[urls.size()];
 	int k = 0;
@@ -293,6 +308,8 @@ namespace seeks_plugins
 		    {
 		       errlog::log_error(LOG_LEVEL_ERROR, "Error creating feature generator thread.");
 		       feature_threads[i] = 0;
+		       delete vf;
+		       delete bow;
 		       delete args;
 		       feature_args[i] = NULL;
 		       continue;
@@ -328,6 +345,9 @@ namespace seeks_plugins
 		  sps[i]->_bag_of_words = feature_args[i]->_bow; // cache words.
 		  //std::cerr << "[Debug]: url: " << sps[i]->_url << " --> " << sps[i]->_features_tfidf->size() << " features.\n";
 		  delete feature_args[i];
+	       }
+	     else 
+	       {
 	       }
 	  }
 	qc->_compute_tfidf_features = false;

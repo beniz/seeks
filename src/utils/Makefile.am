@@ -1,5 +1,6 @@
 lib_LTLIBRARIES=libseeksutils.la librmd160.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I../proxy
-libseeksutils_la_SOURCES=miscutil.cpp mem_utils.cpp
-librmd160_la_SOURCES=rmd160.cpp
+	    -I${srcdir} -I${srcdir}/../proxy
+libseeksutils_la_SOURCES=miscutil.cpp mem_utils.cpp miscutil.h stl_hash.h
+librmd160_la_SOURCES=rmd160.cpp rmd160.h
+noinst_HEADERS = mem_utils.h

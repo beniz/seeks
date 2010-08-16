@@ -1,0 +1,22 @@
+# one or more enabled search engines
+# google, bing, flickr, yahoo
+img-search-engine google
+img-search-engine bing
+img-search-engine flickr
+img-search-engine wcommons
+img-search-engine yahoo
+
+# enables background download of image thumbnails and their analysis 
+# for detecting identical and near-identical images.
+# Expected to be both slower and more bandwith demanding than when
+# not activated.
+# default: 0
+img-content-analysis 0
+
+# number of images per page.
+# default: 60
+img-per-page 60
+
+# enables safe search of images (1 for on, 0 for off).
+# default: 1
+safe-search 1

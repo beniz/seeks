@@ -55,13 +55,13 @@ namespace seeks_plugins
    
    search_snippet::search_snippet()
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
-      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
+      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
        {
        }
    
    search_snippet::search_snippet(const short &rank)
      :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
-      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL)
+      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
        {
        }
       
@@ -99,7 +99,8 @@ namespace seeks_plugins
 	  }
      }
       
-   void search_snippet::highlight_discr(std::string &str)
+   void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
+					const std::vector<std::string> &query_words)
      {
 	static int max_highlights = 3; // ad-hoc default.
 	
@@ -119,6 +120,7 @@ namespace seeks_plugins
 	     ++fit;
 	  }
 	
+	size_t nqw = query_words.size();
 	int i = 0;
 	std::map<float,uint32_t,std::greater<float> >::const_iterator mit = f_tfidf.begin();
 	while(mit!=f_tfidf.end())
@@ -126,7 +128,12 @@ namespace seeks_plugins
 	     hash_map<uint32_t,std::string,id_hash_uint>::const_iterator bit;
 	     if ((bit=_bag_of_words->find((*mit).second))!=_bag_of_words->end())
 	       {
-		  words.push_back((*bit).second);
+		  bool add = true;
+		  for (size_t j=0;j<nqw;j++)
+		    if (query_words.at(j) == (*bit).second)
+		      add = false;
+		  if (add)
+		    words.push_back((*bit).second);
 		  i++;
 		  if (i>=max_highlights)
 		    break;
@@ -145,8 +152,11 @@ namespace seeks_plugins
 	  {
 	     if (words.at(i).length() > 2)
 	       {
-		  std::string bold_str = "<span class=\"highlight\">" + words.at(i) + "</span>";
-		  miscutil::ci_replace_in_string(str,words.at(i),bold_str);
+		  char *wenc = encode::url_encode(words.at(i).c_str());
+		  std::string rword = " " + words.at(i) + " ";
+		  std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + rword + "</a></span>";
+		  free(wenc);
+		  miscutil::ci_replace_in_string(str,rword,bold_str);
 	       }
 	  }
      }
@@ -236,7 +246,7 @@ namespace seeks_plugins
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
 						      const std::string &base_url_str)
      {
-	static std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\">&nbsp;</span>";
+	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
 	std::string html_content = "<li class=\"search_snippet\"";
 /*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
@@ -260,6 +270,7 @@ namespace seeks_plugins
 	     std::string ggle_se_icon = se_icon;
 	     miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
 	     miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
+	     miscutil::replace_in_string(ggle_se_icon,"seeng","google");
 	     html_content += ggle_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_CUIL)
@@ -267,6 +278,7 @@ namespace seeks_plugins
 	     std::string cuil_se_icon = se_icon;
 	     miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
 	     miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
+	     miscutil::replace_in_string(cuil_se_icon,"seeng","cuil");
 	     html_content += cuil_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_BING)
@@ -274,6 +286,7 @@ namespace seeks_plugins
 	     std::string bing_se_icon = se_icon;
 	     miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
 	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
+	     miscutil::replace_in_string(bing_se_icon,"seeng","bing");
 	     html_content += bing_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_YAHOO)
@@ -281,6 +294,7 @@ namespace seeks_plugins
 	     std::string yahoo_se_icon = se_icon;
 	     miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
 	     miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
+	     miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
 	     html_content += yahoo_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_EXALEAD)
@@ -288,6 +302,7 @@ namespace seeks_plugins
 	     std::string exalead_se_icon = se_icon;
 	     miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
 	     miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
+	     miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
 	     html_content += exalead_se_icon;
 	  }
 			
@@ -299,7 +314,7 @@ namespace seeks_plugins
 	     std::string summary = _summary;
 	     search_snippet::highlight_query(words,summary);
 	     if (websearch::_wconfig->_extended_highlight)
-	       highlight_discr(summary);
+	       highlight_discr(summary,base_url_str,words);
 	     html_content += summary;
 	  }
 	else html_content += "<div>";
@@ -367,7 +382,15 @@ namespace seeks_plugins
 		
 	return html_content;
      }
-   
+
+   bool search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+     {
+	std::bitset<NSEs> se_enabled;
+	query_context::fillup_engines(parameters,se_enabled);
+	std::bitset<NSEs> band = _engine & se_enabled;
+	return (band.count() != 0);
+     }
+      
    void search_snippet::set_url(const std::string &url)
      {
 	char *url_str = encode::url_decode(url.c_str());
@@ -386,6 +409,13 @@ namespace seeks_plugins
 	_id = mrf::mrf_single_feature(surl,"");
      }
    
+   void search_snippet::set_url_no_decode(const std::string &url)
+     {
+	_url = url;
+	std::string surl = urlmatch::strip_url(_url);
+	_id = mrf::mrf_single_feature(surl,"");
+     }
+      
    void search_snippet::set_cite(const std::string &cite)
      {
 	char *cite_dec = encode::url_decode(cite.c_str());

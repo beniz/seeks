@@ -28,6 +28,10 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
+#if (defined __NetBSD__) || (defined __OpenBSD__)
+#define unix 1
+#endif
+
 #ifdef FEATURE_PTHREAD
 extern "C" 
 {
@@ -189,6 +193,10 @@ namespace sp
       private:
 	static const cruncher _crunchers_all[];
 	static const cruncher _crunchers_light[];
+     
+      public:
+	static bool _run_proxy;
+	static pthread_t *_httpserv_thread; // running HTTP server plugin thread, if any.
      };
      
 } /* end of namespace. */

@@ -37,6 +37,8 @@ namespace sp
 
 	static void register_sweepable(sweepable *spable);
 	
+	static void unregister_sweepable(sweepable *spable);
+	
 	static unsigned int sweep();
 	
      };

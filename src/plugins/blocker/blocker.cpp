@@ -51,7 +51,8 @@ namespace seeks_plugins
 	  _version_major = "0";
 	  _version_minor = "1";
        
-	  _config_filename = "blocker-config.html";
+	  _config_filename = "blocker-config";
+	  _configuration = NULL;
 	    
 	  _interceptor_plugin = new blocker_element(this);
        }

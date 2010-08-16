@@ -60,8 +60,9 @@ namespace seeks_plugins
 			    delete pc->_current_snippet;
 			    pc->_current_snippet = NULL;
 			    _count--;
+			    pc->_snippets->pop_back();
 			 }
-		       else pc->_snippets->push_back(pc->_current_snippet);
+		       //else pc->_snippets->push_back(pc->_current_snippet);
 		    }
 		  
 		  _result_flag = true;
@@ -69,6 +70,7 @@ namespace seeks_plugins
 		  _count++;
 		  sp->_engine |= std::bitset<NSEs>(SE_EXALEAD);
 		  pc->_current_snippet = sp;
+		  pc->_snippets->push_back(pc->_current_snippet);
 	       }
 	  }
 	else if (_result_flag) 

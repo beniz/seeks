@@ -96,12 +96,15 @@ namespace seeks_plugins
 	static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					client_state *csp);
 	
+	static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					client_state *csp, hash_map<uint32_t,query_context*,id_hash_uint> &active_contexts);
+	
 	/* error handling. */
 	static sp_err failed_ses_connect(client_state *csp, http_response *rsp);
 	
       public:
 	static websearch_configuration *_wconfig;
-	static hash_map<uint32_t,query_context*,hash<uint32_t> > _active_qcontexts;
+	static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
 	static double _cl_sec; // clock ticks per second.
      };
    

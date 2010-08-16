@@ -46,14 +46,16 @@ namespace seeks_plugins
    std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
    
    query_context::query_context()
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+      _registered(false)
        {
 	  seeks_proxy::mutex_init(&_qc_mutex);
        }
       
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				const std::list<const char*> &http_headers)
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true)
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+      _registered(false)
        {
 	  seeks_proxy::mutex_init(&_qc_mutex);
 	  
@@ -100,13 +102,12 @@ namespace seeks_plugins
 	  query_context::fillup_engines(parameters,_engines);
 	  	  
 	  sweeper::register_sweepable(this);
-	  register_qc(); // register with websearch plugin.
        }
    
    query_context::~query_context()
      {
 	unregister(); // unregister from websearch plugin.
-       
+	
 	_unordered_snippets.clear();
 	
 	_unordered_snippets_title.clear();
@@ -160,7 +161,7 @@ namespace seeks_plugins
 	// don't delete if locked.
 	if (_lock)
 	  return false;
-	
+		
 	// check last_time_of_use + delay against current time.
 	struct timeval tv_now;
 	gettimeofday(&tv_now, NULL);
@@ -185,45 +186,45 @@ namespace seeks_plugins
       
   void query_context::register_qc()
   {
+     if (_registered)
+       return;
      websearch::_active_qcontexts.insert(std::pair<uint32_t,query_context*>(_query_hash,this));
+     _registered = true;
   }
    
   void query_context::unregister()
   {
-    hash_map<uint32_t,query_context*,hash<uint32_t> >::iterator hit;
+    if (!_registered)
+       return;
+    hash_map<uint32_t,query_context*,id_hash_uint>::iterator hit;
     if ((hit = websearch::_active_qcontexts.find(_query_hash))==websearch::_active_qcontexts.end())
       {
 	/**
-	 * We should not reach here.
+	 * We should not reach here, unless the destructor is called by a derived class.
 	 */
-	 errlog::log_error(LOG_LEVEL_ERROR,"Cannot find query context when unregistering for query %s",
-			   _query.c_str());
+	 /* errlog::log_error(LOG_LEVEL_ERROR,"Cannot find query context when unregistering for query %s",
+			   _query.c_str()); */
 	 return;
       }
     else
       {
-	websearch::_active_qcontexts.erase(hit);  // deletion is controlled elsewhere.
+	 websearch::_active_qcontexts.erase(hit);  // deletion is controlled elsewhere.
+	 _registered = false;
       }
   }
 
   sp_err query_context::generate(client_state *csp,
 				 http_response *rsp,
-				 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+				 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				 bool &expanded)
   {
+     expanded = false;
      const char *expansion = miscutil::lookup(parameters,"expansion");
      int horizon = atoi(expansion);
      
      if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
        horizon = websearch::_wconfig->_max_expansions;
        
-     // seeks button used as a back button.
-     if (_page_expansion > 0 && horizon < (int)_page_expansion)
-       {
-	  // reset expansion parameter.
-	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-	  return SP_ERR_OK;
-       }
-     
      // grab requested engines, if any.
      // if the list is not included in that of the context, update existing results and perform requested expansion.
      // if the list is included in that of the context, perform expansion, results will be filtered later on.
@@ -250,12 +251,22 @@ namespace seeks_plugins
 	       	       
 	       // catch up expansion with the newly activated engines.
 	       expand(csp,rsp,parameters,0,_page_expansion,bint);
+	       expanded = true;
 	       _engines |= bint;
 	    }
        }
      
+     // seeks button used as a back button.
+     if (_page_expansion > 0 && horizon <= (int)_page_expansion)
+       {
+	  // reset expansion parameter.
+	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+	  return SP_ERR_OK;
+       }
+     
      // perform requested expansion.
      expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
+     expanded = true;
      
      // update horizon.
      _page_expansion = horizon;
@@ -300,7 +311,7 @@ namespace seeks_plugins
 	       }
 	     
 	     // parse the output and create result search snippets.   
-	     int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
+	     int rank_offset = (i > 0) ? i * websearch::_wconfig->_Nr : 0;
 	     
 	     se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
 	     for (int j=0;j<nresults;j++)
@@ -321,6 +332,15 @@ namespace seeks_plugins
 	     // do nothing.
 	  }
 	else _unordered_snippets.insert(std::pair<uint32_t,search_snippet*>(sr->_id,sr));
+     }
+      
+   void query_context::remove_from_unordered_cache(const uint32_t &id)
+     {
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
+	if ((hit=_unordered_snippets.find(id))!=_unordered_snippets.end())
+	  {
+	     _unordered_snippets.erase(hit);
+	  }
      }
       
    void query_context::update_unordered_cache()

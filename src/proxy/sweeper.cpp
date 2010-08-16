@@ -42,6 +42,21 @@ namespace sp
 	seeks_proxy::_memory_dust.push_back(spable);
      }
    
+   void sweeper::unregister_sweepable(sweepable *spable)
+     {
+	std::vector<sweepable*>::iterator vit
+	  = seeks_proxy::_memory_dust.begin();
+	while(vit!=seeks_proxy::_memory_dust.end())
+	  {
+	     if ((*vit) == spable)
+	       {
+		  seeks_proxy::_memory_dust.erase(vit);
+		  return;
+	       }
+	     ++vit;
+	  }
+     }
+      
    /*********************************************************************
     * Function    :  sweep
     *

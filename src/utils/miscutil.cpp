@@ -44,6 +44,20 @@
 #define TRUE 1
 #define FALSE 0
 
+#ifndef HAVE_STRNDUP
+char *strndup(char *str, size_t len)
+{
+   char *dup= (char *)malloc( len+1 );
+   if (dup)
+     {
+	strncpy(dup,str,len);
+	dup[len]= '\0';
+     }
+   return dup;
+}
+#endif
+
+
 namespace sp
 {
 #ifdef USE_SEEKS_STRLCPY
@@ -203,8 +217,7 @@ namespace sp
 	       }
 	  }
 	
-	std::pair<const char*,const char*> n_entry = std::pair<const char*,const char*>(name,value);
-	the_map->insert(n_entry);
+	the_map->insert(std::pair<const char*,const char*>(name,value));
 
 	return SP_ERR_OK;
      }
@@ -237,7 +250,8 @@ namespace sp
 	     ++mit;
 	     the_map->erase(mitc);
 	     free_const(key);
-	     free_const(value);
+	     if (value)
+	       free_const(value);
 	  }
 	delete the_map;
 	the_map = NULL;

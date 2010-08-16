@@ -1,10 +1,11 @@
 # automake for seeks doc
 
-man_MANS=
+dist_man_MANS=
 
 if HAVE_DOCBOOK2X
-man_MANS += seeks.1
+dist_man_MANS += seeks.1
 endif
 
+EXTRA_DIST=seeks.1.docbook
 seeks.1:
-	docbook2x-man seeks.1.docbook
+	docbook2x-man ${srcdir}/seeks.1.docbook
