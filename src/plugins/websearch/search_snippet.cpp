@@ -211,6 +211,12 @@ namespace seeks_plugins
 	       json_str_eng += ",";
 	     json_str_eng += "\"cuil\"";
 	  }
+	if (_engine.to_ulong()&SE_MEDIAWIKI)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"mediawiki\"";
+	  }
 	if (_engine.to_ulong()&SE_BING)
 	  {
 	     if (!json_str_eng.empty())
@@ -280,6 +286,14 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
 	     miscutil::replace_in_string(cuil_se_icon,"seeng","cuil");
 	     html_content += cuil_se_icon;
+	  }
+	if (_engine.to_ulong()&SE_MEDIAWIKI)
+	  {
+	     std::string mediawiki_se_icon = se_icon;
+	     miscutil::replace_in_string(mediawiki_se_icon,"icon","search_engine_mediawiki");
+	     miscutil::replace_in_string(mediawiki_se_icon,"setitle","mediawiki");
+	     miscutil::replace_in_string(mediawiki_se_icon,"seeng","mediawiki");
+	     html_content += mediawiki_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_BING)
 	  {

@@ -35,6 +35,7 @@ namespace seeks_plugins
 #define SE_EXALEAD            4U
 #define SE_GOOGLE             8U
 #define SE_YAHOO              16U
+#define SE_MEDIAWIKI          32U
    
    class websearch_configuration : public configuration_spec
      {
