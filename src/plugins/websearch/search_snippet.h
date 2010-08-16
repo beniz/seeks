@@ -103,7 +103,7 @@ namespace seeks_plugins
 	search_snippet();
 	search_snippet(const short &rank);
 	
-	~search_snippet();
+	virtual ~search_snippet();
 	
 	// set_url.
 	void set_url(const std::string &url);
