@@ -59,7 +59,7 @@ namespace seeks_plugins
    void websearch_configuration::set_default_config()
      {
 	_lang = "auto";
-	_N = 10;
+	_Nr = 10;
 	_thumbs = false;
 	_se_enabled.set(); // all engines is default.
 	_query_context_delay = 300; // in seconds, 5 minutes.
@@ -90,7 +90,7 @@ namespace seeks_plugins
 	     break;
 	     
 	   case hash_n :
-	       _N = atoi(arg);
+	       _Nr = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Number of websearch results per page");
 	     break;

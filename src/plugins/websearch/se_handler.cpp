@@ -77,12 +77,12 @@ namespace seeks_plugins
 	
 	// expansion = result page called...
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_ggle,"%start",pp_str);
 	
 	// number of results.
-	int num = websearch::_wconfig->_N; // by default.
+	int num = websearch::_wconfig->_Nr; // by default.
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_ggle,"%num",num_str);
 	
@@ -124,7 +124,7 @@ namespace seeks_plugins
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_bing,"%start",pp_str);
 	
@@ -167,7 +167,7 @@ namespace seeks_plugins
 
 	// expansion + hack for getting Cuil's next pages.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	if (pp > 1)
 	  {
 	     const char *cuil_npage = miscutil::lookup(parameters,"cuil_npage");
@@ -199,7 +199,7 @@ namespace seeks_plugins
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp =  (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp =  (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	if (pp>1) pp++;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_yahoo,"%start",pp_str);
@@ -242,12 +242,12 @@ namespace seeks_plugins
 	
 	// page
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_exa,"%start",pp_str);
 	
 	// number of results.
-	int num = websearch::_wconfig->_N;
+	int num = websearch::_wconfig->_Nr;
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_exa,"%num",num_str);
      

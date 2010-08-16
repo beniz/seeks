@@ -59,7 +59,7 @@ namespace seeks_plugins
 	
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_bing,"%start",pp_str);
 	
@@ -96,12 +96,12 @@ namespace seeks_plugins
 	
 	// expansion = result page called.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_ggle,"%start",pp_str);
 	
 	// number of results.
-	int num = img_websearch_configuration::_img_wconfig->_N; // by default.
+	int num = img_websearch_configuration::_img_wconfig->_Nr; // by default.
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_ggle,"%num",num_str);
 	
@@ -179,7 +179,7 @@ namespace seeks_plugins
      
 	// page.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_ya,"%start",pp_str);
 	
@@ -216,12 +216,12 @@ namespace seeks_plugins
 	
 	// expansion.
 	const char *expansion = miscutil::lookup(parameters,"expansion");
-	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_N : 0;
+	int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * img_websearch_configuration::_img_wconfig->_Nr : 0;
 	std::string pp_str = miscutil::to_string(pp);
 	miscutil::replace_in_string(q_wcom,"%start",pp_str);
 	
 	// number of results.
-	int num = img_websearch_configuration::_img_wconfig->_N; // by default.
+	int num = img_websearch_configuration::_img_wconfig->_Nr; // by default.
 	std::string num_str = miscutil::to_string(num);
 	miscutil::replace_in_string(q_wcom,"%num",num_str);
      

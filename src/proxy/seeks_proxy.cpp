@@ -51,8 +51,7 @@
 #include "sweeper.h"
 
 namespace sp
-{
-   
+{   
    /* initialize all static (global) variables... */
    const char* seeks_proxy::_basedir = NULL;
    std::string seeks_proxy::_datadir = "";
@@ -1968,7 +1967,7 @@ namespace sp
 			    if (strlen((*csp->_headers.begin())) > 30)
 			      {
 				 // beware...
-				 char *nstr = strndup((*csp->_headers.begin()),30);
+				 char *nstr = strndup(const_cast<char*>((*csp->_headers.begin())),30);
 				 nstr[30] = '\0';
 				 free_const((*csp->_headers.begin()));  // beware.
 				 //(*csp->_headers.begin()) = nstr;

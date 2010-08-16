@@ -24,6 +24,7 @@
 
 #include <event.h>
 #include <evhttp.h>
+#include <pthread.h>
 
 using sp::plugin;
 

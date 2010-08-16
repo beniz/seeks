@@ -23,6 +23,7 @@
 #include "proxy_dts.h"
 #include "search_snippet.h"
 #include "LSHUniformHashTableHamming.h" // for regrouping urls, titles and other text snippets.
+#include "seeks_proxy.h"
 #include "stl_hash.h"
 
 #include <time.h>

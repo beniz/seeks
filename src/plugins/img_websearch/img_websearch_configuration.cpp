@@ -48,7 +48,7 @@ namespace seeks_plugins
      {
 	_img_se_enabled.set(); // all engines is default.
 	_img_content_analysis = false; // no download of image thumbnails is default.
-	_N = 30; // default number of images per page.
+	_Nr = 30; // default number of images per page.
 	_safe_search = true; // default is on.
      }
    
@@ -81,7 +81,7 @@ namespace seeks_plugins
 	     break;
 	     
 	   case hash_img_n:
-	     _N = atoi(arg);
+	     _Nr = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Number of images per page");
 	     break;

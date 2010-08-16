@@ -40,7 +40,7 @@ LSHSystemHamming::~LSHSystemHamming()
 {     
    if (_initialized)
      {
-	for (unsigned int l=0;l<_L;l++)
+	for (unsigned int l=0;l<_Ld;l++)
 	  {
 	     delete[] _controlHash[l];
 	     delete[] _mainHash[l];
@@ -54,7 +54,7 @@ LSHSystemHamming::~LSHSystemHamming()
 void LSHSystemHamming::initHashingFunctionsFactors ()
 {
   unsigned int nk = LSHSystemHamming::_total_bits;
-  for (unsigned int l=0; l<_L; l++)
+  for (unsigned int l=0; l<_Ld; l++)
     {
       _controlHash[l] = new unsigned long int[nk];
       _mainHash[l] = new unsigned long int[nk];
@@ -82,7 +82,7 @@ void LSHSystemHamming::initLSHSystemHamming ()
    */
   if (_controlHash) delete[] _controlHash;
   if (_mainHash) delete[] _mainHash;
-  for (unsigned int l=0;l<_L;l++)
+  for (unsigned int l=0;l<_Ld;l++)
      {
 	if (_controlHash)
 	  delete[] _controlHash[l];
@@ -92,9 +92,9 @@ void LSHSystemHamming::initLSHSystemHamming ()
    
    if (_g) delete[] _g;
 
-  _controlHash = new unsigned long int*[_L];
-  _mainHash = new unsigned long int*[_L];
-  _g = new std::bitset<_total_bits> [_L];
+  _controlHash = new unsigned long int*[_Ld];
+  _mainHash = new unsigned long int*[_Ld];
+  _g = new std::bitset<_total_bits> [_Ld];
   
   /**
    * Init the local dispersion sampling parameter.
@@ -130,7 +130,7 @@ void LSHSystemHamming::initLSHSystemHamming ()
 
 void LSHSystemHamming::initG ()
 {
-  for (unsigned int l=0; l<_L; l++)
+  for (unsigned int l=0; l<_Ld; l++)
     {
       _g[l] = std::bitset<_total_bits> ();
 
@@ -249,7 +249,7 @@ unsigned long int LSHSystemHamming::controlHash (std::bitset<_total_bits> &bb,
 void LSHSystemHamming::LcontrolHash (std::bitset<_total_bits> *bb,
 				     unsigned long int *Lchashes)
 {
-  for (unsigned int l=0; l<_L; l++)
+  for (unsigned int l=0; l<_Ld; l++)
     {
       Lchashes[l] = controlHash (bb[l], l);
     }
@@ -272,7 +272,7 @@ void LSHSystemHamming::LmainHash (std::bitset<_total_bits> *bb,
 				  const unsigned long int &hsize,
 				  unsigned long int *Lmhashes)
 {
-  for (unsigned int l=0; l<_L; l++)
+  for (unsigned int l=0; l<_Ld; l++)
     {
       Lmhashes[l] = mainHash (bb[l], l, hsize);
     }
@@ -291,15 +291,15 @@ void LSHSystemHamming::LmainKeyFromStr(std::string str,
   //debug
 
   std::bitset<_total_bits> *bb_hash
-    = new std::bitset<_total_bits> [_L];
+    = new std::bitset<_total_bits> [_Ld];
   
-  LprojectStr (bb_str, _L, bb_hash);
+  LprojectStr (bb_str, _Ld, bb_hash);
 
   LmainHash (bb_hash, uhsize, Lmkeys);
 
   //debug
   /* std::cout << "[Debug]:LSHUniformHashTableHamming::LcomputeMKey: L bit keys:\n";
-     for (unsigned int l=0; l<_L; l++)
+     for (unsigned int l=0; l<_Ld; l++)
      std::cout << Lmkeys[l] << std::endl; */
   //debug
   
@@ -318,15 +318,15 @@ void LSHSystemHamming::LcontrolKeyFromStr(std::string str,
   //debug
 
   std::bitset<_total_bits> *bb_hash
-    = new std::bitset<_total_bits> [_L];
+    = new std::bitset<_total_bits> [_Ld];
 
-  LprojectStr (bb_str, _L, bb_hash);
+  LprojectStr (bb_str, _Ld, bb_hash);
 
   LcontrolHash (bb_hash, Lckeys);
 
   //debug
   /* std::cout << "[Debug]:LSHUniformHashTableHamming::LcomputeCKey: L bit keys:\n";
-     for (unsigned int l=0; l<_L; l++)
+     for (unsigned int l=0; l<_Ld; l++)
      std::cout << Lmkeys[l] << std::endl; */
   //debug
 
@@ -344,8 +344,8 @@ void LSHSystemHamming::LKeysFromStr(std::string str,
   std::bitset<_total_bits> bb_str;
   strToBits (str, bb_str);
   std::bitset<_total_bits> *bb_hash
-     = new std::bitset<_total_bits> [_L];
-  LprojectStr (bb_str, _L, bb_hash);
+     = new std::bitset<_total_bits> [_Ld];
+  LprojectStr (bb_str, _Ld, bb_hash);
 
   /**
    * compute main key.

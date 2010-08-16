@@ -44,6 +44,20 @@
 #define TRUE 1
 #define FALSE 0
 
+#ifndef HAVE_STRNDUP
+char *strndup(char *str, size_t len)
+{
+   char *dup= (char *)malloc( len+1 );
+   if (dup)
+     {
+	strncpy(dup,str,len);
+	dup[len]= '\0';
+     }
+   return dup;
+}
+#endif
+
+
 namespace sp
 {
 #ifdef USE_SEEKS_STRLCPY

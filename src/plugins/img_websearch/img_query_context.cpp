@@ -215,7 +215,7 @@ namespace seeks_plugins
 	       }
 	     
 	     // parse the output and create result search snippets.
-	     int rank_offset = (i > 0) ? i * img_websearch_configuration::_img_wconfig->_N : 0;
+	     int rank_offset = (i > 0) ? i * img_websearch_configuration::_img_wconfig->_Nr : 0;
 	     
 	     se_handler_img::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
 	     for (int j=0;j<nresults;j++)

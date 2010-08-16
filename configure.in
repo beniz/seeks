@@ -194,6 +194,8 @@ AC_CHECK_FUNC(gethostbyname_r, [
   AC_MSG_RESULT(no)
 ])
 
+AM_CONDITIONAL(HAVE_BSD,false)
+
 #=================================================================
 # Mac OSX specific
 #=================================================================
@@ -206,7 +208,9 @@ esac
 # OpenBSD specific
 #=================================================================
 case "$host" in
-*-openbsd*) SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix"
+*-openbsd*) 
+ SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
+ AM_CONDITIONAL(HAVE_BSD,true)
 ;;
 esac
 
@@ -214,12 +218,11 @@ esac
 # FreeBSD specific
 #=================================================================
 case "$host" in
-*-freebsd*) freebsd=true;
+*-freebsd*)
  SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
  AM_CONDITIONAL(HAVE_BSD,true)
 ;;
 esac
-AM_CONDITIONAL(HAVE_BSD,test x${freebsd} = xtrue)
 
 # Checks for RFC 2553 resolver and socket functions 
 
@@ -238,7 +241,7 @@ AC_CHECK_FUNC([getaddrinfo],
 # NetBSD specific
 #=================================================================
 case "$host" in
-*-netbsd*) netbsd=true;
+*-netbsd*)
  SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
  AM_CONDITIONAL(HAVE_BSD,true)
 ;;

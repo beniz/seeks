@@ -28,6 +28,10 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
+#if (defined __NetBSD__) || (defined __OpenBSD__)
+#define unix 1
+#endif
+
 #ifdef FEATURE_PTHREAD
 extern "C" 
 {
