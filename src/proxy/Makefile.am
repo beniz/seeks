@@ -53,10 +53,9 @@ endif
 
 SUBDIRS= . tests
 
-EXTRA_DIST = \ 
-	    templates/blocked
-	    templates/cgi-error-404
-	    templates/cgi-error-bad-param
+EXTRA_DIST = templates/blocked \
+	    templates/cgi-error-404 \
+	    templates/cgi-error-bad-param \
 	    templates/cgi-error-disabled \
 	    templates/cgi-error-file \
 	    templates/cgi-error-file-read-only \
