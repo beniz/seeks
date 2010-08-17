@@ -454,6 +454,25 @@ namespace seeks_plugins
 	  }
      }
    
+   void search_snippet::set_cite_no_decode(const std::string &cite)
+     {
+	static size_t cite_max_size = 60;
+	std::string host, path;
+	urlmatch::parse_url_host_and_path(cite,host,path);
+	_cite = host + path;
+	if (_cite.length()>cite_max_size)
+	  {
+	     try
+	       {
+		  _cite.substr(0,cite_max_size-3) + "...";
+	       }
+	     catch(std::exception &e)
+	       {
+		  // do nothing.
+	       }
+	  }
+     }
+   
    void search_snippet::set_summary(const char *summary)
      {
 	static size_t summary_max_size = 240; // characters.

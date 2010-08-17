@@ -321,7 +321,7 @@ namespace seeks_plugins
 	  {
 	     _cite_flag = false;
 	     if (pc->_current_snippet->_cite.empty())
-	       pc->_current_snippet->set_cite(_cite);
+	       pc->_current_snippet->set_cite_no_decode(_cite);
 	     _cite = "";
 	     _new_link_flag = false;
 	  }
