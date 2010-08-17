@@ -62,7 +62,7 @@ namespace seeks_plugins
 	      */
 	     qc->_lsh_ham = new LSHSystemHamming(55,5);
 	     qc->_ulsh_ham = new LSHUniformHashTableHamming(*qc->_lsh_ham,
-							    websearch::_wconfig->_N*3*NSEs);
+							    websearch::_wconfig->_Nr*3*NSEs);
 	  }
 	
 	std::vector<search_snippet*>::iterator it = snippets.begin();
@@ -87,11 +87,11 @@ namespace seeks_plugins
 		       // grab nearest neighbors out of the LSH uniform hashtable.
 		       std::string surl = urlmatch::strip_url(sp->_url);
 		       std::map<double,const std::string,std::greater<double> > mres
-			 = qc->_ulsh_ham->getLEltsWithProbabilities(surl,qc->_lsh_ham->_L); // url. we could treat host & path independently...
+			 = qc->_ulsh_ham->getLEltsWithProbabilities(surl,qc->_lsh_ham->_Ld); // url. we could treat host & path independently...
 		       std::string lctitle = sp->_title;
 		       std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
 		       std::map<double,const std::string,std::greater<double> > mres_tmp
-			 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_L); // title.
+			 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_Ld); // title.
 		       std::map<double,const std::string,std::greater<double> >::const_iterator mit = mres_tmp.begin();
 		       while(mit!=mres_tmp.end())
 			 {
@@ -144,10 +144,10 @@ namespace seeks_plugins
 		  if (websearch::_wconfig->_content_analysis)
 		    {
 		       std::string surl = urlmatch::strip_url(sp->_url);
-		       qc->_ulsh_ham->add(surl,qc->_lsh_ham->_L);
+		       qc->_ulsh_ham->add(surl,qc->_lsh_ham->_Ld);
 		       std::string lctitle = sp->_title;
 		       std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
-		       qc->_ulsh_ham->add(lctitle,qc->_lsh_ham->_L);
+		       qc->_ulsh_ham->add(lctitle,qc->_lsh_ham->_Ld);
 		    }
 		  
 	       } // end if new.

@@ -54,7 +54,7 @@ namespace seeks_plugins
 	
 	// main options.
 	std::string _lang; /**< langage of the search results. */	
-	int _N; /**< max number of search results per page. */
+	int _Nr; /**< max number of search results per page. */
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
 	bool _thumbs; /**< enabled thumbs */
 	bool _js; /**< enabled js */

@@ -1332,7 +1332,7 @@ sp_err cgisimple::cgi_show_plugin(client_state *csp,
 				  http_response *rsp,
 				  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
 {
-   unsigned i = -1;
+   unsigned i = 0;
    sp_err err = cgi::get_number_param(csp, parameters, (char*)"index", &i);
    if (err == SP_ERR_CGI_PARAMS)
      return err;

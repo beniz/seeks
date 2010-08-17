@@ -20,6 +20,7 @@
 #define SE_HANDLER_H
 
 #include "proxy_dts.h" // sp_err 
+#include "seeks_proxy.h"
 
 #include <string>
 #include <vector>

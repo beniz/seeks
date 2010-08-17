@@ -186,21 +186,37 @@ namespace seeks_plugins
 	std::string json_str;
 	json_str += "{";
 	json_str += "\"id\":" + miscutil::to_string(_id) + ",";
-	json_str += "\"title\":\"" + _title + "\",";
-	json_str += "\"url\":\"" + _url + "\",";
-	json_str += "\"summary\":\"" + _summary + "\",";
+	std::string title = _title;
+	miscutil::replace_in_string(title,"\"","\\\"");
+	json_str += "\"title\":\"" + title + "\",";
+	std::string url = _url;
+	miscutil::replace_in_string(url,"\"","\\\"");
+	json_str += "\"url\":\"" + url + "\",";
+	std::string summary = _summary_noenc;
+	miscutil::replace_in_string(summary,"\"","\\\"");
+	json_str += "\"summary\":\"" + summary + "\",";
 	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
 	double rank = _rank / static_cast<double>(_engine.count());
 	json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
 	json_str += "\"cite\":\"";
 	if (!_cite.empty())
-	  json_str += _cite + "\",";
-	else json_str += _url + "\",";
+	  {
+	     std::string cite = _cite;
+	     miscutil::replace_in_string(cite,"\"","\\\"");
+	     json_str += cite + "\",";
+	  }
+	else json_str += url + "\",";
 	if (!_cached.empty())
-	  json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
+	  {
+	     std::string cached = _cached;
+	     miscutil::replace_in_string(cached,"\"","\\\"");
+	     json_str += "\"cached\":\"" + cached + "\","; // XXX: cached might be malformed without preprocessing.
+	  }
 	if (_archive.empty())
 	  set_archive_link();
-	json_str += "\"archive\":\"" + _archive + "\",";
+	std::string archive = _archive;
+	miscutil::replace_in_string(archive,"\"","\\\"");
+	json_str += "\"archive\":\"" + archive + "\",";
 	json_str += "\"engines\":[";
 	std::string json_str_eng = "";
 	if (_engine.to_ulong()&SE_GOOGLE)
@@ -237,7 +253,7 @@ namespace seeks_plugins
 	  }
 	json_str += json_str_eng + "]";
 	if (thumbs)
-	  json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + _url + "\"";
+	  json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
 	json_str += "}";
 	return json_str;
      }
@@ -455,6 +471,8 @@ namespace seeks_plugins
    void search_snippet::set_summary(const char *summary)
      {
 	static size_t summary_max_size = 240; // characters.
+	_summary_noenc = std::string(summary);	
+	
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
 	if (strlen(str)<summary_max_size)
@@ -475,6 +493,7 @@ namespace seeks_plugins
       
    void search_snippet::set_summary(const std::string &summary)
      {
+	_summary_noenc = summary;
 	
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary.c_str());

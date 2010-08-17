@@ -311,7 +311,7 @@ namespace seeks_plugins
 	       }
 	     
 	     // parse the output and create result search snippets.   
-	     int rank_offset = (i > 0) ? i * websearch::_wconfig->_N : 0;
+	     int rank_offset = (i > 0) ? i * websearch::_wconfig->_Nr : 0;
 	     
 	     se_handler::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
 	     for (int j=0;j<nresults;j++)

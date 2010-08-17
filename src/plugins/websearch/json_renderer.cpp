@@ -47,7 +47,7 @@ namespace seeks_plugins
 	  
 	     // proceed with rendering.
 	     const char *rpp_str = miscutil::lookup(parameters,"rpp"); // results per page.
-	     int rpp = websearch::_wconfig->_N;
+	     int rpp = websearch::_wconfig->_Nr;
 	     if (rpp_str)
 	       rpp = atoi(rpp_str);
 	     size_t snisize = snippets.size();

@@ -181,7 +181,7 @@ namespace seeks_plugins
 		  if (!rpp)
 		    {
 		       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"rpp",1,
-					       miscutil::to_string(img_websearch_configuration::_img_wconfig->_N).c_str(),1);
+					       miscutil::to_string(img_websearch_configuration::_img_wconfig->_Nr).c_str(),1);
 		    }
 		  std::vector<std::pair<std::string,std::string> > *param_exports 
 		    = img_websearch::safesearch_exports(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
@@ -308,7 +308,7 @@ namespace seeks_plugins
 	     if (!rpp)
 	       {
 		  miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"rpp",1,
-					  miscutil::to_string(img_websearch_configuration::_img_wconfig->_N).c_str(),1);
+					  miscutil::to_string(img_websearch_configuration::_img_wconfig->_Nr).c_str(),1);
 	       }
 	     std::vector<std::pair<std::string,std::string> > *param_exports 
 	       = img_websearch::safesearch_exports(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));

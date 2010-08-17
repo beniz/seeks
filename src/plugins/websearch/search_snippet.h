@@ -103,7 +103,7 @@ namespace seeks_plugins
 	search_snippet();
 	search_snippet(const short &rank);
 	
-	~search_snippet();
+	virtual ~search_snippet();
 	
 	// set_url.
 	void set_url(const std::string &url);
@@ -174,6 +174,7 @@ namespace seeks_plugins
 	std::string _cite;
 	std::string _cached;
 	std::string _summary;
+	std::string _summary_noenc;
 	std::string _file_format;
 	std::string _date;
 	std::string _lang;
