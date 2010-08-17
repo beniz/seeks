@@ -30,7 +30,7 @@ namespace seeks_plugins
         { "Document title", "Titre du document / Document title" };
 
         se_parser_mediawiki::se_parser_mediawiki()
-                :se_parser(),_li_sr_flag(false),_a_sr_flag(false),_search_result(false),_end_search(false)
+                :se_parser(),_li_sr_flag(false),_a_sr_flag(false),_search_result(false),_end_search(true)
         {
         }
 
