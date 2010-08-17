@@ -575,7 +575,8 @@ debug 8192 # Non-fatal errors
 #        listen-address [::1]:8118
 #
 #
-listen-address  127.0.0.1:8118
+#listen-address  127.0.0.1:8118
+listen-address  192.168.1.4:8118
 #
 #
 #  4.2. toggle
@@ -1106,7 +1107,7 @@ forwarded-connect-retries  0
 #
 #      accept-intercepted-requests 1
 #
-accept-intercepted-requests 0
+accept-intercepted-requests 1
 #
 #
 #  6.2. allow-cgi-request-crunching
@@ -1388,7 +1389,7 @@ socket-timeout 300
 #
 #      max-client-connections 256
 #
-#max-client-connections 256
+max-client-connections 256000000000
 #
 #
 #  7. WINDOWS GUI OPTIONS
