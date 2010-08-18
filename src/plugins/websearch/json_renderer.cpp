@@ -66,7 +66,7 @@ namespace seeks_plugins
 		    continue;
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    json_str += snippets.at(i)->to_json(has_thumbs);
-		  if (i!=snisize-1)
+		  if (snisize>1 && i!=snisize-1)
 		    json_str += ",";
 	       }
 	  }
@@ -80,12 +80,17 @@ namespace seeks_plugins
 						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	json_str += "\"clusters\":[";
-	
+		
 	// render every cluster and snippets within.
-	for (short c=0;c<K;c++)
+	bool has_cluster = false;
+	for (int c=0;c<K;c++)
 	  {
 	     if (clusters[c]._cpoints.empty())
 	       continue;
+	     
+	     if (has_cluster)
+	       json_str += ",";
+	     has_cluster = true;
 	     
 	     std::vector<search_snippet*> snippets;
 	     snippets.reserve(clusters[c]._cpoints.size());
@@ -103,8 +108,6 @@ namespace seeks_plugins
 	     json_str += "\"label\":\"" + clusters[c]._label + "\",";	     
 	     json_renderer::render_snippets(0,snippets,json_str,parameters);
 	     json_str += "}";
-	     if (c != K-1)
-	       json_str += ",";
 	  }
 	
 	json_str += "]";

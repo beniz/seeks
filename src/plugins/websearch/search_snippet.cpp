@@ -407,6 +407,15 @@ namespace seeks_plugins
 	return (band.count() != 0);
      }
       
+   void search_snippet::set_title(const std::string &title)
+     {
+	_title = title;
+	miscutil::replace_in_string(_title,"\\","");
+	miscutil::replace_in_string(_title,"\t"," ");
+	miscutil::replace_in_string(_title,"\n"," ");
+	miscutil::replace_in_string(_title,"\r"," ");
+     }
+      
    void search_snippet::set_url(const std::string &url)
      {
 	char *url_str = encode::url_decode(url.c_str());
@@ -478,6 +487,9 @@ namespace seeks_plugins
 	static size_t summary_max_size = 240; // characters.
 	_summary_noenc = std::string(summary);	
 	
+	// clear escaped characters for unencoded output.
+	miscutil::replace_in_string(_summary_noenc,"\\","");
+	
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
 	if (strlen(str)<summary_max_size)
@@ -500,6 +512,9 @@ namespace seeks_plugins
      {
 	_summary_noenc = summary;
 	
+	// clear escaped characters for unencoded output.
+	miscutil::replace_in_string(_summary_noenc,"\\","");
+		
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary.c_str());
 	_summary = std::string(str);

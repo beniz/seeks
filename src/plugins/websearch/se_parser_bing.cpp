@@ -188,7 +188,7 @@ namespace seeks_plugins
 	else if (_h3_flag && strcasecmp(tag,"h3") == 0)
 	  {
 	     _h3_flag = false;
-	     pc->_current_snippet->_title = _h3;
+	     pc->_current_snippet->set_title(_h3);
 	     _h3 = "";
 	  }
 	
