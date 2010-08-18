@@ -609,10 +609,10 @@ namespace seeks_plugins
      bool expanded = false;
      if (qc) // we already had a context for this query.
        {
+	  websearch::_wconfig->load_config(); // reload config if file has changed.
 	  if (strcmp(action,"expand") == 0)
 	    {
 	       expanded = true;
-	       
 	       seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	       qc->_lock = true;
 	       qc->generate(csp,rsp,parameters,expanded);

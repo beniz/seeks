@@ -21,6 +21,8 @@
  * Further Information Refer to "SURF: Speed-Up Robust Feature"
  * Author: Liu Liu
  * liuliu.1987+opencv@gmail.com
+ * 
+ * The bruteMatch function was initially written by Jostein Austvik Jacobsen.
  */
 
 #include "ocvsurf.h"

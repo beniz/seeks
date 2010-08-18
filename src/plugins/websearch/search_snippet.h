@@ -111,6 +111,7 @@ namespace seeks_plugins
 	void set_url_no_decode(const std::string &url);
 	
 	void set_cite(const std::string &cite);
+	void set_cite_no_decode(const std::string &cite);
 	
 	void set_summary(const std::string &summary);
 	void set_summary(const char *summary);
@@ -174,6 +175,7 @@ namespace seeks_plugins
 	std::string _cite;
 	std::string _cached;
 	std::string _summary;
+	std::string _summary_noenc;
 	std::string _file_format;
 	std::string _date;
 	std::string _lang;

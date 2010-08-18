@@ -169,7 +169,7 @@ namespace seeks_plugins
 	if (_h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     _link_flag = false;
-	     pc->_current_snippet->set_url(_link);
+	     pc->_current_snippet->set_url_no_decode(_link);
 	     _link = "";
 	  }
 	else if (_p_flag && strcasecmp(tag,"p") == 0)
