@@ -294,7 +294,7 @@ namespace seeks_plugins
 	if (pc->_current_snippet && _li_flag && _h3_flag && strcasecmp(tag,"h3")==0)
 	  {
 	     _h3_flag = false;
-	     pc->_current_snippet->_title = _h3;
+	     pc->_current_snippet->set_title(_h3);
 	     _h3 = "";
 	  }
 	else if (strcasecmp(tag,"h2") == 0)

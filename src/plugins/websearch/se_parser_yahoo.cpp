@@ -156,7 +156,7 @@ namespace seeks_plugins
 	else if (_title_flag && strcasecmp(tag,"h3") == 0)
 	  {
 	     _title_flag = false;
-	     pc->_current_snippet->_title = _title;
+	     pc->_current_snippet->set_title(_title);
 	     _title = "";
 	  }
 	else if (_summary_flag && strcasecmp(tag,"div") == 0)

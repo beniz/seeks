@@ -123,7 +123,7 @@ namespace seeks_plugins
 			    miscutil::replace_in_string(a_chars,"\n"," ");
 			    miscutil::replace_in_string(a_chars,"\r"," ");
 			    _title = a_chars;
-			    pc->_current_snippet->_title = _title;
+			    pc->_current_snippet->set_title(_title);
 			    _title = "";
 			 }
 		    }

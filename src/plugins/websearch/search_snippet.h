@@ -105,7 +105,8 @@ namespace seeks_plugins
 	
 	virtual ~search_snippet();
 	
-	// set_url.
+	void set_title(const std::string &title);
+	
 	void set_url(const std::string &url);
 	void set_url(const char *url);
 	void set_url_no_decode(const std::string &url);
