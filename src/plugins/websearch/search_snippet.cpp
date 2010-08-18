@@ -187,12 +187,14 @@ namespace seeks_plugins
 	json_str += "{";
 	json_str += "\"id\":" + miscutil::to_string(_id) + ",";
 	std::string title = _title;
+	miscutil::replace_in_string(title,"\\","");
 	miscutil::replace_in_string(title,"\"","\\\"");
 	json_str += "\"title\":\"" + title + "\",";
 	std::string url = _url;
 	miscutil::replace_in_string(url,"\"","\\\"");
 	json_str += "\"url\":\"" + url + "\",";
 	std::string summary = _summary_noenc;
+	miscutil::replace_in_string(title,"\\","");
 	miscutil::replace_in_string(summary,"\"","\\\"");
 	json_str += "\"summary\":\"" + summary + "\",";
 	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
