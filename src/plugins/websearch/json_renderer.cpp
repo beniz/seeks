@@ -102,7 +102,9 @@ namespace seeks_plugins
 	     json_str += "{";
 	     json_str += "\"label\":\"" + clusters[c]._label + "\",";	     
 	     json_renderer::render_snippets(0,snippets,json_str,parameters);
-	     json_str += "},";
+	     json_str += "}";
+	     if (c != K-1)
+	       json_str += ",";
 	  }
 	
 	json_str += "]";
