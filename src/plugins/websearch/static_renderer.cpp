@@ -289,6 +289,13 @@ namespace seeks_plugins
 	     std::string hcl = "have-cluster" + miscutil::to_string(c);
 	     cgi::map_block_killer(exports,hcl.c_str());
 	  }
+	
+	const char *rpp_str = miscutil::lookup(parameters,"rpp");
+	if (rpp_str)
+	  miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
+	else miscutil::add_map_entry(exports,"$xxrpp",1,strdup(""),0);
+	/*miscutil::add_map_entry(exports,"$xxtrpp",1,
+				miscutil::to_string(websearch::_wconfig->_Nr).c_str(),1); */
      }
    
    std::string static_renderer::render_cluster_label(const cluster &cl)
