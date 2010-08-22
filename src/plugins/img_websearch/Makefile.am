@@ -28,4 +28,8 @@ endif
 
 SUBDIRS=. tests
 
-EXTRA_DIST = templates
+nobase_dist_imgwebsearchplugindata_DATA= \
+	templates/css/seeks_img_search.css \
+	templates/seeks_result_template.html \
+	public/images/search_engines/wcommons_12x12.png \
+	public/images/search_engines/flickr_12x12.png
