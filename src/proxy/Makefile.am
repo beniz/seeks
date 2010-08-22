@@ -3,14 +3,10 @@
 ACLOCAL_AMFLAGS=-I m4
 lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-<<<<<<< HEAD
-	    -I../utils -I../lsh
+	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
 if HAVE_DHT
 AM_CPPFLAGS += -I../dht -I../dht/rpc -I../dht/protob -I../dht/rpc/protob -I../dht/sg/rpc -I../dht/sg/protob -I../dht/sg
 endif
-=======
-	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
->>>>>>> experimental
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
