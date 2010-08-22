@@ -159,7 +159,7 @@ namespace seeks_plugins
 	       }
 	     const char *id = miscutil::lookup(parameters,"id");
 	     
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     img_search_snippet *ref_sp = NULL;
 	     
@@ -168,7 +168,7 @@ namespace seeks_plugins
 	     if (!ref_sp)
 	       {
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 		  return SP_ERR_OK;
 	       }
 	     
@@ -199,7 +199,7 @@ namespace seeks_plugins
 		  err = json_renderer::render_json_results(qc->_cached_snippets,
 							   csp,rsp,parameters,qc,0.0);
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 	       }
 	     
 	     // reset scores.
@@ -211,7 +211,7 @@ namespace seeks_plugins
 	       }
 	     ref_sp->set_similarity_link(); // reset sim_link.
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	     return err;
 	  }
 	else return SP_ERR_OK;
@@ -249,11 +249,11 @@ namespace seeks_plugins
 	       {
 		  expanded = true;
 		  
-		  seeks_proxy::mutex_lock(&qc->_qc_mutex);
+		  mutex_lock(&qc->_qc_mutex);
 		  qc->_lock = true;
 		  qc->generate(csp,rsp,parameters,expanded);
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+		  mutex_unlock(&qc->_qc_mutex);
 	       }
 	     else if (strcmp(action,"page") == 0)
 	       {
@@ -268,23 +268,23 @@ namespace seeks_plugins
 	     expanded = true;
 	     qc = new img_query_context(parameters,csp->_headers);
 	     qc->register_qc();
-	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     qc->generate(csp,rsp,parameters,expanded);
 	     qc->_lock = false;     
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	     mutex_unlock(&qc->_qc_mutex);
 	  }
 	
 	// sort and rank search snippets.
-	seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	mutex_lock(&qc->_qc_mutex);
 	qc->_lock = true;
 	img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets);
 	//qc->_compute_tfidf_features = true;
 	qc->_lock = false;
-	seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	mutex_unlock(&qc->_qc_mutex);
 			
 	// rendering.
-	seeks_proxy::mutex_lock(&qc->_qc_mutex);
+	mutex_lock(&qc->_qc_mutex);
 	qc->_lock = true;
 	
 	// time measured before rendering, since we need to write it down.
@@ -296,7 +296,7 @@ namespace seeks_plugins
 	if (!render)
 	  {
 	     qc->_lock = false;
-	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);    
+	     mutex_unlock(&qc->_qc_mutex);    
 	     return SP_ERR_OK;
 	  }
 	const char *output = miscutil::lookup(parameters,"output");
@@ -330,7 +330,7 @@ namespace seeks_plugins
 	
 	// unlock or destroy the query context.
 	qc->_lock = false;
-	seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+	mutex_unlock(&qc->_qc_mutex);
 	if (qc->empty())
 	  {
 	     sweeper::unregister_sweepable(qc);

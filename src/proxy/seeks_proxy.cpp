@@ -2404,7 +2404,7 @@ namespace sp
      }
 #endif /* def _WIN32 */
    
-   void seeks_proxy::initialize()
+   /* void seeks_proxy::initialize()
      {
 	// loads main configuration file (seeks + proxy configuration).
 	if (seeks_proxy::_config)
@@ -2424,7 +2424,7 @@ namespace sp
 	
 	// loads iso639 table.
 	iso639::initialize();
-     }
+     } */
       
    /*********************************************************************
     *
@@ -2444,33 +2444,6 @@ namespace sp
 	
 	unsigned int active_threads = 0;
 
-<<<<<<< HEAD
-
-	// loads main configuration file (seeks + proxy configuration).
-	/* if (seeks_proxy::_config)
-	  delete seeks_proxy::_config;
-	seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
-	
-	if (seeks_proxy::_lsh_config)
-	  delete seeks_proxy::_lsh_config;
-	if (lsh_configuration::_config == NULL)
-	  lsh_configuration::_config = new lsh_configuration(seeks_proxy::_lshconfigfile,
-							     seeks_proxy::_basedir,
-							     seeks_proxy::_datadir);
-	seeks_proxy::_lsh_config = lsh_configuration::_config;
-	
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded"); */
-		
-	// loads iso639 table.
-	//iso639::initialize();
-	
-	// loads plugins.
-	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
-	plugin_manager::load_all_plugins();
-		
-=======
->>>>>>> experimental
 #ifdef FEATURE_CONNECTION_KEEP_ALIVE
 	/*
 	 * XXX: Should be relocated once it no

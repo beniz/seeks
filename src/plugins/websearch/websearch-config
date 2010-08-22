@@ -73,7 +73,15 @@ ct-transfer-timeout 3
 # default: 1
 extended-highlight 1
 
-<<<<<<< HEAD
+# Sets a proxy through which to fetch the background URLs Seeks needs,
+# to grab search engine results and content, as required.
+# default:
+#background-proxy-addr your_proxy:your_port
+
+# Renders the node IP address in the info bar, or not.
+# default: 0
+show-node-ip 0
+
 # Options below are for connection to search groups over the Seeks DHT.
 
 # Search group subscription. If enabled, your IP address will be stored
@@ -92,13 +100,3 @@ sg-update-delay 60
 # for failed calls to search groups.
 # default: 5
 sg-retry-delay 5
-=======
-# Sets a proxy through which to fetch the background URLs Seeks needs,
-# to grab search engine results and content, as required.
-# default:
-#background-proxy-addr your_proxy:your_port
-
-# Renders the node IP address in the info bar, or not.
-# default: 0
-show-node-ip 0
->>>>>>> experimental

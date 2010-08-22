@@ -17,16 +17,11 @@ endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-<<<<<<< HEAD
-LDADD = @CURL_LDADD@ -lseeksutils 
+LDADD = @CURL_LDADD@ -lseeksutils
 if HAVE_DHT
 LDADD += -lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
 endif
 LDADD +=  -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz
-if !HAVE_FREEBSD
-=======
-LDADD = @CURL_LDADD@ -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz 
 if !HAVE_BSD
->>>>>>> experimental
 LDADD += -ldl
 endif

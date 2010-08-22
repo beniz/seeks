@@ -8,6 +8,10 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
+if HAVE_DHT
+AM_CPPFLAGS += -I../../dht -I../../dht/rpc -I../../dht/rpc/protob -I../../dht/protob \
+               -I../../dht/sg/ -I../../dht/sg/rpc -I../../dht/sg/protob
+endif
 ACLOCAL_AMFLAGS=-I m4
 
 imgwebsearchpluginlib_LTLIBRARIES=libseeksimgwebsearchplugin.la

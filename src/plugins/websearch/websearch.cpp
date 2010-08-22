@@ -463,12 +463,8 @@ namespace seeks_plugins
 	     
 	     if (!ref_sp)
 	       {
-<<<<<<< HEAD
-		  mutex_unlock(&qc->_qc_mutex);
-=======
 		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
->>>>>>> experimental
+		  mutex_unlock(&qc->_qc_mutex);
 		  return SP_ERR_OK;
 	       }
 	     	     
@@ -614,19 +610,11 @@ namespace seeks_plugins
      bool expanded = false;
      if (qc) // we already had a context for this query.
        {
-<<<<<<< HEAD
+	  websearch::_wconfig->load_config(); // reload config if file has changed.
 	  if (miscutil::strcmpic(action,"expand") == 0)
 	    {
 	       expanded = true;
-	       
 	       mutex_lock(&qc->_qc_mutex);
-=======
-	  websearch::_wconfig->load_config(); // reload config if file has changed.
-	  if (strcmp(action,"expand") == 0)
-	    {
-	       expanded = true;
-	       seeks_proxy::mutex_lock(&qc->_qc_mutex);
->>>>>>> experimental
 	       qc->_lock = true;
 	       qc->generate(csp,rsp,parameters,expanded);
 	       qc->_lock = false;
@@ -644,12 +632,8 @@ namespace seeks_plugins
 	  // to generate snippets first.
 	  expanded = true;
 	  qc = new query_context(parameters,csp->_headers);
-<<<<<<< HEAD
-	  mutex_lock(&qc->_qc_mutex);
-=======
 	  qc->register_qc();
-	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
->>>>>>> experimental
+	  mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters,expanded);
 	  qc->_lock = false;
@@ -657,27 +641,11 @@ namespace seeks_plugins
        }
      
      // sort and rank search snippets.
-     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+     mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
      if (expanded)
-<<<<<<< HEAD
-       {
-	  mutex_lock(&qc->_qc_mutex);
-	  qc->_lock = true;
-	  sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
-	  qc->_compute_tfidf_features = true;
-	  qc->_lock = false;
-	  mutex_unlock(&qc->_qc_mutex);
-       }
-=======
        qc->_compute_tfidf_features = true;
-     qc->_lock = false;
-     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
->>>>>>> experimental
-     
-     mutex_lock(&qc->_qc_mutex);
-     qc->_lock = true;
      
      // XXX: we do not recompute features if nothing has changed.
      if (expanded && websearch::_wconfig->_extended_highlight)
@@ -711,12 +679,9 @@ namespace seeks_plugins
      
      // unlock or destroy the query context.
      qc->_lock = false;
-<<<<<<< HEAD
      mutex_unlock(&qc->_qc_mutex);
      
     // XXX: catch errors.
-=======
-     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
      if (qc->empty())
        {
 	  sweeper::unregister_sweepable(qc);
@@ -724,7 +689,6 @@ namespace seeks_plugins
        }
           
      // XXX: catch errors.
->>>>>>> experimental
      return err;
   }
 

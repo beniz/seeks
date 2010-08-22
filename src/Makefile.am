@@ -5,24 +5,20 @@ bin_PROGRAMS=seeks
 seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-<<<<<<< HEAD
+	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
+	    -Iplugins/websearch `pkg-config opencv --cflags`
 	    -Iutils -Ilsh -Iproxy 
 if HAVE_DHT
 AM_CPPFLAGS += -Idht -Idht/protob -Idht/rpc -Idht/rpc/protob -Idht/sg -Idht/sg/protob -Idht/sg/rpc
 endif
 AM_CPPFLAGS += @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'
-AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@
+AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch
 
 if HAVE_HTTPSERV_PLUGIN
 AM_CPPFLAGS+=-Iplugins/websearch
 AM_LDFLAGS+=-Lplugins/websearch
 endif
-=======
-	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
-	    -Iplugins/websearch `pkg-config opencv --cflags`
-AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch
->>>>>>> experimental
 
 if HAVE_DHT
  AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob -Ldht/sg -Ldht/sg/rpc -Ldht/sg/protob `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
@@ -34,22 +30,18 @@ LDADD=-lseekswebsearchplugin
 if HAVE_HTTPSERV_PLUGIN
 LDADD += -levent
 endif
-<<<<<<< HEAD
+
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_LDFLAGS += -Lplugins/img_websearch
+LDADD += -lseeksimgwebsearchplugin
+endif
 LDADD += -lseeksutils 
 if HAVE_DHT
 LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
 endif
 LDADD += -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
 
-if !HAVE_FREEBSD
-=======
-if HAVE_IMG_WEBSEARCH_PLUGIN
-AM_LDFLAGS += -Lplugins/img_websearch
-LDADD += -lseeksimgwebsearchplugin
-endif
-LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
 if !HAVE_BSD
->>>>>>> experimental
 LDADD += -ldl
 endif
 

@@ -897,17 +897,10 @@ void spsockets::get_host_information(sp_socket afd, char **ip_address, char **ho
          host = NULL;
       }
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-<<<<<<< HEAD
-      mutex_lock(&resolver_mutex);
+      mutex_lock(&seeks_proxy::_resolver_mutex);
       host = gethostbyaddr((const char *)&server.sin_addr, 
                            sizeof(server.sin_addr), AF_INET);
-      mutex_unlock(&resolver_mutex);
-=======
-      seeks_proxy::mutex_lock(&seeks_proxy::_resolver_mutex);
-      host = gethostbyaddr((const char *)&server.sin_addr, 
-                           sizeof(server.sin_addr), AF_INET);
-      seeks_proxy::mutex_unlock(&seeks_proxy::_resolver_mutex);
->>>>>>> experimental
+      mutex_unlock(&seeks_proxy::_resolver_mutex);
 #else
       host = gethostbyaddr((const char *)&server.sin_addr, 
                            sizeof(server.sin_addr), AF_INET);
@@ -1076,12 +1069,7 @@ unsigned long spsockets::resolve_hostname_to_ip(const char *host)
          hostp = NULL;
       }
 #elif defined(MUTEX_LOCKS_AVAILABLE)
-<<<<<<< HEAD
-      mutex_lock(&resolver_mutex);
-=======
-      seeks_proxy::mutex_lock(&seeks_proxy::_resolver_mutex);
-      
->>>>>>> experimental
+      mutex_lock(&seeks_proxy::_resolver_mutex);
       while (NULL == (hostp = gethostbyname(host))
              && (h_errno == TRY_AGAIN) && (dns_retries++ < MAX_DNS_RETRIES))
       {   
@@ -1089,11 +1077,7 @@ unsigned long spsockets::resolve_hostname_to_ip(const char *host)
 			   "Timeout #%u while trying to resolve %s. Trying again.",
 			   dns_retries, host);
       }
-<<<<<<< HEAD
-      mutex_unlock(&resolver_mutex);
-=======
-      seeks_proxy::mutex_unlock(&seeks_proxy::_resolver_mutex);
->>>>>>> experimental
+      mutex_unlock(&seeks_proxy::_resolver_mutex);
 #else
       while (NULL == (hostp = gethostbyname(host))
              && (h_errno == TRY_AGAIN) && (dns_retries++ < MAX_DNS_RETRIES))

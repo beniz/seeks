@@ -15,11 +15,21 @@ endif
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I../../websearch \
              -I../ -I../../../utils -I../../../lsh -I../../../proxy @PCRE_CFLAGS@ @XML2_CFLAGS@
+AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websearch
 if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
-AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websearch
+if HAVE_DHT
+ AM_CPPFLAGS += -I../../../dht -I../../../dht/rpc -I../../../dht/rpc/protob -I../../../dht/protob \
+               -I../../../dht/sg/ -I../../../dht/sg/rpc -I../../../dht/sg/protob
+ AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/rpc/protob \
+               -L../../../dht/sg -L../../../dht/sg/rpc -L../../../dht/sg/protob `pkg-config --libs protobuf` \
+               `pkg-config --libs tokyocabinet`
+endif
 if HAVE_OPENCV2
 AM_LDFLAGS += `pkg-config opencv --libs`
 endif
 LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+if HAVE_DHT
+ LDADD+=-lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
+endif

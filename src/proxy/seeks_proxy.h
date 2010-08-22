@@ -28,13 +28,12 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
-<<<<<<< HEAD
 #ifdef WITH_DHT
 #include "SGNode.h"
-=======
+#endif
+
 #if (defined __NetBSD__) || (defined __OpenBSD__)
 #define unix 1
->>>>>>> experimental
 #endif
 
 #ifdef FEATURE_PTHREAD
@@ -161,7 +160,7 @@ namespace sp
 #ifdef _WIN32
 	static void w32_service_listen_loop(void *p);
 #endif
-	static void initialize();
+	//static void initialize();
 	static void listen_loop();
 	static sp_socket bind_port_helper(proxy_configuration *config);
 	static void chat(client_state *csp);
@@ -204,14 +203,11 @@ namespace sp
 	static const cruncher _crunchers_light[];
      
       public:
-<<<<<<< HEAD
 #ifdef WITH_DHT
 	static SGNode *_dhtnode; // DHT node.
 #endif
-=======
 	static bool _run_proxy;
 	static pthread_t *_httpserv_thread; // running HTTP server plugin thread, if any.
->>>>>>> experimental
      };
      
 } /* end of namespace. */

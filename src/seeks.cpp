@@ -496,14 +496,6 @@ int main(int argc, const char *argv[])
      }
 #endif /* def _WIN32 */
    
-<<<<<<< HEAD
-   // load configuration files and initialize proxy.
-   seeks_proxy::initialize();
-   
-#ifdef WITH_DHT
-   seeks_proxy::start_sgnode();
-#endif
-=======
    // loads main configuration file (seeks + proxy configuration).
    if (seeks_proxy::_config)
      delete seeks_proxy::_config;
@@ -512,9 +504,13 @@ int main(int argc, const char *argv[])
    
    if (seeks_proxy::_lsh_config)
      delete seeks_proxy::_lsh_config;
-   seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
+   if (lsh_configuration::_config == NULL)
+     lsh_configuration::_config = new lsh_configuration(seeks_proxy::_lshconfigfile,
+							seeks_proxy::_basedir,
+							seeks_proxy::_datadir);
+   seeks_proxy::_lsh_config = lsh_configuration::_config;
    errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
-   
+      
    // loads iso639 table.
    iso639::initialize();
    
@@ -535,6 +531,10 @@ int main(int argc, const char *argv[])
      }
    plugin_manager::instanciate_plugins();
    
+#ifdef WITH_DHT
+   seeks_proxy::start_sgnode();
+#endif 
+   
    // start proxy.
    if (seeks_proxy::_run_proxy)
      seeks_proxy::listen_loop();
@@ -542,10 +542,7 @@ int main(int argc, const char *argv[])
      {
 	pthread_join(*seeks_proxy::_httpserv_thread,NULL);
      }
->>>>>>> experimental
    
-   seeks_proxy::listen_loop();
-      
    /* NOTREACHED */
    return(-1);
 }
