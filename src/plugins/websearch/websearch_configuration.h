@@ -54,7 +54,7 @@ namespace seeks_plugins
 	
 	// main options.
 	std::string _lang; /**< langage of the search results. */	
-	int _N; /**< max number of search results per page. */
+	int _Nr; /**< max number of search results per page. */
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
 	bool _thumbs; /**< enabled thumbs */
 	bool _js; /**< enabled js */
@@ -71,6 +71,7 @@ namespace seeks_plugins
 	int _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
 	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
 
+<<<<<<< HEAD
 	bool _extended_highlight; /**< enables extended highlights of words in search results snippets. */
 
 #ifdef WITH_DHT
@@ -78,6 +79,13 @@ namespace seeks_plugins
 	int _sg_update_delay; /**< delay between two calls for update to the same search group. */
 	int _sg_retry_delay; /**< retry delay for failed or timeout calls to search groups. */
 #endif
+=======
+	bool _extended_highlight;
+	
+	std::string _background_proxy_addr; /**< address of a proxy through which to fetch URLs. */
+	int _background_proxy_port; /** < proxy port. */
+	bool _show_node_ip; /**< whether to show the node IP address when rendering the info bar. */
+>>>>>>> experimental
      };
    
 } /* end of namespace. */

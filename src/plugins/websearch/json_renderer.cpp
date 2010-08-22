@@ -47,7 +47,7 @@ namespace seeks_plugins
 	  
 	     // proceed with rendering.
 	     const char *rpp_str = miscutil::lookup(parameters,"rpp"); // results per page.
-	     int rpp = websearch::_wconfig->_N;
+	     int rpp = websearch::_wconfig->_Nr;
 	     if (rpp_str)
 	       rpp = atoi(rpp_str);
 	     size_t snisize = snippets.size();
@@ -66,7 +66,7 @@ namespace seeks_plugins
 		    continue;
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    json_str += snippets.at(i)->to_json(has_thumbs);
-		  if (i!=snisize-1)
+		  if (snisize>1 && i!=snisize-1)
 		    json_str += ",";
 	       }
 	  }
@@ -80,12 +80,17 @@ namespace seeks_plugins
 						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	json_str += "\"clusters\":[";
-	
+		
 	// render every cluster and snippets within.
-	for (short c=0;c<K;c++)
+	bool has_cluster = false;
+	for (int c=0;c<K;c++)
 	  {
 	     if (clusters[c]._cpoints.empty())
 	       continue;
+	     
+	     if (has_cluster)
+	       json_str += ",";
+	     has_cluster = true;
 	     
 	     std::vector<search_snippet*> snippets;
 	     snippets.reserve(clusters[c]._cpoints.size());
@@ -102,7 +107,7 @@ namespace seeks_plugins
 	     json_str += "{";
 	     json_str += "\"label\":\"" + clusters[c]._label + "\",";	     
 	     json_renderer::render_snippets(0,snippets,json_str,parameters);
-	     json_str += "},";
+	     json_str += "}";
 	  }
 	
 	json_str += "]";
@@ -120,8 +125,8 @@ namespace seeks_plugins
 	const char *current_page_str = miscutil::lookup(parameters,"page");
 	if (!current_page_str)
 	  {
-	     // 404.
-	     return cgisimple::cgi_error_404(csp,rsp,NULL); // XXX: returns html...
+	     //XXX: no page argument, we default to first page.
+	     current_page_str = "1";
 	  }
 	int current_page = atoi(current_page_str);
 	

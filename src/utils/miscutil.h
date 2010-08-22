@@ -39,12 +39,17 @@
 #include <string>
 #include <sstream>
 
+#ifndef HAVE_STRNDUP
+char *strndup(char *str, size_t len);
+#endif
+
 namespace sp
 {
    
    class miscutil
      {
       public:
+
 #if !defined(HAVE_STRLCPY)
 	static size_t seeks_strlcpy(char *destination, const char *source, size_t size);
 #define strlcpy miscutil::seeks_strlcpy

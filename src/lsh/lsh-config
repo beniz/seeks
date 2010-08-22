@@ -13,7 +13,7 @@ sv-stopword-list swedishST.txt
 ar-stopword-list arabicST.txt
 ru-stopword-list russianST.txt
 hu-stopword-list hungarianST.txt
-bg-stopword-list bugarianST.txt
+bg-stopword-list bulgarianST.txt
 ro-stopword-list roumanianST.txt
 cs-stopword-list czechST.txt
 pl-stopword-list polishST.txt

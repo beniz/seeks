@@ -47,8 +47,8 @@ using namespace sp;
 namespace seeks_plugins
 {
    websearch_configuration* websearch::_wconfig = NULL;
-   hash_map<uint32_t,query_context*,hash<uint32_t> > websearch::_active_qcontexts 
-     = hash_map<uint32_t,query_context*,hash<uint32_t> >();
+   hash_map<uint32_t,query_context*,id_hash_uint > websearch::_active_qcontexts 
+     = hash_map<uint32_t,query_context*,id_hash_uint >();
    double websearch::_cl_sec = -1.0; // filled up at startup.
    
    websearch::websearch()
@@ -463,7 +463,12 @@ namespace seeks_plugins
 	     
 	     if (!ref_sp)
 	       {
+<<<<<<< HEAD
 		  mutex_unlock(&qc->_qc_mutex);
+=======
+		  qc->_lock = false;
+		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+>>>>>>> experimental
 		  return SP_ERR_OK;
 	       }
 	     	     
@@ -609,13 +614,21 @@ namespace seeks_plugins
      bool expanded = false;
      if (qc) // we already had a context for this query.
        {
+<<<<<<< HEAD
 	  if (miscutil::strcmpic(action,"expand") == 0)
 	    {
 	       expanded = true;
 	       
 	       mutex_lock(&qc->_qc_mutex);
+=======
+	  websearch::_wconfig->load_config(); // reload config if file has changed.
+	  if (strcmp(action,"expand") == 0)
+	    {
+	       expanded = true;
+	       seeks_proxy::mutex_lock(&qc->_qc_mutex);
+>>>>>>> experimental
 	       qc->_lock = true;
-	       qc->generate(csp,rsp,parameters);
+	       qc->generate(csp,rsp,parameters,expanded);
 	       qc->_lock = false;
 	       mutex_unlock(&qc->_qc_mutex);
 	    }
@@ -631,15 +644,24 @@ namespace seeks_plugins
 	  // to generate snippets first.
 	  expanded = true;
 	  qc = new query_context(parameters,csp->_headers);
+<<<<<<< HEAD
 	  mutex_lock(&qc->_qc_mutex);
+=======
+	  qc->register_qc();
+	  seeks_proxy::mutex_lock(&qc->_qc_mutex);
+>>>>>>> experimental
 	  qc->_lock = true;
-	  qc->generate(csp,rsp,parameters);
+	  qc->generate(csp,rsp,parameters,expanded);
 	  qc->_lock = false;
 	  mutex_unlock(&qc->_qc_mutex);
        }
      
      // sort and rank search snippets.
+     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+     qc->_lock = true;
+     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
      if (expanded)
+<<<<<<< HEAD
        {
 	  mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
@@ -648,11 +670,17 @@ namespace seeks_plugins
 	  qc->_lock = false;
 	  mutex_unlock(&qc->_qc_mutex);
        }
+=======
+       qc->_compute_tfidf_features = true;
+     qc->_lock = false;
+     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+>>>>>>> experimental
      
      mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      
-     if (websearch::_wconfig->_extended_highlight)
+     // XXX: we do not recompute features if nothing has changed.
+     if (expanded && websearch::_wconfig->_extended_highlight)
        content_handler::fetch_all_snippets_summary_and_features(qc);
 
      // time measured before rendering, since we need to write it down.
@@ -681,16 +709,33 @@ namespace seeks_plugins
 						   qtime);
        }
      
-     // unlock the query context.
+     // unlock or destroy the query context.
      qc->_lock = false;
+<<<<<<< HEAD
      mutex_unlock(&qc->_qc_mutex);
      
     // XXX: catch errors.
+=======
+     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
+     if (qc->empty())
+       {
+	  sweeper::unregister_sweepable(qc);
+	  delete qc;
+       }
+          
+     // XXX: catch errors.
+>>>>>>> experimental
      return err;
   }
 
    query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				       client_state *csp)
+     {
+	return websearch::lookup_qc(parameters,csp,websearch::_active_qcontexts);
+     }
+   
+   query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				       client_state *csp, hash_map<uint32_t,query_context*,id_hash_uint> &active_qcontexts)
      {
 	std::string qlang;
 	bool has_query_lang = false;
@@ -716,8 +761,8 @@ namespace seeks_plugins
 	  query = ":" + qlang + " ";
 	std::string url_enc_query;
 	uint32_t query_hash = query_context::hash_query_for_context(parameters,query,url_enc_query);
-	hash_map<uint32_t,query_context*,hash<uint32_t> >::iterator hit;
-	if ((hit = websearch::_active_qcontexts.find(query_hash))!=websearch::_active_qcontexts.end())
+	hash_map<uint32_t,query_context*,id_hash_uint >::iterator hit;
+	if ((hit = active_qcontexts.find(query_hash))!=active_qcontexts.end())
 	  {
 	     /**
 	      * Already have a context for this query, update its flags, and return it.
@@ -736,7 +781,9 @@ namespace seeks_plugins
 	rsp->_reason = RSP_REASON_CONNECT_FAILED;
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports = cgi::default_exports(csp,NULL);
 	char *path = strdup("");
-	sp_err err = miscutil::string_append(&path, csp->_http._path);
+	sp_err err = SP_ERR_OK;
+	if (csp->_http._path)
+	  err = miscutil::string_append(&path, csp->_http._path);
 	
 	if (!err)
 	  err = miscutil::add_map_entry(exports, "host", 1, encode::html_encode(csp->_http._host), 0);

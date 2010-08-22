@@ -1,0 +1,21 @@
+# Write lists for regexps as follows:
+# * if the list contains patterns you want to block, put a + before the list;
+# * if the list contains exclusion patterns you do not want to block, put a
+#   - before the list.
+#
+# Example:
+# +
+# ad.*
+# .*ads.
+#
+# -
+# adsl.
+# adu*.
+#
+# To block incoming queries, use lines of the type:
+#
+# +
+# .seeks.*/search\?q=porn*
+#
+# where x.seeks.x is the address of your Seeks node.
+#

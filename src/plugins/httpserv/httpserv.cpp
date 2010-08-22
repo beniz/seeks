@@ -25,6 +25,11 @@
 #include "sweeper.h"
 #include "miscutil.h"
 #include "errlog.h"
+#include "cgi.h"
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch.h"
+#endif
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -79,21 +84,6 @@ namespace seeks_plugins
 	  /* sets address & port. */
 	  _address = httpserv_configuration::_hconfig->_host;
 	  _port = httpserv_configuration::_hconfig->_port;
-	  
-	  /* initializing and starting server. */
-	  _evbase = event_base_new();
-	  _srv = evhttp_new(_evbase);
-	  evhttp_bind_socket(_srv, _address.c_str(), _port); // server binding to the address & port.
-	  	  
-	  /* errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
-			    _address.c_str(),_port); */
-	  
-	  init_callbacks();
-	  
-	  /* pthread_t server_thread;
-	  int err = pthread_create(&server_thread,NULL,
-				   (void*(*)(void*))&event_base_dispatch,_evbase);
-	  pthread_detach(server_thread); */
        }
    
    httpserv::~httpserv()
@@ -104,13 +94,21 @@ namespace seeks_plugins
 
    void httpserv::start()
      {
+	/* initializing and starting server. */
+	_evbase = event_base_new();
+	_srv = evhttp_new(_evbase);
+	evhttp_bind_socket(_srv, _address.c_str(), _port); // server binding to the address & port.
+	
 	errlog::log_error(LOG_LEVEL_INFO,"Seeks HTTP server plugin listening on %s:%u",
 			  _address.c_str(),_port);
 	
-	pthread_t server_thread;
-	int err = pthread_create(&server_thread,NULL,
+	init_callbacks();
+	
+	int err = pthread_create(&_server_thread,NULL,
 				 (void*(*)(void*))&event_base_dispatch,_evbase);
-	pthread_detach(server_thread);
+	seeks_proxy::_httpserv_thread = &_server_thread;
+	if (seeks_proxy::_run_proxy)
+	  pthread_detach(_server_thread); // detach if proxy is running, else no (join).
      }
    
    void httpserv::stop()
@@ -121,6 +119,10 @@ namespace seeks_plugins
    void httpserv::init_callbacks()
      {
 	evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+	evhttp_set_cb(_srv,"/search_img",&httpserv::img_websearch,NULL);
+	evhttp_set_cb(_srv,"/seeks_img_search.css",&httpserv::seeks_img_search_css,NULL);
+#endif
 	evhttp_set_cb(_srv,"/",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/websearch-hp",&httpserv::websearch_hp,NULL);
 	evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
@@ -339,20 +341,20 @@ namespace seeks_plugins
 	client_state csp;
 	csp._config = seeks_proxy::_config;
 	http_response rsp;
-	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
-	
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+		
 	/* parse query. */
 	const char *uri_str = r->uri;
-	int err = 0;
 	if (uri_str)
 	  {
 	     std::string uri = std::string(r->uri);
-	     err = httpserv::parse_query(uri,*parameters);
+	     parameters = httpserv::parse_query(uri);
 	  }
-	if (err != 0 || !uri_str)
+	if (!parameters || !uri_str)
 	  {
 	     // send 400 error response.
+	     if (parameters)
+	       miscutil::free_map(parameters);
 	     httpserv::reply_with_error_400(r);
 	     return;
 	  }
@@ -374,6 +376,10 @@ namespace seeks_plugins
 	  {
 	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
 	     httpserv::reply_with_error(r,500,"ERROR",error_message);
+	     
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     
 	     return;
 	  }
 	
@@ -394,16 +400,105 @@ namespace seeks_plugins
 	if (rsp._body)
 	  content = std::string(rsp._body); // XXX: beware of length.
 	httpserv::reply_with_body(r,200,"OK",content,ct);
-     }
-   
-   void httpserv::unknown_path(struct evhttp_request *r, void *arg)
-     {
-	std::cout << "uri: " << r->uri << std::endl;
-	httpserv::reply_with_empty_body(r,404,"ERROR");
+     
+	/* run the sweeper, for timed out query contexts. */
+	sweeper::sweep();
      }
 
-   int httpserv::parse_query(const std::string &uri,
-			     hash_map<const char*,const char*,hash<const char*>,eqstr> &parameters)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+   void httpserv::img_websearch(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+	     
+	/* parse query. */
+	const char *uri_str = r->uri;
+	if (uri_str)
+	  {
+	     std::string uri = std::string(r->uri);
+	     parameters = httpserv::parse_query(uri);
+	  }
+	if (!parameters || !uri_str)
+	  {
+	     // send 400 error response.
+	     if (parameters)
+	       miscutil::free_map(parameters);
+	     httpserv::reply_with_error_400(r);
+	     return;
+	  }
+	
+	/* fill up csp headers. */
+	 const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
+	if (rheader)
+	  miscutil::enlist_unique_header(&csp._headers,"accept-language",strdup(rheader));
+	
+	/* perform websearch. */
+	sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
+	miscutil::free_map(parameters);
+	miscutil::list_remove_all(&csp._headers);
+	
+	if (serr != SP_ERR_OK)
+	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
+             httpserv::reply_with_error(r,500,"ERROR",error_message);
+             
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     
+	     return;
+          }
+	
+	/* fill up response. */
+	std::string ct; // content-type.
+	std::list<const char*>::const_iterator lit = rsp._headers.begin();
+	while(lit!=rsp._headers.end())
+	  {
+	     if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+	       {
+		  ct = std::string((*lit));
+		  ct = ct.substr(14);
+		  break;
+	       }
+	     ++lit;
+	  }
+	std::string content;
+	if (rsp._body)
+	  content = std::string(rsp._body); // XXX: beware of length.
+	httpserv::reply_with_body(r,200,"OK",content,ct);
+     
+	/* run the sweeper, for timed out query contexts. */
+	sweeper::sweep();
+     }
+   
+   void httpserv::seeks_img_search_css(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;          
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+	
+	/* return requested file. */
+	sp_err serr = img_websearch::cgi_img_websearch_search_css(&csp,&rsp,&parameters);
+	if (serr != SP_ERR_OK)
+	  {
+	     httpserv::reply_with_empty_body(r,404,"ERROR");
+	     return;
+	  }
+	
+	/* fill up response. */
+	std::string content = std::string(rsp._body);
+	httpserv::reply_with_body(r,200,"OK",content,"text/css");
+     }
+#endif
+      
+   void httpserv::unknown_path(struct evhttp_request *r, void *arg)
+     {
+	httpserv::reply_with_empty_body(r,404,"ERROR");
+     }
+   
+   hash_map<const char*,const char*,hash<const char*>,eqstr>* httpserv::parse_query(const std::string &uri)
      {
 	/* decode uri. */
 	char *dec_uri_str = evhttp_decode_uri(uri.c_str());
@@ -411,20 +506,10 @@ namespace seeks_plugins
 	free(dec_uri_str);
 	
 	/* parse query. */
-	std::vector<std::string> host_and_params;
-	miscutil::tokenize(dec_uri,host_and_params,"?&");
-	if (host_and_params.size()<2)
-	  return 1; // error parsing parameters.
-	size_t nparams = host_and_params.size();
-	for (size_t i=1;i<nparams;i++)
-	  {
-	     std::vector<std::string> tokens;
-	     miscutil::tokenize(host_and_params.at(i),tokens,"=");
-	     if (tokens.size()!=2)
-	       return 1; // error parsing parameters.
-	     miscutil::add_map_entry(&parameters,tokens.at(0).c_str(),1,tokens.at(1).c_str(),1);
-	  }
-	return 0;
+	char *argstring = strdup(uri.c_str());
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters =  cgi::parse_cgi_parameters(argstring);
+	free(argstring);
+	return parameters;
      }
          
    /* auto-registration */

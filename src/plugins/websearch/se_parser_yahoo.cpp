@@ -54,7 +54,8 @@ namespace seeks_plugins
 	     
 	     if (!_start_results && a_id && strcasecmp(a_id,"web") == 0)
 	       _start_results = true;
-	     else if (_begin_results && a_class && strcasecmp(a_class,"abstr") == 0)
+	     else if (_begin_results && a_class && (strcasecmp(a_class,"abstr") == 0
+						    || strcasecmp(a_class,"sm-abs") == 0))
 	       _summary_flag = true;
 	     else if (_begin_results && a_class && strncasecmp(a_class,"res",3) == 0)		      
 	       {
@@ -155,7 +156,7 @@ namespace seeks_plugins
 	else if (_title_flag && strcasecmp(tag,"h3") == 0)
 	  {
 	     _title_flag = false;
-	     pc->_current_snippet->_title = _title;
+	     pc->_current_snippet->set_title(_title);
 	     _title = "";
 	  }
 	else if (_summary_flag && strcasecmp(tag,"div") == 0)

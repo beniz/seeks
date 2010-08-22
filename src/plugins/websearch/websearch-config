@@ -8,7 +8,7 @@ search-language auto
 search-results-page 10
 
 # one or more enabled search engines
-# google, yahoo, bing
+# google, yahoo, bing, exalead, cuil
 search-engine google
 search-engine bing
 search-engine cuil
@@ -55,7 +55,7 @@ se-connect-timeout 3
 # Transfer timeout when connecting to a search engine.
 # In seconds.
 # default: 5
-se-transfer-timeout 3
+se-transfer-timeout 5
 
 # Connection timeout when fetching content for analysis & caching.
 # In seconds.
@@ -70,8 +70,10 @@ ct-transfer-timeout 3
 # Enables a more discriminative highlight of words in result snippets.
 # The highlighted words are those that discriminate the most a snippet
 # from all other snippets in the results.
+# default: 1
 extended-highlight 1
 
+<<<<<<< HEAD
 # Options below are for connection to search groups over the Seeks DHT.
 
 # Search group subscription. If enabled, your IP address will be stored
@@ -90,3 +92,13 @@ sg-update-delay 60
 # for failed calls to search groups.
 # default: 5
 sg-retry-delay 5
+=======
+# Sets a proxy through which to fetch the background URLs Seeks needs,
+# to grab search engine results and content, as required.
+# default:
+#background-proxy-addr your_proxy:your_port
+
+# Renders the node IP address in the info bar, or not.
+# default: 0
+show-node-ip 0
+>>>>>>> experimental

@@ -44,6 +44,20 @@
 #define TRUE 1
 #define FALSE 0
 
+#ifndef HAVE_STRNDUP
+char *strndup(char *str, size_t len)
+{
+   char *dup= (char *)malloc( len+1 );
+   if (dup)
+     {
+	strncpy(dup,str,len);
+	dup[len]= '\0';
+     }
+   return dup;
+}
+#endif
+
+
 namespace sp
 {
 #ifdef USE_SEEKS_STRLCPY
@@ -168,8 +182,6 @@ namespace sp
 				  const char *name, int name_needs_copying,
 				  const char *value, int value_needs_copying)
      {
-	assert(the_map);
-
 	if ( (NULL == value)
 	     || (NULL == name) )
 	  {
@@ -205,8 +217,7 @@ namespace sp
 	       }
 	  }
 	
-	std::pair<const char*,const char*> n_entry = std::pair<const char*,const char*>(name,value);
-	the_map->insert(n_entry);
+	the_map->insert(std::pair<const char*,const char*>(name,value));
 
 	return SP_ERR_OK;
      }
@@ -214,17 +225,15 @@ namespace sp
    /* unmap. */
    sp_err miscutil::unmap(hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map, const char *name)
      {
-	assert(the_map);
-	assert(name);
-	
 	hash_map<const char*,const char*,hash<const char*>,eqstr>::iterator mit;
 	if((mit=the_map->find(name)) != the_map->end())
 	  {
-	     //free_const((*mit).first); // possible memory leak.
-	     free_const((*mit).second);
+	     const char *key = (*mit).first;
+	     const char *value = (*mit).second;
 	     the_map->erase(mit);
+	     free_const(key);
+	     free_const(value);
 	  }
-		
 	return SP_ERR_OK;
      }
 
@@ -235,9 +244,14 @@ namespace sp
 	  = the_map->begin();
 	while(mit!=the_map->end())
 	  {
-	    //free_const((*mit).first); // beware: possible memory leak.
-	     free_const((*mit).second);
+	     const char *key = (*mit).first;
+	     const char *value = (*mit).second;
+	     hash_map<const char*,const char*,hash<const char*>,eqstr>::iterator mitc = mit;
 	     ++mit;
+	     the_map->erase(mitc);
+	     free_const(key);
+	     if (value)
+	       free_const(value);
 	  }
 	delete the_map;
 	the_map = NULL;

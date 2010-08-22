@@ -41,6 +41,7 @@ namespace seeks_plugins
 	FORUM,
 	FILE_DOC,
 	SOFTWARE,
+	IMAGE,
 	VIDEO,
 	AUDIO,
 	CODE,
@@ -90,18 +91,28 @@ namespace seeks_plugins
 	     else return s1->_seeks_ir > s2->_seeks_ir;
 	  };
 	
+	static bool min_seeks_ir(const search_snippet *s1, const search_snippet *s2)
+	  {
+	     if (s1->_seeks_ir == s2->_seeks_ir)
+	       return search_snippet::less_seeks_rank(s1,s2); // XXX: beware, may not apply to inherited classes.
+	     else return s1->_seeks_ir < s2->_seeks_ir;
+	  };
+		
 	// constructors.
       public:
 	search_snippet();
 	search_snippet(const short &rank);
 	
-	~search_snippet();
+	virtual ~search_snippet();
 	
-	// set_url.
+	void set_title(const std::string &title);
+	
 	void set_url(const std::string &url);
 	void set_url(const char *url);
+	void set_url_no_decode(const std::string &url);
 	
 	void set_cite(const std::string &cite);
+	void set_cite_no_decode(const std::string &cite);
 	
 	void set_summary(const std::string &summary);
 	void set_summary(const char *summary);
@@ -110,26 +121,31 @@ namespace seeks_plugins
 	void set_archive_link();
 
 	// sets a link to a sorting of snippets wrt. to their similarity to this snippet.
-	void set_similarity_link();
+	virtual void set_similarity_link();
 
 	// sets a back link when similarity is engaged.
-	void set_back_similarity_link();
+	virtual void set_back_similarity_link();
 	
 	// json output.
-	std::string to_json(const bool &thumbs);
+	virtual std::string to_json(const bool &thumbs);
 	
 	// html output for inclusion in search result template page.
 	std::string to_html();
-	std::string to_html_with_highlight(std::vector<std::string> &words,
-					   const std::string &base_url);
+	virtual std::string to_html_with_highlight(std::vector<std::string> &words,
+						   const std::string &base_url);
 
+	// whether this snippet's engine(s) is(are) enabled.
+	// used in result page rendering.
+	virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
 	// static functions.
 	// highlights terms within the argument string.
 	static void highlight_query(std::vector<std::string> &words,
 				    std::string &str);
 	
 	// highlights the most discriminative terms (for this snippet among all snippets).
-	void highlight_discr(std::string &str);
+	void highlight_discr(std::string &str, const std::string &base_url_str,
+			     const std::vector<std::string> &query_words);
 	
 	// tag snippet, i.e. detect its type if not already done by the parsers.
 	void tag();
@@ -160,6 +176,7 @@ namespace seeks_plugins
 	std::string _cite;
 	std::string _cached;
 	std::string _summary;
+	std::string _summary_noenc;
 	std::string _file_format;
 	std::string _date;
 	std::string _lang;
@@ -190,6 +207,11 @@ namespace seeks_plugins
 	static std::vector<url_spec*> _video_pos_patterns;
 	static std::vector<url_spec*> _forum_pos_patterns;
 	static std::vector<url_spec*> _reject_pos_patterns;
+     
+	// generic 'safe' tag, mostly for pornographic images.
+	// XXX: may be used later as a generic flag for marking content that 
+	// cannot be considered to be 'safe' for everyone to read/see.
+	bool _safe;
      };
    
 } /* end of namespace. */

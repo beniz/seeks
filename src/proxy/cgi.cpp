@@ -88,8 +88,9 @@ namespace sp
       cgi_dispatcher(
 	"show-plugin-status",
 	 &cgisimple::cgi_show_plugin,
-	 "View the configuration of a plugin",
-	 TRUE ),
+	 //"View the configuration of a plugin",
+	NULL, 
+	TRUE ),
       /* cgi_dispatcher( "show-version",
 	  &cgisimple::cgi_show_version,
 	  "View the source code version numbers",
@@ -100,7 +101,7 @@ namespace sp
 	  TRUE ),
      cgi_dispatcher( "show-url-info",
 	  &cgisimple::cgi_show_url_info,
-	  "Look up which actions apply to a URL and why",
+	  NULL,//"Look up which actions apply to a URL and why",
 	  TRUE ),
 #ifdef FEATURE_TOGGLE
      cgi_dispatcher("toggle",
@@ -753,7 +754,7 @@ sp_err cgi::get_number_param(client_state *csp,
    *pvalue = 0;
    
    param = miscutil::lookup(parameters, name);
-   if (!*param)
+   if (!param)
      {
 	return SP_ERR_CGI_PARAMS;
      }
@@ -1727,6 +1728,7 @@ sp_err cgi::template_load(const client_state *csp, char **template_ptr,
      }
    
    full_path = seeks_proxy::make_path(templates_dir_path, templatename);
+   free_const(templates_dir_path);
    
    if (full_path == NULL)
      {

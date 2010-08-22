@@ -20,13 +20,18 @@
 #define SE_HANDLER_H
 
 #include "proxy_dts.h" // sp_err 
+#include "seeks_proxy.h"
 
 #include <string>
 #include <vector>
 #include <bitset>
 #include <stdint.h>
 
+#include <curl/curl.h>
+
 using sp::sp_err;
+
+typedef pthread_mutex_t sp_mutex_t;
 
 namespace seeks_plugins
 {
@@ -77,7 +82,7 @@ namespace seeks_plugins
 	     // we do delete snippets outside the destructor (depends on whether we're using threads).
 	  }
 	
-	SE _se; // search engine (ggle, bing, ...).
+	int _se; // search engine (ggle, bing, ...).
 	char *_output; // page content, to be parsed into snippets.
 	std::vector<search_snippet*> *_snippets; // websearch result snippets.
 	int _offset; // offset to snippets rank (when asking page x, with x > 1).
@@ -137,6 +142,9 @@ namespace seeks_plugins
    class se_handler
      {
       public:
+	/*-- initialization --*/
+	static void init_handlers(const int &num);
+	
 	/*-- query preprocessing --*/
 	static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
@@ -172,6 +180,8 @@ namespace seeks_plugins
 	static se_bing _bing;
 	static se_yahoo _yahoo;
 	static se_exalead _exalead;
+	static std::vector<CURL*> _curl_handlers;
+	static sp_mutex_t _curl_mutex;
      };
       
 } /* end of namespace. */

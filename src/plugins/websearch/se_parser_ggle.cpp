@@ -104,8 +104,8 @@ namespace seeks_plugins
 			    a_link_str = ""; // will lose the snippet.
 			 }
 		    }
-		  pc->_current_snippet->set_url(a_link_str);
-		  
+		  pc->_current_snippet->set_url_no_decode(a_link_str);
+		  		  
 		  /* std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id 
 		    << " -- url: " << pc->_current_snippet->_url << std::endl; */
 	       }
@@ -294,7 +294,7 @@ namespace seeks_plugins
 	if (pc->_current_snippet && _li_flag && _h3_flag && strcasecmp(tag,"h3")==0)
 	  {
 	     _h3_flag = false;
-	     pc->_current_snippet->_title = _h3;
+	     pc->_current_snippet->set_title(_h3);
 	     _h3 = "";
 	  }
 	else if (strcasecmp(tag,"h2") == 0)
@@ -321,7 +321,7 @@ namespace seeks_plugins
 	  {
 	     _cite_flag = false;
 	     if (pc->_current_snippet->_cite.empty())
-	       pc->_current_snippet->set_cite(_cite);
+	       pc->_current_snippet->set_cite_no_decode(_cite);
 	     _cite = "";
 	     _new_link_flag = false;
 	  }

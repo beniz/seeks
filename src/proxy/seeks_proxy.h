@@ -28,8 +28,13 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
+<<<<<<< HEAD
 #ifdef WITH_DHT
 #include "SGNode.h"
+=======
+#if (defined __NetBSD__) || (defined __OpenBSD__)
+#define unix 1
+>>>>>>> experimental
 #endif
 
 #ifdef FEATURE_PTHREAD
@@ -199,9 +204,14 @@ namespace sp
 	static const cruncher _crunchers_light[];
      
       public:
+<<<<<<< HEAD
 #ifdef WITH_DHT
 	static SGNode *_dhtnode; // DHT node.
 #endif
+=======
+	static bool _run_proxy;
+	static pthread_t *_httpserv_thread; // running HTTP server plugin thread, if any.
+>>>>>>> experimental
      };
      
 } /* end of namespace. */

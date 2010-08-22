@@ -19,10 +19,12 @@
 #ifndef HTTPSERV_H
 #define HTTPSERV_H
 
+#include "config.h"
 #include "plugin.h"
 
 #include <event.h>
 #include <evhttp.h>
+#include <pthread.h>
 
 using sp::plugin;
 
@@ -70,19 +72,23 @@ namespace seeks_plugins
 	static void opensearch_xml(struct evhttp_request *r, void *arg);
 	static void file_service(struct evhttp_request *r, void *arg);
 	static void websearch(struct evhttp_request *r, void *arg);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+	static void img_websearch(struct evhttp_request *r, void *arg);
+	static void seeks_img_search_css(struct evhttp_request *r, void *arg);
+#endif
 	static void unknown_path(struct evhttp_request *r, void *arg);
 	
 	/* utils. */
-	static int parse_query(const std::string &str,
-			       hash_map<const char*,const char*,hash<const char*>,eqstr> &parameters);
-	
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* parse_query(const std::string &str);
+		
       public:
 	std::string _address;
 	u_short _port;
 	struct evhttp *_srv;
 	struct event_base *_evbase;
+	pthread_t _server_thread;
      };
-      
+   
 } /* end of namespace. */
 
 #endif

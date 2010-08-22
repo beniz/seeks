@@ -39,8 +39,8 @@ namespace seeks_plugins
    http_response* query_interceptor::plugin_response(client_state *csp)
      {
 	// - parse intercepted query.
-
-	std::cerr << "url: " << csp->_http._url << std::endl;
+	
+	//std::cerr << "url: " << csp->_http._url << std::endl;
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *params
 	  = parse_query(&csp->_http);

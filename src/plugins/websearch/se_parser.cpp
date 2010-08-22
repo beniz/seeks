@@ -73,6 +73,99 @@ namespace seeks_plugins
    se_parser::~se_parser()
      {
      }
+
+   void se_parser::parse_output_xml(char *output, std::vector<search_snippet*> *snippets,
+				    const int &count_offset)
+     {
+	_count = count_offset;
+	
+	xmlParserCtxtPtr ctxt = NULL;
+	parser_context pc;
+	pc._parser = this;
+	pc._snippets = snippets;
+	pc._current_snippet = NULL;
+	
+	xmlSAXHandler saxHandler =
+	  {
+	     NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       start_element_wrapper,
+	       end_element_wrapper,
+	       NULL,
+	       characters_wrapper,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       cdata_wrapper,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL,
+	       NULL
+	  };
+	
+	seeks_proxy::mutex_lock(&se_parser::_se_parser_mutex);
+	
+	try
+	  {
+	     ctxt = xmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "");
+	     xmlCtxtUseOptions(ctxt,XML_PARSE_NOERROR);
+	     
+	     int status = xmlParseChunk(ctxt,output,strlen(output),0);
+	     if (status != 0) // an error occurred.
+	       {
+		  xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
+		  if (xep)
+		    {
+		       std::string err_msg = std::string(xep->message);
+		       miscutil::replace_in_string(err_msg,"\n","");
+		       errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
+					 err_msg.c_str());
+		       // check on error level.
+		       if (xep->level == 3) // fatal or recoverable error.
+			 {
+			    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 fatal error.");
+			 }
+		       // XXX: too verbose, and confusing to users.
+		       else if (xep->level == 2)
+			 {
+			    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 recoverable error");
+			 }
+		    }
+	       }
+	  }
+	catch (std::exception e)
+	  {
+	     errlog::log_error(LOG_LEVEL_PARSER,"Error %s in xml/html parsing of search results.",
+			       e.what());
+	  }
+	catch (...) // catch everything else to avoid crashes.
+	  {
+	     
+	  }
+	
+	if (ctxt)
+	  xmlFreeParserCtxt(ctxt);
+	
+	seeks_proxy::mutex_unlock(&se_parser::_se_parser_mutex);
+     }
       
    void se_parser::parse_output(char *output, 
 				std::vector<search_snippet*> *snippets,
@@ -180,7 +273,7 @@ namespace seeks_plugins
 	  {
 	     if (strcasecmp(attributes[i],name) == 0)
 	       return attributes[i+1];
-	     i++;
+	     i+=2;
 	  }
 	return NULL;
      }

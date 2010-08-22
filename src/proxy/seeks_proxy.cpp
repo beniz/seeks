@@ -50,7 +50,6 @@
 #include "filter_plugin.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
-#include "iso639.h"
 
 #ifdef WITH_DHT
 #include "dht_configuration.h"
@@ -58,8 +57,7 @@ using dht::dht_configuration;
 #endif
 
 namespace sp
-{
-   
+{   
    /* initialize all static (global) variables... */
    const char* seeks_proxy::_basedir = NULL;
    std::string seeks_proxy::_datadir = "";
@@ -107,6 +105,9 @@ namespace sp
 #ifdef WITH_DHT
    SGNode* seeks_proxy::_dhtnode = NULL;
 #endif
+   
+   bool seeks_proxy::_run_proxy = true;
+   pthread_t* seeks_proxy::_httpserv_thread = NULL;
    
 #ifdef FEATURE_TOGGLE
    /* Seeks proxy is enabled by default. */
@@ -1975,7 +1976,7 @@ namespace sp
 			    if (strlen((*csp->_headers.begin())) > 30)
 			      {
 				 // beware...
-				 char *nstr = strndup((*csp->_headers.begin()),30);
+				 char *nstr = strndup(const_cast<char*>((*csp->_headers.begin())),30);
 				 nstr[30] = '\0';
 				 free_const((*csp->_headers.begin()));  // beware.
 				 //(*csp->_headers.begin()) = nstr;
@@ -2443,6 +2444,7 @@ namespace sp
 	
 	unsigned int active_threads = 0;
 
+<<<<<<< HEAD
 
 	// loads main configuration file (seeks + proxy configuration).
 	/* if (seeks_proxy::_config)
@@ -2467,6 +2469,8 @@ namespace sp
 	errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
 	plugin_manager::load_all_plugins();
 		
+=======
+>>>>>>> experimental
 #ifdef FEATURE_CONNECTION_KEEP_ALIVE
 	/*
 	 * XXX: Should be relocated once it no

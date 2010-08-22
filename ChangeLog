@@ -1,3 +1,58 @@
+* Bubs-0.2.4-SOLO-stable
+This releases brings image metasearch in the form of a new plugin, as
+well as many improvements to memory management and stability.
+
+- Image metasearch plugin integrating results from Bing, Yahoo, Google,
+Flickr and Wikimedia Commons.
+
+- Image metasearch safesearch mode on/off.
+
+- Image similarity analysis functionalities based on OpenCV SURF
+features computation.
+
+- Fixed several memory leaks.
+
+- Slightly reworked user interface, new bar, variable width of column
+results in clustering and classification per type.
+
+- Image service with HTTP server plugin.
+
+- Image search JSON output.
+
+- Using the HTTP server plugin now automatically disables the proxy.
+  A new option allows to override this behavior.
+
+- Performance boost when recalling a query that is still in cache.
+
+- Autotools 'make distcheck' now produces a proper tarball.
+
+- Minor bug fixes and improvements.
+
+* Bubs-0.2.3-SOLO-stable
+This releases brings two plugins, an embedded light HTTP server for easing the
+deployment or personal and public search nodes; a URL blocker for controlling
+trafic through the proxy (e.g. ad-blocking). The release has an improved
+overall stability.
+
+- Light embedded HTTP server plugin based on libevent. Support for direct
+websearch, opensearch.xml and robots.txt.
+
+- URL blocker plugin for controlling trafic through the proxy, such as
+ad-blocking and more, based on a (by default empty) list of positive and
+negative regexps.
+
+- Per-query selection of search engines with parameter "engines=" in query
+URI.
+
+- Improved stability with the correction of some rare but critical bugs and
+  and a memory leak.
+
+- Fixed parsing of some engines results.
+
+- Fixed swedish stop word list.
+
+- Fixed bug when loading stopwordlist at startup for system-wide installation.
+
 * Bubs-0.2.2-SOLO-stable
 This release brings some improvements and includes a JSON API for using/reusing
 the search results in third-party applications.

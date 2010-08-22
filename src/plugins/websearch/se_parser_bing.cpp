@@ -55,6 +55,9 @@ namespace seeks_plugins
 	     
 	     if (a_class && strcasecmp(a_class,"sb_tlst") == 0)
 	       {
+		  if (pc->_snippets->empty())
+		    _results_flag = true;
+		  
 		  // assert previous snippet if any.
 		  if (pc->_current_snippet)
 		    {
@@ -77,15 +80,13 @@ namespace seeks_plugins
 		  pc->_current_snippet = sp;
 		  
 		  _cached_flag = false; // in case previous snippet did not close the cached flag.
-
-		  _results_flag = true;
 	       }
 	  }
-	else if (_h1_sr_flag && strcasecmp(tag,"h3") == 0)
+	else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"h3") == 0)
 	  {
 	     _h3_flag = true;
 	  }
-	else if (_h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
+	else if (_results_flag && _h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     _link_flag = true;
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
@@ -93,15 +94,15 @@ namespace seeks_plugins
 	     if (a_link)
 	       _link = std::string(a_link);
 	  }
-	else if (_h1_sr_flag && strcasecmp(tag,"p") == 0)
+	else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"p") == 0)
 	  {
 	     _p_flag = true;
 	  }
-	else if (_h1_sr_flag && strcasecmp(tag,"cite") == 0)
+	else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = true;
 	  }
-	else if (_h1_sr_flag && _cached_flag && strcasecmp(tag,"a") == 0) // may not be very robust...
+	else if (_results_flag && _h1_sr_flag && _cached_flag && strcasecmp(tag,"a") == 0) // may not be very robust...
 	  {
 	     _cached_flag = false;
 	     const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
@@ -168,7 +169,7 @@ namespace seeks_plugins
 	if (_h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
 	  {
 	     _link_flag = false;
-	     pc->_current_snippet->set_url(_link);
+	     pc->_current_snippet->set_url_no_decode(_link);
 	     _link = "";
 	  }
 	else if (_p_flag && strcasecmp(tag,"p") == 0)
@@ -187,7 +188,7 @@ namespace seeks_plugins
 	else if (_h3_flag && strcasecmp(tag,"h3") == 0)
 	  {
 	     _h3_flag = false;
-	     pc->_current_snippet->_title = _h3;
+	     pc->_current_snippet->set_title(_h3);
 	     _h3 = "";
 	  }
 	

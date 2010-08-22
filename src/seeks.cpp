@@ -22,11 +22,13 @@
 
 #include "mem_utils.h"
 #include "seeks_proxy.h"
+#include "proxy_configuration.h"
 #include "errlog.h"
 #include "miscutil.h"
 #include "cgi.h"
 #include "spsockets.h"
 #include "plugin_manager.h"
+#include "iso639.h"
 
 #include <string.h>
 #include <sys/types.h>
@@ -494,12 +496,53 @@ int main(int argc, const char *argv[])
      }
 #endif /* def _WIN32 */
    
+<<<<<<< HEAD
    // load configuration files and initialize proxy.
    seeks_proxy::initialize();
    
 #ifdef WITH_DHT
    seeks_proxy::start_sgnode();
 #endif
+=======
+   // loads main configuration file (seeks + proxy configuration).
+   if (seeks_proxy::_config)
+     delete seeks_proxy::_config;
+   seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
+   errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
+   
+   if (seeks_proxy::_lsh_config)
+     delete seeks_proxy::_lsh_config;
+   seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
+   errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
+   
+   // loads iso639 table.
+   iso639::initialize();
+   
+   // loads plugins.
+   errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
+   plugin_manager::load_all_plugins();
+   
+   // instanciates plugins.
+   // XXX: here come checks on plugin dependent operations:
+   // - default policy is: if the HTTP server plugin is activated, proxy doest not run.
+   //   (this default behavior can be overriden by setting the automatic-proxy-disable
+   //   option to 0).
+   if (seeks_proxy::_config->is_plugin_activated("httpserv")
+       && seeks_proxy::_config->_automatic_proxy_disable)
+     {
+	errlog::log_error(LOG_LEVEL_INFO,"Disabling Seeks' proxy since it appears the HTTP server plugin is running on this node. This default behavior can be overriden by setting the 'automatic-proxy-disable' option to 0.");
+	seeks_proxy::_run_proxy = false;
+     }
+   plugin_manager::instanciate_plugins();
+   
+   // start proxy.
+   if (seeks_proxy::_run_proxy)
+     seeks_proxy::listen_loop();
+   else 
+     {
+	pthread_join(*seeks_proxy::_httpserv_thread,NULL);
+     }
+>>>>>>> experimental
    
    seeks_proxy::listen_loop();
       

@@ -3,7 +3,7 @@ test_curl_mget_SOURCES=test-curl-mget.cpp
 shash_SOURCES=shash.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
-	    -I../ -I../../utils -I../../lsh @CURL_CFLAGS@
+	    -I${srcdir} -I${srcdir}/../ -I${srcdir}/../../utils -I${srcdir}/../../lsh @CURL_CFLAGS@
 
 if USE_PERL
 AM_CPPFLAGS += `perl -MExtUtils::Embed -e ccopts`
@@ -17,11 +17,16 @@ endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
+<<<<<<< HEAD
 LDADD = @CURL_LDADD@ -lseeksutils 
 if HAVE_DHT
 LDADD += -lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent
 endif
 LDADD +=  -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz
 if !HAVE_FREEBSD
+=======
+LDADD = @CURL_LDADD@ -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz 
+if !HAVE_BSD
+>>>>>>> experimental
 LDADD += -ldl
 endif
