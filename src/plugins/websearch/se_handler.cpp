@@ -277,6 +277,8 @@ namespace seeks_plugins
                 // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
                 //"http://%lang.search.yahoo.com/search?p=%query&start=1&b=%start&ei=UTF-8"
                 "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
+                //http://fr.wikipedia.org/w/index.php?title=Spécial:Recherche&limit=20&offset=20&ns0=1&redirs=1&search=parser
+                // spaces are +
         };
 
         se_ggle se_handler::_ggle = se_ggle();
