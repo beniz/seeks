@@ -107,6 +107,7 @@ int main(int argc, const char *argv[])
    
    /* Enable logging until further notice. */
    errlog::init_log_module();
+   errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
    
    /*
     * Parse the command line arguments
@@ -151,7 +152,7 @@ int main(int argc, const char *argv[])
 # if defined(unix)
 	else if (strcmp(argv[argc_pos], "--daemon" ) == 0)
 	  {
-	     errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
+	     //errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
 	     seeks_proxy::_no_daemon = 0;
 	  }
 	else if (strcmp(argv[argc_pos], "--pidfile" ) == 0)
@@ -263,8 +264,29 @@ int main(int argc, const char *argv[])
 	strlcat(abs_file, "/", abs_file_size );
 	strlcat(abs_file, seeks_proxy::_configfile.c_str(), abs_file_size);
 	seeks_proxy::_configfile = std::string(abs_file);
-
-     }
+   }
+   if (*seeks_proxy::_lshconfigfile.c_str() != '/' )
+     {
+	/* make config-filename absolute here */
+	char *abs_file;
+	size_t abs_file_size;
+	
+	abs_file_size = strlen(cwd) + seeks_proxy::_lshconfigfile.length() + 9;
+	seeks_proxy::_basedir = strdup(cwd);
+	         
+	if (NULL == seeks_proxy::_basedir ||
+	    NULL == (abs_file = (char*) zalloc(abs_file_size)))
+	  {
+	     perror("malloc failed");
+	     exit( 1 );
+	  }
+	
+	strlcpy(abs_file, seeks_proxy::_basedir, abs_file_size);
+	strlcat(abs_file, "/", abs_file_size );
+	strlcat(abs_file, seeks_proxy::_lshconfigfile.c_str(), abs_file_size);
+	seeks_proxy::_lshconfigfile = std::string(abs_file);
+     }  
+   
 #endif /* defined unix */
    
    //seeks_proxy::_files._next = NULL;
