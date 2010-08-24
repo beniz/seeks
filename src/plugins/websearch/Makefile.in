@@ -83,12 +83,13 @@ am_libseekswebsearchplugin_la_OBJECTS =  \
 	libseekswebsearchplugin_la-static_renderer.lo \
 	libseekswebsearchplugin_la-se_parser.lo \
 	libseekswebsearchplugin_la-se_parser_ggle.lo \
-	libseekswebsearchplugin_la-se_parser_mediawiki.lo \
 	libseekswebsearchplugin_la-se_parser_bing.lo \
 	libseekswebsearchplugin_la-se_parser_cuil.lo \
 	libseekswebsearchplugin_la-se_parser_yahoo.lo \
 	libseekswebsearchplugin_la-se_parser_exalead.lo \
 	libseekswebsearchplugin_la-html_txt_parser.lo \
+	libseekswebsearchplugin_la-se_parser_mediawiki.lo \
+	libseekswebsearchplugin_la-se_parser_twitter.lo \
 	libseekswebsearchplugin_la-query_interceptor.lo \
 	libseekswebsearchplugin_la-websearch_configuration.lo \
 	libseekswebsearchplugin_la-sort_rank.lo \
@@ -312,15 +313,16 @@ AM_CPPFLAGS = -Wno-deprecated -Wall -g -pipe \
 ACLOCAL_AMFLAGS = -I m4
 websearchpluginlib_LTLIBRARIES = libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES = websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
-	                           se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
+				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
-	                           query_interceptor.cpp websearch_configuration.cpp \
+				   se_parser_mediawiki.cpp se_parser_twitter.cpp \
+				   query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp \
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h oskmeans.h \
 				   query_context.h query_interceptor.h search_snippet.h se_handler.h se_parser_bing.h \
-				   se_parser_cuil.h se_parser_exalead.h se_parser_ggle.h se_parser_mediawiki.h se_parser.h se_parser_yahoo.h \
-				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h 
+				   se_parser_cuil.h se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
+				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h
 
 libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ \
 	@CURL_CFLAGS@ @XML2_CFLAGS@ \
@@ -329,7 +331,7 @@ SUBDIRS = . tests
 websearchconfigdir = $(sysconfdir)/seeks
 dist_websearchconfig_DATA = websearch-config
 nobase_dist_websearchplugindata_DATA = \
-	 	          templates/clustered_results_template \
+			  templates/clustered_results_template \
 			  templates/one_column_results_template  \
 			  templates/seeks_result_template.html \
 			  templates/seeks_ws_hp.html \
@@ -457,6 +459,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_exalead.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_ggle.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_twitter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_yahoo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-search_snippet.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-sort_rank.Plo@am__quote@
@@ -527,13 +530,6 @@ libseekswebsearchplugin_la-se_parser_ggle.lo: se_parser_ggle.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_ggle.lo `test -f 'se_parser_ggle.cpp' || echo '$(srcdir)/'`se_parser_ggle.cpp
 
-libseekswebsearchplugin_la-se_parser_mediawiki.lo: se_parser_mediawiki.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-se_parser_mediawiki.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Tpo -c -o libseekswebsearchplugin_la-se_parser_mediawiki.lo `test -f 'se_parser_mediawiki.cpp' || echo '$(srcdir)/'`se_parser_mediawiki.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Tpo $(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='se_parser_mediawiki.cpp' object='libseekswebsearchplugin_la-se_parser_mediawiki.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_mediawiki.lo `test -f 'se_parser_mediawiki.cpp' || echo '$(srcdir)/'`se_parser_mediawiki.cpp
-
 libseekswebsearchplugin_la-se_parser_bing.lo: se_parser_bing.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-se_parser_bing.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-se_parser_bing.Tpo -c -o libseekswebsearchplugin_la-se_parser_bing.lo `test -f 'se_parser_bing.cpp' || echo '$(srcdir)/'`se_parser_bing.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libseekswebsearchplugin_la-se_parser_bing.Tpo $(DEPDIR)/libseekswebsearchplugin_la-se_parser_bing.Plo
@@ -568,6 +564,20 @@ libseekswebsearchplugin_la-html_txt_parser.lo: html_txt_parser.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='html_txt_parser.cpp' object='libseekswebsearchplugin_la-html_txt_parser.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-html_txt_parser.lo `test -f 'html_txt_parser.cpp' || echo '$(srcdir)/'`html_txt_parser.cpp
+
+libseekswebsearchplugin_la-se_parser_mediawiki.lo: se_parser_mediawiki.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-se_parser_mediawiki.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Tpo -c -o libseekswebsearchplugin_la-se_parser_mediawiki.lo `test -f 'se_parser_mediawiki.cpp' || echo '$(srcdir)/'`se_parser_mediawiki.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Tpo $(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='se_parser_mediawiki.cpp' object='libseekswebsearchplugin_la-se_parser_mediawiki.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_mediawiki.lo `test -f 'se_parser_mediawiki.cpp' || echo '$(srcdir)/'`se_parser_mediawiki.cpp
+
+libseekswebsearchplugin_la-se_parser_twitter.lo: se_parser_twitter.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-se_parser_twitter.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-se_parser_twitter.Tpo -c -o libseekswebsearchplugin_la-se_parser_twitter.lo `test -f 'se_parser_twitter.cpp' || echo '$(srcdir)/'`se_parser_twitter.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libseekswebsearchplugin_la-se_parser_twitter.Tpo $(DEPDIR)/libseekswebsearchplugin_la-se_parser_twitter.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='se_parser_twitter.cpp' object='libseekswebsearchplugin_la-se_parser_twitter.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_twitter.lo `test -f 'se_parser_twitter.cpp' || echo '$(srcdir)/'`se_parser_twitter.cpp
 
 libseekswebsearchplugin_la-query_interceptor.lo: query_interceptor.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-query_interceptor.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-query_interceptor.Tpo -c -o libseekswebsearchplugin_la-query_interceptor.lo `test -f 'query_interceptor.cpp' || echo '$(srcdir)/'`query_interceptor.cpp

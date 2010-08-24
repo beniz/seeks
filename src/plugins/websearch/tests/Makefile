@@ -37,7 +37,7 @@ host_triplet = i686-pc-linux-gnu
 noinst_PROGRAMS = test_ggle_parser$(EXEEXT) test_bing_parser$(EXEEXT) \
 	test_cuil_parser$(EXEEXT) test_yahoo_parser$(EXEEXT) \
 	test_exalead_parser$(EXEEXT) test_html_txt_parser$(EXEEXT) \
-	test_mediawiki_parser$(EXEEXT)
+	test_mediawiki_parser$(EXEEXT) test_twitter_parser$(EXEEXT)
 #am__append_1 = `perl -MExtUtils::Embed -e ldopts`
 subdir = src/plugins/websearch/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -66,10 +66,6 @@ am_test_ggle_parser_OBJECTS = test-ggle-parser.$(OBJEXT)
 test_ggle_parser_OBJECTS = $(am_test_ggle_parser_OBJECTS)
 test_ggle_parser_LDADD = $(LDADD)
 test_ggle_parser_DEPENDENCIES =
-am_test_mediawiki_parser_OBJECTS = test-mediawiki-parser.$(OBJEXT)
-test_mediawiki_parser_OBJECTS = $(am_test_mediawiki_parser_OBJECTS)
-test_mediawiki_parser_LDADD = $(LDADD)
-test_mediawiki_parser_DEPENDENCIES =
 am_test_html_txt_parser_OBJECTS = test-html-text-parser.$(OBJEXT)
 test_html_txt_parser_OBJECTS = $(am_test_html_txt_parser_OBJECTS)
 test_html_txt_parser_LDADD = $(LDADD)
@@ -78,6 +74,10 @@ am_test_mediawiki_parser_OBJECTS = test-mediawiki-parser.$(OBJEXT)
 test_mediawiki_parser_OBJECTS = $(am_test_mediawiki_parser_OBJECTS)
 test_mediawiki_parser_LDADD = $(LDADD)
 test_mediawiki_parser_DEPENDENCIES =
+am_test_twitter_parser_OBJECTS = test-twitter-parser.$(OBJEXT)
+test_twitter_parser_OBJECTS = $(am_test_twitter_parser_OBJECTS)
+test_twitter_parser_LDADD = $(LDADD)
+test_twitter_parser_DEPENDENCIES =
 am_test_yahoo_parser_OBJECTS = test-yahoo-parser.$(OBJEXT)
 test_yahoo_parser_OBJECTS = $(am_test_yahoo_parser_OBJECTS)
 test_yahoo_parser_LDADD = $(LDADD)
@@ -97,12 +97,14 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(test_bing_parser_SOURCES) $(test_cuil_parser_SOURCES) \
 	$(test_exalead_parser_SOURCES) $(test_ggle_parser_SOURCES) \
-	$(test_html_txt_parser_SOURCES) $(test_mediawiki_parser_SOURCES)\
-	$(test_mediawiki_parser_SOURCES) $(test_yahoo_parser_SOURCES)
+	$(test_html_txt_parser_SOURCES) \
+	$(test_mediawiki_parser_SOURCES) \
+	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES)
 DIST_SOURCES = $(test_bing_parser_SOURCES) $(test_cuil_parser_SOURCES) \
 	$(test_exalead_parser_SOURCES) $(test_ggle_parser_SOURCES) \
-	$(test_html_txt_parser_SOURCES) $(test_mediawiki_parser_SOURCES)\
-	$(test_mediawiki_parser_SOURCES) $(test_yahoo_parser_SOURCES)
+	$(test_html_txt_parser_SOURCES) \
+	$(test_mediawiki_parser_SOURCES) \
+	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -242,6 +244,7 @@ top_builddir = ../../../..
 top_srcdir = ../../../..
 test_ggle_parser_SOURCES = test-ggle-parser.cpp
 test_mediawiki_parser_SOURCES = test-mediawiki-parser.cpp
+test_twitter_parser_SOURCES = test-twitter-parser.cpp
 test_bing_parser_SOURCES = test-bing-parser.cpp
 test_cuil_parser_SOURCES = test-cuil-parser.cpp
 test_yahoo_parser_SOURCES = test-yahoo-parser.cpp
@@ -314,6 +317,9 @@ test_html_txt_parser$(EXEEXT): $(test_html_txt_parser_OBJECTS) $(test_html_txt_p
 test_mediawiki_parser$(EXEEXT): $(test_mediawiki_parser_OBJECTS) $(test_mediawiki_parser_DEPENDENCIES) 
 	@rm -f test_mediawiki_parser$(EXEEXT)
 	$(CXXLINK) $(test_mediawiki_parser_OBJECTS) $(test_mediawiki_parser_LDADD) $(LIBS)
+test_twitter_parser$(EXEEXT): $(test_twitter_parser_OBJECTS) $(test_twitter_parser_DEPENDENCIES) 
+	@rm -f test_twitter_parser$(EXEEXT)
+	$(CXXLINK) $(test_twitter_parser_OBJECTS) $(test_twitter_parser_LDADD) $(LIBS)
 test_yahoo_parser$(EXEEXT): $(test_yahoo_parser_OBJECTS) $(test_yahoo_parser_DEPENDENCIES) 
 	@rm -f test_yahoo_parser$(EXEEXT)
 	$(CXXLINK) $(test_yahoo_parser_OBJECTS) $(test_yahoo_parser_LDADD) $(LIBS)
@@ -328,9 +334,9 @@ include ./$(DEPDIR)/test-bing-parser.Po
 include ./$(DEPDIR)/test-cuil-parser.Po
 include ./$(DEPDIR)/test-exalead-parser.Po
 include ./$(DEPDIR)/test-ggle-parser.Po
-include ./$(DEPDIR)/test-mediawiki-parser.Po
 include ./$(DEPDIR)/test-html-text-parser.Po
 include ./$(DEPDIR)/test-mediawiki-parser.Po
+include ./$(DEPDIR)/test-twitter-parser.Po
 include ./$(DEPDIR)/test-yahoo-parser.Po
 
 .cpp.o:
