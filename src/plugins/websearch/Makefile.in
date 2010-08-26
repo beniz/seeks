@@ -92,6 +92,7 @@ am_libseekswebsearchplugin_la_OBJECTS =  \
 	libseekswebsearchplugin_la-se_parser_twitter.lo \
 	libseekswebsearchplugin_la-se_parser_identica.lo \
 	libseekswebsearchplugin_la-se_parser_dailymotion.lo \
+	libseekswebsearchplugin_la-se_parser_yauba.lo \
 	libseekswebsearchplugin_la-query_interceptor.lo \
 	libseekswebsearchplugin_la-websearch_configuration.lo \
 	libseekswebsearchplugin_la-sort_rank.lo \
@@ -319,6 +320,7 @@ libseekswebsearchplugin_la_SOURCES = websearch.cpp se_handler.cpp search_snippet
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 				   se_parser_mediawiki.cpp se_parser_twitter.cpp \
 				   se_parser_identica.cpp se_parser_dailymotion.cpp\
+				   se_parser_yauba.cpp \
 				   query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp \
@@ -466,6 +468,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_mediawiki.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_twitter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_yahoo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_yauba.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-search_snippet.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-sort_rank.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libseekswebsearchplugin_la-static_renderer.Plo@am__quote@
@@ -597,6 +600,13 @@ libseekswebsearchplugin_la-se_parser_dailymotion.lo: se_parser_dailymotion.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='se_parser_dailymotion.cpp' object='libseekswebsearchplugin_la-se_parser_dailymotion.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_dailymotion.lo `test -f 'se_parser_dailymotion.cpp' || echo '$(srcdir)/'`se_parser_dailymotion.cpp
+
+libseekswebsearchplugin_la-se_parser_yauba.lo: se_parser_yauba.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-se_parser_yauba.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-se_parser_yauba.Tpo -c -o libseekswebsearchplugin_la-se_parser_yauba.lo `test -f 'se_parser_yauba.cpp' || echo '$(srcdir)/'`se_parser_yauba.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libseekswebsearchplugin_la-se_parser_yauba.Tpo $(DEPDIR)/libseekswebsearchplugin_la-se_parser_yauba.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='se_parser_yauba.cpp' object='libseekswebsearchplugin_la-se_parser_yauba.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_yauba.lo `test -f 'se_parser_yauba.cpp' || echo '$(srcdir)/'`se_parser_yauba.cpp
 
 libseekswebsearchplugin_la-query_interceptor.lo: query_interceptor.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-query_interceptor.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-query_interceptor.Tpo -c -o libseekswebsearchplugin_la-query_interceptor.lo `test -f 'query_interceptor.cpp' || echo '$(srcdir)/'`query_interceptor.cpp

@@ -38,7 +38,8 @@ noinst_PROGRAMS = test_ggle_parser$(EXEEXT) test_bing_parser$(EXEEXT) \
 	test_cuil_parser$(EXEEXT) test_yahoo_parser$(EXEEXT) \
 	test_exalead_parser$(EXEEXT) test_html_txt_parser$(EXEEXT) \
 	test_mediawiki_parser$(EXEEXT) test_twitter_parser$(EXEEXT) \
-	test_identica_parser$(EXEEXT) test_dailymotion_parser$(EXEEXT)
+	test_identica_parser$(EXEEXT) test_dailymotion_parser$(EXEEXT) \
+	test_yauba_parser$(EXEEXT)
 #am__append_1 = `perl -MExtUtils::Embed -e ldopts`
 subdir = src/plugins/websearch/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -93,6 +94,10 @@ am_test_yahoo_parser_OBJECTS = test-yahoo-parser.$(OBJEXT)
 test_yahoo_parser_OBJECTS = $(am_test_yahoo_parser_OBJECTS)
 test_yahoo_parser_LDADD = $(LDADD)
 test_yahoo_parser_DEPENDENCIES =
+am_test_yauba_parser_OBJECTS = test-yauba-parser.$(OBJEXT)
+test_yauba_parser_OBJECTS = $(am_test_yauba_parser_OBJECTS)
+test_yauba_parser_LDADD = $(LDADD)
+test_yauba_parser_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -112,14 +117,16 @@ SOURCES = $(test_bing_parser_SOURCES) $(test_cuil_parser_SOURCES) \
 	$(test_html_txt_parser_SOURCES) \
 	$(test_identica_parser_SOURCES) \
 	$(test_mediawiki_parser_SOURCES) \
-	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES)
+	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES) \
+	$(test_yauba_parser_SOURCES)
 DIST_SOURCES = $(test_bing_parser_SOURCES) $(test_cuil_parser_SOURCES) \
 	$(test_dailymotion_parser_SOURCES) \
 	$(test_exalead_parser_SOURCES) $(test_ggle_parser_SOURCES) \
 	$(test_html_txt_parser_SOURCES) \
 	$(test_identica_parser_SOURCES) \
 	$(test_mediawiki_parser_SOURCES) \
-	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES)
+	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES) \
+	$(test_yauba_parser_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -264,6 +271,7 @@ test_identica_parser_SOURCES = test-identica-parser.cpp
 test_bing_parser_SOURCES = test-bing-parser.cpp
 test_cuil_parser_SOURCES = test-cuil-parser.cpp
 test_dailymotion_parser_SOURCES = test-dailymotion-parser.cpp
+test_yauba_parser_SOURCES = test-yauba-parser.cpp
 test_yahoo_parser_SOURCES = test-yahoo-parser.cpp
 test_exalead_parser_SOURCES = test-exalead-parser.cpp
 test_html_txt_parser_SOURCES = test-html-text-parser.cpp
@@ -346,6 +354,9 @@ test_twitter_parser$(EXEEXT): $(test_twitter_parser_OBJECTS) $(test_twitter_pars
 test_yahoo_parser$(EXEEXT): $(test_yahoo_parser_OBJECTS) $(test_yahoo_parser_DEPENDENCIES) 
 	@rm -f test_yahoo_parser$(EXEEXT)
 	$(CXXLINK) $(test_yahoo_parser_OBJECTS) $(test_yahoo_parser_LDADD) $(LIBS)
+test_yauba_parser$(EXEEXT): $(test_yauba_parser_OBJECTS) $(test_yauba_parser_DEPENDENCIES) 
+	@rm -f test_yauba_parser$(EXEEXT)
+	$(CXXLINK) $(test_yauba_parser_OBJECTS) $(test_yauba_parser_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -363,6 +374,7 @@ include ./$(DEPDIR)/test-identica-parser.Po
 include ./$(DEPDIR)/test-mediawiki-parser.Po
 include ./$(DEPDIR)/test-twitter-parser.Po
 include ./$(DEPDIR)/test-yahoo-parser.Po
+include ./$(DEPDIR)/test-yauba-parser.Po
 
 .cpp.o:
 	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

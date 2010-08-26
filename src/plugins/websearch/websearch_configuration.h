@@ -39,6 +39,7 @@ namespace seeks_plugins
 #define SE_MEDIAWIKI          64U
 #define SE_TWITTER            128U
 #define SE_YAHOO              256U
+#define SE_YAUBA              512U
 
         class websearch_configuration : public configuration_spec
         {
