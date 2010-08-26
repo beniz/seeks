@@ -38,7 +38,7 @@ noinst_PROGRAMS = test_ggle_parser$(EXEEXT) test_bing_parser$(EXEEXT) \
 	test_cuil_parser$(EXEEXT) test_yahoo_parser$(EXEEXT) \
 	test_exalead_parser$(EXEEXT) test_html_txt_parser$(EXEEXT) \
 	test_mediawiki_parser$(EXEEXT) test_twitter_parser$(EXEEXT) \
-	test_identica_parser$(EXEEXT)
+	test_identica_parser$(EXEEXT) test_dailymotion_parser$(EXEEXT)
 #am__append_1 = `perl -MExtUtils::Embed -e ldopts`
 subdir = src/plugins/websearch/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -59,6 +59,12 @@ am_test_cuil_parser_OBJECTS = test-cuil-parser.$(OBJEXT)
 test_cuil_parser_OBJECTS = $(am_test_cuil_parser_OBJECTS)
 test_cuil_parser_LDADD = $(LDADD)
 test_cuil_parser_DEPENDENCIES =
+am_test_dailymotion_parser_OBJECTS =  \
+	test-dailymotion-parser.$(OBJEXT)
+test_dailymotion_parser_OBJECTS =  \
+	$(am_test_dailymotion_parser_OBJECTS)
+test_dailymotion_parser_LDADD = $(LDADD)
+test_dailymotion_parser_DEPENDENCIES =
 am_test_exalead_parser_OBJECTS = test-exalead-parser.$(OBJEXT)
 test_exalead_parser_OBJECTS = $(am_test_exalead_parser_OBJECTS)
 test_exalead_parser_LDADD = $(LDADD)
@@ -101,12 +107,14 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(test_bing_parser_SOURCES) $(test_cuil_parser_SOURCES) \
+	$(test_dailymotion_parser_SOURCES) \
 	$(test_exalead_parser_SOURCES) $(test_ggle_parser_SOURCES) \
 	$(test_html_txt_parser_SOURCES) \
 	$(test_identica_parser_SOURCES) \
 	$(test_mediawiki_parser_SOURCES) \
 	$(test_twitter_parser_SOURCES) $(test_yahoo_parser_SOURCES)
 DIST_SOURCES = $(test_bing_parser_SOURCES) $(test_cuil_parser_SOURCES) \
+	$(test_dailymotion_parser_SOURCES) \
 	$(test_exalead_parser_SOURCES) $(test_ggle_parser_SOURCES) \
 	$(test_html_txt_parser_SOURCES) \
 	$(test_identica_parser_SOURCES) \
@@ -255,6 +263,7 @@ test_twitter_parser_SOURCES = test-twitter-parser.cpp
 test_identica_parser_SOURCES = test-identica-parser.cpp
 test_bing_parser_SOURCES = test-bing-parser.cpp
 test_cuil_parser_SOURCES = test-cuil-parser.cpp
+test_dailymotion_parser_SOURCES = test-dailymotion-parser.cpp
 test_yahoo_parser_SOURCES = test-yahoo-parser.cpp
 test_exalead_parser_SOURCES = test-exalead-parser.cpp
 test_html_txt_parser_SOURCES = test-html-text-parser.cpp
@@ -313,6 +322,9 @@ test_bing_parser$(EXEEXT): $(test_bing_parser_OBJECTS) $(test_bing_parser_DEPEND
 test_cuil_parser$(EXEEXT): $(test_cuil_parser_OBJECTS) $(test_cuil_parser_DEPENDENCIES) 
 	@rm -f test_cuil_parser$(EXEEXT)
 	$(CXXLINK) $(test_cuil_parser_OBJECTS) $(test_cuil_parser_LDADD) $(LIBS)
+test_dailymotion_parser$(EXEEXT): $(test_dailymotion_parser_OBJECTS) $(test_dailymotion_parser_DEPENDENCIES) 
+	@rm -f test_dailymotion_parser$(EXEEXT)
+	$(CXXLINK) $(test_dailymotion_parser_OBJECTS) $(test_dailymotion_parser_LDADD) $(LIBS)
 test_exalead_parser$(EXEEXT): $(test_exalead_parser_OBJECTS) $(test_exalead_parser_DEPENDENCIES) 
 	@rm -f test_exalead_parser$(EXEEXT)
 	$(CXXLINK) $(test_exalead_parser_OBJECTS) $(test_exalead_parser_LDADD) $(LIBS)
@@ -343,6 +355,7 @@ distclean-compile:
 
 include ./$(DEPDIR)/test-bing-parser.Po
 include ./$(DEPDIR)/test-cuil-parser.Po
+include ./$(DEPDIR)/test-dailymotion-parser.Po
 include ./$(DEPDIR)/test-exalead-parser.Po
 include ./$(DEPDIR)/test-ggle-parser.Po
 include ./$(DEPDIR)/test-html-text-parser.Po

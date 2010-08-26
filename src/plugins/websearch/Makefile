@@ -91,6 +91,7 @@ am_libseekswebsearchplugin_la_OBJECTS =  \
 	libseekswebsearchplugin_la-se_parser_mediawiki.lo \
 	libseekswebsearchplugin_la-se_parser_twitter.lo \
 	libseekswebsearchplugin_la-se_parser_identica.lo \
+	libseekswebsearchplugin_la-se_parser_dailymotion.lo \
 	libseekswebsearchplugin_la-query_interceptor.lo \
 	libseekswebsearchplugin_la-websearch_configuration.lo \
 	libseekswebsearchplugin_la-sort_rank.lo \
@@ -317,7 +318,7 @@ libseekswebsearchplugin_la_SOURCES = websearch.cpp se_handler.cpp search_snippet
 				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 				   se_parser_mediawiki.cpp se_parser_twitter.cpp \
-				   se_parser_identica.cpp \
+				   se_parser_identica.cpp se_parser_dailymotion.cpp\
 				   query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp \
@@ -458,6 +459,7 @@ include ./$(DEPDIR)/libseekswebsearchplugin_la-se_handler.Plo
 include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser.Plo
 include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_bing.Plo
 include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_cuil.Plo
+include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_dailymotion.Plo
 include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_exalead.Plo
 include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_ggle.Plo
 include ./$(DEPDIR)/libseekswebsearchplugin_la-se_parser_identica.Plo
@@ -588,6 +590,13 @@ libseekswebsearchplugin_la-se_parser_identica.lo: se_parser_identica.cpp
 #	source='se_parser_identica.cpp' object='libseekswebsearchplugin_la-se_parser_identica.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_identica.lo `test -f 'se_parser_identica.cpp' || echo '$(srcdir)/'`se_parser_identica.cpp
+
+libseekswebsearchplugin_la-se_parser_dailymotion.lo: se_parser_dailymotion.cpp
+	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-se_parser_dailymotion.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-se_parser_dailymotion.Tpo -c -o libseekswebsearchplugin_la-se_parser_dailymotion.lo `test -f 'se_parser_dailymotion.cpp' || echo '$(srcdir)/'`se_parser_dailymotion.cpp
+	$(am__mv) $(DEPDIR)/libseekswebsearchplugin_la-se_parser_dailymotion.Tpo $(DEPDIR)/libseekswebsearchplugin_la-se_parser_dailymotion.Plo
+#	source='se_parser_dailymotion.cpp' object='libseekswebsearchplugin_la-se_parser_dailymotion.lo' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -c -o libseekswebsearchplugin_la-se_parser_dailymotion.lo `test -f 'se_parser_dailymotion.cpp' || echo '$(srcdir)/'`se_parser_dailymotion.cpp
 
 libseekswebsearchplugin_la-query_interceptor.lo: query_interceptor.cpp
 	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libseekswebsearchplugin_la_CXXFLAGS) $(CXXFLAGS) -MT libseekswebsearchplugin_la-query_interceptor.lo -MD -MP -MF $(DEPDIR)/libseekswebsearchplugin_la-query_interceptor.Tpo -c -o libseekswebsearchplugin_la-query_interceptor.lo `test -f 'query_interceptor.cpp' || echo '$(srcdir)/'`query_interceptor.cpp
