@@ -50,8 +50,6 @@ namespace seeks_plugins
                         _count++;
                         sp->_engine |= std::bitset<NSEs>(SE_DAILYMOTION);
                         pc->_current_snippet = sp;
-                        //const char *a_link = se_parser::get_attribute((const char**)attributes, "rdf:about");
-                        //pc->_current_snippet->_url = std::string(a_link);
                 }
                 if (_in_item && strcasecmp(tag, "title") == 0)
                 {
