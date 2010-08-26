@@ -281,6 +281,7 @@ namespace seeks_plugins
                 // spaces are +
                 // http://search.twitter.com/search.atom?q=seeksproject
                 // http://identi.ca/search/notice/rss?q=thé+vert
+                // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
         };
 
         se_ggle se_handler::_ggle = se_ggle();
