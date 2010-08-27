@@ -557,7 +557,7 @@ src/utils/Makefile)
 
 AC_OUTPUT
 
-AC_MSG_NOTICE([Configured bo build seeks:
+AC_MSG_NOTICE([Configured to build seeks:
 
  Seeks version:		  ${VERSION}
  Code status:		  ${cstatus}
