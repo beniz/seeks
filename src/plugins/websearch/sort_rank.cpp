@@ -20,6 +20,7 @@
 #include "websearch.h"
 #include "content_handler.h"
 #include "urlmatch.h"
+#include "miscutil.h"
 
 #include <ctype.h>
 #include <algorithm>
@@ -30,6 +31,7 @@
 #include <assert.h>
 
 using sp::urlmatch;
+using sp::miscutil;
 
 namespace seeks_plugins
 {
@@ -45,14 +47,19 @@ namespace seeks_plugins
 			 std::back_inserter(unique_snippets),search_snippet::equal_url);
      }
    
-   void sort_rank::sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets)
+   void sort_rank::sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
+						const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
 	static double st = 0.9; // similarity threshold.
 	
+	bool content_analysis = websearch::_wconfig->_content_analysis;
+	const char *ca = miscutil::lookup(parameters,"content_analysis");
+	if (ca && strcasecmp(ca,"on") == 0)
+	  content_analysis = true;
+	
 	// initializes the LSH subsystem is we need it and it has not yet
 	// been initialized.
-	if (websearch::_wconfig->_content_analysis
-	    && !qc->_ulsh_ham)
+	if (content_analysis && !qc->_ulsh_ham)
 	  {
 	     /**
 	      * The LSH system based on a Hamming distance has a fixed maximum size
@@ -76,13 +83,12 @@ namespace seeks_plugins
 		    {
 		       // merging snippets.
 		       search_snippet::merge_snippets(c_sp,sp);
-		       c_sp->_seeks_rank = c_sp->_engine.count();
 		       it = snippets.erase(it);
 		       delete sp;
 		       sp = NULL;
 		       continue;
 		    }
-		  else if (websearch::_wconfig->_content_analysis)
+		  else if (content_analysis)
 		    {
 		       // grab nearest neighbors out of the LSH uniform hashtable.
 		       std::string surl = urlmatch::strip_url(sp->_url);
@@ -92,6 +98,7 @@ namespace seeks_plugins
 		       std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
 		       std::map<double,const std::string,std::greater<double> > mres_tmp
 			 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_Ld); // title.
+		       		       
 		       std::map<double,const std::string,std::greater<double> >::const_iterator mit = mres_tmp.begin();
 		       while(mit!=mres_tmp.end())
 			 {
@@ -116,7 +123,6 @@ namespace seeks_plugins
 				 if (same)
 				   {
 				      search_snippet::merge_snippets(comp_sp,sp);
-				      comp_sp->_seeks_rank = comp_sp->_engine.count();
 				      it = snippets.erase(it);
 				      delete sp;
 				      sp = NULL;
@@ -141,7 +147,7 @@ namespace seeks_plugins
 		  qc->add_to_unordered_cache_title(sp);
 		  
 		  // lsh.
-		  if (websearch::_wconfig->_content_analysis)
+		  if (content_analysis)
 		    {
 		       std::string surl = urlmatch::strip_url(sp->_url);
 		       qc->_ulsh_ham->add(surl,qc->_lsh_ham->_Ld);
@@ -172,6 +178,7 @@ namespace seeks_plugins
      }
 
    void sort_rank::score_and_sort_by_similarity(query_context *qc, const char *id_str,
+						const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						search_snippet *&ref_sp,
 						std::vector<search_snippet*> &sorted_snippets)
      {
@@ -184,7 +191,12 @@ namespace seeks_plugins
 	
 	ref_sp->set_back_similarity_link();
 	
-	if (websearch::_wconfig->_content_analysis)
+	bool content_analysis = websearch::_wconfig->_content_analysis;
+	const char *ca = miscutil::lookup(parameters,"content_analysis");
+	if (ca && strcasecmp(ca,"on") == 0)
+	  content_analysis = true;
+	
+	if (content_analysis)
 	  content_handler::fetch_all_snippets_content_and_features(qc);
 	else content_handler::fetch_all_snippets_summary_and_features(qc);
 	
