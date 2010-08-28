@@ -109,33 +109,35 @@ namespace seeks_plugins
 	// grab requested engines, if any.
 	// if the list is not included in that of the context, update existing results and perform requested expansion.
 	// if the list is included in that of the context, perform expansion, results will be filtered later on.
+	std::bitset<IMG_NSEs> beng;
 	const char *eng = miscutil::lookup(parameters,"engines");
 	if (eng)
 	  {
-	     // test inclusion.
-	     std::bitset<IMG_NSEs> beng;
 	     img_query_context::fillup_img_engines(parameters,beng);
-	     std::bitset<IMG_NSEs> inc = beng;
-	     inc &= _img_engines;
+	  }
+	else beng = img_websearch_configuration::_img_wconfig->_img_se_enabled;
+	
+	// test inclusion.
+	std::bitset<IMG_NSEs> inc = beng;
+	inc &= _img_engines;
+	
+	if (inc.count() == beng.count())
+	  {
+	     // included, nothing more to be done.
+	  }
+	else // test intersection.
+	  {
+	     std::bitset<IMG_NSEs> bint;
+	     for (int b=0;b<IMG_NSEs;b++)
+	       {
+		  if (beng[b] && !inc[b])
+		    bint.set(b);
+	       }
 	     
-	     if (inc.count() == beng.count())
-	       {
-		  // included, nothing more to be done.
-	       }
-	     else // test intersection.
-	       {
-		  std::bitset<IMG_NSEs> bint;
-		  for (int b=0;b<IMG_NSEs;b++)
-		    {
-		       if (beng[b] && !inc[b])
-			 bint.set(b);
-		    }
-		  
-		  // catch up expansion with the newly activated engines.
-		  expand_img(csp,rsp,parameters,0,_page_expansion,bint);
-		  expanded = true;
-		  _img_engines |= bint;
-	       }
+	     // catch up expansion with the newly activated engines.
+	     expand_img(csp,rsp,parameters,0,_page_expansion,bint);
+	     expanded = true;
+	     _img_engines |= bint;
 	  }
 	
 	// check for safesearch change.

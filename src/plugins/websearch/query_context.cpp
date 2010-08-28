@@ -228,32 +228,34 @@ namespace seeks_plugins
      // grab requested engines, if any.
      // if the list is not included in that of the context, update existing results and perform requested expansion.
      // if the list is included in that of the context, perform expansion, results will be filtered later on.
+     std::bitset<NSEs> beng;
      const char *eng = miscutil::lookup(parameters,"engines");
      if (eng)
        {
-	  // test inclusion.
-	  std::bitset<NSEs> beng;
 	  query_context::fillup_engines(parameters,beng);
-	  std::bitset<NSEs> inc = beng;
-	  inc &= _engines;
-	  if (inc.count() == beng.count())
+       }
+     else beng = websearch::_wconfig->_se_enabled;
+     
+     // test inclusion.
+     std::bitset<NSEs> inc = beng;
+     inc &= _engines;
+     if (inc.count() == beng.count())
+       {
+	  // included, nothing more to be done.
+       }
+     else // test intersection.
+       {
+	  std::bitset<NSEs> bint;
+	  for (int b=0;b<NSEs;b++)
 	    {
-	       // included, nothing more to be done.
+	       if (beng[b] && !inc[b])
+		 bint.set(b);
 	    }
-	  else // test intersection.
-	    {
-	       std::bitset<NSEs> bint;
-	       for (int b=0;b<NSEs;b++)
-		 {
-		    if (beng[b] && !inc[b])
-		      bint.set(b);
-		 }
-	       	       
-	       // catch up expansion with the newly activated engines.
-	       expand(csp,rsp,parameters,0,_page_expansion,bint);
-	       expanded = true;
-	       _engines |= bint;
-	    }
+	  
+	  // catch up expansion with the newly activated engines.
+	  expand(csp,rsp,parameters,0,_page_expansion,bint);
+	  expanded = true;
+	  _engines |= bint;
        }
      
      // seeks button used as a back button.
