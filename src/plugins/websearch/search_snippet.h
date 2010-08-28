@@ -46,7 +46,7 @@ namespace seeks_plugins
 	AUDIO,
 	CODE,
 	NEWS,
-	REAL_TIME,
+	TWEET,
 	WIKI,
 	REJECTED /* user reject, for now by matching a regexp. */
      };
@@ -104,7 +104,7 @@ namespace seeks_plugins
 	search_snippet(const short &rank);
 	
 	virtual ~search_snippet();
-	
+
 	void set_title(const std::string &title);
 	
 	void set_url(const std::string &url);

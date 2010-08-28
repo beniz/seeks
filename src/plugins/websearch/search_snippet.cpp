@@ -245,6 +245,12 @@ namespace seeks_plugins
 	       json_str_eng += ",";
 	     json_str_eng += "\"exalead\"";
 	  }
+	if (_engine.to_ulong()&SE_TWITTER)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += " ";
+	     json_str_eng += "\"twitter\"";
+	  }
 	json_str += json_str_eng + "]";
 	if (thumbs)
 	  json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
@@ -267,11 +273,22 @@ namespace seeks_plugins
 /*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
 	html_content += ">";
-	if ( websearch::_wconfig->_thumbs ){
-		html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
-		html_content += _url;
-		html_content += "\" />";
-	}
+	if (_doc_type != TWEET 
+	    && websearch::_wconfig->_thumbs )
+	  {
+	     if (_doc_type != TWEET)
+	       {
+		  html_content += "<a href=\"" + _url + "\">";
+		  html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
+		  html_content += _url;
+		  html_content += "\" /></a>";
+	       }
+	  }
+	if (_doc_type == TWEET)
+	  {
+	     html_content += "<a href=\"" + _cite + "\">";
+	     html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" /></a>"; // _cached contains the profile's image.
+	  }
 	html_content += "<h3><a href=\"";
 	html_content += _url;
 	html_content += "\">";
@@ -280,7 +297,7 @@ namespace seeks_plugins
 	html_content += title_enc;
 	free_const(title_enc);
 	html_content += "</a>";
-	
+		
 	if (_engine.to_ulong()&SE_GOOGLE)
 	  {
 	     std::string ggle_se_icon = se_icon;
@@ -321,7 +338,18 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
 	     html_content += exalead_se_icon;
 	  }
-			
+	if (_engine.to_ulong()&SE_TWITTER)
+	  {
+	     std::string twitter_se_icon = se_icon;
+	     miscutil::replace_in_string(twitter_se_icon,"icon","search_engine_twitter");
+	     miscutil::replace_in_string(twitter_se_icon,"setitle","Twitter");
+	     miscutil::replace_in_string(twitter_se_icon,"seeng","twitter");
+	  }
+	
+	if (_doc_type == TWEET)
+	  if (_seeks_rank > 1)
+	    html_content += " (" + miscutil::to_string(_seeks_rank) + ")";
+	
 	html_content += "</h3>";
 		
 	if (!_summary.empty())
@@ -360,13 +388,16 @@ namespace seeks_plugins
 	     html_content += "\">Cached</a>";
 	     free_const(enc_cached);
 	  }
-	if (_archive.empty())
+	if (_doc_type != TWEET)
 	  {
-	     set_archive_link();  
+	     if (_archive.empty())
+	       {
+		  set_archive_link();  
+	       }
+	     html_content += "<a class=\"search_cache\" href=\"";
+	     html_content += _archive;
+	     html_content += "\">Archive</a>";
 	  }
-	html_content += "<a class=\"search_cache\" href=\"";
-	html_content += _archive;
-	html_content += "\">Archive</a>";
 	
 	if (!_sim_back)
 	  {
@@ -489,7 +520,7 @@ namespace seeks_plugins
 	
 	// clear escaped characters for unencoded output.
 	miscutil::replace_in_string(_summary_noenc,"\\","");
-	
+
 	// encode html so tags are not interpreted.
 	char* str = encode::html_encode(summary);
 	if (strlen(str)<summary_max_size)
@@ -693,12 +724,14 @@ namespace seeks_plugins
    void search_snippet::merge_snippets(search_snippet *s1,
 				       const search_snippet *s2)
      {
-	std::bitset<NSEs> setest = s1->_engine;
-	setest &= s2->_engine;
-	if (setest.count()>0)
-	  return;
-	
-	// seeks_rank is updated after merging.
+	if (s1->_doc_type != TWEET)
+	  {
+	     std::bitset<NSEs> setest = s1->_engine;
+	     setest &= s2->_engine;
+	     if (setest.count()>0)
+	       return;
+	  }
+		
 	// search engine rank.
 	s1->_rank += s2->_rank;
 	
@@ -719,9 +752,20 @@ namespace seeks_plugins
 	
 	// TODO: snippet type.
 	
+	// TODO: merge dates.
+	
 	// file format.
 	if (s1->_file_format.length() < s2->_file_format.length())  // we could do better here, ok enough for now.
 	  s1->_file_format = s2->_file_format;
+     
+	// seeks rank.
+	if (s1->_doc_type == TWEET)
+	  {
+	     if (s1->_seeks_rank == 0)
+	       s1->_seeks_rank = 1;
+	     s1->_seeks_rank++; // similarity detects retweets and merges them.
+	  }
+	else s1->_seeks_rank = s1->_engine.count();
      }
    
 } /* end of namespace. */

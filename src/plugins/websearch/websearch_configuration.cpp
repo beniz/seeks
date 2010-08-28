@@ -29,7 +29,7 @@ namespace seeks_plugins
 {
 
 #define hash_lang                   3579134231ul /* "search-langage" */
-#define hash_n                       578814699ul /* "search-results-page" */  
+#define hash_n                       578814699ul /* "search-results-page" */
 #define hash_se                     1635576913ul /* "search-engine" */
 #define hash_qcd                    4118649627ul /* "query-context-delay" */
 #define hash_thumbs                  793242781ul /* "enable-thumbs" */
@@ -41,21 +41,21 @@ namespace seeks_plugins
 #define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
 #define hash_clustering             2382120344ul /* "enable-clustering" */
 #define hash_max_expansions         3838821776ul /* "max-expansions" */
-#define hash_extended_highlight     2722091897ul /* "extended-highlight" */   
+#define hash_extended_highlight     2722091897ul /* "extended-highlight" */
 #define hash_background_proxy        682905808ul /* "background-proxy" */
 #define hash_show_node_ip           4288369354ul /* "show-node-ip" */
-   
+
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
-	  _se_enabled = std::bitset<NSEs>(0);
-	  load_config();
+          _se_enabled = std::bitset<NSEs>(0);
+          load_config();
        }
-   
+
    websearch_configuration::~websearch_configuration()
      {
      }
-   
+
    void websearch_configuration::set_default_config()
      {
 	_lang = "auto";
@@ -76,9 +76,9 @@ namespace seeks_plugins
 	_background_proxy_port = 0;
 	_show_node_ip = false;
      }
-   
+
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-						   char *buf, const unsigned long &linenum)
+                                                   char *buf, const unsigned long &linenum)
      {
 	std::vector<std::string> bpvec;
 	switch(cmd_hash)
@@ -109,6 +109,10 @@ namespace seeks_plugins
 	       _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
 	     else if (strcasecmp(arg,"exalead") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+	     else if (strcasecmp(arg,"twitter") == 0)
+	       _se_enabled |= std::bitset<NSEs>(SE_TWITTER);
+	     else if (strcasecmp(arg,"identica") == 0)
+	       _se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
 	     break;
@@ -207,9 +211,9 @@ namespace seeks_plugins
 	     
 	  } // end of switch.
      }
-   
+
    void websearch_configuration::finalize_configuration()
      {
      }
-   
+
 } /* end of namespace. */

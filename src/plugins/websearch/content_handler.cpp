@@ -101,7 +101,8 @@ namespace seeks_plugins
 	txt_contents.reserve(nsnippets);
 	for (size_t i=0;i<nsnippets;i++)
 	  {
-	     if (qc->_cached_snippets.at(i)->_summary.empty())
+	     if (qc->_cached_snippets.at(i)->_summary.empty()
+		 && qc->_cached_snippets.at(i)->_doc_type != TWEET)
 	       {
 		  std::string *str = new std::string();
 		  txt_contents.push_back(str);
@@ -110,6 +111,8 @@ namespace seeks_plugins
 	     
 	     // decode html.
 	     std::string dec_sum = qc->_cached_snippets.at(i)->_summary;
+	     if (qc->_cached_snippets.at(i)->_doc_type == TWEET)
+	       dec_sum = qc->_cached_snippets.at(i)->_title;
 	     miscutil::replace_in_string(dec_sum,"&amp","&");
 	     miscutil::replace_in_string(dec_sum,"&quot","\"");
 	     miscutil::replace_in_string(dec_sum,"&lt","<");
@@ -468,8 +471,8 @@ namespace seeks_plugins
 	       {
 		  sps[i]->_seeks_ir = oskmeans::distance_normed_points(*ref_features,*sps[i]->_features_tfidf);
 		  
-		  /* std::cerr << "[Debug]: url: " << sps[i]->_url 
-		    << " -- score: " << sps[i]->_seeks_ir << std::endl; */
+		  std::cerr << "[Debug]: url: " << sps[i]->_url 
+		    << " -- score: " << sps[i]->_seeks_ir << std::endl;
 	       }
 	  }
      }   
@@ -486,9 +489,12 @@ namespace seeks_plugins
 	std::vector<std::string> urls;
 	urls.reserve(2);
 	
-	std::string *content1 = sp1->_cached_content;
-	std::string *content2 = sp2->_cached_content;
-	
+	bool parsing = true;
+	if (sp1->_doc_type == TWEET && sp2->_doc_type == TWEET)
+	  parsing = false;
+	std::string *content1 = (sp1->_doc_type == TWEET) ? &sp1->_title : sp1->_cached_content;
+	std::string *content2 = (sp2->_doc_type == TWEET) ? &sp2->_title : sp2->_cached_content;
+
 	std::string **outputs = NULL;
 	if (!content1 && !content2)
 	  {
@@ -529,7 +535,13 @@ namespace seeks_plugins
 		  sp2->_cached_content = outputs[1];
 	       }
 	  }
-			
+	else 
+	  {
+	     outputs = new std::string*[2];
+	     outputs[0] = content1;
+	     outputs[1] = content2;
+	  }
+	
 	if (outputs == NULL
 	    || outputs[0] == NULL || outputs[1] == NULL)  // error handling.
 	  {
@@ -540,20 +552,28 @@ namespace seeks_plugins
 	  }
 		
 	// parse content and keep text only.
-	std::string *txt_contents = content_handler::parse_snippets_txt_content(2,outputs);
+	std::string *txt_contents = NULL;
+	if (parsing)
+	  {
+	     txt_contents = content_handler::parse_snippets_txt_content(2,outputs);
+	  }
+	else
+	  {
+	     txt_contents = new std::string[2];
+	     txt_contents[0] = *outputs[0];
+	     txt_contents[1] = *outputs[1];
+	  }
 	delete[] outputs;
 	outputs = NULL;
-	
+		
 	if (txt_contents[0].empty() || txt_contents[1].empty())
 	  return false;
-	
+		
 	// quick check for similarity.
 	double rad = static_cast<double>(std::min(txt_contents[0].size(),txt_contents[1].size())) 
 	  / static_cast<double>(std::max(txt_contents[0].size(),txt_contents[1].size()));
 	if (rad < similarity_threshold)
-	  {
-	     return false;
-	  }
+	  return false;
 	
 	std::vector<search_snippet*> sps;
 	sps.reserve(2);

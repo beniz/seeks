@@ -21,13 +21,15 @@
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
+<input name="engines" value="xxeng" type="hidden" />
+<input name="content_analysis" value="xxca" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&rpp=xxrpp" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
 <!-- @if-have-clustering-start -->
-<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&rpp=xxrpp" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
 <!-- if-have-clustering-end@ -->
 <!-- @if-not-have-clustering-start -->
 <a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
@@ -37,7 +39,7 @@
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&rpp=xxrpp" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 <!-- if-have-clustered-results-head-end@ -->
 
 <a id="search_home" title="Home (ctrl+h)" href="@base-url@/websearch-hp/">&nbsp;</a>
@@ -47,12 +49,14 @@
 <div id="search_bar_tab">
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Language:</a> <span>xxlang</span>
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand" title="Search text">Text</a>
 <!-- @if-have-img-websearch-start -->
-<a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=xxeng" title="Search images">Images</a>
+<a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand" title="Search images">Images</a>
 <!-- if-have-img-websearch-end@ -->
-<span class="search_bar_tab">Group by:</span> <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&rpp=xxrpp" title="Group by urls">urls</a>,
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&rpp=xxrpp" title="Group by titles">titles</a>,
-<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&rpp=xxrpp" title="Group by types">types</a>
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on" title="Search tweets">Tweets</a>
+<span class="search_bar_tab">Group by:</span> <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca" title="Group by urls">urls</a>,
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca" title="Group by titles">titles</a>,
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca" title="Group by types">types</a>
 </div>
 
 </div>

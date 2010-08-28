@@ -82,6 +82,14 @@ body {
 	margin-bottom: 30px;
 }
 
+#search_results .search_snippet .tweet_profile {
+        float: left;
+        padding: 0px 7px 7px 0px;
+        margin-bottom: 30px;
+	width:50px;
+	height:50px;
+}
+
 #search_results .focused .preview {
 	display: inline;
 }

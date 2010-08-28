@@ -458,7 +458,7 @@ namespace seeks_plugins
 	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     search_snippet *ref_sp = NULL;
-	     sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
+	     sort_rank::score_and_sort_by_similarity(qc,id,parameters,ref_sp,qc->_cached_snippets);
 	     
 	     if (!ref_sp)
 	       {
@@ -523,7 +523,11 @@ namespace seeks_plugins
 	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     
-	     if (websearch::_wconfig->_content_analysis)
+	     bool content_analysis = websearch::_wconfig->_content_analysis;
+	     const char *ca = miscutil::lookup(parameters,"content_analysis");
+	     if (ca && strcasecmp(ca,"on") == 0)
+	       content_analysis = true;
+	     if (content_analysis)
 	       content_handler::fetch_all_snippets_content_and_features(qc);
 	     else content_handler::fetch_all_snippets_summary_and_features(qc);
 	     
@@ -642,7 +646,8 @@ namespace seeks_plugins
      // sort and rank search snippets.
      seeks_proxy::mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
-     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets);
+     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
+					     parameters);
      if (expanded)
        qc->_compute_tfidf_features = true;
      qc->_lock = false;

@@ -39,7 +39,7 @@ namespace seeks_plugins
    class search_snippet;
    class query_context;
    
-#define NSEs 5  // number of supported search engines.
+#define NSEs 7  // number of supported search engines.
    
 #ifndef ENUM_SE
 #define ENUM_SE
@@ -49,6 +49,8 @@ namespace seeks_plugins
 	CUIL,
 	EXALEAD,
 	GOOGLE,
+	IDENTICA,
+	TWITTER,
 	YAHOO
      };
 #endif
@@ -138,7 +140,27 @@ namespace seeks_plugins
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
      };
+
+   class se_twitter : public search_engine
+     {
+      public:
+	se_twitter();
+	~se_twitter();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
    
+   class se_identica : public search_engine
+     {
+      public:
+	se_identica();
+	~se_identica();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+         
    class se_handler
      {
       public:
@@ -180,6 +202,8 @@ namespace seeks_plugins
 	static se_bing _bing;
 	static se_yahoo _yahoo;
 	static se_exalead _exalead;
+	static se_twitter _twitter;
+	static se_identica _identica;
 	static std::vector<CURL*> _curl_handlers;
 	static sp_mutex_t _curl_mutex;
      };

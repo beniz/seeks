@@ -147,7 +147,8 @@ namespace seeks_plugins
 	bool safesearch_off = false;
 	if (safesearch_p)
 	  safesearch_off = strcasecmp(safesearch_p,"on") == 0 ? false : true;
-		
+	
+	bool only_tweets = true; // required for rendering the correct 'content_analysi' value.
 	std::string snippets_str;
 	if (!snippets.empty())
 	  {
@@ -170,6 +171,8 @@ namespace seeks_plugins
 		    continue;
 		  if (!safesearch_off && !snippets.at(i)->_safe)
 		    continue;
+		  if (only_tweets && snippets.at(i)->_doc_type != TWEET)
+		    only_tweets = false;
 		    
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
@@ -184,6 +187,18 @@ namespace seeks_plugins
 	else miscutil::add_map_entry(exports,"$xxrpp",1,strdup(""),0);
 	miscutil::add_map_entry(exports,"$xxtrpp",1,
 				miscutil::to_string(websearch::_wconfig->_Nr).c_str(),1);
+	
+	// content analysis.
+	bool content_analysis = websearch::_wconfig->_content_analysis;
+	const char *ca = miscutil::lookup(parameters,"content_analysis");
+	if (ca && strcasecmp(ca,"on") == 0)
+	  content_analysis = true;
+	if (content_analysis)
+	  miscutil::add_map_entry(exports,"$xxca",1,"on",1);
+	else miscutil::add_map_entry(exports,"$xxca",1,"off",1);
+	if (only_tweets)
+	  miscutil::add_map_entry(exports,"$xxcca",1,"off",1); // xxcca is content_analysis for cluster analysis.
+	else miscutil::add_map_entry(exports,"$xxcca",1,content_analysis ? "on" : "off",1);
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
@@ -267,20 +282,23 @@ namespace seeks_plugins
 
 	     std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 	     
-	     std::string cluster_str;
-	     if (!clusterize)
-	       cluster_str = static_renderer::render_cluster_label(clusters[c]);
-	     else cluster_str = static_renderer::render_cluster_label_query_link(url_encoded_query,
-										 clusters[c],exports);
-	     size_t nsps = snippets.size();
-	     for (size_t i=0;i<nsps;i++)
-	       cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
-	     cluster_str += "</ol>";
-	     
-	     std::string cl = rplcnt;
-	     if (k>1)
-	       cl += miscutil::to_string(l++);
-	     miscutil::add_map_entry(exports,cl.c_str(),1,cluster_str.c_str(),1);
+	     if (!snippets.empty())
+	       {
+		  std::string cluster_str;
+		  if (!clusterize)
+		    cluster_str = static_renderer::render_cluster_label(clusters[c]);
+		  else cluster_str = static_renderer::render_cluster_label_query_link(url_encoded_query,
+										      clusters[c],exports);
+		  size_t nsps = snippets.size();
+		  for (size_t i=0;i<nsps;i++)
+		    cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
+		  cluster_str += "</ol>";
+		  
+		  std::string cl = rplcnt;
+		  if (k>1)
+		    cl += miscutil::to_string(l++);
+		  miscutil::add_map_entry(exports,cl.c_str(),1,cluster_str.c_str(),1);
+	       }
 	  }
 	
 	// kill remaining cluster slots.
@@ -388,9 +406,15 @@ namespace seeks_plugins
 	     if (rpp_str)
 	       rpp_s = rpp_str;
 	     std::string np_str = miscutil::to_string(current_page+1);
+	     bool content_analysis = websearch::_wconfig->_content_analysis;
+	     const char *ca = miscutil::lookup(parameters,"content_analysis");
+	     if (ca && strcasecmp(ca,"on") == 0)
+	       content_analysis = true;
+	     std::string ca_s = content_analysis ? "on" : "off";
 	     std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
-	       + engines + "&amp;rpp=" + rpp_s + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
+	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
@@ -416,9 +440,15 @@ namespace seeks_plugins
 	     const char *rpp_str = miscutil::lookup(parameters,"rpp");
 	     if (rpp_str)
 	       rpp_s = rpp_str;
+	     bool content_analysis = websearch::_wconfig->_content_analysis;
+	     const char *ca = miscutil::lookup(parameters,"content_analysis");
+	     if (ca && strcasecmp(ca,"on") == 0)
+	       content_analysis = true;
+	     std::string ca_s = content_analysis ? "on" : "off";
 	     std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
-	       + engines + "&amp;rpp=" + rpp_s + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
+	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+	       + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
@@ -483,17 +513,13 @@ namespace seeks_plugins
 	     cgi::map_block_killer(exports,"websearch-have-js");
 	  }
 	
-	if (websearch::_wconfig->_content_analysis)
-	  miscutil::add_map_entry(exports,"websearch-content-analysis",1,"content_analysis",1);
-	else miscutil::add_map_entry(exports,"websearch-content-analysis",1,strdup(""),0);
+	/* if (websearch::_wconfig->_thumbs)
+	  miscutil::add_map_entry(exports,"websearch-thumbs",1,"1",1);
+	else miscutil::add_map_entry(exports,"websearch-thumbs",1,strdup(""),0); */
 	
-	if (websearch::_wconfig->_thumbs)
-	  miscutil::add_map_entry(exports,"websearch-thumbs",1,"thumbs",1);
-	else miscutil::add_map_entry(exports,"websearch-thumbs",1,strdup(""),0);
-	
-	if (websearch::_wconfig->_clustering)
-	  miscutil::add_map_entry(exports,"websearch-clustering",1,"clustering",1);
-	else miscutil::add_map_entry(exports,"websearch-clustering",1,strdup(""),0);
+	/* if (websearch::_wconfig->_clustering)
+	  miscutil::add_map_entry(exports,"websearch-clustering",1,"1",1);
+	else miscutil::add_map_entry(exports,"websearch-clustering",1,strdup(""),0); */
 		
 	// image websearch, if available.
 #ifndef FEATURE_IMG_WEBSEARCH_PLUGIN

@@ -29,13 +29,15 @@ using sp::configuration_spec;
 namespace seeks_plugins
 {
 
-/* engines in alphabetical order. */
+        /* engines in alphabetical order. */
 #define SE_BING               1U
 #define SE_CUIL               2U
 #define SE_EXALEAD            4U
 #define SE_GOOGLE             8U
-#define SE_YAHOO              16U
-   
+#define SE_IDENTICA          16U
+#define SE_TWITTER           32U
+#define SE_YAHOO             64U
+
    class websearch_configuration : public configuration_spec
      {
       public:
@@ -52,7 +54,7 @@ namespace seeks_plugins
 	virtual void finalize_configuration();
 	
 	// main options.
-	std::string _lang; /**< langage of the search results. */	
+	std::string _lang; /**< langage of the search results. */
 	int _Nr; /**< max number of search results per page. */
 	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
 	bool _thumbs; /**< enabled thumbs */
@@ -62,14 +64,14 @@ namespace seeks_plugins
 	
 	// others.
 	double _query_context_delay; /**< delay for query context before deletion, in seconds. */
-
+	
 	long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
 	long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
-
+	
 	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
 	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
 	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
-
+	
 	bool _extended_highlight;
 	
 	std::string _background_proxy_addr; /**< address of a proxy through which to fetch URLs. */
