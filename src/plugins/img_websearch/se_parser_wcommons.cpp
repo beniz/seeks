@@ -53,9 +53,6 @@ namespace seeks_plugins
 	  }
 	else if (_sr_flag && strcasecmp(tag,"table") == 0)
 	  {
-	     if (!_results_flag)
-	       _results_flag = true;
-	     
 	     const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
 	     if (a_class && strcasecmp(a_class,"searchResultImage") == 0)
 	       {
@@ -80,6 +77,9 @@ namespace seeks_plugins
 		  _count++;
 		  sp->_img_engine |= std::bitset<IMG_NSEs>(SE_WCOMMONS);
 		  pc->_current_snippet = sp;
+	       
+		  if (!_results_flag)
+		    _results_flag = true;
 	       }
 	  }
 	else if (_results_flag && strcasecmp(tag,"img") == 0)
