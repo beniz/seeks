@@ -57,7 +57,9 @@ namespace sp
    std::string seeks_proxy::_datadir = "";
    int seeks_proxy::_received_hup_signal = 0;
    int seeks_proxy::_no_daemon = 1;  // To be turned back off after debugging phase...
+#ifdef unix
    const char* seeks_proxy::_pidfile = NULL;
+#endif
    client_state seeks_proxy::_clients = client_state();
    std::vector<sweepable*> seeks_proxy::_memory_dust = std::vector<sweepable*>();
    
