@@ -103,7 +103,11 @@ namespace sp
 #ifdef FEATURE_CONNECTION_KEEP_ALIVE
      ,_keep_alive_timeout(0)
 #endif
-     ,_need_bind(0),_automatic_proxy_disable(true)
+     ,_need_bind(0),
+#ifdef FEATURE_ACL
+     _acl(NULL),
+#endif
+   _automatic_proxy_disable(true)
       {
 	 load_config();
       }

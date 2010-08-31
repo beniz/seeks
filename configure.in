@@ -406,7 +406,7 @@ fi
 # Image websearch plugin activation.
 #====================================================
 AC_ARG_ENABLE(image-websearch-plugin,
-AC_HELP_STRING([--enable-image-websearch-plugin],[Enable the Seeks image websearch plugin (default is NO)]),
+AC_HELP_STRING([--enable-image-websearch-plugin],[Enable the Seeks image websearch plugin (default is YES)]),
 [case "${enableval}" in
         yes) imgwebsearch=true ;;
                 no) imgwebsearch=false ;;
