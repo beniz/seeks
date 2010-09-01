@@ -93,7 +93,14 @@ namespace sp
 	
 	// TODO: win32...
 	
-	std::string command_str = "find " + plugin_manager::_plugin_repository + " -name *.so";
+	std::string command_str = "find " + plugin_manager::_plugin_repository 
+#if defined(ON_OPENBSD)
+	  + " -name *.so*";
+#elsif defined (ON_OSX)
+	+ " -name *plugin.dylib";
+#else
+	+ " -name *.so";
+#endif
 	FILE *dl = popen(command_str.c_str(), "r"); // reading directory.
 	if (!dl)
 	  {
