@@ -41,12 +41,12 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-   std::string feature_thread_arg::_delims = mrf::_default_delims;
+  std::string feature_thread_arg::_delims = "";
    int feature_thread_arg::_radius = 2;
    int feature_thread_arg::_step = 1;
    uint32_t feature_thread_arg::_window_length=2;
    
-   std::string feature_tfidf_thread_arg::_delims = mrf::_default_delims;
+  std::string feature_tfidf_thread_arg::_delims = "";
    int feature_tfidf_thread_arg::_radius = 1;
    int feature_tfidf_thread_arg::_step = 1;
    uint32_t feature_tfidf_thread_arg::_window_length=1;

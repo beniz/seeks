@@ -363,25 +363,27 @@ namespace seeks_plugins
 	  }
 	return param_exports;
      }
-      
-   /* auto-registration. */
+
+  /* auto-registration. */
    extern "C"
      {
-	plugin* makeiw()
+	plugin* maker()
 	  {
 	     return new img_websearch;
 	  }
      }
-   
+
+#if !defined(ON_OPENBSD) && !defined(ON_OSX)
    class proxy_autoiw
      {
       public:
 	proxy_autoiw()
 	  {
-	     plugin_manager::_factory["image-websearch"] = makeiw;
+	     plugin_manager::_factory["image-websearch"] = maker;
 	  }
      };
    
-   proxy_autoiw _p; // one instance, instanciated when dl-opening.
-      
+  proxy_autoiw _p; // one instance, instanciated when dl-opening.
+#endif
+    
 } /* end of namespace. */

@@ -21,6 +21,7 @@
 #include "stopwordlist.h"
 #include "errlog.h"
 #include "seeks_proxy.h" // for basedir.
+#include "miscutil.h" // for strndup
 
 #include <iostream>
 #include <fstream>
@@ -61,7 +62,8 @@ namespace lsh
 	  {
 	     char word[256];
 	     infile.getline(word,256);
-	     _swlist.insert(std::pair<const char*,bool>(strndup(word,strlen(word)-1),true));
+	     if (strlen(word) > 0)
+	       _swlist.insert(std::pair<const char*,bool>(strndup(word,strlen(word)-1),true));
 	  }
 	
 	errlog::log_error(LOG_LEVEL_INFO,"Loaded stop word list %s, %d words",fullfname.c_str(),

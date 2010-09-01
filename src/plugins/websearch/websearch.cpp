@@ -116,6 +116,10 @@ namespace seeks_plugins
 	  
 	  // get clock ticks per sec.
 	  websearch::_cl_sec = sysconf(_SC_CLK_TCK);
+       
+	  // initalizes content_handler
+	  feature_thread_arg::_delims = mrf::_default_delims;
+	  feature_tfidf_thread_arg::_delims = mrf::_default_delims;
        }
 
    websearch::~websearch()
@@ -779,16 +783,17 @@ namespace seeks_plugins
 					     exports,rsp);
 	return err;
      }
-   
-   /* auto-registration */
-   extern "C"
+  
+/* auto-registration */
+  extern "C"
      {
-	plugin* maker()
-	  {
-	     return new websearch;
-	  }
-     }
-   
+       plugin* maker()
+       {
+	 return new websearch;
+       }
+  }
+  
+#if !defined(ON_OPENBSD) && !defined(ON_OSX)   
    class proxy_autor
      {
       public:
@@ -796,8 +801,9 @@ namespace seeks_plugins
 	  {
 	     plugin_manager::_factory["websearch-hp"] = maker; // beware: default plugin shell with no name.
 	  }
-     };
+   };
 
   proxy_autor _p; // one instance, instanciated when dl-opening. 
-   
+#endif  
+ 
 } /* end of namespace. */

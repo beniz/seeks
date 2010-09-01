@@ -14,7 +14,7 @@
 # ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 #
 
-AC_INIT(Seeks, 0.2.4, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.2.5, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -28,9 +28,9 @@ AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
 AC_DEFINE(SEEKS_VERSION_MINOR,"2","")
-AC_DEFINE(SEEKS_VERSION_POINT,"4","")
-AC_DEFINE(SEEKS_VERSION,"0.2.4","")
-AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
+AC_DEFINE(SEEKS_VERSION_POINT,"5","")
+AC_DEFINE(SEEKS_VERSION,"0.2.5","")
+AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.
 AC_PROG_CXX
@@ -98,7 +98,7 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([access atexit getcwd gethostbyaddr gethostbyaddr_r gethostbyname gethostbyname_r gettimeofday localtime_r gmtime_r inet_ntoa memchr memmove memset poll putenv random regcomp select setlocale snprintf socket strchr strdup strerror strftime strlcat strlcpy strptime strstr strtoul timegm tzset])
+AC_CHECK_FUNCS([access atexit getcwd gethostbyaddr gethostbyaddr_r gethostbyname gethostbyname_r gettimeofday localtime_r gmtime_r inet_ntoa memchr memmove memset poll putenv random regcomp select setlocale snprintf socket strchr strdup strndup strerror strftime strlcat strlcpy strptime strstr strtoul timegm tzset])
 
 #=================================================================
 # Support for thread-safe versions of gethostbyaddr, gethostbyname,
@@ -200,6 +200,8 @@ AM_CONDITIONAL(HAVE_BSD,false)
 #=================================================================
 case "$host" in
 *-apple-darwin*) SPECIAL_CFLAGS="-Dunix"
+ AM_CONDITIONAL(HAVE_BSD,true)
+ AC_DEFINE(ON_OSX,1,"OSX")
 ;;
 esac
 
@@ -210,6 +212,7 @@ case "$host" in
 *-openbsd*) 
  SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
  AM_CONDITIONAL(HAVE_BSD,true)
+ AC_DEFINE(ON_OPENBSD,1,"OpenBSD")
 ;;
 esac
 

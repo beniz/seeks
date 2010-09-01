@@ -92,7 +92,7 @@ namespace sp
 	
 	// TODO: win32...
 	
-	std::string command_str = "find " + plugin_manager::_plugin_repository + " -name *.so";
+	std::string command_str = "find " + plugin_manager::_plugin_repository + " -name *.so*";
 	FILE *dl = popen(command_str.c_str(), "r"); // reading directory.
 	if (!dl)
 	  {
@@ -118,6 +118,16 @@ namespace sp
 	       }
 	     
 	     plugin_manager::_dl_list.insert(plugin_manager::_dl_list.end(),dlib); // add lib handle to the list.
+	  
+#if defined(ON_OPENBSD) || defined(ON_OSX)
+	     maker_ptr *pl_fct = (maker_ptr*)dlsym(dlib,"maker");
+	     if (!pl_fct)
+	       continue;
+	     
+	     plugin *pl = (*pl_fct)();
+	     if (pl)
+	       plugin_manager::_factory[pl->get_name()] = pl_fct;
+#endif	  
 	  }
 	
 	pclose(dl);

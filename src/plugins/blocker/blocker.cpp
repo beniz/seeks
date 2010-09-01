@@ -149,21 +149,23 @@ namespace seeks_plugins
   /* auto-registration */
   extern "C"
   {
-    plugin* maker_blocker()
+    plugin* maker()
     {
       return new blocker;
     }
   }
-  
+
+#if !defined(ON_OPENBSD) && !defined(ON_OSX)
   class proxy_autor_blocker
   {
   public:
     proxy_autor_blocker()
     {
-      plugin_manager::_factory["blocker"] = maker_blocker; // beware: default plugin shell with no name.
+      plugin_manager::_factory["blocker"] = maker; // beware: default plugin shell with no name.
     }
   };
   
   proxy_autor_blocker _p; // one instance, instanciated when dl-opening. 
+#endif
    
 } /* end of namespace. */

@@ -515,21 +515,23 @@ namespace seeks_plugins
    /* auto-registration */
    extern "C"
      {
-	plugin* makerh()
+	plugin* maker()
 	  {
 	     return new httpserv;
 	  }
      }
-   
+
+#if !defined(ON_OPENBSD) && !defined(ON_OSX)
    class proxy_autorh
      {
       public:
 	proxy_autorh()
 	  {
-	     plugin_manager::_factory["httpserv"] = makerh; // beware: default plugin shell with no name.
+	     plugin_manager::_factory["httpserv"] = maker; // beware: default plugin shell with no name.
 	  }
      };
    
    proxy_autorh _p; // one instance, instanciated when dl-opening.
+#endif
    
 } /* end of namespace. */
