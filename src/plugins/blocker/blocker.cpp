@@ -147,21 +147,25 @@ namespace seeks_plugins
      }
 
   /* auto-registration */
-  extern "C"
+#if defined(ON_OPENBSD) && defined(ON_OSX)
+   extern "C"
   {
     plugin* maker()
     {
       return new blocker;
     }
   }
-
-#if !defined(ON_OPENBSD) && !defined(ON_OSX)
-  class proxy_autor_blocker
+#else
+   plugin* makerb()
+     {
+	return new blocker;
+     }
+   class proxy_autor_blocker
   {
   public:
     proxy_autor_blocker()
     {
-      plugin_manager::_factory["blocker"] = maker; // beware: default plugin shell with no name.
+      plugin_manager::_factory["blocker"] = makerb; // beware: default plugin shell with no name.
     }
   };
   

@@ -365,6 +365,7 @@ namespace seeks_plugins
      }
 
   /* auto-registration. */
+#if defined(ON_OPENBSD) && defined(ON_OSX)
    extern "C"
      {
 	plugin* maker()
@@ -373,13 +374,17 @@ namespace seeks_plugins
 	  }
      }
 
-#if !defined(ON_OPENBSD) && !defined(ON_OSX)
+#else
+   plugin* makeriw()
+     {
+	return new img_websearch;
+     }
    class proxy_autoiw
      {
       public:
 	proxy_autoiw()
 	  {
-	     plugin_manager::_factory["image-websearch"] = maker;
+	     plugin_manager::_factory["image-websearch"] = makeriw;
 	  }
      };
    
