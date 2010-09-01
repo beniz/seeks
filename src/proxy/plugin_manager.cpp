@@ -142,8 +142,6 @@ namespace sp
 	  }
 	//debug
 	
-	//plugin_manager::instanciate_plugins();
-	
 	return 1;
      }
    
