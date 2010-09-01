@@ -516,6 +516,12 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBEVENT,test x$le_found = xtrue)
 
+# check on protocol buffers.
+PKG_CHECK_MODULES([protobuf],[protobuf],protobuf=true,protobuf=false)
+
+# check on tokyo cabinet.
+PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
+
 # connection keep alive
 AC_ARG_ENABLE(keepalive,
 AC_HELP_STRING([--enable-keepalive],[Enable keeping outgoing connections alive (default is NO)]),
@@ -571,6 +577,8 @@ AC_MSG_NOTICE([Configured to build seeks:
  Dependencies:
  OpenCV-2.x:		  ${opencv2}
  libevent:		  ${le_found}
+ protobuf:                ${protobuf}
+ tokyocabinet: 		  ${tokyocabinet}
 
  Enabled plugins:
  image websearch:	  ${imgwebsearch}

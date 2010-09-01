@@ -1,9 +1,10 @@
 
 
 ACLOCAL_AMFLAGS=-I m4
-lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la
+lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la libseeksuserdb.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
+	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
+	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
@@ -12,6 +13,8 @@ libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
 libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp
+libseeksuserdb_la_SOURCES=db_record_msg.pb.cc
+
 noinst_HEADERS = \
 	action_plugin.h \
 	cgi.h \
@@ -50,6 +53,9 @@ libseeksproxy_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 xsinit.cpp:
         perl -MExtUtils::Embed -e xsinit -- -o xsinit.cpp
 endif
+
+db_record.pb.cc:
+	protoc --cpp_out=. db_record_msg.proto
 
 SUBDIRS= . tests
 
