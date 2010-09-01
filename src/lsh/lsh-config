@@ -19,4 +19,5 @@ cs-stopword-list czechST.txt
 pl-stopword-list polishST.txt
 
 # delimiters for mrf tokenization.
-lsh-delims \n\t\f\r ,.;:'!?)(-|><^·&\"\\/{}#$–
+# Beware: line below is broken.
+#lsh-delims \n\t\f\r\ ,.;:'!?)(-|><^·&\"\\/{}\#$–

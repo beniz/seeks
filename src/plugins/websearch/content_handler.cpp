@@ -41,12 +41,10 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-  std::string feature_thread_arg::_delims = "";
    int feature_thread_arg::_radius = 2;
    int feature_thread_arg::_step = 1;
    uint32_t feature_thread_arg::_window_length=2;
    
-  std::string feature_tfidf_thread_arg::_delims = "";
    int feature_tfidf_thread_arg::_radius = 1;
    int feature_tfidf_thread_arg::_step = 1;
    uint32_t feature_tfidf_thread_arg::_window_length=1;
@@ -425,7 +423,7 @@ namespace seeks_plugins
      {
 	try 
 	  {
-	     mrf::tokenize_and_mrf_features(*args._txt_content,feature_thread_arg::_delims,*args._vf,
+	     mrf::tokenize_and_mrf_features(*args._txt_content,mrf::_default_delims,*args._vf,
 					    feature_thread_arg::_radius,feature_thread_arg::_step,
 					    feature_thread_arg::_window_length);
 	     mrf::unique_features(*args._vf);
@@ -441,7 +439,7 @@ namespace seeks_plugins
       
    void content_handler::generate_features_tfidf(feature_tfidf_thread_arg &args)
      {
-	mrf::tokenize_and_mrf_features(*args._txt_content,feature_tfidf_thread_arg::_delims,*args._vf,args._bow,
+	mrf::tokenize_and_mrf_features(*args._txt_content,mrf::_default_delims,*args._vf,args._bow,
 				       feature_tfidf_thread_arg::_radius,feature_tfidf_thread_arg::_step,
 				       feature_tfidf_thread_arg::_window_length,args._lang);
      }

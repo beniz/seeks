@@ -110,16 +110,9 @@ namespace seeks_plugins
 
 	  // initializes the libxml for multithreaded usage.
 	  se_parser::libxml_init();
-       
-	  // initialize mrf.
-	  mrf::init_delims();
 	  
 	  // get clock ticks per sec.
 	  websearch::_cl_sec = sysconf(_SC_CLK_TCK);
-       
-	  // initalizes content_handler
-	  feature_thread_arg::_delims = mrf::_default_delims;
-	  feature_tfidf_thread_arg::_delims = mrf::_default_delims;
        }
 
    websearch::~websearch()

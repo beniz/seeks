@@ -62,7 +62,6 @@ namespace seeks_plugins
 	std::string *_txt_content;
 	std::vector<uint32_t> *_vf;
 	
-	static std::string _delims;
 	static int _radius;
 	static int _step;
 	static uint32_t _window_length;
@@ -93,7 +92,6 @@ namespace seeks_plugins
 	hash_map<uint32_t,std::string,id_hash_uint> *_bow;
 	std::string _lang;
 	
-	static std::string _delims;
 	static int _radius;
 	static int _step;
 	static uint32_t _window_length;                   

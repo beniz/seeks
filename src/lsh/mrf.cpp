@@ -87,7 +87,7 @@ namespace lsh
 
   /*-- mrf --*/
 
-   std::string mrf::_default_delims = "\n\t\f\r ,.;:`'!?)(-|><^·&\"\\/{}#$–"; // replaced by those in lsh-config when the library is initialized.
+   std::string mrf::_default_delims = "\n\t\f\r ,.;:`'!?)(-|><^·&\"\\/{}#$–";
    uint32_t mrf::_skip_token = 0xDEADBEEF;
   uint32_t mrf::_hctable[] = { 1, 3, 5, 11, 23, 47, 97, 197, 397, 797 };
   double mrf::_epsilon = 1e-6;  // infinitesimal. 
@@ -95,11 +95,6 @@ namespace lsh
   short mrf::_array_size = 10;
   float mrf::_feature_weights[] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
   std::string mrf::_stop_word_token = "S";
-
-   void mrf::init_delims()
-     {
-	mrf::_default_delims = seeks_proxy::_lsh_config->_lsh_delims;
-     }
       
   void mrf::tokenize(const std::string &str,
 		     std::vector<std::string> &tokens,

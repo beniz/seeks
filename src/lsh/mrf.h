@@ -66,8 +66,6 @@ namespace lsh
   class mrf
   {
   public:
-     static void init_delims(); // initizlize default delimiters witgh those from configuration files.
-     
      static void tokenize(const std::string &str,
 			  std::vector<std::string> &tokens,
 			  const std::string &delim);

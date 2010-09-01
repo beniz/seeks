@@ -21,6 +21,7 @@
 #include "lsh_configuration.h"
 #include "errlog.h"
 #include "seeks_proxy.h" // for mutexes.
+#include "mrf.h"
 
 #include <iostream>
 
@@ -70,7 +71,7 @@ namespace lsh
 	  }
 	_swlists.clear();
 	
-	_lsh_delims = "\n\t\f\r ,.;:'!?)(-|><^·&\"\\/{}#$–";
+	_lsh_delims = mrf::_default_delims;
      }
       
    void lsh_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -172,6 +173,7 @@ namespace lsh
 	     break;
 	     
 	   case hash_lsh_delims:
+	     //TODO: beware, do not use, broken, use the default string instead.
 	     _lsh_delims = std::string(arg);
 	     break;
 	     
