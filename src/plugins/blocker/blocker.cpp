@@ -147,7 +147,7 @@ namespace seeks_plugins
      }
 
   /* auto-registration */
-#if defined(ON_OPENBSD) && defined(ON_OSX)
+#if defined(ON_OPENBSD) || defined(ON_OSX)
    extern "C"
   {
     plugin* maker()
