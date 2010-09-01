@@ -81,8 +81,9 @@ namespace sp
 	     assert(seeks_proxy::_basedir);
 	     plugin_manager::_plugin_repository = std::string(seeks_proxy::_basedir)
 #ifdef unix
-	       + "/plugins/";
+	       + "/plugins/"
 #endif
+	       ;
 #if defined(_WIN32)
 	     + "\plugins\\";
 #endif	

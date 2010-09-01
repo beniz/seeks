@@ -28,7 +28,7 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
-#if (defined __NetBSD__) || (defined __OpenBSD__)
+#if (defined __NetBSD__) || (defined __OpenBSD__) || (defined ON_OSX)
 #define unix 1
 #endif
 
