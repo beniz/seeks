@@ -12,7 +12,7 @@ libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
 libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp
-libseeksuserdb_la_SOURCES=db_record_msg.pb.cc db_record.cpp
+libseeksuserdb_la_SOURCES=db_record_msg.pb.cc db_record.cpp user_db.cpp
 
 noinst_HEADERS = \
 	action_plugin.h \
