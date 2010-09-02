@@ -27,6 +27,7 @@
 #include "proxy_dts.h"
 #include "sweeper.h"
 #include "lsh_configuration.h"
+#include "user_db.h"
 
 #if (defined __NetBSD__) || (defined __OpenBSD__)
 #define unix 1
@@ -132,10 +133,13 @@ namespace sp
 	static int _Argc;
 	static const char **_Argv;
 	
-	#ifdef FEATURE_TOGGLE
+#ifdef FEATURE_TOGGLE
 	/* Seeks proxy's toggle state */
 	static int _global_toggle_state;
-	#endif /* def FEATURE_TOGGLE */
+#endif /* def FEATURE_TOGGLE */
+
+	/* Seeks user database. */
+	static user_db* _user_db; 
 	
 	/*-- functions. --*/
       public:

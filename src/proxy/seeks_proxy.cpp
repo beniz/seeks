@@ -85,6 +85,8 @@ namespace sp
 #endif /* ndef HAVE_RANDOM */
 #endif
 
+   user_db* seeks_proxy::_user_db = NULL;
+   
 #ifdef FEATURE_STATISTICS
    int seeks_proxy::_urls_read = 0;
    int seeks_proxy::_urls_rejected = 0;

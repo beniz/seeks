@@ -548,6 +548,10 @@ int main(int argc, const char *argv[])
 	seeks_proxy::_run_proxy = false;
      }
    plugin_manager::instanciate_plugins();
+
+   // start user db.
+   seeks_proxy::_user_db = new user_db();
+   seeks_proxy::_user_db->open_db();
    
    // start proxy.
    if (seeks_proxy::_run_proxy)
