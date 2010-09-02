@@ -199,7 +199,7 @@ AM_CONDITIONAL(HAVE_BSD,false)
 # Mac OSX specific
 #=================================================================
 case "$host" in
-*-apple-darwin*) SPECIAL_CFLAGS="-Dunix"
+*-apple-darwin*) SPECIAL_CFLAGS="-Dunix";
  AM_CONDITIONAL(HAVE_BSD,true)
  AC_DEFINE(ON_OSX,1,"OSX")
 ;;

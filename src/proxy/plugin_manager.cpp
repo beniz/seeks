@@ -81,8 +81,9 @@ namespace sp
 	     assert(seeks_proxy::_basedir);
 	     plugin_manager::_plugin_repository = std::string(seeks_proxy::_basedir)
 #ifdef unix
-	       + "/plugins/";
+	       + "/plugins/"
 #endif
+	       ;
 #if defined(_WIN32)
 	     + "\plugins\\";
 #endif	
@@ -92,7 +93,14 @@ namespace sp
 	
 	// TODO: win32...
 	
-	std::string command_str = "find " + plugin_manager::_plugin_repository + " -name *.so*";
+	std::string command_str = "find " + plugin_manager::_plugin_repository 
+#if defined(ON_OPENBSD)
+	  + " -name *.so*";
+#elsif defined (ON_OSX)
+	+ " -name *plugin.dylib";
+#else
+	+ " -name *.so";
+#endif
 	FILE *dl = popen(command_str.c_str(), "r"); // reading directory.
 	if (!dl)
 	  {
@@ -141,8 +149,6 @@ namespace sp
 	     mit++;
 	  }
 	//debug
-	
-	//plugin_manager::instanciate_plugins();
 	
 	return 1;
      }

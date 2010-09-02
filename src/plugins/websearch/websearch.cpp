@@ -778,7 +778,8 @@ namespace seeks_plugins
      }
   
 /* auto-registration */
-  extern "C"
+#if defined(ON_OPENBSD) || defined(ON_OSX)
+   extern "C"
      {
        plugin* maker()
        {
@@ -786,7 +787,11 @@ namespace seeks_plugins
        }
   }
   
-#if !defined(ON_OPENBSD) && !defined(ON_OSX)   
+#else
+   plugin* maker()
+     {
+	return new websearch;
+     }
    class proxy_autor
      {
       public:

@@ -29,7 +29,7 @@
 #include "lsh_configuration.h"
 #include "user_db.h"
 
-#if (defined __NetBSD__) || (defined __OpenBSD__)
+#if (defined __NetBSD__) || (defined __OpenBSD__) || (defined ON_OSX)
 #define unix 1
 #endif
 
