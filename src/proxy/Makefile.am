@@ -3,8 +3,7 @@
 ACLOCAL_AMFLAGS=-I m4
 lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la libseeksuserdb.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
-	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
@@ -13,7 +12,7 @@ libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
 libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp
-libseeksuserdb_la_SOURCES=db_record_msg.pb.cc
+libseeksuserdb_la_SOURCES=db_record_msg.pb.cc db_record.cpp
 
 noinst_HEADERS = \
 	action_plugin.h \
@@ -42,10 +41,11 @@ noinst_HEADERS = \
 	sp_err.h \
 	spsockets.h \
 	sweeper.h \
-	urlmatch.h
+	urlmatch.h 
 
 libseeksproxy_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' -DSEEKS_DATADIR='"$(datadir)/seeks/"' -DSEEKS_PLUGINS_LIBDIR='"$(libdir)/seeks/plugins/"'
 libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
+libseeksuserdb_la_CXXFLAGS=-Wall -g `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 if USE_PERL
 libseeksplugins_la_SOURCES += perl_std_filter.cpp xsinit.cpp
 libseeksplugins_la_CXXFLAGS +=`perl -MExtUtils::Embed -e ccopts`
@@ -54,7 +54,7 @@ xsinit.cpp:
         perl -MExtUtils::Embed -e xsinit -- -o xsinit.cpp
 endif
 
-db_record.pb.cc:
+db_record_msg.pb.cc:
 	protoc --cpp_out=. db_record_msg.proto
 
 SUBDIRS= . tests
