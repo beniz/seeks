@@ -47,7 +47,7 @@ namespace sp
 	     const char *pw_dir = pw->pw_dir;
 	     if(pw_dir)
 	       {
-		  _name = std::string(pw_dir) + ".seeks/";
+		  _name = std::string(pw_dir) + "/.seeks/";
 		  int err = mkdir(_name.c_str(),0730); // create .seeks repository in case it does not exist.
 		  if (err != 0 && errno != EEXIST) // all but file exist errors.
 		    {
