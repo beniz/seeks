@@ -1,6 +1,7 @@
 lib_LTLIBRARIES=libseekslsh.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I${srcdir} -I${srcdir}/../utils/ -I${srcdir}/../proxy/
+	    -I${srcdir} -I${srcdir}/../utils/ -I${srcdir}/../proxy/ \
+	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 libseekslsh_la_CXXFLAGS=@PCRE_CFLAGS@
 libseekslsh_la_SOURCES=mrf.cpp LSHSystemHamming.cpp LSHFunction.cpp \
 		       LSHUniformHashTableHamming.cpp Random.cpp \

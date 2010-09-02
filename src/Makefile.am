@@ -6,8 +6,9 @@ seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
-	    -Iplugins/websearch `pkg-config opencv --cflags`
-AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch
+	    -Iplugins/websearch `pkg-config opencv --cflags` `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch \
+	   `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
@@ -20,7 +21,7 @@ if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_LDFLAGS += -Lplugins/img_websearch
 LDADD += -lseeksimgwebsearchplugin
 endif
-LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
+LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lseeksuserdb -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
 if !HAVE_BSD
 LDADD += -ldl
 endif

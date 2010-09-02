@@ -3,7 +3,8 @@
 ACLOCAL_AMFLAGS=-I m4
 lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la libseeksuserdb.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
+	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
+	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
@@ -45,7 +46,7 @@ noinst_HEADERS = \
 
 libseeksproxy_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' -DSEEKS_DATADIR='"$(datadir)/seeks/"' -DSEEKS_PLUGINS_LIBDIR='"$(libdir)/seeks/plugins/"'
 libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
-libseeksuserdb_la_CXXFLAGS=-Wall -g `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+libseeksuserdb_la_CXXFLAGS=-Wall -g
 if USE_PERL
 libseeksplugins_la_SOURCES += perl_std_filter.cpp xsinit.cpp
 libseeksplugins_la_CXXFLAGS +=`perl -MExtUtils::Embed -e ccopts`
