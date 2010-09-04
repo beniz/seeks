@@ -34,6 +34,7 @@ namespace sp
    std::string user_db::_db_name = "seeks_user.db";
    
    user_db::user_db()
+     :_opened(false)
      {
 	// create the db.
 	_hdb = tchdbnew();
