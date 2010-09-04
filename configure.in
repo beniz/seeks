@@ -562,6 +562,7 @@ src/plugins/img_websearch/Makefile \
 src/plugins/img_websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \
 src/plugins/blocker/Makefile \
+src/plugins/uri_capture/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT

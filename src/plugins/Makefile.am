@@ -1,4 +1,4 @@
-SUBDIRS=websearch blocker
+SUBDIRS=websearch blocker uri_capture
 if HAVE_IMG_WEBSEARCH_PLUGIN
 SUBDIRS+=img_websearch
 endif
