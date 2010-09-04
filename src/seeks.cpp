@@ -532,6 +532,10 @@ int main(int argc, const char *argv[])
    // loads iso639 table.
    iso639::initialize();
    
+   // start user db before plugins so they can work with it.
+   seeks_proxy::_user_db = new user_db();
+   seeks_proxy::_user_db->open_db();
+      
    // loads plugins.
    errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");
    plugin_manager::load_all_plugins();
@@ -548,10 +552,6 @@ int main(int argc, const char *argv[])
 	seeks_proxy::_run_proxy = false;
      }
    plugin_manager::instanciate_plugins();
-
-   // start user db.
-   seeks_proxy::_user_db = new user_db();
-   seeks_proxy::_user_db->open_db();
    
    // start proxy.
    if (seeks_proxy::_run_proxy)
