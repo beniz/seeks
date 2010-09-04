@@ -2286,6 +2286,9 @@ namespace sp
 		       unlink(seeks_proxy::_pidfile);
 		    }
 # endif /* unix */
+		  /* closing the user database. */
+		  if (seeks_proxy::_user_db)
+		    seeks_proxy::_user_db->close_db();
 		  exit(the_signal);
 		  break;
 		  
