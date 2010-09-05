@@ -11,7 +11,8 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 				   se_parser_mediawiki.cpp se_parser_twitter.cpp \
-				   se_parser_identica.cpp se_parser_dailymotion.cpp\
+				   se_parser_identica.cpp se_parser_youtube.cpp\
+				   se_parser_dailymotion.cpp \
 				   query_interceptor.cpp websearch_configuration.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp \
