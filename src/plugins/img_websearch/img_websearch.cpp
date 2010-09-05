@@ -115,15 +115,15 @@ namespace seeks_plugins
 	     const char *query = miscutil::lookup(parameters,"q"); // grab the query.
 	     if (!query || strlen(query) == 0)
 	       {
-		  // return websearch homepage instead.
-		  return websearch::cgi_websearch_hp(csp,rsp,parameters);
+		  // return 400 error.
+		  return cgi::cgi_error_bad_param(csp,rsp);
 	       }
 	     else se_handler::preprocess_parameters(parameters); // preprocess the query...
 	     
 	     // perform websearch or other requested action.
 	     const char *action = miscutil::lookup(parameters,"action");
 	     if (!action)
-	       return websearch::cgi_websearch_hp(csp,rsp,parameters);
+	       return cgi::cgi_error_bad_param(csp,rsp);
 	     
 	     sp_err err = SP_ERR_OK;
 	     if (strcmp(action,"expand") == 0 || strcmp(action,"page") == 0)
@@ -134,7 +134,7 @@ namespace seeks_plugins
 #endif
 	     return err;
 	  }
-	else return SP_ERR_OK;
+	else return cgi::cgi_error_bad_param(csp,rsp);
      }			  
    
 #ifdef FEATURE_OPENCV2
@@ -158,6 +158,8 @@ namespace seeks_plugins
 		    return SP_ERR_MEMORY;
 	       }
 	     const char *id = miscutil::lookup(parameters,"id");
+	     if (!id)
+	       return cgi::cgi_error_bad_param(csp,rsp);
 	     
 	     seeks_proxy::mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
@@ -169,7 +171,7 @@ namespace seeks_plugins
 	       {
 		  qc->_lock = false;
 		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-		  return SP_ERR_OK;
+		  return cgisimple::cgi_error_404(csp,rsp,parameters);
 	       }
 	     
 	     const char *output = miscutil::lookup(parameters,"output");
@@ -214,7 +216,7 @@ namespace seeks_plugins
 	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	     return err;
 	  }
-	else return SP_ERR_OK;
+	else return cgi::cgi_error_bad_param(csp,rsp);
      }
 #endif
    
@@ -247,6 +249,9 @@ namespace seeks_plugins
 	  {
 	     if (strcmp(action,"expand") == 0)
 	       {
+		  const char *expansion = miscutil::lookup(parameters,"expansion");
+		  if (!expansion)
+		    return cgi::cgi_error_bad_param(csp,rsp);
 		  expanded = true;
 		  
 		  seeks_proxy::mutex_lock(&qc->_qc_mutex);
@@ -257,6 +262,10 @@ namespace seeks_plugins
 	       }
 	     else if (strcmp(action,"page") == 0)
 	       {
+		  const char *page = miscutil::lookup(parameters,"page");
+		  if (!page)
+		    return cgi::cgi_error_bad_param(csp,rsp);
+		  
 		  // XXX: update other parameters, as needed, qc vs parameters.
 		  qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 	       }
@@ -265,6 +274,10 @@ namespace seeks_plugins
 	  {
 	     // new context, whether we're expanding or not doesn't matter, we need
 	     // to generate snippets first.
+	     const char *expansion = miscutil::lookup(parameters,"expansion");
+	     if (!expansion)
+	       return cgi::cgi_error_bad_param(csp,rsp);
+	     
 	     expanded = true;
 	     qc = new img_query_context(parameters,csp->_headers);
 	     qc->register_qc();

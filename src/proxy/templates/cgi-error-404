@@ -69,7 +69,7 @@
 <html>
 
 <head>
-  <title>404 - Privoxy Configuration Page not found</title>
+  <title>404 - Seeks proxy Configuration Page not found</title>
   <meta http-equiv="Content-Style-Type" content="text/css">
   <meta http-equiv="Content-Script-Type" content="text/javascript">
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -105,11 +105,11 @@
 
     <tr>
       <td class="warning" colspan="2">
-        <h2>Privoxy Configuration page not found</h2>
+        <h2>Seeks proxy Configuration page not found</h2>
             <p>You typed in what looks like a URL used to configure
-               Privoxy, but it cannot be recognised.  Maybe it's
-               for a different Privoxy version, or you typed it
-               in wrong?  Or maybe the Privoxy administrator
+               Seeks proxy, but it cannot be recognised.  Maybe it's
+               for a different Seeks proxy version, or you typed it
+               in wrong?  Or maybe the Seeks proxy administrator
                has decided to disable the feature.</p>
             <p>If you got here by clicking a link in the
                configuration interface, please file a bug report!</p>
@@ -120,7 +120,7 @@
 
     <tr>
       <td class="box" colspan="2">
-        <h2>More Privoxy:</h2>
+        <h2>More Seeks proxy:</h2>
         <ul>@menu@<li><a href="@user-manual@">Documentation</a></li></ul>
       </td>
     </tr>
