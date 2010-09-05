@@ -28,6 +28,9 @@ endif
 
 SUBDIRS=. tests
 
+imgwebsearchpluginconfigdir=$(sysconfdir)/seeks
+dist_imgwebsearchpluginconfig_DATA=img-websearch-config
+
 nobase_dist_imgwebsearchplugindata_DATA= \
 	templates/css/seeks_img_search.css \
 	templates/seeks_result_template.html \
