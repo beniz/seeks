@@ -761,8 +761,8 @@ namespace seeks_plugins
 	// seeks rank.
 	if (s1->_doc_type == TWEET)
 	  {
-	     if (s1->_seeks_rank == 0)
-	       s1->_seeks_rank = 1;
+	     if (s1->_seeks_rank <= 0)
+	       s1->_seeks_rank++;
 	     s1->_seeks_rank++; // similarity detects retweets and merges them.
 	  }
 	else s1->_seeks_rank = s1->_engine.count();

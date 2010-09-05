@@ -224,50 +224,58 @@ namespace seeks_plugins
      
      if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
        horizon = websearch::_wconfig->_max_expansions;
-       
+     
+     const char *cache_check = miscutil::lookup(parameters,"ccheck");
+     
      // grab requested engines, if any.
      // if the list is not included in that of the context, update existing results and perform requested expansion.
      // if the list is included in that of the context, perform expansion, results will be filtered later on.
-     std::bitset<NSEs> beng;
-     const char *eng = miscutil::lookup(parameters,"engines");
-     if (eng)
+     if (!cache_check || strcasecmp(cache_check,"yes") == 0)
        {
-	  query_context::fillup_engines(parameters,beng);
-       }
-     else beng = websearch::_wconfig->_se_enabled;
-     
-     // test inclusion.
-     std::bitset<NSEs> inc = beng;
-     inc &= _engines;
-     if (inc.count() == beng.count())
-       {
-	  // included, nothing more to be done.
-       }
-     else // test intersection.
-       {
-	  std::bitset<NSEs> bint;
-	  for (int b=0;b<NSEs;b++)
+	  std::bitset<NSEs> beng;
+	  const char *eng = miscutil::lookup(parameters,"engines");
+	  if (eng)
 	    {
-	       if (beng[b] && !inc[b])
-		 bint.set(b);
+	       query_context::fillup_engines(parameters,beng);
 	    }
+	  else beng = websearch::_wconfig->_se_enabled;
 	  
-	  // catch up expansion with the newly activated engines.
-	  expand(csp,rsp,parameters,0,_page_expansion,bint);
-	  expanded = true;
-	  _engines |= bint;
-       }
-     
-     // seeks button used as a back button.
-     if (_page_expansion > 0 && horizon <= (int)_page_expansion)
-       {
-	  // reset expansion parameter.
-	  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-	  return SP_ERR_OK;
+	  // test inclusion.
+	  std::bitset<NSEs> inc = beng;
+	  inc &= _engines;
+	  if (inc.count() == beng.count())
+	    {
+	       // included, nothing more to be done.
+	    }
+	  else // test intersection.
+	    {
+	       std::bitset<NSEs> bint;
+	       for (int b=0;b<NSEs;b++)
+		 {
+		    if (beng[b] && !inc[b])
+		      bint.set(b);
+		 }
+	       
+	       // catch up expansion with the newly activated engines.
+	       expand(csp,rsp,parameters,0,_page_expansion,bint);
+	       expanded = true;
+	       _engines |= bint;
+	    }
+          
+	  // seeks button used as a back button.
+	  if (_page_expansion > 0 && horizon <= (int)_page_expansion)
+	    {
+	       // reset expansion parameter.
+	       query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+	       return SP_ERR_OK;
+	    }
        }
      
      // perform requested expansion.
-     expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
+     if (!cache_check)
+       expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
+     else if (strcasecmp(cache_check,"no") == 0)
+       expand(csp,rsp,parameters,0,horizon,_engines);
      expanded = true;
      
      // update horizon.

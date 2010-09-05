@@ -57,6 +57,11 @@ namespace seeks_plugins
 	if (ca && strcasecmp(ca,"on") == 0)
 	  content_analysis = true;
 	
+	const char *cache_check = miscutil::lookup(parameters,"ccheck");
+	bool ccheck = true;
+	if (cache_check && strcasecmp(cache_check,"no") == 0)
+	  ccheck = false;
+	
 	// initializes the LSH subsystem is we need it and it has not yet
 	// been initialized.
 	if (content_analysis && !qc->_ulsh_ham)
@@ -77,6 +82,10 @@ namespace seeks_plugins
 	while(it != snippets.end())
 	  {
 	     search_snippet *sp = (*it);
+	     
+	     if (!ccheck && sp->_doc_type == TWEET)
+	       sp->_seeks_rank = -1; // reset the rank because it includes retweets.
+	     
 	     if (sp->_new)
 	       {
 		  if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
