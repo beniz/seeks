@@ -258,15 +258,16 @@ namespace seeks_plugins
 	return json_str;
      }
       
-   std::string search_snippet::to_html()
+   std::string search_snippet::to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::vector<std::string> words;
 	std::string base_url_str;
-	return to_html_with_highlight(words,base_url_str);
+	return to_html_with_highlight(words,base_url_str,parameters);
      }
 
    std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
-						      const std::string &base_url_str)
+						      const std::string &base_url_str,
+						      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
 	std::string html_content = "<li class=\"search_snippet\"";
@@ -401,12 +402,12 @@ namespace seeks_plugins
 	
 	if (!_sim_back)
 	  {
-	     set_similarity_link();
+	     set_similarity_link(parameters);
 	     html_content += "<a class=\"search_cache\" href=\"";
 	  }
 	else
 	  {
-	     set_back_similarity_link();
+	     set_back_similarity_link(parameters);
 	     html_content += "<a class=\"search_similarity\" href=\"";
 	  }
 	html_content += base_url_str + _sim_link;
@@ -557,19 +558,25 @@ namespace seeks_plugins
 	_archive = "http://web.archive.org/web/*/" + _url;
      }
    	
-   void search_snippet::set_similarity_link()
+   void search_snippet::set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
+	const char *engines = miscutil::lookup(parameters,"engines");
 	_sim_link = "/search?q=" + _qc->_url_enc_query 
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion) 
-	    + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id);
+	    + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id) + "&amp;engines=";
+	if (engines)
+	  _sim_link += std::string(engines);
 	_sim_back = false;
      }
       
-   void search_snippet::set_back_similarity_link()
+   void search_snippet::set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
+	const char *engines = miscutil::lookup(parameters,"engines");
 	_sim_link = "/search?q=" + _qc->_url_enc_query
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion) 
-	    + "&amp;action=expand";
+	    + "&amp;action=expand&amp;engines=";
+	if (engines)
+	  _sim_link += std::string(engines);
 	_sim_back = true;
      }
       
