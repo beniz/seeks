@@ -356,6 +356,10 @@ namespace seeks_plugins
       "http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num",
       // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
       "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs="
+      //http://fr.wikipedia.org/w/index.php?title=Spécial:Recherche&limit=20&offset=20&ns0=1&redirs=1&search=parser
+      // http://gdata.youtube.com/feeds/base/videos?q=sax roll&client=ytapi-youtube-search&alt=rss&v=2
+      // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
+      // http://fr.yauba.com/?query=thé vert&sess=8787a3a3a303a3a313a313238333739343830313&where=websites&target=websites&vid=l109129243154I1283794801&con=y&tag=2332379699I1283794801&clt=topic&pg=2
     };
 
    se_ggle se_handler::_ggle = se_ggle();
