@@ -270,11 +270,14 @@ namespace seeks_plugins
 						      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
-	std::string html_content = "<li class=\"search_snippet\"";
-/*	if ( websearch::_wconfig->_thumbs )	
+	std::string html_content = "<li class=\"search_snippet";
+	if (_doc_type == VIDEO)
+	  html_content += " search_snippet_img";
+	html_content += "\"";
+	/*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
 	html_content += ">";
-	if (_doc_type != TWEET 
+	if (_doc_type != TWEET && _doc_type != VIDEO
 	    && websearch::_wconfig->_thumbs )
 	  {
 	     if (_doc_type != TWEET)
@@ -289,6 +292,18 @@ namespace seeks_plugins
 	  {
 	     html_content += "<a href=\"" + _cite + "\">";
 	     html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" /></a>"; // _cached contains the profile's image.
+	  }
+	if (_doc_type == VIDEO)
+	  {
+	     html_content += "<a href=\"";
+	     html_content += _url + "\"><img src=\"";
+	     html_content += _cached;
+	     html_content += "\"></a><div>";
+	     
+	     /* html_content += html_content += "<a href=\"" + _url + "\">";
+	     html_content += "<img src=\"";
+	     html_content += _cached;
+	     html_content += "\" /></a>"; */
 	  }
 	html_content += "<h3><a href=\"";
 	html_content += _url;
@@ -380,7 +395,7 @@ namespace seeks_plugins
 	free_const(cite_enc);
 	html_content += "</cite>\n";
 	
-	if (!_cached.empty())
+	if (!_cached.empty() && _doc_type != TWEET && _doc_type != VIDEO)
 	  {
 	     char *enc_cached = encode::html_encode(_cached.c_str());
 	     miscutil::chomp(enc_cached);
@@ -389,7 +404,7 @@ namespace seeks_plugins
 	     html_content += "\">Cached</a>";
 	     free_const(enc_cached);
 	  }
-	if (_doc_type != TWEET)
+	if (_doc_type != TWEET && _doc_type != VIDEO)
 	  {
 	     if (_archive.empty())
 	       {
@@ -400,20 +415,23 @@ namespace seeks_plugins
 	     html_content += "\">Archive</a>";
 	  }
 	
-	if (!_sim_back)
+	if (_doc_type != VIDEO)
 	  {
-	     set_similarity_link(parameters);
-	     html_content += "<a class=\"search_cache\" href=\"";
+	     if (!_sim_back)
+	       {
+		  set_similarity_link(parameters);
+		  html_content += "<a class=\"search_cache\" href=\"";
+	       }
+	     else
+	       {
+		  set_back_similarity_link(parameters);
+		  html_content += "<a class=\"search_similarity\" href=\"";
+	       }
+	     html_content += base_url_str + _sim_link;
+	     if (!_sim_back)
+	       html_content += "\">Similar</a>";
+	     else html_content += "\">Back</a>";
 	  }
-	else
-	  {
-	     set_back_similarity_link(parameters);
-	     html_content += "<a class=\"search_similarity\" href=\"";
-	  }
-	html_content += base_url_str + _sim_link;
-	if (!_sim_back)
-	  html_content += "\">Similar</a>";
-	else html_content += "\">Back</a>";
 	
 	if (_cached_content)
 	  {

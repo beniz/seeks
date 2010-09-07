@@ -43,34 +43,35 @@ namespace seeks_plugins
 
                 if (strcasecmp(tag, "item") == 0)
                 {
-                        std::cout << "<item>" << std::endl;
+                        //std::cout << "<item>" << std::endl;
                         _in_item = true;
                         // create new snippet.
-                        search_snippet *sp = new search_snippet(_count + 1);
+		   search_snippet *sp = new search_snippet(_count + 1);
                         _count++;
-                        sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
+		   sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
+		   sp->_doc_type = VIDEO;
                         pc->_current_snippet = sp;
                         //const char *a_link = se_parser::get_attribute((const char**)attributes, "rdf:about");
                         //pc->_current_snippet->_url = std::string(a_link);
                 }
                 if (_in_item && strcasecmp(tag, "title") == 0)
                 {
-                        std::cout << "  <title>" << std::endl;
+                        //std::cout << "  <title>" << std::endl;
                         _in_title = true;
                 }
                 if (_in_item && strcasecmp(tag, "pubDate") == 0)
                 {
-                        std::cout << "  <pubDate>" << std::endl;
+                        //std::cout << "  <pubDate>" << std::endl;
                         _in_date = true;
                 }
                 if (_in_item && strcasecmp(tag, "link") == 0)
                 {
-                        std::cout << "  <link>" << std::endl;
+                        //std::cout << "  <link>" << std::endl;
                         _in_link = true;
                 }
                 if (_in_item && strcasecmp(tag, "description") == 0)
                 {
-                        std::cout << "  <description>" << std::endl;
+                        //std::cout << "  <description>" << std::endl;
                         _in_description = true;
                 }
         }
@@ -86,7 +87,7 @@ namespace seeks_plugins
                         const xmlChar *chars,
                         int length)
         {
-                handle_characters(pc, chars, length);
+	   //handle_characters(pc, chars, length);
         }
 
         void se_parser_youtube::handle_characters(parser_context *pc,
@@ -95,30 +96,23 @@ namespace seeks_plugins
         {
                 if (_in_description)
                 {
-                        std::string a_chars = std::string((char*)chars);
+		   std::string a_chars = std::string((char*)chars);
                         miscutil::replace_in_string(a_chars,"\n"," ");
                         miscutil::replace_in_string(a_chars,"\r"," ");
                         _description += a_chars;
                 }
-                if (_in_link)
+	   else if (_in_link)
+	     {
+		//std::cout << "    in link" << std::endl;
+		_link.append((char*)chars,length);
+		}
+                else if (_in_date)
                 {
-                        std::cout << "    in link" << std::endl;
-                        // DOESN'T FUCKING WORK, STUPID BUG IN THE PARSER :<<<
+		   _date.append((char*)chars,length);
                 }
-                if (_in_date)
+                else if (_in_title)
                 {
-                        std::string a_chars = std::string((char*)chars);
-                        miscutil::replace_in_string(a_chars,"\n"," ");
-                        miscutil::replace_in_string(a_chars,"\r"," ");
-                        _date += a_chars;
-                }
-                if (_in_title)
-                {
-                        std::string a_chars = std::string((char*)chars);
-                        miscutil::replace_in_string(a_chars,"\n"," ");
-                        miscutil::replace_in_string(a_chars,"\r"," ");
-                        miscutil::replace_in_string(a_chars,"-"," ");
-                        _title += a_chars;
+		   _title.append((char*)chars,length);
                 }
         }
 
@@ -134,27 +128,27 @@ namespace seeks_plugins
                         int start = _description.find("src=\"");
                         int end = _description.find(".jpg\"", start + 5);
                         _description = _description.substr(start + 5, end - start - 1);
-                        std::cout << "    " << _description << std::endl;
+                        //std::cout << "    " << _description << std::endl;
 
-                        std::cout << "  </description>" << std::endl;
+		   //std::cout << "  </description>" << std::endl;
                         _in_description = false;
                         pc->_current_snippet->_cached = _description;
                         _description = "";
                 }
-                if (_in_item && strcasecmp(tag, "item") == 0)
+                else if (_in_item && strcasecmp(tag, "item") == 0)
                 {
-                        std::cout << "</item>" << std::endl;
+		   //std::cout << "</item>" << std::endl;
                         _in_item = false;
 
                         // assert previous snippet if any.
                         if (pc->_current_snippet)
                         {
-                                if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-                                        //|| pc->_current_snippet->_url.empty())
+			   if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
+			       || pc->_current_snippet->_url.empty()
                                         || pc->_current_snippet->_cached.empty()
                                         || pc->_current_snippet->_date.empty())
                                 {
-                                        std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << std::endl;
+				   std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << std::endl;
                                         delete pc->_current_snippet;
                                         pc->_current_snippet = NULL;
                                         _count--;
@@ -162,26 +156,29 @@ namespace seeks_plugins
                                 else pc->_snippets->push_back(pc->_current_snippet);
                         }
                 }
-                if (_in_item && _in_date && strcasecmp(tag, "pubDate") == 0)
+                else if (_in_item && _in_date && strcasecmp(tag, "pubDate") == 0)
                 {
-                        std::cout << "    " << _date << std::endl;
-                        std::cout << "  </pubDate>" << std::endl;
+		   //std::cout << "    " << _date << std::endl;
+		   //std::cout << "  </pubDate>" << std::endl;
                         _in_date = false;
                         pc->_current_snippet->_date = _date;
                         _date = "";
                 }
-                if (_in_item && _in_title && strcasecmp(tag, "title") == 0)
+                else if (_in_item && _in_title && strcasecmp(tag, "title") == 0)
                 {
-                        std::cout << "    " << _title << std::endl;
-                        std::cout << "  </title>" << std::endl;
+                        //std::cout << "    " << _title << std::endl;
+		   //std::cout << "  </title>" << std::endl;
                         _in_title = false;
                         pc->_current_snippet->_title = _title;
                         _title = "";
                 }
-                if (_in_item && _in_link && strcasecmp(tag, "link") == 0)
+                else if (_in_item && _in_link && strcasecmp(tag, "link") == 0)
                 {
-                        std::cout << "  </link>" << std::endl;
-                        _in_link = false;
+		   //std::cout << "  </link>" << std::endl;
+		   miscutil::replace_in_string(_link,"&feature=youtube_gdata",""),
+		   pc->_current_snippet->set_url(_link);
+		   _in_link = false;
+		   _link = "";
                 }
         }
 

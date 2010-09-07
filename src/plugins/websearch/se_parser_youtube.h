@@ -59,7 +59,8 @@ namespace seeks_plugins
         bool _in_description;
 
         std::string _title;
-        std::string _date;
+	std::string _link;
+	std::string _date;
         std::string _description;
      };
 
