@@ -165,7 +165,7 @@ namespace seeks_plugins
 	     qc->_lock = true;
 	     img_search_snippet *ref_sp = NULL;
 	     
-	     img_sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets);
+	     img_sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets,parameters);
 	     
 	     if (!ref_sp)
 	       {
@@ -211,7 +211,7 @@ namespace seeks_plugins
 		  (*vit)->_seeks_ir = 0;
 		  ++vit;
 	       }
-	     ref_sp->set_similarity_link(); // reset sim_link.
+	     ref_sp->set_similarity_link(parameters); // reset sim_link.
 	     qc->_lock = false;
 	     seeks_proxy::mutex_unlock(&qc->_qc_mutex);
 	     return err;

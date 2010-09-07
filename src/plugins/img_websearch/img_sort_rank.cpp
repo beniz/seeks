@@ -140,7 +140,8 @@ namespace seeks_plugins
 #ifdef FEATURE_OPENCV2
    void img_sort_rank::score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
 						    img_search_snippet *&ref_sp,
-						    std::vector<search_snippet*> &sorted_snippets)
+						    std::vector<search_snippet*> &sorted_snippets,
+						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
 	uint32_t id = (uint32_t)strtod(id_str,NULL);
 	
@@ -149,7 +150,7 @@ namespace seeks_plugins
 	if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
 	  return;
 	
-	ref_sp->set_back_similarity_link();
+	ref_sp->set_back_similarity_link(parameters);
 	
 	img_content_handler::fetch_all_img_snippets_and_features(qc);
 	
