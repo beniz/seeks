@@ -1,3 +1,12 @@
+* Bubs-0.2.5-SOLO-stable
+
+- Tweets search, from Twitter and Identi.ca. Automatic aggregation
+of retweets. Automated clustering of tweets.
+
+- Videos search, from Youtube and Dailymotion.
+
+- Fixes and improvements to the REST API.
+
 * Bubs-0.2.4-SOLO-stable
 This releases brings image metasearch in the form of a new plugin, as
 well as many improvements to memory management and stability.
