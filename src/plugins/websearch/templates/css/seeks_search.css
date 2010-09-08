@@ -90,6 +90,14 @@ body {
 	height:50px;
 }
 
+#search_results .search_snippet .video_profile {
+        #float: center;
+        padding: 0px 0px 0px 7px;
+        #margin-bottom: 30px;
+        #width: 130px;
+        height:110px;
+}
+
 #search_results .focused .preview {
 	display: inline;
 }

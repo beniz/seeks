@@ -161,7 +161,7 @@ namespace seeks_plugins
 		   //std::cout << "    " << _date << std::endl;
 		   //std::cout << "  </pubDate>" << std::endl;
                         _in_date = false;
-                        pc->_current_snippet->_date = _date;
+                        pc->_current_snippet->set_date(_date);
                         _date = "";
                 }
                 else if (_in_item && _in_title && strcasecmp(tag, "title") == 0)

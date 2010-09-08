@@ -296,7 +296,7 @@ namespace seeks_plugins
 	if (_doc_type == VIDEO)
 	  {
 	     html_content += "<a href=\"";
-	     html_content += _url + "\"><img src=\"";
+	     html_content += _url + "\"><img class=\"video_profile\" src=\"";
 	     html_content += _cached;
 	     html_content += "\"></a><div>";
 	     
@@ -390,13 +390,20 @@ namespace seeks_plugins
 	else html_content += "<div>";
 	
 	const char *cite_enc = NULL;
-	if (!_cite.empty())
+	if (_doc_type != VIDEO)
 	  {
-	     cite_enc = encode::html_encode(_cite.c_str());
+	     if (!_cite.empty())
+	       {
+		  cite_enc = encode::html_encode(_cite.c_str());
+	       }
+	     else 
+	       {
+		  cite_enc = encode::html_encode(_url.c_str());
+	       }
 	  }
-	else 
+	else
 	  {
-	     cite_enc = encode::html_encode(_url.c_str());
+	     cite_enc = encode::html_encode(_date.c_str());
 	  }
 	if (!_summary.empty())
 	  html_content += "<br>";
@@ -579,6 +586,16 @@ namespace seeks_plugins
 	char* str = encode::html_encode(summary.c_str());
 	_summary = std::string(str);
 	free(str);
+     }
+   
+   void search_snippet::set_date(const std::string &date)
+     {
+	size_t p = date.find("+");
+	if (p != std::string::npos)
+	  {
+	     _date = date.substr(0,p-1);
+	  }
+	else _date = date;
      }
    
    void search_snippet::set_archive_link()

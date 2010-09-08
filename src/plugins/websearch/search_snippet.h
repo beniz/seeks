@@ -117,6 +117,8 @@ namespace seeks_plugins
 	void set_summary(const std::string &summary);
 	void set_summary(const char *summary);
 	
+	void set_date(const std::string &date);
+	
 	// sets a link to the archived url at archive.org (e.g. in case we'no cached link).
 	void set_archive_link();
 
