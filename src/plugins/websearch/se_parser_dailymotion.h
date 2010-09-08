@@ -57,7 +57,7 @@ namespace seeks_plugins
         bool _in_link;
         bool _in_pubdate;
         bool _in_summary;
-        bool _in_keywords;
+        //bool _in_keywords;
 
         std::string _link;
         std::string _title;

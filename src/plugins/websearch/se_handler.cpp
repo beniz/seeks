@@ -33,6 +33,7 @@
 #include "se_parser_exalead.h"
 #include "se_parser_twitter.h"
 #include "se_parser_youtube.h"
+#include "se_parser_dailymotion.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -377,7 +378,40 @@ namespace seeks_plugins
 	
 	url = q_yt;
      }
-      
+
+   se_dailymotion::se_dailymotion()
+     :search_engine()
+       {
+       }
+   
+   se_dailymotion::~se_dailymotion()
+     {
+     }
+   
+   void se_dailymotion::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				    std::string &url, const query_context *qc)
+     {
+	std::string q_dm = se_handler::_se_strings[DAILYMOTION];
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// query.
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	miscutil::replace_in_string(q_dm,"%query",qenc_str);
+	
+	// page.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp = (strcmp(expansion,"")!=0) ? atoi(expansion) : 1;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_dm,"%start",pp_str);
+     
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying dailymotion: %s", q_dm.c_str());
+	
+	url = q_dm;
+     }
+   
    /*- se_handler. -*/
    std::string se_handler::_se_strings[NSEs] =  // in alphabetical order.
     {
@@ -385,6 +419,8 @@ namespace seeks_plugins
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
       "http://www.cuil.com/search?q=%query",
+      // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
+      "http://www.dailymotion.com/rss/relevance/search/%query/%start",
       // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
       "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start",
       // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
@@ -407,6 +443,7 @@ namespace seeks_plugins
    se_twitter se_handler::_twitter = se_twitter();
    se_identica se_handler::_identica = se_identica();
    se_youtube se_handler::_youtube = se_youtube();
+   se_dailymotion se_handler::_dailym = se_dailymotion();
    
    std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
    sp_mutex_t se_handler::_curl_mutex;
@@ -608,6 +645,9 @@ namespace seeks_plugins
        case YOUTUBE:
 	 _youtube.query_to_se(parameters,url,qc);
 	 break;
+       case DAILYMOTION:
+	 _dailym.query_to_se(parameters,url,qc);
+	 break;
       }
   }
    
@@ -652,6 +692,10 @@ namespace seeks_plugins
 	     else if (se == "youtube")
 	       {
 		  se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
+	       }
+	     else if (se == "dailymotion")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
 	       }
 	  }
      }
@@ -754,10 +798,10 @@ namespace seeks_plugins
      {
 	se_parser *se = se_handler::create_se_parser((SE)args._se);
 	
-	if ((SE)args._se == YOUTUBE)
+	if ((SE)args._se == YOUTUBE || (SE)args._se == DAILYMOTION)
 	  se->parse_output_xml(args._output,args._snippets,args._offset);
 	else se->parse_output(args._output,args._snippets,args._offset);
-	
+		
 	// link the snippets to the query context
 	// and post-process them.
 	for (size_t i=0;i<args._snippets->size();i++)
@@ -819,6 +863,9 @@ namespace seeks_plugins
 	 break;
        case YOUTUBE:
 	 sep = new se_parser_youtube();
+	 break;
+       case DAILYMOTION:
+	 sep = new se_parser_dailymotion();
 	 break;
       }
      

@@ -42,7 +42,6 @@ int main(int argc, char **argv)
    long offset = 0;
    long length = -1;
    ifs.open(htmlpage,std::ios::binary);
-   //ifs.open("dailymotion_markov_chain.html",std::ios::binary);
 
    if (!ifs.is_open())
      {
@@ -67,7 +66,7 @@ int main(int argc, char **argv)
 
    se_parser_dailymotion spb;
    std::vector<search_snippet*> snippets;
-   spb.parse_output(buffer,&snippets, 0);
+   spb.parse_output_xml(buffer,&snippets, 0);
 
    std::cout << "snippets size: " << snippets.size() << std::endl;
 

@@ -39,7 +39,7 @@ namespace seeks_plugins
    class search_snippet;
    class query_context;
    
-#define NSEs 8  // number of supported search engines.
+#define NSEs 9  // number of supported search engines.
    
 #ifndef ENUM_SE
 #define ENUM_SE
@@ -47,6 +47,7 @@ namespace seeks_plugins
      {
 	BING,
 	CUIL,
+	DAILYMOTION,
 	EXALEAD,
 	GOOGLE,
 	IDENTICA,
@@ -171,7 +172,17 @@ namespace seeks_plugins
 	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				 std::string &url, const query_context *qc);
      };
-      
+
+   class se_dailymotion : public search_engine
+     {
+      public:
+	se_dailymotion();
+	~se_dailymotion();
+	
+	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				 std::string &url, const query_context *qc);
+     };
+   
    class se_handler
      {
       public:
@@ -216,6 +227,7 @@ namespace seeks_plugins
 	static se_twitter _twitter;
 	static se_identica _identica;
 	static se_youtube _youtube;
+	static se_dailymotion _dailym;
 	
 	static std::vector<CURL*> _curl_handlers;
 	static sp_mutex_t _curl_mutex;

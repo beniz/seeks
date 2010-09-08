@@ -1,5 +1,5 @@
 noinst_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_yahoo_parser test_exalead_parser \
-	        test_html_txt_parser test_twitter_parser test_youtube_parser
+	        test_html_txt_parser test_twitter_parser test_youtube_parser test_dailymotion_parser
 
 test_ggle_parser_SOURCES=test-ggle-parser.cpp
 test_twitter_parser_SOURCES=test-twitter-parser.cpp
