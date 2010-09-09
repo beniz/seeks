@@ -152,6 +152,10 @@ body {
 	color: blue;
 }
 
+#search_results date {
+        font-weight: normal;
+}
+
 #search_results .search_cache {
 	color: gray;
 	margin-left: 3px;

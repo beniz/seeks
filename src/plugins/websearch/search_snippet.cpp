@@ -410,16 +410,25 @@ namespace seeks_plugins
 	html_content += "<cite>";
 	html_content += cite_enc;
 	free_const(cite_enc);
-	html_content += "</cite>\n";
+	html_content += "</cite>";
 	
 	if (!_cached.empty() && _doc_type != TWEET && _doc_type != VIDEO)
 	  {
+	     html_content += "\n";
 	     char *enc_cached = encode::html_encode(_cached.c_str());
 	     miscutil::chomp(enc_cached);
 	     html_content += "<a class=\"search_cache\" href=\"";
 	     html_content += enc_cached;
 	     html_content += "\">Cached</a>";
 	     free_const(enc_cached);
+	  }
+	else if (_doc_type == TWEET)
+	  {
+	     char *date_enc = encode::html_encode(_date.c_str());
+	     html_content += "<date> (";
+	     html_content += date_enc;
+	     free_const(date_enc);
+	     html_content += ") </date>\n";
 	  }
 	if (_doc_type != TWEET && _doc_type != VIDEO)
 	  {
