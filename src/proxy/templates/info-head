@@ -4,7 +4,7 @@
 <!-- @if-have-show-node-ip-start -->
 <strong>IP:</strong><span>@my-ip-address@</span>
 <!-- if-have-show-node-ip-end@ -->
-<strong>Options:</strong><span>@websearch-content-analysis@/@websearch-thumbs@/@websearch-clustering@</span>
+<!-- <strong>Options:</strong><span>@websearch-content-analysis@/@websearch-thumbs@/@websearch-clustering@</span> -->
 <!-- @if-have-adminaddr-info-start -->
 <strong>Admin:</strong><span>@admin-address@</span>
 <!-- if-have-adminaddr-info-end@ -->
