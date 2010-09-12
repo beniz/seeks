@@ -49,7 +49,7 @@ namespace seeks_plugins
                         search_snippet *sp = new search_snippet(_count + 1);
                         _count++;
 		   sp->_engine |= std::bitset<NSEs>(SE_DAILYMOTION);
-                   sp->_doc_type = VIDEO;
+                   sp->_doc_type = VIDEO_THUMB;
 		   pc->_current_snippet = sp;
                 }
 	   else if (_in_item && strcasecmp(tag, "title") == 0)

@@ -43,6 +43,7 @@ namespace seeks_plugins
 	SOFTWARE,
 	IMAGE,
 	VIDEO,
+	VIDEO_THUMB,
 	AUDIO,
 	CODE,
 	NEWS,

@@ -264,7 +264,8 @@ namespace seeks_plugins
 		  clusters[4].add_point(se->_id,NULL);
 		  clusters[4]._label = "Forums";
 	       }
-	     else if (se->_doc_type == VIDEO)
+	     else if (se->_doc_type == VIDEO
+		     || se->_doc_type == VIDEO_THUMB)
 	       {
 		  clusters[5].add_point(se->_id,NULL);
 		  clusters[5]._label = "Videos";

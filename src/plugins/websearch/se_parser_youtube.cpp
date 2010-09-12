@@ -49,7 +49,7 @@ namespace seeks_plugins
 		   search_snippet *sp = new search_snippet(_count + 1);
                         _count++;
 		   sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
-		   sp->_doc_type = VIDEO;
+		   sp->_doc_type = VIDEO_THUMB;
                         pc->_current_snippet = sp;
                         //const char *a_link = se_parser::get_attribute((const char**)attributes, "rdf:about");
                         //pc->_current_snippet->_url = std::string(a_link);

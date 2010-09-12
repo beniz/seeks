@@ -271,13 +271,13 @@ namespace seeks_plugins
      {
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
 	std::string html_content = "<li class=\"search_snippet";
-	if (_doc_type == VIDEO)
+	if (_doc_type == VIDEO_THUMB)
 	  html_content += " search_snippet_img";
 	html_content += "\"";
 	/*	if ( websearch::_wconfig->_thumbs )	
 		html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
 	html_content += ">";
-	if (_doc_type != TWEET && _doc_type != VIDEO
+	if (_doc_type != TWEET && _doc_type != VIDEO_THUMB
 	    && websearch::_wconfig->_thumbs )
 	  {
 	     if (_doc_type != TWEET)
@@ -293,7 +293,7 @@ namespace seeks_plugins
 	     html_content += "<a href=\"" + _cite + "\">";
 	     html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" /></a>"; // _cached contains the profile's image.
 	  }
-	if (_doc_type == VIDEO)
+	if (_doc_type == VIDEO_THUMB)
 	  {
 	     html_content += "<a href=\"";
 	     html_content += _url + "\"><img class=\"video_profile\" src=\"";
@@ -390,7 +390,7 @@ namespace seeks_plugins
 	else html_content += "<div>";
 	
 	const char *cite_enc = NULL;
-	if (_doc_type != VIDEO)
+	if (_doc_type != VIDEO_THUMB)
 	  {
 	     if (!_cite.empty())
 	       {
@@ -412,7 +412,7 @@ namespace seeks_plugins
 	free_const(cite_enc);
 	html_content += "</cite>";
 	
-	if (!_cached.empty() && _doc_type != TWEET && _doc_type != VIDEO)
+	if (!_cached.empty() && _doc_type != TWEET && _doc_type != VIDEO_THUMB)
 	  {
 	     html_content += "\n";
 	     char *enc_cached = encode::html_encode(_cached.c_str());
@@ -430,7 +430,7 @@ namespace seeks_plugins
 	     free_const(date_enc);
 	     html_content += ") </date>\n";
 	  }
-	if (_doc_type != TWEET && _doc_type != VIDEO)
+	if (_doc_type != TWEET && _doc_type != VIDEO_THUMB)
 	  {
 	     if (_archive.empty())
 	       {
@@ -441,7 +441,7 @@ namespace seeks_plugins
 	     html_content += "\">Archive</a>";
 	  }
 	
-	if (_doc_type != VIDEO)
+	if (_doc_type != VIDEO_THUMB)
 	  {
 	     if (!_sim_back)
 	       {
