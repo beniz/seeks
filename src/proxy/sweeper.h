@@ -30,7 +30,7 @@ namespace sp
      
 	virtual bool sweep_me() { return false; };
      };
-      
+         
    class sweeper
      {
       public:
@@ -40,7 +40,6 @@ namespace sp
 	static void unregister_sweepable(sweepable *spable);
 	
 	static unsigned int sweep();
-	
      };
    
 } /* end of namespace. */

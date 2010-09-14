@@ -16,11 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef USER_RECORD_H
-#define USER_RECORD_H
+#ifndef DB_RECORD_H
+#define DB_RECORD_H
+
+#include "db_record_msg.pb.h"
 
 #include <time.h>
 #include <string>
+
+#include <ostream>
 
 namespace sp
 {
@@ -32,17 +36,22 @@ namespace sp
 	 * \brief constructor with time and plugin name.
 	 */
 	db_record(const time_t &creation_time,
-		  const std::string plugin_name);
+		  const std::string &plugin_name);
 	
 	/**
-	 * \brief constructor, from a serialized message.
+	 * \brief constructor with time set to 'now'.
 	 */
-	db_record(const std::string &msg);
+	db_record(const std::string &plugin_name);
+	  	
+	/**
+	 * \brief constructor, empty, for storing deserialized object.
+	 */
+	db_record();
 	
 	/**
 	 * destructor.
 	 */
-	~db_record();
+	virtual ~db_record();
      
 	/**
 	 * \brief serializes the object.
@@ -63,6 +72,32 @@ namespace sp
 	 * \brief base deserialization.
 	 */
 	int deserialize_base_record(const std::string &msg);
+	
+	/**
+	 * \brief create base message object, for serialization.
+	 */
+	void create_base_record(sp::db::record &r) const;
+	
+	/**
+	 * \brief reads base message object, after deserialization.
+	 */
+	void read_base_record(const sp::db::record &r);
+	
+	/**
+	 * \brief merges two records.
+	 * @return < 0 if error, 0 otherwise (-2 is reserved error).
+	 */
+	virtual int merge_with(const db_record &dbr) { return 0; };
+	
+	/**
+	 * prints the record header.
+	 */
+	std::ostream& print_header(std::ostream &output);
+	
+	/**
+	 * prints the record out.
+	 */
+	virtual std::ostream& print(std::ostream &output);
 	
       public:
 	time_t _creation_time;

@@ -18,6 +18,8 @@
 
 #include "user_db.h"
 #include "seeks_proxy.h"
+#include "plugin_manager.h"
+#include "plugin.h"
 #include "errlog.h"
 
 #include <unistd.h>
@@ -31,6 +33,17 @@
 
 namespace sp
 {
+   /*- user_db_sweepable -*/
+   user_db_sweepable::user_db_sweepable()
+     :sweepable()
+       {
+       }
+   
+   user_db_sweepable::~user_db_sweepable()
+     {
+     }
+      
+   /*- user_db -*/
    std::string user_db::_db_name = "seeks_user.db";
    
    user_db::user_db()
@@ -67,7 +80,13 @@ namespace sp
 	     else _name = seeks_proxy::_datadir + user_db::_db_name;
 	  }
      }
-   
+
+   user_db::user_db(const std::string &dbname)
+     :_name(dbname),_opened(false)
+     {
+	_hdb = tchdbnew();
+     }
+      
    user_db::~user_db()
      {
 	// close the db.
@@ -79,6 +98,12 @@ namespace sp
    
    int user_db::open_db()
      {
+	if (_opened)
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO, "user_db already opened");
+	     return 0;
+	  }
+		
 	// try to get write access, if not, fall back to read-only access, with a warning.
 	if(!tchdbopen(_hdb, _name.c_str(), HDBOWRITER | HDBOCREAT))
 	  {
@@ -92,6 +117,26 @@ namespace sp
 		  _opened = false;
 		  return ecode;
 	       }
+	  }
+	uint64_t rn = number_records();
+	errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
+			  _name.c_str(),rn);
+	_opened = true;
+	return 0;
+     }
+   
+   int user_db::open_db_readonly()
+     {
+	if (_opened)
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO,"user db already opened");
+	     return 0;
+	  }
+	
+	if(!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT))
+	  {
+	     int ecode = tchdbecode(_hdb);
+	     errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",tchdberrmsg(ecode));
 	     _opened = false;
 	     return ecode;
 	  }
@@ -101,9 +146,15 @@ namespace sp
 	_opened = true;
 	return 0;
      }
-   
-   int user_db::close_db()
+      
+   int user_db:: close_db()
      {
+	if (!_opened)
+	  {
+	     errlog::log_error(LOG_LEVEL_INFO,"user_db already closed");
+	     return 0;
+	  }
+	
 	if(!tchdbclose(_hdb))
 	  {
 	     int ecode = tchdbecode(_hdb);
@@ -125,20 +176,91 @@ namespace sp
 	size_t pos = rkey.find_first_of(":");
 	if (pos == std::string::npos)
 	  return "";
-	return rkey.substr(pos);
+	return rkey.substr(pos+1);
      }
    
-   int user_db::add_dbr(const std::string &key,
-			const std::string &plugin_name,
-			const db_record &dbr)
+   int user_db::extract_plugin_and_key(const std::string &rkey,
+				       std::string &plugin_name,
+				       std::string &key)
      {
-	// serialize the record.
-	std::string str;
-	dbr.serialize(str);
-	
+	size_t pos = rkey.find_first_of(":");
+	if (pos == std::string::npos)
+	  return 1;
+	plugin_name = rkey.substr(0,pos);
+	key = rkey.substr(pos+1);
+	return 0;
+     }
+      
+   db_record* user_db::find_dbr(const std::string &key,
+				const std::string &plugin_name)
+     {
 	// create key.
 	std::string rkey = user_db::generate_rkey(key,plugin_name);
 	
+	int value_size;
+	char keyc[rkey.length()];
+	for (size_t i=0;i<rkey.length();i++)
+	  keyc[i] = rkey[i];
+	void *value = tchdbget(_hdb, keyc, sizeof(keyc), &value_size);
+	if(value)
+	  {
+	     // deserialize.
+	     std::string str = std::string((char*)value,value_size);
+	     free(value);
+	     
+	     db_record *dbr = NULL;
+	     
+	     // get plugin.
+	     plugin *pl = plugin_manager::get_plugin(plugin_name);
+	     if (!pl)
+	       {
+		  // handle error.
+		  errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for creating user db record",
+				    plugin_name.c_str());
+		  dbr = new db_record(); // using base class for record.
+	       }
+	     else
+	       {
+		  // call to plugin record creation function.
+		  dbr = pl->create_db_record();
+	       }
+	     dbr->deserialize(str); //TODO: catch deserialization error.
+	     return dbr;
+	  }
+	else return NULL;
+     }
+      
+   int user_db::add_dbr(const std::string &key,
+			const db_record &dbr)
+     {
+	std::string str;
+	
+	// find record.
+	db_record *edbr = find_dbr(key,dbr._plugin_name);
+	if (edbr)
+	  {
+	     // merge records and serialize.
+	     int err_m = edbr->merge_with(dbr); // virtual call.
+	     if (err_m < 0)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record merging error");
+		  delete edbr;
+		  return -1;
+	       }
+	     else if (err_m == -2)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: tried to merge records from different plugins");
+		  delete edbr;
+		  return -2;
+	       }
+	     edbr->serialize(str);
+	     delete edbr;
+	  }
+	else dbr.serialize(str);
+		
+	// create key.
+	std::string rkey = user_db::generate_rkey(key,dbr._plugin_name);
+		
 	// add record.
 	size_t lrkey = rkey.length();
 	char keyc[lrkey];
@@ -165,7 +287,7 @@ namespace sp
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",tchdberrmsg(ecode));
 	     return -1;
 	  }
-	return 0;
+	return 1;
      }
       
    int user_db::remove_dbr(const std::string &key,
@@ -186,6 +308,7 @@ namespace sp
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db clearing error: %s",tchdberrmsg(ecode));
 	     return ecode;
 	  }
+	errlog::log_error(LOG_LEVEL_INFO,"cleared all records in db %s",_name.c_str());
 	return 0;
      }
    
@@ -203,7 +326,8 @@ namespace sp
 	       {
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
-		  db_record dbr(str);
+		  db_record dbr;
+		  dbr.deserialize(str);
 		  if (dbr._creation_time < date)
 		    to_remove.push_back(std::string((char*)key));
 	       }
@@ -216,7 +340,8 @@ namespace sp
 	return err;
      }
    
-   int user_db::prune_db(const std::string &plugin_name)
+   int user_db::prune_db(const std::string &plugin_name,
+			 const time_t date)
      {
 	void *key = NULL;
 	int key_size;
@@ -230,9 +355,11 @@ namespace sp
 	       {
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
-		  db_record dbr(str);
+		  db_record dbr;
+		  dbr.deserialize(str);
 		  if (dbr._plugin_name == plugin_name)
-		    to_remove.push_back(std::string((char*)key));
+		    if (date == 0 || dbr._creation_time < date)
+		      to_remove.push_back(std::string((char*)key));
 	       }
 	     free(key);
 	  }
@@ -253,27 +380,94 @@ namespace sp
 	return tchdbrnum(_hdb);
      }
       
-   void user_db::read() const
+   std::ostream& user_db::print(std::ostream &output)
      {
 	/* traverse records */
-	void *key = NULL;
+	void *rkey = NULL;
 	void *value = NULL;
-	int key_size;
+	int rkey_size;
 	tchdbiterinit(_hdb);
-	while((key = tchdbiternext(_hdb,&key_size)) != NULL)
+	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
 	  {
 	     int value_size;
-	     value = tchdbget(_hdb, key, key_size, &value_size);
+	     value = tchdbget(_hdb, rkey, rkey_size, &value_size);
 	     if(value)
 	       {
 		  std::string str = std::string((char*)value,value_size);
-		  db_record dbr(str);
-		  std::cerr << "db_record[" << user_db::extract_key(std::string((char*)key)) 
-		    << "]: plugin_name: " << dbr._plugin_name << " - creation time: " << dbr._creation_time << std::endl;
 		  free(value);
+		  std::string key, plugin_name;
+		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
+						      plugin_name,key) != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		    }
+		  else
+		    {
+		       // get a proper object based on plugin name, and call the virtual function for reading the record.
+		       plugin *pl = plugin_manager::get_plugin(plugin_name);
+		       if (!pl)
+			 {
+			    // handle error.
+			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for printing user db record",
+					      plugin_name.c_str());
+			    output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name << std::endl;
+			 }
+		       else
+			 {
+			    // call to plugin record creation function.
+			    db_record *dbr = pl->create_db_record();
+			    dbr->deserialize(str); //TODO: catch deserialization error.
+			    output << "db_record[" << key << "]\n\tplugin_name: " << dbr->_plugin_name
+			      << "\n\tcreation time: " << dbr->_creation_time << std::endl;
+			    dbr->print(output);
+			    delete dbr;
+			 }
+		       output << std::endl;
+		    }
 	       }
-	     free(key);
+	     free(rkey);
 	  }
+	return output;
+     }
+   
+   void user_db::register_sweeper(user_db_sweepable *uds)
+     {
+	_db_sweepers.push_back(uds);
+     }
+   
+   int user_db::unregister_sweeper(user_db_sweepable *uds)
+     {
+	std::vector<user_db_sweepable*>::iterator vit = _db_sweepers.begin();
+	while(vit!=_db_sweepers.end())
+	  {
+	     if ((*vit) == uds)
+	       {
+		  _db_sweepers.erase(vit);
+		  return 0;
+	       }
+	     ++vit;
+	  }
+	return 1; // was not registered in the first place.
+     }
+
+   int user_db::sweep_db()
+     {
+	/**
+	 * XXX: for now sweeps on a per-plugin manner. This is sub-optimal
+	 * in case several plugins call for a sweep at the same time since
+	 * we do a full db traversal per plugin sweep call.
+	 * For now, plugins are expected to respond to a sweep call every 
+	 * few months or so, and the overhead is no serious problem.
+	 */
+	int n = 0;
+	std::vector<user_db_sweepable*>::const_iterator vit = _db_sweepers.begin();
+	while(vit!=_db_sweepers.end())
+	  {
+	     if ((*vit)->sweep_me())
+	       n += (*vit)->sweep_records();
+	     ++vit;
+	  }
+	return n; // number of swept records.
      }
       
 } /* end of namespace. */

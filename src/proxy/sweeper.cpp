@@ -134,7 +134,6 @@ namespace sp
 	 << seeks_proxy::_memory_dust.size() << " remaining items\n"; */
 	//debug
 	
-	std::vector<std::vector<sweepable*>::iterator> dead_iterators;
 	std::vector<sweepable*>::iterator vit = seeks_proxy::_memory_dust.begin();
 	while(vit!=seeks_proxy::_memory_dust.end())
 	  {
@@ -147,9 +146,8 @@ namespace sp
 	     else ++vit;
 	  }
 	
-	//debug
-	//std::cerr << "[Debug]:sweeper: removed " << dead_iterators.size() << " items\n";
-	//debug
+	// user_db sweep.
+	seeks_proxy::_user_db->sweep_db();
 	
        return active_threads;
      }

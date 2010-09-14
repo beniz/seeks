@@ -296,4 +296,16 @@ namespace sp
 	//debug
      }
    
+   plugin* plugin_manager::get_plugin(const std::string &name)
+     {
+	std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
+	while(vit!=plugin_manager::_plugins.end())
+	  {
+	     if ((*vit)->get_name() == name)
+	       return (*vit);
+	     ++vit;
+	  }
+	return NULL;
+     }
+      
 } /* end of namespace. */

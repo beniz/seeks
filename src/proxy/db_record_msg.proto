@@ -7,5 +7,3 @@ message record
  required string plugin_name = 2;
  extensions 3 to 100;
 }
-
-/* below are messages for Seeks built-in plugins */

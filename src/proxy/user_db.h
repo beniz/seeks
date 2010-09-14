@@ -20,6 +20,7 @@
 #define USER_DB_H
 
 #include "db_record.h"
+#include "sweeper.h"
 
 #include <tcutil.h>
 #include <tchdb.h> // tokyo cabinet.
@@ -27,9 +28,24 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <vector>
+#include <ostream>
+
 namespace sp
 {
-   
+
+   class user_db_sweepable : public sweepable
+     {
+      public:
+	user_db_sweepable();
+	
+	virtual ~user_db_sweepable();
+     
+	virtual bool sweep_me() { return false; };
+	
+	virtual int sweep_records() { return 0; };
+     };
+      
    class user_db
      {
       public:
@@ -37,6 +53,11 @@ namespace sp
 	 * \brief db constructor, called by system.
 	 */
 	user_db();
+	
+	/**
+	 * \brief db constructor, for opening a existing db by its name.
+	 */
+	user_db(const std::string &dbname);
 	
 	/**
 	 * \brief db desctructor, called by system.
@@ -47,6 +68,11 @@ namespace sp
 	 * \brief opens the db if not already opened.
 	 */
 	int open_db();
+	
+	/**
+	 * \brief opens the db in read-only mode if not already opened.
+	 */
+	int open_db_readonly();
 	
 	/**
 	 * \brief closes the db if opened.
@@ -65,14 +91,26 @@ namespace sp
 	static std::string extract_key(const std::string &rkey);
 	
 	/**
+	 * \brief extracts both the record key and the plugin name
+	 *        from the internal record key.
+	 */
+	static int extract_plugin_and_key(const std::string &rkey,
+					  std::string &plugin_name,
+					  std::string &key);
+	
+	/**
+	 * \brief finds a record based on its key.
+	 */
+	db_record* find_dbr(const std::string &key,
+			    const std::string &plugin_name);
+	
+	/**
 	 * \brief serializes and adds record to db.
 	 * @param key is record key (the internal key is a mixture of plugin name and record key).
-	 * @param plugin_name the name of the plugin the record belongs to.
 	 * @param dbr the db record object to be serialized and added.
 	 * @return 0 if no error.
 	 */
 	int add_dbr(const std::string &key,
-		    const std::string &plugin_name,
 		    const db_record &dbr);
 	
 	/**
@@ -99,8 +137,10 @@ namespace sp
 	
 	/**
 	 * \brief removes all records that belong to plugin 'plugin_name'.
+	 *        If date != 0 only records that are older than date are removed. 
 	 */
-	int prune_db(const std::string &plugin_name);
+	int prune_db(const std::string &plugin_name,
+		     const time_t date = 0);
      
 	/**
 	 * \brief returns db size on disk.
@@ -115,12 +155,29 @@ namespace sp
 	/**
 	 * \brief reads and prints out all db records.
 	 */
-	void read() const;
+	std::ostream& print(std::ostream &output);
+	
+	/**
+	 * \brief registers user_db_sweepable for plugin-directed db cleanup operations.
+	 */
+	void register_sweeper(user_db_sweepable *uds);
+	
+	/**
+	 * \brief unregisters user_db_sweepable.
+	 */
+	int unregister_sweeper(user_db_sweepable *uds);
+	
+	/**
+	 * \brief calls on sweepers.
+	 */
+	int sweep_db();
 	
       public:
 	TCHDB *_hdb; /**< Tokyo Cabinet hashtable db. */
 	bool _opened; /**< whether the db is opened. */
 	std::string _name; /**< db path and filename. */
+	std::vector<user_db_sweepable*> _db_sweepers;
+	
 	static std::string _db_name; /**< db file name. */
      };
       

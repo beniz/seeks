@@ -17,20 +17,31 @@
  */
  
 #include "db_record.h"
-#include "db_record_msg.pb.h"
+#include "errlog.h"
+
+#include <sys/time.h>
+
+#include <iostream>
 
 namespace sp
 {
    db_record::db_record(const time_t &creation_time,
-			const std::string plugin_name)
+			const std::string &plugin_name)
      :_creation_time(creation_time),_plugin_name(plugin_name)
      {
      }
-
-   db_record::db_record(const std::string &msg)
+   
+   db_record::db_record(const std::string &plugin_name)
+     :_plugin_name(plugin_name)
+       {
+	  struct timeval tv_now;
+	  gettimeofday(&tv_now, NULL);
+	  _creation_time = tv_now.tv_sec;
+       }
+      
+   db_record::db_record()
      :_creation_time(0)
      {
-	deserialize(msg);
      }
       
    db_record::~db_record()
@@ -44,14 +55,14 @@ namespace sp
    
    int db_record::deserialize(const std::string &msg)
      {
+	std::cerr << "db_record.deserialize()\n";
 	return deserialize_base_record(msg);
      }
    
    int db_record::serialize_base_record(std::string &msg) const
      {
 	sp::db::record r;
-	r.set_creation_time(_creation_time);
-	r.set_plugin_name(_plugin_name);
+	create_base_record(r);
 	return r.SerializeToString(&msg); // != 0 on error.
      }
    
@@ -60,10 +71,35 @@ namespace sp
 	sp::db::record r;
 	int err = r.ParseFromString(msg);
 	if (err != 0)
-	  return err; // error.
-	_creation_time = r.creation_time();
-	_plugin_name = r.plugin_name();	
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error deserializing user db_record");
+	     return err; // error.
+	  }
+	read_base_record(r);
 	return 0;
      }
+
+   void db_record::create_base_record(sp::db::record &r) const
+     {
+	r.set_creation_time(_creation_time);
+	r.set_plugin_name(_plugin_name);
+     }
       
+   void db_record::read_base_record(const sp::db::record &r)
+     {
+	_creation_time = r.creation_time();
+	_plugin_name = r.plugin_name();
+     }
+   
+   std::ostream& db_record::print_header(std::ostream &output)
+     {
+	output << "\tplugin_name: " << _plugin_name << "\n\tcreation time: " << _creation_time << std::endl;
+	return output;
+     }
+   
+   std::ostream& db_record::print(std::ostream &output)
+     {
+	return print_header(output);
+     }
+         
 } /* end of namespace. */
