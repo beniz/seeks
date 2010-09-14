@@ -24,4 +24,4 @@ AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websea
 if HAVE_OPENCV2
 AM_LDFLAGS += `pkg-config opencv --libs`
 endif
-LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksuserdb -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
