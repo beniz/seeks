@@ -17,8 +17,10 @@
  */
 
 #include "uri_capture.h"
+#include "db_uri_record.h"
 #include "seeks_proxy.h" // for user_db.
 #include "user_db.h"
+#include "proxy_dts.h"
 #include "urlmatch.h"
 #include "miscutil.h"
 #include "errlog.h"
@@ -36,6 +38,28 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
+   
+   /*- uri_db_sweepable -*/
+   uri_db_sweepable::uri_db_sweepable()
+     :user_db_sweepable()
+       {
+       }
+   
+   uri_db_sweepable::~uri_db_sweepable()
+     {
+     }
+   
+   bool uri_db_sweepable::sweep_me()
+     {
+	//TODO: dates.	
+	return false;
+     }
+   
+   int uri_db_sweepable::sweep_records()
+     {
+	//seeks_proxy::_user_db->prunedb("uri-capture"); //TODO: date!
+     }
+      
    /*- uri_capture -*/
    uri_capture::uri_capture()
      : plugin()
@@ -63,10 +87,21 @@ namespace seeks_plugins
    void uri_capture::stop()
      {
      }
-      
+
+   sp::db_record* uri_capture::create_db_record()
+     {
+	return new db_uri_record();
+     }
+
+   int uri_capture::remove_all_uri_records()
+     {
+	seeks_proxy::_user_db->prune_db(_name);
+     }
+   
    /*- uri_capture_element -*/
    std::string uri_capture_element::_capt_filename = "uri_capture/uri-patterns";
    hash_map<const char*,bool,hash<const char*>,eqstr> uri_capture_element::_img_ext_list;
+   std::string uri_capture_element::_cgi_site_host = CGI_SITE_1_HOST;
    
    uri_capture_element::uri_capture_element(plugin *parent)
      : interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
@@ -75,6 +110,7 @@ namespace seeks_plugins
 			  parent)
        {
 	  uri_capture_element::init_file_ext_list();
+	  seeks_proxy::_user_db->register_sweeper(&_uds);
        }
    
    uri_capture_element::~uri_capture_element()
@@ -86,8 +122,8 @@ namespace seeks_plugins
 	// store domain names.
 	/* std::cerr << "[uri_capture]: headers:\n";
 	std::copy(csp->_headers.begin(),csp->_headers.end(),
-		  std::ostream_iterator<const char*>(std::cout,"\n")); */
-	//std::cerr << std::endl;
+		  std::ostream_iterator<const char*>(std::cout,"\n"));
+	std::cerr << std::endl; */
 	
 	std::string host, referer, accept, get;
 	bool connect = false;
@@ -104,7 +140,10 @@ namespace seeks_plugins
 	 * We do not record:
 	 * - 'CONNECT' requests.
 	 * - paths to images.
+	 * - TODO: calls to search engines.
 	 */
+	std::string uri;
+	
 	bool store = true;
 	if (connect)
 	  {
@@ -113,45 +152,59 @@ namespace seeks_plugins
 	else if (store)
 	  {
 	     size_t p = accept.find("image");
-	     
 	     if (p!=std::string::npos)
 	       store = false;		  
 	     else
 	       {
-		  // XXX: we could use regexps here.
-		  if ((p=get.find(".css"))!=std::string::npos
-		      || (p=get.find(".js"))!=std::string::npos)
+		  p = miscutil::replace_in_string(get," HTTP/1.1","");
+		  if (p == 0)
+		    miscutil::replace_in_string(get," HTTP/1.0","");
+		  if (uri_capture_element::is_path_to_no_page(get))
 		    store = false;
-		  else 
-		    {
-		       p = miscutil::replace_in_string(get," HTTP/1.1","");
-		       if (p == 0)
-			 miscutil::replace_in_string(get," HTTP/1.0","");
-		       if (uri_capture_element::is_path_to_image(get))
-			 store = false;
-		    }
 	       }
 	  }
+	host = urlmatch::strip_url(host);
+	//std::cerr << "****************** host: " << host << " -- ref_host: " << ref_host << std::endl;
+	//std::cerr << "cgi host: " << uri_capture_element::_cgi_site_host << std::endl;
+	if (host == uri_capture_element::_cgi_site_host) // if proxy domain.
+	  store = false;
+		
 	if (store && referer.empty())
 	  {
 	     //std::cerr << "****************** no referer!\n";
-	     store = true;
+	     if (get != "/")
+	       uri = host + get;
 	  }
 	else if (store)
 	  {
 	     std::string ref_host, ref_path;
 	     urlmatch::parse_url_host_and_path(referer,ref_host,ref_path);
 	     ref_host = urlmatch::strip_url(ref_host);
-	     host = urlmatch::strip_url(host);
 	     
-	     //std::cerr << "****************** host: " << host << " -- ref_host: " << ref_host << std::endl;
-	     
-	     if (ref_host == host)
-	       store = false;
+	     if (get != "/")
+	       uri = host + get;
 	  }
 	
 	//std::cerr << "-----------------> store: " << store << std::endl;
-	std::cerr << std::endl;
+	//std::cerr << std::endl;
+
+	if (store)
+	  {
+	     // add record to user db.
+	     db_uri_record dbur(_parent->get_name());
+	     if (!uri.empty())
+	       {
+		  //TODO: uri cleaning ?
+		  
+		  std::cerr << "adding URI: " << uri << std::endl;
+		  seeks_proxy::_user_db->add_dbr(uri,dbur);
+	       }
+	     if (!host.empty() && uri != host)
+	       {
+		  std::cerr << "adding HOST: " << host << std::endl;
+		  seeks_proxy::_user_db->add_dbr(host,dbur);
+	       }
+	  }
 	
 	return NULL; // no response, so the proxy does not crunch this call.
      }
@@ -192,19 +245,19 @@ namespace seeks_plugins
       
    void uri_capture_element::init_file_ext_list()
      {
-	static std::string ext_list[28]
+	static std::string ext_list[32]
 	  = { "jpg","jpeg","raw","png","gif","bmp","ppm","pgm","pbm","pnm","tga","pcx",
 	      "ecw","img","sid","pgf","cgm","svg","eps","odg","pdf","pgml","swf",
-	      "vml","wmf","emf","xps","ico"};
+	      "vml","wmf","emf","xps","ico","css","js","xml","pl"};
 	
 	if (!uri_capture_element::_img_ext_list.empty())
 	  return;
 	
-	for (int i=0;i<28;i++)
+	for (int i=0;i<32;i++)
 	  uri_capture_element::_img_ext_list.insert(std::pair<const char*,bool>(strdup(ext_list[i].c_str()),true));   
      }
    
-   bool uri_capture_element::is_path_to_image(const std::string &path)
+   bool uri_capture_element::is_path_to_no_page(const std::string &path)
      {
 	size_t pos = path.find_last_of(".");
 	if (pos == std::string::npos || path.size() < pos+1)
