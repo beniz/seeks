@@ -21,7 +21,7 @@ if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_LDFLAGS += -Lplugins/img_websearch
 LDADD += -lseeksimgwebsearchplugin
 endif
-LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lseeksuserdb -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@ 
+LDADD += -lseeksutils -lseeksproxy -lseeksplugins -lseeksuserdb -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@
 if !HAVE_BSD
 LDADD += -ldl
 endif
