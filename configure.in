@@ -563,6 +563,7 @@ src/plugins/img_websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \
 src/plugins/blocker/Makefile \
 src/plugins/uri_capture/Makefile \
+src/plugins/query_capture/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
@@ -583,6 +584,6 @@ AC_MSG_NOTICE([Configured to build seeks:
 
  Enabled plugins:
  image websearch:	  ${imgwebsearch}
- HTTP server		  ${httpservplugin}
+ HTTP server:		  ${httpservplugin}
  
 ])

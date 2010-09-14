@@ -1,0 +1,14 @@
+package sp.db;
+
+import "db_record_msg.proto";
+
+message visited_urls
+{
+ repeated string urls = 1;
+}
+
+extend sp.db.record
+{
+ required string query = 4; /* original query */
+ required visited_urls urls = 5;  /* visited URLs */
+}
