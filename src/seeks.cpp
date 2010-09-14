@@ -3,7 +3,7 @@
  * It is based on Privoxy (http://www.privoxy.org), developed
  * by the Privoxy team.
  *
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -522,12 +522,12 @@ int main(int argc, const char *argv[])
    if (seeks_proxy::_config)
      delete seeks_proxy::_config;
    seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
-   errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): seeks proxy configuration successfully loaded");
+   errlog::log_error(LOG_LEVEL_INFO,"seeks proxy configuration successfully loaded");
    
    if (seeks_proxy::_lsh_config)
      delete seeks_proxy::_lsh_config;
    seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
-   errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): lsh configuration successfully loaded");
+   errlog::log_error(LOG_LEVEL_INFO,"lsh configuration successfully loaded");
    
    // loads iso639 table.
    iso639::initialize();
