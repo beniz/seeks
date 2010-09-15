@@ -17,4 +17,4 @@ AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy
 if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @PCRE_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz

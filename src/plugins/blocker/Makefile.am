@@ -6,7 +6,7 @@ blockerplugindatadir = $(datadir)/seeks/plugins/blocker
 AM_CPPFLAGS=
 AM_CXXFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh \
-	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' @PCRE_CFLAGS@
 ACLOCAL_AMFLAGS=-I m4
 
 blockerpluginlib_LTLIBRARIES=libblockerplugin.la

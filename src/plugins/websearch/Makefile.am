@@ -19,7 +19,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   se_parser_cuil.h se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
 	                           se_parser_youtube.h se_parser_dailymotion.h \
 				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h
-libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
