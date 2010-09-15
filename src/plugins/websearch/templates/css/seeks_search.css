@@ -138,6 +138,10 @@ body {
         background-image: url(base-url/plugins/websearch/public/images/search_engines/youtube_12x12.png);
 }
 
+#search_results .search_snippet .search_engine_dailymotion {
+	background-image: url(base-url/plugins/websearch/public/images/search_engines/dailymotion_12x12.png);
+}
+
 #search_results .search_snippet_img {
 	width: 172px;
 	height: 220px;

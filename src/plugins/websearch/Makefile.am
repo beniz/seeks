@@ -10,8 +10,15 @@ websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
 				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
+<<<<<<< HEAD:src/plugins/websearch/Makefile.am
+				   se_parser_mediawiki.cpp se_parser_twitter.cpp \
+				   se_parser_identica.cpp se_parser_youtube.cpp\
+				   se_parser_dailymotion.cpp se_parser_yauba.cpp \
+				   query_interceptor.cpp websearch_configuration.cpp \
+=======
 				   se_parser_twitter.cpp se_parser_youtube.cpp se_parser_dailymotion.cpp \
 			           query_interceptor.cpp websearch_configuration.cpp \
+>>>>>>> c86f4b09a81132a5942279275236e0013d704bb9:src/plugins/websearch/Makefile.am
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp \
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h oskmeans.h \
