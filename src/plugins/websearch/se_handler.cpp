@@ -465,8 +465,8 @@ namespace seeks_plugins
                 "http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num",
                 // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
                 "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
-                // http://fr.yauba.com/?q=chocolat+pouet&target=websites&pg=1
-                "http://yauba.com/?q=%query&target=websites&pg=%start",
+                // http://fr.yauba.com/?q=chocolat+pouet&target=websites&pg=1&ss=n
+                "http://yauba.com/?q=%query&target=websites&pg=%start&ss=n",
                 // http://gdata.youtube.com/feeds/base/videos?q=sax roll&client=ytapi-youtube-search&alt=rss&v=2
                 "http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num"
         };
