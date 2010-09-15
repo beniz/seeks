@@ -57,12 +57,8 @@ namespace seeks_plugins
         bool _in_link;
         bool _in_pubdate;
         bool _in_summary;
-<<<<<<< HEAD:src/plugins/websearch/se_parser_dailymotion.h
-        bool _in_keywords;
-=======
         //bool _in_keywords;
->>>>>>> c86f4b09a81132a5942279275236e0013d704bb9:src/plugins/websearch/se_parser_dailymotion.h
-
+	
         std::string _link;
         std::string _title;
         std::string _date;
