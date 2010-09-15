@@ -362,6 +362,14 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(twitter_se_icon,"seeng","twitter");
 	     html_content += twitter_se_icon;
 	  }
+	if (_engine.to_ulong()&SE_DAILYMOTION)
+	  {
+	     std::string yt_se_icon = se_icon;
+	     miscutil::replace_in_string(yt_se_icon,"icon","search_engine_dailymotion");
+	     miscutil::replace_in_string(yt_se_icon,"setitle","Dailymotion");
+	     miscutil::replace_in_string(yt_se_icon,"seeng","Dailymotion");
+	     html_content += yt_se_icon;
+	  }
 	if (_engine.to_ulong()&SE_YOUTUBE)
 	  {
 	     std::string yt_se_icon = se_icon;
