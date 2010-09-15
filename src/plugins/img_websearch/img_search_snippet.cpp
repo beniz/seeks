@@ -69,7 +69,8 @@ namespace seeks_plugins
      }
    
    std::string img_search_snippet::to_html_with_highlight(std::vector<std::string> &words,
-							  const std::string &base_url_str)
+							  const std::string &base_url_str,
+							  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
 	std::string html_content = "<li class=\"search_snippet search_snippet_img\"";
@@ -161,12 +162,12 @@ namespace seeks_plugins
 #ifdef FEATURE_OPENCV2
 	if (!_sim_back)
 	  {
-	     set_similarity_link();
+	     set_similarity_link(parameters);
 	     html_content += "<a class=\"search_cache\" href=\"";
 	  }
 	else
 	  {
-	     set_back_similarity_link();
+	     set_back_similarity_link(parameters);
 	     html_content += "<a class=\"search_similarity\" href=\"";
 	  }
 	
@@ -238,26 +239,32 @@ namespace seeks_plugins
 	return (band.count() != 0);
      }
    
-   void img_search_snippet::set_similarity_link()
+   void img_search_snippet::set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
+	const char *engines = miscutil::lookup(parameters,"engines");
 	std::string sfsearch = "on";
 	if (!static_cast<img_query_context*>(_qc)->_safesearch)
 	  sfsearch = "off";
 	_sim_link = "/search_img?q=" + _qc->_url_enc_query
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
 	    + "&amp;action=similarity&safesearch=" + sfsearch 
-	  + "&amp;id=" + miscutil::to_string(_id);
+	  + "&amp;id=" + miscutil::to_string(_id) + "&amp;engines=";
+	if (engines)
+	  _sim_link += std::string(engines);
 	_sim_back = false;
      }
    
-   void img_search_snippet::set_back_similarity_link()
+   void img_search_snippet::set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
+	const char *engines = miscutil::lookup(parameters,"engines");
 	std::string sfsearch = "on";
 	if (!static_cast<img_query_context*>(_qc)->_safesearch)
 	  sfsearch = "off";
 	_sim_link = "/search_img?q=" + _qc->_url_enc_query
 	  + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-	    + "&amp;action=expand&safesearch=" + sfsearch;
+	    + "&amp;action=expand&safesearch=" + sfsearch + "&amp;engines=";
+	if (engines)
+	  _sim_link += std::string(engines);
 	_sim_back = true;
      }
 

@@ -34,7 +34,8 @@ namespace seeks_plugins
 #ifdef FEATURE_OPENCV2
 	static void score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
 						 img_search_snippet *&ref_sp,
-						 std::vector<search_snippet*> &sorted_snippets);
+						 std::vector<search_snippet*> &sorted_snippets,
+						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 #endif
      };
    

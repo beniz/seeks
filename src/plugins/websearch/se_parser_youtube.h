@@ -59,7 +59,12 @@ namespace seeks_plugins
         bool _in_description;
 
         std::string _title;
+<<<<<<< HEAD:src/plugins/websearch/se_parser_youtube.h
         std::string _date;
+=======
+	std::string _link;
+	std::string _date;
+>>>>>>> c86f4b09a81132a5942279275236e0013d704bb9:src/plugins/websearch/se_parser_youtube.h
         std::string _description;
      };
 

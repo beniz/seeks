@@ -175,7 +175,8 @@ namespace seeks_plugins
 		    only_tweets = false;
 		    
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
-		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
+		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str,
+									   parameters);
 		  count++;
 		  if (count == snisize)
 		    break; // end list here.
@@ -291,7 +292,7 @@ namespace seeks_plugins
 										      clusters[c],exports);
 		  size_t nsps = snippets.size();
 		  for (size_t i=0;i<nsps;i++)
-		    cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
+		    cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url,parameters);
 		  cluster_str += "</ol>";
 		  
 		  std::string cl = rplcnt;

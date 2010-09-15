@@ -42,8 +42,7 @@ int main(int argc, char **argv)
    long offset = 0;
    long length = -1;
    ifs.open(htmlpage,std::ios::binary);
-   //ifs.open("youtube_markov_chain.html",std::ios::binary);
-
+   
    if (!ifs.is_open())
      {
         std::cout << "[Error]: can't find file.\n";
@@ -67,7 +66,11 @@ int main(int argc, char **argv)
 
    se_parser_youtube spb;
    std::vector<search_snippet*> snippets;
+<<<<<<< HEAD:src/plugins/websearch/tests/test-youtube-parser.cpp
    spb.parse_output(buffer,&snippets, 0);
+=======
+   spb.parse_output_xml(buffer,&snippets, 0);
+>>>>>>> c86f4b09a81132a5942279275236e0013d704bb9:src/plugins/websearch/tests/test-youtube-parser.cpp
 
    std::cout << "snippets size: " << snippets.size() << std::endl;
 

@@ -32,12 +32,14 @@ namespace seeks_plugins
         /* engines in alphabetical order. */
 #define SE_BING               1U
 #define SE_CUIL               2U
-#define SE_EXALEAD            4U
-#define SE_GOOGLE             8U
-#define SE_IDENTICA          16U
-#define SE_TWITTER           32U
-#define SE_YAHOO             64U
-
+#define SE_DAILYMOTION        4U
+#define SE_EXALEAD            8U
+#define SE_GOOGLE            16U
+#define SE_IDENTICA          32U
+#define SE_TWITTER           64U
+#define SE_YAHOO            128U
+#define SE_YOUTUBE          256U
+   
    class websearch_configuration : public configuration_spec
      {
       public:
