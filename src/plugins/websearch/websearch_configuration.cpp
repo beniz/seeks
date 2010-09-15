@@ -117,6 +117,8 @@ namespace seeks_plugins
 	       _se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
 	     else if (strcasecmp(arg,"dailymotion") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
+	     else if (strcasecmp(arg,"yauba") == 0)
+	       _se_enabled |= std::bitset<NSEs>(SE_YAUBA);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
 	     break;

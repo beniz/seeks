@@ -34,6 +34,7 @@
 #include "se_parser_twitter.h"
 #include "se_parser_youtube.h"
 #include "se_parser_dailymotion.h"
+#include "se_parser_yauba.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -379,6 +380,39 @@ namespace seeks_plugins
 	url = q_yt;
      }
 
+   se_yauba::se_yauba()
+     :search_engine()
+       {
+       }
+   
+   se_yauba::~se_yauba()
+     {
+     }
+   
+   void se_yauba::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				    std::string &url, const query_context *qc)
+     {
+	std::string q_dm = se_handler::_se_strings[YAUBA];
+	const char *query = miscutil::lookup(parameters,"q");
+	
+	// query.
+	char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+	std::string qenc_str = std::string(qenc);
+	free(qenc);
+	miscutil::replace_in_string(q_dm,"%query",qenc_str);
+	
+	// page.
+	const char *expansion = miscutil::lookup(parameters,"expansion");
+	int pp = (strcmp(expansion,"")!=0) ? atoi(expansion) : 1;
+	std::string pp_str = miscutil::to_string(pp);
+	miscutil::replace_in_string(q_dm,"%start",pp_str);
+     
+	// log the query.
+	errlog::log_error(LOG_LEVEL_INFO, "Querying yauba: %s", q_dm.c_str());
+	
+	url = q_dm;
+     }
+
    se_dailymotion::se_dailymotion()
      :search_engine()
        {
@@ -431,6 +465,8 @@ namespace seeks_plugins
       "http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num",
       // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
       "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
+      // http://fr.yauba.com/?q=chocolat+pouet&target=websites&pg=1
+      "http://yauba.com/?q=%query&target=websites&pg=%start",
       // http://gdata.youtube.com/feeds/base/videos?q=sax roll&client=ytapi-youtube-search&alt=rss&v=2
       "http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num"
     };
@@ -443,6 +479,7 @@ namespace seeks_plugins
    se_twitter se_handler::_twitter = se_twitter();
    se_identica se_handler::_identica = se_identica();
    se_youtube se_handler::_youtube = se_youtube();
+   se_yauba se_handler::_yauba = se_yauba();
    se_dailymotion se_handler::_dailym = se_dailymotion();
    
    std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
@@ -645,6 +682,9 @@ namespace seeks_plugins
        case YOUTUBE:
 	 _youtube.query_to_se(parameters,url,qc);
 	 break;
+       case YAUBA:
+	 _yauba.query_to_se(parameters,url,qc);
+	 break;
        case DAILYMOTION:
 	 _dailym.query_to_se(parameters,url,qc);
 	 break;
@@ -692,6 +732,10 @@ namespace seeks_plugins
 	     else if (se == "youtube")
 	       {
 		  se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
+	       }
+	     else if (se == "yauba")
+	       {
+		  se_enabled |= std::bitset<NSEs>(SE_YAUBA);
 	       }
 	     else if (se == "dailymotion")
 	       {
@@ -863,6 +907,9 @@ namespace seeks_plugins
 	 break;
        case YOUTUBE:
 	 sep = new se_parser_youtube();
+	 break;
+       case YAUBA:
+	 sep = new se_parser_yauba();
 	 break;
        case DAILYMOTION:
 	 sep = new se_parser_dailymotion();

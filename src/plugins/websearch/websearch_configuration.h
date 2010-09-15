@@ -38,7 +38,8 @@ namespace seeks_plugins
 #define SE_IDENTICA          32U
 #define SE_TWITTER           64U
 #define SE_YAHOO            128U
-#define SE_YOUTUBE          256U
+#define SE_YAUBA            256U
+#define SE_YOUTUBE          512U
    
    class websearch_configuration : public configuration_spec
      {
