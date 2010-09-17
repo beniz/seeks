@@ -553,6 +553,7 @@ AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 
 AC_CONFIG_FILES(Makefile doc/Makefile src/Makefile \
 src/lsh/Makefile \
+src/dht/Makefile \
 src/proxy/Makefile \
 src/proxy/tests/Makefile \
 src/plugins/Makefile \
