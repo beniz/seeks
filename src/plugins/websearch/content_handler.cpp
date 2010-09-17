@@ -100,7 +100,8 @@ namespace seeks_plugins
 	for (size_t i=0;i<nsnippets;i++)
 	  {
 	     if (qc->_cached_snippets.at(i)->_summary.empty()
-		 && qc->_cached_snippets.at(i)->_doc_type != TWEET)
+		 && qc->_cached_snippets.at(i)->_doc_type != TWEET
+		 && qc->_cached_snippets.at(i)->_doc_type != VIDEO_THUMB)
 	       {
 		  std::string *str = new std::string();
 		  txt_contents.push_back(str);
@@ -109,7 +110,8 @@ namespace seeks_plugins
 	     
 	     // decode html.
 	     std::string dec_sum = qc->_cached_snippets.at(i)->_summary;
-	     if (qc->_cached_snippets.at(i)->_doc_type == TWEET)
+	     if (qc->_cached_snippets.at(i)->_doc_type == TWEET
+		 || qc->_cached_snippets.at(i)->_doc_type == VIDEO_THUMB)
 	       dec_sum = qc->_cached_snippets.at(i)->_title;
 	     miscutil::replace_in_string(dec_sum,"&amp","&");
 	     miscutil::replace_in_string(dec_sum,"&quot","\"");
