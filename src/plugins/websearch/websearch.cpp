@@ -478,9 +478,6 @@ namespace seeks_plugins
 		  csp->_content_type = CT_JSON;
 		  err = json_renderer::render_json_results(qc->_cached_snippets,
 							   csp,rsp,parameters,qc,0.0);
-		  qc->_lock = false;
-		  seeks_proxy::mutex_unlock(&qc->_qc_mutex);
-		  return err;
 	       }
 	     	     
 	     // reset scores.
