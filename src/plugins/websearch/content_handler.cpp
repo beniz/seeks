@@ -453,14 +453,14 @@ namespace seeks_plugins
      {
 	if (!ref_sp)
 	  {
-	     std::cerr << "no ref_sp!\n";
+	     //std::cerr << "no ref_sp!\n";
 	     return; // we should never reach here.
 	  }
 	// reference features.
 	hash_map<uint32_t,float,id_hash_uint> *ref_features = ref_sp->_features_tfidf;
 	if (!ref_features) // sometimes the content wasn't fetched, and features are not there.
 	  {
-	     std::cerr << "no ref features!\n";
+	     ::std::cerr << "no ref features!\n";
 	     return; 
 	  }
 		
@@ -470,9 +470,8 @@ namespace seeks_plugins
 	     if (sps[i]->_features_tfidf)
 	       {
 		  sps[i]->_seeks_ir = oskmeans::distance_normed_points(*ref_features,*sps[i]->_features_tfidf);
-		  
-		  std::cerr << "[Debug]: url: " << sps[i]->_url 
-		    << " -- score: " << sps[i]->_seeks_ir << std::endl;
+		  /* std::cerr << "[Debug]: url: " << sps[i]->_url 
+		    << " -- score: " << sps[i]->_seeks_ir << std::endl; */
 	       }
 	  }
      }   
