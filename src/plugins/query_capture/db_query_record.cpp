@@ -106,5 +106,21 @@ namespace seeks_plugins
 	for (int i=0;i<nvurls;i++)
 	  _visited_urls.insert(vurls->urls(i));
      }
-
+   
+   std::ostream& db_query_record::print(std::ostream &output)
+     {
+	output << "\tquery: " << _query;
+	if (!_visited_urls.empty())
+	  {
+	     std::set<std::string>::const_iterator sit = _visited_urls.begin();
+	     while(sit!=_visited_urls.end())
+	       {
+		  output << "\n\turl: " << (*sit);
+		  ++sit;
+	       }
+	  }
+	output << std::endl;
+	return output;
+     }
+      
 } /* end of namespace. */

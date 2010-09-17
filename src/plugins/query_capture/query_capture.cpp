@@ -99,8 +99,7 @@ namespace seeks_plugins
      }
    
     /*- uri_capture_element -*/
-   std::string uri_capture_element::_capt_filename = "query_capture/query-patterns";
-   hash_map<const char*,bool,hash<const char*>,eqstr> query_capture_element::_img_ext_list;
+   std::string query_capture_element::_capt_filename = "query_capture/query-patterns";
    std::string query_capture_element::_cgi_site_host = CGI_SITE_1_HOST;
    
    query_capture_element::query_capture_element(plugin *parent)
@@ -109,8 +108,7 @@ namespace seeks_plugins
 			   : std::string(seeks_proxy::_datadir + "/plugins/" + query_capture_element::_capt_filename).c_str()),
 			  parent)
        {
-	  query_capture_element::init_file_ext_list();
-	  seeks_proxy::_user_db->register_sweeper(&_uds);
+	  seeks_proxy::_user_db->register_sweeper(&_qds);
        }
    
    query_capture_element::~query_capture_element()
@@ -125,9 +123,9 @@ namespace seeks_plugins
 	 */
      }
    
-   void query_capture::get_useful_headers(const std::list<const char*> &headers,
-					  std::string &host, std::string &referer,
-					  std::string &get)
+   void query_capture_element::get_useful_headers(const std::list<const char*> &headers,
+						  std::string &host, std::string &referer,
+						  std::string &get)
      {
 	std::list<const char*>::const_iterator lit = headers.begin();
 	while(lit!=headers.end())
@@ -148,7 +146,8 @@ namespace seeks_plugins
 		  referer = referer.substr(9);
 	       }
 	  }
-      
+     }
+   
 #if defined(ON_OPENBSD) || defined(ON_OSX)
    extern "C"  
      {
@@ -158,21 +157,21 @@ namespace seeks_plugins
 	  }
      }
 #else
-   plugin* makeruc()
+   plugin* makerqc()
      {
 	return new query_capture;
      }
-   
-   class proxy_autor_capture
+	
+   class proxy_autor_qcapture
      {
       public:
-	proxy_autor_capture()
+	proxy_autor_qcapture()
 	  {
-	     plugin_manager::_factory["query-capture"] = makeruc; // beware: default plugin shell with no name.
+	     plugin_manager::_factory["query-capture"] = makerqc; // beware: default plugin shell with no name.
 	  }
      };
    
-   proxy_autor_capture _p; // one instance, instanciated when dl-opening.
+   proxy_autor_qcapture _p; // one instance, instanciated when dl-opening.
 #endif
    
 } /* end of namespace. */

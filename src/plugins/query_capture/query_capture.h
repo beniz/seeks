@@ -59,6 +59,7 @@ namespace seeks_plugins
       
    class query_capture_element : public interceptor_plugin
      {
+      public:
 	query_capture_element(plugin *parent);
 	
 	virtual ~query_capture_element();
@@ -71,6 +72,8 @@ namespace seeks_plugins
 	
       public:
 	query_db_sweepable _qds;
+	static std::string _capt_filename; // pattern capture file.
+	static std::string _cgi_site_host; // default local cgi address.
      };
       
 } /* end of namespace. */
