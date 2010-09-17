@@ -3,7 +3,7 @@
 blockerpluginlibdir = $(libdir)/seeks/plugins/blocker
 blockerplugindatadir = $(datadir)/seeks/plugins/blocker
 
-AM_CPPFLAGS=-Wall -g -pipe
+AM_CXXFLAGS=-Wall -g -pipe
 AM_CPPFLAGS= -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh \
 	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 ACLOCAL_AMFLAGS=-I m4

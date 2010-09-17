@@ -11,10 +11,10 @@ test_html_txt_parser_SOURCES=test-html-text-parser.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
 	     -I${srcdir} -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy \
-	     @PCRE_CFLAGS@ @XML2_CFLAGS@ `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
-AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy \
+	     -I${srcdir}/../../../dht @PCRE_CFLAGS@ @XML2_CFLAGS@ `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht \
 	   `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksuserdb -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksuserdb -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz

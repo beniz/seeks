@@ -15,6 +15,6 @@ db_query_record_msg.pb.cc:
 	protoc --proto_path=. --proto_path=../../proxy --cpp_out=. db_query_record_msg.proto
 
 clean-local:
-	rm db_query_record_msg.pb.cc db_query_record_msg.pb.h
+	rm -f db_query_record_msg.pb.cc db_query_record_msg.pb.h
 
 #nobase_dist_querycaptureplugindata_DATA=query-patterns
