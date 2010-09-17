@@ -1,6 +1,6 @@
 # patterns
-/.*.(pdf|pdf?)$
-/.*.(ps|ps?)$
+/.*\.(pdf|pdf.)$
+/.*\.(ps|ps.)$
 
 # websites
-.*pdf-search-engine.*
+.*pdf-search-engine..*/

@@ -1,9 +1,6 @@
 # websites
-www.linuxquestions.org
+www.linuxquestions.org/
 
 # patterns
-*forum.*
-forum.*.*
-forums.*.*
-*forums.*
+.*forum.*
 .*forums.*

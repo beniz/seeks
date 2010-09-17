@@ -1,8 +1,19 @@
 # websites
-.youtube.com/watch?
-.dailymotion./video*
-www.vimeo.com/\d+
+.*youtube.com/watch\?
+.*dailymotion..*/video.*
+.*vimeo.com/\d+
 www.metacafe.com/watch/\d+
+video.yahoo.com/
+video.aol.com/
+
+video.google..*/
+# for .co.uk
+video.google..*..*/
+
+.*vodpod.com/
+.*youku.com/
+.*budgie-tube.com/
+.*strimoo.com/
 
 # file extensions
-/.*.(avi|mkv|swf|mpg)$
+/.*\.(avi|mkv|swf|mpg)$
