@@ -65,7 +65,7 @@ namespace seeks_plugins
                         std::cout << "  <a href=>" << std::endl;
                         const char *url = se_parser::get_attribute((const char**)attributes, "href");
                         if (url)
-                                pc->_current_snippet->_url = std::string(url);
+                                pc->_current_snippet->set_url(std::string(url));
                 }
                 if (_in_result && strcasecmp(tag, "p") == 0)
                 {
