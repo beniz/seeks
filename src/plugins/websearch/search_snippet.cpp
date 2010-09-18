@@ -233,6 +233,12 @@ namespace seeks_plugins
 	       json_str_eng += ",";
 	     json_str_eng += "\"bing\"";
 	  }
+	if (_engine.to_ulong()&SE_YAUBA)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"yauba\"";
+	  }
 	if (_engine.to_ulong()&SE_YAHOO)
 	  {
 	     if (!json_str_eng.empty())
@@ -337,6 +343,14 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
 	     miscutil::replace_in_string(bing_se_icon,"seeng","bing");
 	     html_content += bing_se_icon;
+	  }
+	if (_engine.to_ulong()&SE_YAUBA)
+	  {
+	     std::string yauba_se_icon = se_icon;
+	     miscutil::replace_in_string(yauba_se_icon,"icon","search_engine_yauba");
+	     miscutil::replace_in_string(yauba_se_icon,"setitle","yauba!");
+	     miscutil::replace_in_string(yauba_se_icon,"seeng","yauba");
+	     html_content += yauba_se_icon;
 	  }
 	if (_engine.to_ulong()&SE_YAHOO)
 	  {
