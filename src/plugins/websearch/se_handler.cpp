@@ -403,19 +403,9 @@ namespace seeks_plugins
 
                 // page
                 const char *expansion = miscutil::lookup(parameters,"expansion");
-                int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
+                int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) : 0;
                 std::string pp_str = miscutil::to_string(pp);
                 miscutil::replace_in_string(q_exa,"%start",pp_str);
-
-                // number of results.
-                //int num = websearch::_wconfig->_Nr;
-                //std::string num_str = miscutil::to_string(num);
-                //miscutil::replace_in_string(q_exa,"%num",num_str);
-
-                // language
-                //if (websearch::_wconfig->_lang == "auto")
-                        //miscutil::replace_in_string(q_exa,"%lang",qc->_auto_lang);
-                //else miscutil::replace_in_string(q_exa,"%lang",websearch::_wconfig->_lang);
 
                 // log the query.
                 errlog::log_error(LOG_LEVEL_INFO, "Querying yauba: %s", q_exa.c_str());

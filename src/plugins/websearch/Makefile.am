@@ -61,6 +61,7 @@ nobase_dist_websearchplugindata_DATA= \
 			  public/images/search_engines/cuil.svg \
 			  public/images/search_engines/youtube_12x12.png \
                           public/images/search_engines/dailymotion_12x12.png \
+			  public/images/search_engines/yauba_12x12.png \
 			  public/images/search_expansion_1.png \
 			  public/images/search_expansion_5.png \
 			  public/images/search_cluster_inactive.png \
