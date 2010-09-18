@@ -46,7 +46,6 @@ namespace seeks_plugins
                         const char *div_attr = se_parser::get_attribute((const char**)attributes, "class");
                         if (div_attr && strcasecmp(div_attr, "imageblock") == 0)
                         {
-                                std::cout << "<div> " << std::endl;
                                 _in_result = true;
                                 // create new snippet.
                                 search_snippet *sp = new search_snippet(_count + 1);
@@ -57,19 +56,16 @@ namespace seeks_plugins
                 }
                 if (_in_result && strcasecmp(tag, "h1") == 0)
                 {
-                        std::cout << "  <h1>" << std::endl;
                         _in_title = true;
                 }
                 if (_in_result && strcasecmp(tag, "a") == 0 && pc->_current_snippet->_url.empty())
                 {
-                        std::cout << "  <a href=>" << std::endl;
                         const char *url = se_parser::get_attribute((const char**)attributes, "href");
                         if (url)
                                 pc->_current_snippet->set_url(std::string(url));
                 }
                 if (_in_result && strcasecmp(tag, "p") == 0)
                 {
-                        std::cout << "  <p>" << std::endl;
                         _in_summary = true;
                 }
                 if (_in_result && strcasecmp(tag, "li") == 0)
@@ -77,24 +73,9 @@ namespace seeks_plugins
                         const char *li_class = se_parser::get_attribute((const char**)attributes, "class");
                         if (li_class && strcasecmp(li_class, "bluecolor") == 0)
                         {
-                                std::cout << "  <li>" << std::endl;
                                 _in_cite = true;
                         }
                 }
-                //if (strcasecmp(tag, "item") == 0)
-                //{
-                        //std::cout << "<item>" << std::endl;
-                        //_in_item = true;
-                //}
-                //if (_in_item && strcasecmp(tag, "title") == 0)
-                //{
-                        //std::cout << "  <title>" << std::endl;
-                        //_in_title = true;
-                //}
-                ////if (_in_entry && strcasecmp(tag, "link") == 0)
-                ////{
-                        ////std::cout << "  <link />" << std::endl;
-                ////}
         }
 
         void se_parser_yauba::characters(parser_context *pc,
@@ -122,7 +103,6 @@ namespace seeks_plugins
                         miscutil::replace_in_string(a_chars,"\r"," ");
                         miscutil::replace_in_string(a_chars,"-"," ");
                         _cite += a_chars;
-                        std::cout << "    " << _cite << std::endl;
                 }
                 if (_in_summary)
                 {
@@ -131,7 +111,6 @@ namespace seeks_plugins
                         miscutil::replace_in_string(a_chars,"\r"," ");
                         miscutil::replace_in_string(a_chars,"-"," ");
                         _summary += a_chars;
-                        std::cout << "    " << _summary << std::endl;
                 }
                 if (_in_title)
                 {
@@ -140,7 +119,6 @@ namespace seeks_plugins
                         miscutil::replace_in_string(a_chars,"\r"," ");
                         miscutil::replace_in_string(a_chars,"-"," ");
                         _title += a_chars;
-                        std::cout << "    " << _title << std::endl;
                 }
         }
 
@@ -151,7 +129,6 @@ namespace seeks_plugins
 
                 if (strcasecmp(tag, "ul") == 0)
                 {
-                        std::cout << "</false div>" << std::endl;
                         _in_result = false;
 
                         // assert previous snippet if any.
@@ -161,7 +138,6 @@ namespace seeks_plugins
                                         || pc->_current_snippet->_cite.empty()
                                         || pc->_current_snippet->_url.empty())
                                 {
-                                        std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << std::endl;
                                         delete pc->_current_snippet;
                                         pc->_current_snippet = NULL;
                                         _count--;
@@ -172,21 +148,18 @@ namespace seeks_plugins
                 }
                 if (_in_result && _in_title && strcasecmp(tag, "h1") == 0)
                 {
-                        std::cout << "  </h1>" << std::endl;
                         _in_title = false;
                         pc->_current_snippet->_title = _title;
                         _title = "";
                 }
                 if (_in_result && _in_summary && strcasecmp(tag, "p") == 0)
                 {
-                        std::cout << "  </p>" << std::endl;
                         _in_summary = false;
                         pc->_current_snippet->_summary = _summary;
                         _summary = "";
                 }
                 if (_in_cite && strcasecmp(tag, "li") == 0)
                 {
-                        std::cout << "  </li>" << std::endl;
                         _in_cite = false;
                         pc->_current_snippet->_cite = _cite;
                         _cite = "";
