@@ -403,7 +403,7 @@ namespace seeks_plugins
 
                 // page
                 const char *expansion = miscutil::lookup(parameters,"expansion");
-                int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) : 0;
+                int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)) : 1;
                 std::string pp_str = miscutil::to_string(pp);
                 miscutil::replace_in_string(q_exa,"%start",pp_str);
 
