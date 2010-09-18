@@ -545,9 +545,7 @@ namespace seeks_plugins
 	std::string citer = std::string(cite_dec);
 	free(cite_dec);
 	static size_t cite_max_size = 60;
-	std::string host, path;
-	urlmatch::parse_url_host_and_path(citer,host,path);
-	_cite = host + path;
+	_cite = urlmatch::strip_url(citer);
 	if (_cite.length()>cite_max_size)
 	  {
 	     try
@@ -564,9 +562,7 @@ namespace seeks_plugins
    void search_snippet::set_cite_no_decode(const std::string &cite)
      {
 	static size_t cite_max_size = 60;
-	std::string host, path;
-	urlmatch::parse_url_host_and_path(cite,host,path);
-	_cite = host + path;
+	_cite = urlmatch::strip_url(cite);
 	if (_cite.length()>cite_max_size)
 	  {
 	     try
