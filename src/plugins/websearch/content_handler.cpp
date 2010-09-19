@@ -24,6 +24,7 @@
 #include "oskmeans.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
+#include "encode.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -37,6 +38,7 @@ using sp::curl_mget;
 using sp::miscutil;
 using sp::seeks_proxy;
 using sp::proxy_configuration;
+using sp::encode;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -113,10 +115,7 @@ namespace seeks_plugins
 	     if (qc->_cached_snippets.at(i)->_doc_type == TWEET
 		 || qc->_cached_snippets.at(i)->_doc_type == VIDEO_THUMB)
 	       dec_sum = qc->_cached_snippets.at(i)->_title;
-	     miscutil::replace_in_string(dec_sum,"&amp","&");
-	     miscutil::replace_in_string(dec_sum,"&quot","\"");
-	     miscutil::replace_in_string(dec_sum,"&lt","<");
-	     miscutil::replace_in_string(dec_sum,"&gt",">");
+	     dec_sum = encode::html_decode(dec_sum);
 	     std::string *str = new std::string(dec_sum);
 	     txt_contents.push_back(str);
 	  }
