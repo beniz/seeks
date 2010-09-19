@@ -392,25 +392,41 @@ namespace seeks_plugins
         void se_yauba::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                         std::string &url, const query_context *qc)
         {
-                std::string q_exa = se_handler::_se_strings[YAUBA];
+           static std::string lang[8][2] = {{"it","it"},{"fr","fr"},{"de","de"},{"hi","in"}, {"pt","br"}, {"br","br"},{"ru","ru"}, {"zh","cn"}};
+           
+           std::string q_yau = se_handler::_se_strings[YAUBA];
                 const char *query = miscutil::lookup(parameters,"q");
 
                 // query.
                 char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
                 std::string qenc_str = std::string(qenc);
                 free(qenc);
-                miscutil::replace_in_string(q_exa,"%query",qenc_str);
+                miscutil::replace_in_string(q_yau,"%query",qenc_str);
 
                 // page
                 const char *expansion = miscutil::lookup(parameters,"expansion");
                 int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)) : 1;
                 std::string pp_str = miscutil::to_string(pp);
-                miscutil::replace_in_string(q_exa,"%start",pp_str);
+                miscutil::replace_in_string(q_yau,"%start",pp_str);
 
+           // language.
+           std::string qlang;
+           for (short i=0;i<8;i++)
+             {
+                if (lang[i][0] == qc->_auto_lang)
+                  {
+                     qlang = lang[i][1];
+                     break;
+                  }
+             }
+           if (qlang.empty())
+             miscutil::replace_in_string(q_yau,"%lang","www");
+           else miscutil::replace_in_string(q_yau,"%lang",qlang);
+           
                 // log the query.
-                errlog::log_error(LOG_LEVEL_INFO, "Querying yauba: %s", q_exa.c_str());
+                errlog::log_error(LOG_LEVEL_INFO, "Querying yauba: %s", q_yau.c_str());
 
-                url = q_exa;
+                url = q_yau;
         }
 
         se_dailymotion::se_dailymotion()
@@ -466,7 +482,7 @@ namespace seeks_plugins
                 // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
                 "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=",
                 // http://fr.yauba.com/?q=chocolat+pouet&target=websites&pg=1&ss=n
-                "http://yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y",
+                "http://%lang.yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y",
                 // http://gdata.youtube.com/feeds/base/videos?q=sax roll&client=ytapi-youtube-search&alt=rss&v=2
                 "http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num"
         };
