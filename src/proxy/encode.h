@@ -35,6 +35,9 @@
 #ifndef ENCODE_H
 #define ENCODE_H
 
+#include <cstring>
+#include <string>
+
 namespace sp
 {
    
@@ -50,6 +53,10 @@ class encode
       
    static const char* _url_code_map[256];
    static const char* _html_code_map[256];
+
+   // XXX: C++ HTML decode.
+   // In the long term, all functions should be C++.
+   static std::string html_decode(const std::string &s);
 };
 
 } /* end of namespace. */

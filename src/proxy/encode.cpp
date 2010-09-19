@@ -375,5 +375,15 @@ char* encode::url_decode(const char * s)
 
 }
 
+   std::string encode::html_decode(const std::string &s)
+     {
+	std::string cs = s;
+	miscutil::replace_in_string(cs,"&amp;","&");
+	miscutil::replace_in_string(cs,"&quot;","\"");
+	miscutil::replace_in_string(cs,"&lt;","<");
+	miscutil::replace_in_string(cs,"&gt;",">");
+	return cs;
+     }
+      
 }
  /*  end of namespace. */
