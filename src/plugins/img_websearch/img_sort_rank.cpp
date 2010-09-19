@@ -58,8 +58,7 @@ namespace seeks_plugins
 		       // merge image snippets.
 		       std::cerr << "merging into " << c_sp->_url << std::endl;
 		       img_search_snippet::merge_img_snippets(c_sp,sp);
-		       c_sp->_seeks_rank = c_sp->_img_engine.count();
-		       it = snippets.erase(it);
+           it = snippets.erase(it);
 		       delete sp;
 		       sp = NULL;
 		       continue;
@@ -108,8 +107,7 @@ namespace seeks_plugins
 				      // merge current image snippet and delete it.
 				      std::cerr << "merging (" << score << ") " << sp->_url << " into " << ssp->_url << std::endl;
 				      img_search_snippet::merge_img_snippets(ssp,sp);
-				      ssp->_seeks_rank = ssp->_img_engine.count();
-				      it = snippets.erase(it);
+              it = snippets.erase(it);
 				      //qc->remove_from_unordered_cache(sp->_id);
 				      delete sp;
 				      sp = NULL;

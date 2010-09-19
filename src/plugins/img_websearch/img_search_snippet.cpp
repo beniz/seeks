@@ -281,6 +281,17 @@ namespace seeks_plugins
      
 	if (!s1->_cached_image && s2->_cached_image)
 	  s1->_cached_image = new std::string(*s2->_cached_image);
+     
+        /// seeks rank.
+        s1->_seeks_rank = s1->_img_engine.count();
+        
+        // XXX: hack, on English queries, Bing & Yahoo are the same engine,
+        // therefore the rank must be tweaked accordingly in this special case.
+        if (s1->_qc->_auto_lang == "en"
+            && (s1->_img_engine.to_ulong()&SE_YAHOO_IMG)
+            && (s1->_img_engine.to_ulong()&SE_BING_IMG))
+          s1->_seeks_rank--;
      }
+     
       
 } /* end of namespace. */
