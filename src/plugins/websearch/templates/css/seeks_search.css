@@ -156,6 +156,18 @@ body {
 	clear: none !important;
 }
 
+#search_results .search_snippet_vid {
+        width: 172px;
+	height: 220px;
+	overflow: hidden;
+	float: left;
+	display: inline;
+	text-align: center;
+	clear: none !important;
+}							
+
+.clear { clear:both; }
+
 #search_results cite {
 	color: blue;
 }
@@ -263,9 +275,12 @@ body {
 	left: 504px;
 }
 
-/* .cluster .search_snippet {
-	width: auto !important;
-} */
+.cluster .search_snippet_vid {
+#        margin-top: 20px;
+#	margin-bottom: 100px;
+#	width: auto;
+#	height: auto;
+}
 
 #search_results h2 {
     color: gray;

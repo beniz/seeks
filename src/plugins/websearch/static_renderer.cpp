@@ -303,7 +303,7 @@ namespace seeks_plugins
 		  size_t nsps = snippets.size();
 		  for (size_t i=0;i<nsps;i++)
 		    cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url,parameters);
-		  cluster_str += "</ol>";
+		  cluster_str += "</ol><div class=\"clear\"></div>";
 		  
 		  std::string cl = rplcnt;
 		  if (k>1)
