@@ -3,9 +3,21 @@
 - Tweets search, from Twitter and Identi.ca. Automatic aggregation
 of retweets. Automated clustering of tweets.
 
-- Videos search, from Youtube and Dailymotion.
+- Videos search, from Youtube and Dailymotion. Automated clustering
+of videos, based on their title or page's surrounding content.
 
 - Fixes and improvements to the REST API.
+
+- Added Yauba as a text engine.
+
+- Cuil is now off by default as the engine itself seems to be dead.
+
+- An internal fix to ranking for counterbalancing Bing / Yahoo becoming one
+and single engine in English searches.
+
+- Internal fixes and improvement to rendering of pages and results.
+
+- Plugin system is now compatible with OSX and OpenBSD.
 
 * Bubs-0.2.4-SOLO-stable
 This releases brings image metasearch in the form of a new plugin, as
