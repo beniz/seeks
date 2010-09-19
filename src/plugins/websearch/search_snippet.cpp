@@ -507,7 +507,7 @@ namespace seeks_plugins
 
     void search_snippet::set_title(const std::string &title)
     {
-      _title = title;
+      _title = encode::html_decode(title);
       miscutil::replace_in_string(_title,"\\","");
       miscutil::replace_in_string(_title,"\t"," ");
       miscutil::replace_in_string(_title,"\n"," ");
