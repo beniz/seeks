@@ -1,1 +1,1 @@
-\.(mp3|ogg|wav)$
+/.*\.(mp3|ogg|wav)$

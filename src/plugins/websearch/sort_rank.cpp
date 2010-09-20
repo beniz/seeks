@@ -57,6 +57,11 @@ namespace seeks_plugins
 	if (ca && strcasecmp(ca,"on") == 0)
 	  content_analysis = true;
 	
+	const char *cache_check = miscutil::lookup(parameters,"ccheck");
+	bool ccheck = true;
+	if (cache_check && strcasecmp(cache_check,"no") == 0)
+	  ccheck = false;
+	
 	// initializes the LSH subsystem is we need it and it has not yet
 	// been initialized.
 	if (content_analysis && !qc->_ulsh_ham)
@@ -77,9 +82,14 @@ namespace seeks_plugins
 	while(it != snippets.end())
 	  {
 	     search_snippet *sp = (*it);
+	     
+	     if (!ccheck && sp->_doc_type == TWEET)
+	       sp->_seeks_rank = -1; // reset the rank because it includes retweets.
+	     
 	     if (sp->_new)
 	       {
-		  if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
+		  if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL
+		      && c_sp->_doc_type == sp->_doc_type)
 		    {
 		       // merging snippets.
 		       search_snippet::merge_snippets(c_sp,sp);
@@ -189,7 +199,7 @@ namespace seeks_plugins
 	if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
 	  return;
 	
-	ref_sp->set_back_similarity_link();
+	ref_sp->set_back_similarity_link(parameters);
 	
 	bool content_analysis = websearch::_wconfig->_content_analysis;
 	const char *ca = miscutil::lookup(parameters,"content_analysis");
@@ -255,7 +265,8 @@ namespace seeks_plugins
 		  clusters[4].add_point(se->_id,NULL);
 		  clusters[4]._label = "Forums";
 	       }
-	     else if (se->_doc_type == VIDEO)
+	     else if (se->_doc_type == VIDEO
+		     || se->_doc_type == VIDEO_THUMB)
 	       {
 		  clusters[5].add_point(se->_id,NULL);
 		  clusters[5]._label = "Videos";

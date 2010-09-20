@@ -124,7 +124,8 @@ namespace seeks_plugins
 					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
 					 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					 bool &not_end)
      {
 	const char *base_url = miscutil::lookup(exports,"base-url");
 	std::string base_url_str = "";
@@ -148,6 +149,7 @@ namespace seeks_plugins
 	if (safesearch_p)
 	  safesearch_off = strcasecmp(safesearch_p,"on") == 0 ? false : true;
 	
+	not_end = false;
 	bool only_tweets = true; // required for rendering the correct 'content_analysi' value.
 	std::string snippets_str;
 	if (!snippets.empty())
@@ -161,9 +163,9 @@ namespace seeks_plugins
 	     int ssize = snippets.size();
 	     size_t snisize = std::min(current_page*rpp,(int)ssize);
 	     size_t snistart = (current_page-1) * rpp;
-	     size_t count = snistart;
-	     	     
-	     for (int i=snistart;i<ssize;i++)
+	     size_t count = 0;
+	     
+	     for (int i=0;i<ssize;i++)
 	       {
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
@@ -175,12 +177,21 @@ namespace seeks_plugins
 		    only_tweets = false;
 		    
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
-		    snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str);
-		  count++;
+		    {
+		       if (count >= snistart)
+			 snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str,
+										parameters);
+		       count++;
+		    }
 		  if (count == snisize)
-		    break; // end list here.
+		    {
+		       if (i < ssize-1)
+			 not_end = true;
+		       break; // end list here.
+		    }
 	       }
 	  }
+	
 	miscutil::add_map_entry(exports,"search_snippets",1,snippets_str.c_str(),1);
 	if (rpp_str)
 	  miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
@@ -291,8 +302,8 @@ namespace seeks_plugins
 										      clusters[c],exports);
 		  size_t nsps = snippets.size();
 		  for (size_t i=0;i<nsps;i++)
-		    cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url);
-		  cluster_str += "</ol>";
+		    cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url,parameters);
+		  cluster_str += "</ol><div class=\"clear\"></div>";
 		  
 		  std::string cl = rplcnt;
 		  if (k>1)
@@ -302,11 +313,15 @@ namespace seeks_plugins
 	  }
 	
 	// kill remaining cluster slots.
-	for (short c=l;c<=template_K;c++)
+	if (k>1)
 	  {
-	     std::string hcl = "have-cluster" + miscutil::to_string(c);
-	     cgi::map_block_killer(exports,hcl.c_str());
+	    for (short c=l;c<=template_K;c++)
+	      {
+		std::string hcl = "have-cluster" + miscutil::to_string(c);
+		cgi::map_block_killer(exports,hcl.c_str());
+	      }
 	  }
+	else miscutil::add_map_entry(exports,rplcnt.c_str(),1,"",1);
 	
 	const char *rpp_str = miscutil::lookup(parameters,"rpp");
 	if (rpp_str)
@@ -388,8 +403,14 @@ namespace seeks_plugins
 					       const std::string &engines,
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-					       const std::string &cgi_base)
+					       const std::string &cgi_base, const bool &not_end)
      {
+	if (!not_end)
+	  {
+	     miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
+	     return;
+	  }
+		
 	int rpp = websearch::_wconfig->_Nr;
 	const char *rpp_str = miscutil::lookup(parameters,"rpp");
 	if (rpp_str)
@@ -613,7 +634,8 @@ namespace seeks_plugins
        } */
      
      // search snippets.
-     static_renderer::render_snippets(query_clean,current_page,snippets,parameters,exports);
+     bool not_end = false;
+     static_renderer::render_snippets(query_clean,current_page,snippets,parameters,exports,not_end);
      
      // expand button.
      std::string expansion;
@@ -622,8 +644,8 @@ namespace seeks_plugins
      // next link.
      static_renderer::render_next_page_link(current_page,snippets.size(),
 					    url_encoded_query,expansion,engines,parameters,
-					    exports,cgi_base);
-     
+					    exports,cgi_base,not_end);
+	
      // previous link.
      static_renderer::render_prev_page_link(current_page,snippets.size(),
 					    url_encoded_query,expansion,engines,

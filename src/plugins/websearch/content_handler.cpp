@@ -24,6 +24,7 @@
 #include "oskmeans.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
+#include "encode.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -37,6 +38,7 @@ using sp::curl_mget;
 using sp::miscutil;
 using sp::seeks_proxy;
 using sp::proxy_configuration;
+using sp::encode;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -100,7 +102,8 @@ namespace seeks_plugins
 	for (size_t i=0;i<nsnippets;i++)
 	  {
 	     if (qc->_cached_snippets.at(i)->_summary.empty()
-		 && qc->_cached_snippets.at(i)->_doc_type != TWEET)
+		 && qc->_cached_snippets.at(i)->_doc_type != TWEET
+		 && qc->_cached_snippets.at(i)->_doc_type != VIDEO_THUMB)
 	       {
 		  std::string *str = new std::string();
 		  txt_contents.push_back(str);
@@ -109,12 +112,10 @@ namespace seeks_plugins
 	     
 	     // decode html.
 	     std::string dec_sum = qc->_cached_snippets.at(i)->_summary;
-	     if (qc->_cached_snippets.at(i)->_doc_type == TWEET)
+	     if (qc->_cached_snippets.at(i)->_doc_type == TWEET
+		 || qc->_cached_snippets.at(i)->_doc_type == VIDEO_THUMB)
 	       dec_sum = qc->_cached_snippets.at(i)->_title;
-	     miscutil::replace_in_string(dec_sum,"&amp","&");
-	     miscutil::replace_in_string(dec_sum,"&quot","\"");
-	     miscutil::replace_in_string(dec_sum,"&lt","<");
-	     miscutil::replace_in_string(dec_sum,"&gt",">");
+	     dec_sum = encode::html_decode(dec_sum);
 	     std::string *str = new std::string(dec_sum);
 	     txt_contents.push_back(str);
 	  }
@@ -451,14 +452,14 @@ namespace seeks_plugins
      {
 	if (!ref_sp)
 	  {
-	     std::cerr << "no ref_sp!\n";
+	     //std::cerr << "no ref_sp!\n";
 	     return; // we should never reach here.
 	  }
 	// reference features.
 	hash_map<uint32_t,float,id_hash_uint> *ref_features = ref_sp->_features_tfidf;
 	if (!ref_features) // sometimes the content wasn't fetched, and features are not there.
 	  {
-	     std::cerr << "no ref features!\n";
+	     ::std::cerr << "no ref features!\n";
 	     return; 
 	  }
 		
@@ -468,9 +469,8 @@ namespace seeks_plugins
 	     if (sps[i]->_features_tfidf)
 	       {
 		  sps[i]->_seeks_ir = oskmeans::distance_normed_points(*ref_features,*sps[i]->_features_tfidf);
-		  
-		  std::cerr << "[Debug]: url: " << sps[i]->_url 
-		    << " -- score: " << sps[i]->_seeks_ir << std::endl;
+		  /* std::cerr << "[Debug]: url: " << sps[i]->_url 
+		    << " -- score: " << sps[i]->_seeks_ir << std::endl; */
 	       }
 	  }
      }   

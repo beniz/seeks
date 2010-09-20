@@ -106,84 +106,92 @@ namespace seeks_plugins
 	if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
 	  horizon = websearch::_wconfig->_max_expansions;
 		
+	const char *cache_check = miscutil::lookup(parameters,"ccheck");
+	
 	// grab requested engines, if any.
 	// if the list is not included in that of the context, update existing results and perform requested expansion.
 	// if the list is included in that of the context, perform expansion, results will be filtered later on.
-	std::bitset<IMG_NSEs> beng;
-	const char *eng = miscutil::lookup(parameters,"engines");
-	if (eng)
+	if (!cache_check || strcasecmp(cache_check,"yes") == 0)
 	  {
-	     img_query_context::fillup_img_engines(parameters,beng);
-	  }
-	else beng = img_websearch_configuration::_img_wconfig->_img_se_enabled;
-	
-	// test inclusion.
-	std::bitset<IMG_NSEs> inc = beng;
-	inc &= _img_engines;
-	
-	if (inc.count() == beng.count())
-	  {
-	     // included, nothing more to be done.
-	  }
-	else // test intersection.
-	  {
-	     std::bitset<IMG_NSEs> bint;
-	     for (int b=0;b<IMG_NSEs;b++)
+	     std::bitset<IMG_NSEs> beng;
+	     const char *eng = miscutil::lookup(parameters,"engines");
+	     if (eng)
 	       {
-		  if (beng[b] && !inc[b])
-		    bint.set(b);
+		  img_query_context::fillup_img_engines(parameters,beng);
+	       }
+	     else beng = img_websearch_configuration::_img_wconfig->_img_se_enabled;
+	     
+	     // test inclusion.
+	     std::bitset<IMG_NSEs> inc = beng;
+	     inc &= _img_engines;
+	     
+	     if (inc.count() == beng.count())
+	       {
+		  // included, nothing more to be done.
+	       }
+	     else // test intersection.
+	       {
+		  std::bitset<IMG_NSEs> bint;
+		  for (int b=0;b<IMG_NSEs;b++)
+		    {
+		       if (beng[b] && !inc[b])
+			 bint.set(b);
+		    }
+		  
+		  // catch up expansion with the newly activated engines.
+		  expand_img(csp,rsp,parameters,0,_page_expansion,bint);
+		  expanded = true;
+		  _img_engines |= bint;
 	       }
 	     
-	     // catch up expansion with the newly activated engines.
-	     expand_img(csp,rsp,parameters,0,_page_expansion,bint);
-	     expanded = true;
-	     _img_engines |= bint;
-	  }
-	
-	// check for safesearch change.
-	// XXX: we set _exp_safesearch_oxx to horizon in anticipation of the
-	// later expansion up to horizon.
-	const char *safesearch_p = miscutil::lookup(parameters,"safesearch");
-	if (safesearch_p)
-	  {
-	     if (strcasecmp(safesearch_p,"off")==0)
+	     // check for safesearch change.
+	     // XXX: we set _exp_safesearch_oxx to horizon in anticipation of the
+	     // later expansion up to horizon.
+	     const char *safesearch_p = miscutil::lookup(parameters,"safesearch");
+	     if (safesearch_p)
 	       {
-		  _safesearch = false;
-		  if (_exp_safesearch_off < _page_expansion)
+		  if (strcasecmp(safesearch_p,"off")==0)
 		    {
-		       expand_img(csp,rsp,parameters,_exp_safesearch_off,_page_expansion,_img_engines); // redo search with new safesearch setting.
-		       expanded = true;
+		       _safesearch = false;
+		       if (_exp_safesearch_off < _page_expansion)
+			 {
+			    expand_img(csp,rsp,parameters,_exp_safesearch_off,_page_expansion,_img_engines); // redo search with new safesearch setting.
+			    expanded = true;
+			 }
+		       _exp_safesearch_off = _page_expansion;
 		    }
-		  _exp_safesearch_off = _page_expansion;
+		  else if (strcasecmp(safesearch_p,"on")==0)
+		    {
+		       _safesearch = true;
+		       if (_exp_safesearch_on < _page_expansion)
+			 {
+			    expand_img(csp,rsp,parameters,_exp_safesearch_on,_page_expansion,_img_engines); // redo search with new safesearch setting.
+			    expanded = true;
+			 }
+		       _exp_safesearch_on = horizon;
+		    }
 	       }
-	     else if (strcasecmp(safesearch_p,"on")==0)
+	     else 
 	       {
-		  _safesearch = true;
-		  if (_exp_safesearch_on < _page_expansion)
-		    {
-		       expand_img(csp,rsp,parameters,_exp_safesearch_on,_page_expansion,_img_engines); // redo search with new safesearch setting.
-		       expanded = true;
-		    }
-		  _exp_safesearch_on = horizon;
+		  if (img_websearch_configuration::_img_wconfig->_safe_search)
+		    _exp_safesearch_on = horizon;
+		  else _exp_safesearch_off = horizon;
+	       }
+	     
+	     // seeks button used as a back button.
+	     if (_page_expansion > 0 && horizon <= (int)_page_expansion)
+	       {
+		  // reset expansion parameter.
+		  query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+		  return SP_ERR_OK;
 	       }
 	  }
-	else 
-	  {
-	     if (img_websearch_configuration::_img_wconfig->_safe_search)
-	       _exp_safesearch_on = horizon;
-	     else _exp_safesearch_off = horizon;
-	  }
-			
-	// seeks button used as a back button.
-	if (_page_expansion > 0 && horizon <= (int)_page_expansion)
-	  {
-	     // reset expansion parameter.
-	     query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-	     return SP_ERR_OK;
-	  }
-			    	
+				    	
 	// perform requested expansion.
-	expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
+	if (!cache_check)
+	  expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
+	else if (strcasecmp(cache_check,"no") == 0)
+	  expand_img(csp,rsp,parameters,0,horizon,_img_engines);
 	expanded = true;
 	
 	// update horizon.

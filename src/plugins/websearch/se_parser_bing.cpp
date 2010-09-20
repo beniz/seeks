@@ -181,7 +181,7 @@ namespace seeks_plugins
 	else if (_cite_flag && strcasecmp(tag,"cite") == 0)
 	  {
 	     _cite_flag = false;
-	     pc->_current_snippet->_cite = _cite;
+	     pc->_current_snippet->set_cite(_cite);
 	     _cite = "";
 	     _cached_flag = true; // getting ready for the Cached link, if any.
 	  }

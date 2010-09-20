@@ -1,6 +1,6 @@
 ##########################################################
 #
-# Feature disabled or referrer untrusted Error Output template for Privoxy.
+# Feature disabled or referrer untrusted Error Output template for Seeks proxy.
 #
 #
 # USING HTML TEMPLATES:
@@ -15,7 +15,7 @@
 # - Each item in the below list of exported symbols will
 #   be replaced by dynamically generated text, if they
 #   are enclosed in '@'-characters. E.g. The string @version@
-#   will be replaced by the version number of Privoxy.
+#   will be replaced by the version number of Seeks proxy.
 #
 # - One special application of this is to make whole blocks
 #   of the HTML template disappear if the condition <name>
@@ -53,7 +53,7 @@
 #  unstable:
 #    this is an alpha or beta release of the proxy software
 #  have-adminaddr-info:
-#    An e-mail address for the local Privoxy adminstrator has
+#    An e-mail address for the local Seeks proxy adminstrator has
 #    been specified and is available through the "admin-address"
 #    symbol
 #  have-proxy-info:
@@ -102,12 +102,12 @@
 
     <tr>
       <td class="warning">
-        <h2>Privoxy Configuration access denied</h2>
+        <h2>Seeks proxy Configuration access denied</h2>
           <p>Access to <b>@url@</b> has been denied because:</p>
 
           <ul>
-            <li>it requires a feature that has been disabled by the Privoxy administrator,</li>
-            <li>you didn't come here through one of Privoxy's CGI pages, or</li>
+            <li>it requires a feature that has been disabled by the Seeks proxy administrator,</li>
+            <li>you didn't come here through one of Seeks proxy's CGI pages, or</li>
             <li>the <q>Referer:</q> header is blocked.</li>
           </ul>
 
@@ -132,15 +132,15 @@
               href="@url@">try again</a>.</p>
 
           <p>If the <q>Referer:</q> header is blocked, you'll have to make an exception for
-             Privoxy's web interface first. Note that <em>dumb</em> referrer blocking
+             Seeks proxy's web interface first. Note that <em>dumb</em> referrer blocking
              is a bad idea anyway, as it makes it easier to fingerprint your
-             requests. Consider using Privoxy's conditional referrer block instead.</p>
+             requests. Consider using Seeks proxy's conditional referrer block instead.</p>
       </td>
     </tr>
 
     <tr>
       <td class="box">
-        <h2>More Privoxy:</h2>
+        <h2>More Seeks proxy:</h2>
         <ul>@menu@<li><a href="@user-manual@">Documentation</a></li></ul>
       </td>
     </tr>

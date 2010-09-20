@@ -21,13 +21,16 @@ libseeksimgwebsearchplugin_la_SOURCES=img_websearch.cpp se_handler_img.cpp img_q
 if HAVE_OPENCV2
 libseeksimgwebsearchplugin_la_SOURCES += img_content_handler.cpp img_content_handler.h ocvsurf.cpp ocvsurf.h
 endif 
-libseeksimgwebsearchplugin_la_CXXFLAGS=-Wall -g -I${srcdir}/../../ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+libseeksimgwebsearchplugin_la_CXXFLAGS=-Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL
 libseeksimgwebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
 SUBDIRS=. tests
+
+imgwebsearchpluginconfigdir=$(sysconfdir)/seeks
+dist_imgwebsearchpluginconfig_DATA=img-websearch-config
 
 nobase_dist_imgwebsearchplugindata_DATA= \
 	templates/css/seeks_img_search.css \

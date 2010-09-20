@@ -236,9 +236,6 @@ AC_CHECK_FUNC([getaddrinfo],
       ])
 ])
 
-# pcre
-#AC_CHECK_LIB(pcre, pcre_compile)
-
 #=================================================================
 # NetBSD specific
 #=================================================================
@@ -258,9 +255,6 @@ AC_CHECK_FUNC([getaddrinfo],
 getnameinfo(3) present])
 ])
 ])
-
-# pcre
-#AC_CHECK_LIB(pcre, pcre_compile)
 
 #==========================================================================
 # Setting flags

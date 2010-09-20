@@ -11,9 +11,10 @@ search-results-page 10
 # google, yahoo, bing, exalead, cuil
 search-engine google
 search-engine bing
-search-engine cuil
+#search-engine cuil
 search-engine yahoo
 search-engine exalead
+#search-engine yauba
 
 # minimum number of seconds search results are kept in
 # the system cache, for reuse, update, etc...

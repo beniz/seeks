@@ -43,6 +43,7 @@ namespace seeks_plugins
 	SOFTWARE,
 	IMAGE,
 	VIDEO,
+	VIDEO_THUMB,
 	AUDIO,
 	CODE,
 	NEWS,
@@ -117,23 +118,26 @@ namespace seeks_plugins
 	void set_summary(const std::string &summary);
 	void set_summary(const char *summary);
 	
+	void set_date(const std::string &date);
+	
 	// sets a link to the archived url at archive.org (e.g. in case we'no cached link).
 	void set_archive_link();
 
 	// sets a link to a sorting of snippets wrt. to their similarity to this snippet.
-	virtual void set_similarity_link();
+	virtual void set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
 	// sets a back link when similarity is engaged.
-	virtual void set_back_similarity_link();
+	virtual void set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
 	// json output.
 	virtual std::string to_json(const bool &thumbs);
 	
 	// html output for inclusion in search result template page.
-	std::string to_html();
+	std::string to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	virtual std::string to_html_with_highlight(std::vector<std::string> &words,
-						   const std::string &base_url);
-
+						   const std::string &base_url,
+						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+	
 	// whether this snippet's engine(s) is(are) enabled.
 	// used in result page rendering.
 	virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);

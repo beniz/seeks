@@ -107,6 +107,9 @@ namespace seeks_plugins
 	else if (_in_published)
 	  {
 	     _published = std::string((char*)chars);
+	     size_t p = _published.find("T");
+	     if (p!=std::string::npos)
+	       _published = _published.substr(0,p);
 	  }
 	else if (_in_uri)
 	  {
@@ -148,7 +151,7 @@ namespace seeks_plugins
 	else if (_in_entry && _in_published && strcasecmp(tag, "published") == 0)
 	  {
 	     _in_published = false;
-	     pc->_current_snippet->_date = _published;
+	     pc->_current_snippet->set_date(_published);
 	     _published = "";
 	  }
 	else if (_in_entry && _in_uri && strcasecmp(tag, "uri") ==0)

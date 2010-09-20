@@ -90,6 +90,14 @@ body {
 	height:50px;
 }
 
+#search_results .search_snippet .video_profile {
+        #float: center;
+        padding: 0px 0px 0px 7px;
+        #margin-bottom: 30px;
+        #width: 130px;
+        height:110px;
+}
+
 #search_results .focused .preview {
 	display: inline;
 }
@@ -126,6 +134,18 @@ body {
         background-image: url(base-url/plugins/websearch/public/images/search_engines/exalead_12x12.png);
 }
 
+#search_results .search_snippet .search_engine_youtube {
+        background-image: url(base-url/plugins/websearch/public/images/search_engines/youtube_12x12.png);
+}
+
+#search_results .search_snippet .search_engine_dailymotion {
+	background-image: url(base-url/plugins/websearch/public/images/search_engines/dailymotion_12x12.png);
+}
+
+#search_results .search_snippet .search_engine_yauba {
+	background-image: url(base-url/plugins/websearch/public/images/search_engines/yauba_12x12.png);
+}
+
 #search_results .search_snippet_img {
 	width: 172px;
 	height: 220px;
@@ -136,8 +156,24 @@ body {
 	clear: none !important;
 }
 
+#search_results .search_snippet_vid {
+        width: 172px;
+	height: 220px;
+	overflow: hidden;
+	float: left;
+	display: inline;
+	text-align: center;
+	clear: none !important;
+}							
+
+.clear { clear:both; }
+
 #search_results cite {
 	color: blue;
+}
+
+#search_results date {
+        font-weight: normal;
 }
 
 #search_results .search_cache {
@@ -239,9 +275,12 @@ body {
 	left: 504px;
 }
 
-/* .cluster .search_snippet {
-	width: auto !important;
-} */
+.cluster .search_snippet_vid {
+#        margin-top: 20px;
+#	margin-bottom: 100px;
+#	width: auto;
+#	height: auto;
+}
 
 #search_results h2 {
     color: gray;

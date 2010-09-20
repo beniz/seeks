@@ -52,7 +52,8 @@ namespace seeks_plugins
 				    const int &current_page,
 				    const std::vector<search_snippet*> &snippets,
 				    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-				    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
+				    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+				    bool &not_end);
 	
 	static void render_clustered_snippets(const std::string &query_clean,
 					      const std::string &url_encoded_query,
@@ -85,7 +86,8 @@ namespace seeks_plugins
 					  const std::string &engines,
 					  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-					  const std::string &cgi_base="/search?");
+					  const std::string &cgi_base="/search?",
+					  const bool &not_end=false);
 	
 	static void render_prev_page_link(const int &current_page,
 					  const size_t &snippets_size,

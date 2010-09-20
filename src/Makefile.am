@@ -44,6 +44,7 @@ nobase_dist_public_DATA=\
 		 	  public/yui/3.0.0/cssfonts/fonts-min.css \
 		 	  public/yui/3.0.0/cssgrids/grids-min.css \
 		 	  public/yui/3.0.0/yui/yui-min.js \
+			  public/yui/3.0.0/loader/loader-min.js \
 			  lsh/swl/arabicST.txt \
 			  lsh/swl/bulgarianST.txt \
 			  lsh/swl/czechST.txt \
