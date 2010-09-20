@@ -22,6 +22,9 @@
 #include "user_db.h"
 #include "proxy_dts.h"
 #include "urlmatch.h"
+#include "encode.h"
+#include "cgi.h"
+#include "qprocess.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -33,6 +36,9 @@ using sp::seeks_proxy;
 using sp::user_db;
 using sp::db_record;
 using sp::urlmatch;
+using sp::encode;
+using sp::cgi;
+using lsh::qprocess;
 using sp::miscutil;
 using sp::errlog;
 
@@ -47,8 +53,7 @@ namespace seeks_plugins
    
    query_db_sweepable::~query_db_sweepable()
      {
-     }
-   
+     }   
         
    bool query_db_sweepable::sweep_me()
      {
@@ -117,12 +122,104 @@ namespace seeks_plugins
    
    http_response* query_capture_element::plugin_response(client_state *csp)
      {
+	/* std::cerr << "[query_capture]: headers:\n";
+	std::copy(csp->_headers.begin(),csp->_headers.end(),
+		  std::ostream_iterator<const char*>(std::cout,"\n"));
+	std::cerr << std::endl; */
+		
 	/**
-	 * Captures clicked URLs from search results, and store them with the
-	 * right queries.
+	 * Captures clicked URLs from search results, and store them along with
+	 * the query fragments.
 	 */
+	std::string host, referer, get;
+	query_capture_element::get_useful_headers(csp->_headers,
+						  host,referer,get);
+	
+	std::string ref_host, ref_path;
+	urlmatch::parse_url_host_and_path(referer,ref_host,ref_path);
+	if (ref_host == query_capture_element::_cgi_site_host)
+	  {
+	     //std::cerr << "[query_capture]: got referer match!\n";
+	     
+	     // check that it comes from an API call to the websearch plugin.
+	     size_t p = referer.find("search?");
+	     if (p == std::string::npos)
+	       {
+		  p = referer.find("search_img?");
+		  if (p == std::string::npos)
+		    return NULL;
+	       }
+	     
+	     //std::cerr << "search referer detected\n";
+	     
+	     char *argstring = strdup(ref_path.c_str());
+	     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters 
+	       = cgi::parse_cgi_parameters(argstring);
+	     free(argstring);
+	     const char *query = miscutil::lookup(parameters,"q");
+	     if (!query)
+	       {
+		  delete parameters;
+		  return NULL;
+	       }
+	     char *dec_query = encode::url_decode(query);
+	     std::string query_str = std::string(dec_query);
+	     free(dec_query);
+	     
+	     //std::cerr << "detected query: " << query << std::endl;
+	     
+	     host = urlmatch::strip_url(host);
+	     p = miscutil::replace_in_string(get," HTTP/1.1","");
+	     if (p == 0)
+	       miscutil::replace_in_string(get," HTTP/1.0","");
+	     std::string url = host + get;
+	     if (url[url.length()-1]=='/') // remove trailing '/'.
+	       url = url.substr(0,url.length()-1);
+	     
+	     // generate query fragments.
+	     //std::cerr << "[query_capture]: detected refering query: " << query_str << std::endl;
+	     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+	     qprocess::generate_query_hashes(query_str,0,5,features); //TODO: configuration.
+	     
+	     //TODO: push URL into the user db buckets with query fragments as key.
+	     //TODO: store radius in record.
+	     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
+	     while(hit!=features.end())
+	       {
+		  store_url((*hit).second,query_str,url,host,(*hit).first);
+		  ++hit;
+	       }
+	     
+	     delete parameters;
+	  }
+		
+	return NULL; // no response, so the proxy does not crunch this HTTP request.
      }
    
+   /* void query_capture::store_query()
+     {
+	
+     } */
+      
+   void query_capture_element::store_url(const DHTKey &key, const std::string &query,
+					 const std::string &url, const std::string &host,
+					 const uint32_t &radius)
+     {
+	std::string key_str = key.to_rstring();
+	if (!url.empty())
+	  {
+	     //std::cerr << "adding url: " << url << std::endl;
+	     db_query_record dbqr(_parent->get_name(),query,radius,url);
+	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+	  }
+	if (!host.empty())
+	  {
+	     //std::cerr << "adding host: " << host << std::endl;
+	     db_query_record dbqr(_parent->get_name(),query,radius,host);
+	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+	  }
+     }
+      
    void query_capture_element::get_useful_headers(const std::list<const char*> &headers,
 						  std::string &host, std::string &referer,
 						  std::string &get)
@@ -145,6 +242,7 @@ namespace seeks_plugins
 		  referer = (*lit);
 		  referer = referer.substr(9);
 	       }
+	     ++lit;
 	  }
      }
    

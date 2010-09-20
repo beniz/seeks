@@ -2,13 +2,31 @@ package sp.db;
 
 import "db_record_msg.proto";
 
+message visited_url
+{
+ required string url = 1;
+ required uint32 hits = 2; /* url hits for this query. */
+}
+
 message visited_urls
 {
- repeated string urls = 1;
+ repeated visited_url vurl = 1;
+}
+
+message related_queries
+{
+ repeated related_query rquery = 1;
+}
+
+message related_query
+{
+ required uint32 radius = 1;            /* similarity radius to the original query. */
+ required string query = 2;             /* query (may be hashed). */
+ required uint32 query_hits = 3;        /* number of query hits. */
+ required visited_urls vurls = 4;       /* visited urls for this query. */
 }
 
 extend sp.db.record
 {
- required string query = 4; /* original query */
- required visited_urls urls = 5;  /* visited URLs */
+ required related_queries queries = 4; /* original queries */
 }

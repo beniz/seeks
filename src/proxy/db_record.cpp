@@ -91,13 +91,13 @@ namespace sp
 	_plugin_name = r.plugin_name();
      }
    
-   std::ostream& db_record::print_header(std::ostream &output)
+   std::ostream& db_record::print_header(std::ostream &output) const
      {
 	output << "\tplugin_name: " << _plugin_name << "\n\tcreation time: " << _creation_time << std::endl;
 	return output;
      }
    
-   std::ostream& db_record::print(std::ostream &output)
+   std::ostream& db_record::print(std::ostream &output) const
      {
 	return print_header(output);
      }

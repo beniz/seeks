@@ -19,21 +19,79 @@
 #ifndef DB_QUERY_RECORD_H
 #define DB_QUERY_RECORD_H
 
+#include "stl_hash.h"
 #include "db_record.h"
 
-#include <set>
+#include <vector>
 
 using sp::db_record;
 
 namespace seeks_plugins
 {
-   struct lt_string
+   /* struct lt_string
      {
 	bool operator()(const std::string &s1, const std::string &s2) const
 	  {
 	     return std::lexicographical_compare(s1.begin(),s1.end(),
 						 s2.begin(),s2.end());
 	  }
+     }; */
+
+   class vurl_data
+     {
+      public:
+	vurl_data(const std::string &url)
+	  :_url(url),_hits(1)
+	    {};
+	
+	vurl_data(const std::string &url,
+		  const short &hits)
+	  :_url(url),_hits(hits)
+	    {};
+	
+	vurl_data(const vurl_data *vd)
+	  :_url(vd->_url),_hits(vd->_hits)
+	    {};
+	
+	~vurl_data() {};
+	
+	void merge(const vurl_data *vd)
+	  {
+	     _hits += vd->_hits;
+	  };
+	
+	std::ostream& print(std::ostream &output) const;
+	
+	std::string _url;
+	short _hits;
+     };
+      
+   class query_data
+     {
+      public:
+	query_data(const std::string &query,
+		   const short &radius);
+	
+	query_data(const std::string &query,
+		   const short &radius,
+		   const std::string &url);
+	
+	query_data(const query_data *qd);
+	
+	~query_data();
+
+	void create_visited_urls();
+	
+	void merge(const query_data *qd);
+	
+	void add_vurl(vurl_data *vd);
+	
+	std::ostream& print(std::ostream &output) const;
+	
+	std::string _query;
+	const short _radius;
+	short _hits;
+	hash_map<const char*,vurl_data*,hash<const char*>,eqstr> *_visited_urls;
      };
       
    class db_query_record : public db_record
@@ -43,8 +101,14 @@ namespace seeks_plugins
 			const std::string &plugin_name);
 	
 	db_query_record(const std::string &plugin_name,
-			const std::string &query);
+			const std::string &query,
+			const short &radius);
 	
+	db_query_record(const std::string &plugin_name,
+			const std::string &query,
+			const short &radius,
+			const std::string &url);
+		
 	db_query_record();
 	
 	virtual ~db_query_record();
@@ -53,17 +117,16 @@ namespace seeks_plugins
 	
 	virtual int deserialize(const std::string &msg);
 	
-	virtual int merge_with(const db_query_record &dqr);
+	virtual int merge_with(const db_record &dqr);
 	
 	void create_query_record(sp::db::record &r) const;
 	
 	void read_query_record(sp::db::record &r);
 	
-	virtual std::ostream& print(std::ostream &output);
+	virtual std::ostream& print(std::ostream &output) const;
      
       public:
-	std::string _query;
-	std::set<std::string> _visited_urls;
+	hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;
      };
       
 } /* end of namespace. */

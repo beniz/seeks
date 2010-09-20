@@ -92,12 +92,12 @@ namespace sp
 	/**
 	 * prints the record header.
 	 */
-	std::ostream& print_header(std::ostream &output);
+	std::ostream& print_header(std::ostream &output) const;
 	
 	/**
 	 * prints the record out.
 	 */
-	virtual std::ostream& print(std::ostream &output);
+	virtual std::ostream& print(std::ostream &output) const;
 	
       public:
 	time_t _creation_time;

@@ -382,6 +382,10 @@ namespace sp
       
    std::ostream& user_db::print(std::ostream &output)
      {
+	output << "\nnumber of records: " << number_records() << std::endl;
+	output << "size on disk: " << disk_size() << std::endl;
+	output << std::endl;
+	
 	/* traverse records */
 	void *rkey = NULL;
 	void *value = NULL;

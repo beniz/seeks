@@ -21,8 +21,10 @@
 
 #include "plugin.h"
 #include "interceptor_plugin.h"
+#include "DHTKey.h"
 
 using namespace sp;
+using dht::DHTKey;
 
 namespace seeks_plugins
 {
@@ -65,7 +67,11 @@ namespace seeks_plugins
 	virtual ~query_capture_element();
      
 	virtual http_response* plugin_response(client_state *csp);
-
+	
+	void store_url(const DHTKey &key, const std::string &query,
+		       const std::string &url, const std::string &host,
+		       const uint32_t &radius);
+	
 	void get_useful_headers(const std::list<const char*> &headers,
 				std::string &host, std::string &referer,
 				std::string &get);

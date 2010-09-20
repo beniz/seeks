@@ -15,11 +15,11 @@ AM_CPPFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
 AM_LDFLAGS=-L. -L../ -L../../utils -L../../lsh -L../../dht `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet` \
-           `pkg-config opencv --libs` -L../../plugins/websearch @XML2_LDADD@
+           `pkg-config opencv --libs` -L../../plugins/websearch -L../../plugins/img_websearch @XML2_LDADD@
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD = -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lseeksuserdb \
+LDADD = -lseekswebsearchplugin -lseeksimgwebsearchplugin -lseeksutils -lseekslsh -lseeksproxy -lseeksplugins -lseeksuserdb \
         -lseeksdht -lrmd160 -lpcre -lpcreposix -lpthread -lz @CURL_LDADD@
 if !HAVE_BSD
 LDADD += -ldl
