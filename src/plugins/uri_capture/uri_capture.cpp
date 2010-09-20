@@ -206,7 +206,7 @@ namespace seeks_plugins
 	       }
 	  }
 	
-	return NULL; // no response, so the proxy does not crunch this call.
+	return NULL; // no response, so the proxy does not crunch this HTTP request.
      }
    
    void uri_capture_element::get_useful_headers(const std::list<const char*> &headers,
