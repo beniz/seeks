@@ -303,6 +303,7 @@ activated-plugin websearch
 activated-plugin blocker
 activated-plugin img_websearch
 activated-plugin uri-capture
+activated-plugin query-capture
 #activated-plugin httpserv
 #
 #
