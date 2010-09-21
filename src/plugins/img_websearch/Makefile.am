@@ -15,7 +15,7 @@ libseeksimgwebsearchplugin_la_SOURCES=img_websearch.cpp se_handler_img.cpp img_q
                                       img_search_snippet.cpp se_parser_bing_img.cpp se_parser_ggle_img.cpp se_parser_flickr.cpp \
 				      se_parser_yahoo_img.cpp se_parser_wcommons.cpp img_sort_rank.cpp \
 				      img_query_context.h img_search_snippet.h img_sort_rank.h \
-				      img_websearch_configuration.h img_websearch.h se_handler_img.h \
+				      img_websearch_configuration.h img_websearch.h se_handler_img.h se_parser_wcommons.h \
 				      se_parser_bing_img.h se_parser_ggle_img.h se_parser_flickr.h se_parser_yahoo_img.h
 if HAVE_OPENCV2
 libseeksimgwebsearchplugin_la_SOURCES += img_content_handler.cpp img_content_handler.h ocvsurf.cpp ocvsurf.h
