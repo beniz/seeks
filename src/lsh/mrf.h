@@ -31,6 +31,7 @@
 #include <vector>
 #include <queue>
 #include <ostream>
+#include <iostream>
 
 using dht::DHTKey;
 
@@ -135,13 +136,14 @@ namespace lsh
 	 {
 	    std::vector<std::string> tokens;
 	    mrf::tokenize(str,tokens,mrf::_default_delims);
+	    uint32_t window_length = std::min((int)tokens.size(),(int)window_length_default);
 	    
 	    int gen_radius = 0;
 	    while(!tokens.empty())
 	      {
 		 mrf::mrf_build(tokens,features,
 				min_radius,max_radius,
-				gen_radius, window_length_default);
+				gen_radius, window_length);
 		 tokens.erase(tokens.begin());
 		 ++gen_radius;
 	      }
@@ -166,12 +168,12 @@ namespace lsh
 			     const int &min_radius,
 			     const int &max_radius,
 			     const int &gen_radius,
-			     const uint32_t &window_length_default)
+			     const uint32_t &window_length)
 	 {
 	    int tok = 0;
 	    std::queue<str_chain> chains;
 	    mrf::mrf_build<feat>(tokens,tok,chains,features,
-				 min_radius,max_radius,gen_radius,window_length_default);
+				 min_radius,max_radius,gen_radius,window_length);
 	 }
      
      template<typename feat>
@@ -186,7 +188,7 @@ namespace lsh
 	 {
 	    if (chains.empty())
 	      {
-		 int radius_chain = window_length - std::max(1,(int)(window_length-tokens.size()));
+		 int radius_chain = window_length - 1;
 		 str_chain chain(tokens.at(tok),radius_chain);
 		 
 #ifdef DEBUG
@@ -204,7 +206,7 @@ namespace lsh
 #ifdef DEBUG
 		      //debug
 		      std::cout << tokens.at(tok) << std::endl;
-		      std::cout << std::hex << h << std::endl;
+		      //std::cout << std::hex << h << std::endl;
 		      std::cout << "radius: " << radius_chain << std::endl;
 		      std::cout << std::endl;
 		      //debug
@@ -228,8 +230,8 @@ namespace lsh
 			{
 			   // first generated chain: add a token.
 			   str_chain chain1(chain);
-			                    chain1.add_token(tokens.at(tok));
-			                    chain1.decr_radius();
+			   chain1.add_token(tokens.at(tok));
+			   chain1.decr_radius();
 			   
 			   if (chain1.get_radius() >= min_radius
 			       && chain1.get_radius() <= max_radius)
@@ -241,7 +243,7 @@ namespace lsh
 #ifdef DEBUG
 				//debug
 				chain1.print(std::cout);
-				std::cout << std::hex << h << std::endl;
+				//std::cout << std::hex << h << std::endl;
 				std::cout << "radius: " << chain1.get_radius() << std::endl;
 				std::cout << std::endl;
 				//debug
