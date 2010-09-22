@@ -121,8 +121,8 @@ namespace sp
 	                                     // required for auto-registration.
 	     if (dlib == NULL)
 	       {
-		  errlog::log_error(LOG_LEVEL_FATAL, "%s", dlerror());
-		  exit(-1);
+		  errlog::log_error(LOG_LEVEL_ERROR, "%s", dlerror());
+		  //exit(-1);
 	       }
 	     
 	     plugin_manager::_dl_list.insert(plugin_manager::_dl_list.end(),dlib); // add lib handle to the list.
