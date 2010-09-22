@@ -655,7 +655,7 @@ namespace seeks_plugins
        }
      
      // sort and rank search snippets.
-     seeks_proxy::mutex_lock(&qc->_qc_mutex);
+     mutex_lock(&qc->_qc_mutex);
      qc->_lock = true;
      sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
 					     parameters);

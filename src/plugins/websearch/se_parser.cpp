@@ -121,7 +121,7 @@ namespace seeks_plugins
 	       NULL
 	  };
 	
-	seeks_proxy::mutex_lock(&se_parser::_se_parser_mutex);
+	mutex_lock(&se_parser::_se_parser_mutex);
 	
 	try
 	  {
@@ -164,7 +164,7 @@ namespace seeks_plugins
 	if (ctxt)
 	  xmlFreeParserCtxt(ctxt);
 	
-	seeks_proxy::mutex_unlock(&se_parser::_se_parser_mutex);
+	mutex_unlock(&se_parser::_se_parser_mutex);
      }
       
    void se_parser::parse_output(char *output, 

@@ -47,18 +47,10 @@ namespace lsh
    #define hash_lsh_delims     3228991366ul  /* "lsh-delims" */
 
    lsh_configuration* lsh_configuration::_config = NULL;
-   std::string lsh_configuration::_basedir = "";
-   std::string lsh_configuration::_datadir = "";
-   
-   lsh_configuration::lsh_configuration(const std::string &filename,
-					const std::string &basedir,
-					const std::string &datadir)
+
+   lsh_configuration::lsh_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
-	  if (lsh_configuration::_basedir.empty())
-	    lsh_configuration::_basedir = basedir;
-	  if (lsh_configuration::_datadir.empty())
-	    lsh_configuration::_datadir = datadir;
 	  mutex_init(&_load_swl_mutex);
 	  load_config();
        }
