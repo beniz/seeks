@@ -51,7 +51,8 @@ namespace sp
      {
 	// create the db.
 	_hdb = tchdbnew();
-	//TODO: compression.
+	 tchdbsetmutex(_hdb);
+	tchdbtune(_hdb,0,-1,-1,HDBTDEFLATE);
 	
 	// db location.
 	uid_t user_id = getuid(); // get user for the calling process.
