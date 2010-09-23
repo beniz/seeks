@@ -106,6 +106,11 @@ namespace seeks_plugins
 	static websearch_configuration *_wconfig;
 	static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
 	static double _cl_sec; // clock ticks per second.
+     
+	/* dependent plugins. */
+      private:
+	static plugin *_qc_plugin; 
+	static bool _qc_plugin_activated;
      };
    
 } /* end of namespace. */

@@ -34,6 +34,8 @@
 #include "oskmeans.h"
 #include "mrf.h"
 
+#include "query_capture.h" // dependent plugin.
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -50,6 +52,9 @@ namespace seeks_plugins
    hash_map<uint32_t,query_context*,id_hash_uint > websearch::_active_qcontexts 
      = hash_map<uint32_t,query_context*,id_hash_uint >();
    double websearch::_cl_sec = -1.0; // filled up at startup.
+
+   plugin* websearch::_qc_plugin = NULL;
+   bool websearch::_qc_plugin_activated = false;
    
    websearch::websearch()
      : plugin()
@@ -114,6 +119,10 @@ namespace seeks_plugins
 	  
 	  // get clock ticks per sec.
 	  websearch::_cl_sec = sysconf(_SC_CLK_TCK);
+       
+	  // look for dependent plugins.
+	  _qc_plugin = plugin_manager::get_plugin("query-capture");
+	  _qc_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str()); //TODO: hot deactivation.
        }
 
    websearch::~websearch()
@@ -652,6 +661,10 @@ namespace seeks_plugins
 	  qc->generate(csp,rsp,parameters,expanded);
 	  qc->_lock = false;
 	  mutex_unlock(&qc->_qc_mutex);
+       
+	  // query_capture if plugin is available and activated.
+       	  if (_qc_plugin && _qc_plugin_activated)
+	    static_cast<query_capture*>(_qc_plugin)->store_query(qc->_query);
        }
      
      // sort and rank search snippets.

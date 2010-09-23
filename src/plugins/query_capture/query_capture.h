@@ -21,6 +21,7 @@
 
 #include "plugin.h"
 #include "interceptor_plugin.h"
+#include "query_capture_configuration.h"
 #include "DHTKey.h"
 
 using namespace sp;
@@ -56,7 +57,10 @@ namespace seeks_plugins
 	
 	int remove_all_query_records();
      
-	//TODO: store_query called from websearch plugin.
+	// store_query called from websearch plugin.
+	void store_query(const std::string &query) const;
+     
+	static query_capture_configuration *_config;
      };
       
    class query_capture_element : public interceptor_plugin
@@ -68,6 +72,8 @@ namespace seeks_plugins
      
 	virtual http_response* plugin_response(client_state *csp);
 	
+	void store_query(const std::string &query) const;
+	
 	void store_url(const DHTKey &key, const std::string &query,
 		       const std::string &url, const std::string &host,
 		       const uint32_t &radius);
@@ -76,8 +82,11 @@ namespace seeks_plugins
 				std::string &host, std::string &referer,
 				std::string &get);
 	
+	static std::string no_command_query(const std::string &query);
+	
       public:
 	query_db_sweepable _qds;
+		
 	static std::string _capt_filename; // pattern capture file.
 	static std::string _cgi_site_host; // default local cgi address.
      };
