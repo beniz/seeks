@@ -49,6 +49,9 @@ namespace sp
    user_db::user_db()
      :_opened(false)
      {
+	// init the mutex;
+	mutex_init(&_db_mutex);
+	
 	// create the db.
 	_hdb = tchdbnew();
 	 tchdbsetmutex(_hdb);
@@ -106,12 +109,12 @@ namespace sp
 	  }
 		
 	// try to get write access, if not, fall back to read-only access, with a warning.
-	if(!tchdbopen(_hdb, _name.c_str(), HDBOWRITER | HDBOCREAT))
+	if(!tchdbopen(_hdb, _name.c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
 	  {
 	     int ecode = tchdbecode(_hdb);
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db db open error: %s",tchdberrmsg(ecode));
 	     errlog::log_error(LOG_LEVEL_INFO, "trying to open user_db in read-only mode");
-	     if(!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT))
+	     if(!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT | HDBONOLCK))
 	       {
 		  int ecode = tchdbecode(_hdb);
 		  errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",tchdberrmsg(ecode));
@@ -134,7 +137,7 @@ namespace sp
 	     return 0;
 	  }
 	
-	if(!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT))
+	if(!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT | HDBONOLCK))
 	  {
 	     int ecode = tchdbecode(_hdb);
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",tchdberrmsg(ecode));
@@ -234,6 +237,7 @@ namespace sp
    int user_db::add_dbr(const std::string &key,
 			const db_record &dbr)
      {
+	mutex_lock(&_db_mutex);
 	std::string str;
 	
 	// find record.
@@ -246,12 +250,14 @@ namespace sp
 	       {
 		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record merging error");
 		  delete edbr;
+		  mutex_unlock(&_db_mutex);
 		  return -1;
 	       }
 	     else if (err_m == -2)
 	       {
 		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: tried to merge records from different plugins");
 		  delete edbr;
+		  mutex_unlock(&_db_mutex);
 		  return -2;
 	       }
 	     edbr->serialize(str);
@@ -275,8 +281,10 @@ namespace sp
 	  {
 	     int ecode = tchdbecode(_hdb);
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",tchdberrmsg(ecode));
+	     mutex_unlock(&_db_mutex);
 	     return -1;
 	  }
+	mutex_unlock(&_db_mutex);
 	return 0;
      }
    

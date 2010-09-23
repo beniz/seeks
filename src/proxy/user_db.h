@@ -19,6 +19,7 @@
 #ifndef USER_DB_H
 #define USER_DB_H
 
+#include "mutexes.h"
 #include "db_record.h"
 #include "sweeper.h"
 
@@ -179,6 +180,9 @@ namespace sp
 	std::vector<user_db_sweepable*> _db_sweepers;
 	
 	static std::string _db_name; /**< db file name. */
+     
+      private:
+	sp_mutex_t _db_mutex; /**< mutex around db operations. */
      };
       
 } /* end of namespace. */
