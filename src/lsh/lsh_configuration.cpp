@@ -19,13 +19,14 @@
  */
 
 #include "lsh_configuration.h"
-#include "mutexes.h"
 #include "errlog.h"
+#include "seeks_proxy.h" // for mutexes.
 #include "mrf.h"
 
 #include <iostream>
 
 using sp::errlog;
+using sp::seeks_proxy;
 
 namespace lsh
 {
@@ -45,12 +46,13 @@ namespace lsh
    #define hash_cs_swl         3332125561ul  /* "cs-stopword-list" */
    #define hash_pl_swl         4105258461ul  /* "pl-stopword-list" */
    #define hash_lsh_delims     3228991366ul  /* "lsh-delims" */
-
+   
    lsh_configuration* lsh_configuration::_config = NULL;
-
+   
    lsh_configuration::lsh_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
+	  lsh_configuration::_config = this;
 	  mutex_init(&_load_swl_mutex);
 	  load_config();
        }

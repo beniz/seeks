@@ -21,6 +21,7 @@
 #ifndef LSH_CONFIGURATION_H
 #define LSH_CONFIGURATION_H
 
+#include "mutexes.h"
 #include "configuration_spec.h"
 #include "stopwordlist.h"
 #include "stl_hash.h"
@@ -31,8 +32,6 @@ extern "C"
 }
 
 using sp::configuration_spec;
-
-typedef pthread_mutex_t sp_mutex_t;
 
 namespace lsh
 {
