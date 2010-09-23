@@ -96,6 +96,7 @@ namespace seeks_plugins
 	  if (!has_in_query_lang && !_auto_lang.empty())
 	    q_to_hash = ":" + _auto_lang + " ";
 	  _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
+	  _query = q_to_hash;
 	  
 	  // lookup requested engines, if any.
 	  query_context::fillup_engines(parameters,_engines);
