@@ -519,8 +519,9 @@ namespace seeks_plugins
       char *url_str = encode::url_decode(url.c_str());
       _url = std::string(url_str);
       free(url_str);
-      std::transform(_url.begin(),_url.end(),_url.begin(),tolower);
-      std::string surl = urlmatch::strip_url(_url);
+       std::string url_lc(_url);
+      std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+      std::string surl = urlmatch::strip_url(url_lc);
       _id = mrf::mrf_single_feature(surl,"");
     }
 
@@ -529,16 +530,18 @@ namespace seeks_plugins
       char *url_dec = encode::url_decode(url);
       _url = std::string(url_dec);
       free(url_dec);
-      std::transform(_url.begin(),_url.end(),_url.begin(),tolower);
-      std::string surl = urlmatch::strip_url(_url);
+       std::string url_lc(_url);
+      std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+      std::string surl = urlmatch::strip_url(url_lc);
       _id = mrf::mrf_single_feature(surl,"");
     }
 
     void search_snippet::set_url_no_decode(const std::string &url)
     {
       _url = url;
-      std::transform(_url.begin(),_url.end(),_url.begin(),tolower);
-      std::string surl = urlmatch::strip_url(_url);
+       std::string url_lc(_url);
+      std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+      std::string surl = urlmatch::strip_url(url_lc);
       _id = mrf::mrf_single_feature(surl,"");
     }
 
