@@ -15,6 +15,6 @@ db_uri_record_msg.pb.cc:
 	protoc --proto_path=. --proto_path=../../proxy --cpp_out=. db_uri_record_msg.proto
 
 clean-local:
-	rm db_uri_record_msg.pb.cc db_uri_record_msg.pb.h
+	rm -f db_uri_record_msg.pb.cc db_uri_record_msg.pb.h
 
 nobase_dist_uricaptureplugindata_DATA=uri-patterns
