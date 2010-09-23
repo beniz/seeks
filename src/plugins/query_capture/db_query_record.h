@@ -28,14 +28,6 @@ using sp::db_record;
 
 namespace seeks_plugins
 {
-   /* struct lt_string
-     {
-	bool operator()(const std::string &s1, const std::string &s2) const
-	  {
-	     return std::lexicographical_compare(s1.begin(),s1.end(),
-						 s2.begin(),s2.end());
-	  }
-     }; */
 
    class vurl_data
      {

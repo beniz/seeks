@@ -72,12 +72,16 @@ namespace seeks_plugins
      {
 	if (_visited_urls)
 	  {
+	     hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator dhit;
 	     hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator hit
 	       = _visited_urls->begin();
 	     while(hit!=_visited_urls->end())
 	       {
-		  delete (*hit).second;
+		  vurl_data *vd = (*hit).second;
+		  dhit = hit;
 		  ++hit;
+		  _visited_urls->erase(dhit);
+		  delete vd;
 	       }
 	     delete _visited_urls;
 	  }
@@ -180,12 +184,16 @@ namespace seeks_plugins
    
    db_query_record::~db_query_record()
      {
+	hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator dhit;
 	hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
 	  = _related_queries.begin();
 	while(hit!=_related_queries.end())
 	  {
-	     delete (*hit).second;
+	     query_data *qd = (*hit).second;
+	     dhit = hit;
 	     ++hit;
+	     _related_queries.erase(dhit);
+	     delete qd;
 	  }
      }
      
@@ -257,9 +265,13 @@ namespace seeks_plugins
 		  while(vhit!=rd->_visited_urls->end())
 		    {
 		       vurl_data *vd = (*vhit).second;
-		       sp::db::visited_url *rq_vurl = rq_vurls->add_vurl();
-		       rq_vurl->set_url(vd->_url);
-		       rq_vurl->set_hits(vd->_hits);
+		       if (vd) // XXX: should not happen.
+			 {
+			    sp::db::visited_url *rq_vurl = rq_vurls->add_vurl();
+			    rq_vurl->set_url(vd->_url);
+			    rq_vurl->set_hits(vd->_hits);
+			 }
+		       else std::cerr << "[Debug]: null vurl_data element in visited_urls...\n";
 		       ++vhit;
 		    }
 	       }
