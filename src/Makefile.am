@@ -6,15 +6,15 @@ seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
-	    -I${srcdir}/plugins/websearch -I${srcdir}/dht `pkg-config opencv --cflags` `pkg-config --cflags protobuf` \
-            `pkg-config --cflags tokyocabinet`
+	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir}/dht \
+	    `pkg-config opencv --cflags` `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch \
-	    -Ldht/ `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+	    -Lplugins/query_capture -Ldht/ `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=-lseekswebsearchplugin
+LDADD=-lseekswebsearchplugin -lquerycaptureplugin
 if HAVE_HTTPSERV_PLUGIN
 LDADD += -levent
 endif
@@ -27,7 +27,7 @@ if !HAVE_BSD
 LDADD += -ldl
 endif
 
-SUBDIRS=utils lsh dht proxy plugins .
+SUBDIRS=utils lsh dht proxy plugins lsh/tests .
 
 configdir=$(sysconfdir)/seeks
 dist_config_DATA=config \
