@@ -210,6 +210,8 @@ namespace seeks_plugins
 	     std::string url = host + get;
 	     if (url[url.length()-1]=='/') // remove trailing '/'.
 	       url = url.substr(0,url.length()-1);
+	     std::transform(url.begin(),url.end(),url.begin(),tolower);
+	     std::transform(host.begin(),host.end(),host.begin(),tolower);
 	     
 	     // generate query fragments.
 	     //std::cerr << "[query_capture]: detected refering query: " << query_str << std::endl;
