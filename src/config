@@ -1388,7 +1388,7 @@ socket-timeout 300
 #
 #      max-client-connections 256
 #
-max-client-connections 256000000000
+max-client-connections 256
 #
 #
 #  7. WINDOWS GUI OPTIONS

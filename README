@@ -14,6 +14,12 @@ Seeks code provides:
 ----------------------------------------------------------------------------
 2. Installation
 
+Dependencies:
+- curl
+- libxml2
+- libpcre
+- docbook2x-man (optionnal)
+
 From the root directory, run
 ./autogen.sh
 ./configure
@@ -49,11 +55,11 @@ through seeks' web proxy.
 Seeks is young, so it is likely there are bugs. However, before all, be
 sure to read the faq and user manuals, respectively at:
 
-http://www.seeks-project.info/FAQ
-http://www.seeks-project.info/user-manual
+http://www.seeks-project.info/wiki/index.php/FAQ
+http://www.seeks-project.info/wiki/index.php/User_Manual
 
 To report bugs, please use the interface here :
-https://sourceforge.net/apps/trac/seeks/wiki
+http://redmine.seeks-project.info/projects/seeks/issues/new
 
 For discussion and getting more immediate help, join us on irc,
 channel #seeks on irc.freenode.net
