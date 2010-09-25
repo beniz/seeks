@@ -371,7 +371,9 @@ namespace seeks_plugins
    
    search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
-	std::string surl = urlmatch::strip_url(url);
+	std::string url_lc(url);
+	std::transform(url.begin(),url.end(),url_lc.begin(),tolower);
+	std::string surl = urlmatch::strip_url(url_lc);
 	uint32_t id = mrf::mrf_single_feature(surl,query_context::_query_delims);
 	return get_cached_snippet(id);
      }
