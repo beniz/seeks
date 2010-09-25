@@ -1,3 +1,11 @@
+* Bubs-0.2.5b-SOLO-stable
+
+- Fixed crash in image similarity analysis.
+
+* Bubs-0.2.5a-SOLO-stable
+
+- Fixed bad cases in URLs.
+
 * Bubs-0.2.5-SOLO-stable
 
 - Tweets search, from Twitter and Identi.ca. Automatic aggregation
