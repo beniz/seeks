@@ -371,7 +371,9 @@ namespace seeks_plugins
    
    search_snippet* query_context::get_cached_snippet(const std::string &url) const
      {
-	std::string surl = urlmatch::strip_url(url);
+	std::string url_lc(url);
+	std::transform(url.begin(),url.end(),url_lc.begin(),tolower);
+	std::string surl = urlmatch::strip_url(url_lc);
 	uint32_t id = mrf::mrf_single_feature(surl,query_context::_query_delims);
 	return get_cached_snippet(id);
      }
@@ -489,7 +491,7 @@ namespace seeks_plugins
 			 {
 			    lang_reg = "en-US"; // default.
 			 }
-		       errlog::log_error(LOG_LEVEL_LOG,"Query language detection: %s",lang_reg.c_str());
+		       errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
 		       return lang_reg;
 		    }
 		  else if (pos != std::string::npos && pos+3<=lang_head.length())

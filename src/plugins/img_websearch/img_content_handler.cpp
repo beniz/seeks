@@ -64,6 +64,8 @@ namespace seeks_plugins
 	     if (outputs[i])
 	       {
 		  search_snippet *spsp = qc->get_cached_snippet(urls[i]);
+		  if (!spsp)
+		    continue; // safe.
 		  img_search_snippet *sp = static_cast<img_search_snippet*>(spsp);
 		  sp->_cached_image = outputs[i]; // cache fetched content.
 		  valid_contents.push_back(sp->_cached_image);
