@@ -1,7 +1,7 @@
 
 
 ACLOCAL_AMFLAGS=-I m4
-lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la libseeksuserdb.la
+lib_LTLIBRARIES=libseeksuserdb.la libseeksproxy.la libseeksplugins.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
 	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
@@ -58,7 +58,7 @@ endif
 db_record_msg.pb.cc:
 	protoc --cpp_out=. db_record_msg.proto
 
-SUBDIRS= . tests
+# SUBDIRS= . tests
 
 EXTRA_DIST = templates/blocked \
 	    templates/cgi-error-404 \
