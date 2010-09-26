@@ -19,11 +19,13 @@
 #include "rank_estimators.h"
 #include "qprocess.h"
 #include "query_capture.h"
+#include "urlmatch.h"
 
 #include <assert.h>
 #include <iostream>
 
 using lsh::qprocess;
+using sp::urlmatch;
 
 namespace seeks_plugins
 {
@@ -184,7 +186,7 @@ namespace seeks_plugins
 	       
 		  //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
 	       }
-	     std::cerr << "url: " << (*vit)->_url << " -- posterior: " << posteriors[j] << std::endl;
+	     //std::cerr << "url: " << (*vit)->_url << " -- posterior: " << posteriors[j] << std::endl;
 	     sum_posteriors += posteriors[j++];
 	     ++vit;
 	  }
@@ -218,15 +220,28 @@ namespace seeks_plugins
 				  const query_data *qd, 
 				  const float &total_hits)
      {
-	std::string url = s->get_stripped_url();
-	vurl_data *vd = qd->find_vurl(url);
-	if (!vd)
-	  {
-	     return 1.0 / static_cast<double>(ns); // XXX: may replace ns with a less discriminative value.
-	  }
+	float posterior = 0.0;
 	
-	float posterior = (vd->_hits + 1.0) / (total_hits + ns);
-	std::cerr << "posterior: " << posterior << std::endl;
+	// URL.
+	std::string url = s->_url;
+	std::transform(url.begin(),url.end(),url.begin(),tolower);
+	std::string surl = urlmatch::strip_url(url);
+	vurl_data *vd = qd->find_vurl(surl);
+	if (!vd)
+	  posterior =  1.0 / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
+	else posterior = (vd->_hits + 1.0) / (total_hits + ns);
+	
+	// host.
+	std::string host, path;
+	urlmatch::parse_url_host_and_path(url,host,path);
+	host = urlmatch::strip_url(host);
+	vd = qd->find_vurl(host);
+	if (!vd)
+	  posterior *= 0.7 / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
+	else posterior *= 0.7*(vd->_hits + 1.0) / (total_hits + ns); // 0.7 is domain-name weight factor.
+	
+	//std::cerr << "posterior: " << posterior << std::endl;
+	
 	return posterior;
      }
       
