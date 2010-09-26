@@ -1,0 +1,6 @@
+# maximum radius of the generated halo of queries around every
+# original query. Higher radius means more storage and more data from
+# which to make recommendations and ratings. Recommended values are
+# between 0 and 8.
+# default: 5
+query-max-radius 5
