@@ -82,3 +82,8 @@ extended-highlight 1
 # Renders the node IP address in the info bar, or not.
 # default: 0
 show-node-ip 0
+
+# Personalizes the result ranks based on user data from past searches
+# and proxy usage.
+# default: 1
+personalized-ranking 1

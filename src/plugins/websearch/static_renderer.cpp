@@ -210,6 +210,23 @@ namespace seeks_plugins
 	if (only_tweets)
 	  miscutil::add_map_entry(exports,"$xxcca",1,"off",1); // xxcca is content_analysis for cluster analysis.
 	else miscutil::add_map_entry(exports,"$xxcca",1,content_analysis ? "on" : "off",1);
+	
+	// personalization.
+	const char *prs = miscutil::lookup(parameters,"prs");
+	if (!prs)
+	  {
+	     prs = websearch::_wconfig->_personalization ? "on" : "off";
+	  }
+	if (strcasecmp(prs,"on")==0)
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"on",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"off",1);
+	  }
+	else 
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"off",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"on",1);
+	  }
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
@@ -550,7 +567,7 @@ namespace seeks_plugins
 	// node IP rendering.
 	if (!websearch::_wconfig->_show_node_ip)
 	  cgi::map_block_killer(exports,"have-show-node-ip");
-
+	
 	// other parameters.
 	if (param_exports)
 	  {

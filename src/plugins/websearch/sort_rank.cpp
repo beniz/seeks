@@ -21,6 +21,7 @@
 #include "content_handler.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+#include "cf.h"
 
 #include <ctype.h>
 #include <algorithm>
@@ -84,7 +85,7 @@ namespace seeks_plugins
 	     search_snippet *sp = (*it);
 	     
 	     if (!ccheck && sp->_doc_type == TWEET)
-	       sp->_seeks_rank = -1; // reset the rank because it includes retweets.
+	       sp->_meta_rank = -1; // reset the rank because it includes retweets.
 	     
 	     if (sp->_new)
 	       {
@@ -150,7 +151,7 @@ namespace seeks_plugins
 		  //std::cerr << "new url scanned: " << sp->_url << std::endl;
 		  //debug
 		  
-		  sp->_seeks_rank = sp->_engine.count();
+		  sp->_meta_rank = sp->_engine.count();
 		  sp->_new = false;
 		  
 		  qc->add_to_unordered_cache(sp);
@@ -173,7 +174,7 @@ namespace seeks_plugins
 		
         // sort by rank.
         std::stable_sort(snippets.begin(),snippets.end(),
-			 search_snippet::max_seeks_rank);
+			 search_snippet::max_meta_rank);
 	
 	//debug
 	/* std::cerr << "[Debug]: sorted result snippets:\n";
@@ -281,5 +282,16 @@ namespace seeks_plugins
 	// sort groups by decreasing sizes.
 	std::stable_sort(clusters,clusters+K,cluster::max_size_cluster);
      }
-   
+
+   void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
+					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!websearch::_cf_plugin)
+	  return;
+	std::cerr << "computing personalized ranks...\n";
+	static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,snippets);
+	std::stable_sort(snippets.begin(),snippets.end(),
+			 search_snippet::max_seeks_rank);
+     }
+      
 } /* end of namespace. */

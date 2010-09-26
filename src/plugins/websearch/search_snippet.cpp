@@ -54,13 +54,13 @@ namespace seeks_plugins
     std::vector<url_spec*> search_snippet::_reject_pos_patterns = std::vector<url_spec*>();
 
     search_snippet::search_snippet()
-        :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+        :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
         _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
     {
     }
 
     search_snippet::search_snippet(const short &rank)
-        :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_seeks_rank(0),_doc_type(WEBPAGE),
+        :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
         _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
     {
     }
@@ -164,7 +164,7 @@ namespace seeks_plugins
     std::ostream& search_snippet::print(std::ostream &output)
     {
       output << "-----------------------------------\n";
-      output << "- seeks rank: " << _seeks_rank << std::endl;
+      output << "- seeks rank: " << _meta_rank << std::endl;
       output << "- rank: " << _rank << std::endl;
       output << "- title: " << _title << std::endl;
       output << "- url: " << _url << std::endl;
@@ -195,6 +195,7 @@ namespace seeks_plugins
       std::string summary = _summary_noenc;
       miscutil::replace_in_string(summary,"\"","\\\"");
       json_str += "\"summary\":\"" + summary + "\",";
+      json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
       json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
       double rank = _rank / static_cast<double>(_engine.count());
       json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
@@ -395,8 +396,8 @@ namespace seeks_plugins
 
 
       if (_doc_type == TWEET)
-        if (_seeks_rank > 1)
-          html_content += " (" + miscutil::to_string(_seeks_rank) + ")";
+        if (_meta_rank > 1)
+          html_content += " (" + miscutil::to_string(_meta_rank) + ")";
 
       html_content += "</h3>";
 
@@ -655,6 +656,14 @@ namespace seeks_plugins
       _sim_back = true;
     }
 
+     std::string search_snippet::get_stripped_url() const
+       {
+	  std::string url_lc(_url);
+	  std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+	  std::string surl = urlmatch::strip_url(url_lc);
+	  return surl;
+       }
+          
     void search_snippet::tag()
     {
       // detect extension, if any, and if not already tagged.
@@ -843,20 +852,20 @@ namespace seeks_plugins
       // seeks rank.
       if (s1->_doc_type == TWEET)
         {
-          if (s1->_seeks_rank <= 0)
-            s1->_seeks_rank++;
-          s1->_seeks_rank++; // similarity detects retweets and merges them.
+          if (s1->_meta_rank <= 0)
+            s1->_meta_rank++;
+          s1->_meta_rank++; // similarity detects retweets and merges them.
         }
       else
         {
-          s1->_seeks_rank = s1->_engine.count();
+          s1->_meta_rank = s1->_engine.count();
 
           // XXX: hack, on English queries, Bing & Yahoo are the same engine,
           // therefore the rank must be tweaked accordingly in this special case.
           if (s1->_qc->_auto_lang == "en"
               && (s1->_engine.to_ulong()&SE_YAHOO)
               && (s1->_engine.to_ulong()&SE_BING))
-            s1->_seeks_rank--;
+            s1->_meta_rank--;
         }
     }
 

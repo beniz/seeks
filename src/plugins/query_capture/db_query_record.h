@@ -78,6 +78,10 @@ namespace seeks_plugins
 	
 	void add_vurl(vurl_data *vd);
 	
+	vurl_data* find_vurl(const std::string &url) const;
+	
+	float vurls_total_hits() const;
+	
 	std::ostream& print(std::ostream &output) const;
 	
 	std::string _query;

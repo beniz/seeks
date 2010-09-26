@@ -80,6 +80,7 @@ namespace seeks_plugins
 	std::string _background_proxy_addr; /**< address of a proxy through which to fetch URLs. */
 	int _background_proxy_port; /** < proxy port. */
 	bool _show_node_ip; /**< whether to show the node IP address when rendering the info bar. */
+	bool _personalization; /**< whether to use personalized ranking. */
      };
    
 } /* end of namespace. */

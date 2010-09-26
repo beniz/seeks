@@ -58,7 +58,7 @@ namespace seeks_plugins
 	int remove_all_query_records();
      
 	// store_query called from websearch plugin.
-	void store_query(const std::string &query) const;
+	void store_queries(const std::string &query) const;
      
 	static query_capture_configuration *_config;
      };
@@ -72,11 +72,15 @@ namespace seeks_plugins
      
 	virtual http_response* plugin_response(client_state *csp);
 	
-	void store_query(const std::string &query) const;
+	void store_queries(const std::string &query) const;
+	
+	void store_query(const DHTKey &key,
+			 const std::string &query,
+			 const uint32_t &radius) const;
 	
 	void store_url(const DHTKey &key, const std::string &query,
 		       const std::string &url, const std::string &host,
-		       const uint32_t &radius);
+		       const uint32_t &radius) const;
 	
 	void get_useful_headers(const std::list<const char*> &headers,
 				std::string &host, std::string &referer,

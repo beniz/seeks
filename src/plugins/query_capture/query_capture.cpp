@@ -126,9 +126,9 @@ namespace seeks_plugins
 	seeks_proxy::_user_db->prune_db(_name);
      }
 
-   void query_capture::store_query(const std::string &query) const
+   void query_capture::store_queries(const std::string &query) const
      {
-	static_cast<query_capture_element*>(_interceptor_plugin)->store_query(query);
+	static_cast<query_capture_element*>(_interceptor_plugin)->store_queries(query);
      }
       
     /*- uri_capture_element -*/
@@ -219,10 +219,15 @@ namespace seeks_plugins
 	     qprocess::generate_query_hashes(query_str,0,5,features); //TODO: configuration.
 	     
 	     // push URL into the user db buckets with query fragments as key.
+	     // URLs are stored only for queries of radius 0. This scheme allows to save
+	     // DB space. To recover URLs from a query of radius > 1, a second lookup is necessary,
+	     // for the recorded query of radius 0 that holds the URL counters.
 	     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
 	     while(hit!=features.end())
 	       {
-		  store_url((*hit).second,query_str,url,host,(*hit).first);
+		  if ((*hit).first == 0)
+		    store_url((*hit).second,query_str,url,host,(*hit).first);
+		  else store_query((*hit).second,query_str,(*hit).first);
 		  ++hit;
 	       }
 	     
@@ -232,7 +237,7 @@ namespace seeks_plugins
 	return NULL; // no response, so the proxy does not crunch this HTTP request.
      }
    
-   void query_capture_element::store_query(const std::string &query) const
+   void query_capture_element::store_queries(const std::string &query) const
      {
 	// strip query.
 	std::string q = query_capture_element::no_command_query(query);
@@ -245,16 +250,23 @@ namespace seeks_plugins
 	hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
 	while(hit!=features.end())
 	  {
-	     std::string key_str = (*hit).second.to_rstring();
-	     db_query_record dbqr(_parent->get_name(),q,(*hit).first);
-	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+	     store_query((*hit).second,q,(*hit).first);
 	     ++hit;
 	  }
      }
       
+   void query_capture_element::store_query(const DHTKey &key,
+					   const std::string &query,
+					   const uint32_t &radius) const
+     {
+	std::string key_str = key.to_rstring();
+	db_query_record dbqr(_parent->get_name(),query,radius);
+	seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+     }
+      
    void query_capture_element::store_url(const DHTKey &key, const std::string &query,
 					 const std::string &url, const std::string &host,
-					 const uint32_t &radius)
+					 const uint32_t &radius) const
      {
 	std::string key_str = key.to_rstring();
 	if (!url.empty())

@@ -108,9 +108,11 @@ namespace seeks_plugins
 	static double _cl_sec; // clock ticks per second.
      
 	/* dependent plugins. */
-      private:
-	static plugin *_qc_plugin; 
+      public:
+	static plugin *_qc_plugin; /**< query capture plugin. */ 
 	static bool _qc_plugin_activated;
+	static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
+	static bool _cf_plugin_activated;
      };
    
 } /* end of namespace. */

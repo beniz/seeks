@@ -52,7 +52,7 @@ namespace seeks_plugins
      }
 
    query_data::query_data(const query_data *qd)
-     :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits)
+     :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL)
      {
 	if (qd->_visited_urls)
 	  {
@@ -84,6 +84,7 @@ namespace seeks_plugins
 		  delete vd;
 	       }
 	     delete _visited_urls;
+	     _visited_urls = NULL;
 	  }
      }
      
@@ -134,6 +135,30 @@ namespace seeks_plugins
 	_visited_urls->insert(std::pair<const char*,vurl_data*>(vd->_url.c_str(),vd));
      }
 
+   vurl_data* query_data::find_vurl(const std::string &url) const
+     {
+	if (!_visited_urls)
+	  return NULL;
+	hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator hit;
+	if ((hit=_visited_urls->find(url.c_str()))!=_visited_urls->end())
+	  return (*hit).second;
+	return NULL;
+     }
+      
+   float query_data::vurls_total_hits() const
+     {
+	if (!_visited_urls)
+	  return 0.0;
+	float res = 0.0;
+	hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator hit
+	  = _visited_urls->begin();
+	while(hit!=_visited_urls->end())
+	  {
+	     res += (*hit).second->_hits;
+	     ++hit;
+	  }
+     }
+      
    std::ostream& query_data::print(std::ostream &output) const
      {
 	output << "\t\tradius: " << _radius << std::endl;

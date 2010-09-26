@@ -55,6 +55,8 @@ namespace seeks_plugins
 
    plugin* websearch::_qc_plugin = NULL;
    bool websearch::_qc_plugin_activated = false;
+   plugin* websearch::_cf_plugin = NULL;
+   bool websearch::_cf_plugin_activated = false;
    
    websearch::websearch()
      : plugin()
@@ -123,6 +125,8 @@ namespace seeks_plugins
 	  // look for dependent plugins.
 	  _qc_plugin = plugin_manager::get_plugin("query-capture");
 	  _qc_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str()); //TODO: hot deactivation.
+	  _cf_plugin = plugin_manager::get_plugin("cf");
+	  _cf_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str());
        }
 
    websearch::~websearch()
@@ -664,7 +668,7 @@ namespace seeks_plugins
        
 	  // query_capture if plugin is available and activated.
        	  if (_qc_plugin && _qc_plugin_activated)
-	    static_cast<query_capture*>(_qc_plugin)->store_query(qc->_query);
+	    static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_query);
        }
      
      // sort and rank search snippets.
@@ -672,6 +676,15 @@ namespace seeks_plugins
      qc->_lock = true;
      sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
 					     parameters);
+     const char *pers = miscutil::lookup(parameters,"prs");
+     if (!pers)
+       pers = websearch::_wconfig->_personalization ? "on" : "off";
+     if (strcasecmp(pers,"on") == 0)
+       {
+	  sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets,
+						parameters);
+       }
+          
      if (expanded)
        qc->_compute_tfidf_features = true;
           

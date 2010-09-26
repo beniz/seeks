@@ -302,8 +302,9 @@ logfile logfile
 activated-plugin websearch
 activated-plugin blocker
 activated-plugin img_websearch
-activated-plugin uri-capture
+#activated-plugin uri-capture
 activated-plugin query-capture
+activated-plugin cf
 #activated-plugin httpserv
 #
 #

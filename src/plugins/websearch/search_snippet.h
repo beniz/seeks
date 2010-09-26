@@ -67,36 +67,43 @@ namespace seeks_plugins
 	     return s1->_url == s2->_url;
 	  };
 	
-	static bool less_seeks_rank(const search_snippet *s1, const search_snippet *s2)
+	static bool less_meta_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
-	     if (s1->_seeks_rank == s2->_seeks_rank)
+	     if (s1->_meta_rank == s2->_meta_rank)
 	       return s1->_rank / static_cast<double>(s1->_engine.count()) 
 		 < s2->_rank / static_cast<double>(s2->_engine.count());
 	     else
-	       return s1->_seeks_rank < s2->_seeks_rank;
+	       return s1->_meta_rank < s2->_meta_rank;
 	  };
 
-	static bool max_seeks_rank(const search_snippet *s1, const search_snippet *s2)
+	static bool max_meta_rank(const search_snippet *s1, const search_snippet *s2)
 	  {
-	     if (s1->_seeks_rank == s2->_seeks_rank)
+	     if (s1->_meta_rank == s2->_meta_rank)
 	       return s1->_rank / static_cast<double>(s1->_engine.count()) 
 		 < s2->_rank / static_cast<double>(s2->_engine.count());  // beware: min rank is still better.
 	     else
-	       return s1->_seeks_rank > s2->_seeks_rank;  // max seeks rank is better.
+	       return s1->_meta_rank > s2->_meta_rank;  // max seeks rank is better.
 	  };
 
 	static bool max_seeks_ir(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     if (s1->_seeks_ir == s2->_seeks_ir)
-	       return search_snippet::max_seeks_rank(s1,s2);
+	       return search_snippet::max_meta_rank(s1,s2);
 	     else return s1->_seeks_ir > s2->_seeks_ir;
 	  };
 	
 	static bool min_seeks_ir(const search_snippet *s1, const search_snippet *s2)
 	  {
 	     if (s1->_seeks_ir == s2->_seeks_ir)
-	       return search_snippet::less_seeks_rank(s1,s2); // XXX: beware, may not apply to inherited classes.
+	       return search_snippet::less_meta_rank(s1,s2); // XXX: beware, may not apply to inherited classes.
 	     else return s1->_seeks_ir < s2->_seeks_ir;
+	  };
+	
+	static bool max_seeks_rank(const search_snippet *s1, const search_snippet *s2)
+	  {
+	     if (s1->_seeks_rank == s2->_seeks_rank)
+	       return search_snippet::max_meta_rank(s1,s2);
+	     else return s1->_seeks_rank > s2->_seeks_rank;
 	  };
 		
 	// constructors.
@@ -119,6 +126,9 @@ namespace seeks_plugins
 	void set_summary(const char *summary);
 	
 	void set_date(const std::string &date);
+	
+	// returns stripped, lower case url for storage and comparisons.
+	std::string get_stripped_url() const;
 	
 	// sets a link to the archived url at archive.org (e.g. in case we'no cached link).
 	void set_archive_link();
@@ -190,7 +200,8 @@ namespace seeks_plugins
 	
 	double _rank;  // search engine rank.
 	double _seeks_ir; // IR score computed locally.
-	double _seeks_rank; // rank computed locally.
+	double _meta_rank; // rank computed locally by the meta-search engine.
+	double _seeks_rank; // rank computed locally, mostly for personalized ranking.
 	
 	std::bitset<NSEs> _engine;  // engines from which it was created (if not directly published).
 	enum DOC_TYPE _doc_type;
