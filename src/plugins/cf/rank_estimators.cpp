@@ -17,6 +17,7 @@
  */
 
 #include "rank_estimators.h"
+#include "cf_configuration.h"
 #include "qprocess.h"
 #include "query_capture.h"
 #include "urlmatch.h"
@@ -237,8 +238,10 @@ namespace seeks_plugins
 	host = urlmatch::strip_url(host);
 	vd = qd->find_vurl(host);
 	if (!vd)
-	  posterior *= 0.7 / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
-	else posterior *= 0.7*(vd->_hits + 1.0) / (total_hits + ns); // 0.7 is domain-name weight factor.
+	  posterior *= cf_configuration::_config->_domain_name_weight 
+	  / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
+	else posterior *= cf_configuration::_config->_domain_name_weight*(vd->_hits + 1.0) 
+	  / (total_hits + ns); // 0.7 is domain-name weight factor.
 	
 	//std::cerr << "posterior: " << posterior << std::endl;
 	

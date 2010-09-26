@@ -11,4 +11,4 @@ AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcd
 ACLOCAL_AMFLAGS=-I m4
 
 cfpluginlib_LTLIBRARIES=libcfplugin.la
-libcfplugin_la_SOURCES=cf.cpp rank_estimators.cpp cf.h rank_estimators.h
+libcfplugin_la_SOURCES=cf.cpp rank_estimators.cpp cf_configuration.cpp cf.h rank_estimators.h cf_configuration.h

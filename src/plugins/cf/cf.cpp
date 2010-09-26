@@ -17,9 +17,14 @@
  */
 
 #include "cf.h"
+#include "cf_configuration.h"
 #include "rank_estimators.h"
+#include "seeks_proxy.h"
 #include "plugin_manager.h"
 
+#include <sys/stat.h>
+
+using sp::seeks_proxy;
 using sp::plugin_manager;
 
 namespace seeks_plugins
@@ -32,7 +37,23 @@ namespace seeks_plugins
 	  _version_major = "0";
 	  _version_minor = "1";
 	  
-	  //TODO: configuration.
+	  // configuration.
+	  if (seeks_proxy::_datadir.empty())
+	    _config_filename = plugin_manager::_plugin_repository + "cf/cf-config";
+	  else
+	    _config_filename = seeks_proxy::_datadir + "/plugins/cf/cf-config";
+       
+#ifdef SEEKS_CONFIGDIR
+	  struct stat stFileInfo;
+	  if (!stat(_config_filename.c_str(), &stFileInfo)  == 0)
+	    {
+	       _config_filename = SEEKS_CONFIGDIR "/cf-config";
+	    }
+#endif
+	  
+	  if (cf_configuration::_config == NULL)
+	    cf_configuration::_config = new cf_configuration(_config_filename);
+	  _configuration = cf_configuration::_config;
        }
    
    cf::~cf()
