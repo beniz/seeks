@@ -86,7 +86,7 @@ namespace seeks_plugins
 	_hits = r.GetExtension(sp::db::hits);
      }
 
-   std::ostream& db_uri_record::print(std::ostream &output)
+   std::ostream& db_uri_record::print(std::ostream &output) const
      {
 	output << "\thits: " << _hits << std::endl;
 	return output;

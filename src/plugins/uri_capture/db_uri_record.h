@@ -48,7 +48,7 @@ namespace seeks_plugins
 	
 	void read_uri_record(const sp::db::record &r);
 	
-	virtual std::ostream& print(std::ostream &output);
+	virtual std::ostream& print(std::ostream &output) const;
 	
       public:
 	int _hits; /**< number of hits on this URI. */
