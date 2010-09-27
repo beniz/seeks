@@ -121,18 +121,21 @@ namespace seeks_plugins
 	  
 	  // get clock ticks per sec.
 	  websearch::_cl_sec = sysconf(_SC_CLK_TCK);
-       
-	  // look for dependent plugins.
-	  _qc_plugin = plugin_manager::get_plugin("query-capture");
-	  _qc_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str()); //TODO: hot deactivation.
-	  _cf_plugin = plugin_manager::get_plugin("cf");
-	  _cf_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str());
        }
 
    websearch::~websearch()
      {
      }
 
+   void websearch::start()
+     {
+	// look for dependent plugins.
+	_qc_plugin = plugin_manager::get_plugin("query-capture");
+	_qc_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str()); //TODO: hot deactivation.
+	_cf_plugin = plugin_manager::get_plugin("cf");
+	_cf_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str());
+     }
+      
    // CGI calls.
    sp_err websearch::cgi_websearch_hp(client_state *csp,
 				      http_response *rsp,

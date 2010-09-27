@@ -44,7 +44,7 @@ namespace seeks_plugins
 	
 	~websearch();
 
-	virtual void start() {};
+	virtual void start();
 	virtual void stop() {};
 	
 	/* cgi calls. */
