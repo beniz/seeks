@@ -206,11 +206,13 @@ namespace seeks_plugins
 		  
 		  std::cerr << "adding URI: " << uri << std::endl;
 		  seeks_proxy::_user_db->add_dbr(uri,dbur);
+		  static_cast<uri_capture*>(_parent)->_nr++;
 	       }
 	     if (!host.empty() && uri != host)
 	       {
 		  std::cerr << "adding HOST: " << host << std::endl;
 		  seeks_proxy::_user_db->add_dbr(host,dbur);
+		  static_cast<uri_capture*>(_parent)->_nr++;
 	       }
 	  }
 	
