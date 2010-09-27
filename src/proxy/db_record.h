@@ -54,6 +54,11 @@ namespace sp
 	virtual ~db_record();
      
 	/**
+	 * \brief update creation time.
+	 */
+	void update_creation_time();
+	
+	/**
 	 * \brief serializes the object.
 	 */
 	virtual int serialize(std::string &msg) const;

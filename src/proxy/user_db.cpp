@@ -246,6 +246,7 @@ namespace sp
 	  {
 	     // merge records and serialize.
 	     int err_m = edbr->merge_with(dbr); // virtual call.
+	     edbr->update_creation_time(); // set creation time to the time of this update.
 	     if (err_m < 0)
 	       {
 		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record merging error");

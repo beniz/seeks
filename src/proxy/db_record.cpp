@@ -34,9 +34,7 @@ namespace sp
    db_record::db_record(const std::string &plugin_name)
      :_plugin_name(plugin_name)
        {
-	  struct timeval tv_now;
-	  gettimeofday(&tv_now, NULL);
-	  _creation_time = tv_now.tv_sec;
+	  update_creation_time();
        }
       
    db_record::db_record()
@@ -48,6 +46,13 @@ namespace sp
      {
      }
    
+   void db_record::update_creation_time()
+     {
+	struct timeval tv_now;
+	gettimeofday(&tv_now, NULL);
+	_creation_time = tv_now.tv_sec;
+     }
+      
    int db_record::serialize(std::string &msg) const
      {
 	return serialize_base_record(msg);
