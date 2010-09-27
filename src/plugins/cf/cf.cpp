@@ -20,16 +20,21 @@
 #include "cf_configuration.h"
 #include "rank_estimators.h"
 #include "seeks_proxy.h"
+#include "proxy_configuration.h"
 #include "plugin_manager.h"
 
 #include <sys/stat.h>
+#include <iostream>
 
 using sp::seeks_proxy;
+using sp::proxy_configuration;
 using sp::plugin_manager;
 
 namespace seeks_plugins
 {
    
+   plugin* cf::_uc_plugin = NULL;
+      
    cf::cf()
      :plugin()
        {
@@ -63,6 +68,9 @@ namespace seeks_plugins
    void cf::start()
      {
 	//TODO: check on user_db.
+     
+	// look for dependent plugins.
+	cf::_uc_plugin = plugin_manager::get_plugin("uri-capture");
      }
    
    void cf::stop()

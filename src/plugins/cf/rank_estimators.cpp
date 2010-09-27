@@ -17,12 +17,16 @@
  */
 
 #include "rank_estimators.h"
+#include "cf.h"
 #include "cf_configuration.h"
 #include "qprocess.h"
 #include "query_capture.h"
+#include "uri_capture.h"
+#include "db_uri_record.h"
 #include "urlmatch.h"
 
 #include <assert.h>
+#include <math.h>
 #include <iostream>
 
 using lsh::qprocess;
@@ -166,6 +170,13 @@ namespace seeks_plugins
 	     ++vit;
 	  }
 	
+	// get number of captured URIs.
+	uint64_t nuri = 0;
+	if (cf::_uc_plugin)
+	  nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
+	
+	std::cerr << "nuri: " << static_cast<uri_capture*>(cf::_uc_plugin)->_nr << std::endl;
+	
 	// estimate each URL's rank.
 	int j = 0;
 	size_t ns = snippets.size();
@@ -174,12 +185,20 @@ namespace seeks_plugins
 	vit = snippets.begin();
 	while(vit!=snippets.end())
 	  {
+	     std::string url = (*vit)->_url;
+	     std::transform(url.begin(),url.end(),url.begin(),tolower);
+	     std::string surl = urlmatch::strip_url(url);
+	     std::string host, path;
+	     urlmatch::parse_url_host_and_path(url,host,path);
+	     host = urlmatch::strip_url(host);
+	     
 	     i = 0;
 	     posteriors[j] = 0.0;
 	     hit = qdata.begin();
 	     while(hit!=qdata.end())
 	       {
-		  float qpost = estimate_rank((*vit),ns,(*hit).second,q_vurl_hits[i++]);
+		  float qpost = estimate_rank((*vit),ns,(*hit).second,q_vurl_hits[i++],
+					     surl,host,path);
 		  //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
 		  qpost *= 1.0/static_cast<float>(((*hit).second->_radius + 1.0)); // account for distance to original query.
 		  posteriors[j] += qpost; // boosting over similar queries.
@@ -187,7 +206,15 @@ namespace seeks_plugins
 	       
 		  //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
 	       }
-	     //std::cerr << "url: " << (*vit)->_url << " -- posterior: " << posteriors[j] << std::endl;
+	     
+	     // estimate the url prior.
+	     float prior = 1.0;
+	     if (nuri != 0)
+	       prior = estimate_prior(surl,host,nuri);
+	     
+	     posteriors[j] *= prior;
+	     std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
+	     
 	     sum_posteriors += posteriors[j++];
 	     ++vit;
 	  }
@@ -219,33 +246,58 @@ namespace seeks_plugins
    
    float simple_re::estimate_rank(search_snippet *s, const int &ns,
 				  const query_data *qd, 
-				  const float &total_hits)
+				  const float &total_hits,
+				  const std::string &surl,
+				  const std::string &host, const std::string &path)
      {
 	float posterior = 0.0;
 	
 	// URL.
-	std::string url = s->_url;
-	std::transform(url.begin(),url.end(),url.begin(),tolower);
-	std::string surl = urlmatch::strip_url(url);
 	vurl_data *vd = qd->find_vurl(surl);
 	if (!vd)
-	  posterior =  1.0 / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
-	else posterior = (vd->_hits + 1.0) / (total_hits + ns);
+	  posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
+	else posterior = (log(vd->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
 	
 	// host.
-	std::string host, path;
-	urlmatch::parse_url_host_and_path(url,host,path);
-	host = urlmatch::strip_url(host);
 	vd = qd->find_vurl(host);
 	if (!vd)
 	  posterior *= cf_configuration::_config->_domain_name_weight 
 	  / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
-	else posterior *= cf_configuration::_config->_domain_name_weight*(vd->_hits + 1.0) 
-	  / (total_hits + ns); // 0.7 is domain-name weight factor.
+	else posterior *= cf_configuration::_config->_domain_name_weight 
+	  * (log(vd->_hits + 1.0) + 1.0)
+	    / (log(total_hits + 1.0) + ns); // with domain-name weight factor.
 	
 	//std::cerr << "posterior: " << posterior << std::endl;
 	
 	return posterior;
+     }
+
+   float simple_re::estimate_prior(const std::string &surl,
+				   const std::string &host,
+				   const uint64_t &nuri)
+     {
+	static std::string uc_str = "uri-capture";
+	float prior = 0.0;
+	float furi = static_cast<float>(nuri);
+	db_record *dbr = seeks_proxy::_user_db->find_dbr(surl,uc_str);
+	if (!dbr)
+	  prior = 1.0 / log(furi + 1.0);
+	else
+	  {
+	     db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
+	     prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ log(furi + 1.0);
+	     delete uc_dbr;
+	  }
+	dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
+	if (!dbr)
+	  prior *= 1.0 / furi;
+	else
+	  {
+	     db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
+	     prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / log(furi + 1.0);
+	     delete uc_dbr;
+	  }
+	return prior;
      }
       
 } /* end of namespace. */

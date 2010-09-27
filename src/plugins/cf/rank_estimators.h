@@ -54,7 +54,13 @@ namespace seeks_plugins
 	
 	float estimate_rank(search_snippet *s, const int &ns,
 			    const query_data *qd,
-			    const float &total_hits);
+			    const float &total_hits,
+			    const std::string &surl,
+			    const std::string &host, const std::string &path);
+     
+	float estimate_prior(const std::string &surl,
+			     const std::string &host,
+			     const uint64_t &nuri);
      };
       
 } /* end of namespace. */
