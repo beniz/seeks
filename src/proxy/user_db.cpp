@@ -389,6 +389,26 @@ namespace sp
 	return tchdbrnum(_hdb);
      }
       
+   uint64_t user_db::number_records(const std::string &plugin_name) const
+     {
+	uint64_t n = 0;
+	void *rkey = NULL;
+	void *value = NULL;
+	int rkey_size;
+	tchdbiterinit(_hdb);
+	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+	  {
+	     std::string rec_pn,rec_key;
+	     if (user_db::extract_plugin_and_key(std::string((char*)rkey),
+						 rec_pn,rec_key) != 0)
+	       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin name when counting records");
+	     else if (rec_pn == plugin_name)
+	       n++;
+	     free(rkey);
+	  }
+	return n;
+     }
+      
    std::ostream& user_db::print(std::ostream &output)
      {
 	output << "\nnumber of records: " << number_records() << std::endl;

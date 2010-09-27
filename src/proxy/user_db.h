@@ -154,6 +154,12 @@ namespace sp
 	uint64_t number_records() const;
 	
 	/**
+	 * \brief returns the number of records held by a given plugin.
+	 * This procedure requires a full traverse of the db, and is thus not efficient.
+	 */
+	uint64_t number_records(const std::string &plugin_name) const;
+	
+	/**
 	 * \brief reads and prints out all db records.
 	 */
 	std::ostream& print(std::ostream &output);
