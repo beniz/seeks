@@ -164,6 +164,9 @@ namespace seeks_plugins
 	       }
 	  }
 	host = urlmatch::strip_url(host);
+	std::transform(host.begin(),host.end(),host.begin(),tolower);
+	std::transform(get.begin(),get.end(),get.begin(),tolower);
+	
 	//std::cerr << "****************** host: " << host << " -- ref_host: " << ref_host << std::endl;
 	//std::cerr << "cgi host: " << uri_capture_element::_cgi_site_host << std::endl;
 	if (host == uri_capture_element::_cgi_site_host) // if proxy domain.

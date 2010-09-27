@@ -1,2 +1,6 @@
 +
 .*
+
+-
+/.*\.(png|jpg|jpeg|raw|png|gif|bmp|ppm|pgm|pbm|pnm|tga|pcx|ecw|img|sid|pgf|cgm|svg|eps|odg|pgml|swf|vml|wmf|emf|xps|ico|xml|pl)
+/.*\.(css|js)*
