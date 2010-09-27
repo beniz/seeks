@@ -195,13 +195,18 @@ namespace sp
 		      plugin_manager::_ref_action_plugins.push_back(p->_action_plugin);
 		    if (p->_filter_plugin)
 		      plugin_manager::_ref_filter_plugins.push_back(p->_filter_plugin);
-		 
-		    // run start() on plugin.
-		    p->start();
 		 }
-		 
 	     ++mit;
 	  }
+	
+	// start registered plugins.
+	std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
+	while(vit!=plugin_manager::_plugins.end())
+	  {
+	     (*vit)->start();
+	     ++vit;
+	  }
+		
 	return 0;
      }
 
