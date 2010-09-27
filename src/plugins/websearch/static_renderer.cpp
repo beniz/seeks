@@ -346,6 +346,23 @@ namespace seeks_plugins
 	else miscutil::add_map_entry(exports,"$xxrpp",1,strdup(""),0);
 	/*miscutil::add_map_entry(exports,"$xxtrpp",1,
 				miscutil::to_string(websearch::_wconfig->_Nr).c_str(),1); */
+     
+	// personalization.
+	const char *prs = miscutil::lookup(parameters,"prs");
+	if (!prs)
+	  {
+	     prs = websearch::_wconfig->_personalization ? "on" : "off";
+	  }
+	if (strcasecmp(prs,"on")==0)
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"on",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"off",1);
+	  }
+	else
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"off",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"on",1);
+	  }
      }
    
    std::string static_renderer::render_cluster_label(const cluster &cl)
@@ -449,9 +466,13 @@ namespace seeks_plugins
 	     if (ca && strcasecmp(ca,"on") == 0)
 	       content_analysis = true;
 	     std::string ca_s = content_analysis ? "on" : "off";
+	     const char *prs = miscutil::lookup(parameters,"prs");
+	     if (!prs)
+	       prs = websearch::_wconfig->_personalization ? "on" : "off";
 	     std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+	       + "&amp;prs=" + std::string(prs)
 	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
@@ -482,10 +503,14 @@ namespace seeks_plugins
 	     const char *ca = miscutil::lookup(parameters,"content_analysis");
 	     if (ca && strcasecmp(ca,"on") == 0)
 	       content_analysis = true;
+	     const char *prs = miscutil::lookup(parameters,"prs");
+	     if (!prs)
+	       prs = websearch::_wconfig->_personalization ? "on" : "off";
 	     std::string ca_s = content_analysis ? "on" : "off";
 	     std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+	       + "&amp;prs=" + std::string(prs)
 	       + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
