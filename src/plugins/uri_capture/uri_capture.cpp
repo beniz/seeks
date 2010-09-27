@@ -62,7 +62,7 @@ namespace seeks_plugins
       
    /*- uri_capture -*/
    uri_capture::uri_capture()
-     : plugin()
+     : plugin(),_nr(0)
        {
 	  _name = "uri-capture";
 	  _version_major = "0";
@@ -82,6 +82,11 @@ namespace seeks_plugins
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
 	  }
+	
+	// get number of captured URI already in user_db.
+	_nr = seeks_proxy::_user_db->number_records(_name);
+     
+	errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
      }
    
    void uri_capture::stop()

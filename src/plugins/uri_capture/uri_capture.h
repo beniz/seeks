@@ -56,6 +56,9 @@ namespace seeks_plugins
 	virtual sp::db_record* create_db_record();
      
 	int remove_all_uri_records();
+     
+      public:
+	uint64_t _nr; /**< number of captured URI in user db. */
      };
       
    class uri_capture_element : public interceptor_plugin
