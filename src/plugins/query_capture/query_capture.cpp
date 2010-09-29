@@ -68,6 +68,7 @@ namespace seeks_plugins
    
    int query_db_sweepable::sweep_records()
      {	
+	//TODO
      }
    
    /*- query_capture -*/
@@ -131,28 +132,10 @@ namespace seeks_plugins
      {
 	if (!parameters->empty())
 	  {
-	     const char *urlp = miscutil::lookup(parameters,"url"); // grab the url.
-	     if (!urlp)
+	     char *urlp = NULL;
+	     sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
+	     if (err == SP_ERR_CGI_PARAMS)
 	       return cgi::cgi_error_bad_param(csp,rsp);
-	     const char *q = miscutil::lookup(parameters,"q"); // grab the query.
-	     if (!q)
-	       return cgi::cgi_error_bad_param(csp,rsp);
-	     
-	     // capture queries and URL / HOST.
-	     // XXX: could threaded and detached.
-	     char *queryp = encode::url_decode(q);
-	     std::string query = queryp;
-	     query = query_capture_element::no_command_query(query);
-	     free(queryp);
-	     std::string url = urlp;
-	     std::string host,path;
-	     urlmatch::parse_url_host_and_path(url,host,path);
-	     host = urlmatch::strip_url(host);
-	     if (url[url.length()-1]=='/') // remove trailing '/'.
-	       url = url.substr(0,url.length()-1);
-	     std::transform(url.begin(),url.end(),url.begin(),tolower);
-	     std::transform(host.begin(),host.end(),host.begin(),tolower);
-	     query_capture::store_queries(query,url,host);
 	     
 	     // redirect to requested url.
 	     cgi::cgi_redirect(rsp,urlp);
@@ -161,6 +144,36 @@ namespace seeks_plugins
 	else return cgi::cgi_error_bad_param(csp,rsp);
      }
          
+   sp_err query_capture::qc_redir(client_state *csp,
+				  http_response *rsp,
+				  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				  char *&urlp)
+     {
+	urlp = (char*)miscutil::lookup(parameters,"url"); // grab the url.
+	if (!urlp)
+	  return SP_ERR_CGI_PARAMS;
+	const char *q = miscutil::lookup(parameters,"q"); // grab the query.
+	if (!q)
+	  return SP_ERR_CGI_PARAMS;
+	
+	// capture queries and URL / HOST.
+	// XXX: could threaded and detached.
+	char *queryp = encode::url_decode(q);
+	std::string query = queryp;
+	query = query_capture_element::no_command_query(query);
+	free(queryp);
+	std::string url = urlp;
+	std::string host,path;
+	urlmatch::parse_url_host_and_path(url,host,path);
+	host = urlmatch::strip_url(host);
+	if (url[url.length()-1]=='/') // remove trailing '/'.
+	  url = url.substr(0,url.length()-1);
+	std::transform(url.begin(),url.end(),url.begin(),tolower);
+	std::transform(host.begin(),host.end(),host.begin(),tolower);
+	query_capture::store_queries(query,url,host);
+	return SP_ERR_OK;	
+     }
+      
    sp::db_record* query_capture::create_db_record()
      {
 	return new db_query_record();
@@ -168,7 +181,7 @@ namespace seeks_plugins
    
    int query_capture::remove_all_query_records()
      {
-	seeks_proxy::_user_db->prune_db(_name);
+	return seeks_proxy::_user_db->prune_db(_name);
      }
 
    void query_capture::store_queries(const std::string &query,

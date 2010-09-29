@@ -48,6 +48,9 @@ namespace seeks_plugins
 	void init_callbacks();
 	
 	/* responses. */
+	static void reply_with_redirect_302(struct evhttp_request *r,
+					    const char *url);
+	
 	static void reply_with_error_400(struct evhttp_request *r);
 	
 	static void reply_with_error(struct evhttp_request *r,
@@ -76,6 +79,7 @@ namespace seeks_plugins
 	static void img_websearch(struct evhttp_request *r, void *arg);
 	static void seeks_img_search_css(struct evhttp_request *r, void *arg);
 #endif
+	static void qc_redir(struct evhttp_request *r, void *arg);
 	static void unknown_path(struct evhttp_request *r, void *arg);
 	
 	/* utils. */

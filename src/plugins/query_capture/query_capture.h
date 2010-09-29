@@ -59,6 +59,11 @@ namespace seeks_plugins
 				   http_response *rsp,
 				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
+	static sp_err qc_redir(client_state *csp,
+			       http_response *rsp,
+			       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			       char *&urlp);
+	
 	virtual sp::db_record* create_db_record();
 	
 	int remove_all_query_records();
