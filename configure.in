@@ -549,6 +549,7 @@ AC_CONFIG_FILES(Makefile doc/Makefile src/Makefile \
 src/lsh/Makefile \
 src/lsh/tests/Makefile \
 src/dht/Makefile \
+src/dht/tests/Makefile \
 src/proxy/Makefile \
 src/proxy/tests/Makefile \
 src/plugins/Makefile \
