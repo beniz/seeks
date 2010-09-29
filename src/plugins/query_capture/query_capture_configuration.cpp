@@ -17,11 +17,15 @@
  */
 
 #include "query_capture_configuration.h"
+#include "errlog.h"
+
+using sp::errlog;
 
 namespace seeks_plugins
 {
    
-#define hash_max_radius                    1988906041ul
+#define hash_max_radius                    1988906041ul  /* "query-max-radius" */
+#define hash_mode_intercept                1971845008ul  /* "mode-intercept" */
    
    query_capture_configuration* query_capture_configuration::_config = NULL;
    
@@ -41,6 +45,7 @@ namespace seeks_plugins
    void query_capture_configuration::set_default_config()
      {
 	_max_radius = 5;
+	_mode_intercept = "redirect";
      }
       
    void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -52,6 +57,15 @@ namespace seeks_plugins
 	     _max_radius = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Maximum radius of the query generation halo");
+	     break;
+	     
+	   case hash_mode_intercept :
+	     if (strcasecmp(arg,"capture")==0 || strcasecmp(arg,"redirect")==0)
+	       _mode_intercept = std::string(arg);
+	     else errlog::log_error(LOG_LEVEL_ERROR,"bad value to query_capture plugin option mode-intercept: %",
+				    arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Whether to silently capture queries and clicks or to use a redirection from the result page to the proxy instead");
 	     break;
 	     
 	   default:

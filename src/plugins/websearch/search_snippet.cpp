@@ -25,6 +25,7 @@
 #include "urlmatch.h"
 #include "plugin_manager.h" // for _plugin_repository.
 #include "seeks_proxy.h" // for _datadir.
+#include "query_capture_configuration.h"
 
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
 #include "proxy_dts.h" // for http_request.
@@ -276,6 +277,28 @@ namespace seeks_plugins
         const std::string &base_url_str,
         const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
     {
+       // check for URL redirection for capture & personalization of results.
+       bool prs = true;
+       const char *pers = miscutil::lookup(parameters,"prs");
+       if (!pers)
+	 prs = websearch::_wconfig->_personalization;
+       else 
+	 {
+	    if (strcasecmp(pers,"on") == 0)
+	      prs = true;
+	    else if (strcasecmp(pers,"off") == 0)
+	      prs = false;
+	    else prs = websearch::_wconfig->_personalization;
+	 }
+       
+       std::string url = _url;
+       if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
+	   && query_capture_configuration::_config
+	   && query_capture_configuration::_config->_mode_intercept == "redirect")
+	 {
+	    url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + url;
+	 }
+              
       std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
       std::string html_content = "<li class=\"search_snippet";
       if (_doc_type == VIDEO_THUMB)
@@ -285,16 +308,13 @@ namespace seeks_plugins
        html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
       html_content += ">";
       if (_doc_type != TWEET && _doc_type != VIDEO_THUMB
-          && websearch::_wconfig->_thumbs )
+          && websearch::_wconfig->_thumbs)
         {
-          if (_doc_type != TWEET)
-            {
-              html_content += "<a href=\"" + _url + "\">";
-              html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
-              html_content += _url;
-              html_content += "\" /></a>";
-            }
-        }
+	   html_content += "<a href=\"" + url + "\">";
+	   html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
+	   html_content += url;
+	   html_content += "\" /></a>";
+	}
       if (_doc_type == TWEET)
         {
           html_content += "<a href=\"" + _cite + "\">";
@@ -303,7 +323,7 @@ namespace seeks_plugins
       if (_doc_type == VIDEO_THUMB)
         {
           html_content += "<a href=\"";
-          html_content += _url + "\"><img class=\"video_profile\" src=\"";
+          html_content += url + "\"><img class=\"video_profile\" src=\"";
           html_content += _cached;
           html_content += "\"></a><div>";
 
@@ -313,7 +333,7 @@ namespace seeks_plugins
           html_content += "\" /></a>"; */
         }
       html_content += "<h3><a href=\"";
-      html_content += _url;
+      html_content += url;
       html_content += "\">";
 
       const char *title_enc = encode::html_encode(_title.c_str());

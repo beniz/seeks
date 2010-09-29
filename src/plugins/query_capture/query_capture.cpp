@@ -17,6 +17,7 @@
  */
  
 #include "query_capture.h"
+#include "query_capture_configuration.h"
 #include "db_query_record.h"
 #include "seeks_proxy.h" // for user_db.
 #include "user_db.h"
@@ -34,6 +35,7 @@
 
 #include <sys/stat.h>
 
+using sp::sp_err;
 using sp::seeks_proxy;
 using sp::user_db;
 using sp::db_record;
@@ -96,7 +98,14 @@ namespace seeks_plugins
 	    query_capture::_config = new query_capture_configuration(_config_filename);
 	  _configuration = query_capture::_config;
 	  
-	  _interceptor_plugin = new query_capture_element(this);
+	  // cgi dispatchers.
+	  _cgi_dispatchers.reserve(1);
+	  cgi_dispatcher *cgid_qc_redir
+	    = new cgi_dispatcher("qc_redir",&query_capture::cgi_qc_redir,NULL,TRUE);
+	  _cgi_dispatchers.push_back(cgid_qc_redir);
+	  
+	  if (query_capture_configuration::_config->_mode_intercept == "capture")
+	    _interceptor_plugin = new query_capture_element(this);
        }
    
    query_capture::~query_capture()
@@ -115,7 +124,43 @@ namespace seeks_plugins
    void query_capture::stop()
      {
      }
-   
+
+   sp_err query_capture::cgi_qc_redir(client_state *csp,
+				      http_response *rsp,
+				      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+     {
+	if (!parameters->empty())
+	  {
+	     const char *urlp = miscutil::lookup(parameters,"url"); // grab the url.
+	     if (!urlp)
+	       return cgi::cgi_error_bad_param(csp,rsp);
+	     const char *q = miscutil::lookup(parameters,"q"); // grab the query.
+	     if (!q)
+	       return cgi::cgi_error_bad_param(csp,rsp);
+	     
+	     // capture queries and URL / HOST.
+	     // XXX: could threaded and detached.
+	     char *queryp = encode::url_decode(q);
+	     std::string query = queryp;
+	     query = query_capture_element::no_command_query(query);
+	     free(queryp);
+	     std::string url = urlp;
+	     std::string host,path;
+	     urlmatch::parse_url_host_and_path(url,host,path);
+	     host = urlmatch::strip_url(host);
+	     if (url[url.length()-1]=='/') // remove trailing '/'.
+	       url = url.substr(0,url.length()-1);
+	     std::transform(url.begin(),url.end(),url.begin(),tolower);
+	     std::transform(host.begin(),host.end(),host.begin(),tolower);
+	     query_capture::store_queries(query,url,host);
+	     
+	     // redirect to requested url.
+	     cgi::cgi_redirect(rsp,urlp);
+	     return SP_ERR_OK;
+	  }
+	else return cgi::cgi_error_bad_param(csp,rsp);
+     }
+         
    sp::db_record* query_capture::create_db_record()
      {
 	return new db_query_record();
@@ -126,9 +171,15 @@ namespace seeks_plugins
 	seeks_proxy::_user_db->prune_db(_name);
      }
 
+   void query_capture::store_queries(const std::string &query,
+				     const std::string &url, const std::string &host)
+     {
+	query_capture_element::store_queries(query,url,host,"query-capture");
+     }
+      
    void query_capture::store_queries(const std::string &query) const
      {
-	static_cast<query_capture_element*>(_interceptor_plugin)->store_queries(query);
+	query_capture_element::store_queries(query,get_name());
      }
       
     /*- uri_capture_element -*/
@@ -196,9 +247,6 @@ namespace seeks_plugins
 		  delete parameters;
 		  return NULL;
 	       }
-	     /* char *dec_query = encode::url_decode(query);
-	     std::string query_str = std::string(dec_query);
-	     free(dec_query); */
 	     std::string query_str = query_capture_element::no_command_query(query);
 	     
 	     //std::cerr << "detected query: " << query_str << std::endl;
@@ -213,23 +261,8 @@ namespace seeks_plugins
 	     std::transform(url.begin(),url.end(),url.begin(),tolower);
 	     std::transform(host.begin(),host.end(),host.begin(),tolower);
 	     
-	     // generate query fragments.
-	     //std::cerr << "[query_capture]: detected refering query: " << query_str << std::endl;
-	     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
-	     qprocess::generate_query_hashes(query_str,0,5,features); //TODO: configuration.
-	     
-	     // push URL into the user db buckets with query fragments as key.
-	     // URLs are stored only for queries of radius 0. This scheme allows to save
-	     // DB space. To recover URLs from a query of radius > 1, a second lookup is necessary,
-	     // for the recorded query of radius 0 that holds the URL counters.
-	     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
-	     while(hit!=features.end())
-	       {
-		  if ((*hit).first == 0)
-		    store_url((*hit).second,query_str,url,host,(*hit).first);
-		  else store_query((*hit).second,query_str,(*hit).first);
-		  ++hit;
-	       }
+	     // store queries and URL / HOST.
+	     query_capture_element::store_queries(query_str,url,host,_parent->get_name());
 	     
 	     delete parameters;
 	  }
@@ -237,48 +270,78 @@ namespace seeks_plugins
 	return NULL; // no response, so the proxy does not crunch this HTTP request.
      }
    
-   void query_capture_element::store_queries(const std::string &query) const
+   void query_capture_element::store_queries(const std::string &query,
+					     const std::string &url, const std::string &host,
+					     const std::string &plugin_name)
+     {
+	// generate query fragments.
+	//std::cerr << "[query_capture]: detected refering query: " << query_str << std::endl;
+	hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+	qprocess::generate_query_hashes(query,0,
+					query_capture_configuration::_config->_max_radius,
+					features);
+	
+	// push URL into the user db buckets with query fragments as key.
+	// URLs are stored only for queries of radius 0. This scheme allows to save
+	// DB space. To recover URLs from a query of radius > 1, a second lookup is necessary,
+	// for the recorded query of radius 0 that holds the URL counters.
+	hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
+	while(hit!=features.end())
+	  {
+	     if ((*hit).first == 0)
+	       query_capture_element::store_url((*hit).second,query,url,host,(*hit).first,plugin_name);
+	     else query_capture_element::store_query((*hit).second,query,(*hit).first,plugin_name);
+	     ++hit;
+	  }
+     }
+      
+   void query_capture_element::store_queries(const std::string &query,
+					     const std::string &plugin_name)
      {
 	// strip query.
 	std::string q = query_capture_element::no_command_query(query);
 		
 	// generate query fragments.
 	hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
-	qprocess::generate_query_hashes(q,0,5,features); // TODO: configuration.
+	qprocess::generate_query_hashes(q,0,
+					query_capture_configuration::_config->_max_radius,
+					features);
 	
 	// store query with hash fragment as key.
 	hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
 	while(hit!=features.end())
 	  {
-	     store_query((*hit).second,q,(*hit).first);
+	     query_capture_element::store_query((*hit).second,q,(*hit).first,plugin_name);
 	     ++hit;
 	  }
      }
       
    void query_capture_element::store_query(const DHTKey &key,
 					   const std::string &query,
-					   const uint32_t &radius) const
+					   const uint32_t &radius,
+					   const std::string &plugin_name)
      {
 	std::string key_str = key.to_rstring();
-	db_query_record dbqr(_parent->get_name(),query,radius);
+	db_query_record dbqr(plugin_name,query,radius);
 	seeks_proxy::_user_db->add_dbr(key_str,dbqr);
      }
       
    void query_capture_element::store_url(const DHTKey &key, const std::string &query,
 					 const std::string &url, const std::string &host,
-					 const uint32_t &radius) const
+					 const uint32_t &radius,
+					 const std::string &plugin_name)
      {
 	std::string key_str = key.to_rstring();
 	if (!url.empty())
 	  {
 	     //std::cerr << "adding url: " << url << std::endl;
-	     db_query_record dbqr(_parent->get_name(),query,radius,url);
+	     db_query_record dbqr(plugin_name,query,radius,url);
 	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
 	  }
 	if (!host.empty() && host != url)
 	  {
 	     //std::cerr << "adding host: " << host << std::endl;
-	     db_query_record dbqr(_parent->get_name(),query,radius,host);
+	     db_query_record dbqr(plugin_name,query,radius,host);
 	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
 	  }
      }

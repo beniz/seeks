@@ -19,6 +19,8 @@
 #ifndef QUERY_CAPTURE_H
 #define QUERY_CAPTURE_H
 
+#define NO_PERL
+
 #include "plugin.h"
 #include "interceptor_plugin.h"
 #include "query_capture_configuration.h"
@@ -53,10 +55,17 @@ namespace seeks_plugins
 	
 	virtual void stop();
 	
+	static sp_err cgi_qc_redir(client_state *csp,
+				   http_response *rsp,
+				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+	
 	virtual sp::db_record* create_db_record();
 	
 	int remove_all_query_records();
      
+	static void store_queries(const std::string &query,
+				  const std::string &url, const std::string &host);
+	
 	// store_query called from websearch plugin.
 	void store_queries(const std::string &query) const;
      
@@ -72,15 +81,22 @@ namespace seeks_plugins
      
 	virtual http_response* plugin_response(client_state *csp);
 	
-	void store_queries(const std::string &query) const;
+	static void store_queries(const std::string &query,
+				  const std::string &url, const std::string &host,
+				  const std::string &plugin_name);
 	
-	void store_query(const DHTKey &key,
-			 const std::string &query,
-			 const uint32_t &radius) const;
+	static void store_queries(const std::string &query,
+				  const std::string &plugin_name);
 	
-	void store_url(const DHTKey &key, const std::string &query,
-		       const std::string &url, const std::string &host,
-		       const uint32_t &radius) const;
+	static void store_query(const DHTKey &key,
+				const std::string &query,
+				const uint32_t &radius,
+				const std::string &plugin_name);
+	
+	static void store_url(const DHTKey &key, const std::string &query,
+			      const std::string &url, const std::string &host,
+			      const uint32_t &radius,
+			      const std::string &plugin_name);
 	
 	void get_useful_headers(const std::list<const char*> &headers,
 				std::string &host, std::string &referer,

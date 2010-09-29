@@ -43,7 +43,8 @@ namespace seeks_plugins
      
 	// main options.
 	short _max_radius; /**< query LSH generation max radius. */
-     
+	std::string _mode_intercept; /**< interception mode, "capture" or "redirect". */
+	
 	static query_capture_configuration *_config;
      };
       
