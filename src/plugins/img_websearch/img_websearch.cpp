@@ -19,6 +19,7 @@
 #include "img_websearch.h"
 #include "img_sort_rank.h"
 #include "websearch.h" // websearch plugin.
+#include "sort_rank.h"
 #include "errlog.h"
 #include "cgi.h"
 #include "cgisimple.h"
@@ -292,7 +293,18 @@ namespace seeks_plugins
 	mutex_lock(&qc->_qc_mutex);
 	qc->_lock = true;
 	img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets);
-	//qc->_compute_tfidf_features = true;
+	
+	const char *pers = miscutil::lookup(parameters,"prs");
+	if (!pers)
+	  pers = websearch::_wconfig->_personalization ? "on" : "off";
+	if (strcasecmp(pers,"on") == 0)
+	  {
+#if defined(PROTOBUF) && defined(TC)
+	     sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets,
+						   parameters);
+#endif  
+	  }
+	
 	qc->_lock = false;
 	mutex_unlock(&qc->_qc_mutex);
 			
