@@ -415,6 +415,7 @@ namespace seeks_plugins
 		  base_url = (*lit);
 		  try
 		    {
+		       size_t pos = base_url.find_first_of(" ");
 		       base_url = base_url.substr(pos+1);
 		    }
 		  catch (std::exception &e)
