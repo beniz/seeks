@@ -642,5 +642,15 @@ namespace seeks_plugins
 	  }
 	else engines = websearch::_wconfig->_se_enabled;
      }
+
+   void query_context::reset_snippets_personalization_flags()
+     {
+	std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
+	while(vit!=_cached_snippets.end())
+	  {
+	     (*vit)->_personalized = false;
+	     ++vit;
+	  }
+     }
       
 } /* end of namespace. */

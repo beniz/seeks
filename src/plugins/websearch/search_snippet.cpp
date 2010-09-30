@@ -56,13 +56,13 @@ namespace seeks_plugins
 
     search_snippet::search_snippet()
         :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-        _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
+        _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false)
     {
     }
 
     search_snippet::search_snippet(const short &rank)
         :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-        _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true)
+        _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false)
     {
     }
 
@@ -301,7 +301,6 @@ namespace seeks_plugins
 	    free(url_enc);
 	 }
               
-      std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
       std::string html_content = "<li class=\"search_snippet";
       if (_doc_type == VIDEO_THUMB)
         html_content += " search_snippet_vid";
@@ -334,15 +333,23 @@ namespace seeks_plugins
           html_content += _cached;
           html_content += "\" /></a>"; */
         }
-      html_content += "<h3><a href=\"";
+      
+       if (_personalized)
+	 {
+	    html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
+	 }
+         else     
+	 html_content += "<h3>";
+       html_content += "<a href=\"";
       html_content += url;
       html_content += "\">";
-
+       
       const char *title_enc = encode::html_encode(_title.c_str());
       html_content += title_enc;
       free_const(title_enc);
       html_content += "</a>";
 
+      std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
       if (_engine.to_ulong()&SE_GOOGLE)
         {
           std::string ggle_se_icon = se_icon;
@@ -422,7 +429,7 @@ namespace seeks_plugins
           html_content += " (" + miscutil::to_string(_meta_rank) + ")";
 
       html_content += "</h3>";
-
+        
       if (!_summary.empty())
         {
           html_content += "<div>";

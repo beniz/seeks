@@ -208,9 +208,12 @@ namespace seeks_plugins
 	       }
 	     
 	     // estimate the url prior.
+	     bool personalized = false;
 	     float prior = 1.0;
 	     if (nuri != 0)
-	       prior = estimate_prior(surl,host,nuri);
+	       prior = estimate_prior(surl,host,nuri,personalized);
+	     if (personalized)
+	       (*vit)->_personalized = true;
 	     
 	     posteriors[j] *= prior;
 	     std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
@@ -256,17 +259,24 @@ namespace seeks_plugins
 	vurl_data *vd = qd->find_vurl(surl);
 	if (!vd)
 	  posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
-	else posterior = (log(vd->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
+	else 
+	  {
+	     posterior = (log(vd->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
+	     s->_personalized = true;
+	  }
 	
 	// host.
 	vd = qd->find_vurl(host);
 	if (!vd)
 	  posterior *= cf_configuration::_config->_domain_name_weight 
 	  / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
-	else posterior *= cf_configuration::_config->_domain_name_weight 
-	  * (log(vd->_hits + 1.0) + 1.0)
-	    / (log(total_hits + 1.0) + ns); // with domain-name weight factor.
-	
+	else 
+	  {
+	     posterior *= cf_configuration::_config->_domain_name_weight 
+	       * (log(vd->_hits + 1.0) + 1.0)
+		 / (log(total_hits + 1.0) + ns); // with domain-name weight factor.
+	     s->_personalized = true;
+	  }
 	//std::cerr << "posterior: " << posterior << std::endl;
 	
 	return posterior;
@@ -274,7 +284,8 @@ namespace seeks_plugins
 
    float simple_re::estimate_prior(const std::string &surl,
 				   const std::string &host,
-				   const uint64_t &nuri)
+				   const uint64_t &nuri,
+				   bool &personalized)
      {
 	static std::string uc_str = "uri-capture";
 	float prior = 0.0;
@@ -287,15 +298,17 @@ namespace seeks_plugins
 	     db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
 	     prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ log(furi + 1.0);
 	     delete uc_dbr;
+	     personalized = true;
 	  }
 	dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
 	if (!dbr)
-	  prior *= 1.0 / furi;
+	  prior *= 1.0 / log(furi + 1.0);
 	else
 	  {
 	     db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
 	     prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / log(furi + 1.0);
 	     delete uc_dbr;
+	     personalized = true;
 	  }
 	return prior;
      }

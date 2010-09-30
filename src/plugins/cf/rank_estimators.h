@@ -60,7 +60,8 @@ namespace seeks_plugins
      
 	float estimate_prior(const std::string &surl,
 			     const std::string &host,
-			     const uint64_t &nuri);
+			     const uint64_t &nuri,
+			     bool &personalized);
      };
       
 } /* end of namespace. */

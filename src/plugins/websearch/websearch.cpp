@@ -721,6 +721,12 @@ namespace seeks_plugins
 						   qtime);
        }
      
+     // resets personalization flags.
+     if (strcasecmp(pers,"on") == 0)
+       {
+	  qc->reset_snippets_personalization_flags();
+       }
+     
      // unlock or destroy the query context.
      qc->_lock = false;
      mutex_unlock(&qc->_qc_mutex);

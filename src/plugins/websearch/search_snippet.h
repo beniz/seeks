@@ -227,6 +227,10 @@ namespace seeks_plugins
 	// XXX: may be used later as a generic flag for marking content that 
 	// cannot be considered to be 'safe' for everyone to read/see.
 	bool _safe;
+     
+	// temporary flag used for marking snippets for which the 
+	// personalization system has found ranking information in local dataset.
+	bool _personalized;
      };
    
 } /* end of namespace. */
