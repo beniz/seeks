@@ -4,3 +4,12 @@
 # between 0 and 8.
 # default: 5
 query-max-radius 5
+
+# query result clicks interception mode.
+# 'redirect' is default, and captures clicks on search results by
+# pointing the clicked URL through the Seeks node first, and then
+# redirecting to the URL. 
+# 'capture' is detection of clicks from search results by the proxy
+# itself. It is slightly heavier, but allows to avoid the redirection.
+# default: redirect
+mode-intercept redirect
