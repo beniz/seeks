@@ -136,9 +136,14 @@ namespace seeks_plugins
 	     sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
 	     if (err == SP_ERR_CGI_PARAMS)
 	       return cgi::cgi_error_bad_param(csp,rsp);
-	     
+	     	     
 	     // redirect to requested url.
+	     urlp = encode::url_decode(urlp);
+	     
+	     std::cerr << "urlp: " << urlp << std::endl;
+	     
 	     cgi::cgi_redirect(rsp,urlp);
+	     free(urlp);
 	     return SP_ERR_OK;
 	  }
 	else return cgi::cgi_error_bad_param(csp,rsp);

@@ -296,7 +296,9 @@ namespace seeks_plugins
 	   && query_capture_configuration::_config
 	   && query_capture_configuration::_config->_mode_intercept == "redirect")
 	 {
-	    url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + url;
+	    char *url_enc = encode::url_encode(url.c_str());
+	    url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + std::string(url_enc);
+	    free(url_enc);
 	 }
               
       std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
