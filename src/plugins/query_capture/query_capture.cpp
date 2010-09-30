@@ -228,13 +228,16 @@ namespace seeks_plugins
 	 * Captures clicked URLs from search results, and store them along with
 	 * the query fragments.
 	 */
-	std::string host, referer, get;
+	std::string host, referer, get, base_url;
 	query_capture_element::get_useful_headers(csp->_headers,
-						  host,referer,get);
+						  host,referer,get,
+						  base_url);
+	if (base_url.empty())
+	  base_url = query_capture_element::_cgi_site_host;
 	
 	std::string ref_host, ref_path;
 	urlmatch::parse_url_host_and_path(referer,ref_host,ref_path);
-	if (ref_host == query_capture_element::_cgi_site_host)
+	if (ref_host == base_url)
 	  {
 	     // check that is not a query itself.
 	     size_t p = get.find("search?");
@@ -366,7 +369,7 @@ namespace seeks_plugins
       
    void query_capture_element::get_useful_headers(const std::list<const char*> &headers,
 						  std::string &host, std::string &referer,
-						  std::string &get)
+						  std::string &get, std::string &base_url)
      {
 	std::list<const char*>::const_iterator lit = headers.begin();
 	while(lit!=headers.end())
@@ -374,17 +377,50 @@ namespace seeks_plugins
 	     if (miscutil::strncmpic((*lit),"get ",4) == 0)
 	       {
 		  get = (*lit);
-		  get = get.substr(4);
+		  try
+		    {
+		       get = get.substr(4);
+		    }
+		  catch (std::exception &e)
+		    {
+		       get = "";
+		    }
 	       }
 	     else if (miscutil::strncmpic((*lit),"host:",5) == 0)
 	       {
 		  host = (*lit);
-		  host = host.substr(6);
+		  try
+		    {
+		       host = host.substr(6);
+		    }
+		  catch (std::exception &e)
+		    {
+		       host = "";
+		    }
 	       }
 	     else if (miscutil::strncmpic((*lit),"referer:",8) == 0)
 	       {
 		  referer = (*lit);
-		  referer = referer.substr(9);
+		  try
+		    {
+		       referer = referer.substr(9);
+		    }
+		  catch (std::exception &e)
+		    {
+		       referer = "";
+		    }
+	       }
+	     else if (miscutil::strncmpic((*lit),"Seeks-Remote-Location:",22) == 0)
+	       {
+		  base_url = (*lit);
+		  try
+		    {
+		       base_url = base_url.substr(pos+1);
+		    }
+		  catch (std::exception &e)
+		    {
+		       base_url = "";
+		    }
 	       }
 	     ++lit;
 	  }
