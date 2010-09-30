@@ -5,6 +5,18 @@ body {
 
 #main {
 	margin-top: 115px;
+	margin-right: 200px;
+}
+
+#message {
+	float: right;
+	position: absolute;
+	right: 0px;
+	top: 120px;
+	width: 180px;
+	margin: 15px;
+	padding: 5px;
+	border: 1px solid #6fba57;
 }
 
 #search_bar {

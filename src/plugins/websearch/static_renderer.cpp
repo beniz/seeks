@@ -593,6 +593,12 @@ namespace seeks_plugins
 	if (!websearch::_wconfig->_show_node_ip)
 	  cgi::map_block_killer(exports,"have-show-node-ip");
 	
+	// message rendering.
+	if (websearch::_wconfig->_result_message.empty())
+	  cgi::map_block_killer(exports,"have-result-message");
+	else miscutil::add_map_entry(exports,"$xxmsg",1,
+				     websearch::_wconfig->_result_message.c_str(),1);
+	
 	// other parameters.
 	if (param_exports)
 	  {

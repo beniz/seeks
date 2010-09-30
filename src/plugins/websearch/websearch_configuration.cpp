@@ -45,6 +45,7 @@ namespace seeks_plugins
 #define hash_background_proxy        682905808ul /* "background-proxy" */
 #define hash_show_node_ip           4288369354ul /* "show-node-ip" */
 #define hash_personalization        1102733049ul /* "personalized-results" */
+#define hash_result_message          129100406ul /* "result-message" */  
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -77,6 +78,7 @@ namespace seeks_plugins
 	_background_proxy_port = 0;
 	_show_node_ip = false;
 	_personalization = true;
+	_result_message = ""; // empty message.
      }
 
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -218,6 +220,14 @@ namespace seeks_plugins
 	     _personalization = static_cast<bool>(atoi(arg));
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enable personalized result ranking");
+	     break;
+	     
+	   case hash_result_message:
+	     if (!arg)
+	       break;
+	     _result_message = std::string(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Message to appear in a panel next to the search results");
 	     break;
 	     
 	   default:
