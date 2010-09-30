@@ -1,9 +1,9 @@
 # automake for lsh
 
-bin_PROGRAMS=test_mrf_query_160 test_qprocess
+bin_PROGRAMS=test_mrf_query_160 gen_mrf_query_160
 
 test_mrf_query_160_SOURCES=test-mrf-query-160.cpp
-test_qprocess_SOURCES=test-qprocess.cpp
+gen_mrf_query_160_SOURCES=gen-mrf-query-160.cpp
 
 AM_CXXFLAGS=
 AM_CPPFLAGS=-I../ -I../../utils/ -I../../proxy -I../../dht \
