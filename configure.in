@@ -510,11 +510,34 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBEVENT,test x$le_found = xtrue)
 
+# plugin variables.
+AC_SUBST(uricapture,true)
+AC_SUBST(querycapture,true)
+AC_SUBST(cf,true)
+
 # check on protocol buffers.
 PKG_CHECK_MODULES([protobuf],[protobuf],protobuf=true,protobuf=false)
+if test $protobuf = true ; then
+   AC_DEFINE(PROTOBUF,1,"Protocol buffers available")
+fi
+AM_CONDITIONAL(HAVE_PROTOBUF,test x$protobuf = xtrue)
+if test $protobuf = false ; then
+   AC_SUBST(uricapture,false)
+   AC_SUBST(querycapture,false)
+   AC_SUBST(cf,false)
+fi
 
 # check on tokyo cabinet.
 PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
+if test	$protobuf = true ; then
+   AC_DEFINE(TC,1,"Tokyocabinet available")
+fi
+AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)
+if test $tokyocabinet = false ; then
+   AC_SUBST(uricapture,false)
+   AC_SUBST(querycapture,false)
+   AC_SUBST(cf,false)
+fi
 
 # connection keep alive
 AC_ARG_ENABLE(keepalive,
@@ -583,5 +606,7 @@ AC_MSG_NOTICE([Configured to build seeks:
  Enabled plugins:
  image websearch:	  ${imgwebsearch}
  HTTP server:		  ${httpservplugin}
- 
+ query capture:		  ${querycapture}
+ URI capture:		  ${uricapture}
+ Personalization:	  ${cf} 
 ])

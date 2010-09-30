@@ -25,7 +25,10 @@
 #include "urlmatch.h"
 #include "plugin_manager.h" // for _plugin_repository.
 #include "seeks_proxy.h" // for _datadir.
+
+#if defined(PROTOBUF) && defined(TC)
 #include "query_capture_configuration.h"
+#endif
 
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
 #include "proxy_dts.h" // for http_request.
@@ -292,6 +295,8 @@ namespace seeks_plugins
 	 }
        
        std::string url = _url;
+       
+#if defined(PROTOBUF) && defined(TC)
        if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
 	   && query_capture_configuration::_config
 	   && query_capture_configuration::_config->_mode_intercept == "redirect")
@@ -300,6 +305,7 @@ namespace seeks_plugins
 	    url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + std::string(url_enc);
 	    free(url_enc);
 	 }
+#endif
               
       std::string html_content = "<li class=\"search_snippet";
       if (_doc_type == VIDEO_THUMB)

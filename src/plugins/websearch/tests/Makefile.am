@@ -14,11 +14,25 @@ test_html_txt_parser_SOURCES=test-html-text-parser.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
 	     -I${srcdir} -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy \
-	     -I${srcdir}/../../../dht -I${srcdir}/../../query_capture -I${srcdir}/../../cf @PCRE_CFLAGS@ @XML2_CFLAGS@ \
-	     `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
-AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht -L../../query_capture -L../../cf \
-	   `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+	     -I${srcdir}/../../../dht -I${srcdir}/../../query_capture -I${srcdir}/../../cf @PCRE_CFLAGS@ @XML2_CFLAGS@ 
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+endif
+endif
+AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht 
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_LDFLAGS += -L../../query_capture -L../../cf `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+endif
+endif
 if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=-lseekswebsearchplugin -lquerycaptureplugin -lcfplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksuserdb -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD=-lseekswebsearchplugin 
+if HAVE_PROTOBUF
+if HAVE_TC
+LDADD += -lquerycaptureplugin -lcfplugin -lseeksuserdb
+endif
+endif
+LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz

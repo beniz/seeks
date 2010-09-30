@@ -27,7 +27,10 @@
 #include "proxy_dts.h"
 #include "sweeper.h"
 #include "lsh_configuration.h"
+
+#if defined(PROTOBUF) && defined(TC)
 #include "user_db.h"
+#endif
 
 #if (defined __NetBSD__) || (defined __OpenBSD__) || (defined ON_OSX)
 #define unix 1
@@ -145,8 +148,10 @@ namespace sp
 	static int _global_toggle_state;
 #endif /* def FEATURE_TOGGLE */
 
+#if defined(PROTOBUF) && defined(TC)
 	/* Seeks user database. */
-	static user_db* _user_db; 
+	static user_db* _user_db;
+#endif
 	
 	/*-- functions. --*/
       public:

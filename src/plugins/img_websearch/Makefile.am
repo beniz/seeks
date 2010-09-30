@@ -5,7 +5,12 @@ imgwebsearchplugindatadir = $(datadir)/seeks/plugins/img_websearch
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy -I${srcdir}/../websearch \
-	    -I${srcdir}/../../dht `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+	    -I${srcdir}/../../dht 
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+endif
+endif
 if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif

@@ -22,7 +22,10 @@
 #include "plugin_manager.h"
 #include "proxy_dts.h"
 #include "configuration_spec.h"
+
+#if defined(PROTOBUF) && defined(TC)
 #include "db_record.h"
+#endif
 
 #include <string>
 
@@ -69,9 +72,11 @@ namespace sp
 	std::string get_version_major() const { return _version_major; };
 	std::string get_version_minor() const { return _version_minor; };
 
+#if defined(PROTOBUF) && defined(TC)
 	/* user db related, when needed for a plugin to store user data. */
 	virtual db_record* create_db_record() { return NULL; };
-	
+#endif	
+
       protected:
 	std::string _name; /**< plugin name. */
 	std::string _description; /**< plugin description. */

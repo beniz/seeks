@@ -34,7 +34,9 @@
 #include "oskmeans.h"
 #include "mrf.h"
 
+#if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h" // dependent plugin.
+#endif
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -669,9 +671,11 @@ namespace seeks_plugins
 	  qc->_lock = false;
 	  mutex_unlock(&qc->_qc_mutex);
        
+#if defined(PROTOBUF) && defined(TC)
 	  // query_capture if plugin is available and activated.
        	  if (_qc_plugin && _qc_plugin_activated)
 	    static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_query);
+#endif
        }
      
      // sort and rank search snippets.
@@ -684,8 +688,10 @@ namespace seeks_plugins
        pers = websearch::_wconfig->_personalization ? "on" : "off";
      if (strcasecmp(pers,"on") == 0)
        {
+#if defined(PROTOBUF) && defined(TC)
 	  sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets,
 						parameters);
+#endif
        }
           
      if (expanded)

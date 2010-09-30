@@ -85,8 +85,10 @@ namespace sp
 #endif /* ndef HAVE_RANDOM */
 #endif
 
+#if defined(PROTOBUF) && defined(TC)
    user_db* seeks_proxy::_user_db = NULL;
-   
+#endif   
+
 #ifdef FEATURE_STATISTICS
    int seeks_proxy::_urls_read = 0;
    int seeks_proxy::_urls_rejected = 0;
@@ -2286,9 +2288,11 @@ namespace sp
 		       unlink(seeks_proxy::_pidfile);
 		    }
 # endif /* unix */
+#if defined(PROTOBUF) && defined(TC)
 		  /* closing the user database. */
 		  if (seeks_proxy::_user_db)
 		    seeks_proxy::_user_db->close_db();
+#endif		  
 		  exit(the_signal);
 		  break;
 		  

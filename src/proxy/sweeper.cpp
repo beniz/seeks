@@ -145,10 +145,12 @@ namespace sp
 	       }
 	     else ++vit;
 	  }
-	
+
+#if defined(PROTOBUF) && defined(TC)	
 	// user_db sweep.
 	seeks_proxy::_user_db->sweep_db();
-	
+#endif	
+
        return active_threads;
      }
    

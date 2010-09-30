@@ -532,9 +532,11 @@ int main(int argc, const char *argv[])
    // loads iso639 table.
    iso639::initialize();
    
+#if defined(PROTOBUF) && defined(TC)
    // start user db before plugins so they can work with it.
    seeks_proxy::_user_db = new user_db();
    seeks_proxy::_user_db->open_db();
+#endif
       
    // loads plugins.
    errlog::log_error(LOG_LEVEL_INFO,"listen_loop(): attempt to find plugins...");

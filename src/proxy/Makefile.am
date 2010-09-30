@@ -1,10 +1,20 @@
 
 
 ACLOCAL_AMFLAGS=-I m4
-lib_LTLIBRARIES=libseeksuserdb.la libseeksproxy.la libseeksplugins.la
+lib_LTLIBRARIES=
+if HAVE_TC
+if HAVE_PROTOBUF
+lib_LTLIBRARIES += libseeksuserdb.la 
+endif
+endif
+lib_LTLIBRARIES += libseeksproxy.la libseeksplugins.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
-	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh 
+if HAVE_TC
+if HAVE_PROTOBUF
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+endif
+endif
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
@@ -13,7 +23,12 @@ libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
 libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp
+
+if HAVE_TC
+if HAVE_PROTOBUF
 libseeksuserdb_la_SOURCES=db_record_msg.pb.cc db_record.cpp user_db.cpp
+endif
+endif
 
 noinst_HEADERS = \
 	action_plugin.h \
@@ -46,7 +61,11 @@ noinst_HEADERS = \
 
 libseeksproxy_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' -DSEEKS_DATADIR='"$(datadir)/seeks/"' -DSEEKS_PLUGINS_LIBDIR='"$(libdir)/seeks/plugins/"'
 libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
+if HAVE_TC
+if HAVE_PROTOBUF
 libseeksuserdb_la_CXXFLAGS=-Wall -g
+endif
+endif
 if USE_PERL
 libseeksplugins_la_SOURCES += perl_std_filter.cpp xsinit.cpp
 libseeksplugins_la_CXXFLAGS +=`perl -MExtUtils::Embed -e ccopts`

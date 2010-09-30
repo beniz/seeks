@@ -21,7 +21,10 @@
 #include "content_handler.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+
+#if defined(PROTOBUF) && defined(TC)
 #include "cf.h"
+#endif
 
 #include <ctype.h>
 #include <algorithm>
@@ -283,6 +286,7 @@ namespace seeks_plugins
 	std::stable_sort(clusters,clusters+K,cluster::max_size_cluster);
      }
 
+#if defined(PROTOBUF) && defined(TC)
    void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
 					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -293,5 +297,6 @@ namespace seeks_plugins
 	std::stable_sort(snippets.begin(),snippets.end(),
 			 search_snippet::max_seeks_rank);
      }
+#endif
       
 } /* end of namespace. */
