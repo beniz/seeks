@@ -319,7 +319,7 @@ namespace seeks_plugins
         {
 	   html_content += "<a href=\"" + url + "\">";
 	   html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
-	   html_content += url;
+	   html_content += _url;
 	   html_content += "\" /></a>";
 	}
       if (_doc_type == TWEET)
