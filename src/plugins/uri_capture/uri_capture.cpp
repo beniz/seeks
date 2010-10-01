@@ -17,6 +17,7 @@
  */
 
 #include "uri_capture.h"
+#include "uc_configuration.h"
 #include "db_uri_record.h"
 #include "seeks_proxy.h" // for user_db.
 #include "user_db.h"
@@ -24,6 +25,9 @@
 #include "urlmatch.h"
 #include "miscutil.h"
 #include "errlog.h"
+
+#include <sys/time.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <iterator>
@@ -43,6 +47,11 @@ namespace seeks_plugins
    uri_db_sweepable::uri_db_sweepable()
      :user_db_sweepable()
        {
+	  // set last sweep to now.
+	  // sweeping is done when plugin starts.
+	  struct timeval tv_now;
+	  gettimeofday(&tv_now,NULL);
+	  _last_sweep = tv_now.tv_sec;
        }
    
    uri_db_sweepable::~uri_db_sweepable()
@@ -51,13 +60,20 @@ namespace seeks_plugins
    
    bool uri_db_sweepable::sweep_me()
      {
-	//TODO: dates.	
-	return false;
+	struct timeval tv_now;
+	gettimeofday(&tv_now,NULL);
+	if ((tv_now.tv_sec - _last_sweep) 
+	    > uc_configuration::_config->_sweep_cycle)
+	  return true;
+	else return false;
      }
    
    int uri_db_sweepable::sweep_records()
      {
-	//seeks_proxy::_user_db->prunedb("uri-capture"); //TODO: date!
+	struct timeval tv_now;
+	gettimeofday(&tv_now,NULL);
+	time_t sweep_date = tv_now.tv_sec - uc_configuration::_config->_retention;
+	seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
      }
       
    /*- uri_capture -*/
@@ -69,6 +85,23 @@ namespace seeks_plugins
 	  _version_minor = "1";
 	  _configuration = NULL;
 	  _interceptor_plugin = new uri_capture_element(this);
+       
+	  if (seeks_proxy::_datadir.empty())
+	    _config_filename = plugin_manager::_plugin_repository + "uri_capture/uri-capture-config";
+	  else
+	    _config_filename = seeks_proxy::_datadir + "/plugins/uri_capture/uri-capture-config";
+       
+#ifdef SEEKS_CONFIGDIR
+	  struct stat stFileInfo;
+	  if (!stat(_config_filename.c_str(), &stFileInfo)  == 0)
+	    {
+	       _config_filename = SEEKS_CONFIGDIR "/uri-capture-config";
+	    }
+#endif
+	  
+	  if (uc_configuration::_config == NULL)
+	    uc_configuration::_config = new uc_configuration(_config_filename);
+	  _configuration = uc_configuration::_config;
        }
    
    uri_capture::~uri_capture()
@@ -82,6 +115,9 @@ namespace seeks_plugins
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
 	  }
+	
+	// preventive sweep of records.
+	static_cast<uri_capture_element*>(_interceptor_plugin)->_uds.sweep_records();
 	
 	// get number of captured URI already in user_db.
 	_nr = seeks_proxy::_user_db->number_records(_name);
