@@ -64,17 +64,12 @@
 </div>
 
 
+<table>
+<tr>
+<td>
+
 
 <div id="main">
-
-<!-- message panel -->
-<!-- @if-have-result-message-start -->
-<div id="message">
-<p>xxmsg</p>
-<!-- img src="public/images/seek_icon_32x32_transparent.png"/> -->
-</div>
-<!-- if-have-result-message-end@ -->
-
 <!-- @if-have-one-column-results-start -->
 #include websearch/templates/one_column_results_template
 <!-- if-have-one-column-results-end@ -->
@@ -146,5 +141,18 @@ YUI().use('event-key', function(Y) {
 <!-- if-websearch-have-js-end@ -->
 
 </div> 
+</td>
+
+<td style="vertical-align:top;">
+<!-- message panel -->
+<!-- @if-have-result-message-start -->
+<div id="message">
+<p>xxmsg</p>
+<!-- img src="public/images/seek_icon_32x32_transparent.png"/> -->
+</div>
+<!-- if-have-result-message-end@ -->
+</td>
+</tr>
+</table>
 
 </body></html>
