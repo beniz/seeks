@@ -119,7 +119,7 @@ body {
 }
 
 #search_results .search_snippet .personalized_result {
-        font-size: 16px;
+        /* font-size: 16px; */
         padding: 0px 25px;
 	margin-left: 0px;
         background-repeat: no-repeat;
