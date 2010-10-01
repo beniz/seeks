@@ -324,59 +324,104 @@ namespace sp
    
    int user_db::prune_db(const time_t &date)
      {
-	void *key = NULL;
-	int key_size;
+	void *rkey = NULL;
+	int rkey_size;
 	std::vector<std::string> to_remove;
 	tchdbiterinit(_hdb);
-	while((key = tchdbiternext(_hdb,&key_size)) != NULL)
+	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
 	  {
 	     int value_size;
-	     void *value = tchdbget(_hdb, key, key_size, &value_size);
+	     void *value = tchdbget(_hdb, rkey, rkey_size, &value_size);
 	     if(value)
 	       {
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
-		  db_record dbr;
-		  dbr.deserialize(str);
-		  if (dbr._creation_time < date)
-		    to_remove.push_back(std::string((char*)key));
+		  std::string key, plugin_name;
+		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
+						      plugin_name,key) != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		    }
+		  else
+		    {
+		       // get a proper object based on plugin name, and call the virtual function for reading the record.
+		       plugin *pl = plugin_manager::get_plugin(plugin_name);
+		       if (!pl)
+			 {
+			    // handle error.
+			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
+					      plugin_name.c_str());
+			 }
+		       else
+			 {
+			    db_record *dbr = pl->create_db_record();
+			    dbr->deserialize(str); //TODO: catch deserialization error.
+			    if (dbr->_creation_time < date)
+			      to_remove.push_back(std::string((char*)rkey));
+			    delete dbr;
+			 }
+		    }
 	       }
-	     free(key);
+	     free(rkey);
 	  }
 	int err = 0;
 	size_t trs = to_remove.size();
 	for (size_t i=0;i<trs;i++)
 	  err += remove_dbr(to_remove.at(i));
+	errlog::log_error(LOG_LEVEL_ERROR,"Pruned %u records from user db",trs);
 	return err;
      }
    
    int user_db::prune_db(const std::string &plugin_name,
 			 const time_t date)
      {
-	void *key = NULL;
-	int key_size;
+	void *rkey = NULL;
+	int rkey_size;
 	std::vector<std::string> to_remove;
 	tchdbiterinit(_hdb);
-	while((key = tchdbiternext(_hdb,&key_size)) != NULL)
+	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
 	  {
 	     int value_size;
-	     void *value = tchdbget(_hdb, key, key_size, &value_size);
+	     void *value = tchdbget(_hdb, rkey, rkey_size, &value_size);
 	     if(value)
 	       {
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
-		  db_record dbr;
-		  dbr.deserialize(str);
-		  if (dbr._plugin_name == plugin_name)
-		    if (date == 0 || dbr._creation_time < date)
-		      to_remove.push_back(std::string((char*)key));
+		  std::string key, plugin_name;
+		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
+						      plugin_name,key) != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		    }
+		  else
+		    {
+		       // get a proper object based on plugin name, and call the virtual function for reading the record.
+		       plugin *pl = plugin_manager::get_plugin(plugin_name);
+		       if (!pl)
+			 {
+			    // handle error.
+			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
+					      plugin_name.c_str());
+			 }
+		       else
+			 {
+			    db_record *dbr = pl->create_db_record();
+			    dbr->deserialize(str); //TODO: catch deserialization error.
+			    if (dbr->_plugin_name == plugin_name)
+			      if (date == 0 || dbr->_creation_time < date)
+				to_remove.push_back(std::string((char*)rkey));
+			    delete dbr;
+			 }
+		    }
 	       }
-	     free(key);
+	     free(rkey);
 	  }
 	int err = 0;
 	size_t trs = to_remove.size();
 	for (size_t i=0;i<trs;i++)
 	  err += remove_dbr(to_remove.at(i));
+	errlog::log_error(LOG_LEVEL_ERROR,"Pruned %u records from user db belonging to plugin %s",
+			  trs,plugin_name.c_str());
 	return err;
      }
       
