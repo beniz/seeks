@@ -60,7 +60,6 @@ namespace sp
    
    int db_record::deserialize(const std::string &msg)
      {
-	std::cerr << "db_record.deserialize()\n";
 	return deserialize_base_record(msg);
      }
    

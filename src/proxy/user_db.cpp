@@ -228,7 +228,11 @@ namespace sp
 		  // call to plugin record creation function.
 		  dbr = pl->create_db_record();
 	       }
-	     dbr->deserialize(str); //TODO: catch deserialization error.
+	     if (dbr->deserialize(str) != 0)
+	       {
+		  delete dbr;
+		  return NULL;
+	       }
 	     return dbr;
 	  }
 	else return NULL;
@@ -355,8 +359,11 @@ namespace sp
 		       else
 			 {
 			    db_record *dbr = pl->create_db_record();
-			    dbr->deserialize(str); //TODO: catch deserialization error.
-			    if (dbr->_creation_time < date)
+			    if (dbr->deserialize(str) != 0)
+			      {
+				 // deserialization error.
+			      }
+			    else if (dbr->_creation_time < date)
 			      to_remove.push_back(std::string((char*)rkey));
 			    delete dbr;
 			 }
@@ -406,8 +413,11 @@ namespace sp
 		       else
 			 {
 			    db_record *dbr = pl->create_db_record();
-			    dbr->deserialize(str); //TODO: catch deserialization error.
-			    if (dbr->_plugin_name == plugin_name)
+			    if (dbr->deserialize(str) != 0)
+			      {
+				 // deserialization error.
+			      }
+			    else if (dbr->_plugin_name == plugin_name)
 			      if (date == 0 || dbr->_creation_time < date)
 				to_remove.push_back(std::string((char*)rkey));
 			    delete dbr;
@@ -495,10 +505,19 @@ namespace sp
 			 {
 			    // call to plugin record creation function.
 			    db_record *dbr = pl->create_db_record();
-			    dbr->deserialize(str); //TODO: catch deserialization error.
-			    output << "db_record[" << key << "]\n\tplugin_name: " << dbr->_plugin_name
-			      << "\n\tcreation time: " << dbr->_creation_time << std::endl;
-			    dbr->print(output);
+			    if (dbr->deserialize(str) != 0)
+			      {
+				 // deserialization error.
+				 // prints out information extracted from the record key.
+				 output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name 
+				   << " (deserialization error)\n";
+			      }
+			    else
+			      {
+				 output << "db_record[" << key << "]\n\tplugin_name: " << dbr->_plugin_name
+				   << "\n\tcreation time: " << dbr->_creation_time << std::endl;
+				 dbr->print(output);
+			      }
 			    delete dbr;
 			 }
 		       output << std::endl;
