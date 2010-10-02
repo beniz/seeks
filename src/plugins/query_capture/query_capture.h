@@ -42,6 +42,8 @@ namespace seeks_plugins
 	virtual bool sweep_me();
 	
 	virtual int sweep_records();
+     
+	time_t _last_sweep;
      };
       
    class query_capture : public plugin

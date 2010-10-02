@@ -26,6 +26,8 @@ namespace seeks_plugins
    
 #define hash_max_radius                    1988906041ul  /* "query-max-radius" */
 #define hash_mode_intercept                1971845008ul  /* "mode-intercept" */
+#define hash_query_sweep_cycle             2195388340ul  /* "query-sweep-cycle" */
+#define hash_query_retention               1932741391ul  /* "query-retention" */
    
    query_capture_configuration* query_capture_configuration::_config = NULL;
    
@@ -46,6 +48,8 @@ namespace seeks_plugins
      {
 	_max_radius = 5;
 	_mode_intercept = "redirect";
+	_sweep_cycle = 2592000;  // one month, in seconds.
+	_retention = 31104000;   // one year, in seconds.
      }
       
    void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -68,6 +72,18 @@ namespace seeks_plugins
 						"Whether to silently capture queries and clicks or to use a redirection from the result page to the proxy instead");
 	     break;
 	     
+	   case hash_query_sweep_cycle :
+	     _sweep_cycle = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Time between two sweeping cycles of the query user db records, in seconds");
+	     break;
+	     
+	   case hash_query_retention:
+	     _retention = atoi(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"query user db retention of records, in seconds");
+	     break;
+	     	     
 	   default:
 	     break;
 	  }

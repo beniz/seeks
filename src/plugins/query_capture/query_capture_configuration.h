@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -44,6 +44,8 @@ namespace seeks_plugins
 	// main options.
 	short _max_radius; /**< query LSH generation max radius. */
 	std::string _mode_intercept; /**< interception mode, "capture" or "redirect". */
+	time_t _sweep_cycle; /**< how long between two cycles of query db record sweeping. */
+	time_t _retention;   /**< query db record retention, in seconds. */
 	
 	static query_capture_configuration *_config;
      };

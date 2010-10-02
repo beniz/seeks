@@ -33,6 +33,7 @@
 #include <iterator>
 #include <iostream>
 
+#include <sys/time.h>
 #include <sys/stat.h>
 
 using sp::sp_err;
@@ -52,9 +53,13 @@ namespace seeks_plugins
    /*- query_db_sweepable -*/
    query_db_sweepable::query_db_sweepable()
      :user_db_sweepable()
-     {
-	
-     }
+       {
+	  // set last sweep to now.
+	  // sweeping is onde when plugin starts.
+	  struct timeval tv_now;
+	  gettimeofday(&tv_now,NULL);
+	  _last_sweep = tv_now.tv_sec;
+       }
    
    query_db_sweepable::~query_db_sweepable()
      {
@@ -62,13 +67,20 @@ namespace seeks_plugins
         
    bool query_db_sweepable::sweep_me()
      {
-	//TODO: dates.
-	return false;
+	struct timeval tv_now;
+	gettimeofday(&tv_now,NULL);
+	if ((tv_now.tv_sec - _last_sweep)
+	    > query_capture_configuration::_config->_sweep_cycle)
+	  return true;
+	else return false;
      }
    
    int query_db_sweepable::sweep_records()
      {	
-	//TODO
+	struct timeval tv_now;
+	gettimeofday(&tv_now,NULL);
+	time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
+	seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
      }
    
    /*- query_capture -*/
@@ -120,6 +132,14 @@ namespace seeks_plugins
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
 	  }
+	
+	// preventive sweep of records.
+	static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
+	
+	// get number of captured URI already in user_db.
+	uint64_t nr = seeks_proxy::_user_db->number_records(_name);
+	
+	errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
      }
    
    void query_capture::stop()
