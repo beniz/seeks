@@ -51,7 +51,12 @@ namespace seeks_plugins
      {
 	sp::db::record r;
 	create_uri_record(r);
-	return r.SerializeToString(&msg);
+	if (!r.SerializeToString(&msg))
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"failed serializing db_uri_record");
+	     return 1; // error.
+	  }
+	else return 0;
      }
    
    int db_uri_record::deserialize(const std::string &msg)

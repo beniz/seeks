@@ -45,7 +45,7 @@ namespace sp
       
    /*- user_db -*/
    std::string user_db::_db_name = "seeks_user.db";
-   
+         
    user_db::user_db()
      :_opened(false)
      {
@@ -227,6 +227,12 @@ namespace sp
 	       {
 		  // call to plugin record creation function.
 		  dbr = pl->create_db_record();
+		  if (!dbr)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR,"Plugin %s created a NULL db record",
+					 plugin_name.c_str());
+		       return NULL;
+		    }
 	       }
 	     if (dbr->deserialize(str) != 0)
 	       {
@@ -265,11 +271,25 @@ namespace sp
 		  mutex_unlock(&_db_mutex);
 		  return -2;
 	       }
-	     edbr->serialize(str);
+	     if (edbr->serialize(str) != 0)
+	       {
+		  // serialization error.
+		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record serialization error");
+		  delete edbr;
+		  return -1;
+	       }
 	     delete edbr;
 	  }
-	else dbr.serialize(str);
-		
+	else 
+	  {
+	     if (dbr.serialize(str) != 0)
+	       {
+		  // serialization error.
+		  errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record serialization error");
+		  return -1;
+	       }
+	  }
+	
 	// create key.
 	std::string rkey = user_db::generate_rkey(key,dbr._plugin_name);
 		
@@ -350,23 +370,26 @@ namespace sp
 		    {
 		       // get a proper object based on plugin name, and call the virtual function for reading the record.
 		       plugin *pl = plugin_manager::get_plugin(plugin_name);
+		       db_record *dbr = NULL;
 		       if (!pl)
 			 {
 			    // handle error.
 			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
 					      plugin_name.c_str());
+			    dbr = new db_record();
 			 }
 		       else
 			 {
-			    db_record *dbr = pl->create_db_record();
-			    if (dbr->deserialize(str) != 0)
-			      {
-				 // deserialization error.
-			      }
-			    else if (dbr->_creation_time < date)
-			      to_remove.push_back(std::string((char*)rkey));
-			    delete dbr;
+			    dbr = pl->create_db_record();
 			 }
+		       
+		       if (dbr->deserialize(str) != 0)
+			 {
+			    // deserialization error.
+			 }
+		       else if (dbr->_creation_time < date)
+			 to_remove.push_back(std::string((char*)rkey));
+		       delete dbr;
 		    }
 	       }
 	     free(rkey);
@@ -404,24 +427,27 @@ namespace sp
 		    {
 		       // get a proper object based on plugin name, and call the virtual function for reading the record.
 		       plugin *pl = plugin_manager::get_plugin(plugin_name);
+		       db_record *dbr = NULL;
 		       if (!pl)
 			 {
 			    // handle error.
 			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
 					      plugin_name.c_str());
+			    dbr = new db_record();
 			 }
 		       else
 			 {
-			    db_record *dbr = pl->create_db_record();
-			    if (dbr->deserialize(str) != 0)
-			      {
-				 // deserialization error.
-			      }
-			    else if (dbr->_plugin_name == plugin_name)
-			      if (date == 0 || dbr->_creation_time < date)
-				to_remove.push_back(std::string((char*)rkey));
-			    delete dbr;
+			    dbr = pl->create_db_record();
 			 }
+		       
+		       if (dbr->deserialize(str) != 0)
+			 {
+			    // deserialization error.
+			 }
+		       else if (dbr->_plugin_name == plugin_name)
+			 if (date == 0 || dbr->_creation_time < date)
+			   to_remove.push_back(std::string((char*)rkey));
+		       delete dbr;
 		    }
 	       }
 	     free(rkey);

@@ -67,17 +67,21 @@ namespace sp
      {
 	sp::db::record r;
 	create_base_record(r);
-	return r.SerializeToString(&msg); // != 0 on error.
+	if (!r.SerializeToString(&msg))
+	  {
+	     errlog::log_error(LOG_LEVEL_ERROR,"Error serializing user db_record");
+	     return 1; // error.
+	  }
+	else return 0;
      }
    
    int db_record::deserialize_base_record(const std::string &msg)
      {
 	sp::db::record r;
-	int err = r.ParseFromString(msg);
-	if (err != 0)
+	if (!r.ParseFromString(msg))
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error deserializing user db_record");
-	     return err; // error.
+	     return 1; // error.
 	  }
 	read_base_record(r);
 	return 0;
