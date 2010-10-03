@@ -81,13 +81,13 @@ namespace seeks_plugins
 				std::string &accept, std::string &get, 
 				bool &connect);
 	
-	static void init_file_ext_list();
+	//static void init_file_ext_list();
 	
-	static bool is_path_to_no_page(const std::string &path);
+	//static bool is_path_to_no_page(const std::string &path);
 
       private:
 	static std::string _capt_filename;
-	static hash_map<const char*,bool,hash<const char*>,eqstr> _img_ext_list;
+	//static hash_map<const char*,bool,hash<const char*>,eqstr> _img_ext_list;
 	static std::string _cgi_site_host;
 	
       public:

@@ -143,7 +143,7 @@ namespace seeks_plugins
    
    /*- uri_capture_element -*/
    std::string uri_capture_element::_capt_filename = "uri_capture/uri-patterns";
-   hash_map<const char*,bool,hash<const char*>,eqstr> uri_capture_element::_img_ext_list;
+   //hash_map<const char*,bool,hash<const char*>,eqstr> uri_capture_element::_img_ext_list;
    std::string uri_capture_element::_cgi_site_host = CGI_SITE_1_HOST;
    
    uri_capture_element::uri_capture_element(plugin *parent)
@@ -152,7 +152,7 @@ namespace seeks_plugins
 			   : std::string(seeks_proxy::_datadir + "/plugins/" + uri_capture_element::_capt_filename).c_str()),
 			  parent)
        {
-	  uri_capture_element::init_file_ext_list();
+	  //uri_capture_element::init_file_ext_list();
 	  if (seeks_proxy::_user_db)
 	    seeks_proxy::_user_db->register_sweeper(&_uds);
        }
@@ -203,8 +203,8 @@ namespace seeks_plugins
 		  p = miscutil::replace_in_string(get," HTTP/1.1","");
 		  if (p == 0)
 		    miscutil::replace_in_string(get," HTTP/1.0","");
-		  if (uri_capture_element::is_path_to_no_page(get))
-		    store = false;
+		  /* if (uri_capture_element::is_path_to_no_page(get))
+		    store = false; */
 	       }
 	  }
 	host = uri_capture_element::prepare_uri(host);
@@ -298,7 +298,7 @@ namespace seeks_plugins
 	  }
      }
       
-   void uri_capture_element::init_file_ext_list()
+   /* void uri_capture_element::init_file_ext_list()
      {
 	static std::string ext_list[32]
 	  = { "jpg","jpeg","raw","png","gif","bmp","ppm","pgm","pbm","pnm","tga","pcx",
@@ -310,9 +310,9 @@ namespace seeks_plugins
 	
 	for (int i=0;i<32;i++)
 	  uri_capture_element::_img_ext_list.insert(std::pair<const char*,bool>(strdup(ext_list[i].c_str()),true));   
-     }
+     } */
    
-   bool uri_capture_element::is_path_to_no_page(const std::string &path)
+   /* bool uri_capture_element::is_path_to_no_page(const std::string &path)
      {
 	size_t pos = path.find_last_of(".");
 	if (pos == std::string::npos || path.size() < pos+1)
@@ -322,7 +322,7 @@ namespace seeks_plugins
 	if ((hit=uri_capture_element::_img_ext_list.find(ext.c_str()))!=uri_capture_element::_img_ext_list.end())
 	  return true;
 	return false;
-     }
+     } */
          
    /* auto-registration */
 #if defined(ON_OPENBSD) || defined(ON_OSX)
