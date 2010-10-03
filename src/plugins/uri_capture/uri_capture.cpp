@@ -115,16 +115,18 @@ namespace seeks_plugins
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
 	  }
-	
-	// preventive sweep of records.
-	static_cast<uri_capture_element*>(_interceptor_plugin)->_uds.sweep_records();
-	
-	// get number of captured URI already in user_db.
-	_nr = seeks_proxy::_user_db->number_records(_name);
-     
-	errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
+	else
+	  {
+	     // preventive sweep of records.
+	     static_cast<uri_capture_element*>(_interceptor_plugin)->_uds.sweep_records();
+	     
+	     // get number of captured URI already in user_db.
+	     _nr = seeks_proxy::_user_db->number_records(_name);
+	     
+	     errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
+	  }
      }
-   
+      
    void uri_capture::stop()
      {
      }
@@ -151,7 +153,8 @@ namespace seeks_plugins
 			  parent)
        {
 	  uri_capture_element::init_file_ext_list();
-	  seeks_proxy::_user_db->register_sweeper(&_uds);
+	  if (seeks_proxy::_user_db)
+	    seeks_proxy::_user_db->register_sweeper(&_uds);
        }
    
    uri_capture_element::~uri_capture_element()
@@ -204,8 +207,7 @@ namespace seeks_plugins
 		    store = false;
 	       }
 	  }
-	host = urlmatch::strip_url(host);
-	std::transform(host.begin(),host.end(),host.begin(),tolower);
+	host = uri_capture_element::prepare_uri(host);
 	std::transform(get.begin(),get.end(),get.begin(),tolower);
 	
 	//std::cerr << "****************** host: " << host << " -- ref_host: " << ref_host << std::endl;
@@ -221,10 +223,6 @@ namespace seeks_plugins
 	  }
 	else if (store)
 	  {
-	     std::string ref_host, ref_path;
-	     urlmatch::parse_url_host_and_path(referer,ref_host,ref_path);
-	     ref_host = urlmatch::strip_url(ref_host);
-	     
 	     if (get != "/")
 	       uri = host + get;
 	  }
@@ -234,27 +232,38 @@ namespace seeks_plugins
 
 	if (store)
 	  {
-	     // add record to user db.
-	     db_uri_record dbur(_parent->get_name());
-	     if (!uri.empty())
-	       {
-		  //TODO: uri cleaning ?
-		  
-		  std::cerr << "adding URI: " << uri << std::endl;
-		  seeks_proxy::_user_db->add_dbr(uri,dbur);
-		  static_cast<uri_capture*>(_parent)->_nr++;
-	       }
-	     if (!host.empty() && uri != host)
-	       {
-		  std::cerr << "adding HOST: " << host << std::endl;
-		  seeks_proxy::_user_db->add_dbr(host,dbur);
-		  static_cast<uri_capture*>(_parent)->_nr++;
-	       }
+	     store_uri(uri,host);
 	  }
 	
 	return NULL; // no response, so the proxy does not crunch this HTTP request.
      }
-   
+
+   void uri_capture_element::store_uri(const std::string &uri, const std::string &host) const
+     {
+	// add record to user db.
+	db_uri_record dbur(_parent->get_name());
+	if (!uri.empty())
+	  {
+	     //TODO: uri cleaning ?
+	     std::cerr << "adding URI: " << uri << std::endl;
+	     seeks_proxy::_user_db->add_dbr(uri,dbur);
+	     static_cast<uri_capture*>(_parent)->_nr++;
+	  }
+	if (!host.empty() && uri != host)
+	  {
+	     std::cerr << "adding HOST: " << host << std::endl;
+	     seeks_proxy::_user_db->add_dbr(host,dbur);
+	     static_cast<uri_capture*>(_parent)->_nr++;
+	  }
+     }
+      
+   std::string uri_capture_element::prepare_uri(const std::string &uri)
+     {
+	std::string prep_uri = urlmatch::strip_url(uri);
+	std::transform(prep_uri.begin(),prep_uri.end(),prep_uri.begin(),tolower);
+	return prep_uri;
+     }
+      
    void uri_capture_element::get_useful_headers(const std::list<const char*> &headers,
 						std::string &host, std::string &referer,
 						std::string &accept, std::string &get,
