@@ -126,7 +126,7 @@ namespace sp
 		  
 		  if (arg->_output)
 		    {
-		       free(arg->_output);
+		       delete arg->_output;
 		       arg->_output = NULL;
 		    }
 	       }
