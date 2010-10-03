@@ -216,7 +216,7 @@ namespace seeks_plugins
 	       (*vit)->_personalized = true;
 	     
 	     posteriors[j] *= prior;
-	     std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
+	     //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
 	     
 	     sum_posteriors += posteriors[j++];
 	     ++vit;
