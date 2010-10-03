@@ -465,6 +465,7 @@ namespace seeks_plugins
 		  // do nothing.
 	       }
 	  }
+	miscutil::replace_in_string(cquery,"\"",""); // prune out quote. XXX: could go elsewhere.
 	return cquery;
      }
       
