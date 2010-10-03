@@ -146,7 +146,7 @@ namespace seeks_plugins
 	  }
 	
 	// fetch content.
-	std::string **outputs = content_handler::fetch_snippets_content(urls,true,qc);
+	std::string **outputs = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	if (!outputs)
 	  return;
 	
@@ -480,6 +480,8 @@ namespace seeks_plugins
 					  const double &similarity_threshold)
      {
 	static std::string token_delims = " \t\n";
+
+	//TODO: referer.
 	
 	// we may already have some content in cache, let's check to not fetch it more than once.
 	std::string url1 = sp1->_url;
@@ -497,7 +499,7 @@ namespace seeks_plugins
 	if (!content1 && !content2)
 	  {
 	     urls.push_back(url1); urls.push_back(url2);
-	     outputs = content_handler::fetch_snippets_content(urls,true,qc);
+	     outputs = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	     if (outputs)
 	       {
 		  sp1->_cached_content = outputs[0];
@@ -508,7 +510,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url1);
-	     std::string **output1 = content_handler::fetch_snippets_content(urls,true,qc);
+	     std::string **output1 = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	     
 	     if (output1)
 	       {
@@ -518,12 +520,13 @@ namespace seeks_plugins
 		  urls.push_back(url2);
 		  sp1->_cached_content = outputs[0];
 	       }
+	     else outputs[0] = NULL;
 	  }
 	else if (!content2)
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url2);
-	     std::string **output2 = content_handler::fetch_snippets_content(urls,true,qc);
+	     std::string **output2 = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	     outputs[0] = content1;
 	     if (output2)
 	       {
@@ -532,6 +535,7 @@ namespace seeks_plugins
 		  urls.push_back(url1);
 		  sp2->_cached_content = outputs[1];
 	       }
+	     else outputs[1] = NULL;
 	  }
 	else 
 	  {
