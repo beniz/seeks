@@ -126,6 +126,11 @@ body {
 	background-position: left center;
 }
 
+.search_snippet h3 a {
+        font-weight: 500;
+        text-decoration: none;
+}
+
 #search_results .search_snippet .search_engine a {
         text-decoration: none;
 }
