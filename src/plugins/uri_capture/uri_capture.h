@@ -72,6 +72,10 @@ namespace seeks_plugins
 	
 	virtual http_response* plugin_response(client_state *csp);
 	
+	void store_uri(const std::string &uri, const std::string &host) const;
+	
+	static std::string prepare_uri(const std::string &uri);
+	
 	void get_useful_headers(const std::list<const char*> &headers,
 				std::string &host, std::string &referer,
 				std::string &accept, std::string &get, 
