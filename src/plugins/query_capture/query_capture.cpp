@@ -130,16 +130,18 @@ namespace seeks_plugins
 	// check for user db.
 	if (!seeks_proxy::_user_db || !seeks_proxy::_user_db->_opened)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
+	     errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for query capture plugin to work with it");
 	  }
-	
-	// preventive sweep of records.
-	static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
-	
-	// get number of captured URI already in user_db.
-	uint64_t nr = seeks_proxy::_user_db->number_records(_name);
-	
-	errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
+	else
+	  {
+	     // preventive sweep of records.
+	     static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
+	     
+	     // get number of captured URI already in user_db.
+	     uint64_t nr = seeks_proxy::_user_db->number_records(_name);
+	     
+	     errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
+	  }
      }
    
    void query_capture::stop()
@@ -230,7 +232,8 @@ namespace seeks_plugins
 			   : std::string(seeks_proxy::_datadir + "/plugins/" + query_capture_element::_capt_filename).c_str()),
 			  parent)
        {
-	  seeks_proxy::_user_db->register_sweeper(&_qds);
+	  if (seeks_proxy::_user_db)
+	    seeks_proxy::_user_db->register_sweeper(&_qds);
        }
    
    query_capture_element::~query_capture_element()
