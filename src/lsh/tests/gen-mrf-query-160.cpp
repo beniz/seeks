@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
    hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
    qprocess::generate_query_hashes(query,min_radius,max_radius,features);
    
+   std::cout << "number of features: " << features.size() << std::endl;
    hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit
      = features.begin();
    while(hit!=features.end())
