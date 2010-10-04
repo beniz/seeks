@@ -26,6 +26,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <errno.h>
 
 #include <vector>
@@ -213,6 +214,32 @@ namespace sp
 	return 0;
      }
       
+   int user_db::find_matching(const std::string &ref_key,
+			      const std::string &plugin_name,
+			      std::vector<std::string> &matching_keys)
+     {
+	void *rkey = NULL;
+	int rkey_size;
+	std::vector<std::string> to_remove;
+	tchdbiterinit(_hdb);
+	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+	  {
+	     std::string rkey_str = std::string((const char*)rkey,rkey_size);
+	     if (rkey_str.find(plugin_name) == std::string::npos 
+		 || rkey_str.find(ref_key) == std::string::npos)
+	       {
+		  free(rkey);
+		  continue;
+	       }
+	     else
+	       {
+		  matching_keys.push_back(std::string((char*)rkey));
+		  free(rkey);
+	       }
+	  }
+	return 0;
+     }
+      
    db_record* user_db::find_dbr(const std::string &key,
 				const std::string &plugin_name)
      {
@@ -339,6 +366,7 @@ namespace sp
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",tchdberrmsg(ecode));
 	     return -1;
 	  }
+	errlog::log_error(LOG_LEVEL_INFO,"removed record %s from user db",rkey.c_str());
 	return 1;
      }
       

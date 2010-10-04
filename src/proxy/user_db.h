@@ -105,7 +105,21 @@ namespace sp
 					  std::string &key);
 	
 	/**
+	 * \brief finds a set of matching records based on a key.
+	 * Beware: this function iterates all records!
+	 * @param ref_key the reference record key,
+	 * @param plugin_name the reference plugin name,
+	 * @param matching_rkeys vector of matching rkeys (of the form plugin_name:key).
+	 */
+	int find_matching(const std::string &ref_key,
+			  const std::string &plugin_name,
+			  std::vector<std::string> &matching_rkeys);
+	
+	/**
 	 * \brief finds a record based on its key.
+	 * @param key is the record key.
+	 * @param plugin_name is the plugin name from which the db record storage name is to be generated.
+	 * @return db_record if found, NULL otherwise.
 	 */
 	db_record* find_dbr(const std::string &key,
 			    const std::string &plugin_name);
