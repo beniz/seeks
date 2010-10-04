@@ -55,8 +55,8 @@ namespace lsh
 	
 	// main options.
 	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr> _swlists; /**< list of stop word, indexed by 2-char language indicator. */
-
 	std::string _lsh_delims; /**< default delimiters for tokenization in mrf. */
+	bool _query_length_protection; /**< protection against very long queries that generate hundreds of approximated hashes. */
 	
 	// mutex for loading stop word list.
 	sp_mutex_t _load_swl_mutex;

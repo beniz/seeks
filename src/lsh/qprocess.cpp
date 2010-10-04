@@ -20,6 +20,7 @@
 
 #include "qprocess.h"
 #include "mrf.h"
+#include "lsh_configuration.h"
 #include "miscutil.h"
 
 using sp::miscutil;
@@ -70,8 +71,22 @@ namespace lsh
 	size_t nqueries = queries.size();
 	for (size_t i=0;i<nqueries;i++)
 	  {
+	     int c_max_radius = max_radius;
+	     
+	     // protection: for very long queries, radius is reduced (by force).
+	     if (lsh_configuration::_config &&
+		 lsh_configuration::_config->_query_length_protection)
+	       {
+		  std::vector<std::string> tokens;
+		  std::string q = queries.at(i);
+		  miscutil::tokenize(q,tokens,mrf::_default_delims);
+		  if (tokens.size() > 14) // empirically determine number 14, to not exceed to around 200 hashes or so in normal operations.
+		    c_max_radius = 0;
+	       }
+	     	     
+	     // generate hashes.
 	     qprocess::mrf_query_160(queries.at(i),features,
-				     min_radius,max_radius);
+				     min_radius,c_max_radius);
 	  }
      }
       

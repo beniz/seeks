@@ -46,6 +46,7 @@ namespace lsh
    #define hash_cs_swl         3332125561ul  /* "cs-stopword-list" */
    #define hash_pl_swl         4105258461ul  /* "pl-stopword-list" */
    #define hash_lsh_delims     3228991366ul  /* "lsh-delims" */
+   #define hash_ql_protection  1908420302ul  /* "query-length-protection" */
    
    lsh_configuration* lsh_configuration::_config = NULL;
    
@@ -75,6 +76,7 @@ namespace lsh
 	_swlists.clear();
 	
 	_lsh_delims = mrf::_default_delims;
+	_query_length_protection = true; // default is true.
      }
       
    void lsh_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -178,6 +180,12 @@ namespace lsh
 	   case hash_lsh_delims:
 	     //TODO: beware, do not use, broken, use the default string instead.
 	     _lsh_delims = std::string(arg);
+	     break;
+	     
+	   case hash_ql_protection:
+	     _query_length_protection = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Whether protection against long queries is activated. Prevents the cluttering of the user DB with high number of generated hashes");
 	     break;
 	     
 	   default:
