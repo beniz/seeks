@@ -1,7 +1,7 @@
 noinst_PROGRAMS=test_curl_mget shash 
 if HAVE_PROTOBUF
 if HAVE_TC
-noinst_PROGRAMS += user_db_print user_db_clear test_user_db
+noinst_PROGRAMS += user_db_print user_db_clear user_db_remove test_user_db
 endif
 endif
 test_curl_mget_SOURCES=test-curl-mget.cpp 
@@ -10,6 +10,7 @@ if HAVE_PROTOBUF
 if HAVE_TC
 user_db_print_SOURCES=user-db-print.cpp
 user_db_clear_SOURCES=user-db-clear.cpp
+user_db_remove_SOURCES=user-db-remove.cpp
 test_user_db_SOURCES=test-user-db.cpp
 endif
 endif
