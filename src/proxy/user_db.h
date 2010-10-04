@@ -81,6 +81,11 @@ namespace sp
 	int close_db();
 	
 	/**
+	 * \brief optimizes database.
+	 */
+	int optimize_db();
+	
+	/**
 	 * \brief generates a unique key for the record, from a given key and the plugin name.
 	 */
 	static std::string generate_rkey(const std::string &key,

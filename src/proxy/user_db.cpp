@@ -151,7 +151,7 @@ namespace sp
 	return 0;
      }
       
-   int user_db:: close_db()
+   int user_db::close_db()
      {
 	if (!_opened)
 	  {
@@ -159,6 +159,12 @@ namespace sp
 	     return 0;
 	  }
 	
+	if (!tchdboptimize(_hdb,0,-1,-1,HDBTDEFLATE))
+	  {
+	     int ecode = tchdbecode(_hdb);
+	     errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",tchdberrmsg(ecode));
+	  }
+	    	
 	if(!tchdbclose(_hdb))
 	  {
 	     int ecode = tchdbecode(_hdb);
@@ -169,6 +175,18 @@ namespace sp
 	return 0;
      }
 
+   int user_db::optimize_db()
+     {
+	if (!tchdboptimize(_hdb,0,-1,-1,HDBTDEFLATE))
+	  {
+	     int ecode = tchdbecode(_hdb);
+	     errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",tchdberrmsg(ecode));
+	     return ecode;
+	  }
+	errlog::log_error(LOG_LEVEL_ERROR,"user db optimized");
+	return 0;
+     }
+      
    std::string user_db::generate_rkey(const std::string &key,
 				      const std::string &plugin_name)
      {

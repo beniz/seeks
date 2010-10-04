@@ -536,6 +536,7 @@ int main(int argc, const char *argv[])
    // start user db before plugins so they can work with it.
    seeks_proxy::_user_db = new user_db();
    seeks_proxy::_user_db->open_db();
+   seeks_proxy::_user_db->optimize_db();
 #endif
       
    // loads plugins.
