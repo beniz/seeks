@@ -2291,7 +2291,10 @@ namespace sp
 #if defined(PROTOBUF) && defined(TC)
 		  /* closing the user database. */
 		  if (seeks_proxy::_user_db)
-		    seeks_proxy::_user_db->close_db();
+		    {
+		       seeks_proxy::_user_db->optimize_db();
+		       seeks_proxy::_user_db->close_db();
+		    }
 #endif		  
 		  exit(the_signal);
 		  break;
