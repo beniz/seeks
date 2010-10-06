@@ -160,12 +160,6 @@ namespace sp
 	     return 0;
 	  }
 	
-	if (!tchdboptimize(_hdb,0,-1,-1,HDBTDEFLATE))
-	  {
-	     int ecode = tchdbecode(_hdb);
-	     errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",tchdberrmsg(ecode));
-	  }
-	    	
 	if(!tchdbclose(_hdb))
 	  {
 	     int ecode = tchdbecode(_hdb);
@@ -225,7 +219,7 @@ namespace sp
 	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
 	  {
 	     std::string rkey_str = std::string((const char*)rkey,rkey_size);
-	     if (rkey_str.find(plugin_name) == std::string::npos 
+	     if ((!plugin_name.empty() && rkey_str.find(plugin_name) == std::string::npos)
 		 || rkey_str.find(ref_key) == std::string::npos)
 	       {
 		  free(rkey);
