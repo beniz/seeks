@@ -518,6 +518,7 @@ namespace seeks_plugins
 		  urls.push_back(url2);
 		  sp1->_cached_content = outputs[0];
 	       }
+	     else outputs[0] = NULL;
 	  }
 	else if (!content2)
 	  {
@@ -532,6 +533,7 @@ namespace seeks_plugins
 		  urls.push_back(url1);
 		  sp2->_cached_content = outputs[1];
 	       }
+	     else outputs[1] = NULL;
 	  }
 	else 
 	  {
