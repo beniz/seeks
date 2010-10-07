@@ -92,7 +92,7 @@ namespace seeks_plugins
 	       {
 		  std::string a_link_str = std::string(a_link);
 		  size_t p = miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
-		  if (p != 0)
+		  /*if (p != 0)
 		    {
 		       size_t pos = a_link_str.find("&");
 		       try
@@ -103,7 +103,7 @@ namespace seeks_plugins
 			 {
 			    a_link_str = ""; // will lose the snippet.
 			 }
-		    }
+		    } */
 		  pc->_current_snippet->set_url_no_decode(a_link_str);
 		  		  
 		  /* std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id 
