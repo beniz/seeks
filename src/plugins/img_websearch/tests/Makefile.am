@@ -13,7 +13,7 @@ if HAVE_OPENCV2
 test_surf_sim_SOURCES=test-surf-sim.cpp
 endif
 
-AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I../../websearch \
+AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I${srcdir}/../../websearch \
              -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy @PCRE_CFLAGS@ @XML2_CFLAGS@ \
 	     -I${srcdir}/../../../dht 
 if HAVE_PROTOBUF

@@ -6,7 +6,7 @@ test_mrf_query_160_SOURCES=test-mrf-query-160.cpp
 gen_mrf_query_160_SOURCES=gen-mrf-query-160.cpp
 
 AM_CXXFLAGS=
-AM_CPPFLAGS=-I../ -I../../utils/ -I../../proxy -I../../dht
+AM_CPPFLAGS=-I${srcdir}/../ -I${srcdir}/../../utils/ -I${srcdir}/../../proxy -I${srcdir}/../../dht
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`

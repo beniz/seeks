@@ -10,7 +10,7 @@ ACLOCAL_AMFLAGS=-I m4
 
 uricapturepluginlib_LTLIBRARIES=liburicaptureplugin.la
 liburicaptureplugin_la_SOURCES=uri_capture.cpp db_uri_record_msg.pb.cc db_uri_record.cpp uri_capture.h \
-	                       uc_configuration.cpp uc_configuration.h
+	                       uc_configuration.cpp uc_configuration.h db_uri_record.h db_uri_record_msg.pb.h
 
 db_uri_record_msg.pb.cc:
 	protoc --proto_path=. --proto_path=../../proxy --cpp_out=. db_uri_record_msg.proto
