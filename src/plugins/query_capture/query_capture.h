@@ -105,9 +105,9 @@ namespace seeks_plugins
 			      const uint32_t &radius,
 			      const std::string &plugin_name);
 	
-	void get_useful_headers(const std::list<const char*> &headers,
-				std::string &host, std::string &referer,
-				std::string &get, std::string &base_url);
+	static void get_useful_headers(const std::list<const char*> &headers,
+				       std::string &host, std::string &referer,
+				       std::string &get, std::string &base_url);
 	
 	static std::string no_command_query(const std::string &query);
 	

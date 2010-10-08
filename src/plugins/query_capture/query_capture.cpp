@@ -25,6 +25,7 @@
 #include "urlmatch.h"
 #include "encode.h"
 #include "cgi.h"
+#include "cgisimple.h"
 #include "qprocess.h"
 #include "miscutil.h"
 #include "errlog.h"
@@ -43,6 +44,7 @@ using sp::db_record;
 using sp::urlmatch;
 using sp::encode;
 using sp::cgi;
+using sp::cgisimple;
 using lsh::qprocess;
 using sp::miscutil;
 using sp::errlog;
@@ -158,12 +160,12 @@ namespace seeks_plugins
 	     sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
 	     if (err == SP_ERR_CGI_PARAMS)
 	       return cgi::cgi_error_bad_param(csp,rsp);
-	     	     
+	     else if (err == SP_ERR_PARSE)
+	       return cgi::cgi_error_disabled(csp,rsp); // wrong use of the resource.
+	     
 	     // redirect to requested url.
 	     urlp = encode::url_decode(urlp);
-	     
-	     std::cerr << "urlp: " << urlp << std::endl;
-	     
+	     	     
 	     cgi::cgi_redirect(rsp,urlp);
 	     free(urlp);
 	     return SP_ERR_OK;
@@ -183,6 +185,32 @@ namespace seeks_plugins
 	if (!q)
 	  return SP_ERR_CGI_PARAMS;
 	
+	// protection against abusive usage, check on referer.
+	// XXX: this does prevent forging the referer and the query, but for
+	// now let's issue a warning.
+	std::string chost, referer, cget, base_url;
+	query_capture_element::get_useful_headers(csp->_headers,chost,referer,
+						  cget,base_url);
+	std::string ref_host, ref_path;
+	urlmatch::parse_url_host_and_path(referer,ref_host,ref_path);
+		
+	/* if (base_url.empty())
+	  base_url = query_capture_element::_cgi_site_host; */
+	
+	// XXX: we could check on the exact referer domain.
+	// But attackers forging referer would forge this too anyways.
+	// So we perform a basic test, discouraging many, not all.
+	/* if (ref_host == base_url)
+	  {*/
+	size_t p = ref_path.find("search?");
+	if (p == std::string::npos)
+	  {
+	     p = ref_path.find("search_img?");
+	     if (p==std::string::npos)
+	       return SP_ERR_PARSE;
+	  }
+	//else return SP_ERR_PARSE;
+		
 	// capture queries and URL / HOST.
 	// XXX: could threaded and detached.
 	char *queryp = encode::url_decode(q);

@@ -525,14 +525,47 @@ namespace seeks_plugins
 	     httpserv::reply_with_error_400(r);
 	     return;
 	  }
-			
-	// XXX: no need to fill up csp headers. /
+	
+	// fill up csp headers.
+	const char *referer = evhttp_find_header(r->input_headers, "referer");
+	if (referer)
+	  miscutil::enlist_unique_header(&csp._headers,"referer",strdup(referer));
+	else 
+	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>403 - Seeks unauthorized resource error </title></head><body></body></html>";
+	     httpserv::reply_with_error(r,403,"ERROR",error_message);
+	     
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     return;
+	  }
+	
 	// call for capture callback.
 	char *urlp = NULL;
 	sp_err err = query_capture::qc_redir(&csp,&rsp,parameters,urlp);
 		
-	if (err != SP_ERR_OK)
+	// error catching.
+	if (err == SP_ERR_CGI_PARAMS)
 	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>400 - Seeks API bad parameter error </title></head><body></body></html>";
+	     httpserv::reply_with_error(r,400,"ERROR",error_message);
+	  
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     return;
+	  }
+	else if (err == SP_ERR_PARSE)
+	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>403 - Seeks unauthorized resource error </title></head><body></body></html>";
+	     httpserv::reply_with_error(r,403,"ERROR",error_message);
+	     
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     return;
+	  }
+	else if (err != SP_ERR_OK)
+	  {
+	     // XXX: unused right now.
 	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
              httpserv::reply_with_error(r,500,"ERROR",error_message);
 
