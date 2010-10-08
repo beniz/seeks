@@ -69,7 +69,7 @@
 <html>
 
 <head>
-  <title>Configuration Page Disabled</title>
+  <title>Page Disabled</title>
   <meta http-equiv="Content-Style-Type" content="text/css">
   <meta http-equiv="Content-Script-Type" content="text/javascript">
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -102,7 +102,7 @@
 
     <tr>
       <td class="warning">
-        <h2>Seeks proxy Configuration access denied</h2>
+        <h2>Seeks proxy access denied</h2>
           <p>Access to <b>@url@</b> has been denied because:</p>
 
           <ul>
@@ -110,19 +110,6 @@
             <li>you didn't come here through one of Seeks proxy's CGI pages, or</li>
             <li>the <q>Referer:</q> header is blocked.</li>
           </ul>
-
-          <p>Note that the following features which used to be enabled in earlier
-             releases are now off by default:
-          </p>
-          <ul>
-           <li><a href="@user-manual@config.html#ENABLE-EDIT-ACTIONS">enable-edit-actions</a></li>
-           <li><a href="@user-manual@config.html#ENABLE-REMOTE-TOGGLE">enable-remote-toggle</a></li>
-           <li><a href="@user-manual@config.html#ENABLE-REMOTE-HTTP-TOGGLE">enable-remote-http-toggle</a>
-           (Most likely you don't need this anyway.)</li>
-          </ul>
-
-          <p>Please refer to the documentation behind the links to learn how to
-             enable them again and what the consequences are.</p>
 
           <p>All enabled features are accessible from the
              <a href="@default-cgi@">main menu</a>, some of them
