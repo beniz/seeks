@@ -178,7 +178,7 @@ namespace sp
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",tchdberrmsg(ecode));
 	     return ecode;
 	  }
-	errlog::log_error(LOG_LEVEL_ERROR,"user db optimized");
+	errlog::log_error(LOG_LEVEL_INFO,"user db optimized");
 	return 0;
      }
       
