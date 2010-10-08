@@ -57,7 +57,10 @@ noinst_HEADERS = \
 	sp_err.h \
 	spsockets.h \
 	sweeper.h \
-	urlmatch.h 
+	urlmatch.h \
+	db_record_msg.pb.h \
+	db_record.h \
+	user_db.h 
 
 libseeksproxy_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' -DSEEKS_DATADIR='"$(datadir)/seeks/"' -DSEEKS_PLUGINS_LIBDIR='"$(libdir)/seeks/plugins/"'
 libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
