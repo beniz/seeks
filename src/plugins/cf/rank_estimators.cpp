@@ -135,13 +135,13 @@ namespace seeks_plugins
 	std::vector<db_record*> records;
 	fetch_user_db_record(query,records);
 	
-	std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
+	//std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
 	
 	// extract queries.
 	hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
 	extract_queries(records,qdata);
 	
-	std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
+	//std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
 	
 	// destroy records.
 	std::vector<db_record*>::iterator rit = records.begin();
@@ -174,9 +174,7 @@ namespace seeks_plugins
 	uint64_t nuri = 0;
 	if (cf::_uc_plugin)
 	  nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
-	
-	std::cerr << "nuri: " << static_cast<uri_capture*>(cf::_uc_plugin)->_nr << std::endl;
-	
+		
 	// estimate each URL's rank.
 	int j = 0;
 	size_t ns = snippets.size();
@@ -203,8 +201,6 @@ namespace seeks_plugins
 		  qpost *= 1.0/static_cast<float>(((*hit).second->_radius + 1.0)); // account for distance to original query.
 		  posteriors[j] += qpost; // boosting over similar queries.
 		  ++hit;
-	       
-		  //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
 	       }
 	     
 	     // estimate the url prior.
@@ -229,8 +225,7 @@ namespace seeks_plugins
 	       {
 		  posteriors[k] /= sum_posteriors; // normalize.
 		  snippets.at(k)->_seeks_rank = posteriors[k];
-	       
-		  std::cerr << "url: " << snippets.at(k)->_url << " -- seeks_rank: " << snippets.at(k)->_seeks_rank << std::endl;
+		  //std::cerr << "url: " << snippets.at(k)->_url << " -- seeks_rank: " << snippets.at(k)->_seeks_rank << std::endl;
 	       }
 	  }
 			

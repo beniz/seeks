@@ -347,7 +347,6 @@ namespace seeks_plugins
 					     const std::string &plugin_name)
      {
 	// generate query fragments.
-	//std::cerr << "[query_capture]: detected refering query: " << query_str << std::endl;
 	hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
 	qprocess::generate_query_hashes(query,0,
 					query_capture_configuration::_config->_max_radius,
@@ -406,13 +405,11 @@ namespace seeks_plugins
 	std::string key_str = key.to_rstring();
 	if (!url.empty())
 	  {
-	     //std::cerr << "adding url: " << url << std::endl;
 	     db_query_record dbqr(plugin_name,query,radius,url);
 	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
 	  }
 	if (!host.empty() && host != url)
 	  {
-	     //std::cerr << "adding host: " << host << std::endl;
 	     db_query_record dbqr(plugin_name,query,radius,host);
 	     seeks_proxy::_user_db->add_dbr(key_str,dbqr);
 	  }
