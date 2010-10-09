@@ -550,11 +550,11 @@ debug 8192 # Non-fatal errors
 #
 #  Default value:
 #
-#      127.0.0.1:8118
+#      127.0.0.1:8250
 #
 #  Effect if unset:
 #
-#      Bind to 127.0.0.1 (IPv4 localhost), port 8118. This is suitable
+#      Bind to 127.0.0.1 (IPv4 localhost), port 8250. This is suitable
 #      and recommended for home users who run Seeks on the same
 #      machine as their browser.
 #
@@ -588,16 +588,16 @@ debug 8192 # Non-fatal errors
 #      and has another outside connection with a different address. You
 #      want it to serve requests from inside only:
 #
-#        listen-address  192.168.0.1:8118
+#        listen-address  192.168.0.1:8250
 #
 #
 #      Suppose you are running Seeks on an IPv6-capable machine and
 #      you want it to listen on the IPv6 address of the loopback device:
 #
-#        listen-address [::1]:8118
+#        listen-address [::1]:8250
 #
 #
-listen-address  127.0.0.1:8118
+listen-address  127.0.0.1:8250
 #
 #
 #  4.2. toggle
