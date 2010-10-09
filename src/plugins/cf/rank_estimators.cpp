@@ -185,7 +185,7 @@ namespace seeks_plugins
 	  {
 	     std::string url = (*vit)->_url;
 	     std::transform(url.begin(),url.end(),url.begin(),tolower);
-	     std::string surl = urlmatch::strip_url(url);
+	     //std::string surl = urlmatch::strip_url(url);
 	     std::string host, path;
 	     urlmatch::parse_url_host_and_path(url,host,path);
 	     host = urlmatch::strip_url(host);
@@ -196,22 +196,25 @@ namespace seeks_plugins
 	     while(hit!=qdata.end())
 	       {
 		  float qpost = estimate_rank((*vit),ns,(*hit).second,q_vurl_hits[i++],
-					     surl,host,path);
+					     url,host,path);
 		  //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
 		  qpost *= 1.0/static_cast<float>(((*hit).second->_radius + 1.0)); // account for distance to original query.
 		  posteriors[j] += qpost; // boosting over similar queries.
+		  
+		  //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
+		  
 		  ++hit;
 	       }
-	     
+	     	     
 	     // estimate the url prior.
 	     bool personalized = false;
 	     float prior = 1.0;
-	     if (nuri != 0)
-	       prior = estimate_prior(surl,host,nuri,personalized);
+	     if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB && (*vit)->_doc_type != TWEET) // not empty or not type with not enought competition on domains.
+	       prior = estimate_prior(url,host,nuri,personalized);
 	     if (personalized)
 	       (*vit)->_personalized = true;
-	     
 	     posteriors[j] *= prior;
+	     
 	     //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
 	     
 	     sum_posteriors += posteriors[j++];
@@ -252,9 +255,11 @@ namespace seeks_plugins
 	
 	// URL.
 	vurl_data *vd = qd->find_vurl(surl);
+		
 	if (!vd)
-	  posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
-	else 
+	  //posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
+	  posterior = 1.0 / (log(total_hits + 1.0) + ns);
+	else
 	  {
 	     posterior = (log(vd->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
 	     s->_personalized = true;
@@ -262,7 +267,7 @@ namespace seeks_plugins
 	
 	// host.
 	vd = qd->find_vurl(host);
-	if (!vd)
+	if (!vd || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET)  // empty or type with not enough competition on domains.
 	  posterior *= cf_configuration::_config->_domain_name_weight 
 	  / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
 	else 
