@@ -59,11 +59,21 @@ namespace seeks_plugins
 	       _summary_flag = true;
 	     else if (_begin_results && a_class && strncasecmp(a_class,"res",3) == 0)		      
 	       {
+		  // check on previous snippet, if any.
+		  if (pc->_current_snippet)
+		    {
+		       post_process_snippet(pc->_current_snippet);
+		       if (pc->_current_snippet)
+			 {
+			    pc->_snippets->push_back(pc->_current_snippet);
+			    pc->_current_snippet = NULL;
+			 }
+		    }
+		  		  
 		  // create new snippet.
 		  search_snippet *sp = new search_snippet(_count++);
 		  sp->_engine |= std::bitset<NSEs>(SE_YAHOO);
 		  pc->_current_snippet = sp;
-		  pc->_snippets->push_back(pc->_current_snippet);
 	       }
 	  }
 	else if (_start_results && strcasecmp(tag,"ol") == 0)
@@ -165,7 +175,17 @@ namespace seeks_plugins
 	     pc->_current_snippet->set_summary(_summary);
 	     _summary = "";
 	  }
-		
      }
    
+   void se_parser_yahoo::post_process_snippet(search_snippet *&se)
+     {
+	size_t r;
+	if ((r = se->_url.find("news.search.yahoo"))!=std::string::npos)
+	  {
+	     delete se;
+	     se = NULL;
+	     _count--;
+	  }
+     }
+      
 } /* end of namespace. */

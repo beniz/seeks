@@ -51,6 +51,8 @@ namespace seeks_plugins
 			       const xmlChar *chars,
 			       int length);
 	
+	void post_process_snippet(search_snippet *&se);
+	
       private:
 	bool _start_results;
 	bool _begin_results;
