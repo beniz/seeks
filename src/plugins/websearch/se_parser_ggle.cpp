@@ -353,7 +353,7 @@ namespace seeks_plugins
 		    }
 		  else 
 		    {
-		       se_parser_ggle::post_process_snippet(pc->_current_snippet);
+		       post_process_snippet(pc->_current_snippet);
 		       if (pc->_current_snippet)
 			 {
 			    pc->_snippets->push_back(pc->_current_snippet);
