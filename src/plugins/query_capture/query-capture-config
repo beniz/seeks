@@ -13,3 +13,11 @@ query-max-radius 5
 # itself. It is slightly heavier, but allows to avoid the redirection.
 # default: redirect
 mode-intercept redirect
+
+# protection against abusive use of the URL redirection scheme.
+# 'Redirect' mode-intercept for query capture uses a URL redirection
+# scheme, similar to a proxy. On public nodes this scheme can be abused
+# to hit the nodes with redirection calls for URLs that do not appear
+# among search results. This option activates a minimal protection.
+# default: 0
+protected-redirection 0

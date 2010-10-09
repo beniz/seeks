@@ -530,16 +530,7 @@ namespace seeks_plugins
 	const char *referer = evhttp_find_header(r->input_headers, "referer");
 	if (referer)
 	  miscutil::enlist_unique_header(&csp._headers,"referer",strdup(referer));
-	else 
-	  {
-	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>403 - Seeks unauthorized resource error </title></head><body></body></html>";
-	     httpserv::reply_with_error(r,403,"ERROR",error_message);
-	     
-	     /* run the sweeper, for timed out query contexts. */
-	     sweeper::sweep();
-	     return;
-	  }
-	
+		
 	// call for capture callback.
 	char *urlp = NULL;
 	sp_err err = query_capture::qc_redir(&csp,&rsp,parameters,urlp);

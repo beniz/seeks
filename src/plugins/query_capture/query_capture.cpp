@@ -82,7 +82,8 @@ namespace seeks_plugins
 	struct timeval tv_now;
 	gettimeofday(&tv_now,NULL);
 	time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
-	seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
+	int err = seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
+	return err;
      }
    
    /*- query_capture -*/
@@ -200,17 +201,20 @@ namespace seeks_plugins
 	// XXX: we could check on the exact referer domain.
 	// But attackers forging referer would forge this too anyways.
 	// So we perform a basic test, discouraging many, not all.
-	/* if (ref_host == base_url)
-	  {*/
-	size_t p = ref_path.find("search?");
-	if (p == std::string::npos)
+	if (query_capture_configuration::_config->_protected_redirection)
 	  {
-	     p = ref_path.find("search_img?");
-	     if (p==std::string::npos)
-	       return SP_ERR_PARSE;
+	     /* if (ref_host == base_url)
+	      {*/
+	     size_t p = ref_path.find("search?");
+	     if (p == std::string::npos)
+	       {
+		  p = ref_path.find("search_img?");
+		  if (p==std::string::npos)
+		    return SP_ERR_PARSE;
+	       }
+	     //else return SP_ERR_PARSE;
 	  }
-	//else return SP_ERR_PARSE;
-		
+	
 	// capture queries and URL / HOST.
 	// XXX: could threaded and detached.
 	char *queryp = encode::url_decode(q);

@@ -28,6 +28,7 @@ namespace seeks_plugins
 #define hash_mode_intercept                1971845008ul  /* "mode-intercept" */
 #define hash_query_sweep_cycle             2195388340ul  /* "query-sweep-cycle" */
 #define hash_query_retention               1932741391ul  /* "query-retention" */
+#define hash_query_protect_redir            645686780ul  /* "protected-redirection" */
    
    query_capture_configuration* query_capture_configuration::_config = NULL;
    
@@ -50,6 +51,7 @@ namespace seeks_plugins
 	_mode_intercept = "redirect";
 	_sweep_cycle = 2592000;  // one month, in seconds.
 	_retention = 31104000;   // one year, in seconds.
+	_protected_redirection = false; // should be activated on public nodes.
      }
       
    void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -81,9 +83,15 @@ namespace seeks_plugins
 	   case hash_query_retention:
 	     _retention = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"query user db retention of records, in seconds");
+						"Query user db retention of records, in seconds");
 	     break;
-	     	     
+	     
+	   case hash_query_protect_redir:
+	     _protected_redirection = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Whether the protection against abusive use of the URL redirection scheme is activated");
+	     break;
+	     
 	   default:
 	     break;
 	  }
