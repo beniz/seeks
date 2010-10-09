@@ -26,9 +26,21 @@ libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
 
 if HAVE_TC
 if HAVE_PROTOBUF
-libseeksuserdb_la_SOURCES=db_record_msg.pb.cc db_record.cpp user_db.cpp
+protoc_inputs=db_record_msg.proto
+protoc_outputs=db_record_msg.pb.h db_record_msg.pb.cc
+
+$(protoc_outputs): $(protoc_inputs)
+	protoc --cpp_out=. $<
+dist_libseeksuserdb_la_SOURCES=db_record.cpp user_db.cpp
+nodist_libseeksuserdb_la_SOURCES=$(protoc_outputs)
+
 endif
 endif
+
+BUILT_SOURCES = $(protoc_outputs)
+
+clean-local:
+	rm -f $(protoc_outputs)
 
 noinst_HEADERS = \
 	action_plugin.h \
@@ -58,7 +70,6 @@ noinst_HEADERS = \
 	spsockets.h \
 	sweeper.h \
 	urlmatch.h \
-	db_record_msg.pb.h \
 	db_record.h \
 	user_db.h 
 
@@ -77,12 +88,11 @@ xsinit.cpp:
         perl -MExtUtils::Embed -e xsinit -- -o xsinit.cpp
 endif
 
-db_record_msg.pb.cc:
-	protoc --cpp_out=. db_record_msg.proto
-
 # SUBDIRS= . tests
 
-EXTRA_DIST = templates/blocked \
+EXTRA_DIST = \
+	    $(protoc_inputs) \
+	    templates/blocked \
 	    templates/cgi-error-404 \
 	    templates/cgi-error-bad-param \
 	    templates/cgi-error-disabled \
