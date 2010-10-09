@@ -292,7 +292,6 @@ namespace seeks_plugins
      {
 	if (!websearch::_cf_plugin)
 	  return;
-	std::cerr << "computing personalized ranks...\n";
 	static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,snippets);
 	std::stable_sort(snippets.begin(),snippets.end(),
 			 search_snippet::max_seeks_rank);
