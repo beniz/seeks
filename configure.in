@@ -516,7 +516,7 @@ AC_SUBST(querycapture,true)
 AC_SUBST(cf,true)
 
 # check on protocol buffers.
-PKG_CHECK_MODULES([protobuf],[protobuf],protobuf=true,protobuf=false)
+PKG_CHECK_MODULES([protobuf],[protobuf >= 2.2],protobuf=true,protobuf=false)
 if test $protobuf = true ; then
    AC_DEFINE(PROTOBUF,1,"Protocol buffers available")
 fi
