@@ -156,6 +156,9 @@ namespace sp
 
 	/* automatically disable proxy. */
 	bool _automatic_proxy_disable;
+     
+	/*  user db file. */
+	std::string _user_db_file;
      };
    
 } /* end of namespace. */

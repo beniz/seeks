@@ -18,6 +18,7 @@
 
 #include "user_db.h"
 #include "seeks_proxy.h"
+#include "proxy_configuration.h"
 #include "plugin_manager.h"
 #include "plugin.h"
 #include "errlog.h"
@@ -45,7 +46,7 @@ namespace sp
      }
       
    /*- user_db -*/
-   std::string user_db::_db_name = "seeks_user.db";
+   std::string user_db::_db_name = "seeks_user.db"; // default.
          
    user_db::user_db()
      :_opened(false)
@@ -59,30 +60,37 @@ namespace sp
 	tchdbtune(_hdb,0,-1,-1,HDBTDEFLATE);
 	
 	// db location.
-	uid_t user_id = getuid(); // get user for the calling process.
-	struct passwd *pw = getpwuid(user_id);
-	if (pw)
+	if (seeks_proxy::_config->_user_db_file.empty())
 	  {
-	     const char *pw_dir = pw->pw_dir;
-	     if(pw_dir)
+	     uid_t user_id = getuid(); // get user for the calling process.
+	     struct passwd *pw = getpwuid(user_id);
+	     if (pw)
 	       {
-		  _name = std::string(pw_dir) + "/.seeks/";
-		  int err = mkdir(_name.c_str(),0730); // create .seeks repository in case it does not exist.
-		  if (err != 0 && errno != EEXIST) // all but file exist errors.
+		  const char *pw_dir = pw->pw_dir;
+		  if(pw_dir)
 		    {
-		       errlog::log_error(LOG_LEVEL_ERROR,"Creating repository %s failed: %s",
-					 _name.c_str(),strerror(errno));
-		       _name = "";
+		       _name = std::string(pw_dir) + "/.seeks/";
+		       int err = mkdir(_name.c_str(),0730); // create .seeks repository in case it does not exist.
+		       if (err != 0 && errno != EEXIST) // all but file exist errors.
+			 {
+			    errlog::log_error(LOG_LEVEL_ERROR,"Creating repository %s failed: %s",
+					      _name.c_str(),strerror(errno));
+			    _name = "";
+			 }
+		       else _name += user_db::_db_name;
 		    }
-		  else _name += user_db::_db_name;
+	       }
+	     if (_name.empty())
+	       {
+		  // try datadir, beware, we may not have permission to write.
+		  if (seeks_proxy::_datadir.empty())
+		    _name = user_db::_db_name; // write it down locally.
+		  else _name = seeks_proxy::_datadir + user_db::_db_name;
 	       }
 	  }
-	if (_name.empty())
+	else  // custom db file.
 	  {
-	     // try datadir, beware, we may not have permission to write.
-	     if (seeks_proxy::_datadir.empty())
-	       _name = user_db::_db_name; // write it down locally.
-	     else _name = seeks_proxy::_datadir + user_db::_db_name;
+	     _name = seeks_proxy::_config->_user_db_file;
 	  }
      }
 
