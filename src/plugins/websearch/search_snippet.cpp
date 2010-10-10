@@ -72,7 +72,7 @@ namespace seeks_plugins
     search_snippet::~search_snippet()
     {
       if (_cached_content)
-        free_const(_cached_content);
+	 delete _cached_content;
       if (_features)
         delete _features;
       if (_features_tfidf)
