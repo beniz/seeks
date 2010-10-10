@@ -110,5 +110,6 @@ int main(int argc, char **argv)
    db->clear_db();
    db->close_db();
    unlink(dbfile.c_str());
+   delete db;
 }
   
