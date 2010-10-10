@@ -50,7 +50,7 @@ namespace seeks_plugins
 	  }
 	
 	// fetch content.
-	std::string **outputs = content_handler::fetch_snippets_content(curls,true,qc); // true: use seeks proxy.
+	std::string **outputs = content_handler::fetch_snippets_content(curls,false,qc); // false: do not use seeks proxy.
 	if (!outputs)
 	  return;
 	
@@ -76,7 +76,8 @@ namespace seeks_plugins
 		  //std::cerr << "couldn't fetch img: " << curls[i] << std::endl;
 	       }
 	  }
-		
+	delete[] outputs;
+	
 	// compute SURF features.
 	img_content_handler::extract_surf_features_from_snippets(qc,valid_contents,sps);
      }

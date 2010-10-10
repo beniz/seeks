@@ -19,6 +19,7 @@
  */
 
 #include "stopwordlist.h"
+#include "lsh_configuration.h"
 #include "errlog.h"
 #include "seeks_proxy.h" // for basedir.
 #include "miscutil.h" // for strndup
@@ -52,7 +53,7 @@ namespace lsh
      {
 	std::string fullfname = (seeks_proxy::_basedir) ? std::string(seeks_proxy::_basedir) + "/lsh/swl/" + filename
 	  : seeks_proxy::_datadir + "/lsh/swl/" + filename;
-		
+	
 	std::ifstream infile;
 	infile.open(fullfname.c_str(),std::ifstream::in);
 	if (infile.fail())

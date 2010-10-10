@@ -504,7 +504,7 @@ namespace seeks_plugins
     /*-- initialization. --*/
     void se_handler::init_handlers(const int &num)
     {
-      seeks_proxy::mutex_init(&_curl_mutex);
+      mutex_init(&_curl_mutex);
       if (!_curl_handlers.empty())
         {
           std::vector<CURL*>::iterator vit = _curl_handlers.begin();
@@ -617,7 +617,7 @@ namespace seeks_plugins
       // get content.
       curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
                     websearch::_wconfig->_se_connect_timeout,0);
-      seeks_proxy::mutex_lock(&_curl_mutex);
+      mutex_lock(&_curl_mutex);
       if (websearch::_wconfig->_background_proxy_addr.empty())
         cmg.www_mget(urls,urls.size(),&headers,
                      "",0,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
@@ -625,7 +625,7 @@ namespace seeks_plugins
                           websearch::_wconfig->_background_proxy_addr,
                           websearch::_wconfig->_background_proxy_port,
                           &se_handler::_curl_handlers);
-      seeks_proxy::mutex_unlock(&_curl_mutex);
+      mutex_unlock(&_curl_mutex);
 
       std::string **outputs = new std::string*[urls.size()];
       bool have_outputs = false;

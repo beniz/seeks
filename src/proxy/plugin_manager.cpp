@@ -121,8 +121,8 @@ namespace sp
 	                                     // required for auto-registration.
 	     if (dlib == NULL)
 	       {
-		  errlog::log_error(LOG_LEVEL_FATAL, "%s", dlerror());
-		  exit(-1);
+		  errlog::log_error(LOG_LEVEL_ERROR, "%s", dlerror());
+		  //exit(-1);
 	       }
 	     
 	     plugin_manager::_dl_list.insert(plugin_manager::_dl_list.end(),dlib); // add lib handle to the list.
@@ -195,13 +195,18 @@ namespace sp
 		      plugin_manager::_ref_action_plugins.push_back(p->_action_plugin);
 		    if (p->_filter_plugin)
 		      plugin_manager::_ref_filter_plugins.push_back(p->_filter_plugin);
-		 
-		    // run start() on plugin.
-		    p->start();
 		 }
-		 
 	     ++mit;
 	  }
+	
+	// start registered plugins.
+	std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
+	while(vit!=plugin_manager::_plugins.end())
+	  {
+	     (*vit)->start();
+	     ++vit;
+	  }
+		
 	return 0;
      }
 
@@ -296,4 +301,16 @@ namespace sp
 	//debug
      }
    
+   plugin* plugin_manager::get_plugin(const std::string &name)
+     {
+	std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
+	while(vit!=plugin_manager::_plugins.end())
+	  {
+	     if ((*vit)->get_name() == name)
+	       return (*vit);
+	     ++vit;
+	  }
+	return NULL;
+     }
+      
 } /* end of namespace. */

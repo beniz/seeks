@@ -1,0 +1,9 @@
+package sp.db;
+
+/* record. */
+message record
+{
+ required uint32 creation_time = 1;
+ required string plugin_name = 2;
+ extensions 3 to 100;
+}

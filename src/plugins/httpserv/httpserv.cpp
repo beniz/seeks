@@ -31,6 +31,8 @@
 #include "img_websearch.h"
 #endif
 
+#include "query_capture.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -128,10 +130,18 @@ namespace seeks_plugins
 	evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
 	evhttp_set_cb(_srv,"/seeks_search.css",&httpserv::seeks_search_css,NULL);
 	evhttp_set_cb(_srv,"/opensearch.xml",&httpserv::opensearch_xml,NULL);
+	evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL);
 	//evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
 	evhttp_set_gencb(_srv,&httpserv::file_service,NULL);
      }
-   
+
+   void httpserv::reply_with_redirect_302(struct evhttp_request *r,
+					  const char *url)
+     {
+	evhttp_add_header(r->output_headers,"Location",url);
+	evhttp_send_reply(r, HTTP_MOVETEMP, "OK", NULL);
+     }
+      
    void httpserv::reply_with_error_400(struct evhttp_request *r)
      {
 	evhttp_send_reply(r, HTTP_BADREQUEST, "BAD REQUEST", NULL);
@@ -492,6 +502,75 @@ namespace seeks_plugins
 	httpserv::reply_with_body(r,200,"OK",content,"text/css");
      }
 #endif
+
+   void httpserv::qc_redir(struct evhttp_request *r, void *arg)
+     {
+	client_state csp;
+	csp._config = seeks_proxy::_config;
+	http_response rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+	
+	/* parse query. */
+	const char *uri_str = r->uri;
+	if (uri_str)
+	  {
+	     std::string uri = std::string(r->uri);
+	     parameters = httpserv::parse_query(uri);
+	  }
+	if (!parameters || !uri_str)
+	  {
+	     // send 400 error response.
+	     if (parameters)
+	       miscutil::free_map(parameters);
+	     httpserv::reply_with_error_400(r);
+	     return;
+	  }
+	
+	// fill up csp headers.
+	const char *referer = evhttp_find_header(r->input_headers, "referer");
+	if (referer)
+	  miscutil::enlist_unique_header(&csp._headers,"referer",strdup(referer));
+		
+	// call for capture callback.
+	char *urlp = NULL;
+	sp_err err = query_capture::qc_redir(&csp,&rsp,parameters,urlp);
+		
+	// error catching.
+	if (err == SP_ERR_CGI_PARAMS)
+	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>400 - Seeks API bad parameter error </title></head><body></body></html>";
+	     httpserv::reply_with_error(r,400,"ERROR",error_message);
+	  
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     return;
+	  }
+	else if (err == SP_ERR_PARSE)
+	  {
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>403 - Seeks unauthorized resource error </title></head><body></body></html>";
+	     httpserv::reply_with_error(r,403,"ERROR",error_message);
+	     
+	     /* run the sweeper, for timed out query contexts. */
+	     sweeper::sweep();
+	     return;
+	  }
+	else if (err != SP_ERR_OK)
+	  {
+	     // XXX: unused right now.
+	     std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
+             httpserv::reply_with_error(r,500,"ERROR",error_message);
+
+             /* run the sweeper, for timed out query contexts. */
+             sweeper::sweep();
+	     return;
+          }
+	
+	httpserv::reply_with_redirect_302(r,urlp);
+	miscutil::free_map(parameters);
+		
+	/* run the sweeper, for timed out elements. */
+	sweeper::sweep();
+     }
       
    void httpserv::unknown_path(struct evhttp_request *r, void *arg)
      {

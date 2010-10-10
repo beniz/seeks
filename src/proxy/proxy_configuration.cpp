@@ -92,6 +92,7 @@ namespace sp
    #define hash_log_messages                  2667424627ul /* "log-messages" */
    #define hash_show_on_task_bar              4011152997ul /* "show-on-task-bar" */
    #define hash_auto_proxy_disable             312503207ul /* "automatic-proxy-disable" */
+   #define hash_user_db_file                  2401853593ul /* "user-db-file" */
    
    proxy_configuration::proxy_configuration(const std::string &filename)
      :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
@@ -151,6 +152,7 @@ namespace sp
 	_activated_plugins.insert(std::pair<const char*,bool>("websearch",true)); // websearch plugin activated by default.
      
 	_automatic_proxy_disable = true;
+	_user_db_file = ""; // default is $HOME/.seeks/seeks_user.db active when _user_db_file is unset.
      }
    
    void proxy_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -821,6 +823,10 @@ namespace sp
 	      *************************************************************************/
 	   case hash_auto_proxy_disable:
 	     _automatic_proxy_disable = static_cast<bool>(atoi(arg));
+	     break;
+	     
+	   case hash_user_db_file:
+	     _user_db_file = std::string(arg);
 	     break;
 	     
 	     /*************************************************************************

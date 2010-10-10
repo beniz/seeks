@@ -134,9 +134,19 @@ namespace sp
 	catch (std::exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "Error %s in fetching remote data with curl.", e.what());
+	     if (arg->_output)
+	       {
+		  delete arg->_output;
+		  arg->_output = NULL;
+	       }
 	  }
 	catch (...)
 	  {
+	     if (arg->_output)
+	       {
+		  delete arg->_output;
+		  arg->_output = NULL;
+	       }
 	  }
 	
 	if (!arg->_handler)

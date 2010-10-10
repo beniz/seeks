@@ -202,6 +202,11 @@ namespace seeks_plugins
 	 */
 	bool empty() const { return _cached_snippets.empty(); };
 	
+	/**
+	 * \brief resets the personalization flags of the snippets to 'false'.
+	 */
+	void reset_snippets_personalization_flags();
+	
       public:
 	std::string _query;
 	std::string _url_enc_query;

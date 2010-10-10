@@ -134,6 +134,8 @@ namespace sp
      {
 	clear_patterns();
 	
+	errlog::log_error(LOG_LEVEL_INFO, "Loading pattern file %s",_pattern_filename);
+	
 	return loaders::load_pattern_file(_pattern_filename,_pos_patterns,_neg_patterns);
      }
       

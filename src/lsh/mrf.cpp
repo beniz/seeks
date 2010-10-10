@@ -19,8 +19,8 @@
  */
 
 #include "mrf.h"
-#include "seeks_proxy.h" // for lsh_config.
 #include "miscutil.h"
+#include "lsh_configuration.h"
 
 #include <algorithm>
 #include <iostream>
@@ -29,7 +29,6 @@
 #include <math.h>
 #include <assert.h>
 
-using sp::seeks_proxy;
 using sp::miscutil;
 
 //#define DEBUG
@@ -37,6 +36,95 @@ using sp::miscutil;
 namespace lsh
 {
 
+   template<>
+     void mrf_hash_m<uint32_t>(const char *data, uint32_t len, uint32_t &f)
+       {
+	  f = SuperFastHash(data,len);
+       };
+   
+   template<>
+     void mrf_hash_m<char*>(const char *data, uint32_t len, char *&f)
+       {
+	  //debug
+	  //std::cout << "data: " << data << std::endl;
+	  //debug
+	  
+	  byte *hashcode = NULL;
+	  DHTKey::RMD((byte*)data,hashcode);
+	  f = (char*)hashcode;
+       
+	  //debug
+	  /* for (unsigned int j=0; j<20; j++)
+	    printf("%02x",hashcode[j]);
+	  std::cout << std::endl; */
+	  //debug
+       };
+   
+   uint32_t skip_token_32 = 0xDEADBEEF;
+   const char *skip_token_160 = ""; //TODO.
+         
+   template<>
+     void set_skip_token<uint32_t>(uint32_t &f)
+       {
+	  f = skip_token_32;
+       }; 
+   
+    template<>
+     uint32_t mrf_hash_c<uint32_t>(const str_chain &chain)
+       {
+	  // rank chains which do not contain any skipped token (i.e. no
+	  // order preservation).
+	  str_chain cchain(chain);
+	  if (!chain.has_skip())
+	    cchain = chain.rank_alpha();
+	  
+	  uint32_t h = 0;
+	  size_t csize = std::min(10,(int)cchain.size());  // beware: hctable may be too small...
+	  for (size_t i=0;i<csize;i++)
+	    {
+	       std::string token = cchain.at(i);
+	       uint32_t hashed_token;
+	       set_skip_token<uint32_t>(hashed_token);
+	       if (token != "<skip>")
+		 {
+		    mrf_hash_m<uint32_t>(token.c_str(),token.size(),hashed_token);
+		 }
+	       //hashed_token= mrf::SuperFastHash(token.c_str(),token.size());
+	       
+	       // #ifdef DEBUG
+	       //debug
+	       //std::cout << "hashed token: " << hashed_token << std::endl;
+	       //debug
+	       // #endif
+	             
+	       h += hashed_token * mrf::_hctable[i]; // beware...
+	    }
+	  return h;
+       };
+
+   template<>
+     f160r mrf_hash_c<f160r>(const str_chain &chain)
+       {
+	  // rank chains which do not contain any skipped token (i.e.
+	  // no order preservation.
+	  str_chain cchain(chain);
+	  if (!chain.has_skip())
+	    cchain = chain.rank_alpha();
+	  
+	  std::string fchain;
+	  size_t csize = cchain.size();
+	  for (size_t i=0;i<csize;i++)
+	    {
+	       fchain += cchain.at(i);
+	       if (i!=csize-1)
+		 fchain += " "; // space as a pre-hashing delimiter of words.
+	    }
+	  char *hashed_token = NULL;
+	  mrf_hash_m<char*>(fchain.c_str(),fchain.size(),hashed_token);
+	  f160r fr(hashed_token,chain.get_radius());
+	  return fr;
+       };
+   
   /*-- str_chain --*/
   str_chain::str_chain(const std::string &str,
 		       const int &radius)
@@ -87,8 +175,7 @@ namespace lsh
 
   /*-- mrf --*/
 
-   std::string mrf::_default_delims = "\n\t\f\r ,.;:`'!?)(-|><^·&\"\\/{}#$–";
-   uint32_t mrf::_skip_token = 0xDEADBEEF;
+  std::string mrf::_default_delims = "\n\t\f\r ,.;:`'!?)(-|><^·&\"\\/{}#$–"; // replaced by those in lsh-config when the library is initialized.
   uint32_t mrf::_hctable[] = { 1, 3, 5, 11, 23, 47, 97, 197, 397, 797 };
   double mrf::_epsilon = 1e-6;  // infinitesimal. 
   //float mrf::_feature_weights[] = {16384, 8192, 4096, 2048, 1024, 256, 64, 16, 4, 1};
@@ -161,27 +248,6 @@ namespace lsh
 	return mrf::mrf_hash(tokens);
      }
    
-   void mrf::mrf_features_query(const std::string &str,
-			       std::vector<uint32_t> &features,
-			       const int &min_radius,
-			       const int &max_radius,
-			       const uint32_t &window_length_default)
-  {
-     std::vector<std::string> tokens;
-     mrf::tokenize(str,tokens,mrf::_default_delims);
-     
-     int gen_radius = 0;
-     while(!tokens.empty())
-       {
-	  mrf::mrf_build(tokens,features,
-			 min_radius,max_radius,
-			 gen_radius, window_length_default);
-	  tokens.erase(tokens.begin());
-	  ++gen_radius;
-       }
-     std::sort(features.begin(),features.end());
-  }
-
    void mrf::mrf_features(std::vector<std::string> &tokens,
 			  std::vector<uint32_t> &features,
 			  const int &max_radius,
@@ -240,109 +306,7 @@ namespace lsh
 	std::sort(features.begin(),features.end());
      }
    
-  void mrf::mrf_build(const std::vector<std::string> &tokens,
-		      std::vector<uint32_t> &features,
-		      const int &min_radius,
-		      const int &max_radius,
-		      const int &gen_radius,
-		      const uint32_t &window_length_default)
-  {
-    int tok = 0;
-    std::queue<str_chain> chains;
-    mrf::mrf_build(tokens,tok,chains,features,
-		   min_radius,max_radius,gen_radius,window_length_default);
-  }
-
-  void mrf::mrf_build(const std::vector<std::string> &tokens,
-		      int &tok,
-		      std::queue<str_chain> &chains,
-		      std::vector<uint32_t> &features,
-		      const int &min_radius, const int &max_radius,
-		      const int &gen_radius, const uint32_t &window_length)
-  {
-    if (chains.empty())
-      {
-	 int radius_chain = window_length - std::max(1,(int)(window_length-tokens.size()));
-	 str_chain chain(tokens.at(tok),radius_chain);
-
-#ifdef DEBUG	 
-	 std::cout << "gen_radius: " << gen_radius << std::endl;
-	 std::cout << "radius_chain: " << radius_chain << std::endl;
-#endif	 
-	 
-	if (radius_chain >= min_radius
-	    && radius_chain <= max_radius)
-	  {
-	    //hash chain and add it to features set.
-	    uint32_t h = mrf::mrf_hash(chain);
-	    features.push_back(h);
-	    
-#ifdef DEBUG
-	    //debug
-	    std::cout << tokens.at(tok) << std::endl;
-	    std::cout << std::hex << h << std::endl;
-	     std::cout << "radius: " << radius_chain << std::endl;
-	    std::cout << std::endl;
-	    //debug
-#endif
-	  }
-
-	chains.push(chain);
-
-	mrf::mrf_build(tokens,tok,chains,features,
-		       min_radius,max_radius,gen_radius,window_length);
-      }
-    else 
-      {
-	++tok;
-	std::queue<str_chain> nchains;
-	
-	while(!chains.empty())
-	  {
-	    str_chain chain = chains.front();
-	    chains.pop();
-	
-	     if (chain.size() <  std::min((uint32_t)tokens.size(),window_length))
-	       {
-		// first generated chain: add a token.
-		str_chain chain1(chain);
-		chain1.add_token(tokens.at(tok));
-		chain1.decr_radius();
-		
-		if (chain1.get_radius() >= min_radius
-		    && chain1.get_radius() <= max_radius)
-		  {
-		    // hash it and add it to features.
-		    uint32_t h = mrf::mrf_hash(chain1);
-		    features.push_back(h);
-
-#ifdef DEBUG
-		    //debug
-		    chain1.print(std::cout);
-		    std::cout << std::hex << h << std::endl;
-		     std::cout << "radius: " << chain1.get_radius() << std::endl;
-		     std::cout << std::endl;
-		    //debug
-#endif
-		  }
-		
-		// second generated chain: add a 'skip' token.
-		str_chain chain2 = chain;
-		chain2.add_token("<skip>");
-		chain2.set_skip();
-		
-		nchains.push(chain1);
-		nchains.push(chain2);
-	      }
-	  }
-
-	if (!nchains.empty())
-	  mrf::mrf_build(tokens,tok,nchains,features,
-			 min_radius,max_radius,gen_radius,window_length);
-      }
-  }
-
-  /*- tf / idf. -*/
+   /*- tf / idf. -*/
     void mrf::tokenize_and_mrf_features(const std::string &str,
 					const std::string &delim,
 					hash_map<uint32_t,float,id_hash_uint> &wfeatures,
@@ -360,7 +324,7 @@ namespace lsh
        
        stopwordlist *swl = NULL;
        if (!lang.empty())
-	 swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+	 swl = lsh_configuration::_config->get_wordlist(lang);
 	        
        while(true)
 	 {
@@ -454,7 +418,7 @@ namespace lsh
 	     if (chain.size() > 1 || chain.at(0).size() > 1)
 	       {
 		  //hash chain and add it to features set.
-		  uint32_t h = mrf::mrf_hash(chain);
+		  uint32_t h = mrf_hash_c<uint32_t>(chain);
 		  
 #ifdef DEBUG
 		  std::cout << "h: " << h << std::endl;
@@ -508,7 +472,7 @@ namespace lsh
 		      if (chain1.size() > 1 || chain1.at(0).size() > 1)
 			{
 			  // hash it and add it to features. 
-			  uint32_t h = mrf::mrf_hash(chain1);
+			  uint32_t h = mrf_hash_c<uint32_t>(chain1);
 #ifdef DEBUG
 			  std::cout << "h: " << h << std::endl;
 			  chain1.print(std::cout);
@@ -599,7 +563,7 @@ namespace lsh
      }
       
   /*- hashing. -*/ 
-  uint32_t mrf::mrf_hash(const str_chain &chain)
+  /* uint32_t mrf::mrf_hash(const str_chain &chain)
   {
     // rank chains which do not contain any skipped token (i.e. no 
     // order preservation).
@@ -625,7 +589,7 @@ namespace lsh
 	h += hashed_token * mrf::_hctable[i]; // beware...
       }
     return h;
-  }
+  } */
 
    uint32_t mrf::mrf_hash(const std::vector<std::string> &tokens)
      {
@@ -634,7 +598,7 @@ namespace lsh
 	for (size_t i=0;i<csize;i++)
 	  {
 	     std::string token = tokens.at(i);
-	     uint32_t hashed_token= mrf::SuperFastHash(token.c_str(),token.size());
+	     uint32_t hashed_token= SuperFastHash(token.c_str(),token.size());
 	     
 #ifdef DEBUG
 	     //debug
@@ -662,7 +626,7 @@ namespace lsh
 #endif
 
 
-  uint32_t mrf::SuperFastHash (const char * data, uint32_t len) {
+  uint32_t SuperFastHash (const char * data, uint32_t len) {
     uint32_t hash = len, tmp;
     int rem;
 
@@ -707,8 +671,7 @@ namespace lsh
     return hash;
   }
 
-  
-  int mrf::hash_compare(const uint32_t &a, const uint32_t &b)
+ int mrf::hash_compare(const uint32_t &a, const uint32_t &b)
   {
     if (a < b) return -1;
     if (a > b) return 1;

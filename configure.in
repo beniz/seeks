@@ -14,7 +14,7 @@
 # ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 #
 
-AC_INIT(Seeks, 0.2.5, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.3.0, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -27,10 +27,10 @@ AC_SUBST(SEEKS_VERSION_POINT)
 AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
-AC_DEFINE(SEEKS_VERSION_MINOR,"2","")
-AC_DEFINE(SEEKS_VERSION_POINT,"5","")
-AC_DEFINE(SEEKS_VERSION,"0.2.5","")
-AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
+AC_DEFINE(SEEKS_VERSION_MINOR,"3","")
+AC_DEFINE(SEEKS_VERSION_POINT,"0","")
+AC_DEFINE(SEEKS_VERSION,"0.3","")
+AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.
 AC_PROG_CXX
@@ -510,6 +510,35 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBEVENT,test x$le_found = xtrue)
 
+# plugin variables.
+AC_SUBST(uricapture,true)
+AC_SUBST(querycapture,true)
+AC_SUBST(cf,true)
+
+# check on protocol buffers.
+PKG_CHECK_MODULES([protobuf],[protobuf >= 2.2],protobuf=true,protobuf=false)
+if test $protobuf = true ; then
+   AC_DEFINE(PROTOBUF,1,"Protocol buffers available")
+fi
+AM_CONDITIONAL(HAVE_PROTOBUF,test x$protobuf = xtrue)
+if test $protobuf = false ; then
+   AC_SUBST(uricapture,false)
+   AC_SUBST(querycapture,false)
+   AC_SUBST(cf,false)
+fi
+
+# check on tokyo cabinet.
+PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
+if test	$protobuf = true ; then
+   AC_DEFINE(TC,1,"Tokyocabinet available")
+fi
+AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)
+if test $tokyocabinet = false ; then
+   AC_SUBST(uricapture,false)
+   AC_SUBST(querycapture,false)
+   AC_SUBST(cf,false)
+fi
+
 # connection keep alive
 AC_ARG_ENABLE(keepalive,
 AC_HELP_STRING([--enable-keepalive],[Enable keeping outgoing connections alive (default is NO)]),
@@ -541,6 +570,9 @@ AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 
 AC_CONFIG_FILES(Makefile doc/Makefile src/Makefile \
 src/lsh/Makefile \
+src/lsh/tests/Makefile \
+src/dht/Makefile \
+src/dht/tests/Makefile \
 src/proxy/Makefile \
 src/proxy/tests/Makefile \
 src/plugins/Makefile \
@@ -550,6 +582,9 @@ src/plugins/img_websearch/Makefile \
 src/plugins/img_websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \
 src/plugins/blocker/Makefile \
+src/plugins/uri_capture/Makefile \
+src/plugins/query_capture/Makefile \
+src/plugins/cf/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT
@@ -565,9 +600,13 @@ AC_MSG_NOTICE([Configured to build seeks:
  Dependencies:
  OpenCV-2.x:		  ${opencv2}
  libevent:		  ${le_found}
+ protobuf:                ${protobuf}
+ tokyocabinet: 		  ${tokyocabinet}
 
  Enabled plugins:
  image websearch:	  ${imgwebsearch}
- HTTP server		  ${httpservplugin}
- 
+ HTTP server:		  ${httpservplugin}
+ query capture:		  ${querycapture}
+ URI capture:		  ${uricapture}
+ Personalization:	  ${cf} 
 ])

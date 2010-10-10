@@ -111,8 +111,8 @@ namespace sp
 		   delete csp->_fwd;
 		 }
 
-	       miscutil::list_remove_all(&csp->_headers);
-	       miscutil::list_remove_all(&csp->_tags);
+		/* miscutil::list_remove_all(&csp->_headers);
+		 miscutil::list_remove_all(&csp->_tags); */
 
 #ifdef FEATURE_STATISTICS
 	       seeks_proxy::_urls_read++;
@@ -134,7 +134,6 @@ namespace sp
 	 << seeks_proxy::_memory_dust.size() << " remaining items\n"; */
 	//debug
 	
-	std::vector<std::vector<sweepable*>::iterator> dead_iterators;
 	std::vector<sweepable*>::iterator vit = seeks_proxy::_memory_dust.begin();
 	while(vit!=seeks_proxy::_memory_dust.end())
 	  {
@@ -146,11 +145,12 @@ namespace sp
 	       }
 	     else ++vit;
 	  }
-	
-	//debug
-	//std::cerr << "[Debug]:sweeper: removed " << dead_iterators.size() << " items\n";
-	//debug
-	
+
+#if defined(PROTOBUF) && defined(TC)	
+	// user_db sweep.
+	seeks_proxy::_user_db->sweep_db();
+#endif	
+
        return active_threads;
      }
    

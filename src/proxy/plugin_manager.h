@@ -56,6 +56,9 @@ namespace sp
 	// determines which plugins are activated by a client request.
 	static void get_url_plugins(client_state *csp, http_request *http);
 	
+	// finds a plugin with its name.
+	static plugin* get_plugin(const std::string &name);
+	
       public:
 	static std::vector<plugin*> _plugins;
 	static std::vector<interceptor_plugin*> _ref_interceptor_plugins; // referenced interceptor plugins.

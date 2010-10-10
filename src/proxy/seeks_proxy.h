@@ -28,8 +28,16 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
+#if defined(PROTOBUF) && defined(TC)
+#include "user_db.h"
+#endif
+
 #if (defined __NetBSD__) || (defined __OpenBSD__) || (defined ON_OSX)
 #define unix 1
+#endif
+
+#ifdef WITH_DHT
+#include "SGNode.h"
 #endif
 
 #ifdef FEATURE_PTHREAD
@@ -46,6 +54,10 @@ extern "C"
 #endif
 
 using lsh::lsh_configuration;
+
+#ifdef WITH_DHT
+using dht::SGNode;
+#endif
 
 namespace sp
 {
@@ -107,8 +119,7 @@ namespace sp
 #if defined(FEATURE_PTHREAD) || defined(_WIN32)
 #define MUTEX_LOCKS_AVAILABLE
 	
-	static sp_mutex_t _log_mutex;
-	static sp_mutex_t _log_init_mutex;
+	//static sp_mutex_t _log_init_mutex;
 	static sp_mutex_t _connection_reuse_mutex;
 	
 #ifndef HAVE_GMTIME_R
@@ -132,19 +143,20 @@ namespace sp
 	static int _Argc;
 	static const char **_Argv;
 	
-	#ifdef FEATURE_TOGGLE
+#ifdef FEATURE_TOGGLE
 	/* Seeks proxy's toggle state */
 	static int _global_toggle_state;
-	#endif /* def FEATURE_TOGGLE */
+#endif /* def FEATURE_TOGGLE */
+
+#if defined(PROTOBUF) && defined(TC)
+	/* Seeks user database. */
+	static user_db* _user_db;
+#endif
 	
 	/*-- functions. --*/
       public:
 	
 	/* mutexes. */
-	static void mutex_lock(sp_mutex_t *mutex);
-	static void mutex_unlock(sp_mutex_t *mutex);
-	static void mutex_init(sp_mutex_t *mutex);
-	
 	static void initialize_mutexes();
 
 	/* main stuff. */

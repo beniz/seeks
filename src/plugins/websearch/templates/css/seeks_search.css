@@ -4,7 +4,15 @@ body {
 }
 
 #main {
-	margin-top: 115px;
+        margin-top: 110px;
+        margin-right: 20px;
+}
+
+#message {
+	width: 180px;
+	margin-top: 110px;
+	padding: 5px;
+	border: 1px solid #6fba57;
 }
 
 #search_bar {
@@ -110,6 +118,19 @@ body {
 	background-position: center center;
 }
 
+#search_results .search_snippet .personalized_result {
+        /* font-size: 16px; */
+        padding: 0px 25px;
+	margin-left: 0px;
+        background-repeat: no-repeat;
+	background-position: left center;
+}
+
+.search_snippet h3 a {
+        font-weight: 500;
+        text-decoration: none;
+}
+
 #search_results .search_snippet .search_engine a {
         text-decoration: none;
 }
@@ -144,6 +165,10 @@ body {
 
 #search_results .search_snippet .search_engine_yauba {
 	background-image: url(base-url/plugins/websearch/public/images/search_engines/yauba_12x12.png);
+}
+
+#search_results .search_snippet .personalized {
+        background-image: url(base-url/plugins/websearch/public/images/perso_star.png);
 }
 
 #search_results .search_snippet_img {

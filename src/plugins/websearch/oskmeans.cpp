@@ -98,7 +98,7 @@ namespace seeks_plugins
 	
 	// grab the first best ranked snippet as the first centroid.
 	std::stable_sort(_snippets.begin(),_snippets.end(),
-			 search_snippet::max_seeks_rank);
+			 search_snippet::max_meta_rank);
         int sk = 0;
 	while(!_snippets.at(sk++)->_features_tfidf)
 	  {
@@ -148,7 +148,7 @@ namespace seeks_plugins
 		  get_closest_cluster((*hit).second,max_sim);
 		  
 		  search_snippet *sp = _qc->get_cached_snippet((*hit).first);
-		  max_sim = (1.0-max_sim)*(1.0-max_sim)*sp->_seeks_rank;
+		  max_sim = (1.0-max_sim)*(1.0-max_sim)*sp->_meta_rank;
 		  
 		  probs[k] = max_sim;
 		  tmax_sim += max_sim;
@@ -156,7 +156,7 @@ namespace seeks_plugins
 #ifdef DEBUG
 		  //debug
 		  urls[k] = sp->_url;
-		  std::cout << "url: " << urls[k] << " -- max_sim: " << max_sim << " -- seeks_rank: " << sp->_seeks_rank << std::endl;
+		  std::cout << "url: " << urls[k] << " -- max_sim: " << max_sim << " -- meta_rank: " << sp->_meta_rank << std::endl;
 		  //debug
 #endif
 		  

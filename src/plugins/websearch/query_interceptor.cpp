@@ -67,6 +67,7 @@ namespace seeks_plugins
 	http_response *rsp;
 	if (NULL == (rsp = new http_response()))
 	  {
+	     delete params;
 	     return cgi::cgi_error_memory();
 	  }
 	
@@ -77,6 +78,7 @@ namespace seeks_plugins
 		
 	if (!intercepted_query)
 	  {
+	     delete params;
 	     return NULL; // wrong interception, cancel.
 	  }
 		
@@ -90,6 +92,8 @@ namespace seeks_plugins
 	miscutil::string_append(&q,"&action=expand");
 	cgi::cgi_redirect(rsp,q);
      
+	free(q);
+	delete params;
 	return cgi::finish_http_response(csp,rsp);
      }
    

@@ -82,3 +82,13 @@ extended-highlight 1
 # Renders the node IP address in the info bar, or not.
 # default: 0
 show-node-ip 0
+
+# Personalizes the result ranks based on user data from past searches
+# and proxy usage.
+# default: 1
+personalized-ranking 1
+
+# Message to be viewed in a panel next to the search results.
+# Supported are plain text and text with html tags.
+# default:
+#result-message Beware, you are using a remote Seeks node

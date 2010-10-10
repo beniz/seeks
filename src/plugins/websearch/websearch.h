@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -44,7 +44,7 @@ namespace seeks_plugins
 	
 	~websearch();
 
-	virtual void start() {};
+	virtual void start();
 	virtual void stop() {};
 	
 	/* cgi calls. */
@@ -106,6 +106,13 @@ namespace seeks_plugins
 	static websearch_configuration *_wconfig;
 	static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
 	static double _cl_sec; // clock ticks per second.
+     
+	/* dependent plugins. */
+      public:
+	static plugin *_qc_plugin; /**< query capture plugin. */ 
+	static bool _qc_plugin_activated;
+	static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
+	static bool _cf_plugin_activated;
      };
    
 } /* end of namespace. */

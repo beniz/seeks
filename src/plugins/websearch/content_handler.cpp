@@ -86,6 +86,7 @@ namespace seeks_plugins
 	       }
 	     else outputs[i] = NULL;
 	  }
+	delete[] cmg._outputs;
 	if (k == 0)
 	  {
 	     delete[] outputs;
@@ -146,7 +147,7 @@ namespace seeks_plugins
 	  }
 	
 	// fetch content.
-	std::string **outputs = content_handler::fetch_snippets_content(urls,true,qc);
+	std::string **outputs = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	if (!outputs)
 	  return;
 	
@@ -480,6 +481,8 @@ namespace seeks_plugins
 					  const double &similarity_threshold)
      {
 	static std::string token_delims = " \t\n";
+
+	//TODO: referer.
 	
 	// we may already have some content in cache, let's check to not fetch it more than once.
 	std::string url1 = sp1->_url;
@@ -497,7 +500,7 @@ namespace seeks_plugins
 	if (!content1 && !content2)
 	  {
 	     urls.push_back(url1); urls.push_back(url2);
-	     outputs = content_handler::fetch_snippets_content(urls,true,qc);
+	     outputs = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	     if (outputs)
 	       {
 		  sp1->_cached_content = outputs[0];
@@ -508,7 +511,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url1);
-	     std::string **output1 = content_handler::fetch_snippets_content(urls,true,qc);
+	     std::string **output1 = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	     
 	     if (output1)
 	       {
@@ -524,7 +527,7 @@ namespace seeks_plugins
 	  {
 	     outputs = new std::string*[2];
 	     urls.push_back(url2);
-	     std::string **output2 = content_handler::fetch_snippets_content(urls,true,qc);
+	     std::string **output2 = content_handler::fetch_snippets_content(urls,false,qc); // no proxy.
 	     outputs[0] = content1;
 	     if (output2)
 	       {
@@ -567,14 +570,20 @@ namespace seeks_plugins
 	outputs = NULL;
 		
 	if (txt_contents[0].empty() || txt_contents[1].empty())
-	  return false;
-		
+	  {
+	     delete[] txt_contents;
+	     return false;
+	  }
+			
 	// quick check for similarity.
 	double rad = static_cast<double>(std::min(txt_contents[0].size(),txt_contents[1].size())) 
 	  / static_cast<double>(std::max(txt_contents[0].size(),txt_contents[1].size()));
 	if (rad < similarity_threshold)
-	  return false;
-	
+	  {
+	     delete[] txt_contents;
+	     return false;
+	  }
+		
 	std::vector<search_snippet*> sps;
 	sps.reserve(2);
 	sps.push_back(sp1);sps.push_back(sp2);

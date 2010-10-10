@@ -21,12 +21,12 @@
 #include "stl_hash.h"
 #include "mem_utils.h"
 #include "miscutil.h"
+#include "mutexes.h"
 #include "urlmatch.h"
 #include "mrf.h"
 #include "errlog.h"
 #include "se_handler.h"
 #include "iso639.h"
-#include "seeks_proxy.h" // for mutexes
 #include "encode.h"
 
 #include <sys/time.h>
@@ -35,7 +35,6 @@
 using sp::sweeper;
 using sp::miscutil;
 using sp::urlmatch;
-using sp::seeks_proxy;
 using sp::errlog;
 using sp::iso639;
 using sp::encode;
@@ -49,7 +48,7 @@ namespace seeks_plugins
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
       _registered(false)
        {
-	  seeks_proxy::mutex_init(&_qc_mutex);
+	  mutex_init(&_qc_mutex);
        }
       
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -57,7 +56,7 @@ namespace seeks_plugins
      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
       _registered(false)
        {
-	  seeks_proxy::mutex_init(&_qc_mutex);
+	  mutex_init(&_qc_mutex);
 	  
 	  // reload config if file has changed.
 	  websearch::_wconfig->load_config();
@@ -97,6 +96,7 @@ namespace seeks_plugins
 	  if (!has_in_query_lang && !_auto_lang.empty())
 	    q_to_hash = ":" + _auto_lang + " ";
 	  _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
+	  _query = q_to_hash;
 	  
 	  // lookup requested engines, if any.
 	  query_context::fillup_engines(parameters,_engines);
@@ -110,15 +110,26 @@ namespace seeks_plugins
 	
 	_unordered_snippets.clear();
 	
-	_unordered_snippets_title.clear();
-	
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator chit;
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit
+	  = _unordered_snippets_title.begin();
+	while(hit!=_unordered_snippets_title.end())
+	  {
+	     chit = hit;
+	     ++hit;
+	     const char *k = (*chit).first;
+	     _unordered_snippets_title.erase(chit);
+	     free_const(k);
+	  }
+		
 	search_snippet::delete_snippets(_cached_snippets);
 			
 	// clears the LSH hashtable.
-	// the LSH is cleared automatically as well.
 	if (_ulsh_ham)
 	  delete _ulsh_ham;
-
+	if (_lsh_ham)
+	  delete _lsh_ham;
+	
 	for (std::list<const char*>::iterator lit=_useful_http_headers.begin();
 	     lit!=_useful_http_headers.end();lit++)
 	  free_const((*lit));
@@ -141,6 +152,7 @@ namespace seeks_plugins
 						  std::string &query, std::string &url_enc_query)
      {
 	query += std::string(miscutil::lookup(parameters,"q"));
+	//miscutil::replace_in_string(query,"\"",""); // prune out quotes.
 	char *url_enc_query_str = encode::url_encode(query.c_str());
 	url_enc_query = std::string(url_enc_query_str);
 	free(url_enc_query_str);
@@ -641,6 +653,16 @@ namespace seeks_plugins
 	     se_handler::set_engines(engines,vec_engines);
 	  }
 	else engines = websearch::_wconfig->_se_enabled;
+     }
+
+   void query_context::reset_snippets_personalization_flags()
+     {
+	std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
+	while(vit!=_cached_snippets.end())
+	  {
+	     (*vit)->_personalized = false;
+	     ++vit;
+	  }
      }
       
 } /* end of namespace. */

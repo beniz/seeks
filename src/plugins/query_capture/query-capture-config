@@ -1,0 +1,23 @@
+# maximum radius of the generated halo of queries around every
+# original query. Higher radius means more storage and more data from
+# which to make recommendations and ratings. Recommended values are
+# between 0 and 8.
+# default: 5
+query-max-radius 5
+
+# query result clicks interception mode.
+# 'redirect' is default, and captures clicks on search results by
+# pointing the clicked URL through the Seeks node first, and then
+# redirecting to the URL. 
+# 'capture' is detection of clicks from search results by the proxy
+# itself. It is slightly heavier, but allows to avoid the redirection.
+# default: redirect
+mode-intercept redirect
+
+# protection against abusive use of the URL redirection scheme.
+# 'Redirect' mode-intercept for query capture uses a URL redirection
+# scheme, similar to a proxy. On public nodes this scheme can be abused
+# to hit the nodes with redirection calls for URLs that do not appear
+# among search results. This option activates a minimal protection.
+# default: 0
+protected-redirection 0

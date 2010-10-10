@@ -2,7 +2,6 @@ noinst_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_yahoo_pa
 	        test_html_txt_parser test_twitter_parser test_youtube_parser test_dailymotion_parser test_yauba_parser
 
 test_ggle_parser_SOURCES=test-ggle-parser.cpp
-test_mediawiki_parser_SOURCES=test-mediawiki-parser.cpp
 test_twitter_parser_SOURCES=test-twitter-parser.cpp
 test_youtube_parser_SOURCES=test-youtube-parser.cpp
 test_bing_parser_SOURCES=test-bing-parser.cpp
@@ -14,9 +13,26 @@ test_exalead_parser_SOURCES=test-exalead-parser.cpp
 test_html_txt_parser_SOURCES=test-html-text-parser.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
-	     -I${srcdir} -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy @PCRE_CFLAGS@ @XML2_CFLAGS@
-AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy
+	     -I${srcdir} -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy \
+	     -I${srcdir}/../../../dht -I${srcdir}/../../query_capture -I${srcdir}/../../cf @PCRE_CFLAGS@ @XML2_CFLAGS@ 
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+endif
+endif
+AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht 
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_LDFLAGS += -L../../query_capture -L../../cf `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+endif
+endif
 if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @PCRE_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD=-lseekswebsearchplugin 
+if HAVE_PROTOBUF
+if HAVE_TC
+LDADD += -lquerycaptureplugin -lcfplugin -lseeksuserdb
+endif
+endif
+LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz

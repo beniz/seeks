@@ -46,11 +46,15 @@ namespace lsh
    #define hash_cs_swl         3332125561ul  /* "cs-stopword-list" */
    #define hash_pl_swl         4105258461ul  /* "pl-stopword-list" */
    #define hash_lsh_delims     3228991366ul  /* "lsh-delims" */
+   #define hash_ql_protection  1908420302ul  /* "query-length-protection" */
+   
+   lsh_configuration* lsh_configuration::_config = NULL;
    
    lsh_configuration::lsh_configuration(const std::string &filename)
      :configuration_spec(filename)
        {
-	  seeks_proxy::mutex_init(&_load_swl_mutex);
+	  lsh_configuration::_config = this;
+	  mutex_init(&_load_swl_mutex);
 	  load_config();
        }
    
@@ -72,6 +76,7 @@ namespace lsh
 	_swlists.clear();
 	
 	_lsh_delims = mrf::_default_delims;
+	_query_length_protection = true; // default is true.
      }
       
    void lsh_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -177,6 +182,12 @@ namespace lsh
 	     _lsh_delims = std::string(arg);
 	     break;
 	     
+	   case hash_ql_protection:
+	     _query_length_protection = static_cast<bool>(atoi(arg));
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"Whether protection against long queries is activated. Prevents the cluttering of the user DB with high number of generated hashes");
+	     break;
+	     
 	   default:
 	     break;
 	  }
@@ -188,7 +199,7 @@ namespace lsh
    
    stopwordlist* lsh_configuration::get_wordlist(const std::string &lang)
      {
-	seeks_proxy::mutex_lock(&_load_swl_mutex);
+	mutex_lock(&_load_swl_mutex);
 	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr>::const_iterator hit;
 	if ((hit=_swlists.find(lang.c_str()))!=_swlists.end())
 	  {
@@ -200,12 +211,12 @@ namespace lsh
 		    errlog::log_error(LOG_LEVEL_ERROR,"Failed loading stopword file %s",
 				      (*hit).second->_swlistfile.c_str());
 	       }
-	     seeks_proxy::mutex_unlock(&_load_swl_mutex);
+	     mutex_unlock(&_load_swl_mutex);
 	     return (*hit).second;
 	  }
 	else 
 	  {
-	     seeks_proxy::mutex_unlock(&_load_swl_mutex);
+	     mutex_unlock(&_load_swl_mutex);
 	     return NULL;
 	  }
      }

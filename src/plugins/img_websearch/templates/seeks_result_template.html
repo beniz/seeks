@@ -43,7 +43,8 @@
 <div id="search_sugg">xxsugg</div>
 
 <div id="search_bar_tab">
-<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Language:</a> <span>xxlang</span>
+<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span>xxlang</span>
+<a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span>xxpers</span>
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
 <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=xxeng&rpp=xxtrpp" title="Search text">Text</a>
 <a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand" title="Search images">Images</a>
@@ -53,6 +54,12 @@
 </div>
 
 </div>
+
+
+<table>
+<tr>
+<td> 
+
 
 <div id="main">
 <!-- @if-have-one-column-results-start -->
@@ -126,4 +133,18 @@ YUI().use('event-key', function(Y) {
 <!-- if-websearch-have-js-end@ -->
 
 </div> 
+</td>
+
+<td style="vertical-align:top;">
+<!-- message panel -->
+<!-- @if-have-result-message-start -->
+<div id="message">
+<p>xxmsg</p>
+<!-- img src="public/images/seek_icon_32x32_transparent.png"/> -->
+</div>
+<!-- if-have-result-message-end@ -->
+</td>
+</tr>
+</table>
+
 </body></html>

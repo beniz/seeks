@@ -210,6 +210,23 @@ namespace seeks_plugins
 	if (only_tweets)
 	  miscutil::add_map_entry(exports,"$xxcca",1,"off",1); // xxcca is content_analysis for cluster analysis.
 	else miscutil::add_map_entry(exports,"$xxcca",1,content_analysis ? "on" : "off",1);
+	
+	// personalization.
+	const char *prs = miscutil::lookup(parameters,"prs");
+	if (!prs)
+	  {
+	     prs = websearch::_wconfig->_personalization ? "on" : "off";
+	  }
+	if (strcasecmp(prs,"on")==0)
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"on",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"off",1);
+	  }
+	else 
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"off",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"on",1);
+	  }
      }
    
    void static_renderer::render_clustered_snippets(const std::string &query_clean,
@@ -329,6 +346,23 @@ namespace seeks_plugins
 	else miscutil::add_map_entry(exports,"$xxrpp",1,strdup(""),0);
 	/*miscutil::add_map_entry(exports,"$xxtrpp",1,
 				miscutil::to_string(websearch::_wconfig->_Nr).c_str(),1); */
+     
+	// personalization.
+	const char *prs = miscutil::lookup(parameters,"prs");
+	if (!prs)
+	  {
+	     prs = websearch::_wconfig->_personalization ? "on" : "off";
+	  }
+	if (strcasecmp(prs,"on")==0)
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"on",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"off",1);
+	  }
+	else
+	  {
+	     miscutil::add_map_entry(exports,"$xxpers",1,"off",1);
+	     miscutil::add_map_entry(exports,"$xxnpers",1,"on",1);
+	  }
      }
    
    std::string static_renderer::render_cluster_label(const cluster &cl)
@@ -432,9 +466,13 @@ namespace seeks_plugins
 	     if (ca && strcasecmp(ca,"on") == 0)
 	       content_analysis = true;
 	     std::string ca_s = content_analysis ? "on" : "off";
+	     const char *prs = miscutil::lookup(parameters,"prs");
+	     if (!prs)
+	       prs = websearch::_wconfig->_personalization ? "on" : "off";
 	     std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+	       + "&amp;prs=" + std::string(prs)
 	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
@@ -465,10 +503,14 @@ namespace seeks_plugins
 	     const char *ca = miscutil::lookup(parameters,"content_analysis");
 	     if (ca && strcasecmp(ca,"on") == 0)
 	       content_analysis = true;
+	     const char *prs = miscutil::lookup(parameters,"prs");
+	     if (!prs)
+	       prs = websearch::_wconfig->_personalization ? "on" : "off";
 	     std::string ca_s = content_analysis ? "on" : "off";
 	     std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+	       + "&amp;prs=" + std::string(prs)
 	       + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
@@ -550,7 +592,13 @@ namespace seeks_plugins
 	// node IP rendering.
 	if (!websearch::_wconfig->_show_node_ip)
 	  cgi::map_block_killer(exports,"have-show-node-ip");
-
+	
+	// message rendering.
+	if (websearch::_wconfig->_result_message.empty())
+	  cgi::map_block_killer(exports,"have-result-message");
+	else miscutil::add_map_entry(exports,"$xxmsg",1,
+				     websearch::_wconfig->_result_message.c_str(),1);
+	
 	// other parameters.
 	if (param_exports)
 	  {
@@ -744,7 +792,7 @@ namespace seeks_plugins
 	 * Instanciate an LSH uniform hashtable. Parameters are adhoc, based on experience.
 	 */
 	LSHSystemHamming *lsh_ham = new LSHSystemHamming(7,30);
-	LSHUniformHashTableHamming ulsh_ham(*lsh_ham,nsnippets);
+	LSHUniformHashTableHamming ulsh_ham(lsh_ham,nsnippets);
 	
 	for (size_t i=0;i<nsnippets;i++)
 	  {
@@ -819,6 +867,9 @@ namespace seeks_plugins
 	     ++hit;
 	  }
 	std::sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);	
+	
+	// destroy lsh db.
+	delete lsh_ham;
 	
 	// static rendering.
 	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc);

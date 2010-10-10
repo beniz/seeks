@@ -17,6 +17,7 @@
  */
  
 #include "img_search_snippet.h"
+#include "websearch.h"
 #include "query_context.h"
 #include "img_query_context.h"
 #include "miscutil.h"
@@ -24,6 +25,10 @@
 #include "encode.h"
 #include "urlmatch.h"
 #include <assert.h>
+
+#if defined(PROTOBUF) && defined(TC)
+#include "query_capture_configuration.h"
+#endif
 
 using sp::miscutil;
 using sp::encode;
@@ -72,12 +77,39 @@ namespace seeks_plugins
 							  const std::string &base_url_str,
 							  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
+	// check for URL redirection for capture & personalization of results.
+	bool prs = true;
+	const char *pers = miscutil::lookup(parameters,"prs");
+	if (!pers)
+	  prs = websearch::_wconfig->_personalization;
+	else
+	  {
+	     if (strcasecmp(pers,"on") == 0)
+	       prs = true;
+	     else if (strcasecmp(pers,"off") == 0)
+	       prs = false;
+	     else prs = websearch::_wconfig->_personalization;
+	  }
+		
+	std::string url = _url;
+	
+#if defined(PROTOBUF) && defined(TC)
+	if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
+	    && query_capture_configuration::_config
+	    && query_capture_configuration::_config->_mode_intercept == "redirect")
+	  {
+	     char *url_enc = encode::url_encode(url.c_str());
+	     url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + std::string(url_enc);
+	     free(url_enc);
+	  }
+#endif
+		
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
 	std::string html_content = "<li class=\"search_snippet search_snippet_img\"";
 	html_content += ">";
 	
 	html_content += "<h3><a href=\"";
-	html_content += _url + "\"><img src=\"";
+	html_content += url + "\"><img src=\"";
 	html_content += _cached;
 	html_content += "\"></a><div>";
 		
@@ -125,6 +157,13 @@ namespace seeks_plugins
 	     miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
 	     html_content += yahoo_se_icon;
 	  }
+	
+	// XXX: personalization icon kind of look ugly with image snippets...
+	/* if (_personalized)
+	  {
+	     html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
+	  }
+	else */
 	html_content += "</h3><div>";
 	const char *cite_enc = NULL;
 	if (!_cite.empty())

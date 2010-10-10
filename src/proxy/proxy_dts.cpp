@@ -266,6 +266,8 @@ namespace sp
    client_state::~client_state()
      {
 	freez(_error_message);
+	miscutil::list_remove_all(&_headers);
+	miscutil::list_remove_all(&_tags);
      }
 
    char* client_state::execute_content_filter_plugins()
