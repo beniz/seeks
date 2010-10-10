@@ -86,6 +86,7 @@ namespace seeks_plugins
 	       }
 	     else outputs[i] = NULL;
 	  }
+	delete[] cmg._outputs;
 	if (k == 0)
 	  {
 	     delete[] outputs;
