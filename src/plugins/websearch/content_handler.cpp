@@ -570,14 +570,20 @@ namespace seeks_plugins
 	outputs = NULL;
 		
 	if (txt_contents[0].empty() || txt_contents[1].empty())
-	  return false;
-		
+	  {
+	     delete[] txt_contents;
+	     return false;
+	  }
+			
 	// quick check for similarity.
 	double rad = static_cast<double>(std::min(txt_contents[0].size(),txt_contents[1].size())) 
 	  / static_cast<double>(std::max(txt_contents[0].size(),txt_contents[1].size()));
 	if (rad < similarity_threshold)
-	  return false;
-	
+	  {
+	     delete[] txt_contents;
+	     return false;
+	  }
+		
 	std::vector<search_snippet*> sps;
 	sps.reserve(2);
 	sps.push_back(sp1);sps.push_back(sp2);
