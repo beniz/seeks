@@ -97,6 +97,9 @@ namespace sp
    user_db::user_db(const std::string &dbname)
      :_name(dbname),_opened(false)
      {
+	// init the mutex;
+	mutex_init(&_db_mutex);
+	
 	_hdb = tchdbnew();
      }
       
