@@ -328,6 +328,8 @@ namespace seeks_plugins
 	     outputs = NULL;
 	  }
 	
+	delete[] cmg._outputs;
+	
 	return outputs;
      }
    
