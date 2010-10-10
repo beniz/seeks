@@ -77,7 +77,7 @@ namespace seeks_plugins
 	      * k-nearest neighbors computation.
 	      */
 	     qc->_lsh_ham = new LSHSystemHamming(55,5);
-	     qc->_ulsh_ham = new LSHUniformHashTableHamming(*qc->_lsh_ham,
+	     qc->_ulsh_ham = new LSHUniformHashTableHamming(qc->_lsh_ham,
 							    websearch::_wconfig->_Nr*3*NSEs);
 	  }
 	

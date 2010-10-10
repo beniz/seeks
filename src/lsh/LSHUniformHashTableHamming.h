@@ -41,9 +41,9 @@ namespace lsh
   class LSHUniformHashTableHamming : public LSHUniformHashTable<std::string>
     {
     public:
-      LSHUniformHashTableHamming (const LSHSystemHamming &lsh_h);
+      LSHUniformHashTableHamming (LSHSystemHamming *lsh_h);
 
-      LSHUniformHashTableHamming (const LSHSystemHamming &lsh_h,
+      LSHUniformHashTableHamming (LSHSystemHamming *lsh_h,
 				  const unsigned long int &uhsize);
 
       ~LSHUniformHashTableHamming ();
@@ -66,7 +66,7 @@ namespace lsh
        /**
 	* LSHSystemHamming object associated to the uniform hashtable.
 	*/
-       LSHSystemHamming _lsh_h;
+       LSHSystemHamming *_lsh_h;
     };
 
 } /* end of namespace. */

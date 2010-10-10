@@ -792,7 +792,7 @@ namespace seeks_plugins
 	 * Instanciate an LSH uniform hashtable. Parameters are adhoc, based on experience.
 	 */
 	LSHSystemHamming *lsh_ham = new LSHSystemHamming(7,30);
-	LSHUniformHashTableHamming ulsh_ham(*lsh_ham,nsnippets);
+	LSHUniformHashTableHamming ulsh_ham(lsh_ham,nsnippets);
 	
 	for (size_t i=0;i<nsnippets;i++)
 	  {
@@ -867,6 +867,9 @@ namespace seeks_plugins
 	     ++hit;
 	  }
 	std::sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);	
+	
+	// destroy lsh db.
+	delete lsh_ham;
 	
 	// static rendering.
 	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc);
