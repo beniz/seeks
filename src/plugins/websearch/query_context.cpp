@@ -110,15 +110,26 @@ namespace seeks_plugins
 	
 	_unordered_snippets.clear();
 	
-	_unordered_snippets_title.clear();
-	
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator chit;
+	hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit
+	  = _unordered_snippets_title.begin();
+	while(hit!=_unordered_snippets_title.end())
+	  {
+	     chit = hit;
+	     ++hit;
+	     const char *k = (*chit).first;
+	     _unordered_snippets_title.erase(chit);
+	     free_const(k);
+	  }
+		
 	search_snippet::delete_snippets(_cached_snippets);
 			
 	// clears the LSH hashtable.
-	// the LSH is cleared automatically as well.
 	if (_ulsh_ham)
 	  delete _ulsh_ham;
-
+	if (_lsh_ham)
+	  delete _lsh_ham;
+	
 	for (std::list<const char*>::iterator lit=_useful_http_headers.begin();
 	     lit!=_useful_http_headers.end();lit++)
 	  free_const((*lit));
@@ -141,6 +152,7 @@ namespace seeks_plugins
 						  std::string &query, std::string &url_enc_query)
      {
 	query += std::string(miscutil::lookup(parameters,"q"));
+	//miscutil::replace_in_string(query,"\"",""); // prune out quotes.
 	char *url_enc_query_str = encode::url_encode(query.c_str());
 	url_enc_query = std::string(url_enc_query_str);
 	free(url_enc_query_str);
