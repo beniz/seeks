@@ -21,3 +21,16 @@ mode-intercept redirect
 # among search results. This option activates a minimal protection.
 # default: 0
 protected-redirection 0
+
+# Sets the interval of time in seconds between two sweeps
+# of old query records in the user DB.
+# It is recommended to set sweeps every few days, weeks or
+# months, not every seconds as every sweep requires a traversal
+# of the full DB.
+# default: 2592000  # one month.
+query-sweep-cycle 2592000
+ 
+# Sets the retention of query records, in seconds.
+# default: 31104000  # one year
+query-retention 31104000
+ 

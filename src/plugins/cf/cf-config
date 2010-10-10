@@ -1,5 +1,5 @@
 # Weight given to domain names (as opposed to exact URLs).
 # This is a measure of trust / likeliness of an already visited domain
 # to hold good / interesting URL (wrt. content).
-# default: 0.7
+# default: 0.3
 domain-name-weight 0.3
