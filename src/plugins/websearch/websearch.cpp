@@ -423,7 +423,7 @@ namespace seeks_plugins
 	     qc->_lock = true;
 	     
 	     // regroup search snippets by types.
-	     cluster *clusters;
+	     cluster *clusters = NULL;
 	     short K = 0;
 	     sort_rank::group_by_types(qc,clusters,K);
 	     
@@ -446,6 +446,7 @@ namespace seeks_plugins
 								     csp,rsp,parameters,qc,qtime);
 	       }
 	     
+	     delete[] clusters;
 	     qc->_lock = false;
 	     mutex_unlock(&qc->_qc_mutex);
 	     
