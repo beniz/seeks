@@ -1,0 +1,11 @@
+# Sets the interval of time in seconds between two sweeps 
+# of old URI records in the user DB.
+# It is recommended to set sweeps every few days, weeks or 
+# months, not every seconds as every sweep requires a traversal
+# of the full DB.
+# default: 2592000  # one month.
+uc-sweep-cycle 2592000
+
+# Sets the retention of records, in seconds.
+# default: 15552000  # six months.
+uc-retention 15552000
