@@ -81,6 +81,7 @@ namespace seeks_plugins
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error extracting features from image loaded from %s: %s", tfname.c_str(),
 			       e.err.c_str());
+	     cvReleaseImage(&img);
 	     return; // failure.
 	  }
 	
@@ -88,6 +89,8 @@ namespace seeks_plugins
 	/* std::cerr << "extracted features for img " << sg->_cached << std::endl;
 	 std::cerr << "keypoints: " << objectKeypoints->total << " -- descriptors: " << objectDescriptors->total << std::endl; */
 	//debug
+	
+	cvReleaseImage(&img);
      }
 
    /* void ocvsurf::flannFindPairs(CvSeq *o1desc,
