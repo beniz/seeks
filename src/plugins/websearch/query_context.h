@@ -25,6 +25,7 @@
 #include "LSHUniformHashTableHamming.h" // for regrouping urls, titles and other text snippets.
 #include "seeks_proxy.h"
 #include "stl_hash.h"
+#include "mutexes.h"
 
 #include <time.h>
 
@@ -34,8 +35,6 @@ using sp::client_state;
 using sp::http_response;
 using lsh::LSHSystemHamming;
 using lsh::LSHUniformHashTableHamming;
-
-typedef pthread_mutex_t sp_mutex_t;
 
 namespace seeks_plugins
 {   

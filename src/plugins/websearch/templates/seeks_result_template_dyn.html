@@ -1,0 +1,250 @@
+<!DOCTYPE HTML>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>qclean - Seeks Search</title>
+<link rel="search" href="opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssreset/reset-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
+<link rel="stylesheet" href="seeks_search.css" type="text/css" />
+<link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
+</head>
+
+<body>
+
+#include info-head
+
+<div id="search_bar">
+<form method="GET" action="@base-url@/search" id="search_form">
+<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
+<input name="qknown" value="fullquery" type="hidden" />
+<input name="expansion" value="1" type="hidden" />
+<input name="action" value="expand" type="hidden" />
+<input name="engines" value="xxeng" type="hidden" />
+<input name="content_analysis" value="xxca" type="hidden" />
+<input id="search_button" value="" type="submit" />
+</form>
+
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+
+<!-- @if-have-clustering-start -->
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- if-have-clustering-end@ -->
+<!-- @if-not-have-clustering-start -->
+<a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
+<!-- if-not-have-clustering-end@ -->
+
+<!-- @if-have-one-column-results-head-start -->
+<div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
+<!-- if-have-one-column-results-head-end@ -->
+<!-- @if-have-clustered-results-head-start -->
+<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<!-- if-have-clustered-results-head-end@ -->
+
+<a id="search_home" title="Home (ctrl+h)" href="@base-url@/websearch-hp/">&nbsp;</a>
+
+<div id="search_sugg">xxsugg</div>
+
+<div id="search_bar_tab">
+<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span>xxlang</span>
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span>xxpers</span>
+<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search text">Text</a>
+<!-- @if-have-img-websearch-start -->
+<a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Search images">Images</a>
+<!-- if-have-img-websearch-end@ -->
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers" title="Search videos">Videos</a>
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers" title="Search tweets">Tweets</a>
+<span class="search_bar_tab">Group by:</span> <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by urls">urls</a>,
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by titles">titles</a>,
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by types">types</a>
+</div>
+
+</div>
+
+
+<table>
+<tr>
+<td>
+
+
+<div id="main">
+<div id="search_results">
+<ol id="snippets">
+</ol>
+</div>
+
+<!-- @if-websearch-have-js-start -->
+<!-- <script type="text/javascript" src="@base-url@/public/yui/3.0.0/yui/yui-min.js"></script> -->
+<script type="text/javascript" src="http://yui.yahooapis.com/3.2.0/build/yui/yui-min.js"></script>
+<script type="text/javascript">
+
+YUI().use("jsonp", "substitute", "transition", function (Y) {
+ 
+    //var url = "http://yuilibrary.com/gallery/api/random?callback={callback}",
+    var url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}",
+    outputDiv = Y.one("#snippets"),
+    resultsWidget;
+    
+    // Using the configuration object syntax
+    resultsWidget = new Y.JSONPRequest(url, {
+        on: {
+            success: function (response) {
+		var snippets_html = '';
+                for (i=0, l=response.snippets.length; i < l; ++i) 
+		{
+		    var snippet = response.snippets[i];
+                    
+		    // render engines.
+                    snippet.enginesHTML = ''; //TODO.
+		    for (j=0, le=snippet.engines.length; j < le; ++j)
+		    {
+			snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
+			snippet.enginesHTML += '@base-url@/search?q=' + encodeURIComponent(response.query);
+			snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
+			snippet.enginesHTML += '&nbsp;</a></span>';
+		    }
+		    
+		    // Format the snippet info and store as a property of the
+                    // snippet object for use by Y.substitute
+                    // ('this' refers to the JSONPRequest object by default)
+		    snippet.snippetHTML = Y.substitute(this.snippetTemplate, snippet);
+		    snippets_html += Y.substitute(this.resultTemplate, snippet);
+
+                    //outputDiv.setContent(Y.substitute(this.resultTemplate, snippet));
+		    
+                    // Add some flare to the poll interval by showing a "time left"
+                    // indicator via the header's border
+                    /* Y.one("#out h4")
+                       .setStyle("borderRightWidth", "100px")
+                       .transition({
+                       borderRightWidth: 0,
+                       duration: 7
+                       }, function () {
+                       if (gallery.polling) {
+                       gallery.send();
+                       }
+                       }); */
+		}
+		outputDiv.setContent(snippets_html);
+	    },
+	    
+	    failure: function () {
+                resultsWidget.polling = false;
+                outputDiv.setContent(this.failureTemplate);
+		
+                // Wire up the Try again button
+                //outputDiv.one("button").on("click", function () {
+                //resultsWidget.send();
+		//}
+		//);
+            }
+        }
+    });
+    
+    resultsWidget.resultTemplate =
+        '<li class="search_snippet">{snippetHTML}</li>';
+ 
+    resultsWidget.snippetTemplate =
+        '<h3><a href="{url}">{title}</a>{enginesHTML}</h3>' +
+	'<div>{summary}</div>' +
+	'<div><cite>{cite}</cite>' +
+	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q=test&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>';
+ 
+    resultsWidget.failureTemplate =
+        '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
+ 
+    resultsWidget.polling = true;
+    resultsWidget.send();
+ 
+    // Click the button to send the JSONP request
+    /* Y.one("#start").on("click", function (e) {
+        if (!gallery.polling) {
+            gallery.polling = true;
+            gallery.send();
+        }
+    }); */
+ 
+    /* Y.one("#stop").on("click", function (e) {
+        gallery.polling = false;
+    }); */
+ 
+});
+ 
+
+// Shortcut for search, ctrl+s
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        Y.one('#search_input').select();
+    }, document, 'press:102+ctrl');
+
+});
+
+// Shortcut for expansion, ctrl+e
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#expansion').getAttribute('href');
+    }, document, 'press:101+ctrl');
+
+});
+
+// Shortcut for clustering, ctrl+c
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+    e.halt();
+    document.location = Y.one('#cluster').getAttribute('href');
+    }, document, 'press:99+ctrl');
+
+
+});
+
+
+// Shortcut for previous page, ctrl+<
+YUI().use('event-key', function(Y) { 
+    var handle = Y.on('key', function(e) {
+        e.halt();                    
+        document.location = Y.one('#search_page_prev').getAttribute('href');
+    }, document, 'press:37+ctrl');
+
+});
+
+// Shortcut for previous page, ctrl+>
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_page_next').getAttribute('href');
+    }, document, 'press:39+ctrl');
+
+});
+
+// Shortcut for home page, ctrl+h
+YUI().use('event-key', function(Y) {
+    var handle = Y.on('key', function(e) {
+        e.halt();
+        document.location = Y.one('#search_home').getAttribute('href');
+    }, document, 'press:104+ctrl');
+
+});
+
+</script>
+<!-- if-websearch-have-js-end@ -->
+
+</div> 
+</td>
+
+<td style="vertical-align:top;">
+<!-- message panel -->
+<!-- @if-have-result-message-start -->
+<div id="message">
+<p>xxmsg</p>
+<!-- img src="public/images/seek_icon_32x32_transparent.png"/> -->
+</div>
+<!-- if-have-result-message-end@ -->
+</td>
+</tr>
+</table>
+
+</body></html>

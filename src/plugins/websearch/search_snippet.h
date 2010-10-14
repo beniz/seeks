@@ -140,7 +140,8 @@ namespace seeks_plugins
 	virtual void set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
 	// json output.
-	virtual std::string to_json(const bool &thumbs);
+	virtual std::string to_json(const bool &thumbs,
+				    const std::vector<std::string> &query_words);
 	
 	// html output for inclusion in search result template page.
 	std::string to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
@@ -156,6 +157,10 @@ namespace seeks_plugins
 	// highlights terms within the argument string.
 	static void highlight_query(std::vector<std::string> &words,
 				    std::string &str);
+	
+	// selects most discriminative terms in the snippet's vocabulary.
+	void discr_words(const std::vector<std::string> &query_words,
+			 std::vector<std::string> &words);
 	
 	// highlights the most discriminative terms (for this snippet among all snippets).
 	void highlight_discr(std::string &str, const std::string &base_url_str,

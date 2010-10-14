@@ -25,7 +25,7 @@
 #include "search_snippet.h"
 #include "query_context.h"
 #include "websearch_configuration.h"
-#include "websearch.h" // for configuration.
+#include "mutexes.h"
 
 #include <string>
 
@@ -113,6 +113,10 @@ namespace seeks_plugins
 	static bool _qc_plugin_activated;
 	static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
 	static bool _cf_plugin_activated;
+     
+	/* multithreading. */
+      private:
+	static sp_mutex_t _context_mutex;
      };
    
 } /* end of namespace. */

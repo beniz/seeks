@@ -103,15 +103,14 @@ namespace seeks_plugins
         }
     }
 
-    void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
-                                         const std::vector<std::string> &query_words)
+    void search_snippet::discr_words(const std::vector<std::string> &query_words,
+				     std::vector<std::string> &words)
     {
       static int max_highlights = 3; // ad-hoc default.
 
       if (!_features_tfidf)
         return;
 
-      std::vector<std::string> words;
       words.reserve(max_highlights);
       std::map<float,uint32_t,std::greater<float> > f_tfidf;
 
@@ -150,20 +149,28 @@ namespace seeks_plugins
 
       // sort words by size.
       std::sort(words.begin(),words.end(),std::greater<std::string>());
-
-      // highlighting.
-      for (size_t i=0;i<words.size();i++)
-        {
-          if (words.at(i).length() > 2)
-            {
-              char *wenc = encode::url_encode(words.at(i).c_str());
-              std::string rword = " " + words.at(i) + " ";
-              std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + rword + "</a></span>";
-              free(wenc);
-              miscutil::ci_replace_in_string(str,rword,bold_str);
-            }
-        }
     }
+     
+     void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
+					  const std::vector<std::string> &query_words)
+       {
+	  // select discriminant words.
+	  std::vector<std::string> words;
+	  discr_words(query_words,words);
+	  
+	  // highlighting.
+	  for (size_t i=0;i<words.size();i++)
+	    {
+	       if (words.at(i).length() > 2)
+		 {
+		    char *wenc = encode::url_encode(words.at(i).c_str());
+		    std::string rword = " " + words.at(i) + " ";
+		    std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + rword + "</a></span>";
+		    free(wenc);
+		    miscutil::ci_replace_in_string(str,rword,bold_str);
+		 }
+	    }
+       }
 
     std::ostream& search_snippet::print(std::ostream &output)
     {
@@ -185,7 +192,8 @@ namespace seeks_plugins
       return output;
     }
 
-    std::string search_snippet::to_json(const bool &thumbs)
+    std::string search_snippet::to_json(const bool &thumbs,
+					const std::vector<std::string> &query_words)
     {
       std::string json_str;
       json_str += "{";
@@ -265,7 +273,26 @@ namespace seeks_plugins
       json_str += json_str_eng + "]";
       if (thumbs)
         json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
-      json_str += "}";
+       std::vector<std::string> words;
+       discr_words(query_words,words);
+       if (!words.empty())
+	 {
+	    json_str += ",\"words\":[";
+	    for (size_t w=0;w<words.size();w++)
+	      {
+		 json_str += "\"" + words.at(w) + "\"";
+		 if (w != words.size()-1)
+		   json_str += ",";
+	      }
+	    json_str += "]";
+	 }
+       json_str += ",\"personalized\":\"";
+       if (_personalized)
+	 json_str += "yes";
+       else json_str += "no";
+       json_str += "\"";
+       
+       json_str += "}";
       return json_str;
     }
 
@@ -277,8 +304,8 @@ namespace seeks_plugins
     }
 
     std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
-        const std::string &base_url_str,
-        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+						       const std::string &base_url_str,
+						       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
     {
        // check for URL redirection for capture & personalization of results.
        bool prs = true;

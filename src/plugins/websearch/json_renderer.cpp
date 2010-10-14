@@ -18,16 +18,19 @@
 
 #include "json_renderer.h"
 #include "cgisimple.h"
+#include "encode.h"
 #include "miscutil.h"
 #include "cgi.h"
 
 using sp::cgisimple;
 using sp::miscutil;
 using sp::cgi;
+using sp::encode;
 
 namespace seeks_plugins
 {
-   sp_err json_renderer::render_snippets(const int &current_page,
+   sp_err json_renderer::render_snippets(const std::string &query_clean,
+					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
 					 std::string &json_str,
 					 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
@@ -45,6 +48,10 @@ namespace seeks_plugins
 	     if (snippets.at(0)->_seeks_ir > 0)
 	       similarity = true;
 	  
+	     // grab query words.
+	     std::vector<std::string> query_words;
+	     miscutil::tokenize(query_clean,query_words," "); // allows to extract most discriminative words not in query.
+	     
 	     // proceed with rendering.
 	     const char *rpp_str = miscutil::lookup(parameters,"rpp"); // results per page.
 	     int rpp = websearch::_wconfig->_Nr;
@@ -65,7 +72,7 @@ namespace seeks_plugins
 		  if (snippets.at(i)->_doc_type == REJECTED)
 		    continue;
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
-		    json_str += snippets.at(i)->to_json(has_thumbs);
+		    json_str += snippets.at(i)->to_json(has_thumbs,query_words);
 		  if (snisize>1 && i!=snisize-1)
 		    json_str += ",";
 	       }
@@ -74,7 +81,8 @@ namespace seeks_plugins
 	return SP_ERR_OK;
      }
 
-   sp_err json_renderer::render_clustered_snippets(cluster *clusters, const short &K,
+   sp_err json_renderer::render_clustered_snippets(const std::string &query_clean,
+						   cluster *clusters, const short &K,
 						   const query_context *qc,
 						   std::string &json_str,
 						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
@@ -106,7 +114,7 @@ namespace seeks_plugins
 	     
 	     json_str += "{";
 	     json_str += "\"label\":\"" + clusters[c]._label + "\",";	     
-	     json_renderer::render_snippets(0,snippets,json_str,parameters);
+	     json_renderer::render_snippets(query_clean,0,snippets,json_str,parameters);
 	     json_str += "}";
 	  }
 	
@@ -120,7 +128,15 @@ namespace seeks_plugins
 					     const query_context *qc,
 					     const double &qtime)
      {
-	std::string json_str = "{";
+	std::string json_str;
+	
+	// JSONP support.
+	const char *cb = miscutil::lookup(parameters,"callback");
+	if (cb)
+	  json_str = std::string(cb) + "(";
+	
+	// JSON rendering.
+	json_str += "{";
 	
 	const char *current_page_str = miscutil::lookup(parameters,"page");
 	if (!current_page_str)
@@ -130,10 +146,18 @@ namespace seeks_plugins
 	  }
 	int current_page = atoi(current_page_str);
 	
-	//TODO: other parameters.
+	// other parameters.
+	const char *q = miscutil::lookup(parameters,"q");
+	char *html_encoded_query_str = encode::html_encode(q);
+	std::string html_encoded_query = std::string(html_encoded_query_str);
+	free(html_encoded_query_str);
+	std::string query_clean = se_handler::no_command_query(html_encoded_query);
+	
+	// query.
+	json_str += "\"query\":\"" + query_clean + "\",";
 	
 	// search snippets.
-	sp_err err = json_renderer::render_snippets(current_page,snippets,json_str,parameters);
+	sp_err err = json_renderer::render_snippets(query_clean,current_page,snippets,json_str,parameters);
 	
 	// render date & exec time.
 	char datebuf[256];
@@ -141,6 +165,10 @@ namespace seeks_plugins
 	json_str += ",\"date\":\"" + std::string(datebuf) + "\"";
 	json_str += ",\"qtime\":" + miscutil::to_string(qtime);
 	json_str += "}";
+	
+	// JSONP support;
+	if (cb)
+	  json_str += ")";
 	
 	// fill up the response body.
 	rsp->_body = strdup(json_str.c_str());
@@ -160,8 +188,15 @@ namespace seeks_plugins
      {
 	std::string json_str = "{";
 	
+	// other parameters.
+	const char *q = miscutil::lookup(parameters,"q");
+	char *html_encoded_query_str = encode::html_encode(q);
+	std::string html_encoded_query = std::string(html_encoded_query_str);
+	free(html_encoded_query_str);
+	std::string query_clean = se_handler::no_command_query(html_encoded_query);
+		
 	// clustered snippets.
-	sp_err err = json_renderer::render_clustered_snippets(clusters,K,qc,json_str,parameters);
+	sp_err err = json_renderer::render_clustered_snippets(query_clean,clusters,K,qc,json_str,parameters);
 	
 	// render date & exec time.
 	char datebuf[256];

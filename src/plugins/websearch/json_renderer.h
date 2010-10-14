@@ -27,12 +27,14 @@ namespace seeks_plugins
    class json_renderer
      {
       public:
-	static sp_err render_snippets(const int &current_page,
+	static sp_err render_snippets(const std::string &query_clean,
+				      const int &current_page,
 				      const std::vector<search_snippet*> &snippets,
 				      std::string &json_str,
 				      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
-	static sp_err render_clustered_snippets(cluster *clusters, const short &K,
+	static sp_err render_clustered_snippets(const std::string &query_clean,
+						cluster *clusters, const short &K,
 						const query_context *qc,
 						std::string &json_str,
 						const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);

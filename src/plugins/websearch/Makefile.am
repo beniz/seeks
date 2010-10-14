@@ -21,12 +21,13 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 			           query_interceptor.cpp websearch_configuration.cpp \
 				   se_parser_yauba.cpp \
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
-				   clustering.cpp oskmeans.cpp json_renderer.cpp \
+				   clustering.cpp oskmeans.cpp json_renderer.cpp dynamic_renderer.cpp \
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h oskmeans.h \
 				   query_context.h query_interceptor.h search_snippet.h se_handler.h se_parser_bing.h \
 				   se_parser_cuil.h se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
 	                           se_parser_youtube.h se_parser_dailymotion.h se_parser_yauba.h se_parser_twitter.h\
-				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h
+				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h \
+	                           dynamic_renderer.h
 libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL

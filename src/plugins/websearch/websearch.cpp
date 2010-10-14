@@ -21,13 +21,13 @@
 #include "cgisimple.h"
 #include "encode.h"
 #include "miscutil.h"
-#include "mutexes.h"
 #include "errlog.h"
 #include "query_interceptor.h"
 #include "proxy_configuration.h"
 #include "se_parser.h"
 #include "se_handler.h"
 #include "static_renderer.h"
+#include "dynamic_renderer.h"
 #include "json_renderer.h"
 #include "sort_rank.h"
 #include "content_handler.h"
@@ -59,6 +59,8 @@ namespace seeks_plugins
    bool websearch::_qc_plugin_activated = false;
    plugin* websearch::_cf_plugin = NULL;
    bool websearch::_cf_plugin_activated = false;
+
+   sp_mutex_t websearch::_context_mutex;
    
    websearch::websearch()
      : plugin()
@@ -123,6 +125,9 @@ namespace seeks_plugins
 	  
 	  // get clock ticks per sec.
 	  websearch::_cl_sec = sysconf(_SC_CLK_TCK);
+       
+	  // init context mutex.
+	  mutex_init(&websearch::_context_mutex);
        }
 
    websearch::~websearch()
@@ -622,15 +627,23 @@ namespace seeks_plugins
      clock_t start_time = times(&st_cpu);
      
      // lookup a cached context for the incoming query.
+     // Mutex allows multiple simultaneous calls to catch the same context object.
+     mutex_lock(&websearch::_context_mutex);
      query_context *qc = websearch::lookup_qc(parameters,csp);
-     
-     // check whether search is expanding or the user is leafing through pages.
-     const char *action = miscutil::lookup(parameters,"action");
+     if (!qc)
+       {
+	  qc = new query_context(parameters,csp->_headers);
+	  qc->register_qc();
+       }
+     mutex_unlock(&websearch::_context_mutex);
           
      // expansion: we fetch more pages from every search engine.
      bool expanded = false;
      if (qc) // we already had a context for this query.
        {
+	  // check whether search is expanding or the user is leafing through pages.
+	  const char *action = miscutil::lookup(parameters,"action");
+	  
 	  websearch::_wconfig->load_config(); // reload config if file has changed.
 	  if (strcmp(action,"expand") == 0)
 	    {
@@ -659,13 +672,13 @@ namespace seeks_plugins
        {
 	  // new context, whether we're expanding or not doesn't matter, we need
 	  // to generate snippets first.
-	  const char *expansion = miscutil::lookup(parameters,"expansion");
+	  /* const char *expansion = miscutil::lookup(parameters,"expansion");
 	  if (!expansion)
-	    return cgi::cgi_error_bad_param(csp,rsp);
+	    return cgi::cgi_error_bad_param(csp,rsp); */
 	  
 	  expanded = true;
-	  qc = new query_context(parameters,csp->_headers);
-	  qc->register_qc();
+	  /* qc = new query_context(parameters,csp->_headers);
+	   qc->register_qc(); */
 	  mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters,expanded);
@@ -715,13 +728,25 @@ namespace seeks_plugins
 	  mutex_unlock(&qc->_qc_mutex);
 	  return SP_ERR_OK;
        }
+     const char *ui = miscutil::lookup(parameters,"ui");
+     std::string ui_str = ui ? std::string(ui) : "stat"; //TODO: option.
      const char *output = miscutil::lookup(parameters,"output");
+     std::string output_str = output ? std::string(output) : "html";
+     std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+     std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+     
      sp_err err = SP_ERR_OK;
-     if (!output || miscutil::strcmpic(output,"html")==0)
+     if (ui_str == "stat" && output_str == "html")
        err = static_renderer::render_result_page_static(qc->_cached_snippets,
 							csp,rsp,parameters,qc);
-     else
+     else if (ui_str == "dyn" && output_str == "html")
        {
+	  //TODO: dynamic output.
+	  err = dynamic_renderer::render_result_page(csp,rsp,parameters,qc);
+       }
+     else if (output_str == "json")
+       {
+	  std::cerr << "rendering json\n";
 	  csp->_content_type = CT_JSON;
 	  err = json_renderer::render_json_results(qc->_cached_snippets,
 						   csp,rsp,parameters,qc,
