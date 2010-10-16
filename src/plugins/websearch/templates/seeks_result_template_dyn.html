@@ -23,6 +23,7 @@
 <input name="action" value="expand" type="hidden" />
 <input name="engines" value="xxeng" type="hidden" />
 <input name="content_analysis" value="xxca" type="hidden" />
+<input name="ui" value="dyn" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
@@ -91,7 +92,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
     resultsWidget = new Y.JSONPRequest(url, {
         on: {
             success: function (response) {
-		var enc_query = encodeURIComponent(response.query);
+		var enc_query = ':' + response.lang + '+' + encodeURIComponent(response.query);
 		var snippets_html = '';
                 for (i=0, l=response.snippets.length; i < l; ++i) 
 		{
@@ -120,6 +121,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		    // Format the snippet info and store as a property of the
                     // snippet object for use by Y.substitute
                     // ('this' refers to the JSONPRequest object by default)
+		    snippet.enc_query = enc_query;
 		    snippet.snippetHTML = Y.substitute(this.snippetTemplate, snippet);
 		    snippets_html += Y.substitute(this.resultTemplate, snippet);
 
@@ -161,7 +163,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
         '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
 	'<div>{summary}</div>' +
 	'<div><cite>{cite}</cite>' +
-	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q=test&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>';
+	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>';
  
     resultsWidget.failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
