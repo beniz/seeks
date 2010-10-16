@@ -4,13 +4,13 @@ body {
 }
 
 #main {
-        margin-top: 110px;
+        margin-top: 125px;
         margin-right: 20px;
 }
 
 #message {
 	width: 180px;
-	margin-top: 110px;
+	margin-top: 125px;
 	padding: 5px;
 	border: 1px solid #6fba57;
 }
