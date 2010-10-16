@@ -630,6 +630,7 @@ namespace seeks_plugins
      // Mutex allows multiple simultaneous calls to catch the same context object.
      mutex_lock(&websearch::_context_mutex);
      query_context *qc = websearch::lookup_qc(parameters,csp);
+     bool exists_qc = qc ? true : false;
      if (!qc)
        {
 	  qc = new query_context(parameters,csp->_headers);
@@ -639,7 +640,7 @@ namespace seeks_plugins
           
      // expansion: we fetch more pages from every search engine.
      bool expanded = false;
-     if (qc) // we already had a context for this query.
+     if (exists_qc) // we already had a context for this query.
        {
 	  // check whether search is expanding or the user is leafing through pages.
 	  const char *action = miscutil::lookup(parameters,"action");
@@ -687,7 +688,7 @@ namespace seeks_plugins
        
 #if defined(PROTOBUF) && defined(TC)
 	  // query_capture if plugin is available and activated.
-       	  if (_qc_plugin && _qc_plugin_activated)
+	  if (_qc_plugin && _qc_plugin_activated)
 	    static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_query);
 #endif
        }
