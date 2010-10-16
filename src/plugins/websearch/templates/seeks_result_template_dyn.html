@@ -91,17 +91,28 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
     resultsWidget = new Y.JSONPRequest(url, {
         on: {
             success: function (response) {
+		var enc_query = encodeURIComponent(response.query);
 		var snippets_html = '';
                 for (i=0, l=response.snippets.length; i < l; ++i) 
 		{
 		    var snippet = response.snippets[i];
                     
+		    // personalization & title head.
+		    if (snippet.personalized == 'yes')
+		    {
+			snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
+		    }
+		    else
+		    {
+			snippet.headHTML = '<h3>';
+		    }
+		    
 		    // render engines.
                     snippet.enginesHTML = ''; //TODO.
 		    for (j=0, le=snippet.engines.length; j < le; ++j)
 		    {
 			snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
-			snippet.enginesHTML += '@base-url@/search?q=' + encodeURIComponent(response.query);
+			snippet.enginesHTML += '@base-url@/search?q=' + enc_query;
 			snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
 			snippet.enginesHTML += '&nbsp;</a></span>';
 		    }
@@ -147,7 +158,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
         '<li class="search_snippet">{snippetHTML}</li>';
  
     resultsWidget.snippetTemplate =
-        '<h3><a href="{url}">{title}</a>{enginesHTML}</h3>' +
+        '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
 	'<div>{summary}</div>' +
 	'<div><cite>{cite}</cite>' +
 	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q=test&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>';
