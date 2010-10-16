@@ -31,7 +31,9 @@
 #include "img_websearch.h"
 #endif
 
+#if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h"
+#endif
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -130,7 +132,9 @@ namespace seeks_plugins
 	evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
 	evhttp_set_cb(_srv,"/seeks_search.css",&httpserv::seeks_search_css,NULL);
 	evhttp_set_cb(_srv,"/opensearch.xml",&httpserv::opensearch_xml,NULL);
+#if defined(PROTOBUF) && defined(TC)
 	evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL);
+#endif
 	//evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
 	evhttp_set_gencb(_srv,&httpserv::file_service,NULL);
      }
@@ -503,6 +507,7 @@ namespace seeks_plugins
      }
 #endif
 
+#if defined(PROTOBUF) && defined(TC)
    void httpserv::qc_redir(struct evhttp_request *r, void *arg)
      {
 	client_state csp;
@@ -571,7 +576,8 @@ namespace seeks_plugins
 	/* run the sweeper, for timed out elements. */
 	sweeper::sweep();
      }
-      
+#endif
+
    void httpserv::unknown_path(struct evhttp_request *r, void *arg)
      {
 	httpserv::reply_with_empty_body(r,404,"ERROR");

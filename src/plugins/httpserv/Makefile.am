@@ -3,9 +3,18 @@
 httpservpluginlibdir = $(libdir)/seeks/plugins/httpserv
 httpservplugindatadir = $(datadir)/seeks/plugins/httpserv
 
+
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../websearch -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy \
-	    -I${srcdir}/../../dht -I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+	    -I${srcdir}/../../dht
+
+
+if HAVE_TC
+if HAVE_PROTOBUF
+AM_CPPFLAGS+=-I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+endif
+endif
+
 if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_CPPFLAGS+=-I${srcdir}/../img_websearch
 endif
