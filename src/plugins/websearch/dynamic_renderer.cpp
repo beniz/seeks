@@ -32,16 +32,14 @@ namespace seeks_plugins
 {
    
    sp_err dynamic_renderer::render_result_page(client_state *csp, http_response *rsp,
-					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					       const query_context *qc)
+					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
 	static const char *result_tmpl_name = "websearch/templates/seeks_result_template_dyn.html";
-	return dynamic_renderer::render_result_page(csp,rsp,parameters,qc,result_tmpl_name);
+	return dynamic_renderer::render_result_page(csp,rsp,parameters,result_tmpl_name);
      }
       
    sp_err dynamic_renderer::render_result_page(client_state *csp, http_response *rsp,
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					       const query_context *qc,
 					       const std::string &result_tmpl_name,
 					       const std::string &cgi_base,
 					       const std::vector<std::pair<std::string,std::string> > *param_exports)

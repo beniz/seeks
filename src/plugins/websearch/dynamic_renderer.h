@@ -28,12 +28,10 @@ namespace seeks_plugins
      {
       public:
 	static sp_err render_result_page(client_state *csp, http_response *rsp,
-					 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					 const query_context *qc);
+					 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
 	static sp_err render_result_page(client_state *csp, http_response *rsp,
 					 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					 const query_context *qc,
 					 const std::string &result_tmpl_name,
 					 const std::string &cgi_base="/search?",
 					 const std::vector<std::pair<std::string,std::string> > *param_exports=NULL);

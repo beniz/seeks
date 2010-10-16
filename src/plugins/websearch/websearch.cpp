@@ -20,7 +20,6 @@
 #include "cgi.h"
 #include "cgisimple.h"
 #include "encode.h"
-#include "miscutil.h"
 #include "errlog.h"
 #include "query_interceptor.h"
 #include "proxy_configuration.h"
@@ -252,39 +251,39 @@ namespace seeks_plugins
 	       }
 	     else se_handler::preprocess_parameters(parameters); // preprocess the query...
 	     
+	     //TODO: check on User Interface requested:
+	     // - 'dyn' for dynamic interface: detach a thread for performing the requested
+	     //   action, but return the page with embedded JS right now.
+	     // - 'stat' for static interface: perform the requested action and render the page
+	     //   before returning it.
+	     const char *ui = miscutil::lookup(parameters,"ui");
+	     std::string ui_str = ui ? std::string(ui) : "stat"; //TODO: option.
+	     const char *output = miscutil::lookup(parameters,"output");
+	     std::string output_str = output ? std::string(output) : "html";
+	     std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+	     std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+	     if (ui_str == "dyn" && output_str == "html")
+	       {
+		  sp_err err = dynamic_renderer::render_result_page(csp,rsp,parameters);
+		  		  
+		  // detach thread for operations.
+		  pthread_t wo_thread;
+		  pthread_attr_t attr;
+		  pthread_attr_init(&attr);
+		  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		  wo_thread_arg *wta = new wo_thread_arg(csp,rsp,parameters,false);
+		  int perr = pthread_create(&wo_thread,&attr,
+					    (void *(*)(void *))&websearch::perform_action_threaded,wta);
+		  if (perr != 0)
+		    {
+		       errlog::log_error(LOG_LEVEL_ERROR,"Error creating websearch action thread.");
+		    }
+		  
+		  return err;
+	       }
+	     	     
 	     // perform websearch or other requested action.
-	     const char *action = miscutil::lookup(parameters,"action");
-	     if (!action)
-	       return cgi::cgi_error_bad_param(csp,rsp);
-	     
-	     /**
-	      * Action can be of type:
-	      * - "expand": requests an expansion of the search results, expansion horizon is 
-	      *           specified by parameter "expansion".
-	      * - "page": requests a result page, already in cache.
-	      * - "similarity": requests a reordering of results, in decreasing order from the
-	      *                 specified search result, identified by parameter "id".
-	      * - "clusterize": requests the forming of a cluster of results, the number of specified
-	      *                 clusters is given by parameter "clusters".
-	      * - "urls": requests a grouping by url.
-	      * - "titles": requests a grouping by title.
-	      */
-	     sp_err err = SP_ERR_OK;
-	     if (miscutil::strcmpic(action,"expand") == 0 || miscutil::strcmpic(action,"page") == 0)
-	       err = websearch::perform_websearch(csp,rsp,parameters);
-	     else if (miscutil::strcmpic(action,"similarity") == 0)
-	       err = websearch::cgi_websearch_similarity(csp,rsp,parameters);
-	     else if (miscutil::strcmpic(action,"clusterize") == 0)
-	       err = websearch::cgi_websearch_clusterize(csp,rsp,parameters);
-	     else if (miscutil::strcmpic(action,"urls") == 0)
-	       err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
-	     else if (miscutil::strcmpic(action,"titles") == 0)
-	       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
-	     else if (miscutil::strcmpic(action,"types") == 0)
-	       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
-	     else return cgi::cgi_error_bad_param(csp,rsp);
-	     
-	     return err;
+	     return websearch::perform_action(csp,rsp,parameters);
 	  }
 	else 
 	  {
@@ -616,6 +615,50 @@ namespace seeks_plugins
      }
       
    /*- internal functions. -*/
+   void websearch::perform_action_threaded(wo_thread_arg *args)
+     {
+	perform_action(args->_csp,args->_rsp,args->_parameters,args->_render);
+	delete args;
+     }
+      
+   sp_err websearch::perform_action(client_state *csp, http_response *rsp,
+				    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				    bool render)
+     {
+	const char *action = miscutil::lookup(parameters,"action");
+	if (!action)
+	  return cgi::cgi_error_bad_param(csp,rsp);
+	
+	/**
+	 * Action can be of type:
+	 * - "expand": requests an expansion of the search results, expansion horizon is
+	 *           specified by parameter "expansion".
+	 * - "page": requests a result page, already in cache.
+	 * - "similarity": requests a reordering of results, in decreasing order from the
+	 *                 specified search result, identified by parameter "id".
+	 * - "clusterize": requests the forming of a cluster of results, the number of specified
+	 *                 clusters is given by parameter "clusters".
+	 * - "urls": requests a grouping by url.
+	 * - "titles": requests a grouping by title.
+	 */
+	sp_err err = SP_ERR_OK;
+	if (miscutil::strcmpic(action,"expand") == 0 || miscutil::strcmpic(action,"page") == 0)
+	  err = websearch::perform_websearch(csp,rsp,parameters);
+	else if (miscutil::strcmpic(action,"similarity") == 0)
+	  err = websearch::cgi_websearch_similarity(csp,rsp,parameters);
+	else if (miscutil::strcmpic(action,"clusterize") == 0)
+	  err = websearch::cgi_websearch_clusterize(csp,rsp,parameters);
+	else if (miscutil::strcmpic(action,"urls") == 0)
+	  err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
+	else if (miscutil::strcmpic(action,"titles") == 0)
+	  err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
+	else if (miscutil::strcmpic(action,"types") == 0)
+	  err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
+	else return cgi::cgi_error_bad_param(csp,rsp);
+	
+	return err;
+     }
+   
    sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
 				       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				       bool render)
@@ -637,7 +680,7 @@ namespace seeks_plugins
 	  qc->register_qc();
        }
      mutex_unlock(&websearch::_context_mutex);
-          
+     
      // expansion: we fetch more pages from every search engine.
      bool expanded = false;
      if (exists_qc) // we already had a context for this query.
@@ -723,37 +766,34 @@ namespace seeks_plugins
        qtime = -1.0; // unavailable.
      
      // render the page (static).
-     if (!render)
-       {
-	  qc->_lock = false;
-	  mutex_unlock(&qc->_qc_mutex);
-	  return SP_ERR_OK;
-       }
-     const char *ui = miscutil::lookup(parameters,"ui");
-     std::string ui_str = ui ? std::string(ui) : "stat"; //TODO: option.
-     const char *output = miscutil::lookup(parameters,"output");
-     std::string output_str = output ? std::string(output) : "html";
-     std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-     std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-     
      sp_err err = SP_ERR_OK;
-     if (ui_str == "stat" && output_str == "html")
-       err = static_renderer::render_result_page_static(qc->_cached_snippets,
-							csp,rsp,parameters,qc);
-     else if (ui_str == "dyn" && output_str == "html")
+     if (render)
        {
-	  //TODO: dynamic output.
-	  err = dynamic_renderer::render_result_page(csp,rsp,parameters,qc);
-       }
-     else if (output_str == "json")
-       {
-	  std::cerr << "rendering json\n";
-	  csp->_content_type = CT_JSON;
-	  err = json_renderer::render_json_results(qc->_cached_snippets,
-						   csp,rsp,parameters,qc,
-						   qtime);
-       }
-     
+	  const char *ui = miscutil::lookup(parameters,"ui");
+	  std::string ui_str = ui ? std::string(ui) : "stat"; //TODO: option.
+	  const char *output = miscutil::lookup(parameters,"output");
+	  std::string output_str = output ? std::string(output) : "html";
+	  std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+	  std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+	  
+	  if (ui_str == "stat" && output_str == "html")
+	    err = static_renderer::render_result_page_static(qc->_cached_snippets,
+							     csp,rsp,parameters,qc);
+	  else if (ui_str == "dyn" && output_str == "html")
+	    {
+	       //TODO: dynamic output.
+	       //err = dynamic_renderer::render_result_page(csp,rsp,parameters);
+	    }
+	  else if (output_str == "json")
+	    {
+	       //std::cerr << "rendering json\n";
+	       csp->_content_type = CT_JSON;
+	       err = json_renderer::render_json_results(qc->_cached_snippets,
+							csp,rsp,parameters,qc,
+							qtime);
+	    }
+       } // render
+          
      // resets personalization flags.
      if (strcasecmp(pers,"on") == 0)
        {

@@ -25,6 +25,7 @@
 #include "search_snippet.h"
 #include "query_context.h"
 #include "websearch_configuration.h"
+#include "miscutil.h"
 #include "mutexes.h"
 
 #include <string>
@@ -33,10 +34,32 @@ using sp::client_state;
 using sp::http_response;
 using sp::sp_err;
 using sp::plugin;
+using sp::miscutil;
 
 namespace seeks_plugins
 {
-   
+
+   struct wo_thread_arg
+     {
+	wo_thread_arg(client_state *csp, http_response *rsp,
+		      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+		      bool render=true)
+	  :_csp(csp),_rsp(rsp),_render(render)
+	  {
+	     _parameters = miscutil::copy_map(parameters);
+	  };
+	
+	~wo_thread_arg()
+	  {
+	     miscutil::free_map(_parameters);
+	  };
+	
+	client_state *_csp;
+	http_response *_rsp;
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *_parameters;
+	bool _render;
+     };
+      
    class websearch : public plugin
      {
       public:
@@ -88,6 +111,13 @@ namespace seeks_plugins
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
 	/* websearch. */
+	static void perform_action_threaded(wo_thread_arg *args);
+	
+	static sp_err perform_action(client_state *csp,
+				     http_response *rsp,
+				     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				     bool render = true);
+	
 	static sp_err perform_websearch(client_state *csp,
 					http_response *rsp,
 					const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
