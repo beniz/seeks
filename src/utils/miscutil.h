@@ -75,6 +75,7 @@ namespace sp
 	static sp_err unmap(hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map,
 			    const char *name);
 	static void free_map(hash_map<const char*,const char*,hash<const char*>,eqstr> *&the_map);
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* copy_map(const hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map);
 	static const char* lookup(const hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map,
 				  const char* name);
 

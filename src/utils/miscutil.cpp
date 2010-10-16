@@ -257,6 +257,21 @@ namespace sp
 	the_map = NULL;
      }
 
+   /* copy map. */
+   hash_map<const char*,const char*,hash<const char*>,eqstr>* miscutil::copy_map(const hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map)
+     {
+	hash_map<const char*,const char*,hash<const char*>,eqstr> *cmap
+	  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+	hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
+	  = the_map->begin();
+	while(hit!=the_map->end())
+	  {
+	     miscutil::add_map_entry(cmap,(*hit).first,1,(*hit).second,1);
+	     ++hit;
+	  }
+	return cmap;
+     }
+      
    /* lookup: beware this is a lookup for a single item only! */
    const char* miscutil::lookup(const hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map,
 				const char* name)
