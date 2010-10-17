@@ -27,7 +27,9 @@
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a> -->
+
+<p id="expand"></p>
 
 <!-- @if-have-clustering-start -->
 <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
@@ -83,16 +85,17 @@
 
 YUI().use("jsonp", "substitute", "transition", function (Y) {
  
-    //var url = "http://yuilibrary.com/gallery/api/random?callback={callback}",
-    var url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}",
-    outputDiv = Y.one("#snippets"),
-    resultsWidget;
+    var url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
-    // Using the configuration object syntax
+    var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expand");
+    
+    var resultsWidget;
+        
+    // result widget.
     resultsWidget = new Y.JSONPRequest(url, {
         on: {
             success: function (response) {
-		var enc_query = ':' + response.lang + '+' + encodeURIComponent(response.query);
+		response.enc_query = ':' + response.lang + '+' + encodeURIComponent(response.query);
 		var snippets_html = '';
                 for (i=0, l=response.snippets.length; i < l; ++i) 
 		{
@@ -113,7 +116,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		    for (j=0, le=snippet.engines.length; j < le; ++j)
 		    {
 			snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
-			snippet.enginesHTML += '@base-url@/search?q=' + enc_query;
+			snippet.enginesHTML += '@base-url@/search?q=' + response.enc_query;
 			snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
 			snippet.enginesHTML += '&nbsp;</a></span>';
 		    }
@@ -121,41 +124,32 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		    // Format the snippet info and store as a property of the
                     // snippet object for use by Y.substitute
                     // ('this' refers to the JSONPRequest object by default)
-		    snippet.enc_query = enc_query;
+		    snippet.enc_query = response.enc_query;
 		    snippet.snippetHTML = Y.substitute(this.snippetTemplate, snippet);
 		    snippets_html += Y.substitute(this.resultTemplate, snippet);
-
-                    //outputDiv.setContent(Y.substitute(this.resultTemplate, snippet));
-		    
-                    // Add some flare to the poll interval by showing a "time left"
-                    // indicator via the header's border
-                    /* Y.one("#out h4")
-                       .setStyle("borderRightWidth", "100px")
-                       .transition({
-                       borderRightWidth: 0,
-                       duration: 7
-                       }, function () {
-                       if (gallery.polling) {
-                       gallery.send();
-                       }
-                       }); */
 		}
 		outputDiv.setContent(snippets_html);
+	    
+		//TODO: render first shot search bar, then update it later on with JSON info.
+		response.nexpn = eval(response.expansion) + 1;
+		var expansionHtml = Y.substitute(expansionTemplate, response);
+		expansionLnk.setContent(expansionHtml);
+
+		//TODO: compute page + results per page.
+		
+		//TODO: engines.
+
+		//TODO: content analysis...
 	    },
 	    
 	    failure: function () {
                 resultsWidget.polling = false;
                 outputDiv.setContent(this.failureTemplate);
-		
-                // Wire up the Try again button
-                //outputDiv.one("button").on("click", function () {
-                //resultsWidget.send();
-		//}
-		//);
-            }
+	    }
         }
     });
     
+    /* main result widget stuff. */
     resultsWidget.resultTemplate =
         '<li class="search_snippet">{snippetHTML}</li>';
  
@@ -167,16 +161,17 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
  
     resultsWidget.failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
- 
-    resultsWidget.polling = true;
+    
+    //resultsWidget.polling = true;
     resultsWidget.send();
  
-    // Click the button to send the JSONP request
-    /* Y.one("#start").on("click", function (e) {
-        if (!gallery.polling) {
-            gallery.polling = true;
-            gallery.send();
-        }
+    /* expansion button rendering. */
+    expansionTemplate = 
+	'<a href="@base-url@/search?q={enc_query}&amp;page=xxpage&amp;expansion={nexpn}&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to {nexpn} (ctrl+e). Deeper search." id="expansion" class="expansion_{nexpn}">{expansion}</a>'
+
+    // Click the search button to send the JSONP request
+    /* Y.one("#search_button").on("click", function (e) {
+        resultsWidget.send();
     }); */
  
     /* Y.one("#stop").on("click", function (e) {
