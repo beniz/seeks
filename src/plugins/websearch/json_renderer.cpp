@@ -159,6 +159,9 @@ namespace seeks_plugins
 	// language.
 	json_str += "\"lang\":\"" + qc->_auto_lang + "\",";
 	
+	// expansion
+	json_str += "\"expansion\":\"" + miscutil::to_string(qc->_page_expansion) + "\",";
+	
 	// search snippets.
 	sp_err err = json_renderer::render_snippets(query_clean,current_page,snippets,json_str,parameters);
 	
