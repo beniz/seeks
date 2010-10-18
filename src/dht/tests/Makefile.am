@@ -7,12 +7,12 @@ test_dhtnode_SOURCES=test-dhtnode.cpp
 test_sgnode_SOURCES=test-sgnode.cpp
 #test_dht_net_utils_SOURCES=test-dht-net-utils.cpp
 #test_stabilizer_SOURCES=test-stabilizer.cpp
-grab_mac_SOURCES=grab-mac.cc
-dhtkey_gen_SOURCES=dhtkey-gen.cc
-dht_cli_SOURCES=dht-cli.cc
+grab_mac_SOURCES=grab-mac.cpp
+dhtkey_gen_SOURCES=dhtkey-gen.cpp
+dht_cli_SOURCES=dht-cli.cpp
 
-AM_CPPFLAGS=-I../ -I../../utils -I../../lsh -I../../proxy -I../../utils \
-	    -I../rpc -I../rpc/protob -I../protob -I../sg -I../sg/rpc -I../sg/protob \
+AM_CPPFLAGS=-I${srcdir}/../ -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy -I${srcdir}/../../utils \
+	    -I${srcdir}/../rpc -I${srcdir}/../rpc/protob -I${srcdir}/../protob -I${srcdir}/../sg -I${srcdir}/../sg/rpc -I${srcdir}/../sg/protob \
             `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -Wall -g
 AM_LDFLAGS=-L../ -L../../utils -L../../lsh -L../../proxy -L../../utils \
 	   -L../rpc -L../rpc/protob -L../protob \

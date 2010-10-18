@@ -1,15 +1,24 @@
 lib_LTLIBRARIES=libseeksdhtsgprotob.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe\
-            -I../ -I../../ -I../../protob -I../../../utils -I../../../proxy -I../../../lsh \
+            -I${srcdir}/../ -I${srcdir}/../../ -I${srcdir}/../../protob -I../../protob -I${srcdir}/../../../utils -I${srcdir}/../../../proxy -I${srcdir}/../../../lsh \
 	    `pkg-config --cflags protobuf`
-libseeksdhtsgprotob_la_SOURCES=dht_layer2.pb.cc dht_layer2_data.pb.cc l2_protob_wrapper.cpp \
-                               l2_data_protob_wrapper.cpp
 
-dht_layer2.pb.cc:
-	protoc --proto_path=. --proto_path=../../protob --cpp_out=. dht_layer2.proto
+nodist_libseeksdhtsgprotob_la_SOURCES=$(protoc_outputs)
+dist_libseeksdhtsgprotob_la_SOURCES=l2_protob_wrapper.cpp l2_protob_wrapper.h l2_data_protob_wrapper.cpp l2_data_protob_wrapper.h
 
-dht_layer2_data.pb.cc:
-	protoc --proto_path=. --proto_path=../../protob --cpp_out=. dht_layer2_data.proto
+EXTRA_DIST=dht_layer2_data.proto dht_layer2.proto
+
+protoc_inputs=dht_layer2.proto dht_layer2_data.proto
+
+protoc_outputs=dht_layer2.pb.cc dht_layer2.pb.h dht_layer2_data.pb.cc dht_layer2_data.pb.h 
+BUILT_SOURCES = $(protoc_outputs)
+
+$(protoc_outputs): proto_middleman
+
+proto_middleman: protoc $(protoc_inputs)
+	$^ --cpp_out=. --proto_path=${srcdir} --proto_path=${srcdir}/../../protob
 
 clean-local:
-	rm dht_layer2.pb.h dht_layer2.pb.cc dht_layer2_data.pb.h dht_layer2_data.pb.cc
+	rm -f dht_layer2.pb.h dht_layer2.pb.cc dht_layer2_data.pb.h dht_layer2_data.pb.cc proto_middleman
+
+.PHONY: protoc

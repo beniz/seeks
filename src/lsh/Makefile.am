@@ -3,7 +3,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/../utils/ -I${srcdir}/../proxy/
 libseekslsh_la_CXXFLAGS=@PCRE_CFLAGS@
 if HAVE_DHT
-AM_CPPFLAGS += -I../dht
+AM_CPPFLAGS += -I${srcdir}/../dht
 endif
 libseekslsh_la_SOURCES=mrf.cpp LSHSystemHamming.cpp LSHFunction.cpp \
 		       LSHUniformHashTableHamming.cpp Random.cpp \

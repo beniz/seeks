@@ -7,8 +7,8 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh \
 	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 if HAVE_DHT
-AM_CPPFLAGS += -I../../dht -I../../dht/rpc -I../../dht/rpc/protob -I../../dht/protob \
-	       -I../../dht/sg/ -I../../dht/sg/rpc -I../../dht/sg/protob
+AM_CPPFLAGS += -I${srcdir}/../../dht -I${srcdir}/../../dht/rpc -I${srcdir}/../../dht/rpc/protob -I${srcdir}/../../dht/protob \
+	       -I${srcdir}/../../dht/sg/ -I${srcdir}/../../dht/sg/rpc -I${srcdir}/../../dht/sg/protob
 endif
 ACLOCAL_AMFLAGS=-I m4
 

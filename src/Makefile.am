@@ -6,17 +6,17 @@ seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
-	    -Iplugins/websearch `pkg-config opencv --cflags`
-	    -Iutils -Ilsh -Iproxy 
+	    -I${srcdir}/plugins/websearch `pkg-config opencv --cflags`
+	    -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy 
 if HAVE_DHT
-AM_CPPFLAGS += -Idht -Idht/protob -Idht/rpc -Idht/rpc/protob -Idht/sg -Idht/sg/protob -Idht/sg/rpc
+AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc -I${srcdir}/dht/rpc/protob -I${srcdir}/dht/sg -I${srcdir}/dht/sg/protob -I${srcdir}/dht/sg/rpc
 endif
 AM_CPPFLAGS += @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'
 AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch
 
 if HAVE_HTTPSERV_PLUGIN
-AM_CPPFLAGS+=-Iplugins/websearch
+AM_CPPFLAGS+=-I${srcdir}/plugins/websearch
 AM_LDFLAGS+=-Lplugins/websearch
 endif
 
@@ -51,9 +51,8 @@ SUBDIRS += dht
 endif
 SUBDIRS += lsh proxy plugins .
 if HAVE_DHT
-SUBDIRS += lsh/tests dht/protob/tests dht/rpc/tests dht/tests
+SUBDIRS += dht/protob/tests dht/rpc/tests dht/tests
 endif
-SUBDIRS += proxy/tests
 
 configdir=$(sysconfdir)/seeks
 dist_config_DATA=config \
