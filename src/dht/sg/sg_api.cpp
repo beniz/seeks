@@ -45,7 +45,7 @@ namespace dht
 	DHTKey senderKey;
 	NetAddress senderAddress;
 	int status = DHT_ERR_OK;
-	l2_protob_rpc_client *l2_client = static_cast<l2_protob_rpc_client*>(sgnode._l1_client);
+	l2_protob_rpc_client *l2_client = dynamic_cast<l2_protob_rpc_client*>(sgnode._l1_client);
 	l2_client->RPC_subscribe(node.getDHTKey(),
 				 node.getNetAddress(),
 				 senderKey,senderAddress, // empty

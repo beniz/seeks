@@ -229,7 +229,7 @@ namespace dht
 #endif
 		       
 		       /**
-			* remove everything that lies behind the (*sit) key in the successor list.
+			* remove everything that lies beyond the (*sit) key in the successor list.
 			* Though we ping them before complete removal.
 			*/
 		       int status = DHT_ERR_OK;

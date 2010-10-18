@@ -31,10 +31,13 @@ namespace dht
    class SGNode : public DHTNode
      {
       public:
-	SGNode(const char *net_addr, const short &net_port,
-	       const bool &generate_vnodes=true);
-	
+	SGNode(const char *net_addr, const short &net_port);
+		
 	~SGNode();
+	
+	virtual DHTVirtualNode* create_vnode();
+	virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
+					     LocationTable *lt);
 	
 	virtual void init_server();
 

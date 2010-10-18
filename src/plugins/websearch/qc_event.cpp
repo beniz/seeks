@@ -62,7 +62,7 @@ namespace seeks_plugins
 	// initialize the event library.
 	// XXX: beware, this conflicts with initialization in httpserv plugin.
 	// and later on maybe in the main DHT code.
-	event_init();
+	event_init(); //TODO: memory leak.
 	
 	// start the dispatching loop in a thread.
 	pthread_t event_dispatch_thread;

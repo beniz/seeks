@@ -169,7 +169,9 @@ namespace dht
 	 */
 	virtual dht_err replication_host_keys(const DHTKey &start_key) { return DHT_ERR_OK; };
 	
-	virtual dht_err replication_move_keys_backward(const DHTKey &start_key) { return DHT_ERR_OK; };
+	virtual dht_err replication_move_keys_backward(const DHTKey &start_key,
+						       const DHTKey &end_key,
+						       const NetAddress &senderAddress) { return DHT_ERR_OK; };
 	
 	virtual dht_err replication_move_keys_forward(const DHTKey &end_key) { return DHT_ERR_OK; };
 	

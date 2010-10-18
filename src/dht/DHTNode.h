@@ -37,15 +37,26 @@ namespace dht
 	 * \brief constructor.
 	 */
 	DHTNode(const char *net_addr, const short &net_port=0,
-		const bool &generate_vnodes=true,
-		const bool &start_server=true);
+		const bool &start_node=true);
 
 	~DHTNode();
 	
 	/**
+	 * start DHT node.
+	 */
+	void start_node();
+
+	/**
 	 * create virtual nodes.
 	 */
 	void create_vnodes();
+	
+	/**
+	 * create virtual node.
+	 */
+	virtual DHTVirtualNode* create_vnode();
+	virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
+					     LocationTable *lt);
 	
 	/**
 	 * fill up and sort sorted set of virtual nodes.

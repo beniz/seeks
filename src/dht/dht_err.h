@@ -41,4 +41,6 @@ typedef int dht_err;
 #define DHT_ERR_MAXHOPS                           18 /**< max number of hops reached in key lookup. */
 #define DHT_ERR_UNSPECIFIED_SEARCHGROUP           19 /**< unspecified searchgroup key in lookup. */
 #define DHT_ERR_ADDRESS_MISMATCH                  20 /**< given address doesn't match sender address. */
+#define DHT_ERR_SENDER_ADDR                       21 /**< wrong or empty sender address. */
+#define DHT_ERR_REPLICATION                       22 /**< error in replication operations. */
 #define DHT_ERR_UNKNOWN                         1000 /**< unknown error. */

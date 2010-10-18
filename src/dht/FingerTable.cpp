@@ -397,8 +397,9 @@ namespace dht
 	       }
 	     else if (successor_change)
 	       {
-		  //TODO: replication, move to successor the keys with a replication radius equal to k-1,
+		  //TODO: replication, move to successor the keys with a replication radius equal to k-1 -> NOP.
 		  // where k is the replication factor.
+		  //TODO: needs to move everything from 0 to k-1 !
 		  //TODO: beware of bootstrap.
 		  _vnode->replication_move_keys_forward(*_vnode->getSuccessor());
 	       }

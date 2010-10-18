@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 	  }
 	
 	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
-	dnode = new DHTNode(net_addr,net_port);
+	dnode = new DHTNode(net_addr,net_port,true);
 	
 	/**
 	 * unix signal handling for graceful termination.

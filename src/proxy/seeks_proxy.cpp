@@ -2899,7 +2899,7 @@ char* seeks_proxy::make_path(const char *dir, const char *file)
 #ifdef WITH_DHT
    dht_err seeks_proxy::start_sgnode()
      {
-	seeks_proxy::_dhtnode = new SGNode(seeks_proxy::_config->_haddr,0,true);
+	seeks_proxy::_dhtnode = new SGNode(seeks_proxy::_config->_haddr,0);
 	bool reset = false; //TODO: reset.
 	dht_err err 
 	  = seeks_proxy::_dhtnode->join_start(dht_configuration::_dht_config->_bootstrap_nodelist,reset);

@@ -43,8 +43,7 @@ namespace dht
    
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
-		    const bool &generate_vnodes,
-		    const bool &start_server)
+		    const bool &start_node)
      : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false),_has_persistent_data(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
@@ -75,7 +74,14 @@ namespace dht
 	if (net_port == 0) // no netport specified, default to config port.
 	  _l1_na.setPort(_dht_config->_l1_port);
 	else _l1_na.setPort(net_port);
-	
+     
+	if (start_node)
+	  this->start_node();
+     }
+   
+   
+   void DHTNode::start_node()
+     {
 	/**
 	 * Create stabilizer before structures in vnodes register to it.
 	 */
@@ -97,20 +103,19 @@ namespace dht
 	 */
 	_has_persistent_data = load_vnodes_table();
 	if (!_has_persistent_data)
-	  create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data.
+	  create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data. (virtual).
 	init_sorted_vnodes();
 	
 	/**
 	 * start rpc client & server.
+	 * (virtual call).
 	 */
-	if (start_server)
-	  init_server();
+	init_server(); 
 	
 	/**
 	 * run the server in its own thread.
 	 */
-	if (start_server)
-	  _l1_server->run_thread();
+	_l1_server->run_thread();
      }
       
    DHTNode::~DHTNode()
@@ -126,7 +131,7 @@ namespace dht
 	     ++hit;
 	  }
      }
-
+   
    void DHTNode::create_vnodes()
      {
 	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
@@ -134,7 +139,7 @@ namespace dht
 	     /**
 	      * creating virtual nodes.
 	      */
-	     DHTVirtualNode* dvn = new DHTVirtualNode(this);
+	     DHTVirtualNode* dvn = create_vnode();
 	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
 								     dvn));
 	     
@@ -154,6 +159,17 @@ namespace dht
 	errlog::log_error(LOG_LEVEL_DHT, "Successfully generated %u virtual nodes", _vnodes.size());
      }
 
+   DHTVirtualNode* DHTNode::create_vnode()
+     {
+	return new DHTVirtualNode(this);
+     }
+      
+   DHTVirtualNode* DHTNode::create_vnode(const DHTKey &idkey,
+					 LocationTable *lt)
+     {
+	return new DHTVirtualNode(this,idkey,lt);
+     }
+      
    void DHTNode::init_sorted_vnodes()
      {
 	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
@@ -222,7 +238,7 @@ namespace dht
 	      */
 	     const DHTKey idkey = *vnode_ids.at(i);
 	     LocationTable *lt = vnode_ltables.at(i);
-	     DHTVirtualNode *dvn = new DHTVirtualNode(this,idkey,lt);
+	     DHTVirtualNode *dvn = create_vnode(idkey,lt);
 	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
 								     dvn));
 	  

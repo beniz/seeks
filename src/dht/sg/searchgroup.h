@@ -41,6 +41,8 @@ namespace dht
       public:
 	Searchgroup(const DHTKey &idkey);
 	
+	Searchgroup(const Searchgroup &sg);
+	
 	~Searchgroup();
 	
 	void set_creation_time();

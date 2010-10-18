@@ -48,6 +48,10 @@ namespace dht
 	
 	Searchgroup* find_sg_db(const DHTKey &sgkey);
 	
+	void find_sg_range(const DHTKey &start_key,
+			   const DHTKey &end_key,
+			   hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> &res);
+	
 	bool remove_sg_db(const DHTKey &sgkey);
 	
 	bool add_sg_db(Searchgroup *sg);
@@ -58,7 +62,9 @@ namespace dht
 	
 	void prune();
 	
-	void read();
+	bool decrement_replication_level_all_sgs(std::vector<Searchgroup*> &nsgs);
+	
+	void read() const;
 	
       public:
 	TCHDB *_hdb;

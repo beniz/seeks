@@ -68,6 +68,7 @@ namespace dht
 	 * @param senderAddress address of the sender (for verification and server port, optional).
 	 * @param ownerKey original owner of the search groups to be replicated.
 	 * @param sgs list of search groups to be replicated.
+	 * @param sdiff whether this update is a 'diff' or not.
 	 * @param status RPC result status for handling erroneous results.
 	 * @return status.
 	 */

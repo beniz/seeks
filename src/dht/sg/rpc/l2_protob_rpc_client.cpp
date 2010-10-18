@@ -125,7 +125,6 @@ namespace dht
      {
 	// send & get response.
 	std::string resp_str;
-	//dht_err err = do_rpc_call_threaded(recipient,msg,true,resp_str);
 	dht_err err = DHT_ERR_OK;
 	do_rpc_call(recipient,msg,true,resp_str,err);
 	if (err != DHT_ERR_OK)

@@ -34,10 +34,10 @@ namespace dht
 	_hdb = tchdbnew();
      
 	// db location.
+	std::string dbname = "sgs.db";
 	if (seeks_proxy::_datadir.empty())
-	  //_name = "dht/sgs.db";
-	_name = "sgs.db";
-	else _name = seeks_proxy::_datadir + "/dht/sgs.db";
+	  _name = dbname;
+	else _name = seeks_proxy::_datadir + "/dht/" + dbname;
      }
    
    sg_db::~sg_db()
@@ -130,6 +130,40 @@ namespace dht
 	  }
      }
    
+   void sg_db::find_sg_range(const DHTKey &start_key,
+			     const DHTKey &end_key,
+			     hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> &res)
+     {
+	hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit;
+	
+	/* traverse records */
+	void *key;
+	void *value;
+	int key_size;
+	tchdbiterinit(_hdb);
+	while((key = tchdbiternext(_hdb,&key_size)) != NULL)
+	  {
+	     int value_size;
+	     value = tchdbget(_hdb, key, key_size, &value_size);
+	     if(value)
+	       {
+		  std::string str = std::string((char*)value,value_size);
+		  Searchgroup *sg = Searchgroup::deserialize_from_string(str);
+		  free(value);
+		  if (sg->_idkey.between(start_key,end_key))
+		    {
+		       if ((hit=res.find(&sg->_idkey))==res.end())
+			 {
+			    res.insert(std::pair<const DHTKey*,Searchgroup*>(&sg->_idkey,sg));
+			 }
+		       else delete sg;
+		    }
+		  else delete sg;
+	       }
+	     free(key);
+	  }
+     }
+      
    bool sg_db::remove_sg_db(const DHTKey &sgkey)
      {
 	// sgkey to string.
@@ -203,6 +237,7 @@ namespace dht
 			    oldest_t = sg->_last_time_of_use;
 			    oldest_r = sg->_idkey;
 			 }
+		       delete sg;
 		    }
 		  free(key);
 	       }
@@ -217,8 +252,57 @@ namespace dht
 	       }
 	  }
      }
-
-   void sg_db::read()
+   
+   bool sg_db::decrement_replication_level_all_sgs(std::vector<Searchgroup*> &nsgs)
+     {
+	bool res = true;
+	
+	/* traverse records and update replication_level value. */
+	void *key;
+	void *value;
+	int key_size;
+	tchdbiterinit(_hdb);
+	while((key = tchdbiternext(_hdb,&key_size)) != NULL)
+	  {
+	     int value_size;
+	     value = tchdbget(_hdb, key, key_size, &value_size);
+	     if(value)
+	       {
+		  std::string str = std::string((char*)value,value_size);
+		  Searchgroup *sg = Searchgroup::deserialize_from_string(str);
+		  free(value);
+		  if (sg->_replication_level > 0)
+		    {
+		       sg->_replication_level--;
+		       
+		       // replace record with update searchgroup.
+		       // XXX: this is counterproductive since the whole searchgroup object
+		       // is retrieved, deserialized, update, serialized, and writtent back
+		       // to the db.
+		       str.clear();
+		       sg->serialize_to_string(str);
+		       char valc[str.length()];
+		       for (size_t i=0;i<str.length();i++)
+			 valc[i] = str[i];
+		       if (!tchdbput(_hdb,key,sizeof(key),valc,sizeof(valc)))
+			 {
+			    // XXX: error when updating, finish the update of all records
+			    // and return with an error.
+			    int ecode = tchdbecode(_hdb);
+			    errlog::log_error(LOG_LEVEL_DHT,"sg db update of replication level error: %s",tchdberrmsg(ecode));
+			    res = false;
+			 }
+		       if (sg->_replication_level > 0)
+			 delete sg;
+		       else nsgs.push_back(sg);
+		    }
+	       }
+	     free(key);
+	  }
+	return res;
+     }
+      
+   void sg_db::read() const
      {
 	/* traverse records */
 	void *key;
@@ -235,6 +319,7 @@ namespace dht
 		  Searchgroup *sg = Searchgroup::deserialize_from_string(str);
 		  std::cerr << "sg " << sg->_idkey << " - number of subscribers: " << sg->_vec_subscribers.size() << std::endl;
 		  free(value);
+		  delete sg;
 	       }
 	     free(key);
 	  }

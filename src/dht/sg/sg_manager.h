@@ -34,8 +34,15 @@ namespace dht
 	sg_manager();
 	
 	~sg_manager();
-     
+	
+	/* access. */
+	void find_sg_range(const DHTKey &start_key,
+			   const DHTKey &end_key,
+			   hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> &res);
+	
 	/* memory management. */
+	Searchgroup* find_sg(const DHTKey *sgkey);
+	
 	Searchgroup* find_sg_memory(const DHTKey *sgkey);
 	
 	Searchgroup* create_sg_memory(const DHTKey &sgkey);
@@ -61,24 +68,34 @@ namespace dht
 	bool sync();
 	
 	/* replication. */
-	void replication_decrement_all_sgs_between(const DHTKey &start_key, const DHTKey &end_key); //TODO: with db.
+	/**
+	 * \brief decrements all searchgroups replication level for
+	 * the host vnode and move nodes with level 0 to this vnode
+	 * db of searchgroups.
+	 */
+	bool replication_decrement_all_sgs(const DHTKey &host_key);
+	
+	/**
+	 * \brief increments all searchgroups replication for the host vnode.
+	 * Searchgroups in h_sgs are those passed to our prededecessor,
+	 * that were local and must be moved to replicated db.
+	 */
+	//TODO.
+	bool increment_replicated_sgs(const DHTKey &host_key,
+				      hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> &h_sgs);
 	
       public:
 	hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> _searchgroups;
         std::vector<const DHTKey*> _sorted_sg_keys;
-	
-	//TODO: in db only.
-	/* hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> _replicated_searchgroups;
-	 std::vector<const DHTKey*> _sorted_replicated_sg_keys; */
-	
-	
+		
 	// search group sweeper.
 	sg_sweeper _sgsw;
 	
-	//TODO: db of sgs.
+	// db of sgs.
 	sg_db _sdb;
 	
-	//TODO: db of vnodes/sg keys.
+	// dbs of replicateds sgs, one db per vnode.
+     	hash_map<const DHTKey*,sg_db*,hash<const DHTKey*>,eqdhtkey> _replicated_sgs;
      };
    
 } /* end of namespace. */

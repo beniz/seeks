@@ -30,12 +30,36 @@ namespace dht
      {
 	if (dht_configuration::_dht_config->_routing)
 	  _sdb.open_db();
+     
+	//TODO: if replication activated, create replication dbs.
+	
      }
    
    sg_manager::~sg_manager()
      {
 	if (_sdb._opened)
 	  _sdb.close_db();
+     }
+   
+   void sg_manager::find_sg_range(const DHTKey &start_key,
+				  const DHTKey &end_key,
+				  hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> &res)
+     {
+	/* look first in memory. */
+	hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+	  = _searchgroups.begin();
+	while(hit!=_searchgroups.end())
+	  {
+	     if ((*hit).first->between(start_key,end_key))
+	       {
+		  Searchgroup *sg = new Searchgroup(*(*hit).second);
+		  res.insert(std::pair<const DHTKey*,Searchgroup*>(&sg->_idkey,sg));
+	       }
+	     ++hit;
+	  }
+		
+	/* then look in db. */
+	_sdb.find_sg_range(start_key,end_key,res);
      }
    
    Searchgroup* sg_manager::find_sg_memory(const DHTKey *sgkey)
@@ -108,6 +132,17 @@ namespace dht
    
    Searchgroup* sg_manager::find_load_or_create_sg(const DHTKey *sgkey)
      {
+	Searchgroup *sg = find_sg(sgkey);
+	if (sg)
+	  return sg;
+	
+	/* search group does not exist, create it. */
+	sg = create_sg_memory(*sgkey);
+	return sg;
+     }
+   
+   Searchgroup* sg_manager::find_sg(const DHTKey *sgkey)
+     {
 	Searchgroup *sg = find_sg_memory(sgkey);
 	if (sg)
 	  return sg;
@@ -120,10 +155,7 @@ namespace dht
 	     add_sg_memory(sg);
 	     return sg;
 	  }
-	
-	/* search group does not exist, create it. */
-	sg = create_sg_memory(*sgkey);
-	return sg;
+	return NULL;
      }
       
    bool sg_manager::sync()
@@ -139,6 +171,79 @@ namespace dht
 	  }
 	errlog::log_error(LOG_LEVEL_DHT,"sg db sync successful (%u searchgroups)",
 			  _sdb.number_records());
+	return true;
+     }
+
+   bool sg_manager::replication_decrement_all_sgs(const DHTKey &host_key)
+     {
+	hash_map<const DHTKey*,sg_db*,hash<const DHTKey*>,eqdhtkey>::iterator hit;
+	if ((hit=_replicated_sgs.find(&host_key))!=_replicated_sgs.end())
+	  {
+	     sg_db *sdb = (*hit).second;
+	     
+	     // decrement replication levels and extract searchgroup
+	     // to be put under control of this virtual node.
+	     std::vector<Searchgroup*> nsgs;
+	     sdb->decrement_replication_level_all_sgs(nsgs);
+	     
+	     // move those search group to the local sg db.
+	     for (size_t i=0;i<nsgs.size();i++)
+	       {
+		  Searchgroup *sg = nsgs.at(i);
+		  int dberr = move_to_db(sg);
+		  //TODO: check on error.
+		  
+		  // remove those sgs from the replicated db.
+	       	  dberr = sdb->remove_sg_db(sg->_idkey);
+		  //TODO: check on error.
+		  
+		  delete sg;
+	       }
+	     return true;
+	  }
+	else
+	  {
+	     //TODO: error.
+	     return false;
+	  }
+     }
+         
+   bool sg_manager::increment_replicated_sgs(const DHTKey &host_key,
+					     hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey> &h_sgs)
+     {
+	// fetch replicated db.
+	sg_db *sdb = NULL;
+	hash_map<const DHTKey*,sg_db*,hash<const DHTKey*>,eqdhtkey>::iterator sit;
+	if ((sit=_replicated_sgs.find(&host_key))!=_replicated_sgs.end())
+	  {
+	     sdb = (*sit).second;
+	  }
+	else
+	  {
+	     //TODO: error.
+	     return false;
+	  }
+	
+	// add searchgroups to replicated db.
+	hash_map<const DHTKey*,Searchgroup*,hash<const DHTKey*>,eqdhtkey>::iterator hit
+	  = h_sgs.begin();
+	while(hit!=h_sgs.end())
+	  {
+	     Searchgroup *sg = (*hit).second;
+	     sg->_replication_level++; // increment replication level.
+	     int dberr = sdb->add_sg_db(sg);
+	     //TODO: check on error.
+	     
+	     // remove sgs from local db of searchgroups.
+	     dberr = remove_sg_db(sg->_idkey);
+	     //TODO: check on error.
+	     
+	     delete sg;
+	     
+	     ++hit;
+	  }
+	
+	h_sgs.clear();
 	return true;
      }
       

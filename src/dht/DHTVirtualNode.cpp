@@ -152,13 +152,14 @@ namespace dht
 		  short start_replication_radius = 0;
 		  if (old_pred_loc->getDHTKey() > senderKey) // our old predecessor did leave or fail.
 		    {
-		       //TODO: some replicated keys we host are ours now.
-		       replication_host_keys(old_pred_loc->getDHTKey());
+		       // some replicated keys we host are ours now.
+		       replication_host_keys(old_pred_loc->getDHTKey()); //TODO: old_pred_loc key unnecessary here.
 		    }
 		  else if (old_pred_loc->getDHTKey() < senderKey) // our new predecessor did join the circle.
 		    {
-		       //TODO: some of our keys should now belong to our predecessor.
-		       replication_move_keys_backward(old_pred_loc->getDHTKey());
+		       // some of our keys should now belong to our predecessor.
+		       replication_move_keys_backward(old_pred_loc->getDHTKey(),
+						      senderKey,senderAddress);
 		       start_replication_radius = 1;
 		    }
 		  

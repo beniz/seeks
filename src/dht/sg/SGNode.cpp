@@ -19,16 +19,19 @@
  */
 
 #include "SGNode.h"
+#include "SGVirtualNode.h"
 #include "l2_protob_rpc_server.h"
 #include "l2_protob_rpc_client.h"
+#include "errlog.h"
+
+using sp::errlog;
 
 namespace dht
 {
    std::string SGNode::_sg_config_filename = "";
    
-   SGNode::SGNode(const char *net_addr, const short &net_port,
-		  const bool &generate_vnodes)
-     :DHTNode(net_addr,net_port,generate_vnodes,false)
+   SGNode::SGNode(const char *net_addr, const short &net_port)
+     :DHTNode(net_addr,net_port,false)
      {
 	if (SGNode::_sg_config_filename.empty())
 	  {
@@ -43,8 +46,9 @@ namespace dht
 	  reset_vnodes_dependent(); // resets data that is dependent on virtual nodes.
 	
 	/* init server. */
-	init_server();
-	_l1_server->run_thread();
+	start_node();
+	//init_server();
+	//_l1_server->run_thread();
 	
 	/* init sweeper. */
 	sg_sweeper::init(&_sgmanager);
@@ -54,6 +58,17 @@ namespace dht
      {
      }
    
+   DHTVirtualNode* SGNode::create_vnode()
+     {
+	return new SGVirtualNode(this);
+     }
+      
+   DHTVirtualNode* SGNode::create_vnode(const DHTKey &idkey,
+					LocationTable *lt)
+     {
+	return new SGVirtualNode(this,idkey,lt);
+     }
+      
    void SGNode::init_server()
      {
 	_l1_server = new l2_protob_rpc_server(_l1_na.getNetAddress(),_l1_na.getPort(),this);
@@ -130,10 +145,42 @@ namespace dht
 				    const bool &sdiff,
 				    int &status)
      {
-	//TODO: verify that sender address is non empty (empty means either not divulged, 
+	// verify that sender address is non empty (empty means either not divulged, 
 	// either fake, eliminated by server).
-	//TODO: if no peer in searchgroup, simply update the replication radius.
-	
+	if (sender.empty())
+	  {
+	     errlog::log_error(LOG_LEVEL_DHT,"rejected replication call with empty sender address");
+	     return DHT_ERR_SENDER_ADDR;
+	  }
+		 
+	// if no peer in searchgroup, simply update the replication radius.
+	int sgs_size = sgs.size();
+	for (int i=0;i<sgs_size;i++)
+	  {
+	     Searchgroup *sg = sgs.at(i);
+	     if (sg->_hash_subscribers.empty())
+	       {
+		  //TODO: locate search group.
+		  Searchgroup *lsg = _sgmanager.find_sg(&sg->_idkey);
+		  if (!lsg)
+		    {
+		       
+		    }
+		  		  
+		  //TODO: update replication status.
+		  //lsg->_replication_level = ;
+	       }
+	     else
+	       {
+		  //TODO: add sg to local db if replication level is 0.
+		  if (sg->_replication_level == 0)
+		    _sgmanager.add_sg_db(sg);
+		  else
+		    {
+		       //TODO: add to replicated db.
+		    }
+	       }
+	  }
      }
    
 } /* end of namespace. */

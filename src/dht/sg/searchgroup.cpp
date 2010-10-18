@@ -38,7 +38,22 @@ namespace dht
 	  _last_time_of_use = _creation_time;
 	  mutex_init(&_sg_mutex);
        }
-   
+
+   Searchgroup::Searchgroup(const Searchgroup &sg)
+     :sweepable(),_idkey(sg._idkey),
+      _creation_time(sg._creation_time),_last_time_of_use(sg._last_time_of_use),
+      _lock(false),_replication_level(sg._replication_level)
+       {
+	  hash_map<const DHTKey*,Subscriber*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+	    = sg._hash_subscribers.begin();
+	  while(hit!=sg._hash_subscribers.end())
+	    {
+	       Subscriber *su = new Subscriber(*(*hit).second);
+	       add_subscriber(su);
+	       ++hit;
+	    }
+       }
+      
    Searchgroup::~Searchgroup()
      {
 	hash_map<const DHTKey*,Subscriber*,hash<const DHTKey*>,eqdhtkey>::iterator hit
