@@ -5,8 +5,8 @@ test_rpc_server_SOURCES=test-rpc-server.cpp
 test_rpc_client_SOURCES=test-rpc-client.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
-            -I../ -I../../ -I../../protob -I../protob -I../../../utils -I../../../proxy \
-	    -I../../sg -I../../sg/rpc -I../../sg/protob `pkg-config --cflags protobuf` \
+            -I${srcdir}/.. -I${srcdir}/../../ -I${srcdir}/../../protob -I${srcdir}/../protob -I${srcdir}/../../../utils -I${srcdir}/../../../proxy \
+	    -I${srcdir}/../../sg -I${srcdir}/../../sg/rpc -I${srcdir}/../../sg/protob `pkg-config --cflags protobuf` \
             `pkg-config --cflags tokyocabinet`
 AM_LDFLAGS=-L../ -L../../ -L../../protob -L../protob -L../../../utils \
 	   -L../../../proxy -L../../../lsh -L../../sg -L../../sg/rpc -L../../sg/protob \
