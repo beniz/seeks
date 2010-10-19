@@ -82,6 +82,7 @@ namespace seeks_plugins
 	bool _show_node_ip; /**< whether to show the node IP address when rendering the info bar. */
 	bool _personalization; /**< whether to use personalized ranking. */
 	std::string _result_message; /**< configurable message / warning to appear in a panel next to the results. */
+	bool _dyn_ui; /**< user interface default, dynamic or static. */
      };
    
 } /* end of namespace. */

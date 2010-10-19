@@ -25,6 +25,7 @@
 #include "urlmatch.h"
 #include "plugin_manager.h" // for _plugin_repository.
 #include "seeks_proxy.h" // for _datadir.
+#include "json_renderer.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture_configuration.h"
@@ -231,46 +232,8 @@ namespace seeks_plugins
       miscutil::replace_in_string(archive,"\"","\\\"");
       json_str += "\"archive\":\"" + archive + "\",";
       json_str += "\"engines\":[";
-      std::string json_str_eng = "";
-      if (_engine.to_ulong()&SE_GOOGLE)
-        json_str_eng += "\"google\"";
-      if (_engine.to_ulong()&SE_CUIL)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"cuil\"";
-        }
-      if (_engine.to_ulong()&SE_BING)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"bing\"";
-        }
-      if (_engine.to_ulong()&SE_YAUBA)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"yauba\"";
-        }
-      if (_engine.to_ulong()&SE_YAHOO)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"yahoo\"";
-        }
-      if (_engine.to_ulong()&SE_EXALEAD)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"exalead\"";
-        }
-      if (_engine.to_ulong()&SE_TWITTER)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += " ";
-          json_str_eng += "\"twitter\"";
-        }
-      json_str += json_str_eng + "]";
+      json_str += json_renderer::render_engines(_engine);
+      json_str += "]";
       if (thumbs)
         json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
        std::vector<std::string> words;
@@ -391,14 +354,14 @@ namespace seeks_plugins
           miscutil::replace_in_string(ggle_se_icon,"seeng","google");
           html_content += ggle_se_icon;
         }
-      if (_engine.to_ulong()&SE_CUIL)
+       /* if (_engine.to_ulong()&SE_CUIL)
         {
           std::string cuil_se_icon = se_icon;
           miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
           miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
           miscutil::replace_in_string(cuil_se_icon,"seeng","cuil");
           html_content += cuil_se_icon;
-        }
+        } */
       if (_engine.to_ulong()&SE_BING)
         {
           std::string bing_se_icon = se_icon;

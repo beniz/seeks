@@ -26,6 +26,10 @@ namespace seeks_plugins
    
    class dynamic_renderer
      {
+      private:
+	static void render_rpp(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
+      
       public:
 	static sp_err render_result_page(client_state *csp, http_response *rsp,
 					 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);

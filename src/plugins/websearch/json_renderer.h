@@ -27,6 +27,8 @@ namespace seeks_plugins
    class json_renderer
      {
       public:
+	static std::string render_engines(const std::bitset<NSEs> &engines);
+	
 	static sp_err render_snippets(const std::string &query_clean,
 				      const int &current_page,
 				      const std::vector<search_snippet*> &snippets,

@@ -21,6 +21,7 @@
 #include "cgi.h"
 #include "seeks_proxy.h"
 #include "plugin_manager.h"
+#include "websearch.h"
 #include "errlog.h"
 
 using sp::cgi;
@@ -30,7 +31,16 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-   
+
+   void dynamic_renderer::render_rpp(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+     {
+	const char *rpp_str = miscutil::lookup(parameters,"rpp");
+	if (rpp_str)
+	  miscutil::add_map_entry(exports,"$xxrpp",1,rpp_str,1);
+	else miscutil::add_map_entry(exports,"$xxrpp",1,miscutil::to_string(websearch::_wconfig->_Nr).c_str(),1);
+     }
+        
    sp_err dynamic_renderer::render_result_page(client_state *csp, http_response *rsp,
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
@@ -58,6 +68,8 @@ namespace seeks_plugins
 	static_renderer::render_clean_query(html_encoded_query,
 					    exports,query_clean);
 	
+	// results per page.
+	dynamic_renderer::render_rpp(parameters,exports);
 	
 	// rendering.
 	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),

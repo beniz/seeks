@@ -29,6 +29,44 @@ using sp::encode;
 
 namespace seeks_plugins
 {
+   std::string json_renderer::render_engines(const std::bitset<NSEs> &engines)
+     {
+	std::string json_str_eng = "";
+	if (engines.to_ulong()&SE_GOOGLE)
+	  json_str_eng += "\"google\"";
+	if (engines.to_ulong()&SE_BING)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"bing\"";
+	  }
+	 if (engines.to_ulong()&SE_YAUBA)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"yauba\"";
+	  }
+	if (engines.to_ulong()&SE_YAHOO)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"yahoo\"";
+	  }
+	if (engines.to_ulong()&SE_EXALEAD)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += ",";
+	     json_str_eng += "\"exalead\"";
+	  }
+	if (engines.to_ulong()&SE_TWITTER)
+	  {
+	     if (!json_str_eng.empty())
+	       json_str_eng += " ";
+	     json_str_eng += "\"twitter\"";
+	  }
+	return json_str_eng;	
+     }
+      
    sp_err json_renderer::render_snippets(const std::string &query_clean,
 					 const int &current_page,
 					 const std::vector<search_snippet*> &snippets,
@@ -159,8 +197,26 @@ namespace seeks_plugins
 	// language.
 	json_str += "\"lang\":\"" + qc->_auto_lang + "\",";
 	
-	// expansion
+	// personalization.
+	const char *prs = miscutil::lookup(parameters,"prs");
+	if (!prs || (miscutil::strcmpic(prs,"on")!=0 && miscutil::strcmpic(prs,"off")!=0))
+	  prs = websearch::_wconfig->_personalization ? "on" : "off";
+	json_str += "\"pers\":\"" + std::string(prs) + "\",";
+	
+	// expansion.
 	json_str += "\"expansion\":\"" + miscutil::to_string(qc->_page_expansion) + "\",";
+	
+	// suggestion.
+	if (!qc->_suggestions.empty())
+	  json_str += "\"suggestion\":\"" + qc->_suggestions.at(0) + "\",";
+	
+	// engines.
+	if (qc->_engines.to_ulong() > 0)
+	  {
+	     json_str += "\"engines\":[";
+	     json_str += json_renderer::render_engines(qc->_engines);	     
+	     json_str += "],";
+	  }
 	
 	// search snippets.
 	sp_err err = json_renderer::render_snippets(query_clean,current_page,snippets,json_str,parameters);

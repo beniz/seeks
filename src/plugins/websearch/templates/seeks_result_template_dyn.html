@@ -39,21 +39,23 @@
 <!-- if-not-have-clustering-end@ -->
 
 <!-- @if-have-one-column-results-head-start -->
-<div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
+<!-- <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div> -->
+<div id="search_pages"></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<!-- <div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div> -->
 <!-- if-have-clustered-results-head-end@ -->
 
 <a id="search_home" title="Home (ctrl+h)" href="@base-url@/websearch-hp/">&nbsp;</a>
 
-<div id="search_sugg">xxsugg</div>
+<div id="search_sugg"></div>
 
 <div id="search_bar_tab">
-<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span>xxlang</span>
-<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span>xxpers</span>
+<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span id="tab-language"></span>
+<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span id="tab-pers"></span>
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
-<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search text">Text</a>
+<!-- <a id="tab-text" class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search text">Text</a> -->
+<a id="tab-text" class="search_bar_tab" title="Search text">Text</a>
 <!-- @if-have-img-websearch-start -->
 <a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Search images">Images</a>
 <!-- if-have-img-websearch-end@ -->
@@ -79,15 +81,26 @@
 </div>
 
 <!-- @if-websearch-have-js-start -->
-<!-- <script type="text/javascript" src="@base-url@/public/yui/3.0.0/yui/yui-min.js"></script> -->
-<script type="text/javascript" src="http://yui.yahooapis.com/3.2.0/build/yui/yui-min.js"></script>
+<script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
+<!-- <script type="text/javascript" src="http://yui.yahooapis.com/3.2.0/build/yui/yui-min.js"></script> -->
 <script type="text/javascript">
 
 YUI().use("jsonp", "substitute", "transition", function (Y) {
- 
+
+    // page information.
+    function page_info()
+    {    
+	this.rpp = xxrpp;  // results per page.
+	this.cpage = 1;  // current page.
+	this.engines = '';
+    }
+    var pi = new page_info();
+
     var url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
-    var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expand");
+    var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expand"), suggDiv = Y.one("#search_sugg"),
+    pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persSpan = Y.one("#tab-pers"),
+    textHref = Y.one("#tab-text");
     
     var resultsWidget;
         
@@ -130,16 +143,56 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		}
 		outputDiv.setContent(snippets_html);
 	    
-		//TODO: render first shot search bar, then update it later on with JSON info.
-		response.nexpn = eval(response.expansion) + 1;
-		var expansionHtml = Y.substitute(expansionTemplate, response);
-		expansionLnk.setContent(expansionHtml);
+		// engines.
+		pi.engines = response.engines;
 
-		//TODO: compute page + results per page.
+		// compute page number.
+		var ns = response.snippets.length;
+		var max_page = 1;
+		if (ns > 0)
+		    max_page = pi.rpp / ns;
+		pi.ppage = pi.cpage - 1;
+		pi.npage = pi.cpage + 1;
+		if (pi.cpage > 1)
+		{
+		    pi.prev = '<a href=\"' + @base-url@ + '/search?page=' + pi.ppage + '&q='
+			+ response.enc_query + '&expansion' + response.expansion + '&action=page&engines=' + pi.engines
+			+ '&rpp=' + pi.rpp + '&content_analysis=off&prs=on \" id=\"search_page_prev\" title=\"Previous (ctrl+&lt)\">&nbsp;</a>';
+		}
+		else pi.prev = "";
+		if (pi.cpage < max_page)
+		{
+		    pi.next = '<a href=\"' + @base-url@ + '/search?page=' + pi.npage + '&q='
+			+ response.enc_query + '&expansion' + response.expansion + '&action=page&engines=' + pi.engines
+                        + '&rpp=' + pi.rpp + '&content_analysis=off&prs=on \" id=\"search_page_next\" title=\"Next (ctrl+&gt)\">&nbsp;</a>';
+		}
+		else pi.next = "";
+		pagesHTML = Y.substitute(pagesTemplate,pi);
+		pagesDiv.setContent(pagesHTML);
 		
-		//TODO: engines.
+		// render first shot search bar, then update it later on with JSON info.                                                              
+                response.nexpn = eval(response.expansion) + 1;
+		response.cpage = pi.cpage; // XXX: can't find how to pass either two objects, or embed object pi into response and still substitute...
+                response.rpp = pi.rpp; // XXX: idem...
+		var expansionHtml = Y.substitute(expansionTemplate, response);
+                expansionLnk.setContent(expansionHtml);
+		
+		// personalization.
+		var persHTML = Y.substitute(persTemplate, response);
+		persSpan.setContent(persHTML);
 
 		//TODO: content analysis...
+
+		// render language.
+		var langHTML = Y.substitute(langTemplate, response);
+		langSpan.setContent(langHTML);
+
+		// query suggestion.
+		suggDiv.setContent(response.suggestion);
+	    
+		// text search.
+		var textHTML = Y.substitute(textTemplate, response);
+		textHref.set('href',textHTML);
 	    },
 	    
 	    failure: function () {
@@ -157,7 +210,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
         '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
 	'<div>{summary}</div>' +
 	'<div><cite>{cite}</cite>' +
-	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>';
+	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>'; //TODO: expansion.
  
     resultsWidget.failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
@@ -167,7 +220,24 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
  
     /* expansion button rendering. */
     expansionTemplate = 
-	'<a href="@base-url@/search?q={enc_query}&amp;page=xxpage&amp;expansion={nexpn}&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to {nexpn} (ctrl+e). Deeper search." id="expansion" class="expansion_{nexpn}">{expansion}</a>'
+	'<a href="@base-url@/search?q={enc_query}&page={cpage}&expansion={nexpn}&action=expand&engines={engines}&rpp={rpp}&content_analysis=xxca&prs=pers" title="Expand to {nexpn} (ctrl+e). Deeper search." id="expansion" class="expansion_{expansion}">{expansion}</a>';
+
+    /* prev / next page rendering. */
+    pagesTemplate = 
+	'{prev}<span id="search_page_current">{cpage}</span>{next}<small>page</small>';
+    
+    /* language rendering. */
+    langTemplate = '{lang}';
+    
+    /* personalization rendering. */
+    persTemplate = '{pers}';
+
+    /* TODO: render Text search button. */
+    textTemplate = '@base-url@/search?q={enc_query}&page={cpage}&expansion={expansion}&action=expand&prs={pers}&content_analysis=xxca';
+
+    /* TODO: render Images search button. */
+
+    // ...
 
     // Click the search button to send the JSONP request
     /* Y.one("#search_button").on("click", function (e) {
