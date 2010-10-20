@@ -441,7 +441,7 @@ namespace seeks_plugins
      {
 	if (!not_end)
 	  {
-	     miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
+	     miscutil::add_map_entry(exports,"$xxnext",1,strdup("<a id=\"search_page_end\">&nbsp;</a>"),0);
 	     return;
 	  }
 		
@@ -476,7 +476,7 @@ namespace seeks_plugins
 	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
-	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
+	else miscutil::add_map_entry(exports,"$xxnext",1,strdup("<a id=\"search_page_end\">&nbsp;</a>"),0);
      }
       
    void static_renderer::render_prev_page_link(const int &current_page,

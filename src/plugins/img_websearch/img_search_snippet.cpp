@@ -108,7 +108,7 @@ namespace seeks_plugins
 	std::string html_content = "<li class=\"search_snippet search_snippet_img\"";
 	html_content += ">";
 	
-	html_content += "<h3><a href=\"";
+	html_content += "<a href=\"";
 	html_content += url + "\"><img src=\"";
 	html_content += _cached;
 	html_content += "\"></a><div>";
@@ -164,7 +164,7 @@ namespace seeks_plugins
 	     html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
 	  }
 	else */
-	html_content += "</h3><div>";
+	html_content += "<div>";
 	const char *cite_enc = NULL;
 	if (!_cite.empty())
 	  {

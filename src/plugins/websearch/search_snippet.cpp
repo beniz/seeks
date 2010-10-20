@@ -524,7 +524,61 @@ namespace seeks_plugins
                           + _url + "&amp;q=" + _qc->_query;
           html_content += " \">Quick link</a>";
         }
-
+        
+      // snippet type rendering
+      if (_doc_type != REJECTED)
+	 {
+	    const char *engines = miscutil::lookup(parameters,"engines");
+	    html_content += "<a class=\"search_cache\" href=\"";
+	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query + "&amp;expansion=xxexp&amp;action=types&amp;engines=";
+	    if (engines)
+	      html_content += std::string(engines);
+	    html_content += " \"> ";
+	    switch (_doc_type)
+	      {
+	       case UNKNOWN: 
+		 html_content += "";
+		 break;
+	       case WEBPAGE: 
+		 html_content += "Webpage";
+		 break;
+	       case FORUM: 
+		 html_content += "Forum";
+		 break;
+	       case FILE_DOC: 
+		 html_content += "Document file";
+		 break;
+	       case SOFTWARE: 
+		 html_content += "Software";
+		 break;
+	       case IMAGE: 
+		 html_content += "Image";
+		 break;
+	       case VIDEO: 
+		 html_content += "Video";
+		 break;
+	       case VIDEO_THUMB: 
+		 html_content += "Video";
+		 break;
+	       case AUDIO: 
+		 html_content += "Audio";
+		 break;
+	       case CODE: 
+		 html_content += "Code";
+		 break;
+	       case NEWS: 
+		 html_content += "News";
+		 break;
+	       case TWEET: 
+		 html_content += "Tweet";
+		 break;
+	       case WIKI: 
+		 html_content += "Wiki";
+		 break;
+	      }
+	    html_content += "</a>";                
+	 }
+       
       html_content += "</div></li>\n";
 
       /* std::cout << "html_content:\n";

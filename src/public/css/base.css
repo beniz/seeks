@@ -18,8 +18,11 @@ h3 { font-size: 130%; }
 h2 { font-size: 145%; }
 h1 { font-size: 150%; }
 
+
+
 a {
 	color: #256611;
+	text-decoration:none;
 }
 
 em {
@@ -31,17 +34,20 @@ strong {
 }
 
 #info-head {
+	float:right;
 	position: fixed;
+	/*bottom: 0px;*/
 	top: 0px;
-	left: 0px;
+	right: 0px;
 	height: 16px;
 	font-size: 10px;
-	width: 100%;
+	/*width: 100%;*/
+	
 	padding: 0px;
 	margin: 0px;
 	text-align: right;
-	background-color: #dddddd;
-	color: white;
+	/*background-color: #cacaca;*/
+	color: grey;
 }
 
 #info-head strong {

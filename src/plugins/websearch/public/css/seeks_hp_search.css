@@ -7,7 +7,7 @@
 	margin-left: auto;
 	width: 394px;
 	height: 177px;
-	background-image: url(/plugins/websearch/public/images/search_form_hp.png);
+	background-image: url(base-url/plugins/websearch/public/images/theme1/search_form_hp.png);
 }
 
 #search_input, #search_button {
