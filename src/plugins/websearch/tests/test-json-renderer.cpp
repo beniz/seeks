@@ -17,11 +17,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  **/
 
+#define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
+#include <gtest/gtest.h>
+
 #include "json_renderer.h"
 
 using namespace seeks_plugins;
 
+TEST(JsonRendererTest, render_engines) {
+  EXPECT_EQ("\"yahoo\"", json_renderer::render_engines(SE_YAHOO));
+}
+
 int main(int argc, char **argv)
 {
-  json_renderer::render_engines(YAHOO);
+  ::testing::InitGoogleTest(&argc, argv);
+  RUN_ALL_TESTS();
 }
