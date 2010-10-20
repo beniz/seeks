@@ -1,3 +1,10 @@
+check_PROGRAMS = 
+
+check_PROGRAMS += test_json_renderer
+test_json_renderer_SOURCES = test-json-renderer.cpp
+
+TESTS = $(check_PROGRAMS)
+
 noinst_PROGRAMS=test_ggle_parser test_bing_parser test_cuil_parser test_yahoo_parser test_exalead_parser \
 	        test_html_txt_parser test_twitter_parser test_youtube_parser test_dailymotion_parser test_yauba_parser
 
@@ -20,7 +27,7 @@ if HAVE_TC
 AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 endif
 endif
-AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht 
+AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_LDFLAGS += -L../../query_capture -L../../cf `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
@@ -35,4 +42,5 @@ if HAVE_TC
 LDADD += -lquerycaptureplugin -lcfplugin -lseeksuserdb
 endif
 endif
-LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz @LCOV_LIBS@
+
