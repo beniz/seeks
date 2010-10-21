@@ -117,13 +117,21 @@ TEST(JsonRendererTest, render_clustered_snippets) {
   s2.set_url("URL2");
   context.add_to_unordered_cache(&s2);
   clusters[1].add_point(s2._id, NULL);
+  search_snippet s3;
+  s3.set_url("URL3");
+  context.add_to_unordered_cache(&s3);
+  clusters[1].add_point(s3._id, NULL);
   clusters[1]._label = "CLUSTER2";
+
+  parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
 
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 2, &context, json_str, &parameters));
   EXPECT_NE(std::string::npos, json_str.find(clusters[0]._label));
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
   EXPECT_NE(std::string::npos, json_str.find(clusters[1]._label));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
+  EXPECT_NE(std::string::npos, json_str.find(s3._url));
+  EXPECT_EQ("", json_str);
 }
 
 TEST(JsonRendererTest, render_json_results) {
