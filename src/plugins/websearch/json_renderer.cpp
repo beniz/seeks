@@ -61,7 +61,7 @@ namespace seeks_plugins
 	if (engines.to_ulong()&SE_TWITTER)
 	  {
 	     if (!json_str_eng.empty())
-	       json_str_eng += " ";
+	       json_str_eng += ",";
 	     json_str_eng += "\"twitter\"";
 	  }
 	return json_str_eng;	
