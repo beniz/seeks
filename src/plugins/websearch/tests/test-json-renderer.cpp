@@ -96,6 +96,36 @@ TEST(JsonRendererTest, render_snippets) {
   ASSERT_EQ(std::string::npos, json_str.find(s3._url));
 }
 
+TEST(JsonRendererTest, render_clustered_snippets) {
+  websearch::_wconfig = new websearch_configuration("not a real filename");
+  query_context context;
+  cluster clusters[2];
+
+  std::string json_str;
+
+  std::vector<search_snippet*> snippets;
+  const std::string query_clean;
+  hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
+  
+  search_snippet s1;
+  s1.set_url("URL1");
+  context.add_to_unordered_cache(&s1);
+  clusters[0].add_point(s1._id, NULL);
+  clusters[0]._label = "CLUSTER1";
+
+  search_snippet s2;
+  s2.set_url("URL2");
+  context.add_to_unordered_cache(&s2);
+  clusters[1].add_point(s2._id, NULL);
+  clusters[1]._label = "CLUSTER2";
+
+  ASSERT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 2, &context, json_str, &parameters));
+  ASSERT_NE(std::string::npos, json_str.find(clusters[0]._label));
+  ASSERT_NE(std::string::npos, json_str.find(s1._url));
+  ASSERT_NE(std::string::npos, json_str.find(clusters[1]._label));
+  ASSERT_NE(std::string::npos, json_str.find(s2._url));
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
