@@ -1,3 +1,13 @@
+check_PROGRAMS = 
+
+check_PROGRAMS += ut_miscutil
+ut_miscutil_SOURCES = ut-miscutil.cpp
+ut_miscutil_CPPFLAGS = $(GTEST_CPPFLAGS) $(AM_CPPFLAGS)
+ut_miscutil_LDFLAGS = $(GTEST_LDFLAGS) -L.
+ut_miscutil_LDADD = $(GTEST_LIBS) -lseeksutils
+
+TESTS = $(check_PROGRAMS)
+
 lib_LTLIBRARIES=libseeksutils.la librmd160.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/../proxy
