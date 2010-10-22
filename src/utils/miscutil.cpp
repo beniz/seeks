@@ -1137,6 +1137,16 @@ uint32_t miscutil::hash_string(const char * data, uint32_t len)
    
    return hash;
 }
+
+std::string miscutil::join_string_list(const std::string& delim, const std::list<std::string>& l) {
+  std::string result;
+  for (std::list<std::string>::const_iterator i = l.begin (), e = l.end (); i != e; ++i) {
+    if (i != l.begin())
+      result.append(delim);
+    result.append(i->c_str());
+  }
+  return result;
+}
    
 } /* end of namespace. */
    
