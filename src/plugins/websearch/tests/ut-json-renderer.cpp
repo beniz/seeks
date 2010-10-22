@@ -85,6 +85,16 @@ TEST(JsonRendererTest, render_snippets) {
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_EQ(std::string::npos, json_str.find(s3._url));
 
+  // 3 snippets, page 1, 2 result per page, second snippet rejected, thumbs on
+  current_page = 1;
+  s1._doc_type = REJECTED;
+  json_str = "";
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  EXPECT_EQ(std::string::npos, json_str.find(s1._url));
+  EXPECT_NE(std::string::npos, json_str.find(s2._url));
+  EXPECT_NE(std::string::npos, json_str.find(s3._url));
+  s1._doc_type = WEBPAGE;
+
   // 3 snippets, page 1, 2 result per page, similarity on, thumbs on
   current_page = 1;
   s1._seeks_ir = 1.0;
@@ -92,7 +102,6 @@ TEST(JsonRendererTest, render_snippets) {
   s3._seeks_ir = 1.0;
   json_str = "";
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
-  //EXPECT_EQ("\"snippets\":[]", json_str); // REMOVE ME DEBUG 
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
   EXPECT_EQ(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
@@ -101,7 +110,7 @@ TEST(JsonRendererTest, render_snippets) {
 TEST(JsonRendererTest, render_clustered_snippets) {
   websearch::_wconfig = new websearch_configuration("not a real filename");
   query_context context;
-  cluster clusters[2];
+  cluster clusters[3];
 
   std::string json_str;
 
@@ -125,14 +134,17 @@ TEST(JsonRendererTest, render_clustered_snippets) {
   clusters[1].add_point(s3._id, NULL);
   clusters[1]._label = "CLUSTER2";
 
+  clusters[2]._label = "CLUSTER3";
+
   parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
 
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 2, &context, json_str, &parameters));
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 3, &context, json_str, &parameters));
   EXPECT_NE(std::string::npos, json_str.find(clusters[0]._label));
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
   EXPECT_NE(std::string::npos, json_str.find(clusters[1]._label));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
+  EXPECT_EQ(std::string::npos, json_str.find(clusters[2]._label));
 }
 
 TEST(JsonRendererTest, render_json_results) {
