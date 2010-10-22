@@ -1,0 +1,68 @@
+AM_CPPFLAGS=
+AM_LDFLAGS=
+LDADD=
+
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_CPPFLAGS += \
+	-I$(top_builddir)/src/plugins/query_capture \
+	-I$(top_builddir)/src/plugins/cf \
+	-I$(top_builddir)/src/plugins/websearch
+
+AM_LDFLAGS += \
+	-L$(top_builddir)/src/plugins/query_capture \
+	-L$(top_builddir)/src/plugins/cf \
+	-L$(top_builddir)/src/plugins/websearch
+
+LDADD += \
+	-lquerycaptureplugin \
+	-lcfplugin \
+	-lseekswebsearchplugin
+endif
+endif
+
+if HAVE_PROTOBUF
+if HAVE_TC
+AM_CPPFLAGS += \
+	`pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+
+AM_LDFLAGS += \
+	`pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+
+LDADD += \
+	-lseeksuserdb
+endif
+endif
+
+AM_CPPFLAGS += \
+	     -Wall -g -Wno-deprecated -pipe \
+	     -I${srcdir} \
+	     -I${srcdir}/.. \
+	     -I${top_srcdir}/src/dht \
+	     -I${top_srcdir}/src/lsh \
+	     -I${top_srcdir}/src/proxy \
+	     -I${top_srcdir}/src/utils \
+	     @PCRE_CFLAGS@ \
+	     @XML2_CFLAGS@ \
+	     $(GTEST_CPPFLAGS)
+
+AM_LDFLAGS += \
+        -L.. \
+	-L$(top_builddir)/src/dht \
+	-L$(top_builddir)/src/lsh \
+	-L$(top_builddir)/src/proxy \
+	-L$(top_builddir)/src/utils \
+	$(GTEST_LDFLAGS)
+
+LDADD += \
+	-lseeksdht \
+	-lseekslsh \
+	-lseeksproxy \
+	-lseeksplugins \
+	-lseeksutils \
+	-lseeksplugins \
+	-lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
+
+if USE_PERL
+AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
+endif

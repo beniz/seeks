@@ -700,7 +700,8 @@ src/plugins/blocker/Makefile \
 src/plugins/uri_capture/Makefile \
 src/plugins/query_capture/Makefile \
 src/plugins/cf/Makefile \
-src/utils/Makefile)
+src/utils/Makefile \
+src/utils/tests/Makefile)
 
 AC_OUTPUT
 

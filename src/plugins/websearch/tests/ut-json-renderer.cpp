@@ -160,7 +160,7 @@ TEST(JsonRendererTest, render_json_results) {
   // select page 1
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP("));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
@@ -200,11 +200,12 @@ TEST(JsonRendererTest, render_clustered_json_results) {
 
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(clusters, 1, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP("));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
+  std::cout << rsp->_body << std::endl;
   delete rsp;
 }
 
