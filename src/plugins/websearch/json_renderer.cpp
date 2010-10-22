@@ -199,7 +199,7 @@ namespace seeks_plugins
 	 std::list<std::string> results;
 	 collect_json_results(results,parameters,qc,qtime);
 	 results.push_back(json_snippets);
-	 const std::string results_string = miscutil::join_string_list(",",results);
+	 const std::string results_string = "{" + miscutil::join_string_list(",",results) + "}";
 	 const std::string body = jsonp(results_string, miscutil::lookup(parameters,"callback"));
 	 response(rsp, body);
 	
@@ -222,7 +222,7 @@ namespace seeks_plugins
 	 std::list<std::string> results;
 	 collect_json_results(results,parameters,qc,qtime);
 	 results.push_back(json_snippets);
-	 const std::string results_string = miscutil::join_string_list(",",results);
+	 const std::string results_string = "{" + miscutil::join_string_list(",",results) + "}";
 	 const std::string body = jsonp(results_string, miscutil::lookup(parameters,"callback"));
 	 response(rsp, body);
 	
