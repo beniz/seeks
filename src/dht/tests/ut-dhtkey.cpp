@@ -34,7 +34,7 @@ TEST(DHTKeyTest, shift_and_rstring)
    mask <<= KEYNBITS-1;
    std::string rstring = mask.to_rstring();
    std::cout << "mask: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"8000000000000000000000000000000000000000");
+   ASSERT_EQ("8000000000000000000000000000000000000000",rstring);
 }
 
 TEST(DHTKeyTest, add_and_rstring)
@@ -45,25 +45,25 @@ TEST(DHTKeyTest, add_and_rstring)
    DHTKey dhtk1(std::string("10"));
    std::string rstring = dhtk1.to_rstring();
    std::cout << "dhtk1: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000002");
+   ASSERT_EQ("0000000000000000000000000000000000000002",rstring);
       
    rstring = (mask + dhtk1).to_rstring();
    std::cout << "testing add: mask + dhtk1: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"8000000000000000000000000000000000000002");
+   ASSERT_EQ("8000000000000000000000000000000000000002",rstring);
    
    rstring = (dhtk1 + dhtk1).to_rstring();
    std::cout << "testing add: dhtk1 + dhtk1: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000004");
+   ASSERT_EQ("0000000000000000000000000000000000000004",rstring);
    
    rstring = (mask + mask).to_rstring();
    std::cout << "testing add: mask + mask: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000000");
+   ASSERT_EQ("0000000000000000000000000000000000000000",rstring);
    
    DHTKey dhtk2 (std::string("110"));
    std::cout << "dhtk2: " << dhtk2 << std::endl;
    rstring = (dhtk1 + dhtk2).to_rstring();
    std::cout << "testing add: dhtk1 + dhtk2: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000008");
+   ASSERT_EQ("0000000000000000000000000000000000000008",rstring);
 }
 
 TEST(DHTKeyTest, increment_and_rstring)
@@ -71,11 +71,11 @@ TEST(DHTKeyTest, increment_and_rstring)
    DHTKey dhtk1(std::string("10"));
    std::cout << "testing inc: dhtk1++: " << ++dhtk1 << std::endl;
    std::string rstring = dhtk1.to_rstring();
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000003");
+   ASSERT_EQ("0000000000000000000000000000000000000003",rstring);
    DHTKey un(1);
    std::cout << "testing inc: un++: " << ++un << std::endl;
    rstring = un.to_rstring();
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000002");
+   ASSERT_EQ("0000000000000000000000000000000000000002",rstring);
 }
 
 TEST(DHTKeyTest, decrement_and_rstring)
@@ -84,12 +84,12 @@ TEST(DHTKeyTest, decrement_and_rstring)
    ++un;
    std::cout << "testing dec: un--: " << --un << std::endl;
    std::string rstring = un.to_rstring();
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000001");
+   ASSERT_EQ("0000000000000000000000000000000000000001",rstring);
    
    DHTKey dhtk2 (std::string("110"));
    std::cout << "testing dec: dhtk2--: " << --dhtk2 << std::endl;
    rstring = dhtk2.to_rstring();
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000005");
+   ASSERT_EQ("0000000000000000000000000000000000000005",rstring);
 }
 
 TEST(DHTKeyTest, substract_and_rstring)
@@ -97,18 +97,18 @@ TEST(DHTKeyTest, substract_and_rstring)
    DHTKey dhtk1(std::string("11"));
    std::string rstring = (dhtk1 - dhtk1).to_rstring();
    std::cout << "testing minus: dhtk1 - dhtk1: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000000");
+   ASSERT_EQ("0000000000000000000000000000000000000000",rstring);
    
    DHTKey dhtk2 (std::string("101"));
    rstring = (dhtk2 - dhtk1).to_rstring();
    std::cout << "testing minus: dhtk2 - dhtk1: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"0000000000000000000000000000000000000002");
+   ASSERT_EQ("0000000000000000000000000000000000000002",rstring);
    
    std::cout << "dhtk1: " << dhtk1 << std::endl;
    std::cout << "dhtk2: " << dhtk2 << std::endl;
    rstring = (dhtk1 - dhtk2).to_rstring();
    std::cout << "testing minus: dhtk1 - dhtk2: " << rstring << std::endl;
-   ASSERT_EQ(rstring,"fffffffffffffffffffffffffffffffffffffffe");
+   ASSERT_EQ("fffffffffffffffffffffffffffffffffffffffe",rstring);
 }
 
 TEST(DHTKeyTest, comparisons)
@@ -118,23 +118,23 @@ TEST(DHTKeyTest, comparisons)
    DHTKey un(1);
    bool t;
    std::cout << "testing comparisons: dhtk2 < dhtk1: " << (t = (dhtk2 < dhtk1)) << std::endl;
-   ASSERT_EQ(t,false);
+   ASSERT_EQ(false,t);
    std::cout << "testing comparisons: dhtk2 <= dhtk2: " << (t=(dhtk2 <= dhtk2)) << std::endl;
-   ASSERT_EQ(t,true);
+   ASSERT_EQ(true,t);
    std::cout << "testing comparisons: dhtk2 > dhtk1: " << (t=(dhtk2 > dhtk1)) << std::endl;
-   ASSERT_EQ(t,true);
+   ASSERT_EQ(true,t);
    std::cout << "testing comparisons: dhtk2 >= dhtk2: " << (t=(dhtk2 >= dhtk2)) << std::endl;
-   ASSERT_EQ(t,true);
+   ASSERT_EQ(true,t);
    std::cout << "testing comparisons: dhtk2 == dhtk2: " << (t=(dhtk2 == dhtk2)) << std::endl;
-   ASSERT_EQ(t,true);
+   ASSERT_EQ(true,t);
    std::cout << "testing comparisons: dhtk1 != dhtk2: " << (t=(dhtk1 != dhtk2)) << std::endl;
-   ASSERT_EQ(t,true);
+   ASSERT_EQ(true,t);
    std::cout << "testing comparisons: dhtk1 == dhtk2: " << (t=(dhtk1 == dhtk2)) << std::endl;
-   ASSERT_EQ(t,false);
+   ASSERT_EQ(false,t);
    std::cout << "testing comparisons: dhtk1 between un and dhtk2: " << (t=(dhtk1.between(un,dhtk2))) << std::endl;
-   ASSERT_EQ(t,true);
+   ASSERT_EQ(true,t);
    std::cout << "testing comparisons: dhtk2 between un and dhtk1: " << (t=(dhtk2.between(un,dhtk1))) << std::endl;
-   ASSERT_EQ(t,false);
+   ASSERT_EQ(false,t);
 }
 
 TEST(DHTKeyTest, successor_and_rstring)
@@ -142,11 +142,11 @@ TEST(DHTKeyTest, successor_and_rstring)
    DHTKey dhtk1(std::string("11"));
    std::string rstring = dhtk1.successor(1).to_rstring();
    std::cout << "testing successor: dhtk1: + 2^1: " << rstring << std::endl;
-   assert(rstring == "0000000000000000000000000000000000000005");
+   ASSERT_EQ("0000000000000000000000000000000000000005",rstring);
    
    rstring = dhtk1.successor(6).to_rstring();
    std::cout << "testing successor: dhtk1: + 2^6: " << rstring << std::endl;
-   assert(rstring == "0000000000000000000000000000000000000043");
+   ASSERT_EQ("0000000000000000000000000000000000000043",rstring);
 }
 
 TEST(DHTKeyTest, predecessor_and_rstring)
@@ -154,25 +154,29 @@ TEST(DHTKeyTest, predecessor_and_rstring)
    DHTKey dhtk1(std::string("11"));
    std::string rstring = dhtk1.predecessor(1).to_rstring();
    std::cout << "testing predecessor: dhtk1: - 2^1: " << rstring << std::endl;
-   assert(rstring == "0000000000000000000000000000000000000001");
+   ASSERT_EQ("0000000000000000000000000000000000000001",rstring);
    
    rstring = dhtk1.predecessor(5).to_rstring();
    std::cout << "testing predecessor: dhtk1: - 2^5: " << rstring << std::endl;
-   assert(rstring == "ffffffffffffffffffffffffffffffffffffffe3");
+   ASSERT_EQ("ffffffffffffffffffffffffffffffffffffffe3",rstring);
 }
 
-/* std::cout << "testing RIPEMD-160 hashing:"; 
+/* std::cout << "testing RIPEMD-160 hashing:"; */
+
+TEST(DHTKeyTest, ripemd160)
+{
    char *me = (char*)"me@localhost";
    DHTKey::RMDstring(me,me);
-   std::cout << std::endl;
+   //std::cout << std::endl;
    DHTKey::RMDbits(me, me);
-   std::cout << std::endl;
+   //std::cout << std::endl;
    DHTKey res = DHTKey::hashKey(me);
-   rstring = res.to_rstring();
+   std::string rstring = res.to_rstring();
    std::cout << rstring << std::endl;
-   assert(rstring == "ffd9baab4f9869710e290f62c8aa7b79e05bdd90");
-   
-   std::cout << "testing random keys generation:\n";
+   ASSERT_EQ("b343435189b7c846938c3069c31a5165ed15a848",rstring);
+}
+
+/*   std::cout << "testing random keys generation:\n";
    for (unsigned int i=0; i<10; i++)
      std::cout << "#" << i << ":\n" << DHTKey::randomKey() << std::endl;
 
