@@ -333,7 +333,6 @@ namespace dht
       **/
      {
 	dword         MDbuf[RMDsize/32];   /* contains (A, B, C, D(, E))   */
-	//static byte   hashcode[RMDsize/8]; /* for final hash-value         */
 	dword         X[16];               /* current 16-word chunk        */
 	unsigned int  i;                   /* counter                      */
 	dword         length;              /* length in bytes of message   */
