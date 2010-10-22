@@ -21,8 +21,10 @@
 #include <gtest/gtest.h>
 
 #include "json_renderer.h"
+#include "json_renderer_private.h"
 
 using namespace seeks_plugins;
+using namespace json_renderer_private;
 
 TEST(JsonRendererTest, render_engines) {
   EXPECT_EQ("\"google\",\"bing\",\"yauba\",\"yahoo\",\"exalead\",\"twitter\"", json_renderer::render_engines(SE_GOOGLE|SE_BING|SE_YAUBA|SE_YAHOO|SE_EXALEAD|SE_TWITTER));
@@ -131,14 +133,12 @@ TEST(JsonRendererTest, render_clustered_snippets) {
   EXPECT_NE(std::string::npos, json_str.find(clusters[1]._label));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
-  EXPECT_EQ("", json_str);
 }
 
 TEST(JsonRendererTest, render_json_results) {
   websearch::_wconfig = new websearch_configuration("not a real filename");
   http_response* rsp;
   query_context context;
-  size_t snippets_pos;
   double qtime = 1234;
 
   std::vector<search_snippet*> snippets;
@@ -154,26 +154,15 @@ TEST(JsonRendererTest, render_json_results) {
   s2.set_url("URL2");
   snippets[1] = &s2;
   parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
-
+  parameters.insert(std::pair<const char*,const char*>("q", "<QUERY>"));
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
-  parameters.insert(std::pair<const char*,const char*>("q", ":CMD<QUERY>"));
-  context._auto_lang = "LANG";
 
   // select page 1
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_EQ(rsp->_content_length, strlen(rsp->_body));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"LANG\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP("));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"date\""));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"pers\":\"on\""));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
-  EXPECT_EQ(std::string::npos, std::string(rsp->_body).find("CMD"));
-  EXPECT_EQ(std::string::npos, std::string(rsp->_body).find("suggestion"));
-  snippets_pos = std::string(rsp->_body).find("snippets");
-  ASSERT_NE(std::string::npos, snippets_pos);
-  EXPECT_EQ(std::string::npos, std::string(rsp->_body).rfind("engines", snippets_pos));
-  EXPECT_EQ(std::string::npos, std::string(rsp->_body).find("\"yahoo\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_EQ(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
@@ -186,40 +175,115 @@ TEST(JsonRendererTest, render_json_results) {
   EXPECT_EQ(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
+}
+
+TEST(JsonRendererTest, render_clustered_json_results) {
+  websearch::_wconfig = new websearch_configuration("not a real filename");
+
+  cluster clusters[1];
+  http_response* rsp;
+  query_context context;
+  double qtime = 1234;
+
+  std::vector<search_snippet*> snippets;
+  const std::string query_clean;
+  hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
   
-  // prs precedence logic 
-  rsp = new http_response();
-  websearch::_wconfig->_personalization = false;
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"pers\":\"off\""));
-  delete rsp;
+  search_snippet s1;
+  s1.set_url("URL1");
+  context.add_to_unordered_cache(&s1);
+  clusters[0].add_point(s1._id, NULL);
+  clusters[0]._label = "CLUSTER1";
+
+  parameters.insert(std::pair<const char*,const char*>("q", "<QUERY>"));
+  parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
 
   rsp = new http_response();
-  parameters.insert(std::pair<const char*,const char*>("prs", "on"));
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"pers\":\"on\""));
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(clusters, 1, NULL, rsp, &parameters, &context, qtime));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP("));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
   delete rsp;
+}
+
+TEST(JsonRendererTest, response) {
+  http_response rsp;
+  response(&rsp, "JSON");
+  EXPECT_EQ(rsp._content_length, strlen(rsp._body));
+  EXPECT_STREQ("JSON", rsp._body);
+}
+
+TEST(JsonRendererTest, query_clean) {
+  std::string q(":CMD<QUERY>");
+  EXPECT_EQ("&lt;QUERY&gt;", query_clean(q));
+}
+
+TEST(JsonRendererTest, jsonp) {
+  std::string input("WHAT");
+  const char* callback = "CALLBACK";
+  EXPECT_EQ("CALLBACK(WHAT)", jsonp(input, callback));
+  EXPECT_EQ("WHAT", jsonp(input, NULL));
+}
+
+TEST(JsonRendererTest, collect_json_results) {
+  websearch::_wconfig = new websearch_configuration("not a real filename");
+  std::string result;
+  std::list<std::string> results;
+  query_context context;
+  double qtime = 1234;
+  hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
+
+  parameters.insert(std::pair<const char*,const char*>("q", ":CMD<QUERY>"));
+  context._auto_lang = "LANG";
+
+  // select page 1
+  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
+  result = miscutil::join_string_list(",", results);
+  EXPECT_NE(std::string::npos, std::string(result).find("\"LANG\""));
+  EXPECT_NE(std::string::npos, std::string(result).find("\"date\""));
+  EXPECT_NE(std::string::npos, std::string(result).find("\"qtime\":1234"));
+  EXPECT_NE(std::string::npos, std::string(result).find("\"pers\":\"on\""));
+  EXPECT_NE(std::string::npos, std::string(result).find("\"&lt;QUERY&gt;\""));
+  EXPECT_EQ(std::string::npos, std::string(result).find("CMD"));
+  EXPECT_EQ(std::string::npos, std::string(result).find("suggestion"));
+  EXPECT_EQ(std::string::npos, std::string(result).find("engines"));
+  EXPECT_EQ(std::string::npos, std::string(result).find("\"yahoo\""));
+
+  // prs precedence logic 
+  websearch::_wconfig->_personalization = false;
+  results.clear();
+  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
+  result = miscutil::join_string_list(",", results);
+  EXPECT_NE(std::string::npos, std::string(result).find("\"pers\":\"off\""));
+
+  parameters.insert(std::pair<const char*,const char*>("prs", "on"));
+  results.clear();
+  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
+  result = miscutil::join_string_list(",", results);
+  EXPECT_NE(std::string::npos, std::string(result).find("\"pers\":\"on\""));
 
   // suggestion
-  rsp = new http_response();
   context._suggestions.push_back("SUGGESTION1");
   context._suggestions.push_back("SUGGESTION2");
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("suggestion"));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("SUGGESTION1"));
-  EXPECT_EQ(std::string::npos, std::string(rsp->_body).find("SUGGESTION2"));
-  delete rsp;
+  results.clear();
+  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
+  result = miscutil::join_string_list(",", results);
+  EXPECT_NE(std::string::npos, std::string(result).find("suggestion"));
+  EXPECT_NE(std::string::npos, std::string(result).find("SUGGESTION1"));
+  EXPECT_EQ(std::string::npos, std::string(result).find("SUGGESTION2"));
 
   // engines
-  rsp = new http_response();
   context._engines = std::bitset<NSEs>(SE_YAHOO);
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"yahoo\""));
-  delete rsp;
+  results.clear();
+  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
+  result = miscutil::join_string_list(",", results);
+  EXPECT_NE(std::string::npos, std::string(result).find("\"yahoo\""));
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  RUN_ALL_TESTS();
+  return RUN_ALL_TESTS();
 }
