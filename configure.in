@@ -717,6 +717,9 @@ AC_MSG_NOTICE([Configured to build seeks:
  libevent:		  ${le_found}
  protobuf:                ${protobuf}
  tokyocabinet: 		  ${tokyocabinet}
+ 
+ Testing:
+ gtest                    ${with_gtest}
 
  Enabled plugins:
  image websearch:	  ${imgwebsearch}

@@ -210,7 +210,9 @@ namespace seeks_plugins
       json_str += "\"summary\":\"" + summary + "\",";
       json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
       json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
-      double rank = _rank / static_cast<double>(_engine.count());
+      double rank = 0.0;
+      if (_engine.to_ulong() > 0)
+	rank = _rank / static_cast<double>(_engine.count());
       json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
       json_str += "\"cite\":\"";
       if (!_cite.empty())

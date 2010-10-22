@@ -95,7 +95,8 @@ namespace seeks_plugins
 	     int rpp = websearch::_wconfig->_Nr;
 	     if (rpp_str)
 	       rpp = atoi(rpp_str);
-	     size_t snisize = snippets.size();
+	     size_t ssize = snippets.size();
+	     size_t snisize = ssize;
 	     size_t snistart = 0;
 	     if (current_page == 0) // page is not taken into account.
 	       {
@@ -105,15 +106,27 @@ namespace seeks_plugins
 		  snisize = std::min(current_page*rpp,(int)snippets.size());
 		  snistart = (current_page-1)*rpp;
 	       }
-	     for (size_t i=snistart;i<snisize;i++)
-	       {
-		  if (snippets.at(i)->_doc_type == REJECTED)
-		    continue;
-		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
-		    json_str += snippets.at(i)->to_json(has_thumbs,query_words);
-		  if (snisize>1 && i!=snisize-1)
-		    json_str += ",";
-	       }
+	     //for (size_t i=snistart;i<snisize;i++)
+	     int count = 0;
+	     for (size_t i=0;i<ssize; i++)
+	     {
+		 if (snippets.at(i)->_doc_type == REJECTED)
+		   continue;
+		 if (!similarity || snippets.at(i)->_seeks_ir > 0)
+		   {
+		     if (count >= snistart)
+		       {
+			 if (count > snistart && count<snisize)
+			   json_str += ",";
+			 json_str += snippets.at(i)->to_json(has_thumbs,query_words);
+		       }
+		     count++;
+		   }
+		 if (count == snisize)
+		   {
+		     break; // end here.
+		   }
+	     }
 	  }
 	json_str += "]";
 	return SP_ERR_OK;
