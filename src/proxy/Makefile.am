@@ -12,7 +12,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh 
 if HAVE_TC
 if HAVE_PROTOBUF
-AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I.
 endif
 endif
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
@@ -30,7 +30,8 @@ protoc_inputs=db_record_msg.proto
 protoc_outputs=db_record_msg.pb.h db_record_msg.pb.cc
 
 $(protoc_outputs): $(protoc_inputs)
-	protoc --cpp_out=. $<
+	protoc -I$(srcdir) --cpp_out=. $<
+
 dist_libseeksuserdb_la_SOURCES=db_record.cpp user_db.cpp
 nodist_libseeksuserdb_la_SOURCES=$(protoc_outputs)
 

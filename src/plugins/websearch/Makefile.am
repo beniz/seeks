@@ -9,7 +9,8 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf \
-               `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+               `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
+		-I../../proxy
 endif
 endif
 ACLOCAL_AMFLAGS=-I m4
@@ -77,9 +78,9 @@ nobase_dist_websearchplugindata_DATA= \
 			  public/images/search_form_hp.png \
 			  public/images/search_expansion_3.png \
 			  public/images/home.svg \
+			  public/images/perso_star.png \
 			  public/images/search_cluster_off.png \
 			  public/images/search_page_next.png \
 			  public/images/search_page_prev.png \
 			  public/css/seeks_hp_search.css
-
 
