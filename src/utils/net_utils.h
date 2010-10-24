@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <unistd.h>
         
-long mac_addr_sys(u_char *addr)
+inline long mac_addr_sys(u_char *addr)
 {   
    struct ifreq ifr;   
    struct ifreq *IFR;
