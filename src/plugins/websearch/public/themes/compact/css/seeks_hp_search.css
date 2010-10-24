@@ -1,0 +1,31 @@
+#main {
+	margin-top: 100px;
+}
+
+#search_form {
+	margin-right: auto;
+	margin-left: auto;
+	width: 394px;
+	height: 177px;
+	background-image: url(base-url/plugins/websearch/public/images/theme1/search_form_hp.png);
+}
+
+#search_input, #search_button {
+	border-width: 0px;
+	background-color: transparent;
+}
+
+#search_input {
+	margin-top: 135px;
+	margin-left: 12px;
+	height: 26px;
+	padding: 2px;
+	width: 329px;
+	font-size: 22px;
+	vertical-align: -4px;
+}
+
+#search_button {
+	width: 36px;
+	height: 30px;
+}
