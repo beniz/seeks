@@ -57,19 +57,19 @@ nobase_dist_websearchplugindata_DATA= \
 			  public/themes/original/images/home_32x30.png \
 			  public/themes/original/images/search_cluster_on.png \
 			  public/themes/original/images/search_expansion_4.png \
-			  public/themes/original/images/search_engines/yahoo.svg \
-			  public/themes/original/images/search_engines/bing.svg \
-			  public/themes/original/images/search_engines/cuil_12x12_transparent.png \
-			  public/themes/original/images/search_engines/exalead.svg \
-			  public/themes/original/images/search_engines/exalead_12x12.png \
-			  public/themes/original/images/search_engines/google.svg \
-			  public/themes/original/images/search_engines/yahoo_12x12_transparent.png \
-			  public/themes/original/images/search_engines/bing_12x12_transparent.png \
-			  public/themes/original/images/search_engines/google_12x12.png \
-			  public/themes/original/images/search_engines/cuil.svg \
-			  public/themes/original/images/search_engines/youtube_12x12.png \
-                          public/themes/original/images/search_engines/dailymotion_12x12.png \
-			  public/themes/original/images/search_engines/yauba_12x12.png \
+			  public/images/search_engines/yahoo.svg \
+			  public/images/search_engines/bing.svg \
+			  public/images/search_engines/cuil_12x12_transparent.png \
+			  public/images/search_engines/exalead.svg \
+			  public/images/search_engines/exalead_12x12.png \
+			  public/images/search_engines/google.svg \
+			  public/images/search_engines/yahoo_12x12_transparent.png \
+			  public/images/search_engines/bing_12x12_transparent.png \
+			  public/images/search_engines/google_12x12.png \
+			  public/images/search_engines/cuil.svg \
+			  public/images/search_engines/youtube_12x12.png \
+                          public/images/search_engines/dailymotion_12x12.png \
+			  public/images/search_engines/yauba_12x12.png \
 			  public/themes/original/images/search_expansion_1.png \
 			  public/themes/original/images/search_expansion_5.png \
 			  public/themes/original/images/search_cluster_inactive.png \
