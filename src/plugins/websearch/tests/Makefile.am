@@ -14,10 +14,10 @@ test_html_txt_parser_SOURCES=test-html-text-parser.cpp
 
 AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
 	     -I${srcdir} -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy \
-	     -I${srcdir}/../../../dht -I${srcdir}/../../query_capture -I${srcdir}/../../cf @PCRE_CFLAGS@ @XML2_CFLAGS@ 
+	     -I${srcdir}/../../../dht -I${srcdir}/../../query_capture -I${srcdir}/../../cf @PCRE_CFLAGS@ @XML2_CFLAGS@
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../../../proxy/
 endif
 endif
 AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../../dht 

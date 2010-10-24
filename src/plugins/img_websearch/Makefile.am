@@ -8,7 +8,7 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir}/../../dht 
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += -I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += -I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../../proxy
 endif
 endif
 if HAVE_OPENCV2

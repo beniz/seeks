@@ -22,7 +22,7 @@ AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
 	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config opencv --cflags`
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../
 endif
 endif
 

@@ -19,7 +19,7 @@ AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I${srcdir}/../../websearch \
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += -I${srcdir}/../../query_capture -I${srcdir}/../../cf \
-             `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+             `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../../../proxy
 endif
 endif
 if HAVE_OPENCV2

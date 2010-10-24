@@ -1,6 +1,6 @@
 # automake for lsh
 
-bin_PROGRAMS=test_mrf_query_160 gen_mrf_query_160
+noinst_PROGRAMS=test_mrf_query_160 gen_mrf_query_160
 
 test_mrf_query_160_SOURCES=test-mrf-query-160.cpp
 gen_mrf_query_160_SOURCES=gen-mrf-query-160.cpp

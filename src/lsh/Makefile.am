@@ -3,7 +3,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/../utils/ -I${srcdir}/../proxy/ -I${srcdir}/../dht/
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../proxy/
 endif
 endif
 libseekslsh_la_CXXFLAGS=@PCRE_CFLAGS@
