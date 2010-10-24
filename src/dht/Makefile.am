@@ -2,7 +2,7 @@
 
 lib_LTLIBRARIES=libseeksdht.la
 AM_CPPFLAGS=-I${srcdir}/protob -Iprotob -I${srcdir}/../utils -I${srcdir}/../lsh -I${srcdir}/../proxy  -I${srcdir}/rpc -I${srcdir}/rpc/protob -Irpc/protob \
-	     `pkg-config --cflags protobuf`
+	     `pkg-config --cflags protobuf` @LCOV_CFLAGS@
 AM_CXXFLAGS=-Wall -g -Wno-deprecated
 libseeksdht_la_SOURCES=\
 	NetAddress.cpp DHTKey.cpp dht_configuration.cpp FingerTable.cpp \

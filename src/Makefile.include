@@ -1,0 +1,70 @@
+AM_CPPFLAGS= $(DHTCPPFLAGS) $(SEEKSCPPFLAGS) 
+AM_LDFLAGS= $(DHTLDFLAGS) $(SEEKSLDFLAGS) 
+LDADD=$(DHTLDADD) $(SEEKSLDADD) $(DHTLDADD) -lseeksdht
+
+DHTCPPFLAGS = \
+	     -I${top_srcdir}/src/dht \
+	     -I${top_srcdir}/src/dht/protob \
+	     -I${top_srcdir}/src/dht/rpc \
+	     -I${top_srcdir}/src/dht/rpc/protob \
+	     -I${top_srcdir}/src/dht/sg \
+	     -I${top_srcdir}/src/dht/sg/protob \
+	     -I${top_srcdir}/src/dht/sg/rpc \
+	     `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+
+DHTLDFLAGS = \
+	-L$(top_builddir)/src/dht \
+	-L$(top_builddir)/src/dht/protob \
+	-L$(top_builddir)/src/dht/rpc \
+	-L$(top_builddir)/src/dht/rpc/protob \
+	-L$(top_builddir)/src/dht/sg \
+	-L$(top_builddir)/src/dht/sg/protob \
+	-L$(top_builddir)/src/dht/sg/rpc \
+	`pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+
+DHTLDADD = \
+	-lseeksdht \
+	-lseeksdhtprotob\
+	-lseeksrpcprotob \
+	-lseeksrpc \
+	-lseeksdhtsg \
+	-lseeksdhtsgrpc \
+	-lseeksdhtsgprotob
+
+SEEKSCPPFLAGS = \
+	     -I${srcdir} \
+	     -I${srcdir}/.. \
+	     -I${top_srcdir}/src/lsh \
+	     -I${top_srcdir}/src/proxy \
+	     -I${top_srcdir}/src/utils
+
+SEEKSLDFLAGS = \
+        -L.. \
+	-L$(top_builddir)/src/lsh \
+	-L$(top_builddir)/src/proxy \
+	-L$(top_builddir)/src/utils
+
+SEEKSLDADD = \
+	-lseekslsh \
+	-lseeksproxy \
+	-lseeksplugins \
+	-lseeksutils \
+	-lseeksplugins \
+	-lrmd160
+
+AM_CPPFLAGS += \
+	     -Wall -g -Wno-deprecated -pipe \
+	     @PCRE_CFLAGS@ \
+	     @XML2_CFLAGS@ \
+	     $(GTEST_CPPFLAGS)
+
+AM_LDFLAGS += \
+        -L.. \
+	$(GTEST_LDFLAGS)
+
+LDADD += \
+	@XML2_LDADD@ @CURL_LDADD@ -levent -lpthread -lpcreposix -lrt -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
+
+if USE_PERL
+AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
+endif
