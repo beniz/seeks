@@ -9,7 +9,8 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf \
-               `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+               `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
+		-I../../proxy
 endif
 endif
 ACLOCAL_AMFLAGS=-I m4
@@ -53,33 +54,55 @@ nobase_dist_websearchplugindata_DATA= \
 			  patterns/reject \
 			  patterns/forum \
 			  patterns/video \
-			  public/images/home_32x30.png \
-			  public/images/search_cluster_on.png \
-			  public/images/search_expansion_4.png \
-			  public/images/search_engines/yahoo.svg \
-			  public/images/search_engines/bing.svg \
-			  public/images/search_engines/cuil_12x12_transparent.png \
-			  public/images/search_engines/exalead.svg \
-			  public/images/search_engines/exalead_12x12.png \
-			  public/images/search_engines/google.svg \
-			  public/images/search_engines/yahoo_12x12_transparent.png \
-			  public/images/search_engines/bing_12x12_transparent.png \
-			  public/images/search_engines/google_12x12.png \
-			  public/images/search_engines/cuil.svg \
-			  public/images/search_engines/youtube_12x12.png \
-                          public/images/search_engines/dailymotion_12x12.png \
-			  public/images/search_engines/yauba_12x12.png \
-			  public/images/search_expansion_1.png \
-			  public/images/search_expansion_5.png \
-			  public/images/search_cluster_inactive.png \
-			  public/images/search_expansion_2.png \
-			  public/images/search_form.png \
-			  public/images/search_form_hp.png \
-			  public/images/search_expansion_3.png \
-			  public/images/home.svg \
-			  public/images/search_cluster_off.png \
-			  public/images/search_page_next.png \
-			  public/images/search_page_prev.png \
-			  public/css/seeks_hp_search.css
-
+			  public/themes/original/images/home_32x30.png \
+			  public/themes/original/images/search_cluster_on.png \
+			  public/themes/original/images/search_expansion_4.png \
+			  public/themes/original/images/search_engines/yahoo.svg \
+			  public/themes/original/images/search_engines/bing.svg \
+			  public/themes/original/images/search_engines/cuil_12x12_transparent.png \
+			  public/themes/original/images/search_engines/exalead.svg \
+			  public/themes/original/images/search_engines/exalead_12x12.png \
+			  public/themes/original/images/search_engines/google.svg \
+			  public/themes/original/images/search_engines/yahoo_12x12_transparent.png \
+			  public/themes/original/images/search_engines/bing_12x12_transparent.png \
+			  public/themes/original/images/search_engines/google_12x12.png \
+			  public/themes/original/images/search_engines/cuil.svg \
+			  public/themes/original/images/search_engines/youtube_12x12.png \
+                          public/themes/original/images/search_engines/dailymotion_12x12.png \
+			  public/themes/original/images/search_engines/yauba_12x12.png \
+			  public/themes/original/images/search_expansion_1.png \
+			  public/themes/original/images/search_expansion_5.png \
+			  public/themes/original/images/search_cluster_inactive.png \
+			  public/themes/original/images/search_expansion_2.png \
+			  public/themes/original/images/search_form.png \
+			  public/themes/original/images/search_form_hp.png \
+			  public/themes/original/images/search_expansion_3.png \
+			  public/themes/original/images/home.svg \
+			  public/themes/original/images/perso_star.png \
+			  public/themes/original/images/search_cluster_off.png \
+			  public/themes/original/images/search_page_next.png \
+			  public/themes/original/images/search_page_prev.png \
+			  public/css/seeks_hp_search.css \
+			  public/themes/compact/images/perso_star_ico_on.png \
+			  public/themes/compact/images/text.png \
+			  public/themes/compact/images/cluster_inactive.png \
+			  public/themes/compact/images/tweet.png \
+			  public/themes/compact/images/perso_star_ico_off.png \
+			  public/themes/compact/images/image.png \
+			  public/themes/compact/images/exp_3.png \
+			  public/themes/compact/images/search_page_next.png \
+			  public/themes/compact/images/types.png \
+			  public/themes/compact/images/exp_1.png \
+			  public/themes/compact/images/search_form_hp.png \
+			  public/themes/compact/images/perso_star.png \
+			  public/themes/compact/images/cluster_off.png \
+			  public/themes/compact/images/cluster_on.png \
+			  public/themes/compact/images/exp_2.png \
+			  public/themes/compact/images/search_page_end.png \
+			  public/themes/compact/images/search_page_prev.png \
+			  public/themes/compact/images/pages.png \
+			  public/themes/compact/images/help.png \
+			  public/themes/compact/images/video.png \
+			  public/themes/compact/images/home_ico.png \
+			  public/themes/compact/images/search_bar.png
 

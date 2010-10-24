@@ -92,3 +92,10 @@ personalized-ranking 1
 # Supported are plain text and text with html tags.
 # default:
 #result-message Beware, you are using a remote Seeks node
+
+# User Interface theme identifier.
+# 'original' is the historical theme.
+# 'compact' is a button-based theme that leaves more room to results.
+# Custom themes can be designed easily.
+# default: compact
+ui-theme compact

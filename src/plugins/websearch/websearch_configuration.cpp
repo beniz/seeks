@@ -46,6 +46,7 @@ namespace seeks_plugins
 #define hash_show_node_ip           4288369354ul /* "show-node-ip" */
 #define hash_personalization        1102733049ul /* "personalized-results" */
 #define hash_result_message          129100406ul /* "result-message" */  
+#define hash_ui_theme                860616402ul /* "ui-theme" */
    
    websearch_configuration::websearch_configuration(const std::string &filename)
      :configuration_spec(filename)
@@ -79,6 +80,7 @@ namespace seeks_plugins
 	_show_node_ip = false;
 	_personalization = true;
 	_result_message = ""; // empty message.
+	_ui_theme = "compact";
      }
 
    void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -228,6 +230,12 @@ namespace seeks_plugins
 	     _result_message = std::string(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Message to appear in a panel next to the search results");
+	     break;
+	     
+	   case hash_ui_theme:
+	     _ui_theme = std::string(arg);
+	     configuration_spec::html_table_row(_config_args,cmd,arg,
+						"User Interface selected theme");
 	     break;
 	     
 	   default:
