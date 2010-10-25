@@ -445,7 +445,8 @@ namespace sp
 		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
 						      plugin_name,key) != 0)
 		    {
-		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		       // XXX: e.g. the db-version field falls here.
+		       //errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
 		  else
 		    {
@@ -498,37 +499,39 @@ namespace sp
 	       {
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
-		  //std::string key, cplugin_name;
-		  /* if (user_db::extract_plugin_and_key(std::string((char*)rkey),
+		  std::string key, cplugin_name;
+		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
 						      cplugin_name,key) != 0)
 		    {
-		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
-		    }
-		  else
-		    { */
-		  // get a proper object based on plugin name, and call the virtual function for reading the record.
-		  plugin *pl = plugin_manager::get_plugin(plugin_name);
-		  db_record *dbr = NULL;
-		  if (!pl)
-		    {
-		       // handle error.
-		       errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
-					 plugin_name.c_str());
-		       dbr = new db_record();
+		       // XXX: the db-version field falls here.
+		       //errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
 		  else
 		    {
-		       dbr = pl->create_db_record();
+		       // get a proper object based on plugin name, and call the virtual function for reading the record.
+		       plugin *pl = plugin_manager::get_plugin(plugin_name);
+		       db_record *dbr = NULL;
+		       if (!pl)
+			 {
+			    // handle error.
+			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
+					      plugin_name.c_str());
+			    dbr = new db_record();
+			 }
+		       else
+			 {
+			    dbr = pl->create_db_record();
+			 }
+		       
+		       if (dbr->deserialize(str) != 0)
+			 {
+			    // deserialization error.
+			 }
+		       else if (dbr->_plugin_name == plugin_name)
+			 if (date == 0 || dbr->_creation_time < date)
+			   to_remove.push_back(std::string((char*)rkey));
+		       delete dbr;
 		    }
-		  
-		  if (dbr->deserialize(str) != 0)
-		    {
-		       // deserialization error.
-		    }
-		  else if (dbr->_plugin_name == plugin_name)
-		    if (date == 0 || dbr->_creation_time < date)
-		      to_remove.push_back(std::string((char*)rkey));
-		  delete dbr;
 	       }
 	     free(rkey);
 	  }
@@ -594,7 +597,8 @@ namespace sp
 		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
 						      plugin_name,key) != 0)
 		    {
-		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		       // XXX: e.g. the db-version field falls here.
+		       //errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
 		  else
 		    {
