@@ -38,7 +38,9 @@ imgwebsearchpluginconfigdir=$(sysconfdir)/seeks
 dist_imgwebsearchpluginconfig_DATA=img-websearch-config
 
 nobase_dist_imgwebsearchplugindata_DATA= \
-	templates/css/seeks_img_search.css \
-	templates/seeks_result_template.html \
+	templates/themes/original/css/seeks_img_search.css \
+	templates/themes/original/seeks_result_template.html \
+	templates/themes/compact/css/seeks_img_search.css \
+	templates/themes/compact/seeks_result_template.html \
 	public/images/search_engines/wcommons_12x12.png \
 	public/images/search_engines/flickr_12x12.png
