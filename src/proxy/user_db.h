@@ -219,6 +219,7 @@ namespace sp
 	
 	static std::string _db_name; /**< db file name. */
 	
+	static std::string _db_version_key; /**< db version record key. */
 	static float _db_version; /**< db record structure version. */
 	
       private:

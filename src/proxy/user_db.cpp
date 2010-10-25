@@ -48,6 +48,7 @@ namespace sp
       
    /*- user_db -*/
    std::string user_db::_db_name = "seeks_user.db"; // default.
+   std::string user_db::_db_version_key = "db-version";
    float user_db::_db_version = 0.2;
    
    user_db::user_db()
@@ -169,14 +170,15 @@ namespace sp
      {
 	if (!_opened)
 	  {
-	     errlog::log_error(LOG_LEVEL_INFO,"user_db already closed");
+	     errlog::log_error(LOG_LEVEL_INFO,"user_db %s already closed", _name.c_str());
 	     return 0;
 	  }
 	
 	if(!tchdbclose(_hdb))
 	  {
 	     int ecode = tchdbecode(_hdb);
-	     errlog::log_error(LOG_LEVEL_ERROR,"user db close error: %s",tchdberrmsg(ecode));
+	     errlog::log_error(LOG_LEVEL_ERROR,"user db %s close error: %s", _name.c_str(), 
+			       tchdberrmsg(ecode));
 	     return ecode;
 	  }
 	_opened = false;
@@ -198,8 +200,8 @@ namespace sp
    int user_db::set_version(const float &v)
      {
 	mutex_lock(&_db_mutex);
-	const char *keyc = "db-version";
-	if (!tchdbput(_hdb,keyc,sizeof(keyc),&v,sizeof(float)))
+	const char *keyc = user_db::_db_version_key.c_str();
+	if (!tchdbput(_hdb,keyc,strlen(keyc),&v,sizeof(float)))
 	  {
 	     int ecode = tchdbecode(_hdb);
 	     errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",tchdberrmsg(ecode));
@@ -212,9 +214,9 @@ namespace sp
    
    float user_db::get_version()
      {
-	const char *keyc = "db-version";
+	const char *keyc = user_db::_db_version_key.c_str();
 	int value_size;
-	void *value = tchdbget(_hdb,keyc,sizeof(keyc),&value_size);
+	void *value = tchdbget(_hdb,keyc,strlen(keyc),&value_size);
 	if (!value)
 	  {
 	     return 0.0;
@@ -282,8 +284,9 @@ namespace sp
 	std::string rkey = user_db::generate_rkey(key,plugin_name);
 	
 	int value_size;
-	char keyc[rkey.length()];
-	for (size_t i=0;i<rkey.length();i++)
+	size_t lrkey = rkey.length();
+	char keyc[lrkey];
+	for (size_t i=0;i<lrkey;i++)
 	  keyc[i] = rkey[i];
 	void *value = tchdbget(_hdb, keyc, sizeof(keyc), &value_size);
 	if(value)
@@ -442,13 +445,14 @@ namespace sp
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
 		  std::string key, plugin_name;
-		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
-						      plugin_name,key) != 0)
+		  std::string rkey_str = std::string((char*)rkey);
+		  if (rkey_str != user_db::_db_version_key 
+		      && user_db::extract_plugin_and_key(rkey_str,
+							 plugin_name,key) != 0)
 		    {
-		       // XXX: e.g. the db-version field falls here.
-		       //errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
-		  else
+		  else if (rkey_str != user_db::_db_version_key)
 		    {
 		       // get a proper object based on plugin name, and call the virtual function for reading the record.
 		       plugin *pl = plugin_manager::get_plugin(plugin_name);
@@ -470,7 +474,7 @@ namespace sp
 			    // deserialization error.
 			 }
 		       else if (dbr->_creation_time < date)
-			 to_remove.push_back(std::string((char*)rkey));
+			 to_remove.push_back(rkey_str);
 		       delete dbr;
 		    }
 	       }
@@ -480,7 +484,7 @@ namespace sp
 	size_t trs = to_remove.size();
 	for (size_t i=0;i<trs;i++)
 	  err += remove_dbr(to_remove.at(i));
-	errlog::log_error(LOG_LEVEL_ERROR,"Pruned %u records from user db",trs);
+	errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db",trs);
 	return err;
      }
    
@@ -500,13 +504,14 @@ namespace sp
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
 		  std::string key, cplugin_name;
-		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
-						      cplugin_name,key) != 0)
+		  std::string rkey_str = std::string((char*)rkey);
+		  if (rkey_str != user_db::_db_version_key
+		      && user_db::extract_plugin_and_key(rkey_str,
+							 cplugin_name,key) != 0)
 		    {
-		       // XXX: the db-version field falls here.
-		       //errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
-		  else
+		  else if (rkey_str != user_db::_db_version_key)
 		    {
 		       // get a proper object based on plugin name, and call the virtual function for reading the record.
 		       plugin *pl = plugin_manager::get_plugin(plugin_name);
@@ -526,10 +531,11 @@ namespace sp
 		       if (dbr->deserialize(str) != 0)
 			 {
 			    // deserialization error.
+			    errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing record %s",rkey_str.c_str());
 			 }
 		       else if (dbr->_plugin_name == plugin_name)
 			 if (date == 0 || dbr->_creation_time < date)
-			   to_remove.push_back(std::string((char*)rkey));
+			   to_remove.push_back(rkey_str);
 		       delete dbr;
 		    }
 	       }
@@ -539,7 +545,7 @@ namespace sp
 	size_t trs = to_remove.size();
 	for (size_t i=0;i<trs;i++)
 	  err += remove_dbr(to_remove.at(i));
-	errlog::log_error(LOG_LEVEL_ERROR,"Pruned %u records from user db belonging to plugin %s",
+	errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db belonging to plugin %s",
 			  trs,plugin_name.c_str());
 	return err;
      }
@@ -564,9 +570,14 @@ namespace sp
 	while((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
 	  {
 	     std::string rec_pn,rec_key;
-	     if (user_db::extract_plugin_and_key(std::string((char*)rkey),
-						 rec_pn,rec_key) != 0)
-	       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin name when counting records");
+	     std::string rkey_str = std::string((char*)rkey,rkey_size);
+	     if (rkey_str != user_db::_db_version_key 
+		 && user_db::extract_plugin_and_key(rkey_str,
+						    rec_pn,rec_key) != 0)
+	       {
+		  errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin name when counting records: %s",
+				    rkey_str.c_str());
+	       }
 	     else if (rec_pn == plugin_name)
 	       n++;
 	     free(rkey);
@@ -578,6 +589,7 @@ namespace sp
      {
 	output << "\nnumber of records: " << number_records() << std::endl;
 	output << "size on disk: " << disk_size() << std::endl;
+	output << "db version: " << get_version() << std::endl;
 	output << std::endl;
 	
 	/* traverse records */
@@ -594,13 +606,14 @@ namespace sp
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
 		  std::string key, plugin_name;
-		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
-						      plugin_name,key) != 0)
+		  std::string rkey_str = std::string((char*)rkey);
+		  if (rkey_str != user_db::_db_version_key 
+		      && user_db::extract_plugin_and_key(rkey_str,
+							 plugin_name,key) != 0)
 		    {
-		       // XXX: e.g. the db-version field falls here.
-		       //errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
-		  else
+		  else if (rkey_str != user_db::_db_version_key)
 		    {
 		       // get a proper object based on plugin name, and call the virtual function for reading the record.
 		       plugin *pl = plugin_manager::get_plugin(plugin_name);
