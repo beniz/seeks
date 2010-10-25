@@ -246,7 +246,7 @@ namespace seeks_plugins
 	create_query_record(r);
 	if (!r.SerializeToString(&msg))
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"failed serializing db_query_record");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Failed serializing db_query_record");
 	     return 1; // error.
 	  }
 	else return 0;
@@ -257,7 +257,7 @@ namespace seeks_plugins
 	sp::db::record r;
 	if (!r.ParseFromString(msg))
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"failed deserializing db_query_record");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing db_query_record");
 	     return 1; // error.
 	  }
 	read_query_record(r);
