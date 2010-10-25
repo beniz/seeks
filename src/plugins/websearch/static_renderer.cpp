@@ -238,7 +238,7 @@ namespace seeks_plugins
 						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 						   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
      {
-	static short template_K=7; // max number of clusters available in the template.
+	static short template_K=8; // max number of clusters available in the template.
 	
 	const char *base_url = miscutil::lookup(exports,"base-url");
 	std::string base_url_str = "";
@@ -247,17 +247,42 @@ namespace seeks_plugins
 	
 	std::vector<std::string> words;
 	miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
+	
+	// lookup activated engines.
+	std::bitset<NSEs> se_enabled;
+	query_context::fillup_engines(parameters,se_enabled);
 		
 	// check for empty cluster, and determine which rendering to use.
 	short k = 0;
 	for (short c=0;c<K;c++)
 	  {
+	     short cc = 0;
 	     if (!clusters[c]._cpoints.empty())
-	       k++;
-	     if (k>2)
-	       break;
+	       {
+		  hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
+		    = clusters[c]._cpoints.begin();
+		  while(hit!=clusters[c]._cpoints.end())
+		    {
+		       search_snippet *sp = qc->get_cached_snippet((*hit).first);
+		       if (sp->_doc_type == REJECTED)
+			 {
+			    ++hit;
+			    continue;
+			 }
+		       std::bitset<NSEs> band = (sp->_engine & se_enabled);
+		       if (band.count() == 0)
+			 {
+			    ++hit;
+			    continue;
+			 }
+		       ++hit;
+		       ++cc;
+		    }
+		  if (cc > 0)
+		    k++;
+	       }
 	  }
-		     
+	
 	std::string rplcnt = "ccluster";
 	cgi::map_block_killer(exports,"have-one-column-results-head");
 	if (k>1)
@@ -268,10 +293,6 @@ namespace seeks_plugins
 	     rplcnt = "search_snippets";
 	  }
 		
-	// lookup activated engines.
-	std::bitset<NSEs> se_enabled;
-	query_context::fillup_engines(parameters,se_enabled);
-	
 	bool clusterize = false;
 	const char *action_str = miscutil::lookup(parameters,"action");
 	if (action_str && strcmp(action_str,"clusterize")==0)
