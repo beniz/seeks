@@ -86,6 +86,19 @@ namespace sp
 	int optimize_db();
 	
 	/**
+	 * \brief sets db version
+	 * @param v version to be set.
+	 * @return 0 if no error, -1 otherwise.
+	 */
+	int set_version(const float &v);
+	
+	/**
+	 * \brief gets db version.
+	 * @return db version, 0.0 if an error occurred.
+	 */
+	float get_version();
+	
+	/**
 	 * \brief generates a unique key for the record, from a given key and the plugin name.
 	 */
 	static std::string generate_rkey(const std::string &key,
@@ -205,7 +218,9 @@ namespace sp
 	std::vector<user_db_sweepable*> _db_sweepers;
 	
 	static std::string _db_name; /**< db file name. */
-     
+	
+	static float _db_version; /**< db record structure version. */
+	
       private:
 	sp_mutex_t _db_mutex; /**< mutex around db operations. */
      };

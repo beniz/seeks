@@ -20,6 +20,11 @@
 #include "db_query_record_msg.pb.h"
 #include "errlog.h"
 
+#include "DHTKey.h" // for fixing issue 169.
+#include "qprocess.h" // idem.
+#include "query_capture_configuration.h" // idem.
+using lsh::qprocess;
+
 #include <algorithm>
 #include <iterator>
 #include <iostream>
@@ -202,6 +207,19 @@ namespace seeks_plugins
 	_related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
      }
    
+   db_query_record::db_query_record(const db_query_record &dbr)
+     {
+	hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
+	  = dbr._related_queries.begin();
+	while(hit!=dbr._related_queries.end())
+	  {
+	     query_data *rd = (*hit).second;
+	     query_data *crd = new query_data(*rd);
+	     _related_queries.insert(std::pair<const char*,query_data*>(crd->_query.c_str(),crd));
+	     ++hit;
+	  }
+     }
+      
    db_query_record::db_query_record()
      :db_record()
        {
@@ -360,5 +378,58 @@ namespace seeks_plugins
 	output << std::endl;
 	return output;
      }
-      
+
+   int db_query_record::fix_issue_169(user_db &cudb)
+     {
+	// lookup a radius 0 query. If one:
+	// - convert the record's key.
+	// - generate 0 to max_radius keys for this query.
+	// - store the newly formed records in to the new DB.
+	// - change their keys and store them into the new DB.
+	// if none, skip.
+	
+	hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
+	  = _related_queries.begin();
+	while(hit!=_related_queries.end())
+	  {
+	     query_data *qd = (*hit).second;
+	     if (qd->_radius != 0)
+	       {
+		  ++hit;
+		  continue;
+	       }
+	     	     
+	     // generate query hashes with proper hashing function.
+	     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+	     qprocess::generate_query_hashes(qd->_query,0,
+					     query_capture_configuration::_config->_max_radius,
+					     features);
+	     
+	     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator fhit = features.begin();
+	     while(fhit!=features.end())
+	       {
+		  if ((*hit).first == 0)
+		    {
+		       // copy this record and store it with fixed key in new db.
+		       db_query_record cdqr(*this);
+		       cdqr._creation_time = _creation_time; // reset creation time to original time.
+		       std::string key_str = (*fhit).second.to_rstring();
+		       cudb.add_dbr(key_str,cdqr);
+		    }
+		  else
+		    {
+		       // store the query fragment with fixed key.
+		       db_query_record ndqr("query-capture",qd->_query,(*fhit).first);
+		       ndqr._creation_time = _creation_time; // reset creation time to original time.
+		       std::string key_str = (*fhit).second.to_rstring();
+		       cudb.add_dbr(key_str,ndqr);
+		    }
+		  ++fhit;
+	       }
+	     ++hit;
+	  }
+		
+	return 0;
+     }
+   
 } /* end of namespace. */

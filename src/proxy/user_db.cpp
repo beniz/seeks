@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include <vector>
 #include <iostream>
@@ -47,7 +48,8 @@ namespace sp
       
    /*- user_db -*/
    std::string user_db::_db_name = "seeks_user.db"; // default.
-         
+   float user_db::_db_version = 0.2;
+   
    user_db::user_db()
      :_opened(false)
      {
@@ -192,7 +194,35 @@ namespace sp
 	errlog::log_error(LOG_LEVEL_INFO,"user db optimized");
 	return 0;
      }
-      
+
+   int user_db::set_version(const float &v)
+     {
+	mutex_lock(&_db_mutex);
+	const char *keyc = "db-version";
+	if (!tchdbput(_hdb,keyc,sizeof(keyc),&v,sizeof(float)))
+	  {
+	     int ecode = tchdbecode(_hdb);
+	     errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",tchdberrmsg(ecode));
+	     mutex_unlock(&_db_mutex);
+	     return -1;
+	  }
+	mutex_unlock(&_db_mutex);
+	return 0;
+     }
+   
+   float user_db::get_version()
+     {
+	const char *keyc = "db-version";
+	int value_size;
+	void *value = tchdbget(_hdb,keyc,sizeof(keyc),&value_size);
+	if (!value)
+	  {
+	     return 0.0;
+	  }
+	float v = *(static_cast<float*>(value));
+	return v;
+     }
+   
    std::string user_db::generate_rkey(const std::string &key,
 				      const std::string &plugin_name)
      {
@@ -468,38 +498,37 @@ namespace sp
 	       {
 		  std::string str = std::string((char*)value,value_size);
 		  free(value);
-		  std::string key, plugin_name;
-		  if (user_db::extract_plugin_and_key(std::string((char*)rkey),
-						      plugin_name,key) != 0)
+		  //std::string key, cplugin_name;
+		  /* if (user_db::extract_plugin_and_key(std::string((char*)rkey),
+						      cplugin_name,key) != 0)
 		    {
 		       errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
 		    }
 		  else
+		    { */
+		  // get a proper object based on plugin name, and call the virtual function for reading the record.
+		  plugin *pl = plugin_manager::get_plugin(plugin_name);
+		  db_record *dbr = NULL;
+		  if (!pl)
 		    {
-		       // get a proper object based on plugin name, and call the virtual function for reading the record.
-		       plugin *pl = plugin_manager::get_plugin(plugin_name);
-		       db_record *dbr = NULL;
-		       if (!pl)
-			 {
-			    // handle error.
-			    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
-					      plugin_name.c_str());
-			    dbr = new db_record();
-			 }
-		       else
-			 {
-			    dbr = pl->create_db_record();
-			 }
-		       
-		       if (dbr->deserialize(str) != 0)
-			 {
-			    // deserialization error.
-			 }
-		       else if (dbr->_plugin_name == plugin_name)
-			 if (date == 0 || dbr->_creation_time < date)
-			   to_remove.push_back(std::string((char*)rkey));
-		       delete dbr;
+		       // handle error.
+		       errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
+					 plugin_name.c_str());
+		       dbr = new db_record();
 		    }
+		  else
+		    {
+		       dbr = pl->create_db_record();
+		    }
+		  
+		  if (dbr->deserialize(str) != 0)
+		    {
+		       // deserialization error.
+		    }
+		  else if (dbr->_plugin_name == plugin_name)
+		    if (date == 0 || dbr->_creation_time < date)
+		      to_remove.push_back(std::string((char*)rkey));
+		  delete dbr;
 	       }
 	     free(rkey);
 	  }
@@ -644,5 +673,5 @@ namespace sp
 	  }
 	return n; // number of swept records.
      }
-      
+   
 } /* end of namespace. */

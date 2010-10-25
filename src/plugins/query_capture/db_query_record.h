@@ -22,6 +22,9 @@
 #include "stl_hash.h"
 #include "db_record.h"
 
+#include "user_db.h" // for fixing issue 169. Will disappear afterwards.
+using sp::user_db;
+
 #include <vector>
 
 using sp::db_record;
@@ -104,7 +107,9 @@ namespace seeks_plugins
 			const std::string &query,
 			const short &radius,
 			const std::string &url);
-		
+	
+	db_query_record(const db_query_record &dbr);
+	
 	db_query_record();
 	
 	virtual ~db_query_record();
@@ -120,7 +125,9 @@ namespace seeks_plugins
 	void read_query_record(sp::db::record &r);
 	
 	virtual std::ostream& print(std::ostream &output) const;
-     
+	
+	int fix_issue_169(user_db &cudb);
+	
       public:
 	hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;
      };

@@ -40,7 +40,7 @@ endif
 LDADD += -lseeksutils -lseeksproxy -lseeksplugins 
 if HAVE_PROTOBUF
 if HAVE_TC
-LDADD += -lseeksuserdb 
+LDADD += -lseeksuserdb -lseeksuserdbfix
 endif
 endif
 LDADD += -lpcre -lpcreposix -lseekslsh -lseeksdht -lrmd160 -lpthread -lz @CURL_LDADD@
