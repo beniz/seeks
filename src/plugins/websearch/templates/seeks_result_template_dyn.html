@@ -57,13 +57,20 @@
 <!-- <a id="tab-text" class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search text">Text</a> -->
 <a id="tab-text" class="search_bar_tab" title="Search text">Text</a>
 <!-- @if-have-img-websearch-start -->
-<a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Search images">Images</a>
+<!-- <a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Search images">Images</a> -->
+<a id="tab-img" class="search_bar_tab" title="Search images">Images</a>
 <!-- if-have-img-websearch-end@ -->
-<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers" title="Search videos">Videos</a>
-<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers" title="Search tweets">Tweets</a>
-<span class="search_bar_tab">Group by:</span> <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by urls">urls</a>,
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by titles">titles</a>,
-<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by types">types</a>
+<!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers" title="Search videos">Videos</a> -->
+<a id="tab-video" class="search_bar_tab" title="Search videos">Videos</a>
+<!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers" title="Search tweets">Tweets</a> -->
+<a id="tab-tweet" class="search_bar_tab" title="Search tweets">Tweets</a>
+<span class="search_bar_tab">Group by:</span> 
+<!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by urls">urls</a>, -->
+<a id="tab-urls" title="Group by urls">urls</a>
+<!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by titles">titles</a>, -->
+<a id="tab-titles" title="Group by titles">titles</a>
+<!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by types">types</a> -->
+<a id="tab-types" title="Group by type">types</a>
 </div>
 
 </div>
@@ -100,7 +107,8 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
     
     var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expand"), suggDiv = Y.one("#search_sugg"),
     pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persSpan = Y.one("#tab-pers"),
-    textHref = Y.one("#tab-text");
+    textHref = Y.one("#tab-text"), imgHref = Y.one("#tab-img"), vidHref = Y.one("#tab-video"), tweetHref = Y.one("#tab-tweet"),
+    urlHref = Y.one("#tab-urls"), titleHref = Y.one("#tab-titles"), typeHref = Y.one("#tab-types");
     
     var resultsWidget;
         
@@ -110,7 +118,17 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
             success: function (response) {
 		response.enc_query = ':' + response.lang + '+' + encodeURIComponent(response.query);
 		var snippets_html = '';
-                for (i=0, l=response.snippets.length; i < l; ++i) 
+                var l = response.snippets.length;
+		
+		//TODO: test whether JSON clusters field exists ...
+		/* var cl = response.clusters.length;
+		   var clustering = false;
+		if (l == 0 & cl > 0)
+		    clustering = true; */ // render in clustering mode.
+		
+		//TODO: clustering mode...
+
+		for (i=0; i < l; ++i)
 		{
 		    var snippet = response.snippets[i];
                     
@@ -125,7 +143,7 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		    }
 		    
 		    // render engines.
-                    snippet.enginesHTML = ''; //TODO.
+                    snippet.enginesHTML = '';
 		    for (j=0, le=snippet.engines.length; j < le; ++j)
 		    {
 			snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
@@ -193,6 +211,30 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		// text search.
 		var textHTML = Y.substitute(textTemplate, response);
 		textHref.set('href',textHTML);
+	    
+		// image search.
+		var imgHTML = Y.substitute(imageTemplate, response);
+		imgHref.set('href',imgHTML);
+	    
+		// video search.
+		var vidHTML = Y.substitute(videoTemplate, response);
+		vidHref.set('href',vidHTML);
+
+		// tweet search.
+		var tweetHTML = Y.substitute(tweetTemplate, response);
+		tweetHref.set('href',tweetHTML);
+		
+		// group by url.
+		var urlHTML = Y.substitute(urlTemplate, response);
+		urlHref.set('href',urlHTML);
+
+		// group by title.
+		var titleHTML = Y.substitute(titleTemplate, response);
+		titleHref.set('href',urlHTML);
+
+		// group by type.
+		var typeHTML = Y.substitute(typeTemplate, response);
+		typeHref.set('href',typeHTML);
 	    },
 	    
 	    failure: function () {
@@ -215,12 +257,12 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
     resultsWidget.failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
     
-    //resultsWidget.polling = true;
+    /* send the request. */
     resultsWidget.send();
  
     /* expansion button rendering. */
     expansionTemplate = 
-	'<a href="@base-url@/search?q={enc_query}&page={cpage}&expansion={nexpn}&action=expand&engines={engines}&rpp={rpp}&content_analysis=xxca&prs=pers" title="Expand to {nexpn} (ctrl+e). Deeper search." id="expansion" class="expansion_{expansion}">{expansion}</a>';
+	'<a href="@base-url@/search?q={enc_query}&page={cpage}&expansion={nexpn}&action=expand&engines={engines}&rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json" title="Expand to {nexpn} (ctrl+e). Deeper search." id="expansion" class="expansion_{expansion}">{expansion}</a>';
 
     /* prev / next page rendering. */
     pagesTemplate = 
@@ -232,12 +274,26 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
     /* personalization rendering. */
     persTemplate = '{pers}';
 
-    /* TODO: render Text search button. */
-    textTemplate = '@base-url@/search?q={enc_query}&page={cpage}&expansion={expansion}&action=expand&prs={pers}&content_analysis=xxca';
+    /* render Text search button. */
+    textTemplate = '@base-url@/search?q={enc_query}&page=&expansion={expansion}&action=expand&prs={pers}&content_analysis=xxca&ui=dyn&output=json';
 
-    /* TODO: render Images search button. */
+    /* render Images search button. */
+    imageTemplate = '@base-url@/search_img?q={enc_query}&page=1&expansion=1&action=expand&prs={pers}&ui=dyn&output=json';
 
-    // ...
+    /* render Video search button. */
+    videoTemplate = '@base-url@/search?q={enc_query}&page=1&expansion=1&action=expand&engines=youtube,dailymotion&rpp=40&content_analysis=off&prs={pers}&ui=dyn&output=json';
+
+    /* render Tweet search button. */
+    tweetTemplate = '@base-url@/search?q={enc_query}&page=1&expansion=1&action=expand&engines=twitter,identica&rpp={rpp}&content_analysis=on&prs={pers}&ui=dyn&output=json';
+    
+    /* render url button. */
+    urlTemplate = '@base-url@/search?q={enc_query}&page={cpage}&expansion={expansion}&action=urls&engines={engines}=&rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json';
+    
+    /* render title button. */
+    titleTemplate = '@base-url@/search?q={enc_query}&page={cpage}&expansion={expansion}&action=titles&engines={engines}&;rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json';
+
+    /* render type button. */
+    typeTemplate = '@base-url@/search?q={enc_query}&expansion={expansion}&action=types&engines={engines}&rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json';
 
     // Click the search button to send the JSONP request
     /* Y.one("#search_button").on("click", function (e) {
