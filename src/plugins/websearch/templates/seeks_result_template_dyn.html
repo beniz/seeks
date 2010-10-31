@@ -16,14 +16,15 @@
 #include info-head
 
 <div id="search_bar">
-<form method="GET" action="@base-url@/search" id="search_form">
+<form method="GET" action="@base-url@/search" id="search_form" onsubmit="return false;">
 <input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
-<input name="engines" value="xxeng" type="hidden" />
+<!-- <input name="engines" value="xxeng" type="hidden" /> -->
 <input name="content_analysis" value="xxca" type="hidden" />
 <input name="ui" value="dyn" type="hidden" />
+<input name="output" value="json" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
@@ -52,25 +53,29 @@
 
 <div id="search_bar_tab">
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span id="tab-language"></span>
-<a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span id="tab-pers"></span>
+<!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span id="tab-pers"></span> -->
+
+<a id="tab-pers" class="search_bar_tab" href="javascript:void(null);" title="Toggle personalization">Pers:</a><span id="tab-pers-flag"></span>
+
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
+
 <!-- <a id="tab-text" class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search text">Text</a> -->
 <a id="tab-text" class="search_bar_tab" title="Search text">Text</a>
 <!-- @if-have-img-websearch-start -->
 <!-- <a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Search images">Images</a> -->
-<a id="tab-img" class="search_bar_tab" title="Search images">Images</a>
+<a id="tab-img" class="search_bar_tab" href="javascript:void(null);" title="Search images">Images</a>
 <!-- if-have-img-websearch-end@ -->
 <!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers" title="Search videos">Videos</a> -->
-<a id="tab-video" class="search_bar_tab" title="Search videos">Videos</a>
+<a id="tab-vid" class="search_bar_tab" href="javascript:void(null);" title="Search videos">Videos</a>
 <!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers" title="Search tweets">Tweets</a> -->
-<a id="tab-tweet" class="search_bar_tab" title="Search tweets">Tweets</a>
+<a id="tab-tweet" class="search_bar_tab" href="javascript:void(null);" title="Search tweets">Tweets</a>
 <span class="search_bar_tab">Group by:</span> 
 <!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by urls">urls</a>, -->
-<a id="tab-urls" title="Group by urls">urls</a>
+<a id="tab-urls" href="javascript:void(null);" title="Group by urls">urls</a>
 <!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by titles">titles</a>, -->
-<a id="tab-titles" title="Group by titles">titles</a>
+<a id="tab-titles" href="javascript:void(null);" title="Group by titles">titles</a>
 <!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by types">types</a> -->
-<a id="tab-types" title="Group by type">types</a>
+<a id="tab-types" href="javascript:void(null);" title="Group by type">types</a>
 </div>
 
 </div>
@@ -92,7 +97,7 @@
 <!-- <script type="text/javascript" src="http://yui.yahooapis.com/3.2.0/build/yui/yui-min.js"></script> -->
 <script type="text/javascript">
 
-YUI().use("jsonp", "substitute", "transition", function (Y) {
+YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 
     // page information.
     function page_info()
@@ -100,20 +105,27 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 	this.rpp = xxrpp;  // results per page.
 	this.cpage = 1;  // current page.
 	this.engines = '';
+	this.expansion = 1;
+	this.prs = "xxpers";
+	this.ca = "xxca"; // content analysis.
     }
     var pi = new page_info();
 
-    var url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
+    var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
     var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expand"), suggDiv = Y.one("#search_sugg"),
-    pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persSpan = Y.one("#tab-pers"),
-    textHref = Y.one("#tab-text"), imgHref = Y.one("#tab-img"), vidHref = Y.one("#tab-video"), tweetHref = Y.one("#tab-tweet"),
-    urlHref = Y.one("#tab-urls"), titleHref = Y.one("#tab-titles"), typeHref = Y.one("#tab-types");
+    pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persHref = Y.one("#tab-pers"),
+    persSpan = Y.one("#tab-pers-flag"), textHref = Y.one("#tab-text"),
+    vidHref = Y.one("#tab-video"), tweetHref = Y.one("#tab-tweet"),
+    urlHref = Y.one("#tab-urls"), titleHref = Y.one("#tab-titles"), typeHref = Y.one("#tab-types"),
+    queryInput = Y.one("#search_input");
     
-    var resultsWidget;
-        
     // result widget.
-    resultsWidget = new Y.JSONPRequest(url, {
+    function refresh(url)
+    {
+	outputDiv.setContent("Seeking...");
+	
+	var resultsWidget = new Y.JSONPRequest(url, {
         on: {
             success: function (response) {
 		response.enc_query = ':' + response.lang + '+' + encodeURIComponent(response.query);
@@ -161,6 +173,12 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 		}
 		outputDiv.setContent(snippets_html);
 	    
+		// expansion.
+		pi.expansion = response.expansion;
+		
+		// personalization.
+		pi.prs = response.pers;
+
 		// engines.
 		pi.engines = response.engines;
 
@@ -196,8 +214,10 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
                 expansionLnk.setContent(expansionHtml);
 		
 		// personalization.
-		var persHTML = Y.substitute(persTemplate, response);
-		persSpan.setContent(persHTML);
+		/* var persHTML = Y.substitute(persTemplate, response);
+		persHref.set('href',persHTML); */
+		var persHTMLf = Y.substitute(persTemplateFlag, pi);
+		persSpan.setContent(persHTMLf);
 
 		//TODO: content analysis...
 
@@ -207,44 +227,16 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
 
 		// query suggestion.
 		suggDiv.setContent(response.suggestion);
-	    
-		// text search.
-		var textHTML = Y.substitute(textTemplate, response);
-		textHref.set('href',textHTML);
-	    
-		// image search.
-		var imgHTML = Y.substitute(imageTemplate, response);
-		imgHref.set('href',imgHTML);
-	    
-		// video search.
-		var vidHTML = Y.substitute(videoTemplate, response);
-		vidHref.set('href',vidHTML);
-
-		// tweet search.
-		var tweetHTML = Y.substitute(tweetTemplate, response);
-		tweetHref.set('href',tweetHTML);
-		
-		// group by url.
-		var urlHTML = Y.substitute(urlTemplate, response);
-		urlHref.set('href',urlHTML);
-
-		// group by title.
-		var titleHTML = Y.substitute(titleTemplate, response);
-		titleHref.set('href',urlHTML);
-
-		// group by type.
-		var typeHTML = Y.substitute(typeTemplate, response);
-		typeHref.set('href',typeHTML);
 	    },
 	    
 	    failure: function () {
-                resultsWidget.polling = false;
+                alert("fail");
                 outputDiv.setContent(this.failureTemplate);
 	    }
         }
     });
-    
-    /* main result widget stuff. */
+        
+	/* main result widget stuff. */
     resultsWidget.resultTemplate =
         '<li class="search_snippet">{snippetHTML}</li>';
  
@@ -256,9 +248,12 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
  
     resultsWidget.failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
+	
+	resultsWidget.send();
+    }
     
     /* send the request. */
-    resultsWidget.send();
+    refresh(ref_url);
  
     /* expansion button rendering. */
     expansionTemplate = 
@@ -272,38 +267,59 @@ YUI().use("jsonp", "substitute", "transition", function (Y) {
     langTemplate = '{lang}';
     
     /* personalization rendering. */
-    persTemplate = '{pers}';
-
-    /* render Text search button. */
-    textTemplate = '@base-url@/search?q={enc_query}&page=&expansion={expansion}&action=expand&prs={pers}&content_analysis=xxca&ui=dyn&output=json';
-
-    /* render Images search button. */
-    imageTemplate = '@base-url@/search_img?q={enc_query}&page=1&expansion=1&action=expand&prs={pers}&ui=dyn&output=json';
-
-    /* render Video search button. */
-    videoTemplate = '@base-url@/search?q={enc_query}&page=1&expansion=1&action=expand&engines=youtube,dailymotion&rpp=40&content_analysis=off&prs={pers}&ui=dyn&output=json';
-
-    /* render Tweet search button. */
-    tweetTemplate = '@base-url@/search?q={enc_query}&page=1&expansion=1&action=expand&engines=twitter,identica&rpp={rpp}&content_analysis=on&prs={pers}&ui=dyn&output=json';
+    persTemplateFlag = '{prs}';
     
-    /* render url button. */
-    urlTemplate = '@base-url@/search?q={enc_query}&page={cpage}&expansion={expansion}&action=urls&engines={engines}=&rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json';
-    
-    /* render title button. */
-    titleTemplate = '@base-url@/search?q={enc_query}&page={cpage}&expansion={expansion}&action=titles&engines={engines}&;rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json';
-
-    /* render type button. */
-    typeTemplate = '@base-url@/search?q={enc_query}&expansion={expansion}&action=types&engines={engines}&rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json';
-
     // Click the search button to send the JSONP request
-    /* Y.one("#search_button").on("click", function (e) {
-        resultsWidget.send();
-    }); */
- 
-    /* Y.one("#stop").on("click", function (e) {
-        gallery.polling = false;
-    }); */
- 
+    Y.one("#search_form").on("submit", function (e) {
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "engines=" + pi.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+    
+    Y.one("#tab-pers").on("click",function(e) {
+	var nprs = "off";
+	if (pi.prs == "off")
+	    nprs = "on";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"expand","rpp":pi.rpp,"prs":nprs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "engines=" + pi.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+    
+    Y.one("#tab-img").on("click",function(e) {
+	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+
+    Y.one("#tab-vid").on("click",function(e) {
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","engines":"youtube,dailymotion","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+
+    Y.one("#tab-tweet").on("click",function(e) {
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","engines":"twitter,identica","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+
+    Y.one("#tab-urls").on("click",function(e) {
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"urls","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+    
+    Y.one("#tab-titles").on("click",function(e) {
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"titles","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+
+    Y.one("#tab-types").on("click",function(e) {
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"types","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
 });
  
 
