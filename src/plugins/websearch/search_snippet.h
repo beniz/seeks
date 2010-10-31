@@ -182,6 +182,9 @@ namespace seeks_plugins
 	// merging of snippets (merge s2 into s2, according to certain rules).
 	static void merge_snippets(search_snippet *s1, const search_snippet *s2);
 	
+	// get doc type in a string form.
+	std::string get_doc_type_str() const;
+	
 	// printing output.
 	std::ostream& print(std::ostream &output);
 	

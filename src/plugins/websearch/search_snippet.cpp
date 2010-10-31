@@ -251,6 +251,7 @@ namespace seeks_plugins
 	      }
 	    json_str += "]";
 	 }
+       json_str += ",\"type\":\"" + get_doc_type_str() + "\"";
        json_str += ",\"personalized\":\"";
        if (_personalized)
 	 json_str += "yes";
@@ -898,5 +899,53 @@ namespace seeks_plugins
             s1->_meta_rank--;
         }
     }
-
+     
+     std::string search_snippet::get_doc_type_str() const
+       {
+	  std::string output;
+	  switch(_doc_type)
+	    {
+	     case WEBPAGE:
+	       output = "webpage";
+	       break;
+	     case FORUM:
+	       output = "forum";
+	       break;
+	     case FILE_DOC:
+	       output = "file";
+	       break;
+	     case SOFTWARE:
+	       output = "software";
+	       break;
+	     case IMAGE:
+	       output = "image";
+	       break;
+	     case VIDEO:
+	       output = "video";
+	       break;
+	     case VIDEO_THUMB:
+	       output = "video_thumb";
+	       break;
+	     case AUDIO:
+	       output = "audio";
+	       break;
+	     case CODE:
+	       output = "code";
+	       break;
+	     case NEWS:
+	       output = "news";
+	       break;
+	     case TWEET:
+	       output = "tweet";
+	       break;
+	     case WIKI:
+	       output = "wiki";
+	       break;
+	     case UNKNOWN:
+	     default:
+	       output = "unknown";
+	    }
+	  return output;
+       }
+          
   } /* end of namespace. */
