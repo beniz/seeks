@@ -354,9 +354,11 @@ namespace seeks_plugins
 	       {
 		  // no cache, (re)do the websearch first.
 		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-		  qc = websearch::lookup_qc(parameters,csp);
 		  if (err != SP_ERR_OK)
 		    return err;
+		  qc = websearch::lookup_qc(parameters,csp);
+		  if (!qc)
+		    qc = new query_context(parameters,csp->_headers); // empty context.
 	       }
 	   
 	     mutex_lock(&qc->_qc_mutex);
@@ -367,6 +369,11 @@ namespace seeks_plugins
 	     	     
 	     qc->_lock = false;
 	     mutex_unlock(&qc->_qc_mutex);
+	     if (qc->empty())
+	       {
+		  sweeper::unregister_sweepable(qc);
+		  delete qc;
+	       }
 	     
 	     return err;
 	  }
@@ -418,17 +425,20 @@ namespace seeks_plugins
 	       {
 		  // no cache, (re)do the websearch first.
 		  sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-		  qc = websearch::lookup_qc(parameters,csp);
 		  if (err != SP_ERR_OK)
 		    return err;
+		  qc = websearch::lookup_qc(parameters,csp);
+		  if (!qc)
+		    qc = new query_context(parameters,csp->_headers); // empty context.
 	       }
+	     
+	     cluster *clusters = NULL;
+	     short K = 0;
 	     
 	     mutex_lock(&qc->_qc_mutex);
 	     qc->_lock = true;
 	     
 	     // regroup search snippets by types.
-	     cluster *clusters = NULL;
-	     short K = 0;
 	     sort_rank::group_by_types(qc,clusters,K);
 	     
 	     // time measured before rendering, since we need to write it down.
@@ -450,9 +460,16 @@ namespace seeks_plugins
 								     csp,rsp,parameters,qc,qtime);
 	       }
 	     
-	     delete[] clusters;
+	     if (clusters)
+	       delete[] clusters;
+	     
 	     qc->_lock = false;
 	     mutex_unlock(&qc->_qc_mutex);
+	     if (qc->empty())
+	       {
+		  sweeper::unregister_sweepable(qc);
+		  delete qc;
+	       }
 	     
 	     return err;
 	  }
@@ -716,19 +733,13 @@ namespace seeks_plugins
        {
 	  // new context, whether we're expanding or not doesn't matter, we need
 	  // to generate snippets first.
-	  /* const char *expansion = miscutil::lookup(parameters,"expansion");
-	  if (!expansion)
-	    return cgi::cgi_error_bad_param(csp,rsp); */
-	  
 	  expanded = true;
-	  /* qc = new query_context(parameters,csp->_headers);
-	   qc->register_qc(); */
 	  mutex_lock(&qc->_qc_mutex);
 	  qc->_lock = true;
 	  qc->generate(csp,rsp,parameters,expanded);
 	  qc->_lock = false;
 	  mutex_unlock(&qc->_qc_mutex);
-       
+
 #if defined(PROTOBUF) && defined(TC)
 	  // query_capture if plugin is available and activated.
 	  if (_qc_plugin && _qc_plugin_activated)
@@ -861,7 +872,7 @@ namespace seeks_plugins
    /* error handling. */
    sp_err websearch::failed_ses_connect(client_state *csp, http_response *rsp)
      {
-	errlog::log_error(LOG_LEVEL_CONNECT, "connect to the search engines failed: %E");
+	errlog::log_error(LOG_LEVEL_ERROR, "connect to the search engines failed");
 	
 	rsp->_reason = RSP_REASON_CONNECT_FAILED;
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports = cgi::default_exports(csp,NULL);
