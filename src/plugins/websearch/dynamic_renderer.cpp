@@ -71,6 +71,12 @@ namespace seeks_plugins
 	// results per page.
 	dynamic_renderer::render_rpp(parameters,exports);
 	
+	// personalization.
+	const char *prs = miscutil::lookup(parameters,"prs");
+	if (!prs)
+	  prs = websearch::_wconfig->_personalization ? "on" : "off";
+	miscutil::add_map_entry(exports,"$xxpers",1,prs,1);
+	
 	// rendering.
 	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),
 						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
