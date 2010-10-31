@@ -57,26 +57,15 @@ namespace sp
 	  delete _configuration;
      }
    
-   char* plugin::print() const
+   std::string plugin::print() const
      {
-	char *res = NULL;
-	char *s = NULL;
-		
+	std::string res,s;
 	if (_interceptor_plugin)
-	  s = _interceptor_plugin->print();
-	miscutil::string_append(&res,s);
-	freez(s);
-	
+	  res = _interceptor_plugin->print();
 	if (_action_plugin)
-	  s = _action_plugin->print();
-	miscutil::string_append(&res,s);
-	freez(s);
-	
+	  res += _action_plugin->print();
 	if (_filter_plugin)
-	  s = _filter_plugin->print();
-	miscutil::string_append(&res,s);
-	freez(s);
-	
+	  res += _filter_plugin->print();
 	return res;
      }
    

@@ -30,7 +30,7 @@
 namespace sp
 {
    
-  plugin_element::plugin_element(const std::vector<url_spec*> &pos_patterns,
+   plugin_element::plugin_element(const std::vector<url_spec*> &pos_patterns,
 				 const std::vector<url_spec*> &neg_patterns,
 				 plugin *parent)
     : _pos_patterns(pos_patterns),_neg_patterns(neg_patterns),_parent(parent),
@@ -154,7 +154,7 @@ namespace sp
 	return SP_ERR_OK;
      }
 
-   sp_err plugin_element::reload()
+   bool plugin_element::reload()
      {
 	sp_err p = load_pattern_file();
 	sp_err c = load_code_file();

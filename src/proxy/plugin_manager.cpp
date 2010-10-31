@@ -310,6 +310,7 @@ namespace sp
 	       return (*vit);
 	     ++vit;
 	  }
+	errlog::log_error(LOG_LEVEL_ERROR,"Can't find any plugin with name %s",name.c_str());
 	return NULL;
      }
       
