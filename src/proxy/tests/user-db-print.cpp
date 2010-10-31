@@ -38,8 +38,6 @@ int main(int argc, char **argv)
    std::string dbfile = argv[1];
    std::string basedir = argv[2];
    
-   seeks_proxy::_configfile = "config";
-   
    seeks_proxy::_configfile = basedir + "/config";
    
    seeks_proxy::initialize_mutexes();
