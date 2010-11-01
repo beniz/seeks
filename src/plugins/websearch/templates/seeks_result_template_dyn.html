@@ -28,9 +28,7 @@
 <input id="search_button" value="" type="submit" />
 </form>
 
-<!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a> -->
-
-<p id="expand"></p>
+<a id="expansion" href="javascript:void(null);" title="Expand. Deeper search, towards a broader range of results."></a>
 
 <!-- @if-have-clustering-start -->
 <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
@@ -53,38 +51,27 @@
 
 <div id="search_bar_tab">
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span id="tab-language"></span>
-<!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers">Pers:</a> <span id="tab-pers"></span> -->
 
 <a id="tab-pers" class="search_bar_tab" href="javascript:void(null);" title="Toggle personalization">Pers:</a><span id="tab-pers-flag"></span>
 
 <a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
 
-<!-- <a id="tab-text" class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search text">Text</a> -->
-<a id="tab-text" class="search_bar_tab" title="Search text">Text</a>
+<a id="tab-text" class="search_bar_tab" href="javascript:void(null);" title="Search text">Text</a>
 <!-- @if-have-img-websearch-start -->
-<!-- <a class="search_bar_tab" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Search images">Images</a> -->
 <a id="tab-img" class="search_bar_tab" href="javascript:void(null);" title="Search images">Images</a>
 <!-- if-have-img-websearch-end@ -->
-<!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers" title="Search videos">Videos</a> -->
 <a id="tab-vid" class="search_bar_tab" href="javascript:void(null);" title="Search videos">Videos</a>
-<!-- <a class="search_bar_tab" href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers" title="Search tweets">Tweets</a> -->
 <a id="tab-tweet" class="search_bar_tab" href="javascript:void(null);" title="Search tweets">Tweets</a>
 <span class="search_bar_tab">Group by:</span> 
-<!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=urls&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by urls">urls</a>, -->
 <a id="tab-urls" href="javascript:void(null);" title="Group by urls">urls</a>
-<!-- <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by titles">titles</a>, -->
 <a id="tab-titles" href="javascript:void(null);" title="Group by titles">titles</a>
-<!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by types">types</a> -->
 <a id="tab-types" href="javascript:void(null);" title="Group by type">types</a>
 </div>
-
 </div>
-
 
 <table>
 <tr>
 <td>
-
 
 <div id="main">
 <div id="search_results">
@@ -106,6 +93,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	this.cpage = 1;  // current page.
 	this.engines = '';
 	this.expansion = 1;
+	this.nexpansion = 2;
 	this.prs = "xxpers";
 	this.ca = "xxca"; // content analysis.
     }
@@ -113,12 +101,9 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 
     var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
-    var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expand"), suggDiv = Y.one("#search_sugg"),
+    var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
     pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persHref = Y.one("#tab-pers"),
-    persSpan = Y.one("#tab-pers-flag"), textHref = Y.one("#tab-text"),
-    vidHref = Y.one("#tab-video"), tweetHref = Y.one("#tab-tweet"),
-    urlHref = Y.one("#tab-urls"), titleHref = Y.one("#tab-titles"), typeHref = Y.one("#tab-types"),
-    queryInput = Y.one("#search_input");
+    persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input");
     
     // result widget.
     function refresh(url)
@@ -175,6 +160,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	    
 		// expansion.
 		pi.expansion = response.expansion;
+		pi.nexpansion = eval(response.expansion) + 1;
 		
 		// personalization.
 		pi.prs = response.pers;
@@ -207,15 +193,12 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 		pagesDiv.setContent(pagesHTML);
 		
 		// render first shot search bar, then update it later on with JSON info.                                                              
-                response.nexpn = eval(response.expansion) + 1;
-		response.cpage = pi.cpage; // XXX: can't find how to pass either two objects, or embed object pi into response and still substitute...
+                response.cpage = pi.cpage; // XXX: can't find how to pass either two objects, or embed object pi into response and still substitute...
                 response.rpp = pi.rpp; // XXX: idem...
-		var expansionHtml = Y.substitute(expansionTemplate, response);
-                expansionLnk.setContent(expansionHtml);
-		
+		expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
+		expansionLnk.setContent(pi.expansion);
+
 		// personalization.
-		/* var persHTML = Y.substitute(persTemplate, response);
-		persHref.set('href',persHTML); */
 		var persHTMLf = Y.substitute(persTemplateFlag, pi);
 		persSpan.setContent(persHTMLf);
 
@@ -255,10 +238,6 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     /* send the request. */
     refresh(ref_url);
  
-    /* expansion button rendering. */
-    expansionTemplate = 
-	'<a href="@base-url@/search?q={enc_query}&page={cpage}&expansion={nexpn}&action=expand&engines={engines}&rpp={rpp}&content_analysis=xxca&prs={pers}&ui=dyn&output=json" title="Expand to {nexpn} (ctrl+e). Deeper search." id="expansion" class="expansion_{expansion}">{expansion}</a>';
-
     /* prev / next page rendering. */
     pagesTemplate = 
 	'{prev}<span id="search_page_current">{cpage}</span>{next}<small>page</small>';
@@ -271,34 +250,46 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     
     // Click the search button to send the JSONP request
     Y.one("#search_form").on("submit", function (e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
     });
     
+    Y.one("#expansion").on("click",function(e) {
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+
     Y.one("#tab-pers").on("click",function(e) {
 	var nprs = "off";
 	if (pi.prs == "off")
 	    nprs = "on";
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"expand","rpp":pi.rpp,"prs":nprs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"expand","rpp":pi.rpp,"prs":nprs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
     });
     
+    Y.one("#tab-text").on("click",function(e) {
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + rpp.engines + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+
     Y.one("#tab-img").on("click",function(e) {
-	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-vid").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-tweet").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
 	refresh(url);
 	return false;
     });
