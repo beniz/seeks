@@ -292,13 +292,13 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     });
 
     Y.one("#tab-vid").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","engines":"youtube,dailymotion","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-tweet").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","engines":"twitter,identica","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
 	refresh(url);
 	return false;
     });
