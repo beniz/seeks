@@ -96,7 +96,7 @@ namespace sp
 	std::string command_str = "find " + plugin_manager::_plugin_repository 
 #if defined(ON_OPENBSD)
 	  + " -name *.so*";
-#elsif defined (ON_OSX)
+#elif defined (ON_OSX)
 	+ " -name *plugin.dylib";
 #else
 	+ " -name *.so";
