@@ -443,14 +443,16 @@ body {
 #expansion {
 	
 	/*padding-top: 13px;*/
-	font-size: 40%;
+	font-size: 80%;
 	vertical-align: top;
-	padding-right: 2px;
+	padding-right: 8px;
 	text-align: right;
-	width: 44px; /*pic: 64*/
-	height: 28px; /*pic: 24*/
+  font-weight: 600;
+  
+	width: 44px;
+	height: 28px; 
 	left: 540px;
-	top: 18px;	
+	top: 18px;
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/exp_3.png);
 }
 #expansion, .expansion_, .expansion_1,
