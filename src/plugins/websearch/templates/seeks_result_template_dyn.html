@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css" />
 <link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
 <link rel="stylesheet" href="seeks_search.css" type="text/css" />
+<link rel="stylesheet" href="seeks_img_search.css" type="text/css" />
 <link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
 </head>
 
@@ -99,6 +100,21 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     }
     var pi = new page_info();
 
+    function type_info()
+    {
+	this.txt = 1;
+	this.img = 0;
+	this.vid = 0;
+	this.twe = 0;
+        this.reset = function() {
+	    this.txt = 0;
+	    this.img = 0;
+	    this.vid = 0;
+	    this.twe = 0;
+	};
+    }
+    var ti = new type_info();
+
     var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
     var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
@@ -125,10 +141,21 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 		
 		//TODO: clustering mode...
 
-		for (i=0; i < l; ++i)
+		for (i=0; i < l; ++i) 
 		{
 		    var snippet = response.snippets[i];
                     
+		    // check snippet type for rendering.
+		    if (ti.txt == 1 
+			&& (snippet.type == "image" || snippet.type == "video_thumb" || snippet.type == "tweet"))
+			continue;
+		    if (ti.img == 1 && snippet.type != "image")
+			continue;
+		    else if (ti.vid == 1 && snippet.type != "video_thumb")
+			continue;
+		    else if (ti.twe == 1 && snippet.type != "tweet")
+			continue;
+
 		    // personalization & title head.
 		    if (snippet.personalized == 'yes')
 		    {
@@ -139,22 +166,42 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 			snippet.headHTML = '<h3>';
 		    }
 		    
+		    // render url capture.
+		    if (pi.pers == "on")
+		    {
+			snippet.url = "/qc_redir?q=" + response.enc_query + "&url=" + encodeURIComponent(snippet.url);
+		    }
+		    
 		    // render engines.
                     snippet.enginesHTML = '';
 		    for (j=0, le=snippet.engines.length; j < le; ++j)
 		    {
 			snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
-			snippet.enginesHTML += '@base-url@/search?q=' + response.enc_query;
+			snippet.enginesHTML += '@base-url@/search';
+			if (ti.img == 1)
+			    snippet.enginesHTML += '_img';
+			snippet.enginesHTML += '?q=' + response.enc_query;
 			snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
-			snippet.enginesHTML += '&nbsp;</a></span>';
+			snippet.enginesHTML += '</a></span>';
 		    }
 		    
 		    // Format the snippet info and store as a property of the
                     // snippet object for use by Y.substitute
                     // ('this' refers to the JSONPRequest object by default)
 		    snippet.enc_query = response.enc_query;
-		    snippet.snippetHTML = Y.substitute(this.snippetTemplate, snippet);
-		    snippets_html += Y.substitute(this.resultTemplate, snippet);
+
+		    if (ti.txt == 1)
+			snippet.snippetHTML = Y.substitute(this.snippetTxtTemplate, snippet);
+		    else if (ti.img == 1)
+			snippet.snippetHTML = Y.substitute(this.snippetImgTemplate, snippet);
+		    else if (ti.vid == 1)
+			snippet.snippetHTML = Y.substitute(this.snippetVidTemplate, snippet);
+		    else if (ti.twe == 1)
+		    {
+			snippet.snippetHTML = Y.substitute(this.snippetTweetTemplate, snippet);
+			//alert(snippet.snippetHTML);
+		    }
+		    snippets_html += snippet.snippetHTML;
 		}
 		outputDiv.setContent(snippets_html);
 	    
@@ -220,17 +267,30 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     });
         
 	/* main result widget stuff. */
-    resultsWidget.resultTemplate =
-        '<li class="search_snippet">{snippetHTML}</li>';
- 
-    resultsWidget.snippetTemplate =
-        '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
-	'<div>{summary}</div>' +
-	'<div><cite>{cite}</cite>' +
-	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div>'; //TODO: expansion.
- 
-    resultsWidget.failureTemplate =
-        '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
+	resultsWidget.snippetTxtTemplate =
+            '<li class="search_snippet">' +
+	    '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
+	    '<div>{summary}</div>' +
+	    '<div><cite>{cite}</cite>' +
+	    '<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
+	
+	resultsWidget.snippetImgTemplate =
+	    '<li class="search_snippet search_snippet_img">' +
+	    '<h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</h3></div>' +
+	    '<cite>{cite}</cite><br>' +
+	    '<a class="search_cache" href="{cached}">Cached</a>' + //TODO: similarity.
+	    '</div></li>';
+
+	resultsWidget.snippetVidTemplate =
+	    '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>' +
+	    '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>'+
+	    '<div><cite>{date}</cite></div></li>';
+	    
+	resultsWidget.snippetTweetTemplate = 
+	    '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}&engines=twitter,identica">Similar</a></div></li>';
+	
+	resultsWidget.failureTemplate =
+            '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
 	
 	resultsWidget.send();
     }
@@ -250,7 +310,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     
     // Click the search button to send the JSONP request
     Y.one("#search_form").on("submit", function (e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
@@ -271,24 +331,33 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     });
     
     Y.one("#tab-text").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + rpp.engines + "&callback={callback}";
+	ti.reset();
+	ti.txt = 1;
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	//alert(url);
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-img").on("click",function(e) {
-	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	ti.reset();
+	ti.img = 1;
+	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":60,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-vid").on("click",function(e) {
+	ti.reset();
+	ti.vid = 1;
 	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-tweet").on("click",function(e) {
+	ti.reset();
+	ti.twe = 1;
 	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
 	refresh(url);
 	return false;
