@@ -20,7 +20,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 				   se_parser_twitter.cpp se_parser_youtube.cpp se_parser_dailymotion.cpp \
 			           query_interceptor.cpp websearch_configuration.cpp \
-				   se_parser_yauba.cpp \
+				   se_parser_yauba.cpp se_parser_blekko.cpp\
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp \
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h oskmeans.h \

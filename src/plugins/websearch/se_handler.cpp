@@ -35,6 +35,7 @@
 #include "se_parser_youtube.h"
 #include "se_parser_dailymotion.h"
 #include "se_parser_yauba.h"
+#include "se_parser_blekko.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -380,6 +381,39 @@ namespace seeks_plugins
       url = q_yt;
     }
 
+    se_blekko::se_blekko()
+        :search_engine()
+    {
+    }
+
+    se_blekko::~se_blekko()
+    {
+    }
+
+    void se_blekko::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc)
+    {
+      std::string q_blekko = se_handler::_se_strings[BLEKKO];
+      const char *query = miscutil::lookup(parameters,"q");
+
+      // query.
+      char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+      std::string qenc_str = std::string(qenc);
+      free(qenc);
+      miscutil::replace_in_string(q_blekko,"%query",qenc_str);
+
+      //page
+      //const char *expansion = miscutil::lookup(parameters,"expansion");
+      //int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)) : 1;
+      //std::string pp_str = miscutil::to_string(pp);
+      //miscutil::replace_in_string(q_blekko,"%start",pp_str);
+
+      // log the query.
+      errlog::log_error(LOG_LEVEL_INFO, "Querying blekko: %s", q_blekko.c_str());
+
+      url = q_blekko;
+    }
+
     se_yauba::se_yauba()
         :search_engine()
     {
@@ -467,6 +501,8 @@ namespace seeks_plugins
     {
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
+      // http://blekko.com/ws/P+/rss?fp=&p=3,
+      "http://blekko.com/ws/%query/rss?fp=&p=%start"
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
       "http://www.cuil.com/search?q=%query",
       // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
@@ -496,6 +532,7 @@ namespace seeks_plugins
     se_identica se_handler::_identica = se_identica();
     se_youtube se_handler::_youtube = se_youtube();
     se_yauba se_handler::_yauba = se_yauba();
+    se_blekko se_handler::_blekko = se_blekko();
     se_dailymotion se_handler::_dailym = se_dailymotion();
 
     std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
@@ -701,6 +738,9 @@ namespace seeks_plugins
         case YAUBA:
           _yauba.query_to_se(parameters,url,qc);
           break;
+        case BLEKKO:
+          _blekko.query_to_se(parameters,url,qc);
+          break;
         case DAILYMOTION:
           _dailym.query_to_se(parameters,url,qc);
           break;
@@ -752,6 +792,10 @@ namespace seeks_plugins
           else if (se == "yauba")
             {
               se_enabled |= std::bitset<NSEs>(SE_YAUBA);
+            }
+          else if (se == "blekko")
+            {
+              se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
             }
           else if (se == "dailymotion")
             {
@@ -926,6 +970,9 @@ namespace seeks_plugins
           break;
         case YAUBA:
           sep = new se_parser_yauba();
+          break;
+        case BLEKKO:
+          sep = new se_parser_blekko();
           break;
         case DAILYMOTION:
           sep = new se_parser_dailymotion();

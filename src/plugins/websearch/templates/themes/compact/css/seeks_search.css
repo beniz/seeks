@@ -186,6 +186,10 @@ body {
 	background-image: url(base-url/plugins/websearch/public/images/search_engines/yauba_12x12.png);
 }
 
+#search_results .search_snippet .search_engine_blekko {
+	background-image: url(base-url/plugins/websearch/public/images/search_engines/blekko.png);
+}
+
 #search_results .search_snippet .personalized {
         background-image: url(base-url/plugins/websearch/public/themes/compact/images/perso_star.png);
 }
