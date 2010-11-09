@@ -32,6 +32,7 @@ body {
 	/*background-image: url(base-url/plugins/websearch/public/themes/compact/images/gradient1.png);*/
 	background-color:white;
 	border-bottom: 2px solid #999999;
+  min-width: 890px;
 }
 
 #search_bar_tab {
@@ -381,10 +382,11 @@ body {
 }
 
 #help {
-	position: fixed;
+	position: absolute;
 	top: 20px;
-	/*left: 730px;*/
-	right: 15px;
+	/*left: 200px;*/
+	/*right: 15px;*/
+  right: 45px;
 }
 
 #cluster, #expansion {
