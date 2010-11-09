@@ -502,7 +502,7 @@ namespace seeks_plugins
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
       // http://blekko.com/ws/P+/rss?fp=&p=3,
-      "http://blekko.com/ws/%query/rss?fp=&p=%start"
+      "http://blekko.com/ws/%query/rss?fp=&p=%start",
       // cuil: www.cuil.com/search?q=markov+chain&lang=en
       "http://www.cuil.com/search?q=%query",
       // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
