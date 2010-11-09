@@ -44,6 +44,7 @@ namespace seeks_plugins
 #endif
 	 , _cached_image(NULL)
        {
+	  _doc_type = IMAGE;
        }
    
    img_search_snippet::img_search_snippet(const short &rank)
@@ -53,6 +54,7 @@ namespace seeks_plugins
 #endif
 	 , _cached_image(NULL)
        {
+	  _doc_type = IMAGE;
 #ifdef FEATURE_OPENCV2
 	  _surf_storage = cvCreateMemStorage(0);
 #endif
@@ -105,9 +107,8 @@ namespace seeks_plugins
 #endif
 		
 	std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
-	std::string html_content = "<li class=\"search_snippet search_snippet_img\"";
-	html_content += ">";
-	
+	std::string html_content = "<li class=\"search_snippet search_snippet_img\">";
+		
 	html_content += "<h3><a href=\"";
 	html_content += url + "\"><img src=\"";
 	html_content += _cached;
@@ -219,7 +220,8 @@ namespace seeks_plugins
 	return html_content;
      }
 
-   std::string img_search_snippet::to_json(const bool &thumbs)
+   std::string img_search_snippet::to_json(const bool &thumbs,
+					   const std::vector<std::string> &query_words)
      {
 	std::string json_str;
 	json_str += "{";
@@ -227,13 +229,25 @@ namespace seeks_plugins
 	json_str += "\"title\":\"" + _title + "\",";
 	json_str += "\"url\":\"" + _url + "\",";
 	json_str += "\"summary\":\"" + _summary + "\",";
+	json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
 	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
 	double rank = _rank / static_cast<double>(_img_engine.count());
 	json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
 	json_str += "\"cite\":\"";
 	if (!_cite.empty())
-	  json_str += _cite + "\",";
-	else json_str += _url + "\",";
+	  {
+	     std::string cite_host;
+	     std::string cite_path;
+	     urlmatch::parse_url_host_and_path(_cite,cite_host,cite_path);
+	     json_str += cite_host + "\",";
+	  }
+	else 
+	  {
+	     std::string cite_host;
+	     std::string cite_path;
+	     urlmatch::parse_url_host_and_path(_url,cite_host,cite_path);
+	     json_str += cite_host + "\",";
+	  }
 	if (!_cached.empty())
 	  json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
 	json_str += "\"engines\":[";
@@ -265,9 +279,16 @@ namespace seeks_plugins
 	     json_str_eng += "\"yahoo\"";
 	  }
 	json_str += json_str_eng + "]";
+	json_str += ",\"type\":\"" + get_doc_type_str() + "\"";
+	json_str += ",\"personalized\":\"";
+	if (_personalized)
+	  json_str += "yes";
+	else json_str += "no";
+	json_str += "\"";
+	if (!_date.empty())
+	  json_str += ",\"date\":\"" + _date + "\"";
 	json_str += "}";
 	return json_str;
-	
      }
       
    bool img_search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
