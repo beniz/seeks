@@ -23,7 +23,7 @@ namespace json_renderer_private {
   sp_err collect_json_results(std::list<std::string> &results,
 			      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			      const seeks_plugins::query_context *qc,
-			      const double &qtime);
+			      const double &qtime, const bool &img=false);
 
   std::string query_clean(const std::string& q);
   std::string jsonp(const std::string& input, const char* callback);

@@ -23,6 +23,9 @@
 #include "miscutil.h"
 #include "cgi.h"
 #include "json_renderer_private.h"
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_query_context.h"
+#endif
 
 using sp::cgisimple;
 using sp::miscutil;
@@ -67,9 +70,63 @@ namespace seeks_plugins
 		json_str_eng += ",";
 	      json_str_eng += "\"twitter\"";
 	   }
+	 if (engines.to_ulong()&SE_IDENTICA)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"identica\"";
+	   }
+	 if (engines.to_ulong()&SE_DAILYMOTION)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"dailymotion\"";
+	   }
+	 if (engines.to_ulong()&SE_YOUTUBE)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"youtube\"";
+	   }
 	 return json_str_eng;	
       }
 
+    std::string json_renderer::render_img_engines(const query_context *qc)
+      {
+	 std::string json_str_eng = "";
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+	 const img_query_context *iqc = static_cast<const img_query_context*>(qc);
+	 std::bitset<IMG_NSEs> engines = iqc->_img_engines;
+	 if (engines.to_ulong()&SE_BING_IMG)
+	   json_str_eng += "\"bing\"";
+	 if (engines.to_ulong()&SE_FLICKR)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"flickr\"";
+	   }
+	 if (engines.to_ulong()&SE_GOOGLE_IMG)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"google\"";
+	   }
+	 if (engines.to_ulong()&SE_WCOMMONS)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"wcommons\"";
+	   }
+	 if (engines.to_ulong()&SE_YAHOO_IMG)
+	   {
+	      if (!json_str_eng.empty())
+		json_str_eng += ",";
+	      json_str_eng += "\"yahoo\"";
+	   }
+#endif
+	 return json_str_eng;
+      }
+    
     sp_err json_renderer::render_snippets(const std::string &query_clean,
 					  const int &current_page,
 					  const std::vector<search_snippet*> &snippets,
@@ -180,7 +237,8 @@ namespace seeks_plugins
 					      client_state *csp, http_response *rsp,
 					      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					      const query_context *qc,
-					      const double &qtime)
+					      const double &qtime,
+					      const bool &img)
       {
 	 const char *current_page_str = miscutil::lookup(parameters,"page");
 	 if (!current_page_str)
@@ -197,7 +255,7 @@ namespace seeks_plugins
 	 json_renderer::render_snippets(query,current_page,snippets,json_snippets,parameters);
 
 	 std::list<std::string> results;
-	 collect_json_results(results,parameters,qc,qtime);
+	 collect_json_results(results,parameters,qc,qtime,img);
 	 results.push_back(json_snippets);
 	 const std::string results_string = "{" + miscutil::join_string_list(",",results) + "}";
 	 const std::string body = jsonp(results_string, miscutil::lookup(parameters,"callback"));
@@ -260,9 +318,10 @@ namespace json_renderer_private
   }
 
    sp_err collect_json_results(std::list<std::string> &results,
-					     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					     const query_context *qc,
-					     const double &qtime)
+			       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			       const query_context *qc,
+			       const double &qtime,
+			       const bool &img)
      {
 	// query.
 	results.push_back("\"query\":\"" + query_clean(miscutil::lookup(parameters,"q")) + "\"");
@@ -287,7 +346,8 @@ namespace json_renderer_private
 	if (qc->_engines.to_ulong() > 0)
 	  {
 	    results.push_back("\"engines\":[" +
-			      json_renderer::render_engines(qc->_engines) +
+			      (img ? json_renderer::render_img_engines(qc)
+				: json_renderer::render_engines(qc->_engines)) +
 			      "]");
 	  }
 	
