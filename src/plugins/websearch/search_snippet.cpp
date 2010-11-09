@@ -192,7 +192,7 @@ namespace seeks_plugins
 
       return output;
     }
-
+     
     std::string search_snippet::to_json(const bool &thumbs,
 					const std::vector<std::string> &query_words)
     {
@@ -257,6 +257,8 @@ namespace seeks_plugins
 	 json_str += "yes";
        else json_str += "no";
        json_str += "\"";
+       if (!_date.empty())
+	 json_str += ",\"date\":\"" + _date + "\"";
        
        json_str += "}";
       return json_str;
@@ -318,7 +320,7 @@ namespace seeks_plugins
       if (_doc_type == TWEET)
         {
           html_content += "<a href=\"" + _cite + "\">";
-          html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" /></a>"; // _cached contains the profile's image.
+          html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" ></a>"; // _cached contains the profile's image.
         }
       if (_doc_type == VIDEO_THUMB)
         {
@@ -421,12 +423,11 @@ namespace seeks_plugins
           miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
           html_content += yt_se_icon;
         }
-
-
+       
       if (_doc_type == TWEET)
         if (_meta_rank > 1)
           html_content += " (" + miscutil::to_string(_meta_rank) + ")";
-
+       
       html_content += "</h3>";
         
       if (!_summary.empty())
