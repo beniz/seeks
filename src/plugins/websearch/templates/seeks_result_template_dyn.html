@@ -88,6 +88,10 @@
 YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 
     // page information.
+    var query = "fullquery";
+    var enc_query = "fullquery";
+    var lang = '';
+    
     function page_info()
     {    
 	this.rpp = xxrpp;  // results per page.
@@ -97,9 +101,15 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	this.nexpansion = 2;
 	this.prs = "xxpers";
 	this.ca = "xxca"; // content analysis.
+	this.suggestion = "";
     }
-    var pi = new page_info();
-
+    var pi_txt = new page_info();
+    var pi_img = new page_info();
+    pi_img.rpp = 60;
+    var pi_vid = new page_info();
+    pi_vid.rpp = 40;
+    var pi_twe = new page_info();
+    
     function type_info()
     {
 	this.txt = 1;
@@ -114,13 +124,23 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	};
     }
     var ti = new type_info();
-
+    
+    function rpage()
+    {
+	this.prev = '';
+	this.next = '';
+	this.cpage = 1;
+    }
+    
     var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
     var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
     pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persHref = Y.one("#tab-pers"),
     persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input");
     
+    var hashSnippets = {};
+    var nsnippets = 0;
+
     // result widget.
     function refresh(url)
     {
@@ -129,199 +149,283 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	var resultsWidget = new Y.JSONPRequest(url, {
         on: {
             success: function (response) {
-		response.enc_query = ':' + response.lang + '+' + encodeURIComponent(response.query);
-		var snippets_html = '';
-                var l = response.snippets.length;
+		lang = response.lang;
+		query = response.query;
+		enc_query = ':' + lang + '+' + encodeURIComponent(response.query);
+		var l = response.snippets.length;
 		
-		//TODO: test whether JSON clusters field exists ...
-		/* var cl = response.clusters.length;
-		   var clustering = false;
-		if (l == 0 & cl > 0)
-		    clustering = true; */ // render in clustering mode.
-		
-		//TODO: clustering mode...
-
 		for (i=0; i < l; ++i) 
 		{
 		    var snippet = response.snippets[i];
-                    
-		    // check snippet type for rendering.
-		    if (ti.txt == 1 
-			&& (snippet.type == "image" || snippet.type == "video_thumb" || snippet.type == "tweet"))
-			continue;
-		    if (ti.img == 1 && snippet.type != "image")
-			continue;
-		    else if (ti.vid == 1 && snippet.type != "video_thumb")
-			continue;
-		    else if (ti.twe == 1 && snippet.type != "tweet")
-			continue;
-
-		    // personalization & title head.
-		    if (snippet.personalized == 'yes')
+                    if (!hashSnippets[snippet.id])
 		    {
-			snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
+			hashSnippets[snippet.id] = snippet;
+			nsnippets++;
 		    }
-		    else
+		    /* else
 		    {
-			snippet.headHTML = '<h3>';
-		    }
-		    
-		    // render url capture.
-		    if (pi.pers == "on")
-		    {
-			snippet.url = "/qc_redir?q=" + response.enc_query + "&url=" + encodeURIComponent(snippet.url);
-		    }
-		    
-		    // render engines.
-                    snippet.enginesHTML = '';
-		    for (j=0, le=snippet.engines.length; j < le; ++j)
-		    {
-			snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
-			snippet.enginesHTML += '@base-url@/search';
-			if (ti.img == 1)
-			    snippet.enginesHTML += '_img';
-			snippet.enginesHTML += '?q=' + response.enc_query;
-			snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
-			snippet.enginesHTML += '</a></span>';
-		    }
-		    
-		    // Format the snippet info and store as a property of the
-                    // snippet object for use by Y.substitute
-                    // ('this' refers to the JSONPRequest object by default)
-		    snippet.enc_query = response.enc_query;
-
-		    if (ti.txt == 1)
-			snippet.snippetHTML = Y.substitute(this.snippetTxtTemplate, snippet);
-		    else if (ti.img == 1)
-			snippet.snippetHTML = Y.substitute(this.snippetImgTemplate, snippet);
-		    else if (ti.vid == 1)
-			snippet.snippetHTML = Y.substitute(this.snippetVidTemplate, snippet);
-		    else if (ti.twe == 1)
-		    {
-			snippet.snippetHTML = Y.substitute(this.snippetTweetTemplate, snippet);
-			//alert(snippet.snippetHTML);
-		    }
-		    snippets_html += snippet.snippetHTML;
+			//TODO: update.
+			hashSnippets[snippet.id] = snippet;
+		    } */
 		}
-		outputDiv.setContent(snippets_html);
-	    
+			    
 		// expansion.
+		var pi;
+		if (ti.txt == 1)
+		    pi = pi_txt;
+		else if (ti.img == 1)
+		    pi = pi_img;
+		else if (ti.vid == 1)
+		    pi = pi_vid;
+		else if (ti.twe == 1)
+		    pi = pi_twe;
 		pi.expansion = response.expansion;
 		pi.nexpansion = eval(response.expansion) + 1;
-		
+		pi.suggestion = response.suggestion;
+
 		// personalization.
 		pi.prs = response.pers;
 
 		// engines.
 		pi.engines = response.engines;
-
-		// compute page number.
-		var ns = response.snippets.length;
-		var max_page = 1;
-		if (ns > 0)
-		    max_page = pi.rpp / ns;
-		pi.ppage = pi.cpage - 1;
-		pi.npage = pi.cpage + 1;
-		if (pi.cpage > 1)
-		{
-		    pi.prev = '<a href=\"' + @base-url@ + '/search?page=' + pi.ppage + '&q='
-			+ response.enc_query + '&expansion' + response.expansion + '&action=page&engines=' + pi.engines
-			+ '&rpp=' + pi.rpp + '&content_analysis=off&prs=on \" id=\"search_page_prev\" title=\"Previous (ctrl+&lt)\">&nbsp;</a>';
-		}
-		else pi.prev = "";
-		if (pi.cpage < max_page)
-		{
-		    pi.next = '<a href=\"' + @base-url@ + '/search?page=' + pi.npage + '&q='
-			+ response.enc_query + '&expansion' + response.expansion + '&action=page&engines=' + pi.engines
-                        + '&rpp=' + pi.rpp + '&content_analysis=off&prs=on \" id=\"search_page_next\" title=\"Next (ctrl+&gt)\">&nbsp;</a>';
-		}
-		else pi.next = "";
-		pagesHTML = Y.substitute(pagesTemplate,pi);
-		pagesDiv.setContent(pagesHTML);
 		
-		// render first shot search bar, then update it later on with JSON info.                                                              
-                response.cpage = pi.cpage; // XXX: can't find how to pass either two objects, or embed object pi into response and still substitute...
-                response.rpp = pi.rpp; // XXX: idem...
-		expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
-		expansionLnk.setContent(pi.expansion);
-
-		// personalization.
-		var persHTMLf = Y.substitute(persTemplateFlag, pi);
-		persSpan.setContent(persHTMLf);
-
-		//TODO: content analysis...
-
-		// render language.
-		var langHTML = Y.substitute(langTemplate, response);
-		langSpan.setContent(langHTML);
-
-		// query suggestion.
-		suggDiv.setContent(response.suggestion);
+                //response.cpage = pi.cpage; // XXX: can't find how to pass either two objects, or embed object pi into response and still substitute...
+                //response.rpp = pi.rpp; // XXX: idem...
+		
+		render();
 	    },
 	    
 	    failure: function () {
                 alert("fail");
                 outputDiv.setContent(this.failureTemplate);
 	    }
-        }
-    });
-        
-	/* main result widget stuff. */
-	resultsWidget.snippetTxtTemplate =
-            '<li class="search_snippet">' +
-	    '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
-	    '<div>{summary}</div>' +
-	    '<div><cite>{cite}</cite>' +
-	    '<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
-	
-	resultsWidget.snippetImgTemplate =
-	    '<li class="search_snippet search_snippet_img">' +
-	    '<h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</h3></div>' +
-	    '<cite>{cite}</cite><br>' +
-	    '<a class="search_cache" href="{cached}">Cached</a>' + //TODO: similarity.
-	    '</div></li>';
-
-	resultsWidget.snippetVidTemplate =
-	    '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>' +
-	    '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>'+
-	    '<div><cite>{date}</cite></div></li>';
-	    
-	resultsWidget.snippetTweetTemplate = 
-	    '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}&engines=twitter,identica">Similar</a></div></li>';
-	
-	resultsWidget.failureTemplate =
-            '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
-	
+	}	
+        });
 	resultsWidget.send();
     }
+
+    /* main result widget stuff. */
+    snippetTxtTemplate =
+        '<li class="search_snippet">' +
+        '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>' +
+	'<div>{summary}</div>' +
+        '<div><cite>{cite}</cite>' +
+	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
     
-    /* send the request. */
-    refresh(ref_url);
- 
+    snippetImgTemplate =
+	'<li class="search_snippet search_snippet_img">' +
+	'<h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</h3></div>' +
+	'<cite>{cite}</cite><br>' +
+        '<a class="search_cache" href="{cached}">Cached</a>' + //TODO: similarity.                                                     
+	'</div></li>';
+    
+    snippetVidTemplate =
+        '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>' +
+        '{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3>'+
+	'<div><cite>{date}</cite></div></li>';
+    
+    snippetTweetTemplate =
+	'<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}&engines=twitter,identica">Similar</a></div></li>';
+    
+    failureTemplate =
+        '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
+        
+    function render()
+    {
+        //TODO: clustering.
+	
+	var pi;
+	if (ti.txt == 1)
+            pi = pi_txt;
+        else if (ti.img == 1)
+            pi = pi_img;
+        else if (ti.vid == 1)
+            pi = pi_vid;
+        else if (ti.twe == 1)
+	    pi = pi_twe;
+	
+	var ns = 0;
+	var snippets_html = '';
+	for (id in hashSnippets)
+	{
+	    var snippet = hashSnippets[id];
+
+	    // check snippet type for rendering.                                                                                   
+            if (ti.txt == 1
+		&& (snippet.type == "image" || snippet.type == "video_thumb" || snippet.type == "tweet"))
+                continue;
+            if (ti.img == 1 && snippet.type != "image")
+                continue;
+            else if (ti.vid == 1 && snippet.type != "video_thumb")
+                continue;
+            else if (ti.twe == 1 && snippet.type != "tweet")
+                continue;
+	    ns++;
+	}
+	
+	var k = 0;
+	for (id in hashSnippets)
+	{
+	    var snippet = hashSnippets[id];
+	    
+	    // check snippet type for rendering.                                                                                           
+            if (ti.txt == 1
+                && (snippet.type == "image" || snippet.type == "video_thumb" || snippet.type == "tweet"))
+                continue;
+            if (ti.img == 1 && snippet.type != "image")
+                continue;
+            else if (ti.vid == 1 && snippet.type != "video_thumb")
+                continue;
+            else if (ti.twe == 1 && snippet.type != "tweet")
+                continue;
+            k++;
+	    
+	    if (k < (pi.cpage-1) * pi.rpp)
+		continue;
+	    else if (k > pi.cpage * pi.rpp)
+		break;
+	    	    
+            // personalization & title head.                                                                                       
+            if (snippet.personalized == 'yes')
+            {
+                snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
+            }
+            else
+            {
+                snippet.headHTML = '<h3>';
+            }
+	    
+            // render url capture.                                                                                                 
+            if (pi.pers == "on")
+            {
+                snippet.url = "/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
+            }
+	    
+	    // render engines.                                                                                                     
+            snippet.enginesHTML = '';
+	    for (j=0, le=snippet.engines.length; j < le; ++j)
+            {
+                snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
+                snippet.enginesHTML += '@base-url@/search';
+                if (ti.img == 1)
+                    snippet.enginesHTML += '_img';
+                snippet.enginesHTML += '?q=' + enc_query;
+                snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
+                snippet.enginesHTML += '</a></span>';
+            }
+	    
+	    // encoded query.
+            snippet.enc_query = enc_query;
+	    
+	    if (ti.txt == 1)
+		snippet.snippetHTML = Y.substitute(snippetTxtTemplate, snippet);
+	    else if (ti.img == 1)
+            	snippet.snippetHTML = Y.substitute(snippetImgTemplate, snippet);
+	    else if (ti.vid == 1)
+            	snippet.snippetHTML = Y.substitute(snippetVidTemplate, snippet);
+	    else if (ti.twe == 1)
+                snippet.snippetHTML = Y.substitute(snippetTweetTemplate, snippet);
+            
+	    snippets_html += snippet.snippetHTML;
+	}
+	outputDiv.setContent(snippets_html);
+
+	// compute page number.
+        var p = new rpage();
+	p.cpage = pi.cpage;
+	var max_page = 1;
+        if (ns > 0)
+            max_page = ns / pi.rpp;
+        
+        if (pi.cpage > 1)
+        {
+	    p.prev = '<a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a>';
+        }
+        if (pi.cpage < max_page)
+        {
+            p.next = '<a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a>';
+	}
+        pagesHTML = Y.substitute(pagesTemplate,p);
+        pagesDiv.setContent(pagesHTML);
+	
+	// expansion image.
+	expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
+        expansionLnk.setContent(pi.expansion);
+	
+	// personalization.
+        var persHTMLf = Y.substitute(this.persTemplateFlag, pi);
+	persSpan.setContent(persHTMLf);
+	
+        //TODO: content analysis...
+	
+        // render language.
+        langSpan.setContent(lang);
+	
+        // query suggestion.
+        suggDiv.setContent(pi.suggestion);
+    }
+    
     /* prev / next page rendering. */
     pagesTemplate = 
 	'{prev}<span id="search_page_current">{cpage}</span>{next}<small>page</small>';
     
-    /* language rendering. */
-    langTemplate = '{lang}';
-    
     /* personalization rendering. */
     persTemplateFlag = '{prs}';
     
+    /* send the request. */
+    refresh(ref_url);
+    
     // Click the search button to send the JSONP request
     Y.one("#search_form").on("submit", function (e) {
+	var nquery = queryInput.get('value');
+	if (query != nquery)
+	{
+	    for (id in hashSnippets)
+		delete hashSnippets[id];
+	}
+	var pi;
+	if (ti.txt == 1)
+	    pi = pi_txt;
+	else if (ti.img == 1)
+	    pi = pi_img;
+	else if (ti.vid == 1)
+	    pi = pi_vid;
+	else if (ti.twe == 1)
+	    pi = pi_twe;
 	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
     
     Y.one("#expansion").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	var eimg = '';
+	var pi;
+	if (ti.txt == 1)
+            pi = pi_txt;
+	else if(ti.img== 1)
+	{
+            pi = pi_img;
+	    eimg = "_img";
+	}	
+	else if(ti.vid== 1)
+            pi = pi_vid;
+	else if(ti.twe== 1)
+            pi = pi_twe;
+	var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
     });
 
     Y.one("#tab-pers").on("click",function(e) {
+	var pi;
+	if (ti.txt == 1)
+            pi = pi_txt;
+	else if(ti.img== 1)
+            pi = pi_img;
+	else if(ti.vid== 1)
+            pi = pi_vid;
+	else if(ti.twe== 1)
+            pi = pi_twe;
 	var nprs = "off";
 	if (pi.prs == "off")
 	    nprs = "on";
@@ -333,8 +437,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-text").on("click",function(e) {
 	ti.reset();
 	ti.txt = 1;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
-	//alert(url);
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_txt.rpp,"prs":pi_txt.pers,"content_analysis":pi_txt.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
@@ -342,7 +445,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-img").on("click",function(e) {
 	ti.reset();
 	ti.img = 1;
-	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":60,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_img.rpp,"prs":pi_img.pers,"content_analysis":pi_img.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
@@ -350,7 +453,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-vid").on("click",function(e) {
 	ti.reset();
 	ti.vid = 1;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_vid.rpp,"prs":pi_vid.pers,"content_analysis":pi_vid.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
 	refresh(url);
 	return false;
     });
@@ -358,12 +461,12 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-tweet").on("click",function(e) {
 	ti.reset();
 	ti.twe = 1;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
 	refresh(url);
 	return false;
     });
 
-    Y.one("#tab-urls").on("click",function(e) {
+    /* Y.one("#tab-urls").on("click",function(e) {
 	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"urls","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
@@ -373,10 +476,10 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"titles","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
-    });
+    }); */
 
     Y.one("#tab-types").on("click",function(e) {
-        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"types","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"action":"types","ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });

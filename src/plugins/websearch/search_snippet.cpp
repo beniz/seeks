@@ -734,13 +734,16 @@ namespace seeks_plugins
         }
 
       // detect wikis. XXX: could be put into a pattern file if more complex patterns are needed.
-      size_t pos = 0;
-      std::string wiki_pattern = "wiki";
-      std::string::const_iterator sit = _url.begin();
-      if ((pos = miscutil::ci_find(_url,wiki_pattern,sit))!=std::string::npos)
-        {
-          _doc_type = WIKI;
-        }
+      if (_doc_type == WEBPAGE)
+	 {
+	    size_t pos = 0;
+	    std::string wiki_pattern = "wiki";
+	    std::string::const_iterator sit = _url.begin();
+	    if ((pos = miscutil::ci_find(_url,wiki_pattern,sit))!=std::string::npos)
+	      {
+		 _doc_type = WIKI;
+	      }
+	 }
     }
 
     // static.

@@ -158,7 +158,7 @@ namespace seeks_plugins
 	      size_t ssize = snippets.size();
 	      size_t snisize = ssize;
 	      size_t snistart = 0;
-	      if (current_page == 0) // page is not taken into account.
+	      if (current_page == 0) // page is not taken into account, return all results.
 		{
 		}
 	      else
@@ -243,8 +243,8 @@ namespace seeks_plugins
 	 const char *current_page_str = miscutil::lookup(parameters,"page");
 	 if (!current_page_str)
 	   {
-	      //XXX: no page argument, we default to first page.
-	      current_page_str = "1";
+	      //XXX: no page argument, we default to no page.
+	      current_page_str = "0";
 	   }
 	 int current_page = atoi(current_page_str);
 
