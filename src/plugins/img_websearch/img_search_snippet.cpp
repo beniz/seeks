@@ -226,9 +226,15 @@ namespace seeks_plugins
 	std::string json_str;
 	json_str += "{";
 	json_str += "\"id\":" + miscutil::to_string(_id) + ",";
-	json_str += "\"title\":\"" + _title + "\",";
-	json_str += "\"url\":\"" + _url + "\",";
-	json_str += "\"summary\":\"" + _summary + "\",";
+	std::string title = _title;
+	miscutil::replace_in_string(title,"\"","\\\"");
+	json_str += "\"title\":\"" + title + "\",";
+	std::string url = _url;
+	miscutil::replace_in_string(url,"\"","\\\"");
+	json_str += "\"url\":\"" + url + "\",";
+	std::string summary = _summary_noenc;
+	miscutil::replace_in_string(summary,"\"","\\\"");
+	json_str += "\"summary\":\"" + summary + "\",";
 	json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
 	json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
 	double rank = _rank / static_cast<double>(_img_engine.count());
@@ -249,7 +255,11 @@ namespace seeks_plugins
 	     json_str += cite_host + "\",";
 	  }
 	if (!_cached.empty())
-	  json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
+	  {
+	     std::string cached = _cached;
+	     miscutil::replace_in_string(cached,"\"","\\\"");
+	     json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
+	  }
 	json_str += "\"engines\":[";
 	std::string json_str_eng = "";
 	if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
