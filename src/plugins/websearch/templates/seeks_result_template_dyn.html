@@ -101,7 +101,14 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	this.nexpansion = 2;
 	this.prs = "xxpers";
 	this.ca = "xxca"; // content analysis.
-	this.suggestion = "";
+	this.suggestion = '';
+	this.reset = function() {
+	    this.cpage = 1;
+	    this.engines = '';
+	    this.expansion = 1;
+	    this.nexpansion = 2;
+	    this.suggestion = '';
+	};
     }
     var pi_txt = new page_info();
     var pi_img = new page_info();
@@ -109,7 +116,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     var pi_vid = new page_info();
     pi_vid.rpp = 40;
     var pi_twe = new page_info();
-    
+        
     function type_info()
     {
 	this.txt = 1;
@@ -131,6 +138,30 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	this.next = '';
 	this.cpage = 1;
     }
+
+    function sort_meta(s1,s2)
+    {
+	if (s1.seeks_meta < s2.seeks_meta)
+	    return 1;
+	else if (s1.seeks_meta > s2.seeks_meta)
+	    return -1;
+	else {
+	    if (s1.rank > s2.rank)
+		return 1;
+	    else if (s2.rank < s1.rank)
+		return -1;
+	    else return 0;
+	}
+    }
+
+    function sort_score(s1,s2)
+    {
+	if (s1.seeks_score < s2.seeks_score)
+	    return 1;
+	else if (s1.seeks_score > s2.seeks_score)
+	    return -1;
+	else return sort_meta(s1,s2);
+    }
     
     var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
@@ -144,7 +175,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     // result widget.
     function refresh(url)
     {
-	outputDiv.setContent("Seeking...");
+	//outputDiv.setContent("Seeking...");
 	
 	var resultsWidget = new Y.JSONPRequest(url, {
         on: {
@@ -159,14 +190,9 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 		    var snippet = response.snippets[i];
                     if (!hashSnippets[snippet.id])
 		    {
-			hashSnippets[snippet.id] = snippet;
 			nsnippets++;
 		    }
-		    /* else
-		    {
-			//TODO: update.
-			hashSnippets[snippet.id] = snippet;
-		    } */
+		    hashSnippets[snippet.id] = snippet;
 		}
 			    
 		// expansion.
@@ -244,6 +270,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         else if (ti.twe == 1)
 	    pi = pi_twe;
 	
+	var rsnippets = [];
 	var ns = 0;
 	var snippets_html = '';
 	for (id in hashSnippets)
@@ -260,24 +287,34 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
                 continue;
             else if (ti.twe == 1 && snippet.type != "tweet")
                 continue;
+	    rsnippets.push(snippet);
 	    ns++;
 	}
 	
-	var k = 0;
-	for (id in hashSnippets)
+	if (pi.prs == "on")
+	{   
+            rsnippets.sort(sort_score);
+	}
+	else
 	{
-	    var snippet = hashSnippets[id];
+            rsnippets.sort(sort_meta);
+	}    
+	
+	var k = 0;
+	for (id in rsnippets)
+	{
+	    var snippet = rsnippets[id]
 	    
-	    // check snippet type for rendering.                                                                                           
-            if (ti.txt == 1
+	    // check snippet type for rendering.
+            /* if (ti.txt == 1
                 && (snippet.type == "image" || snippet.type == "video_thumb" || snippet.type == "tweet"))
                 continue;
             if (ti.img == 1 && snippet.type != "image")
                 continue;
             else if (ti.vid == 1 && snippet.type != "video_thumb")
                 continue;
-            else if (ti.twe == 1 && snippet.type != "tweet")
-                continue;
+		else if (ti.twe == 1 && snippet.type != "tweet")
+                continue; */
             k++;
 	    
 	    if (k < (pi.cpage-1) * pi.rpp)
@@ -296,7 +333,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
             }
 	    
             // render url capture.                                                                                                 
-            if (pi.pers == "on")
+            if (pi.prs == "on")
             {
                 snippet.url = "/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
             }
@@ -380,20 +417,28 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	var nquery = queryInput.get('value');
 	if (query != nquery)
 	{
+	    var eimg = '';
+	    var pi;
+	    if (ti.txt == 1)
+		pi = pi_txt;
+	    else if (ti.img == 1)
+	    {
+		pi = pi_img;
+		eimg = "_img";
+	    }
+	    else if (ti.vid == 1)
+		pi = pi_vid;
+	    else if (ti.twe == 1)
+		pi = pi_twe;
+	    var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	    for (id in hashSnippets)
 		delete hashSnippets[id];
+            pi_txt.reset();
+            pi_img.reset();
+	    pi_vid.reset();
+            pi_twe.reset();
+ 	    refresh(url);
 	}
-	var pi;
-	if (ti.txt == 1)
-	    pi = pi_txt;
-	else if (ti.img == 1)
-	    pi = pi_img;
-	else if (ti.vid == 1)
-	    pi = pi_vid;
-	else if (ti.twe == 1)
-	    pi = pi_twe;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
-	refresh(url);
 	return false;
     });
     
@@ -437,32 +482,48 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-text").on("click",function(e) {
 	ti.reset();
 	ti.txt = 1;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_txt.rpp,"prs":pi_txt.pers,"content_analysis":pi_txt.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
-	refresh(url);
+	if (pi_txt.engines == '')
+	{
+	    var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_txt.expansion,"action":"expand","rpp":pi_txt.rpp,"prs":pi_txt.pers,"content_analysis":pi_txt.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	    refresh(url);
+	}
+	else render();
 	return false;
     });
 
     Y.one("#tab-img").on("click",function(e) {
 	ti.reset();
 	ti.img = 1;
-	var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_img.rpp,"prs":pi_img.pers,"content_analysis":pi_img.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
-	refresh(url);
+	if (pi_img.engines == '')
+	{
+	    var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_img.rpp,"prs":pi_img.pers,"content_analysis":pi_img.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	    refresh(url);
+	}
+	else render();
 	return false;
     });
 
     Y.one("#tab-vid").on("click",function(e) {
 	ti.reset();
 	ti.vid = 1;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_vid.rpp,"prs":pi_vid.pers,"content_analysis":pi_vid.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
-	refresh(url);
+	if (pi_vid.engines == '')
+	{
+	    var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_vid.expansion,"action":"expand","rpp":pi_vid.rpp,"prs":pi_vid.pers,"content_analysis":pi_vid.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
+	    refresh(url);
+	}
+	else render();
 	return false;
     });
 
     Y.one("#tab-tweet").on("click",function(e) {
 	ti.reset();
 	ti.twe = 1;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
-	refresh(url);
+	if (pi_twe.engines == '')
+	{
+	    var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_twe.expansion,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
+	    refresh(url);
+	}
+	else render();
 	return false;
     });
 
@@ -483,6 +544,15 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	refresh(url);
 	return false;
     });
+    
+    /* Y.one("#search_page_prev").on("click",function(e) {
+	
+    });
+
+    Y.one("#search_page_next").on("click",function(e) {
+	
+    }); */
+    
 });
  
 
