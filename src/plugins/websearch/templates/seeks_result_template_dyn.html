@@ -396,21 +396,23 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     // Click the search button to send the JSONP request
     Y.one("#search_form").on("submit", function (e) {
 	var nquery = queryInput.get('value');
+	var pi;
+        if (ti.txt == 1)
+	    pi = pi_txt;
+        else if (ti.img == 1)
+        {
+            pi = pi_img;
+	    eimg = "_img";
+	}
+        else if (ti.vid == 1)
+	    pi = pi_vid;
+        else if (ti.twe == 1)
+	    pi = pi_twe;
 	if (query != nquery)
 	{
 	    var eimg = '';
-	    var pi;
-	    if (ti.txt == 1)
-		pi = pi_txt;
-	    else if (ti.img == 1)
-	    {
-		pi = pi_img;
+	    if (ti.img == 1)
 		eimg = "_img";
-	    }
-	    else if (ti.vid == 1)
-		pi = pi_vid;
-	    else if (ti.twe == 1)
-		pi = pi_twe;
 	    var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	    for (id in hashSnippets)
 		delete hashSnippets[id];
@@ -420,6 +422,8 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
             pi_twe.reset();
  	    refresh(url);
 	}
+	pi.cpage = 1;
+	render();
 	return false;
     });
     
