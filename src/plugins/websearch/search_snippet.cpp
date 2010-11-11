@@ -609,7 +609,7 @@ namespace seeks_plugins
 
     void search_snippet::set_url(const std::string &url)
     {
-      char *url_str = encode::url_decode(url.c_str());
+      char *url_str = encode::url_decode_but_not_plus(url.c_str());
       _url = std::string(url_str);
       free(url_str);
        std::string url_lc(_url);
@@ -620,7 +620,7 @@ namespace seeks_plugins
 
     void search_snippet::set_url(const char *url)
     {
-      char *url_dec = encode::url_decode(url);
+      char *url_dec = encode::url_decode_but_not_plus(url);
       _url = std::string(url_dec);
       free(url_dec);
        std::string url_lc(_url);
@@ -640,7 +640,7 @@ namespace seeks_plugins
 
     void search_snippet::set_cite(const std::string &cite)
     {
-      char *cite_dec = encode::url_decode(cite.c_str());
+      char *cite_dec = encode::url_decode_but_not_plus(cite.c_str());
       std::string citer = std::string(cite_dec);
       free(cite_dec);
       static size_t cite_max_size = 60;
