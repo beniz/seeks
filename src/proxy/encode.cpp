@@ -375,6 +375,56 @@ char* encode::url_decode(const char * s)
 
 }
 
+/*********************************************************************
+ *
+ * Function    :  url_decode
+ *
+ * Description :  Decodes a URL query string, replacing %xx codes
+ *                with their decoded form.
+ *
+ * Parameters  :
+ *          1  :  s = String to decode.  Null-terminated.
+ *
+ * Returns     :  Decoded string, newly allocated on the heap. 
+ *                Caller is responsible for freeing it with free().
+ *
+ *********************************************************************/
+   char* encode::url_decode_but_not_plus(const char * s)
+   {
+      char *buf = (char*) std::malloc(strlen(s)+1);
+      char *q = buf;
+
+      if (buf)
+      {
+         while (*s)
+         {
+            switch (*s)
+            {
+               case '%':
+                  if ((*q = (char)xtoi(s + 1)) != '\0')
+                  {
+                     s += 3;
+                     q++;
+                  }
+                  else
+                  {
+                     /* malformed, just use it */
+                     *q++ = *s++;
+                  }
+                  break;
+
+               default:
+                  *q++ = *s++;
+                  break;
+            }
+         }
+         *q = '\0';
+      }
+
+      return(buf);
+
+   }
+
    std::string encode::html_decode(const std::string &s)
      {
 	std::string cs = s;

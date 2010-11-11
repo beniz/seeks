@@ -47,6 +47,7 @@ class encode
    static char* html_encode(const char *s);
    static char* url_encode(const char *s);
    static char* url_decode(const char *str);
+   static char* url_decode_but_not_plus(const char *str);
    static int   xtoi(const char *s);
    static char* html_encode_and_free_original(char *s);
    static int xdtoi(const int d);
