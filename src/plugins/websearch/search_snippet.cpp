@@ -314,8 +314,11 @@ namespace seeks_plugins
       /* if ( websearch::_wconfig->_thumbs )
        html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
       html_content += ">";
-      if (_doc_type != TWEET && _doc_type != VIDEO_THUMB
-          && websearch::_wconfig->_thumbs)
+       const char *thumbs = miscutil::lookup(parameters,"thumbs");
+       bool has_thumbs = websearch::_wconfig->_thumbs;
+       if (thumbs && strcasecmp(thumbs,"on") == 0)
+	 has_thumbs = true;
+      if (_doc_type != TWEET && _doc_type != VIDEO_THUMB && has_thumbs)
         {
 	   html_content += "<a href=\"" + url + "\">";
 	   html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";

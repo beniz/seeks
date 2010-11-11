@@ -35,7 +35,7 @@ namespace seeks_plugins
 	json_str += "\"snippets\":[";
 	bool has_thumbs = false;
 	const char *thumbs = miscutil::lookup(parameters,"thumbs");
-	if (thumbs && strcmp(thumbs,"on")==0)
+	if (thumbs && strcasecmp(thumbs,"on")==0)
 	  has_thumbs = true;
 	
 	if (!snippets.empty())
