@@ -40,7 +40,7 @@
 
 <!-- @if-have-one-column-results-head-start -->
 <!-- <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div> -->
-<div id="search_pages"></div>
+    <div id="search_pages"><a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a><span id="search_page_current"></span><a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a><small>page</small></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
 <!-- <div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div> -->
@@ -166,8 +166,9 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
     var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
-    pagesDiv = Y.one("#search_pages"), langSpan = Y.one("#tab-language"), persHref = Y.one("#tab-pers"),
-    persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input");
+    pagesDiv = Y.one("#search_page_current"), langSpan = Y.one("#tab-language"), persHref = Y.one("#tab-pers"),
+    persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input"), pagePrev = Y.one("#search_page_prev"),
+    pageNext = Y.one("#search_page_next");
     
     var hashSnippets = {};
     var nsnippets = 0;
@@ -215,9 +216,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 		// engines.
 		pi.engines = response.engines;
 		
-                //response.cpage = pi.cpage; // XXX: can't find how to pass either two objects, or embed object pi into response and still substitute...
-                //response.rpp = pi.rpp; // XXX: idem...
-		
+		// rendering.
 		render();
 	    },
 	    
@@ -304,17 +303,6 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	for (id in rsnippets)
 	{
 	    var snippet = rsnippets[id]
-	    
-	    // check snippet type for rendering.
-            /* if (ti.txt == 1
-                && (snippet.type == "image" || snippet.type == "video_thumb" || snippet.type == "tweet"))
-                continue;
-            if (ti.img == 1 && snippet.type != "image")
-                continue;
-            else if (ti.vid == 1 && snippet.type != "video_thumb")
-                continue;
-		else if (ti.twe == 1 && snippet.type != "tweet")
-                continue; */
             k++;
 	    
 	    if (k < (pi.cpage-1) * pi.rpp)
@@ -374,17 +362,14 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         if (ns > 0)
             max_page = ns / pi.rpp;
         
+	pagesDiv.setContent(pi.cpage);
         if (pi.cpage > 1)
-        {
-	    p.prev = '<a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a>';
-        }
+            pagePrev.setStyle('display',"inline");
+	else pagePrev.setStyle('display',"none");
         if (pi.cpage < max_page)
-        {
-            p.next = '<a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a>';
-	}
-        pagesHTML = Y.substitute(pagesTemplate,p);
-        pagesDiv.setContent(pagesHTML);
-	
+            pageNext.setStyle('display',"inline");
+	else pageNext.setStyle('display',"none");
+        	
 	// expansion image.
 	expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
         expansionLnk.setContent(pi.expansion);
@@ -401,10 +386,6 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         // query suggestion.
         suggDiv.setContent(pi.suggestion);
     }
-    
-    /* prev / next page rendering. */
-    pagesTemplate = 
-	'{prev}<span id="search_page_current">{cpage}</span>{next}<small>page</small>';
     
     /* personalization rendering. */
     persTemplateFlag = '{prs}';
@@ -545,13 +526,31 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	return false;
     });
     
-    /* Y.one("#search_page_prev").on("click",function(e) {
-	
+    Y.one("#search_page_prev").on("click",function(e) {
+	if (ti.txt == 1)
+            pi = pi_txt;
+	else if(ti.img== 1)
+	    pi = pi_img;
+	else if(ti.vid== 1)
+            pi = pi_vid;
+	else if(ti.twe== 1)
+            pi = pi_twe;
+	pi.cpage--;
+	render();
     });
 
     Y.one("#search_page_next").on("click",function(e) {
-	
-    }); */
+	if (ti.txt == 1)
+            pi = pi_txt;
+        else if(ti.img== 1)
+            pi = pi_img;
+        else if(ti.vid== 1)
+            pi = pi_vid;
+        else if(ti.twe== 1)
+            pi = pi_twe;
+	pi.cpage++;
+	render();
+    });
     
 });
  
