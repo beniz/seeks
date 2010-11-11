@@ -257,7 +257,7 @@ namespace seeks_plugins
 	     // - 'stat' for static interface: perform the requested action and render the page
 	     //   before returning it.
 	     const char *ui = miscutil::lookup(parameters,"ui");
-	     std::string ui_str = ui ? std::string(ui) : "stat"; //TODO: option.
+	     std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
 	     const char *output = miscutil::lookup(parameters,"output");
 	     std::string output_str = output ? std::string(output) : "html";
 	     std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
