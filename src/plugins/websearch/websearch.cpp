@@ -806,10 +806,10 @@ namespace seeks_plugins
        } // render
           
      // resets personalization flags.
-     if (strcasecmp(pers,"on") == 0)
+     /*if (strcasecmp(pers,"on") == 0)
        {
 	  qc->reset_snippets_personalization_flags();
-       }
+       } */
      
      // unlock or destroy the query context.
      qc->_lock = false;

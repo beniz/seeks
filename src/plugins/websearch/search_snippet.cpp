@@ -328,20 +328,14 @@ namespace seeks_plugins
           html_content += url + "\"><img class=\"video_profile\" src=\"";
           html_content += _cached;
           html_content += "\"></a><div>";
-
-          /* html_content += html_content += "<a href=\"" + _url + "\">";
-          html_content += "<img src=\"";
-          html_content += _cached;
-          html_content += "\" /></a>"; */
         }
       
-       if (_personalized)
+       if (prs && _personalized)
 	 {
 	    html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
 	 }
-         else     
-	 html_content += "<h3>";
-       html_content += "<a href=\"";
+       else html_content += "<h3>";
+      html_content += "<a href=\"";
       html_content += url;
       html_content += "\">";
        
