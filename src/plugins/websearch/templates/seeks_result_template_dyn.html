@@ -32,8 +32,7 @@
 <a id="expansion" href="javascript:void(null);" title="Expand. Deeper search, towards a broader range of results."></a>
 
 <!-- @if-have-clustering-start -->
-<!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a> -->
-    <a href="javascript:void(null);" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<a href="javascript:void(null);" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
 <!-- if-have-clustering-end@ -->
 <!-- @if-not-have-clustering-start -->
 <a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
@@ -64,8 +63,8 @@
 <a id="tab-vid" class="search_bar_tab" href="javascript:void(null);" title="Search videos">Videos</a>
 <a id="tab-tweet" class="search_bar_tab" href="javascript:void(null);" title="Search tweets">Tweets</a>
 <span class="search_bar_tab">Group by:</span> 
-<a id="tab-urls" href="javascript:void(null);" title="Group by urls">urls</a>
-<a id="tab-titles" href="javascript:void(null);" title="Group by titles">titles</a>
+<!-- <a id="tab-urls" href="javascript:void(null);" title="Group by urls">urls</a>
+<a id="tab-titles" href="javascript:void(null);" title="Group by titles">titles</a> -->
 <a id="tab-types" href="javascript:void(null);" title="Group by type">types</a>
 </div>
 </div>
@@ -78,7 +77,6 @@
 
 <!-- @if-websearch-have-js-start -->
 <script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
-<!-- <script type="text/javascript" src="http://yui.yahooapis.com/3.2.0/build/yui/yui-min.js"></script> -->
 <script type="text/javascript">
 
 YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
@@ -199,7 +197,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
                     nsnippets++;
 		hashSnippets[snippet.id] = snippet;
 	    }
-	    labels[i] = response.clusters[i].label;
+	    labels[i] = cluster.label;
 	}
     }
     
@@ -339,10 +337,11 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     function render_snippets(rsnippets,pi)
     {
 	var snippets_html = '<div id="search_results"><ol id="snippets">';
+	
 	if (pi.prs == "on")
 	    rsnippets.sort(sort_score);
 	else rsnippets.sort(sort_meta);
-
+    	
 	var k = 0;
 	for (id in rsnippets)
         {
@@ -382,12 +381,13 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     function render_cluster(cluster,label,chtml,pi)
     {
 	var l = cluster.length;
+	if (l == 0)
+	    return chtml;
 	chtml += '<div class="cluster"><h2>' + label + ' <font size="2"> (' + l + ')</font></h2><br><ol>';
 	for (i=0;i<l;++i)
 	{
 	    var s = cluster[i];
 	    var shtml = render_snippet(s,pi);
-	    //var shtml = "@ccluster@";
 	    chtml += shtml;
 	}
 	chtml += '</div></ol><div class="clear"></div>';
@@ -623,13 +623,13 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     });
 
     /* Y.one("#tab-urls").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"urls","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"action":"urls","ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     });
     
     Y.one("#tab-titles").on("click",function(e) {
-        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"titles","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"action":"titles","ui":"dyn","output":"json"}) + "&callback={callback}";
 	refresh(url);
 	return false;
     }); */
