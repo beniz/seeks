@@ -400,8 +400,23 @@ namespace seeks_plugins
 	     qc->_lock = true;
 	     
 	     // render result page.
-	     sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,1); // 1: titles.
-	     	     
+	     const char *ui = miscutil::lookup(parameters,"ui");
+	     std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
+	     const char *output = miscutil::lookup(parameters,"output");
+	     std::string output_str = output ? std::string(output) : "html";
+	     std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+	     std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+	     
+	     sp_err err = SP_ERR_OK;
+	     if (ui_str == "stat" && output_str == "html")
+	       err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,1); // 1: titles.
+	     else if (output_str == "json")
+	       {
+		  csp->_content_type = CT_JSON;
+		  err = json_renderer::render_json_results(qc->_cached_snippets,
+							   csp,rsp,parameters,qc,0.0);
+	       }
+	     
 	     qc->_lock = false;
 	     mutex_unlock(&qc->_qc_mutex);
 	      
@@ -781,7 +796,7 @@ namespace seeks_plugins
      if (render)
        {
 	  const char *ui = miscutil::lookup(parameters,"ui");
-	  std::string ui_str = ui ? std::string(ui) : "stat"; //TODO: option.
+	  std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
 	  const char *output = miscutil::lookup(parameters,"output");
 	  std::string output_str = output ? std::string(output) : "html";
 	  std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
