@@ -565,6 +565,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-text").on("click",function(e) {
 	ti.reset();
 	ti.txt = 1;
+	clustered = 0;
 	if (pi_txt.engines == '')
 	{
 	    var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_txt.expansion,"action":"expand","rpp":pi_txt.rpp,"prs":pi_txt.pers,"content_analysis":pi_txt.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
@@ -589,6 +590,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-vid").on("click",function(e) {
 	ti.reset();
 	ti.vid = 1;
+	clustered = 0;
 	if (pi_vid.engines == '')
 	{
 	    var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_vid.expansion,"action":"expand","rpp":pi_vid.rpp,"prs":pi_vid.pers,"content_analysis":pi_vid.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
@@ -601,6 +603,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     Y.one("#tab-tweet").on("click",function(e) {
 	ti.reset();
 	ti.twe = 1;
+	clustered = 0;
 	if (pi_twe.engines == '')
 	{
 	    var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_twe.expansion,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
