@@ -56,7 +56,23 @@ namespace seeks_plugins
      {
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp,param_exports);
-	
+
+	// cluster button.
+	if (!websearch::_wconfig->_clustering)
+	  cgi::map_block_killer(exports,"have-clustering");
+	else cgi::map_block_killer(exports,"not-have-clustering");
+	const char *nclusters_str = miscutil::lookup(parameters,"clusters");
+	                                      
+	if (!nclusters_str)
+	  miscutil::add_map_entry(exports,"$xxnclust",1,strdup("10"),0); // default number of clusters is 10.
+	else
+	  {
+	     miscutil::add_map_entry(exports,"$xxclust",1,nclusters_str,1);
+	     int nclust = atoi(nclusters_str)+1;
+	     std::string nclust_str = miscutil::to_string(nclust);
+	     miscutil::add_map_entry(exports,"$xxnclust",1,nclust_str.c_str(),1);
+	  }
+		
 	// query.
 	std::string html_encoded_query;
 	std::string url_encoded_query;

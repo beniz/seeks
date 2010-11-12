@@ -32,15 +32,15 @@
 <a id="expansion" href="javascript:void(null);" title="Expand. Deeper search, towards a broader range of results."></a>
 
 <!-- @if-have-clustering-start -->
-<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a> -->
+    <a href="javascript:void(null);" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
 <!-- if-have-clustering-end@ -->
 <!-- @if-not-have-clustering-start -->
 <a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
 <!-- if-not-have-clustering-end@ -->
 
 <!-- @if-have-one-column-results-head-start -->
-<!-- <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div> -->
-    <div id="search_pages"><a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a><span id="search_page_current"></span><a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a><small>page</small></div>
+<div id="search_pages"><a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a><span id="search_page_current"></span><a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a><small>page</small></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
 <!-- <div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div> -->
@@ -75,10 +75,6 @@
 <td>
 
 <div id="main">
-<div id="search_results">
-<ol id="snippets">
-</ol>
-</div>
 
 <!-- @if-websearch-have-js-start -->
 <script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
@@ -91,6 +87,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     var query = "fullquery";
     var enc_query = "fullquery";
     var lang = '';
+    var clustered = 0;
     
     function page_info()
     {    
@@ -101,6 +98,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	this.nexpansion = 2;
 	this.prs = "xxpers";
 	this.ca = "xxca"; // content analysis.
+	this.nclusters = "xxnclust";
 	this.suggestion = '';
 	this.reset = function() {
 	    this.cpage = 1;
@@ -165,15 +163,47 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     
     var ref_url = "@base-url@/search?q=fullquery&expansion=1&action=expand&rpp=10&content_analysis=off&prs=on&output=json&callback={callback}";
     
-    var outputDiv = Y.one("#snippets"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
+    var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
     pagesDiv = Y.one("#search_page_current"), langSpan = Y.one("#tab-language"), persHref = Y.one("#tab-pers"),
     persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input"), pagePrev = Y.one("#search_page_prev"),
     pageNext = Y.one("#search_page_next");
     
     var hashSnippets = {};
     var nsnippets = 0;
+    var labels;
+    
+    function refresh_snippets(response)
+    {
+	var l = response.snippets.length;
+	for (i=0; i < l; ++i)
+        {
+            var snippet = response.snippets[i];
+            if (!hashSnippets[snippet.id])
+                nsnippets++;
+            hashSnippets[snippet.id] = snippet;
+        }
+    }
 
-    // result widget.
+    function refresh_clusters(response,labels)
+    {
+	var c = response.clusters.length;
+	for (i=0; i<c; ++i)
+	{
+	    var cluster = response.clusters[i];
+	    var l = cluster.snippets.length;
+	    for (j=0; j<l; ++j)
+	    {
+		var snippet = cluster.snippets[j];
+		snippet.cluster = i;
+		if (!hashSnippets[snippet.id])
+                    nsnippets++;
+		hashSnippets[snippet.id] = snippet;
+	    }
+	    labels[i] = response.clusters[i].label;
+	}
+    }
+    
+    // results.
     function refresh(url)
     {
 	//outputDiv.setContent("Seeking...");
@@ -184,18 +214,20 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 		lang = response.lang;
 		query = response.query;
 		enc_query = ':' + lang + '+' + encodeURIComponent(response.query);
-		var l = response.snippets.length;
 		
-		for (i=0; i < l; ++i) 
+		//TODO: handle the cluster case...
+		if ('clusters'in response)
 		{
-		    var snippet = response.snippets[i];
-                    if (!hashSnippets[snippet.id])
-		    {
-			nsnippets++;
-		    }
-		    hashSnippets[snippet.id] = snippet;
+		    clustered = response.clusters.length;
+		    labels = new Array(clustered);
+		    refresh_clusters(response,labels);
 		}
-			    
+		else 
+		{
+		    clustered = 0;
+		    refresh_snippets(response);
+		}
+		
 		// expansion.
 		var pi;
 		if (ti.txt == 1)
@@ -254,12 +286,117 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     
     failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
+
+    function render_snippet(snippet,pi)
+    {
+	var snippet_html = '';
+	
+	// personalization & title head.
+	if (snippet.personalized == 'yes')
+	{
+	    snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
+	}
+            else
+	{
+	    snippet.headHTML = '<h3>';
+	}
+
+	 // render url capture.
+	if (pi.prs == "on")
+        {
+            snippet.url = "/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
+        }
+
+	// render engines.
+	snippet.enginesHTML = '';
+        for (j=0, le=snippet.engines.length; j < le; ++j)
+        {
+            snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
+            snippet.enginesHTML += '@base-url@/search';
+            if (ti.img == 1)
+                snippet.enginesHTML += '_img';
+            snippet.enginesHTML += '?q=' + enc_query;
+            snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
+            snippet.enginesHTML += '</a></span>';
+        }
+
+	// encoded query.
+	snippet.enc_query = enc_query;
+
+	var shtml = '';
+        if (ti.txt == 1)
+            shtml = Y.substitute(snippetTxtTemplate, snippet);
+        else if (ti.img == 1)
+            shtml = Y.substitute(snippetImgTemplate, snippet);
+        else if (ti.vid == 1)
+            shtml = Y.substitute(snippetVidTemplate, snippet);
+        else if (ti.twe == 1)
+            shtml = Y.substitute(snippetTweetTemplate, snippet);
+	
+	return shtml;
+    }
         
+    function render_snippets(rsnippets,pi)
+    {
+	var snippets_html = '<div id="search_results"><ol id="snippets">';
+	if (pi.prs == "on")
+	    rsnippets.sort(sort_score);
+	else rsnippets.sort(sort_meta);
+
+	var k = 0;
+	for (id in rsnippets)
+        {
+            var snippet = rsnippets[id]
+            k++;
+
+            if (k < (pi.cpage-1) * pi.rpp)
+                continue;
+            else if (k > pi.cpage * pi.rpp)
+                break;
+	    
+            snippets_html += render_snippet(snippet,pi);
+        }
+	return snippets_html + '</ol></div>';
+    }
+    
+    var isEven = function(someNumber)
+    {
+	return (someNumber%2 == 0) ? true : false;
+    }
+    
+    function render_clusters(clusters,labels,pi)
+    {
+	var clusters_html = '<div id="search_results" class="yui-g clustered">';
+	var clusters_c1_html = '<div class="yui-u first">';
+	var clusters_c2_html = '<div class="yui-u">';
+	for (c=0;c<clustered;++c)
+	{
+	    var chtml = '';
+	    if (isEven(c))
+		clusters_c1_html = render_cluster(clusters[c],labels[c],clusters_c1_html,pi);
+	    else clusters_c2_html = render_cluster(clusters[c],labels[c],clusters_c2_html,pi);
+	}
+	return clusters_html + clusters_c1_html + "</div>" + clusters_c2_html + "</div></div></div>";
+    }
+    
+    function render_cluster(cluster,label,chtml,pi)
+    {
+	var l = cluster.length;
+	chtml += '<div class="cluster"><h2>' + label + ' <font size="2"> (' + l + ')</font></h2><br><ol>';
+	for (i=0;i<l;++i)
+	{
+	    var s = cluster[i];
+	    var shtml = render_snippet(s,pi);
+	    //var shtml = "@ccluster@";
+	    chtml += shtml;
+	}
+	chtml += '</div></ol><div class="clear"></div>';
+        return chtml;
+    }
+
     function render()
     {
-        //TODO: clustering.
-	
-	var pi;
+        var pi;
 	if (ti.txt == 1)
             pi = pi_txt;
         else if (ti.img == 1)
@@ -269,9 +406,16 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         else if (ti.twe == 1)
 	    pi = pi_twe;
 	
+	var clusters;
+	if (clustered > 0)
+	{
+	    clusters = new Array(clustered);
+	    for (i=0;i<clustered;++i)
+		clusters[i] = new Array();
+	}
+	
 	var rsnippets = [];
 	var ns = 0;
-	var snippets_html = '';
 	for (id in hashSnippets)
 	{
 	    var snippet = hashSnippets[id];
@@ -286,74 +430,25 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
                 continue;
             else if (ti.twe == 1 && snippet.type != "tweet")
                 continue;
-	    rsnippets.push(snippet);
+	    if (clustered > 0)
+	    {
+		if ('cluster' in snippet)
+		{
+		    clusters[snippet.cluster].push(snippet);
+		}
+	    }
+	    else rsnippets.push(snippet);
 	    ns++;
 	}
 	
-	if (pi.prs == "on")
-	{   
-            rsnippets.sort(sort_score);
-	}
-	else
-	{
-            rsnippets.sort(sort_meta);
-	}    
+	// render snippets.
+	var output_html = '';
+	if (clustered > 0)
+	    output_html = render_clusters(clusters,labels,pi);
+	else output_html = render_snippets(rsnippets,pi);
+	outputDiv.setContent(output_html);
 	
-	var k = 0;
-	for (id in rsnippets)
-	{
-	    var snippet = rsnippets[id]
-            k++;
-	    
-	    if (k < (pi.cpage-1) * pi.rpp)
-		continue;
-	    else if (k > pi.cpage * pi.rpp)
-		break;
-	    	    
-            // personalization & title head.                                                                                       
-            if (snippet.personalized == 'yes')
-            {
-                snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
-            }
-            else
-            {
-                snippet.headHTML = '<h3>';
-            }
-	    
-            // render url capture.                                                                                                 
-            if (pi.prs == "on")
-            {
-                snippet.url = "/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
-            }
-	    
-	    // render engines.                                                                                                     
-            snippet.enginesHTML = '';
-	    for (j=0, le=snippet.engines.length; j < le; ++j)
-            {
-                snippet.enginesHTML += '<span class=\"search_engine search_engine_' + snippet.engines[j]  + '\" title=\"' + snippet.engines[j] + '\"><a href=\"';
-                snippet.enginesHTML += '@base-url@/search';
-                if (ti.img == 1)
-                    snippet.enginesHTML += '_img';
-                snippet.enginesHTML += '?q=' + enc_query;
-                snippet.enginesHTML += '&page=1&expansion=1&action=expand&engines=' + snippet.engines[j] + '\">';
-                snippet.enginesHTML += '</a></span>';
-            }
-	    
-	    // encoded query.
-            snippet.enc_query = enc_query;
-	    
-	    if (ti.txt == 1)
-		snippet.snippetHTML = Y.substitute(snippetTxtTemplate, snippet);
-	    else if (ti.img == 1)
-            	snippet.snippetHTML = Y.substitute(snippetImgTemplate, snippet);
-	    else if (ti.vid == 1)
-            	snippet.snippetHTML = Y.substitute(snippetVidTemplate, snippet);
-	    else if (ti.twe == 1)
-                snippet.snippetHTML = Y.substitute(snippetTweetTemplate, snippet);
-            
-	    snippets_html += snippet.snippetHTML;
-	}
-	outputDiv.setContent(snippets_html);
+	//alert(output_html);
 
 	// compute page number.
         var p = new rpage();
@@ -423,6 +518,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
  	    refresh(url);
 	}
 	pi.cpage = 1;
+	clustered = 0;
 	render();
 	return false;
     });
@@ -432,20 +528,34 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	var pi;
 	if (ti.txt == 1)
             pi = pi_txt;
-	else if(ti.img== 1)
+	else if(ti.img == 1)
 	{
             pi = pi_img;
 	    eimg = "_img";
 	}	
-	else if(ti.vid== 1)
+	else if(ti.vid == 1)
             pi = pi_vid;
-	else if(ti.twe== 1)
+	else if(ti.twe == 1)
             pi = pi_twe;
-	var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"action":"expand","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"action":"expand","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
     });
 
+    Y.one("#cluster").on("click",function(e) {
+	var pi;
+	if (ti.txt == 1)
+	    pi = pi_txt;
+	else if (ti.vid == 1)
+	    pi = pi_vid;
+	else if (ti.twe == 1)
+	    pi = pi_twe;
+	else return false;
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"clusterize","clusters":pi.nclusters,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	refresh(url);
+	return false;
+    });
+			 
     Y.one("#tab-pers").on("click",function(e) {
 	var pi;
 	if (ti.txt == 1)
@@ -513,13 +623,13 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     });
 
     /* Y.one("#tab-urls").on("click",function(e) {
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"urls","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"urls","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
     });
     
     Y.one("#tab-titles").on("click",function(e) {
-        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"titles","rpp":pi.rpp,"prs":pi.pers,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"titles","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
 	return false;
     }); */
