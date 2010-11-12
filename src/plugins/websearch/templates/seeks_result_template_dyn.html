@@ -268,11 +268,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 	'<a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
     
     snippetImgTemplate =
-	'<li class="search_snippet search_snippet_img">' +
-	'<h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</h3></div>' +
-	'<cite>{cite}</cite><br>' +
-        '<a class="search_cache" href="{cached}">Cached</a>' + //TODO: similarity.                                                     
-	'</div></li>';
+	'<li class="search_snippet search_snippet_img"><h3><a href="{url}"><img src="{cached}"><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
     
     snippetVidTemplate =
         '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>' +
@@ -325,8 +321,8 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         if (ti.txt == 1)
             shtml = Y.substitute(snippetTxtTemplate, snippet);
         else if (ti.img == 1)
-            shtml = Y.substitute(snippetImgTemplate, snippet);
-        else if (ti.vid == 1)
+	    shtml = Y.substitute(snippetImgTemplate, snippet);
+	else if (ti.vid == 1)
             shtml = Y.substitute(snippetVidTemplate, snippet);
         else if (ti.twe == 1)
             shtml = Y.substitute(snippetTweetTemplate, snippet);
@@ -336,7 +332,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         
     function render_snippets(rsnippets,pi)
     {
-	var snippets_html = '<div id="search_results"><ol id="snippets">';
+	var snippets_html = '<div id="search_results"><ol>';
 	
 	if (pi.prs == "on")
 	    rsnippets.sort(sort_score);
