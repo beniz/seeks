@@ -444,6 +444,8 @@ namespace seeks_plugins
 					  std::string &expansion)
      {
 	const char *expansion_str = miscutil::lookup(parameters,"expansion");
+	if (!expansion_str)
+	  expansion_str = "1"; // default.
 	miscutil::add_map_entry(exports,"$xxexp",1,expansion_str,1);
 	int expn = atoi(expansion_str)+1;
 	std::string expn_str = miscutil::to_string(expn);
