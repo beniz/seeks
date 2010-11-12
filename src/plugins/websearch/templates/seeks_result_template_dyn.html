@@ -246,6 +246,8 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 		// engines.
 		pi.engines = response.engines;
 		
+		// content analysis.
+
 		// rendering.
 		render();
 	    },
@@ -356,8 +358,8 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     function render_clusters(clusters,labels,pi)
     {
 	var clusters_html = '<div id="search_results" class="yui-g clustered">';
-	var clusters_c1_html = '<div class="yui-u first">';
-	var clusters_c2_html = '<div class="yui-u">';
+	var clusters_c1_html = '<div class="yui3-u-1-2 first">';
+	var clusters_c2_html = '<div class="yui3-u-1-2">';
 	for (c=0;c<clustered;++c)
 	{
 	    var chtml = '';
@@ -461,9 +463,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         var persHTMLf = Y.substitute(this.persTemplateFlag, pi);
 	persSpan.setContent(persHTMLf);
 	
-        //TODO: content analysis...
-	
-        // render language.
+	// render language.
         langSpan.setContent(lang);
 	
         // query suggestion.
