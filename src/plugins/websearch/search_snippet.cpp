@@ -199,13 +199,15 @@ namespace seeks_plugins
       std::string json_str;
       json_str += "{";
       json_str += "\"id\":" + miscutil::to_string(_id) + ",";
-      std::string title = _title;
+      char *title_enc = encode::html_encode(_title.c_str()); 
+      std::string title = std::string(title_enc);
+      free(title_enc);
       miscutil::replace_in_string(title,"\"","\\\"");
       json_str += "\"title\":\"" + title + "\",";
       std::string url = _url;
       miscutil::replace_in_string(url,"\"","\\\"");
       json_str += "\"url\":\"" + url + "\",";
-      std::string summary = _summary_noenc;
+      std::string summary = _summary;
       miscutil::replace_in_string(summary,"\"","\\\"");
       json_str += "\"summary\":\"" + summary + "\",";
       json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
