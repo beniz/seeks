@@ -73,6 +73,15 @@ namespace seeks_plugins
 	     miscutil::add_map_entry(exports,"$xxnclust",1,nclust_str.c_str(),1);
 	  }
 		
+	// content analysis.
+	bool content_analysis = websearch::_wconfig->_content_analysis;
+	const char *ca = miscutil::lookup(parameters,"content_analysis");
+	if (ca && strcasecmp(ca,"on") == 0)
+	  content_analysis = true;
+	if (content_analysis)
+	  miscutil::add_map_entry(exports,"$xxca",1,"on",1);
+	else miscutil::add_map_entry(exports,"$xxca",1,"off",1);
+	
 	// query.
 	std::string html_encoded_query;
 	std::string url_encoded_query;
