@@ -703,6 +703,7 @@ namespace seeks_plugins
 
     void search_snippet::set_summary(const std::string &summary)
     {
+       static size_t summary_max_size = 240; // characters.
       _summary_noenc = summary;
 
       // clear escaped characters for unencoded output.
@@ -710,8 +711,20 @@ namespace seeks_plugins
 
       // encode html so tags are not interpreted.
       char* str = encode::html_encode(summary.c_str());
-      _summary = std::string(str);
-      free(str);
+       if (strlen(str)<summary_max_size)
+	 _summary = std::string(str);
+       else
+	 {
+	    try
+	      {
+		 _summary = std::string(str).substr(0,summary_max_size-3) + "...";
+	      }
+	    catch (std::exception &e)
+	      {
+		 _summary = "";
+	      }
+	 }
+       free(str);
     }
 
     void search_snippet::set_date(const std::string &date)
