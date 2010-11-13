@@ -52,6 +52,10 @@ nobase_dist_websearchplugindata_DATA= \
 			  patterns/video \
 			  templates/themes/original/css/seeks_hp_search.css \
 	                  templates/themes/original/css/seeks_search.css \
+			  templates/themes/original/seeks_result_template.html \
+	                  templates/themes/original/seeks_ws_hp.html \
+			  templates/themes/compact/seeks_result_template.html \
+		          templates/themes/compact/seeks_ws_hp.html \
 			  templates/themes/compact/css/seeks_hp_search.css \
                           templates/themes/compact/css/seeks_search.css \
 			  public/images/search_engines/yahoo.svg \
