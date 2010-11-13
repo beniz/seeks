@@ -18,11 +18,13 @@
 
 #include "se_parser_blekko.h"
 #include "miscutil.h"
+#include "encode.h"
 
 #include <strings.h>
 #include <iostream>
 
 using sp::miscutil;
+using sp::encode;
 
 namespace seeks_plugins
 {
@@ -152,10 +154,10 @@ namespace seeks_plugins
         else if (_in_entry && _in_description && strcasecmp(tag, "description") == 0)
           {
              // std::cout << "  </description>" << std::endl;
-             // not a good solution, their is a quote/unquote problem nearby
-             miscutil::replace_in_string(_description, "&#39;", "'");
+             char * description_str = encode::html_decode(_description);
              _in_description = false;
-             pc->_current_snippet->set_summary(_description);
+             pc->_current_snippet->set_summary(description_str);
+             free(description_str);
              _description = "";
           }
         else if (_in_entry && _in_uri && strcasecmp(tag, "guid") ==0)
