@@ -67,13 +67,13 @@ body {
 	top: 1Opx;*/
 }
 
-#search_input, #search_button, #lang_input {
+#search_input, #search_button, #tab-language {
 	color:black;
 	border-width: 0px;
 	background-color: transparent;
 }
 
-#lang_input { 
+#tab-language { 
 	width: 22px;	
 	margin-left: 7px;
 	text-align: center;
@@ -84,7 +84,7 @@ body {
 	margin-left: 6px;
 }
 
-#search_input, #lang_input {
+#search_input, #tab-language {
 	margin-top: 17px;
 	height: 17px;
 	padding: 2px;	
