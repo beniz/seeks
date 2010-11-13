@@ -10,7 +10,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    `pkg-config opencv --cflags` 
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -Iproxy/
 endif
 endif
 AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch \
@@ -61,11 +61,19 @@ nobase_dist_public_DATA=\
 			  public/images/seek_icon_48x48_transparent.png \
 			  public/images/seek_icon_64x64_transparent.png \
 			  public/images/seek_icon_16x16_transparent.ico \
-		 	  public/yui/3.0.0/cssreset/reset-min.css \
-		 	  public/yui/3.0.0/cssfonts/fonts-min.css \
-		 	  public/yui/3.0.0/cssgrids/grids-min.css \
-		 	  public/yui/3.0.0/yui/yui-min.js \
+			  public/yui/3.0.0/cssreset/reset-min.css \
+			  public/yui/3.0.0/cssfonts/fonts-min.css \
+			  public/yui/3.0.0/cssgrids/grids-min.css \
+			  public/yui/3.0.0/yui/yui-min.js \
 			  public/yui/3.0.0/loader/loader-min.js \
+			  public/yui/3.0.0/dom/dom-base-min.js \
+			  public/yui/3.0.0/dom/selector-css2-min.js \
+			  public/yui/3.0.0/dom/selector-native-min.js \
+			  public/yui/3.0.0/event-custom/event-custom-base-min.js \
+			  public/yui/3.0.0/event/event-base-min.js \
+			  public/yui/3.0.0/event/event-key-min.js \
+			  public/yui/3.0.0/node/node-base-min.js \
+			  public/yui/3.0.0/oop/oop-min.js \
 			  lsh/swl/arabicST.txt \
 			  lsh/swl/bulgarianST.txt \
 			  lsh/swl/czechST.txt \
@@ -75,13 +83,13 @@ nobase_dist_public_DATA=\
 			  lsh/swl/germanST.txt \
 			  lsh/swl/hungarianST.txt \
 			  lsh/swl/italianST.txt \
-			  lsh/swl/License.txt \
 			  lsh/swl/polishST.txt \
 			  lsh/swl/portugueseST.txt \
 			  lsh/swl/roumanianST.txt \
 			  lsh/swl/russianST.txt \
 			  lsh/swl/spanishST.txt \
 			  lsh/swl/swedishST.txt
+
 
 nobase_dist_proxy_DATA=\
 			  proxy/templates/mod-unstable-warning \
@@ -113,4 +121,5 @@ nobase_dist_proxy_DATA=\
 			  proxy/templates/show-url-info \
 			  proxy/templates/no-such-domain
 
-EXTRA_DIST = public/images/seek_icon.svg
+EXTRA_DIST = public/images/seek_icon.svg \
+	     lsh/swl/License.txt

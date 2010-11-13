@@ -102,7 +102,7 @@ namespace seeks_plugins
 		       //_title_flag = true;
 		       const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
 		       if (a_link) 
-			 pc->_current_snippet->set_url_no_decode(std::string(a_link));
+			 pc->_current_snippet->set_url(std::string(a_link));
 		       const char *tt_link = se_parser::get_attribute((const char**)attributes,"title");
 		       if (tt_link)
 			 {

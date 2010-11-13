@@ -452,10 +452,14 @@ namespace seeks_plugins
       
    bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
+			
+			//std::string lang = std::string(miscutil::lookup(parameters, "lang"));
+			 
+	std::string qlang;	 
 	std::string query = std::string(miscutil::lookup(parameters,"q"));
 	if (query.empty() || query[0] != ':')
-	  return false;
-	std::string qlang;
+		return false;
+	
 	try
 	  {
 	     qlang = query.substr(1,2); // : + 2 characters for the language.
@@ -466,6 +470,7 @@ namespace seeks_plugins
 	     qlang = "";
 	     _in_query_command = "";
 	  }
+	
 	
 	// check whether the language is known ! -> XXX: language table...
 	if (iso639::has_code(qlang.c_str()))

@@ -14,7 +14,7 @@
 # ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 #
 
-AC_INIT(Seeks, 0.3.0, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.3.1, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -529,7 +529,7 @@ fi
 
 # check on tokyo cabinet.
 PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
-if test	$protobuf = true ; then
+if test	$tokyocabinet = true ; then
    AC_DEFINE(TC,1,"Tokyocabinet available")
 fi
 AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)

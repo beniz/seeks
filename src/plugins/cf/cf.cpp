@@ -89,7 +89,7 @@ namespace seeks_plugins
      {
 	plugin* maker()
 	  {
-	     return new query_capture;
+	     return new cf;
 	  }
      }
 #else

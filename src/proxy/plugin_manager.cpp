@@ -96,7 +96,7 @@ namespace sp
 	std::string command_str = "find " + plugin_manager::_plugin_repository 
 #if defined(ON_OPENBSD)
 	  + " -name *.so*";
-#elsif defined (ON_OSX)
+#elif defined (ON_OSX)
 	+ " -name *plugin.dylib";
 #else
 	+ " -name *.so";
@@ -310,6 +310,7 @@ namespace sp
 	       return (*vit);
 	     ++vit;
 	  }
+	errlog::log_error(LOG_LEVEL_ERROR,"Can't find any plugin with name %s",name.c_str());
 	return NULL;
      }
       

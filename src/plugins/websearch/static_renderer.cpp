@@ -464,7 +464,7 @@ namespace seeks_plugins
      {
 	if (!not_end)
 	  {
-	     miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
+	     miscutil::add_map_entry(exports,"$xxnext",1,strdup("<a id=\"search_page_end\">&nbsp;</a>"),0);
 	     return;
 	  }
 		
@@ -499,7 +499,7 @@ namespace seeks_plugins
 	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
-	else miscutil::add_map_entry(exports,"$xxnext",1,strdup(""),0);
+	else miscutil::add_map_entry(exports,"$xxnext",1,strdup("<a id=\"search_page_end\">&nbsp;</a>"),0);
      }
       
    void static_renderer::render_prev_page_link(const int &current_page,
@@ -638,12 +638,13 @@ namespace seeks_plugins
   /*- rendering. -*/
   sp_err static_renderer::render_hp(client_state *csp,http_response *rsp)
      {
-	static const char *hp_tmpl_name = "websearch/templates/seeks_ws_hp.html";
+	std::string hp_tmpl_name = "websearch/templates/themes/"
+	  + websearch::_wconfig->_ui_theme + "/seeks_ws_hp.html";
 	
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 		
-	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name,
+	sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name.c_str(),
 						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
 						 : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						exports,rsp);
@@ -656,7 +657,8 @@ namespace seeks_plugins
 						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						    const query_context *qc)
      {
-	static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
+	std::string result_tmpl_name = "websearch/templates/themes/"
+	  + websearch::_wconfig->_ui_theme + "/seeks_result_template.html";
 	return static_renderer::render_result_page_static(snippets,csp,rsp,parameters,qc,result_tmpl_name);
      }
    
@@ -670,7 +672,7 @@ namespace seeks_plugins
      {
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp,param_exports);
-
+	
      // query.
      std::string html_encoded_query;
      std::string url_encoded_query;
@@ -740,8 +742,9 @@ namespace seeks_plugins
 							       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 							       const query_context *qc)
      {
-	static const char *result_tmpl_name = "websearch/templates/seeks_result_template.html";
-	
+	std::string result_tmpl_name = "websearch/templates/themes/" 
+	  + websearch::_wconfig->_ui_theme + "/seeks_result_template.html"; // XXX: for using this along with the image plugin, we would need to externalize the the theme choice.
+		
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 	
@@ -791,7 +794,7 @@ namespace seeks_plugins
 	static_renderer::render_nclusters(parameters,exports);
 	
 	// rendering.
-	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name,
+	sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),
 						(seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
 						 : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
 						exports,rsp);

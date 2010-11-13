@@ -8,7 +8,7 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir}/../../dht 
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += -I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS += -I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../../proxy
 endif
 endif
 if HAVE_OPENCV2
@@ -38,7 +38,9 @@ imgwebsearchpluginconfigdir=$(sysconfdir)/seeks
 dist_imgwebsearchpluginconfig_DATA=img-websearch-config
 
 nobase_dist_imgwebsearchplugindata_DATA= \
-	templates/css/seeks_img_search.css \
-	templates/seeks_result_template.html \
+	templates/themes/original/css/seeks_img_search.css \
+	templates/themes/original/seeks_result_template.html \
+	templates/themes/compact/css/seeks_img_search.css \
+	templates/themes/compact/seeks_result_template.html \
 	public/images/search_engines/wcommons_12x12.png \
 	public/images/search_engines/flickr_12x12.png

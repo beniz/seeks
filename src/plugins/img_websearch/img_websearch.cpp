@@ -90,7 +90,8 @@ namespace seeks_plugins
 	assert(rsp);
 	assert(parameters);
 	
-	std::string seeks_search_css_str = "img_websearch/templates/css/seeks_img_search.css";
+	std::string seeks_search_css_str = "img_websearch/templates/themes/"
+	  + websearch::_wconfig->_ui_theme + "/css/seeks_img_search.css";
 	hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
 	  = static_renderer::websearch_exports(csp);
 	csp->_content_type = CT_CSS;
@@ -142,7 +143,7 @@ namespace seeks_plugins
    sp_err img_websearch::cgi_img_websearch_similarity(client_state *csp, http_response *rsp,
 						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
-	static std::string tmpl_name = "templates/seeks_result_template.html";
+	std::string tmpl_name = "templates/themes/" + websearch::_wconfig->_ui_theme + "seeks_result_template.html";
 	
 	if (!parameters->empty())
 	  {
@@ -227,7 +228,8 @@ namespace seeks_plugins
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       bool render)
      {
-	static std::string tmpl_name = "templates/seeks_result_template.html";
+	std::string tmpl_name = "templates/themes/"
+	  + websearch::_wconfig->_ui_theme + "/seeks_result_template.html";
 	
 	// time measure, returned.
 	// XXX: not sure whether it is functional on all *nix platforms.

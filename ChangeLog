@@ -1,3 +1,15 @@
+* DiAngelo-0.3-SOLO-stable
+
+- Added personalization of results. Queries & clicks on URIs are
+recorded in a flexible user DB to improve ranking of results according
+to past queries and use navigation.
+
+- Added option for announcement panel on search result page.
+
+- Several bug fixes.
+
+- Fixed several tiny memory leaks.
+
 * Bubs-0.2.5b-SOLO-stable
 
 - Fixed crash in image similarity analysis.

@@ -64,7 +64,7 @@ namespace sp
 	   std::cout << "run mother run...\n";
 	   return (char*) ""; };
       
-	virtual char* print() { return (char*) ""; }; // virtual
+	virtual std::string print() { return ""; }; // virtual
 	
       private:
 	std::string _parameters;      // parameters passed to the filters, if any.

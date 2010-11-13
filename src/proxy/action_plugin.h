@@ -34,7 +34,7 @@ namespace sp
 	
 	virtual http_response* plugin_response(client_state *csp) { return NULL; }; 
 
-	virtual char* print() { return (char*)""; }; // virtual
+	virtual std::string print() { return ""; }; // virtual
 	
       private:
 	std::string _action_file; /**< file with action description. */

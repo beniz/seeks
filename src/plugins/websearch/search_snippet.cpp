@@ -311,8 +311,11 @@ namespace seeks_plugins
       /* if ( websearch::_wconfig->_thumbs )
        html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
       html_content += ">";
-      if (_doc_type != TWEET && _doc_type != VIDEO_THUMB
-          && websearch::_wconfig->_thumbs)
+       const char *thumbs = miscutil::lookup(parameters,"thumbs");
+       bool has_thumbs = websearch::_wconfig->_thumbs;
+       if (thumbs && strcasecmp(thumbs,"on") == 0)
+	 has_thumbs = true;
+      if (_doc_type != TWEET && _doc_type != VIDEO_THUMB && has_thumbs)
         {
 	   html_content += "<a href=\"" + url + "\">";
 	   html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
@@ -514,7 +517,61 @@ namespace seeks_plugins
                           + _url + "&amp;q=" + _qc->_query;
           html_content += " \">Quick link</a>";
         }
-
+        
+      // snippet type rendering
+      if (_doc_type != REJECTED)
+	 {
+	    const char *engines = miscutil::lookup(parameters,"engines");
+	    html_content += "<a class=\"search_cache\" href=\"";
+	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query + "&amp;expansion=xxexp&amp;action=types&amp;engines=";
+	    if (engines)
+	      html_content += std::string(engines);
+	    html_content += " \"> ";
+	    switch (_doc_type)
+	      {
+	       case UNKNOWN: 
+		 html_content += "";
+		 break;
+	       case WEBPAGE: 
+		 html_content += "Webpage";
+		 break;
+	       case FORUM: 
+		 html_content += "Forum";
+		 break;
+	       case FILE_DOC: 
+		 html_content += "Document file";
+		 break;
+	       case SOFTWARE: 
+		 html_content += "Software";
+		 break;
+	       case IMAGE: 
+		 html_content += "Image";
+		 break;
+	       case VIDEO: 
+		 html_content += "Video";
+		 break;
+	       case VIDEO_THUMB: 
+		 html_content += "Video";
+		 break;
+	       case AUDIO: 
+		 html_content += "Audio";
+		 break;
+	       case CODE: 
+		 html_content += "Code";
+		 break;
+	       case NEWS: 
+		 html_content += "News";
+		 break;
+	       case TWEET: 
+		 html_content += "Tweet";
+		 break;
+	       case WIKI: 
+		 html_content += "Wiki";
+		 break;
+	      }
+	    html_content += "</a>";                
+	 }
+       
       html_content += "</div></li>\n";
 
       /* std::cout << "html_content:\n";
@@ -542,7 +599,7 @@ namespace seeks_plugins
 
     void search_snippet::set_url(const std::string &url)
     {
-      char *url_str = encode::url_decode(url.c_str());
+      char *url_str = encode::url_decode_but_not_plus(url.c_str());
       _url = std::string(url_str);
       free(url_str);
        std::string url_lc(_url);
@@ -553,7 +610,7 @@ namespace seeks_plugins
 
     void search_snippet::set_url(const char *url)
     {
-      char *url_dec = encode::url_decode(url);
+      char *url_dec = encode::url_decode_but_not_plus(url);
       _url = std::string(url_dec);
       free(url_dec);
        std::string url_lc(_url);
@@ -573,7 +630,7 @@ namespace seeks_plugins
 
     void search_snippet::set_cite(const std::string &cite)
     {
-      char *cite_dec = encode::url_decode(cite.c_str());
+      char *cite_dec = encode::url_decode_but_not_plus(cite.c_str());
       std::string citer = std::string(cite_dec);
       free(cite_dec);
       static size_t cite_max_size = 60;

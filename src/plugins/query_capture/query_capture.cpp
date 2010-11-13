@@ -165,7 +165,7 @@ namespace seeks_plugins
 	       return cgi::cgi_error_disabled(csp,rsp); // wrong use of the resource.
 	     
 	     // redirect to requested url.
-	     urlp = encode::url_decode(urlp);
+	     urlp = encode::url_decode_but_not_plus(urlp);
 	     	     
 	     cgi::cgi_redirect(rsp,urlp);
 	     free(urlp);

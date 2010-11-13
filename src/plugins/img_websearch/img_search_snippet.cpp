@@ -165,7 +165,7 @@ namespace seeks_plugins
 	     html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
 	  }
 	else */
-	html_content += "</h3><div>";
+	html_content += "<div>";
 	const char *cite_enc = NULL;
 	if (!_cite.empty())
 	  {

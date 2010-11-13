@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -35,8 +35,7 @@ namespace sp
    class action_plugin;
    class filter_plugin;
    
-   //-> into plugin_element.
-  /**
+   /**
    * !! Plugin auto-registration requires an inside class C style
    *    function, here called maker():
    * extern "C" {
@@ -46,30 +45,94 @@ namespace sp
    * }
    */
    
+   /**
+    * \brief main plugin class. A plugin is a shared library with either or both:
+    *        - internal plugins such as URI interceptors or content filters.
+    *        - a set of CGI callbacks for performing certain informations.
+    * e.g. websearch and httpserv are two plugins, the first implementing a metasearch
+    * engine, the second a lightweight HTTP web server based on libevent.
+    * 
+    * Plugins form the modular part of the Seeks platform. Plugins are themselves
+    * modular throught plugin_element that can be specialized in different manner
+    * (e.g. URI interceptors, ...).
+    * 
+    * The way it works is that the plugin_element are activated by a set of regexp
+    * patterns. This allows a plugin to respond differently to a series of different
+    * intput / outputs, on top of the Seeks platform.
+    */
    class plugin
      {
       public:
-	// constructor, used in maker.
+	/**
+	 * \brief constructor, also called in automatic maker function
+	 *        in auto-registration of plugin dynamic libraries.
+	 */
 	plugin(); 
 	
+	/**
+	 * \brief constructor.
+	 * @param config_filename configuration filename.
+	 */
 	plugin(const std::string &config_filename);
 	
-	// destructor.
+	/**
+	 * \brief destructor.
+	 */
 	virtual ~plugin();
 	
-	char* print() const;
+	/**
+	 * \brief builds a string of plugin element's printing functions 
+	 *        output.
+	 * @return a string, user is responsible for freeing it.
+	 */
+	std::string print() const;
 	
-	/* start/stop plugin. */
+	/**
+	 * \brief actions taken when starting plugin.
+	 */
 	virtual void  start() {};
 	
+	/**
+	 * \brief actions taken when stopping plugin.
+	 */
 	virtual void stop() {};
 	
 	/* accessors. */
+	
+	/**
+	 * \brief get plugin name.
+	 * @return plugin name.
+	 */
 	std::string get_name() const { return _name; };
+	
+	/**
+	 * \brief get plugin name in a C-string.
+	 * @return plugin name.
+	 */
 	const char* get_name_cstr() const { return _name.c_str(); };
+	
+	/**
+	 * \brief get plugin description.
+	 * @return plugin description.
+	 */
 	std::string get_description() const { return _description; };
+	
+	/**
+	 * \brief get plugin description in a C-string.
+	 * @return plugin description.
+	 */
 	const char* get_description_cstr() const { return _description.c_str(); };
+	
+	/**
+	 * \brief get plugin version major label.
+	 * @return plugin version major.
+	 */
 	std::string get_version_major() const { return _version_major; };
+	
+	/**
+	 * \brief get plugin version minor label.
+	 * @return plugin version minor.
+	 */ 
 	std::string get_version_minor() const { return _version_minor; };
 
 #if defined(PROTOBUF) && defined(TC)
@@ -92,13 +155,13 @@ namespace sp
 	
 	// CGI calls.
       public:
-	std::vector<cgi_dispatcher*> _cgi_dispatchers;
+	std::vector<cgi_dispatcher*> _cgi_dispatchers; /**< list of plugin's CGI dispatchers. */
 	
       public:
 	// interception, parsing & filtering.
-	interceptor_plugin *_interceptor_plugin;
+	interceptor_plugin *_interceptor_plugin; /**< internal interceptor plugin (interception from proxy). */
 	action_plugin *_action_plugin;
-	filter_plugin *_filter_plugin;
+	filter_plugin *_filter_plugin;  /**< internal filtering plugin. */
      };
 
 } /* end of namespace. */

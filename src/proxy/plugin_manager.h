@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -38,46 +38,91 @@ namespace sp
    
    typedef plugin* maker_ptr(); 
    
+   /**
+    * \brief The plugin manager (PM) registers, starts and stops plugins as needed.
+    *        Plugins come in the form of shared libraries. PM scans files in a configurable
+    *        repository and tries to load any of the shared libraries it finds.
+    * 
+    *        Loading takes two forms:
+    *        - on Linux and FreeBSD, plugins are loaded, created and registered at once,
+    *          using a feature from the system's dynamic loader.
+    *        - on some other platforms, including OpenBSD and OSX, libraries are loaded 
+    *          first, then plugins are created using a different mechanism than the one
+    *          above (i.e. with an explicit constructor).
+    * 
+    *        The PM serves a certain number of functionalities available throughout Seeks,
+    *        such as plugin lookup, plugin information, ...
+    */
    class plugin_manager
      {
       public:
 	
 	// dynamic library loading, and plugin autoregistration.
+	
+	/**
+	 * \brief loads all plugins, that is lookup shared libraries, load them up,
+	 *        then create plugin objects and register them.
+	 */
 	static int load_all_plugins();
+	
+	/**
+	 * \brief destroys all plugin objects and unload shared libraries.
+	 */
 	static int close_all_plugins();
 	
-	// creates the plugin objects.
+	/**
+	 * \brief creates the plugin objects.
+	 */
 	static int instanciate_plugins();
 
-	// registers a plugin and its CGI functions.
+	/**
+	 * \brief registers a plugin and its CGI functions.
+	 * @param p plugin object.
+	 */
 	static void register_plugin(plugin *p);
+	
+	/**
+	 * \brief locates a CGI resource among the registered plugins, if any 
+	 *        (resource or plugin).
+	 * @param path CGI resource path.
+	 * @return CGI dispatcher for this resource if it exists, NULL otherwise.
+	 * @see cgi main mechanism in Seeks proxy.
+	 */
 	static cgi_dispatcher* find_plugin_cgi_dispatcher(const char *path);
 	
-	// determines which plugins are activated by a client request.
+	/**
+	 * \brief determines which plugins are activated by a client request.
+	 *        Activated plugins are added to the client request state object.
+	 * @param csp HTTP client requeset state.
+	 * @param http HTTP request.
+	 */
 	static void get_url_plugins(client_state *csp, http_request *http);
 	
-	// finds a plugin with its name.
+	/**
+	 * \brief finds a plugin with its name.
+	 * @param name plugin name.
+	 * @return plugin if it exists under the requested name, NULL otherwise.
+	 */
 	static plugin* get_plugin(const std::string &name);
 	
       public:
-	static std::vector<plugin*> _plugins;
-	static std::vector<interceptor_plugin*> _ref_interceptor_plugins; // referenced interceptor plugins.
-	static std::vector<action_plugin*> _ref_action_plugins; // referenced action plugins.
-	static std::vector<filter_plugin*> _ref_filter_plugins; // referenced filter plugins.
+	static std::vector<plugin*> _plugins;  /**< set of plugins. */
+	static std::vector<interceptor_plugin*> _ref_interceptor_plugins; /**< registered interceptor plugins. */
+	static std::vector<action_plugin*> _ref_action_plugins; /**< registered action plugins. */
+	static std::vector<filter_plugin*> _ref_filter_plugins; /**< registered filter plugins. */
 
-	static hash_map<const char*,cgi_dispatcher*,hash<const char*>,eqstr> _cgi_dispatchers;
+	static hash_map<const char*,cgi_dispatcher*,hash<const char*>,eqstr> _cgi_dispatchers; /**< registered CGI dispatchers, key is resource. */
 	
-	// configuration page.
-	static std::string _config_html_template;
+	static std::string _config_html_template; /**< configuration HTML page. */
 	
 	static std::string _plugin_repository; /**< plugin repository. */
 
       public:
-	static std::map<std::string,maker_ptr*,std::less<std::string> > _factory; // factory of plugins.
+	static std::map<std::string,maker_ptr*,std::less<std::string> > _factory; /**< factory of plugins. */
 	
       private:
-	static std::list<void*> _dl_list; // list of opened dynamic libs.
-	static std::map<std::string,configuration_spec*,std::less<std::string> > _configurations; // plugin configuration objects.
+	static std::list<void*> _dl_list; /**< list of opened dynamic (shared) libraries. */
+	static std::map<std::string,configuration_spec*,std::less<std::string> > _configurations; /**< plugin configuration objects. */
      };
    
 } /* end of namespace. */

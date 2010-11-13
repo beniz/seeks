@@ -170,8 +170,8 @@ namespace seeks_plugins
 	      size_t count = 0;
 	      for (size_t i=0;i<ssize; i++)
 	      {
-		  if (snippets.at(i)->_doc_type == REJECTED)
-		    continue;
+		 if (snippets.at(i)->_doc_type == REJECTED)
+		   continue;
 		  if (!similarity || snippets.at(i)->_seeks_ir > 0)
 		    {
 		      if (count >= snistart)

@@ -109,7 +109,7 @@ namespace seeks_plugins
 		       const char *url_dec_str = encode::url_decode(url_str.c_str());
 		       url_str = std::string(url_dec_str);
 		       free_const(url_dec_str);
-		       pc->_current_snippet->set_url_no_decode(url_str);
+		       pc->_current_snippet->set_url(url_str);
 		       pc->_current_snippet->set_cite(url_str);
 		    }
 		  else if (_begin_results && pc->_current_snippet)
