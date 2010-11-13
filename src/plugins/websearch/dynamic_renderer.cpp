@@ -44,7 +44,8 @@ namespace seeks_plugins
    sp_err dynamic_renderer::render_result_page(client_state *csp, http_response *rsp,
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
-	static const char *result_tmpl_name = "websearch/templates/seeks_result_template_dyn.html";
+	std::string result_tmpl_name = "websearch/templates/themes/"
+	  + websearch::_wconfig->_ui_theme + "/seeks_result_template_dyn.html";
 	return dynamic_renderer::render_result_page(csp,rsp,parameters,result_tmpl_name);
      }
       
