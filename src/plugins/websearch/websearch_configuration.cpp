@@ -125,6 +125,8 @@ namespace seeks_plugins
 	       _se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
 	     else if (strcasecmp(arg,"yauba") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_YAUBA);
+	     else if (strcasecmp(arg,"blekko") == 0)
+	       _se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Enabled search engine");
 	     break;

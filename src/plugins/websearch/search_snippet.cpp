@@ -238,6 +238,12 @@ namespace seeks_plugins
             json_str_eng += ",";
           json_str_eng += "\"bing\"";
         }
+      if (_engine.to_ulong()&SE_BLEKKO)
+        {
+          if (!json_str_eng.empty())
+            json_str_eng += ",";
+          json_str_eng += "\"blekko\"";
+        }
       if (_engine.to_ulong()&SE_YAUBA)
         {
           if (!json_str_eng.empty())
@@ -382,6 +388,14 @@ namespace seeks_plugins
           miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
           miscutil::replace_in_string(bing_se_icon,"seeng","bing");
           html_content += bing_se_icon;
+        }
+      if (_engine.to_ulong()&SE_BLEKKO)
+        {
+          std::string blekko_se_icon = se_icon;
+          miscutil::replace_in_string(blekko_se_icon,"icon","search_engine_blekko");
+          miscutil::replace_in_string(blekko_se_icon,"setitle","blekko!");
+          miscutil::replace_in_string(blekko_se_icon,"seeng","blekko");
+          html_content += blekko_se_icon;
         }
       if (_engine.to_ulong()&SE_YAUBA)
         {

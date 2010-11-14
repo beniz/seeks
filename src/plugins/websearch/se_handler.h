@@ -39,13 +39,14 @@ namespace seeks_plugins
     class search_snippet;
     class query_context;
 
-#define NSEs 10  // number of supported search engines.
+#define NSEs 11  // number of supported search engines.
 
 #ifndef ENUM_SE
 #define ENUM_SE
     enum SE  // in alphabetical order.
     {
       BING,
+      BLEKKO,
       CUIL,
       DAILYMOTION,
       EXALEAD,
@@ -174,6 +175,16 @@ namespace seeks_plugins
                                  std::string &url, const query_context *qc);
       };
 
+    class se_blekko : public search_engine
+      {
+      public:
+        se_blekko();
+        ~se_blekko();
+
+        virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                 std::string &url, const query_context *qc);
+      };
+
     class se_yauba : public search_engine
       {
       public:
@@ -240,6 +251,7 @@ namespace seeks_plugins
         static se_youtube _youtube;
         static se_dailymotion _dailym;
         static se_yauba _yauba;
+        static se_blekko _blekko;
 
         static std::vector<CURL*> _curl_handlers;
         static sp_mutex_t _curl_mutex;
