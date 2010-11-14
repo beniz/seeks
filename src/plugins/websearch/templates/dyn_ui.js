@@ -1,6 +1,9 @@
 <script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
 <script type="text/javascript">
 
+if (typeof persTemplateFlag === 'undefined')
+    persTemplateFlag = '{prs}';
+
 YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 
     // page information.
@@ -194,6 +197,8 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
     snippetTweetTemplate =
         '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}&engines=twitter,identica">Similar</a></div></li>';
     
+    //persTemplateFlag = '{prs}';
+    
     failureTemplate =
         '<p class="error">Ack, I couldn\'t reach the Seeks search service!</p>';
     
@@ -380,7 +385,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         expansionLnk.setContent(pi.expansion);
 
         // personalization.
-        var persHTMLf = Y.substitute(this.persTemplateFlag, pi);
+        var persHTMLf = Y.substitute(persTemplateFlag, pi);
         persSpan.setContent(persHTMLf);
 
 	// render language.
@@ -389,10 +394,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
         // query suggestion.
         suggDiv.setContent(pi.suggestion);
     }
-
-    /* personalization rendering. */
-    persTemplateFlag = '{prs}';
-
+    
     /* send the request. */
     refresh(ref_url);
 
