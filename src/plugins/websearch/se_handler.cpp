@@ -403,10 +403,10 @@ namespace seeks_plugins
       miscutil::replace_in_string(q_blekko,"%query",qenc_str);
 
       //page
-      //const char *expansion = miscutil::lookup(parameters,"expansion");
-      //int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)) : 1;
-      //std::string pp_str = miscutil::to_string(pp);
-      //miscutil::replace_in_string(q_blekko,"%start",pp_str);
+      const char *expansion = miscutil::lookup(parameters,"expansion");
+      int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)) : 1;
+      std::string pp_str = miscutil::to_string(pp);
+      miscutil::replace_in_string(q_blekko,"%start",pp_str);
 
       // log the query.
       errlog::log_error(LOG_LEVEL_INFO, "Querying blekko: %s", q_blekko.c_str());

@@ -154,11 +154,10 @@ namespace seeks_plugins
         else if (_in_entry && _in_description && strcasecmp(tag, "description") == 0)
           {
              // std::cout << "  </description>" << std::endl;
-             char * description_str = encode::html_decode(_description);
+             _description = encode::html_decode(_description);
              _in_description = false;
-             pc->_current_snippet->set_summary(description_str);
-             free(description_str);
-             _description = "";
+             pc->_current_snippet->set_summary(_description);
+	     _description = "";
           }
         else if (_in_entry && _in_uri && strcasecmp(tag, "guid") ==0)
           {

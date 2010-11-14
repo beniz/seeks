@@ -8,13 +8,14 @@ search-language auto
 search-results-page 10
 
 # one or more enabled search engines
-# google, yahoo, bing, exalead, cuil
+# google, yahoo, bing, exalead, cuil, yauba, blekko
 search-engine google
 search-engine bing
 #search-engine cuil
 search-engine yahoo
 search-engine exalead
 #search-engine yauba
+#search-engine blekko
 
 # minimum number of seconds search results are kept in
 # the system cache, for reuse, update, etc...
