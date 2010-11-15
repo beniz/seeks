@@ -76,7 +76,13 @@
 <div id="main">
 
 <!-- @if-websearch-have-js-start -->
-#include websearch/templates/dyn_ui.js
+<script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
+<script type="text/javascript">
+YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
+#include websearch/templates/themes/original/js/render.js
+#include websearch/templates/js/dyn_ui.js
+});
+</script>
 <!-- if-websearch-have-js-end@ -->
 
 </div> 

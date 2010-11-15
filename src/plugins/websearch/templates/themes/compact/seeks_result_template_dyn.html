@@ -29,7 +29,7 @@ pan></a>
 </div>
 
 <form method="GET" action="@base-url@/search" id="search_form" onsubmit="return false;">
-<input title="Language" id="tab-language" name="lang" value="xxlang" type="text"/>
+<input title="Language" id="tab-language" name="lang" value="" type="text"/>
 <input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
@@ -78,8 +78,6 @@ pan></a>
 <!-- <div id="search_pages_back"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div> -->
 <!-- if-have-clustered-results-head-end@ -->
 
-
-
 <div id="help">
 <a href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help"><img src="@base-url@/plugins/websearch/public/themes/compact/images/help.png" style="border:0;" /></a>
 </div>
@@ -97,19 +95,20 @@ pan></a>
 -->
 <!-- if-have-clustered-results-head-end@ -->
 
-
 <table style="margin-top:40px;">
 <tr>
 <td>
 <div id="main">
 
 <!-- @if-websearch-have-js-start -->
+<script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
 <script type="text/javascript">
-persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
+YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
+#include websearch/templates/themes/compact/js/render.js
+#include websearch/templates/js/dyn_ui.js
+});
 </script>
-#include websearch/templates/dyn_ui.js
 <!-- if-websearch-have-js-end@ -->
-
 </div> 
 </td>
 <td style="vertical-align:top;"> 
@@ -125,8 +124,6 @@ persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact
 </td>
 </tr>
 
-
-
 <tr>
 <td>
 <!-- @if-have-one-column-results-head-start -->
@@ -140,7 +137,6 @@ current"></span><a href="javascript:void(null);" id="search_page_next" title="Ne
 </td>
 <td></td>
 </tr>
-
 
 </table>
 
