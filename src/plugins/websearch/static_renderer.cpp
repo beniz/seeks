@@ -622,6 +622,10 @@ namespace seeks_plugins
 	else miscutil::add_map_entry(exports,"$xxmsg",1,
 				     websearch::_wconfig->_result_message.c_str(),1);
 	
+	// theme.
+	miscutil::add_map_entry(exports,"$xxtheme",1,
+				websearch::_wconfig->_ui_theme.c_str(),1);
+	
 	// other parameters.
 	if (param_exports)
 	  {
