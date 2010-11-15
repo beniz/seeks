@@ -143,7 +143,7 @@ namespace seeks_plugins
    sp_err img_websearch::cgi_img_websearch_similarity(client_state *csp, http_response *rsp,
 						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
      {
-	std::string tmpl_name = "templates/themes/" + websearch::_wconfig->_ui_theme + "seeks_result_template.html";
+	std::string tmpl_name = "templates/themes/" + websearch::_wconfig->_ui_theme + "/seeks_result_template.html";
 	
 	if (!parameters->empty())
 	  {
