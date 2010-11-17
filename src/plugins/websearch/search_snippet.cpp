@@ -150,19 +150,6 @@ namespace seeks_plugins
 
       // sort words by size.
       std::sort(words.begin(),words.end(),std::greater<std::string>());
-
-      // highlighting.
-      for (size_t i=0;i<words.size();i++)
-        {
-          if (words.at(i).length() > 2)
-            {
-              char *wenc = encode::url_encode(words.at(i).c_str());
-              std::string rword = " " + words.at(i) + " ";
-              std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand&lang=" + _qc->_auto_lang + "\">" + rword + "</a></span>";
-              free(wenc);
-              miscutil::ci_replace_in_string(str,rword,bold_str);
-            }
-        }
     }
      
      void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
