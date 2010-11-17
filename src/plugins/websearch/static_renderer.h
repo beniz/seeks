@@ -86,6 +86,7 @@ namespace seeks_plugins
 					  const std::string &engines,
 					  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					  const query_context *qc,
 					  const std::string &cgi_base="/search?",
 					  const bool &not_end=false);
 	
@@ -96,6 +97,7 @@ namespace seeks_plugins
 					  const std::string &engines,
 					  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					  hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					  const query_context *qc,
 					  const std::string &cgi_base="/search?");
 
 	static void render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

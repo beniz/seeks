@@ -437,6 +437,7 @@ namespace seeks_plugins
 					       const std::string &engines,
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					       const query_context *qc,
 					       const std::string &cgi_base, const bool &not_end)
      {
 	if (!not_end)
@@ -472,7 +473,7 @@ namespace seeks_plugins
 	     std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
-	       + "&amp;prs=" + std::string(prs)
+	       + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
 	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
@@ -486,6 +487,7 @@ namespace seeks_plugins
 					       const std::string &engines,
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					       const query_context *qc,
 					       const std::string &cgi_base)
      {
 	 if (current_page > 1)
@@ -510,7 +512,7 @@ namespace seeks_plugins
 	     std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
-	       + "&amp;prs=" + std::string(prs)
+	       + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
 	       + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
@@ -694,12 +696,12 @@ namespace seeks_plugins
      // next link.
      static_renderer::render_next_page_link(current_page,snippets.size(),
 					    url_encoded_query,expansion,engines,parameters,
-					    exports,cgi_base,not_end);
+					    exports,qc,cgi_base,not_end);
 	
      // previous link.
      static_renderer::render_prev_page_link(current_page,snippets.size(),
 					    url_encoded_query,expansion,engines,
-					    parameters,exports,cgi_base);
+					    parameters,exports,qc,cgi_base);
 
      // cluster link.
      static_renderer::render_nclusters(parameters,exports);
