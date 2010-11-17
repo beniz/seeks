@@ -3,9 +3,9 @@
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 <title>qclean - Seeks Search</title>
 <link rel="search" href="opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
-<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssreset/reset-min.css" type="text/css" />
-<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssfonts/fonts-min.css" type="text/css" />
-<link rel="stylesheet" href="@base-url@/public/yui/3.0.0/cssgrids/grids-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.2.0/cssreset/reset-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.2.0/cssfonts/fonts-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.2.0/cssgrids/grids-min.css" type="text/css" />
 <link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
 <link rel="stylesheet" href="seeks_search.css" type="text/css" />
 <link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
@@ -23,7 +23,7 @@
 </div>
 
 <form method="GET" action="@base-url@/search" id="search_form">
-<input title="Language" id="lang_input" name="lang" value="xxlang" type="text"/>
+<input title="Language" id="tab-language" name="lang" value="xxlang" type="text"/>
 <input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
@@ -100,7 +100,7 @@
 <!-- if-have-clustered-results-body-end@ -->
 
 <!-- @if-websearch-have-js-start -->
-<script type="text/javascript" src="@base-url@/public/yui/3.0.0/yui/yui-min.js"></script>
+<script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
 <script type="text/javascript">
 
 // Shortcut for search, ctrl+s

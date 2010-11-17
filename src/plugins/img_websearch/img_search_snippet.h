@@ -57,7 +57,8 @@ namespace seeks_plugins
 						   const std::string &base_url,
 						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	
-	virtual std::string to_json(const bool &thumbs);
+	virtual std::string to_json(const bool &thumbs,
+				    const std::vector<std::string> &query_words);
 	
 	virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 	

@@ -30,6 +30,8 @@
 #include "plugin_manager.h"
 #include "iso639.h"
 
+#include "user_db_fix.h"
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -555,6 +557,24 @@ int main(int argc, const char *argv[])
 	seeks_proxy::_run_proxy = false;
      }
    plugin_manager::instanciate_plugins();
+   
+#if defined(PROTOBUF) && defined(TC)
+   // fix broken user DB by detecting and rewriting it.
+   float db_version = seeks_proxy::_user_db->get_version();
+   errlog::log_error(LOG_LEVEL_INFO, "db version: %g", db_version);
+   if (db_version == 0.0 && sizeof(unsigned long) == 8)
+     {
+	seeks_proxy::_user_db->close_db();
+	user_db_fix::fix_issue_169();
+	seeks_proxy::_user_db->open_db();
+     }
+   if (db_version != user_db::_db_version)
+     {
+	seeks_proxy::_user_db->set_version(user_db::_db_version);
+	errlog::log_error(LOG_LEVEL_INFO, "user db version updated to %g",
+			  user_db::_db_version);
+     }
+#endif
    
    // start proxy.
    if (seeks_proxy::_run_proxy)

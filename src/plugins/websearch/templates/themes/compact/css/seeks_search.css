@@ -67,13 +67,13 @@ body {
 	top: 1Opx;*/
 }
 
-#search_input, #search_button, #lang_input {
+#search_input, #search_button, #tab-language {
 	color:black;
 	border-width: 0px;
 	background-color: transparent;
 }
 
-#lang_input { 
+#tab-language { 
 	width: 22px;	
 	margin-left: 7px;
 	text-align: center;
@@ -84,7 +84,7 @@ body {
 	margin-left: 6px;
 }
 
-#search_input, #lang_input {
+#search_input, #tab-language {
 	margin-top: 17px;
 	height: 17px;
 	padding: 2px;	
@@ -315,13 +315,13 @@ body {
 	text-align: center;
 }
 
-#search_page_prev, #search_page_next, #search_home ,#search_page_end{
+#search_page_prev, #search_page_next, #search_page_prev_top, #search_page_next_top, #search_home ,#search_page_end{
 	text-decoration: none;
 	background-repeat: no-repeat;
 	background-position: top center;
 }
 
-#search_page_prev, #search_page_next, #search_page_end {
+#search_page_prev, #search_page_next, #search_page_prev_top, #search_page_next_top, #search_page_end {
 	font-size: 18px;
 	width: 10px;
 	height: 18px;
@@ -330,11 +330,11 @@ body {
 	margin-right:1px;
 }
 
-#search_page_prev {
+#search_page_prev, #search_page_prev_top {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_prev.png);
 }
 
-#search_page_next {
+#search_page_next, #search_page_next_top {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_next.png);
 }
 
@@ -352,7 +352,7 @@ body {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/home_32x30.png);
 }*/
 
-#search_page_current {
+#search_page_current, #search_page_current_top {
 	padding: 10px;
 	text-align:center;
 }
@@ -439,6 +439,7 @@ body {
 .clustered .cluster {
 	border: 1px solid gray;
 	padding: 8px;
+	margin-right: 8px;
 	margin-bottom: 10px;
 }
 

@@ -638,6 +638,7 @@ void errlog::log_error(int loglevel, const char *fmt, ...)
 	unsigned uval;           /* %u value */
 	long lval;               /* %l value */
 	unsigned long ulval;     /* %ul value */
+	double dval;
 	char ch;
 	const char *format_string = tempbuf;
 	
@@ -669,6 +670,10 @@ void errlog::log_error(int loglevel, const char *fmt, ...)
 	   case 'u':
 	     uval = va_arg( ap, unsigned );
 	     snprintf(tempbuf, sizeof(tempbuf), "%u", uval);
+	     break;
+	   case 'g':
+	     dval = va_arg( ap, double );
+	     snprintf(tempbuf, sizeof(tempbuf), "%g", dval);
 	     break;
 	   case 'l':
 	     /* this is a modifier that must be followed by u, lu, or d */

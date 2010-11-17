@@ -27,12 +27,18 @@ namespace seeks_plugins
    class json_renderer
      {
       public:
-	static sp_err render_snippets(const int &current_page,
+	static std::string render_engines(const std::bitset<NSEs> &engines);
+	
+	static std::string render_img_engines(const query_context *qc);
+	
+	static sp_err render_snippets(const std::string &query_clean,
+				      const int &current_page,
 				      const std::vector<search_snippet*> &snippets,
 				      std::string &json_str,
 				      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 	
-	static sp_err render_clustered_snippets(cluster *clusters, const short &K,
+	static sp_err render_clustered_snippets(const std::string &query_clean,
+						cluster *clusters, const short &K,
 						const query_context *qc,
 						std::string &json_str,
 						const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
@@ -41,7 +47,8 @@ namespace seeks_plugins
 					  client_state *csp, http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  const query_context *qc,
-					  const double &qtime);
+					  const double &qtime,
+					  const bool &img=false);
 	
 	static sp_err render_clustered_json_results(cluster *clusters,
 						    const short &K,

@@ -233,9 +233,10 @@ namespace seeks_plugins
 	 * 4 - forums
 	 * 5 - video file
 	 * 6 - audio file
-	 * So for now, K is set to 7.
+	 * 7 - tweets
+	 * So for now, K is set to 8.
 	 */
-	K = 7;
+	K = 8;
 	clusters = new cluster[K];
 	
 	size_t nsnippets = qc->_cached_snippets.size();
@@ -279,6 +280,11 @@ namespace seeks_plugins
 	       {
 		  clusters[6].add_point(se->_id,NULL);
 		  clusters[6]._label = "Audio";
+	       }
+	     else if (se->_doc_type == TWEET)
+	       {
+		  clusters[7].add_point(se->_id,NULL);
+		  clusters[7]._label = "Tweets";
 	       }
 	  }
 	

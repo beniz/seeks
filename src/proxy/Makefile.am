@@ -4,12 +4,13 @@ ACLOCAL_AMFLAGS=-I m4
 lib_LTLIBRARIES=
 if HAVE_TC
 if HAVE_PROTOBUF
-lib_LTLIBRARIES += libseeksuserdb.la 
+lib_LTLIBRARIES += libseeksuserdb.la libseeksuserdbfix.la
 endif
 endif
 lib_LTLIBRARIES += libseeksproxy.la libseeksplugins.la
+
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
-	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh 
+	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh -I${srcdir}/../plugins/query_capture
 if HAVE_TC
 if HAVE_PROTOBUF
 AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I.
@@ -34,6 +35,8 @@ $(protoc_outputs): $(protoc_inputs)
 
 dist_libseeksuserdb_la_SOURCES=db_record.cpp user_db.cpp
 nodist_libseeksuserdb_la_SOURCES=$(protoc_outputs)
+
+dist_libseeksuserdbfix_la_SOURCES=user_db_fix.cpp
 
 endif
 endif
@@ -79,6 +82,7 @@ libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
 if HAVE_TC
 if HAVE_PROTOBUF
 libseeksuserdb_la_CXXFLAGS=-Wall -g
+libseeksuserdbfix_la_CXXFLAGS=-Wall -g
 endif
 endif
 if USE_PERL

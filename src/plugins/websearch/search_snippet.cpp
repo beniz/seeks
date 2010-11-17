@@ -25,6 +25,7 @@
 #include "urlmatch.h"
 #include "plugin_manager.h" // for _plugin_repository.
 #include "seeks_proxy.h" // for _datadir.
+#include "json_renderer.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture_configuration.h"
@@ -103,15 +104,14 @@ namespace seeks_plugins
         }
     }
 
-    void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
-                                         const std::vector<std::string> &query_words)
+    void search_snippet::discr_words(const std::vector<std::string> &query_words,
+				     std::vector<std::string> &words)
     {
       static int max_highlights = 3; // ad-hoc default.
 
       if (!_features_tfidf)
         return;
 
-      std::vector<std::string> words;
       words.reserve(max_highlights);
       std::map<float,uint32_t,std::greater<float> > f_tfidf;
 
@@ -164,6 +164,27 @@ namespace seeks_plugins
             }
         }
     }
+     
+     void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
+					  const std::vector<std::string> &query_words)
+       {
+	  // select discriminant words.
+	  std::vector<std::string> words;
+	  discr_words(query_words,words);
+	  
+	  // highlighting.
+	  for (size_t i=0;i<words.size();i++)
+	    {
+	       if (words.at(i).length() > 2)
+		 {
+		    char *wenc = encode::url_encode(words.at(i).c_str());
+		    std::string rword = " " + words.at(i) + " ";
+		    std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + rword + "</a></span>";
+		    free(wenc);
+		    miscutil::ci_replace_in_string(str,rword,bold_str);
+		 }
+	    }
+       }
 
     std::ostream& search_snippet::print(std::ostream &output)
     {
@@ -184,24 +205,29 @@ namespace seeks_plugins
 
       return output;
     }
-
-    std::string search_snippet::to_json(const bool &thumbs)
+     
+    std::string search_snippet::to_json(const bool &thumbs,
+					const std::vector<std::string> &query_words)
     {
       std::string json_str;
       json_str += "{";
       json_str += "\"id\":" + miscutil::to_string(_id) + ",";
-      std::string title = _title;
+      char *title_enc = encode::html_encode(_title.c_str()); 
+      std::string title = std::string(title_enc);
+      free(title_enc);
       miscutil::replace_in_string(title,"\"","\\\"");
       json_str += "\"title\":\"" + title + "\",";
       std::string url = _url;
       miscutil::replace_in_string(url,"\"","\\\"");
       json_str += "\"url\":\"" + url + "\",";
-      std::string summary = _summary_noenc;
+      std::string summary = _summary;
       miscutil::replace_in_string(summary,"\"","\\\"");
       json_str += "\"summary\":\"" + summary + "\",";
       json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
       json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
-      double rank = _rank / static_cast<double>(_engine.count());
+      double rank = 0.0;
+      if (_engine.to_ulong() > 0)
+	rank = _rank / static_cast<double>(_engine.count());
       json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
       json_str += "\"cite\":\"";
       if (!_cite.empty())
@@ -223,55 +249,33 @@ namespace seeks_plugins
       miscutil::replace_in_string(archive,"\"","\\\"");
       json_str += "\"archive\":\"" + archive + "\",";
       json_str += "\"engines\":[";
-      std::string json_str_eng = "";
-      if (_engine.to_ulong()&SE_GOOGLE)
-        json_str_eng += "\"google\"";
-      if (_engine.to_ulong()&SE_CUIL)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"cuil\"";
-        }
-      if (_engine.to_ulong()&SE_BING)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"bing\"";
-        }
-      if (_engine.to_ulong()&SE_BLEKKO)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"blekko\"";
-        }
-      if (_engine.to_ulong()&SE_YAUBA)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"yauba\"";
-        }
-      if (_engine.to_ulong()&SE_YAHOO)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"yahoo\"";
-        }
-      if (_engine.to_ulong()&SE_EXALEAD)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += ",";
-          json_str_eng += "\"exalead\"";
-        }
-      if (_engine.to_ulong()&SE_TWITTER)
-        {
-          if (!json_str_eng.empty())
-            json_str_eng += " ";
-          json_str_eng += "\"twitter\"";
-        }
-      json_str += json_str_eng + "]";
+      json_str += json_renderer::render_engines(_engine);
+      json_str += "]";
       if (thumbs)
         json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
-      json_str += "}";
+       std::vector<std::string> words;
+       discr_words(query_words,words);
+       if (!words.empty())
+	 {
+	    json_str += ",\"words\":[";
+	    for (size_t w=0;w<words.size();w++)
+	      {
+		 json_str += "\"" + words.at(w) + "\"";
+		 if (w != words.size()-1)
+		   json_str += ",";
+	      }
+	    json_str += "]";
+	 }
+       json_str += ",\"type\":\"" + get_doc_type_str() + "\"";
+       json_str += ",\"personalized\":\"";
+       if (_personalized)
+	 json_str += "yes";
+       else json_str += "no";
+       json_str += "\"";
+       if (!_date.empty())
+	 json_str += ",\"date\":\"" + _date + "\"";
+       
+       json_str += "}";
       return json_str;
     }
 
@@ -283,8 +287,8 @@ namespace seeks_plugins
     }
 
     std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
-        const std::string &base_url_str,
-        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+						       const std::string &base_url_str,
+						       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
     {
        // check for URL redirection for capture & personalization of results.
        bool prs = true;
@@ -334,7 +338,7 @@ namespace seeks_plugins
       if (_doc_type == TWEET)
         {
           html_content += "<a href=\"" + _cite + "\">";
-          html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" /></a>"; // _cached contains the profile's image.
+          html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" ></a>"; // _cached contains the profile's image.
         }
       if (_doc_type == VIDEO_THUMB)
         {
@@ -342,20 +346,14 @@ namespace seeks_plugins
           html_content += url + "\"><img class=\"video_profile\" src=\"";
           html_content += _cached;
           html_content += "\"></a><div>";
-
-          /* html_content += html_content += "<a href=\"" + _url + "\">";
-          html_content += "<img src=\"";
-          html_content += _cached;
-          html_content += "\" /></a>"; */
         }
       
-       if (_personalized)
+       if (prs && _personalized)
 	 {
 	    html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
 	 }
-         else     
-	 html_content += "<h3>";
-       html_content += "<a href=\"";
+       else html_content += "<h3>";
+      html_content += "<a href=\"";
       html_content += url;
       html_content += "\">";
        
@@ -373,14 +371,14 @@ namespace seeks_plugins
           miscutil::replace_in_string(ggle_se_icon,"seeng","google");
           html_content += ggle_se_icon;
         }
-      if (_engine.to_ulong()&SE_CUIL)
+       /* if (_engine.to_ulong()&SE_CUIL)
         {
           std::string cuil_se_icon = se_icon;
           miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
           miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
           miscutil::replace_in_string(cuil_se_icon,"seeng","cuil");
           html_content += cuil_se_icon;
-        }
+        } */
       if (_engine.to_ulong()&SE_BING)
         {
           std::string bing_se_icon = se_icon;
@@ -445,12 +443,11 @@ namespace seeks_plugins
           miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
           html_content += yt_se_icon;
         }
-
-
+       
       if (_doc_type == TWEET)
         if (_meta_rank > 1)
           html_content += " (" + miscutil::to_string(_meta_rank) + ")";
-
+       
       html_content += "</h3>";
         
       if (!_summary.empty())
@@ -824,13 +821,16 @@ namespace seeks_plugins
         }
 
       // detect wikis. XXX: could be put into a pattern file if more complex patterns are needed.
-      size_t pos = 0;
-      std::string wiki_pattern = "wiki";
-      std::string::const_iterator sit = _url.begin();
-      if ((pos = miscutil::ci_find(_url,wiki_pattern,sit))!=std::string::npos)
-        {
-          _doc_type = WIKI;
-        }
+      if (_doc_type == WEBPAGE)
+	 {
+	    size_t pos = 0;
+	    std::string wiki_pattern = "wiki";
+	    std::string::const_iterator sit = _url.begin();
+	    if ((pos = miscutil::ci_find(_url,wiki_pattern,sit))!=std::string::npos)
+	      {
+		 _doc_type = WIKI;
+	      }
+	 }
     }
 
     // static.
@@ -990,5 +990,53 @@ namespace seeks_plugins
             s1->_meta_rank--;
         }
     }
-
+     
+     std::string search_snippet::get_doc_type_str() const
+       {
+	  std::string output;
+	  switch(_doc_type)
+	    {
+	     case WEBPAGE:
+	       output = "webpage";
+	       break;
+	     case FORUM:
+	       output = "forum";
+	       break;
+	     case FILE_DOC:
+	       output = "file";
+	       break;
+	     case SOFTWARE:
+	       output = "software";
+	       break;
+	     case IMAGE:
+	       output = "image";
+	       break;
+	     case VIDEO:
+	       output = "video";
+	       break;
+	     case VIDEO_THUMB:
+	       output = "video_thumb";
+	       break;
+	     case AUDIO:
+	       output = "audio";
+	       break;
+	     case CODE:
+	       output = "code";
+	       break;
+	     case NEWS:
+	       output = "news";
+	       break;
+	     case TWEET:
+	       output = "tweet";
+	       break;
+	     case WIKI:
+	       output = "wiki";
+	       break;
+	     case UNKNOWN:
+	     default:
+	       output = "unknown";
+	    }
+	  return output;
+       }
+          
   } /* end of namespace. */

@@ -75,6 +75,7 @@ namespace sp
 	static sp_err unmap(hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map,
 			    const char *name);
 	static void free_map(hash_map<const char*,const char*,hash<const char*>,eqstr> *&the_map);
+	static hash_map<const char*,const char*,hash<const char*>,eqstr>* copy_map(const hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map);
 	static const char* lookup(const hash_map<const char*,const char*,hash<const char*>,eqstr> *the_map,
 				  const char* name);
 
@@ -138,6 +139,7 @@ namespace sp
 	
 	/* others. */
 	static uint32_t hash_string(const char *data, uint32_t len);
+	static std::string join_string_list(const std::string& delim, const std::list<std::string>& l);
      };
     
 } /* end of namespace. */

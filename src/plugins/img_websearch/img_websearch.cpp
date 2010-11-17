@@ -201,7 +201,7 @@ namespace seeks_plugins
 	       {
 		  csp->_content_type = CT_JSON;
 		  err = json_renderer::render_json_results(qc->_cached_snippets,
-							   csp,rsp,parameters,qc,0.0);
+							   csp,rsp,parameters,qc,0.0,true);
 		  qc->_lock = false;
 		  mutex_unlock(&qc->_qc_mutex);
 	       }
@@ -352,7 +352,7 @@ namespace seeks_plugins
 	     csp->_content_type = CT_JSON;
 	     err = json_renderer::render_json_results(qc->_cached_snippets,
 						      csp,rsp,parameters,qc,
-						      qtime);
+						      qtime,true);
 	  }
 	
 	// unlock or destroy the query context.

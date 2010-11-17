@@ -82,7 +82,7 @@ namespace seeks_plugins
 	struct timeval tv_now;
 	gettimeofday(&tv_now,NULL);
 	time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
-	int err = seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
+	int err = seeks_proxy::_user_db->prune_db("query-capture",sweep_date);
 	return err;
      }
    
@@ -497,7 +497,7 @@ namespace seeks_plugins
 	miscutil::replace_in_string(cquery,"\"",""); // prune out quote. XXX: could go elsewhere.
 	return cquery;
      }
-      
+
 #if defined(ON_OPENBSD) || defined(ON_OSX)
    extern "C"  
      {

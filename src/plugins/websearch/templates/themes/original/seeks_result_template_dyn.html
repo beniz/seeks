@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>qclean - Seeks Search</title>
+<link rel="search" href="opensearch.xml" type="application/opensearchdescription+xml" title="Seeks Search" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.2.0/cssreset/reset-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.2.0/cssfonts/fonts-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/yui/3.2.0/cssgrids/grids-min.css" type="text/css" />
+<link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
+<link rel="stylesheet" href="seeks_search.css" type="text/css" />
+<link rel="stylesheet" href="seeks_img_search.css" type="text/css" />
+<link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
+</head>
+
+<body>
+
+#include info-head
+
+<div id="search_bar">
+<form method="GET" action="@base-url@/search" id="search_form" onsubmit="return false;">
+<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
+<input name="qknown" value="fullquery" type="hidden" />
+<input name="expansion" value="1" type="hidden" />
+<input name="action" value="expand" type="hidden" />
+<!-- <input name="engines" value="xxeng" type="hidden" /> -->
+<input name="content_analysis" value="xxca" type="hidden" />
+<input name="ui" value="dyn" type="hidden" />
+<input name="output" value="json" type="hidden" />
+<input id="search_button" value="" type="submit" />
+</form>
+
+<a id="expansion" href="javascript:void(null);" title="Expand. Deeper search, towards a broader range of results."></a>
+
+<!-- @if-have-clustering-start -->
+<a href="javascript:void(null);" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<!-- if-have-clustering-end@ -->
+<!-- @if-not-have-clustering-start -->
+<a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
+<!-- if-not-have-clustering-end@ -->
+
+<!-- @if-have-one-column-results-head-start -->
+<div id="search_pages"><a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a><span id="search_page_current"></span><a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a><small>page</small></div>
+<!-- if-have-one-column-results-head-end@ -->
+<!-- @if-have-clustered-results-head-start -->
+<!-- <div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div> -->
+<!-- if-have-clustered-results-head-end@ -->
+
+<a id="search_home" title="Home (ctrl+h)" href="@base-url@/websearch-hp/">&nbsp;</a>
+
+<div id="search_sugg"></div>
+
+<div id="search_bar_tab">
+<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/Tips_%26_Troubleshooting#I_don.27t_get_search_results_in_the_language_I_want">Lang:</a> <span id="tab-language"></span>
+
+<a id="tab-pers" class="search_bar_tab" href="javascript:void(null);" title="Toggle personalization">Pers:</a><span id="tab-pers-flag"></span>
+
+<a class="search_bar_tab" href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help">Help</a>
+
+<a id="tab-text" class="search_bar_tab" href="javascript:void(null);" title="Search text">Text</a>
+<!-- @if-have-img-websearch-start -->
+<a id="tab-img" class="search_bar_tab" href="javascript:void(null);" title="Search images">Images</a>
+<!-- if-have-img-websearch-end@ -->
+<a id="tab-vid" class="search_bar_tab" href="javascript:void(null);" title="Search videos">Videos</a>
+<a id="tab-tweet" class="search_bar_tab" href="javascript:void(null);" title="Search tweets">Tweets</a>
+<span class="search_bar_tab">Group by:</span> 
+<!-- <a id="tab-urls" href="javascript:void(null);" title="Group by urls">urls</a>
+<a id="tab-titles" href="javascript:void(null);" title="Group by titles">titles</a> -->
+<a id="tab-types" href="javascript:void(null);" title="Group by type">types</a>
+</div>
+</div>
+
+<table>
+<tr>
+<td>
+
+<div id="main">
+
+<!-- @if-websearch-have-js-start -->
+<script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
+<script type="text/javascript">
+YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
+#include websearch/templates/themes/original/js/render.js
+#include websearch/templates/js/dyn_ui.js
+});
+</script>
+<!-- if-websearch-have-js-end@ -->
+
+</div> 
+</td>
+
+<td style="vertical-align:top;">
+<!-- message panel -->
+<!-- @if-have-result-message-start -->
+<div id="message">
+<p>xxmsg</p>
+<!-- img src="public/images/seek_icon_32x32_transparent.png"/> -->
+</div>
+<!-- if-have-result-message-end@ -->
+</td>
+</tr>
+</table>
+
+</body></html>

@@ -28,8 +28,8 @@ query-context-delay 300
 enable-thumbs 0
 
 # enables javascript use on the websearch results main page.
-# default: 0
-enable-js 0
+# default: 1
+enable-js 1
 
 # enables background download of the content pointed to by websearch results.
 # Expected to be both slower and more bandwith demanding than the
@@ -93,6 +93,11 @@ personalized-ranking 1
 # Supported are plain text and text with html tags.
 # default:
 #result-message Beware, you are using a remote Seeks node
+
+# Enables the dynamic ui (JSON-based). Do not use this UI if 
+# your browser is console-based and / or does not support javascript.
+# default: 0
+dynamic-ui 0
 
 # User Interface theme identifier.
 # 'original' is the historical theme.

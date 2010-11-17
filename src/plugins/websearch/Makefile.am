@@ -6,6 +6,9 @@ websearchplugindatadir = $(datadir)/seeks/plugins/websearch
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy \
 	    -I${srcdir}/../../dht 
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../img_websearch
+endif
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf \
@@ -22,13 +25,14 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 			           query_interceptor.cpp websearch_configuration.cpp \
 				   se_parser_yauba.cpp se_parser_blekko.cpp\
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
-				   clustering.cpp oskmeans.cpp json_renderer.cpp \
-				   clustering.h content_handler.h html_txt_parser.h json_renderer.h oskmeans.h \
+				   clustering.cpp oskmeans.cpp json_renderer.cpp dynamic_renderer.cpp \
+				   clustering.h content_handler.h html_txt_parser.h json_renderer.h json_renderer_private.h oskmeans.h \
 				   query_context.h query_interceptor.h search_snippet.h se_handler.h se_parser_bing.h \
 				   se_parser_cuil.h se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
 	                           se_parser_youtube.h se_parser_dailymotion.h se_parser_yauba.h se_parser_twitter.h\
-				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h
-libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h \
+	                           dynamic_renderer.h
+libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ @LCOV_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`

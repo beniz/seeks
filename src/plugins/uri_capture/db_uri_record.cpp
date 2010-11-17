@@ -53,7 +53,7 @@ namespace seeks_plugins
 	create_uri_record(r);
 	if (!r.SerializeToString(&msg))
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"failed serializing db_uri_record");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Failed serializing db_uri_record");
 	     return 1; // error.
 	  }
 	else return 0;
@@ -64,7 +64,7 @@ namespace seeks_plugins
 	sp::db::record r;
 	if (!r.ParseFromString(msg))
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"failed deserializing db_uri_record");
+	     errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing db_uri_record");
 	     return 1; // error.
 	  }
 	read_uri_record(r);

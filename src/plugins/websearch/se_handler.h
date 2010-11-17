@@ -86,7 +86,7 @@ namespace seeks_plugins
         {
           // we do not delete the output, this is handled by the client.
           // we do delete snippets outside the destructor (depends on whether we're using threads).
-        }
+        };
 
         int _se; // search engine (ggle, bing, ...).
         char *_output; // page content, to be parsed into snippets.
