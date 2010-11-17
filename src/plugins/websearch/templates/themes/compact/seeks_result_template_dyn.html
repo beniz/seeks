@@ -106,6 +106,32 @@ pan></a>
 YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 #include websearch/templates/themes/compact/js/render.js
 #include websearch/templates/js/dyn_ui.js
+
+    Y.one("#search_page_prev_top").on("click",function(e) {
+	if (ti.txt == 1)
+	    pi = pi_txt;
+	else if(ti.img== 1)
+	    pi = pi_img;
+	else if(ti.vid== 1)
+	    pi = pi_vid;
+	else if(ti.twe== 1)
+	    pi = pi_twe;
+	pi.cpage--;
+	render();
+    });
+    
+    Y.one("#search_page_next_top").on("click",function(e) {
+	if (ti.txt == 1)
+            pi = pi_txt;
+	else if(ti.img== 1)
+            pi = pi_img;
+        else if(ti.vid== 1)
+            pi = pi_vid;
+        else if(ti.twe== 1)
+            pi = pi_twe;
+        pi.cpage++;
+        render();
+    });
 });
 </script>
 <!-- if-websearch-have-js-end@ -->
@@ -127,8 +153,7 @@ YUI().use("jsonp", "substitute", "transition", "querystring", function (Y) {
 <tr>
 <td>
 <!-- @if-have-one-column-results-head-start -->
-<div id="search_pages"><a href="javascript:void(null);" id="search_page_prev" title="Previous (ctrl+&lt)">&nbsp;</a><span id="search_page_
-current"></span><a href="javascript:void(null);" id="search_page_next" title="Next (ctrl+&gt)">&nbsp;</a><small>page</small></div>
+<div id="search_pages"><a href="javascript:void(null);" id="search_page_prev_top" title="Previous (ctrl+&lt)">&nbsp;</a><span id="search_page_current"></span><a href="javascript:void(null);" id="search_page_next_top" title="Next (ctrl+&gt)">&nbsp;</a><small>page</small></div>
 <!-- <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div> -->
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
