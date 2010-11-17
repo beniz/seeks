@@ -64,11 +64,9 @@ namespace seeks_plugins
      : plugin()
        {
 	  _name = "websearch";
-	  
 	  _version_major = "0";
 	  _version_minor = "2";
 	  
-
 	  if (seeks_proxy::_datadir.empty())
 	    _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
 	  else

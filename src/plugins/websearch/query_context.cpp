@@ -421,19 +421,25 @@ namespace seeks_plugins
    bool query_context::has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				      std::string &qlang)
      {
-	std::string query = std::string(miscutil::lookup(parameters,"q"));
-	if (query.empty() || query[0] != ':') // XXX: could chomp the query.
+	const char *alang = miscutil::lookup(parameters,"lang");
+	if (alang)
+	  qlang = alang;
+	else
 	  {
-	     qlang = "";
-	     return false;
-	  }
-	try
-	  {
-	     qlang = query.substr(1,2); // : + 2 characters for the language.
-	  }
-	catch(std::exception &e)
-	  {
-	     qlang = "";
+	     std::string query = std::string(miscutil::lookup(parameters,"q"));
+	     if (query.empty() || query[0] != ':') // XXX: could chomp the query.
+	       {
+		  qlang = "";
+		  return false;
+	       }
+	     try
+	       {
+		  qlang = query.substr(1,2); // : + 2 characters for the language.
+	       }
+	     catch(std::exception &e)
+	       {
+		  qlang = "";
+	       }
 	  }
 	
 	// check whether the language is known ! -> XXX: language table...
@@ -447,30 +453,32 @@ namespace seeks_plugins
 	     qlang = "";
 	     return false;
 	  }
-	return true;
      }
       
    bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
-			
-			//std::string lang = std::string(miscutil::lookup(parameters, "lang"));
-			 
-	std::string qlang;	 
-	std::string query = std::string(miscutil::lookup(parameters,"q"));
-	if (query.empty() || query[0] != ':')
-		return false;
+	std::string qlang;
 	
-	try
+	// check whether the language was specified through the API.
+	const char *alang = miscutil::lookup(parameters,"lang");
+	if (alang)
+	  qlang = alang;
+	else // check whether it is within the query string.
 	  {
-	     qlang = query.substr(1,2); // : + 2 characters for the language.
-	     _in_query_command += query.substr(0,3);
+	     std::string query = std::string(miscutil::lookup(parameters,"q"));
+	     if (query.empty() || query[0] != ':')
+	       return false;
+	     try
+	       {
+		  qlang = query.substr(1,2); // : + 2 characters for the language.
+		  _in_query_command += query.substr(0,3);
+	       }
+	     catch(std::exception &e)
+	       {
+		  qlang = "";
+		  _in_query_command = "";
+	       }
 	  }
-	catch(std::exception &e)
-	  {
-	     qlang = "";
-	     _in_query_command = "";
-	  }
-	
 	
 	// check whether the language is known ! -> XXX: language table...
 	if (iso639::has_code(qlang.c_str()))
