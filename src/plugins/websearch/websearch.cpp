@@ -758,7 +758,10 @@ namespace seeks_plugins
      {
 	std::string qlang;
 	bool has_query_lang = false;
-	if (!(has_query_lang = query_context::has_query_lang(parameters,qlang)))
+	if (query_context::has_lang(parameters,qlang))
+	  {
+	  }
+	else if (!(has_query_lang = query_context::has_query_lang(parameters,qlang)))
 	  {
 	     if (websearch::_wconfig->_lang == "auto")
 	       {

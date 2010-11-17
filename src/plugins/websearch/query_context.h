@@ -152,8 +152,19 @@ namespace seeks_plugins
 	search_snippet* get_cached_snippet_title(const char *lctitle);
 
 	/**
+	 * \brief checks whether the call contains the language parameter.
+	 * @param parameters hash table of parameters.
+	 * @param qlang string into which the detected language indicator is stored.
+	 * @return true if it does, false otherwise.
+	 */
+	static bool has_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+			     std::string &qlang);
+	
+	/**
 	 * \brief detects whether a query contain a language command and 
 	 *        fills up the language parameter.
+	 * @param parameters hash table of parameters.
+	 * @param qlang string into which the detected language indicator is stored.
 	 * @return true if it does, false otherwise.
 	 */
 	static bool has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,

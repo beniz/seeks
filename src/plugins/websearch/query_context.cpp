@@ -69,7 +69,10 @@ namespace seeks_plugins
 	  
 	  // sets auto_lang & auto_lang_reg.
 	  bool has_in_query_lang = false;
-	  if ((has_in_query_lang = detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters))))
+	  if (has_lang(parameters,_auto_lang))
+	    {
+	    }
+	  else if ((has_in_query_lang = detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters))))
 	    {
 	       query_context::in_query_command_forced_region(_auto_lang,_auto_lang_reg);
 	    }
@@ -418,28 +421,34 @@ namespace seeks_plugins
 	else return (*hit).second;    
      }
 
-   bool query_context::has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-				      std::string &qlang)
+   bool query_context::has_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				std::string &qlang)
      {
 	const char *alang = miscutil::lookup(parameters,"lang");
 	if (alang)
-	  qlang = alang;
-	else
 	  {
-	     std::string query = std::string(miscutil::lookup(parameters,"q"));
-	     if (query.empty() || query[0] != ':') // XXX: could chomp the query.
-	       {
-		  qlang = "";
-		  return false;
-	       }
-	     try
-	       {
-		  qlang = query.substr(1,2); // : + 2 characters for the language.
-	       }
-	     catch(std::exception &e)
-	       {
-		  qlang = "";
-	       }
+	     qlang = alang;
+	     return true;
+	  }
+	else return false;
+     }
+      
+   bool query_context::has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				      std::string &qlang)
+     {
+	std::string query = std::string(miscutil::lookup(parameters,"q"));
+	if (query.empty() || query[0] != ':') // XXX: could chomp the query.
+	  {
+	     qlang = "";
+	     return false;
+	  }
+	try
+	  {
+	     qlang = query.substr(1,2); // : + 2 characters for the language.
+	  }
+	catch(std::exception &e)
+	  {
+	     qlang = "";
 	  }
 	
 	// check whether the language is known ! -> XXX: language table...
@@ -458,14 +467,17 @@ namespace seeks_plugins
    bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
      {
 	std::string qlang;
+	std::string query = std::string(miscutil::lookup(parameters,"q"));
 	
 	// check whether the language was specified through the API.
 	const char *alang = miscutil::lookup(parameters,"lang");
 	if (alang)
-	  qlang = alang;
+	  {
+	     qlang = alang;
+	     _in_query_command = ":" + qlang + " ";
+	  }
 	else // check whether it is within the query string.
 	  {
-	     std::string query = std::string(miscutil::lookup(parameters,"q"));
 	     if (query.empty() || query[0] != ':')
 	       return false;
 	     try
