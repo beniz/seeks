@@ -311,13 +311,13 @@ body {
 	text-align: center;
 }
 
-#search_page_prev, #search_page_next, #search_home ,#search_page_end{
+#search_page_prev, #search_page_next, #search_page_prev_top, #search_page_next_top, #search_home ,#search_page_end{
 	text-decoration: none;
 	background-repeat: no-repeat;
 	background-position: top center;
 }
 
-#search_page_prev, #search_page_next, #search_page_end {
+#search_page_prev, #search_page_next, #search_page_prev_top, #search_page_next_top, #search_page_end {
 	font-size: 18px;
 	width: 10px;
 	height: 18px;
@@ -326,11 +326,11 @@ body {
 	margin-right:1px;
 }
 
-#search_page_prev {
+#search_page_prev, #search_page_prev_top {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_prev.png);
 }
 
-#search_page_next {
+#search_page_next, #search_page_next_top {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_next.png);
 }
 

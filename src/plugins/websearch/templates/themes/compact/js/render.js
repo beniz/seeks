@@ -16,9 +16,9 @@ snippetTweetTemplate =
 persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
 
 var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
-    pagesDiv = Y.one("#search_page_current"), persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
-    persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input"), pagePrev = Y.one("#search_page_prev"),
-    pageNext = Y.one("#search_page_next");
+pagesDiv = Y.one("#search_page_current"), persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
+persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input"), pagePrev = Y.one("#search_page_prev"),
+pageNext = Y.one("#search_page_next"), pagePrevTop = Y.one("#search_page_prev_top"), pageNextTop = Y.one("#search_page_next_top");
     
 function render_snippet(snippet,pi)
 {
@@ -194,10 +194,16 @@ function render()
     pagesDiv.setContent(pi.cpage);
     if (pi.cpage > 1)
         pagePrev.setStyle('display',"inline");
-    else pagePrev.setStyle('display',"none");
+    else {
+	pagePrev.setStyle('display',"none");
+	pagePrevTop.setStyle('display',"none");
+    }
     if (pi.cpage < max_page)
-        pageNext.setStyle('display',"inline");
-    else pageNext.setStyle('display',"none");
+	pageNext.setStyle('display',"inline");
+    else {
+	pageNext.setStyle('display',"none");
+	pageNextTop.setStyle('display',"none");
+    }
     
     // expansion image.
     expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
