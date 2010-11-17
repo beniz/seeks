@@ -16,7 +16,8 @@ snippetTweetTemplate =
 persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
 
 var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
-pagesDiv = Y.one("#search_page_current"), persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
+pagesDiv = Y.one("#search_page_current"), pagesDivTop = Y.one("#search_page_current_top"), 
+persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
 persSpan = Y.one("#tab-pers-flag"), queryInput = Y.one("#search_input"), pagePrev = Y.one("#search_page_prev"),
 pageNext = Y.one("#search_page_next"), pagePrevTop = Y.one("#search_page_prev_top"), pageNextTop = Y.one("#search_page_next_top");
     
@@ -192,17 +193,22 @@ function render()
         max_page = ns / pi.rpp;
 
     pagesDiv.setContent(pi.cpage);
-    if (pi.cpage > 1)
-        pagePrev.setStyle('display',"inline");
+    pagesDivTop.setContent(pi.cpage);
+    if (pi.cpage > 1) {
+	pagePrev.setStyle('display',"inline");
+	pagePrevTop.setStyle('display',"inline");
+    }
     else {
 	pagePrev.setStyle('display',"none");
 	pagePrevTop.setStyle('display',"none");
     }
-    if (pi.cpage < max_page)
+    if (pi.cpage < max_page) {
 	pageNext.setStyle('display',"inline");
+	pageNextTop.setStyle('display',"inline");
+    }
     else {
 	pageNext.setStyle('display',"none");
-	pageNextTop.setStyle('display',"none");
+	pageNextTop.setStyle('display',"inline"); // XXX: "none" leads to bad rendering.
     }
     
     // expansion image.
