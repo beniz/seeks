@@ -683,6 +683,10 @@ AS_IF([test "x${HAVE_BUILT_GTEST}" = "xyes"],
       GTEST_LIBS='$(top_builddir)/gtest/lib/libgtest.la'
       GTEST_VERSION="${GTEST_MIN_VERSION}"])
 
+if test "x$HAVE_BUILT_GTEST" = "xno" ; then
+   AC_SUBST(with_gtest,no)
+fi
+
 AC_CONFIG_FILES(Makefile doc/Makefile src/Makefile \
 src/lsh/Makefile \
 src/lsh/tests/Makefile \
@@ -721,7 +725,7 @@ AC_MSG_NOTICE([Configured to build seeks:
  
  Testing:
  gtest                    ${with_gtest}
-
+ 
  Enabled plugins:
  image websearch:	  ${imgwebsearch}
  HTTP server:		  ${httpservplugin}
