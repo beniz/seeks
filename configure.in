@@ -667,6 +667,7 @@ Unable to locate either a built or installed Google Test at '${with_gtest}'.])
                   HAVE_BUILT_GTEST="yes"],
                   [AC_MSG_RESULT([no])])])])
 
+if test "x$HAVE_BUILT_GTEST" = "xyes" ; then
 AS_IF([test "x${HAVE_BUILT_GTEST}" = "xyes"],
       [GTEST_CPPFLAGS=`${GTEST_CONFIG} --cppflags`
       GTEST_CXXFLAGS=`${GTEST_CONFIG} --cxxflags`
@@ -682,6 +683,7 @@ AS_IF([test "x${HAVE_BUILT_GTEST}" = "xyes"],
       GTEST_LDFLAGS=''
       GTEST_LIBS='$(top_builddir)/gtest/lib/libgtest.la'
       GTEST_VERSION="${GTEST_MIN_VERSION}"])
+fi
 
 if test "x$HAVE_BUILT_GTEST" = "xno" ; then
    AC_SUBST(with_gtest,no)
