@@ -374,7 +374,7 @@ body {
 #search_icons {
 	position: fixed;
 	top: 20px;
-	left: 610px;
+	left: 615px;
 }
 
 #search_types {
@@ -448,18 +448,16 @@ body {
 }
 
 #expansion {
-	
-	/*padding-top: 13px;*/
-	font-size: 80%;
 	vertical-align: top;
-	padding-right: 8px;
+	padding-right: 6px;
+	font-size: 90%;
+	text-indent: 48px;
 	text-align: right;
-  font-weight: 600;
-  
-	width: 44px;
-	height: 28px; 
+	font-weight: 600;
+  	width: 60px;
+	height: 27px; 
 	left: 540px;
-	top: 18px;
+	top: 19px;
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/exp_3.png);
 }
 #expansion, .expansion_, .expansion_1,
