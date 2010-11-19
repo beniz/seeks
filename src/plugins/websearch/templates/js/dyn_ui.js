@@ -4,6 +4,9 @@
     var lang = '';
     var clustered = 0;
 
+    var queryInput = Y.one("#search_input");
+    var langInput = Y.one("#tab-language");
+
     function page_info()
     {
 	this.rpp = xxrpp;  // results per page.
@@ -206,12 +209,19 @@ function process_query(obj)
 	// detect and process in-query commands.
 	var prq = {pquery:nquery,nlang:''};
 	process_query(prq);
+	if (prq.nlang == '')
+	{
+	    var ilang = langInput.get('value');
+	    if (ilang != lang && ilang != '')
+		prq.nlang = ilang;
+	    else prq.nlang = lang;
+	}
         if (query != prq.pquery || lang != prq.nlang)
         {
 	    var eimg = '';
             if (ti.img == 1)
                 eimg = "_img";
-            var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+            var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"lang":prq.nlang,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
             for (id in hashSnippets)
                 delete hashSnippets[id];
             pi_txt.reset();
