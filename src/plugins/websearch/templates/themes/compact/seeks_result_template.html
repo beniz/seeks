@@ -15,7 +15,7 @@
 #include info-head
 <div id="left">
 <!-- perso -->
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers&amp;lang=xxlang" title="Toggle personalization xxnpers"><img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_xxpers.png" style="border: 0;"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers&amp;lang=xxlang&amp;ui=stat" title="Toggle personalization xxnpers"><img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_xxpers.png" style="border: 0;"/></a>
 <!-- home -->
 <!--
 <a title="Home (ctrl+h)" href="@base-url@/websearch-hp/" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/home_ico.png" style="border: 0;"/></a>
@@ -30,13 +30,14 @@
 <input name="action" value="expand" type="hidden" />
 <input name="engines" value="xxeng" type="hidden" />
 <input name="content_analysis" value="xxca" type="hidden" />
+<input name="ui" value="stat" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
 <!-- @if-have-clustering-start -->
-<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers&amp;lang=xxlang" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a>
 <!-- if-have-clustering-end@ -->
 <!-- @if-not-have-clustering-start -->
 <a href="" title="Cluster (not activated by this node)" id="cluster" class="cluster_inactive">&nbsp;</a>
@@ -45,10 +46,10 @@
 <!-- icon -->
 <!-- add @theme@ -->
 <div id="search_icons">
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca&amp;lang=xxlang" title="Search web pages" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/text.png"/></a>
-<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;lang=xxlang" title="Images" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/image.png"/></a>
-<a href="@base-url@/search?q=fullquery&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers&amp;lang=xxlang" title="Search videos" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/video.png"/></a>
-<a href="@base-url@/search?q=fullquery&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers&amp;lang=xxlang" title="Tweets" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/tweet.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca&amp;lang=xxlang&amp;ui=stat" title="Search web pages" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/text.png"/></a>
+<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;lang=xxlang&ui=stat" title="Images" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/image.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" title="Search videos" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/video.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers&amp;lang=xxlang&ui=stat" title="Tweets" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/tweet.png"/></a>
 </div>
 
 <div id="search_types">
@@ -58,7 +59,7 @@
 <a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=titles&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Group by titles">titles</a>
 <br/>
 -->
-<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang" title="Group by types"><img src="@base-url@/plugins/websearch/public/themes/compact/images/types.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" title="Group by types"><img src="@base-url@/plugins/websearch/public/themes/compact/images/types.png"/></a>
 </div>
 
 <!-- @if-have-one-column-results-head-start -->
@@ -66,14 +67,12 @@
 <!-- if-have-one-column-results-head-end@ -->
 
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages_back"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<div id="search_pages_back"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 <!-- if-have-clustered-results-head-end@ -->
 
 <div id="help">
 <a href="http://www.seeks-project.info/wiki/index.php/User-Manual_Seeks_Bubs-0.2-SOLO" target="_blank" title="Help"><img src="@base-url@/plugins/websearch/public/themes/compact/images/help.png" style="border:0;" /></a>
 </div>
-
-
 </div>
 
 <!-- @if-have-one-column-results-head-start -->
@@ -86,7 +85,6 @@
 <div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 -->
 <!-- if-have-clustered-results-head-end@ -->
-
 
 <table style="margin-top:40px;">
 <tr>
@@ -173,11 +171,8 @@ YUI().use('event-key', function(Y) {
 </div>
 <!-- if-have-result-message-end@ -->
 <div id="search_sugg" class="right_panel">xxsugg</div>
-
 </td>
 </tr>
-
-
 
 <tr>
 <td>
@@ -185,14 +180,10 @@ YUI().use('event-key', function(Y) {
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 <!-- if-have-clustered-results-head-end@ -->
 </td>
 <td></td>
 </tr>
-
-
 </table>
-
-
 </body></html>

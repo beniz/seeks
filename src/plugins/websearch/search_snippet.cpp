@@ -166,7 +166,8 @@ namespace seeks_plugins
 		 {
 		    char *wenc = encode::url_encode(words.at(i).c_str());
 		    std::string rword = " " + words.at(i) + " ";
-		    std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand\">" + rword + "</a></span>";
+		    std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query 
+		      + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand&ui=stat\">" + rword + "</a></span>";
 		    free(wenc);
 		    miscutil::ci_replace_in_string(str,rword,bold_str);
 		 }
@@ -349,7 +350,9 @@ namespace seeks_plugins
       free_const(title_enc);
       html_content += "</a>";
 
-      std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng&lang" + _qc->_auto_lang + "\">&nbsp;</a></span>";
+      std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str 
+	 + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng&lang" 
+	 + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
       if (_engine.to_ulong()&SE_GOOGLE)
         {
           std::string ggle_se_icon = se_icon;
@@ -531,7 +534,8 @@ namespace seeks_plugins
 	 {
 	    const char *engines = miscutil::lookup(parameters,"engines");
 	    html_content += "<a class=\"search_cache\" href=\"";
-	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query + "&amp;expansion=xxexp&amp;action=types&amp;engines=";
+	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query 
+	      + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
 	    if (engines)
 	      html_content += std::string(engines);
 	    html_content += " \"> ";
@@ -745,7 +749,9 @@ namespace seeks_plugins
       const char *engines = miscutil::lookup(parameters,"engines");
       _sim_link = "/search?q=" + _qc->_url_enc_query
                   + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-                  + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id) + "&amp;engines=&amp;lang=" + _qc->_auto_lang;
+                  + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id) 
+	          + "&amp;engines=&amp;lang=" + _qc->_auto_lang
+	          + "&amp;ui=stat";
       if (engines)
         _sim_link += std::string(engines);
       _sim_back = false;
@@ -756,7 +762,8 @@ namespace seeks_plugins
       const char *engines = miscutil::lookup(parameters,"engines");
       _sim_link = "/search?q=" + _qc->_url_enc_query
                   + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-                  + "&amp;action=expand&amp;engines=&lang=" + _qc->_auto_lang;
+                  + "&amp;action=expand&amp;engines=&lang=" + _qc->_auto_lang
+	          + "&amp;ui=stat";
       if (engines)
         _sim_link += std::string(engines);
       _sim_back = true;

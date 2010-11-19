@@ -9,21 +9,16 @@
 <link rel="stylesheet" href="@base-url@/public/css/base.css" type="text/css" />
 <link rel="stylesheet" href="seeks_img_search.css" type="text/css" />
 <link rel="shortcut icon" type="image/png" href="/public/images/seek_icon_32x32_transparent.png" />
-
 </head>
 
 <body>
-
-
-
 <div id="search_bar">
 
 #include info-head
 
-
 <div id="left">
 <!-- perso -->
-<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers" title="Toggle personalization xxnpers"><img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_xxpers.png" style="border: 0;"/></a>
+<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers&ui=stat" title="Toggle personalization xxnpers"><img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_xxpers.png" style="border: 0;"/></a>
 <!-- home -->
 <!--
 <a title="Home (ctrl+h)" href="@base-url@/websearch-hp/" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/home_ico.png" style="border: 0;"/></a>
@@ -31,18 +26,19 @@
 </div>
 
 <form method="GET" action="@base-url@/search_img" id="search_form">
-<input title="Language" id="lang_input" name="lang" value="xxlang" type="text"/>
+<input title="Language" id="tab-language" name="lang" value="xxlang" type="text"/>
 <input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
 <input name="engines" value="xxeng" type="hidden" />
 <input name="content_analysis" value="xxca" type="hidden" />
+<input name="ui" value="stat" type="hidden" />
 <input id="search_button" value="" type="submit" />
 </form>
 
 
-<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;ui=stat" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
 <!-- @if-have-clustering-start -->
 <!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a> -->
@@ -50,14 +46,13 @@
 <!-- @if-not-have-clustering-start --><!-- if-not-have-clustering-end@ -->
 <a href="" title="Cluster (not yet available for images)" id="cluster" class="cluster_inactive">&nbsp;</a>
 
-
 <!-- icon test -->
 <!-- add @theme@ -->
 <div id="search_icons">
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca" title="Search web pages" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/text.png"/></a>
-<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers" title="Images" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/image.png"/></a>
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers" title="Search videos" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/video.png"/></a>
-<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers" title="Tweets" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/tweet.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;content_analysis=xxca&amp;ui=stat" title="Search web pages" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/text.png"/></a>
+<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;prs=xxpers&amp;ui=stat" title="Images" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/image.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=youtube,dailymotion&amp;rpp=40&content_analysis=off&amp;prs=xxpers&amp;ui=stat" title="Search videos" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/video.png"/></a>
+<a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=twitter,identica&amp;rpp=xxrpp&content_analysis=on&amp;prs=xxpers&amp;ui=stat" title="Tweets" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/tweet.png"/></a>
 </div>
 
 <div id="search_types">
@@ -176,7 +171,7 @@ YUI().use('event-key', function(Y) {
 
 <div id="search_sugg" class="right_panel">xxsugg</div>
 
-<a class="right_panel" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=xxeng&rpp=xxrpp&safesearch=xxoppsafe" title="Toggle safe search xxoppsafe">safe search:</a> <span>xxsafe</span>
+<a class="right_panel" href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=1&amp;action=expand&amp;engines=xxeng&rpp=xxrpp&safesearch=xxoppsafe&amp;ui=stat" title="Toggle safe search xxoppsafe">safe search:</a> <span>xxsafe</span>
 
 </td>
 </tr>
@@ -187,7 +182,7 @@ YUI().use('event-key', function(Y) {
 <div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;ui=stat" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 <!-- if-have-clustered-results-head-end@ -->
 </td>
 <td></td>

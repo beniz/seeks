@@ -88,7 +88,7 @@ namespace seeks_plugins
 	     std::string sugg_enc_str = std::string(sugg_enc);
 	     free_const(sugg_enc);
 	     suggestion_str += base_url_str + cgi_base + "q=" + qc->_in_query_command + " " 
-	       + sugg_enc_str + "&amp;expansion=1&amp;action=expand";
+	       + sugg_enc_str + "&amp;expansion=1&amp;action=expand&amp;ui=stat";
 	     suggestion_str += "\">";
 	     suggestion_str += sugg_enc_str;
 	     suggestion_str += "</a>";
@@ -421,7 +421,7 @@ namespace seeks_plugins
 		
 	std::string label_query = url_encoded_query + "+" + clabel_url_enc_str;
 	std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + cgi_base + "q=" + label_query
-	  + "&amp;page=1&amp;expansion=1&amp;action=expand\">" + clabel_html_enc_str 
+	  + "&amp;page=1&amp;expansion=1&amp;action=expand&ui=stat\">" + clabel_html_enc_str 
 	  + "</a><font size=\"2\"> " + slabel_html_enc_str + "</font></h2><br><ol>";
 	return html_label;
      }
@@ -497,7 +497,7 @@ namespace seeks_plugins
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
 	       + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
-	       + "\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
+	       + "&amp;ui=stat\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxnext",1,strdup("<a id=\"search_page_end\">&nbsp;</a>"),0);
@@ -536,7 +536,7 @@ namespace seeks_plugins
 	       + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines=" 
 	       + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
 	       + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
-	       + "\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
+	       + "&amp;ui=stat\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
 	     miscutil::add_map_entry(exports,"$xxprev",1,pp_link.c_str(),1);
 	  }
 	else miscutil::add_map_entry(exports,"$xxprev",1,strdup(""),0);
