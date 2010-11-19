@@ -73,7 +73,10 @@ namespace seeks_plugins
 	     std::string nclust_str = miscutil::to_string(nclust);
 	     miscutil::add_map_entry(exports,"$xxnclust",1,nclust_str.c_str(),1);
 	  }
-		
+	
+	// suggestion.
+	miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
+	
 	// content analysis.
 	bool content_analysis = websearch::_wconfig->_content_analysis;
 	const char *ca = miscutil::lookup(parameters,"content_analysis");
