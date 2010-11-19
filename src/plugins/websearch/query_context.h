@@ -238,6 +238,8 @@ namespace seeks_plugins
 	                                       // on cuil. No other way that I know but to grab
 					       // them from the webpage and store them here.
 
+	bool _blekko; // we limit to a single call to blekko.
+	
 	std::vector<std::string> _suggestions; // suggested related queries.
 
 	/* LSH subsystem for regrouping textual elements. */

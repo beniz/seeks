@@ -53,7 +53,7 @@ namespace seeks_plugins
       
    query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 				const std::list<const char*> &http_headers)
-     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_blekko(false),_compute_tfidf_features(true),
       _registered(false)
        {
 	  mutex_init(&_qc_mutex);
@@ -261,6 +261,14 @@ namespace seeks_plugins
 	  if (inc.count() == beng.count())
 	    {
 	       // included, nothing more to be done.
+	       // blekko check, called once per query.
+	       if (_blekko)
+		 {
+		    std::bitset<NSEs> tblekko = _engines;
+		    tblekko |= std::bitset<NSEs>(SE_BLEKKO);
+		    if (_engines == tblekko)
+		      _engines ^= std::bitset<NSEs>(SE_BLEKKO);
+		 }
 	    }
 	  else // test intersection.
 	    {
@@ -269,6 +277,15 @@ namespace seeks_plugins
 		 {
 		    if (beng[b] && !inc[b])
 		      bint.set(b);
+		 }
+	       
+	       // blekko check, called once per query.
+	       if (_blekko)
+		 {
+		    std::bitset<NSEs> tblekko = bint;
+		    tblekko |= std::bitset<NSEs>(SE_BLEKKO);
+		    if (bint == tblekko)
+		      bint ^= std::bitset<NSEs>(SE_BLEKKO);
 		 }
 	       
 	       // catch up expansion with the newly activated engines.
@@ -328,6 +345,10 @@ namespace seeks_plugins
 	     // query SEs.                                                                                                 
 	     int nresults = 0;
 	     std::string **outputs = se_handler::query_to_ses(parameters,nresults,this,se_enabled);
+	     std::bitset<NSEs> tblekko = se_enabled;
+	     tblekko |= std::bitset<NSEs>(SE_BLEKKO);
+	     if (se_enabled == tblekko)
+	       _blekko = true; // call once.
 	     
 	     // test for failed connection to the SEs comes here.    
 	     if (!outputs)

@@ -403,11 +403,11 @@ namespace seeks_plugins
       miscutil::replace_in_string(q_blekko,"%query",qenc_str);
 
       //page
-      const char *expansion = miscutil::lookup(parameters,"expansion");
+      /* const char *expansion = miscutil::lookup(parameters,"expansion");
       int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)) : 1;
       std::string pp_str = miscutil::to_string(pp);
-      miscutil::replace_in_string(q_blekko,"%start",pp_str);
-
+      miscutil::replace_in_string(q_blekko,"%start",pp_str); */
+       
       // log the query.
       errlog::log_error(LOG_LEVEL_INFO, "Querying blekko: %s", q_blekko.c_str());
 
@@ -502,8 +502,10 @@ namespace seeks_plugins
       // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
       "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
       // http://blekko.com/ws/P+/rss?fp=&p=3,
-      "http://blekko.com/ws/%query/rss?fp=&p=%start",
-      // cuil: www.cuil.com/search?q=markov+chain&lang=en
+      // https://blekko.com/ws/query+terms+here+/ps=100
+      //"http://blekko.com/ws/%query/rss?fp=&p=%start",
+      "http://blekko.com/ws/%query/rss?ps=100",
+       // cuil: www.cuil.com/search?q=markov+chain&lang=en
       "http://www.cuil.com/search?q=%query",
       // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
       "http://www.dailymotion.com/rss/relevance/search/%query/%start",
@@ -634,10 +636,10 @@ namespace seeks_plugins
               std::string url;
               std::list<const char*> *lheaders = NULL;
               se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
-              urls.push_back(url);
-              headers.push_back(lheaders);
-            }
-        }
+	      urls.push_back(url);
+	      headers.push_back(lheaders);
+	    }
+	}
 
       if (urls.empty())
         {
@@ -740,7 +742,7 @@ namespace seeks_plugins
           break;
         case BLEKKO:
           _blekko.query_to_se(parameters,url,qc);
-          break;
+	   break;
         case DAILYMOTION:
           _dailym.query_to_se(parameters,url,qc);
           break;
