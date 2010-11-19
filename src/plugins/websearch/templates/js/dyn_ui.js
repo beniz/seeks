@@ -121,7 +121,11 @@
 		success: function (response) {
                     lang = response.lang;
                     query = response.query;
-                    enc_query = ':' + lang + '+' + encodeURIComponent(response.query);
+                    //TODO: process query for in-query language commands.
+		    var oquery = {pquery:query,nlang:''};
+		    query = process_query(oquery);
+
+		    enc_query = ':' + lang + '+' + encodeURIComponent(response.query);
 
                     if ('clusters'in response)
                     {
@@ -154,9 +158,7 @@
 
                     // engines.
                     pi.engines = response.engines;
-
-                    // TODO: content analysis.
-                    
+		                        
 		    // rendering.
                     render();
 		},
@@ -173,6 +175,18 @@
     /* send the request. */
     refresh(ref_url);
     
+function process_query(obj)
+{
+    obj.nlang = '';
+    if (obj.pquery[0] == ':')
+    {
+	obj.nlang = obj.pquery.substr(1,2);
+	obj.pquery = obj.pquery.substr(4,obj.pquery.length);
+	return obj.pquery;
+    }
+    else return obj.pquery;
+}
+
     // Click the search button to send the JSONP request
     Y.one("#search_form").on("submit", function (e) {
         var nquery = queryInput.get('value');
@@ -188,9 +202,13 @@
             pi = pi_vid;
         else if (ti.twe == 1)
             pi = pi_twe;
-        if (query != nquery)
+	
+	// detect and process in-query commands.
+	var prq = {pquery:nquery,nlang:''};
+	process_query(prq);
+        if (query != prq.pquery || lang != prq.nlang)
         {
-            var eimg = '';
+	    var eimg = '';
             if (ti.img == 1)
                 eimg = "_img";
             var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
@@ -202,7 +220,8 @@
 	    pi_twe.reset();
             refresh(url);
         }
-        pi.cpage = 1;
+	queryInput.set('value',prq.pquery);
+	pi.cpage = 1;
         clustered = 0;
         render();
         return false;
