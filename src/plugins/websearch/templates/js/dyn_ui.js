@@ -251,7 +251,7 @@ function process_query(obj)
             pi = pi_vid;
 	else if(ti.twe == 1)
 	    pi = pi_twe;
-	var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"action":"expand","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+	var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.nexpansion,"lang":lang,"action":"expand","rpp":pi.rpp,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
 	refresh(url);
         return false;
     });
@@ -265,7 +265,7 @@ function process_query(obj)
 	else if (ti.twe == 1)
 	    pi = pi_twe;
 	else return false;
-	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"clusterize","clusters":pi.nclusters,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+	var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"lang":lang,"action":"clusterize","clusters":pi.nclusters,"prs":pi.prs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
         refresh(url);
         return false;
     });
@@ -283,7 +283,7 @@ function process_query(obj)
         var nprs = "off";
         if (pi.prs == "off")
             nprs = "on";
-        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"action":"expand","rpp":pi.rpp,"prs":nprs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi.expansion,"lang":lang,"action":"expand","rpp":pi.rpp,"prs":nprs,"content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
         refresh(url);
         return false;
     });
@@ -294,7 +294,7 @@ function process_query(obj)
         clustered = 0;
         if (pi_txt.engines == '')
         {
-            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_txt.expansion,"action":"expand","rpp":pi_txt.rpp,"prs":pi_txt.pers,"content_analysis":pi_txt.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_txt.expansion,"lang":lang,"action":"expand","rpp":pi_txt.rpp,"prs":pi_txt.pers,"content_analysis":pi_txt.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
             refresh(url);
         }
         else render();
@@ -306,7 +306,7 @@ function process_query(obj)
         ti.img = 1;
         if (pi_img.engines == '')
         {
-            var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"action":"expand","rpp":pi_img.rpp,"prs":pi_img.pers,"content_analysis":pi_img.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
+            var url = '@base-url@/search_img?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"lang":lang,"action":"expand","rpp":pi_img.rpp,"prs":pi_img.pers,"content_analysis":pi_img.ca,"ui":"dyn","output":"json"}) + "&callback={callback}";
             refresh(url);
         }
         else render();
@@ -319,7 +319,7 @@ function process_query(obj)
         clustered = 0;
         if (pi_vid.engines == '')
         {
-            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_vid.expansion,"action":"expand","rpp":pi_vid.rpp,"prs":pi_vid.pers,"content_analysis":pi_vid.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
+            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_vid.expansion,"lang":lang,"action":"expand","rpp":pi_vid.rpp,"prs":pi_vid.pers,"content_analysis":pi_vid.ca,"ui":"dyn","output":"json"}) + "&engines=youtube,dailymotion&callback={callback}";
             refresh(url);
         }
         else render();
@@ -332,7 +332,7 @@ function process_query(obj)
         clustered = 0;
         if (pi_twe.engines == '')
         {
-            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_twe.expansion,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
+            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_twe.expansion,"lang":lang,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
             refresh(url);
         }
         else render();
@@ -351,7 +351,7 @@ function process_query(obj)
 	}); */
 
     Y.one("#tab-types").on("click",function(e) {
-        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"action":"types","ui":"dyn","output":"json"}) + "&callback={callback}";
+        var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"action":"types","lang":lang,"ui":"dyn","output":"json"}) + "&callback={callback}";
         refresh(url);
         return false;
     });
