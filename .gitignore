@@ -1,0 +1,66 @@
+
+
+
+# http://www.gnu.org/software/automake
+Makefile
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+.deps
+.libs
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/m4
+/config.*
+/ltmain.sh
+/libtool
+/stamp-*
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# protobuf
+*.pb.h
+*.pb.cc
+
+# bin test
+/src/seeks
+/src/lsh/tests/gen_mrf_query_160
+/src/plugins/img_websearch/tests/test_bing_img_parser
+/src/plugins/img_websearch/tests/test_flickr_parser
+/src/plugins/img_websearch/tests/test_ggle_img_parser
+/src/plugins/img_websearch/tests/test_surf_sim
+/src/plugins/img_websearch/tests/test_wcommons_parser
+/src/plugins/img_websearch/tests/test_yahoo_img_parser
+/src/plugins/websearch/tests/test_bing_parser
+/src/plugins/websearch/tests/test_blekko_parser
+/src/plugins/websearch/tests/test_dailymotion_parser
+/src/plugins/websearch/tests/test_exalead_parser
+/src/plugins/websearch/tests/test_ggle_parser
+/src/plugins/websearch/tests/test_html_txt_parser
+/src/plugins/websearch/tests/test_twitter_parser
+/src/plugins/websearch/tests/test_yahoo_parser
+/src/plugins/websearch/tests/test_yauba_parser
+/src/plugins/websearch/tests/test_youtube_parser
+/src/proxy/tests/test_curl_mget
+/src/proxy/tests/shash
+/src/proxy/tests/user_db_clear
+/src/proxy/tests/user_db_find_key
+/src/proxy/tests/user_db_print
+/src/proxy/tests/user_db_remove
