@@ -1,18 +1,13 @@
+check_PROGRAMS=ut_rpc_server
+
+ut_rpc_server_SOURCES=ut-rpc-server.cpp
+
+TESTS = $(check_PROGRAMS)
+
 # automake for test rpc
 
 bin_PROGRAMS=test_rpc_server test_rpc_client
 test_rpc_server_SOURCES=test-rpc-server.cpp
 test_rpc_client_SOURCES=test-rpc-client.cpp
 
-AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe \
-            -I${srcdir}/.. -I${srcdir}/../../ -I${srcdir}/../../protob -I${srcdir}/../protob -I${srcdir}/../../../utils -I${srcdir}/../../../proxy \
-	    -I${srcdir}/../../sg -I${srcdir}/../../sg/rpc -I${srcdir}/../../sg/protob `pkg-config --cflags protobuf` \
-            `pkg-config --cflags tokyocabinet`
-AM_LDFLAGS=-L../ -L../../ -L../../protob -L../protob -L../../../utils \
-	   -L../../../proxy -L../../../lsh -L../../sg -L../../sg/rpc -L../../sg/protob \
-	   `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
-
-LDADD = -lseeksrpc -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lrmd160 \
-	-lseeksutils -lseeksproxy -lseeksplugins -lseekslsh \
-	-lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lseeksdhtsg -lseeksdhtsgrpc -lseeksdhtsgprotob -lrmd160 -levent \
-        -lpcre -lpcreposix -lprotobuf -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
+include $(top_srcdir)/src/Makefile.include

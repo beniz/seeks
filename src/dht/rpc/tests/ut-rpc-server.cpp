@@ -25,6 +25,18 @@
 #include <iostream>
 #include <assert.h>
 
+class ServerTest : public testing::Test {
+protected:
+  virtual void SetUp() {
+  }
+
+  virtual void TearDown() {
+  }
+};
+
+TEST_F(ServerTest, connect) {
+}
+
 int main(int argc, char **argv)
 {
    ::testing::InitGoogleTest(&argc, argv);
