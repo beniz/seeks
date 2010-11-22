@@ -47,7 +47,6 @@ namespace seeks_plugins
     {
       BING,
       BLEKKO,
-      CUIL,
       DAILYMOTION,
       EXALEAD,
       GOOGLE,
@@ -110,16 +109,6 @@ namespace seeks_plugins
       public:
         se_bing();
         ~se_bing();
-
-        virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                 std::string &url, const query_context *qc);
-      };
-
-    class se_cuil : public search_engine
-      {
-      public:
-        se_cuil();
-        ~se_cuil();
 
         virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                  std::string &url, const query_context *qc);
@@ -242,7 +231,6 @@ namespace seeks_plugins
 
         /* search engine objects. */
         static se_ggle _ggle;
-        static se_cuil _cuil;
         static se_bing _bing;
         static se_yahoo _yahoo;
         static se_exalead _exalead;

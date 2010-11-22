@@ -27,7 +27,6 @@
 #include "query_context.h"
 
 #include "se_parser_ggle.h"
-#include "se_parser_cuil.h"
 #include "se_parser_bing.h"
 #include "se_parser_yahoo.h"
 #include "se_parser_exalead.h"
@@ -143,48 +142,6 @@ namespace seeks_plugins
       errlog::log_error(LOG_LEVEL_INFO, "Querying bing: %s", q_bing.c_str());
 
       url = q_bing;
-    }
-
-    se_cuil::se_cuil()
-        : search_engine()
-    {
-    }
-
-    se_cuil::~se_cuil()
-    {
-    }
-
-    void se_cuil::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                              std::string &url, const query_context *qc)
-    {
-      std::string q_cuil = se_handler::_se_strings[CUIL];
-      const char *query = miscutil::lookup(parameters,"q");
-
-      // query.
-      int p = 29;
-      char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
-      std::string qenc_str = std::string(qenc);
-      free(qenc);
-      q_cuil.replace(p,6,qenc_str);
-
-      // language detection is done through headers.
-      //miscutil::replace_in_string(q_cuil,"%lang",websearch::_wconfig->_lang);
-
-      // expansion + hack for getting Cuil's next pages.
-      const char *expansion = miscutil::lookup(parameters,"expansion");
-      int pp = (strcmp(expansion,"")!=0) ? (atoi(expansion)-1) * websearch::_wconfig->_Nr : 0;
-      if (pp > 1)
-        {
-          const char *cuil_npage = miscutil::lookup(parameters,"cuil_npage");
-          if (cuil_npage)
-            {
-              q_cuil.append(std::string(cuil_npage));
-            }
-        }
-
-      // log the query.
-      errlog::log_error(LOG_LEVEL_INFO, "Querying cuil: %s", q_cuil.c_str());
-      url = q_cuil;
     }
 
     se_yahoo::se_yahoo()
@@ -505,8 +462,6 @@ namespace seeks_plugins
       // https://blekko.com/ws/query+terms+here+/ps=100
       //"http://blekko.com/ws/%query/rss?fp=&p=%start",
       "http://blekko.com/ws/%query/rss?ps=100",
-       // cuil: www.cuil.com/search?q=markov+chain&lang=en
-      "http://www.cuil.com/search?q=%query",
       // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
       "http://www.dailymotion.com/rss/relevance/search/%query/%start",
       // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
@@ -526,7 +481,6 @@ namespace seeks_plugins
     };
 
     se_ggle se_handler::_ggle = se_ggle();
-    se_cuil se_handler::_cuil = se_cuil();
     se_bing se_handler::_bing = se_bing();
     se_yahoo se_handler::_yahoo = se_yahoo();
     se_exalead se_handler::_exalead = se_exalead();
@@ -715,10 +669,6 @@ namespace seeks_plugins
         case GOOGLE:
           _ggle.query_to_se(parameters,url,qc);
           break;
-        case CUIL:
-          _cuil.query_to_se(parameters,url,qc);
-          lheaders->push_back(strdup(qc->generate_lang_http_header().c_str()));
-          break;
         case BING:
           _bing.query_to_se(parameters,url,qc);
           break;
@@ -762,10 +712,6 @@ namespace seeks_plugins
           if (se == "google")
             {
               se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-            }
-          else if (se == "cuil")
-            {
-              se_enabled |= std::bitset<NSEs>(SE_CUIL);
             }
           else if (se == "bing")
             {
@@ -916,21 +862,8 @@ namespace seeks_plugins
           args._snippets->at(i)->tag();
         }
 
-      // hack for cuil.
-      if (args._se == CUIL)
-        {
-          se_parser_cuil *se_p_cuil = static_cast<se_parser_cuil*>(se);
-          hash_map<int,std::string>::const_iterator hit = se_p_cuil->_links_to_pages.begin();
-          hash_map<int,std::string>::const_iterator hit1;
-          while (hit!=se_p_cuil->_links_to_pages.end())
-            {
-              if ((hit1=args._qr->_cuil_pages.find((*hit).first))==args._qr->_cuil_pages.end())
-                args._qr->_cuil_pages.insert(std::pair<int,std::string>((*hit).first,(*hit).second));
-              ++hit;
-            }
-        }
       // hack for getting stuff out of ggle.
-      else if (args._se == GOOGLE)
+      if (args._se == GOOGLE)
         {
           // get more stuff from the parser.
           se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
@@ -948,9 +881,6 @@ namespace seeks_plugins
         {
         case GOOGLE:
           sep = new se_parser_ggle();
-          break;
-        case CUIL:
-          sep = new se_parser_cuil();
           break;
         case BING:
           sep = new se_parser_bing();

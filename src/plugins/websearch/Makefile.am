@@ -19,7 +19,7 @@ endif
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
-				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp se_parser_cuil.cpp \
+				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 				   se_parser_twitter.cpp se_parser_youtube.cpp se_parser_dailymotion.cpp \
 			           query_interceptor.cpp websearch_configuration.cpp \
@@ -28,7 +28,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   clustering.cpp oskmeans.cpp json_renderer.cpp dynamic_renderer.cpp \
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h json_renderer_private.h oskmeans.h \
 				   query_context.h query_interceptor.h search_snippet.h se_handler.h se_parser_bing.h \
-				   se_parser_cuil.h se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
+				   se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
 	                           se_parser_youtube.h se_parser_dailymotion.h se_parser_yauba.h se_parser_twitter.h\
 				   se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h \
 	                           dynamic_renderer.h
@@ -64,14 +64,12 @@ nobase_dist_websearchplugindata_DATA= \
                           templates/themes/compact/css/seeks_search.css \
 			  public/images/search_engines/yahoo.svg \
 			  public/images/search_engines/bing.svg \
-			  public/images/search_engines/cuil_12x12_transparent.png \
 			  public/images/search_engines/exalead.svg \
 			  public/images/search_engines/exalead_12x12.png \
 			  public/images/search_engines/google.svg \
 			  public/images/search_engines/yahoo_12x12_transparent.png \
 			  public/images/search_engines/bing_12x12_transparent.png \
 			  public/images/search_engines/google_12x12.png \
-			  public/images/search_engines/cuil.svg \
 			  public/images/search_engines/youtube_12x12.png \
                           public/images/search_engines/dailymotion_12x12.png \
 			  public/images/search_engines/yauba_12x12.png \

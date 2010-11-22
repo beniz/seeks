@@ -11,7 +11,6 @@ search-results-page 10
 # google, yahoo, bing, exalead, cuil, yauba, blekko
 search-engine google
 search-engine bing
-#search-engine cuil
 search-engine yahoo
 search-engine exalead
 #search-engine yauba

@@ -109,8 +109,6 @@ namespace seeks_plugins
 	     
 	     if (strcasecmp(arg,"google") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-	     else if (strcasecmp(arg,"cuil") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_CUIL);
 	     else if (strcasecmp(arg,"bing") == 0)
 	       _se_enabled |= std::bitset<NSEs>(SE_BING);
 	     else if (strcasecmp(arg,"yahoo") == 0)

@@ -143,10 +143,6 @@ body {
 	background-image: url(base-url/plugins/websearch/public/images/search_engines/google_12x12.png);
 }
 
-#search_results .search_snippet .search_engine_cuil {
-	background-image: url(base-url/plugins/websearch/public/images/search_engines/cuil_12x12_transparent.png);
-}
-
 #search_results .search_snippet .search_engine_yahoo {
         background-image: url(base-url/plugins/websearch/public/images/search_engines/yahoo_12x12_transparent.png);
 }

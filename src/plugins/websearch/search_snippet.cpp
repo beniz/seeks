@@ -361,14 +361,6 @@ namespace seeks_plugins
           miscutil::replace_in_string(ggle_se_icon,"seeng","google");
           html_content += ggle_se_icon;
         }
-       /* if (_engine.to_ulong()&SE_CUIL)
-        {
-          std::string cuil_se_icon = se_icon;
-          miscutil::replace_in_string(cuil_se_icon,"icon","search_engine_cuil");
-          miscutil::replace_in_string(cuil_se_icon,"setitle","Cuil");
-          miscutil::replace_in_string(cuil_se_icon,"seeng","cuil");
-          html_content += cuil_se_icon;
-        } */
       if (_engine.to_ulong()&SE_BING)
         {
           std::string bing_se_icon = se_icon;

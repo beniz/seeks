@@ -331,17 +331,6 @@ namespace seeks_plugins
 	     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
 				     "expansion",1,i_str.c_str(),1);
 	     
-	     // hack for Cuil.
-	     if (i != 0)
-	       {
-		  int expand=i+1;
-		  hash_map<int,std::string>::const_iterator hit;
-		  if ((hit=_cuil_pages.find(expand))!=_cuil_pages.end())
-		    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-					    "cuil_npage",1,(*hit).second.c_str(),1); // beware.
-	       }
-	     // hack
-	     
 	     // query SEs.                                                                                                 
 	     int nresults = 0;
 	     std::string **outputs = se_handler::query_to_ses(parameters,nresults,this,se_enabled);
