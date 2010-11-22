@@ -1,5 +1,7 @@
 SUBDIRS=src doc
 
+include $(top_srcdir)/aminclude.am
+
 if LCOV_ENABLED
 all-local:
 	rm -fr coverage ; mkdir coverage ; $(LCOV) -c -i -d ${srcdir} -o coverage/initial.info
@@ -14,6 +16,7 @@ clean-local:
 	rm -fr coverage
 endif
 
+
 EXTRA_DIST=resources/search.php \
 		AGPL-3.txt \
 		BSD-yui.txt \
@@ -23,4 +26,5 @@ EXTRA_DIST=resources/search.php \
 		LGPL-2.1.txt \
 		Licenses \
 		NEWS \
-		README
+		README \
+		doc/seeks.dox

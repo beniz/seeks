@@ -53,7 +53,7 @@ AC_CHECK_HEADER(pthread.h, [have_pthread=yes], [have_pthread=no])
 AC_ARG_ENABLE(pthread,
 [  --disable-pthread               Don't use POSIX threads (pthreads)],
 [if test $enableval = no; then
-  # Disable pthreads                                                                                                                      
+  # Disable pthreads
   if test $have_pthread = yes; then
      AC_MSG_WARN([pthreads seem to be available but you are using --disable-pthread.])
      AC_MSG_WARN([This is almost always a mistake and can render Seeks' proxy unacceptable slow.])
@@ -66,15 +66,15 @@ if test $have_pthread = yes; then
   AC_DEFINE(FEATURE_PTHREAD,1,"pthreads")
   echo Using POSIX threads
   if test "$GCC" = "yes"; then
-    # Set a GCC specific switch:                                                                                       
+    # Set a GCC specific switch:
     if test "$target_type" = "unix"; then
       ac_jgf_save_CFLAGS=$CFLAGS
       CFLAGS="$CFLAGS -pthread"
-      AC_TRY_LINK([#include <pthread.h>],                                                                                   
+      AC_TRY_LINK([#include <pthread.h>],
          [void *p = pthread_create;],
         [
-	# This compiler switch makes GCC on Linux thread-safe                                                                           
-        # However, it's not supported on most other OS.                                               
+	# This compiler switch makes GCC on Linux thread-safe
+        # However, it's not supported on most other OS.
 	  PTHREAD_LIB=
           SPECIAL_CFLAGS="-pthread"
         ])
@@ -82,7 +82,7 @@ if test $have_pthread = yes; then
     fi
   fi
 else
-  PTHREAD_ONLY=#                                                                                                               
+  PTHREAD_ONLY=#
   echo Using native threads
 fi
 
@@ -103,13 +103,13 @@ AC_CHECK_FUNCS([access atexit getcwd gethostbyaddr gethostbyaddr_r gethostbyname
 #=================================================================
 # Support for thread-safe versions of gethostbyaddr, gethostbyname,
 #=================================================================
-# Next line needed to find the gethost*_r functions on Solaris                                                                          
+# Next line needed to find the gethost*_r functions on Solaris
 AC_CHECK_LIB(nsl, gethostbyname)
 
 AC_CHECK_FUNC(gethostbyaddr_r, [
   AC_MSG_CHECKING([signature of gethostbyaddr_r])
   AC_TRY_COMPILE([
-  #       include <netdb.h> 
+  #       include <netdb.h>
 ], [
     struct hostent *h, *hp;
     char *a, *b;
@@ -120,7 +120,7 @@ AC_CHECK_FUNC(gethostbyaddr_r, [
     AC_MSG_RESULT([8 args])
   ], [
     AC_TRY_COMPILE([
-    #       include <netdb.h> 
+    #       include <netdb.h>
 ], [
       struct hostent *h;
       char *a, *b;
@@ -131,7 +131,7 @@ AC_CHECK_FUNC(gethostbyaddr_r, [
       AC_MSG_RESULT([7 args])
     ], [
       AC_TRY_COMPILE([
-      #       include <netdb.h> 
+      #       include <netdb.h>
 ], [
         struct hostent_data *d;
         struct hostent *h;
@@ -209,7 +209,7 @@ esac
 # OpenBSD specific
 #=================================================================
 case "$host" in
-*-openbsd*) 
+*-openbsd*)
  SPECIAL_CFLAGS="$SPECIAL_CFLAGS -Dunix";
  AM_CONDITIONAL(HAVE_BSD,true)
  AC_DEFINE(ON_OPENBSD,1,"OpenBSD")
@@ -226,7 +226,7 @@ case "$host" in
 ;;
 esac
 
-# Checks for RFC 2553 resolver and socket functions 
+# Checks for RFC 2553 resolver and socket functions
 
 AC_CHECK_FUNC([getaddrinfo],
    [AC_CHECK_FUNC([getnameinfo],
@@ -301,7 +301,7 @@ AC_PATH_PROGS(CURL_CONFIG, curl-config, no)
 if test x$CURL_CONFIG = xno; then
    AC_MSG_ERROR(curl-config not found; verify that libcurl is installed on your system)
 fi
-   
+
 CURL_LDADD=`$CURL_CONFIG --libs`
 AC_SUBST(CURL_LDADD)
 
@@ -310,7 +310,7 @@ AC_SUBST(CURL_CFLAGS)
 
 #==========================================================================
 # Finding libxml2
-#========================================================================== 
+#==========================================================================
 # First, check for the xml2-config tool
 AC_PATH_PROGS(XML2_CONFIG, xml2-config, no)
 if test x$XML2_CONFIG = xno; then
@@ -343,14 +343,14 @@ AC_SUBST(PCRE_CFLAGS)
 AC_CHECK_PROG(docbook,docbook2x-man,yes,no)
 if test $docbook = "yes"; then
    AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
-else 
+else
    AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
 fi
 
-#====================================================                                                    
-# This check is incomplete. For mingw32 zlib is found                                                                
+#====================================================
+# This check is incomplete. For mingw32 zlib is found
 # by configure, but not necessarily by the compiler.
-#====================================================                                         
+#====================================================
 AC_ARG_ENABLE(zlib,
 AC_HELP_STRING([--disable-zlib], [Don't use zlib to decompress data before filtering (default is NO)]),
 [enableval2=$enableval],
@@ -368,20 +368,20 @@ if test $enableval2 = yes; then
 fi
 
 #====================================================
-# check for TR1 unordered_map and unordered_set headers 
+# check for TR1 unordered_map and unordered_set headers
 #====================================================
-AC_CHECK_HEADER([tr1/unordered_map], 
-[AC_CACHE_CHECK([for TR1 unordered_map and unordered_set], 
- _cv_stdtr1mapset, 
- [AC_TRY_COMPILE([#include <tr1/unordered_map> 
-    		  #include <tr1/unordered_set>], 
-    		 [std::tr1::unordered_map<double*, char*, std::tr1::hash<double*>, std::equal_to<double*> > test1; 
-                  std::tr1::unordered_set<char*, std::tr1::hash<char*>, std::equal_to<char*> > test2;], 
-                 _cv_stdtr1mapset=yes, 
+AC_CHECK_HEADER([tr1/unordered_map],
+[AC_CACHE_CHECK([for TR1 unordered_map and unordered_set],
+ _cv_stdtr1mapset,
+ [AC_TRY_COMPILE([#include <tr1/unordered_map>
+    		  #include <tr1/unordered_set>],
+    		 [std::tr1::unordered_map<double*, char*, std::tr1::hash<double*>, std::equal_to<double*> > test1;
+                  std::tr1::unordered_set<char*, std::tr1::hash<char*>, std::equal_to<char*> > test2;],
+                 _cv_stdtr1mapset=yes,
     	         _cv_stdtr1mapset=no) ] )], [],  [ ] )
-if test "$_cv_stdtr1mapset" = yes; then 
-  AC_DEFINE(HAVE_TR1_HASH_MAP,1,"Have tr1 hash map") 
-fi 
+if test "$_cv_stdtr1mapset" = yes; then
+  AC_DEFINE(HAVE_TR1_HASH_MAP,1,"Have tr1 hash map")
+fi
 
 #====================================================
 # HTTP server plugin activation.
@@ -450,7 +450,7 @@ AC_CACHE_CHECK([for libevent], ac_cv_libevent_dir, [
           if test ! -z "$ledir" -a ! -d "$ledir" ; then
                    continue;
           fi
-            
+
           if test ! -z "$ledir" ; then
           if test -d "$ledir/lib" ; then
              LDFLAGS="-L$ledir/lib $LDFLAGS"
@@ -569,9 +569,9 @@ AC_DEFINE(FEATURE_ACL,1,"Allows the user of an ACL to control access to the prox
 AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 
 # Code testing coverage with lcov
-# Because of gcc --coverage shortcomings here is what needs to be done for 
+# Because of gcc --coverage shortcomings here is what needs to be done for
 # coverage:
-# 
+#
 # ./configure ; make all
 # ./configure --enable-lcov --disable-shared
 # make all ; make check
@@ -581,7 +581,7 @@ AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 #
 AC_MSG_CHECKING(whether to build with lcov testing)
 AC_ARG_ENABLE(lcov, AS_HELP_STRING([--enable-lcov], [Whether to enable lcov testing]),, enable_lcov=no)
-		    				    	     
+
 if test "x$enable_lcov" = "xyes"; then
    if test "$GCC" = "no"; then
       AC_MSG_ERROR(not compiling with gcc, which is required for lcov testing)
@@ -689,6 +689,24 @@ if test "x$HAVE_BUILT_GTEST" = "xno" ; then
    AC_SUBST(with_gtest,no)
 fi
 
+######################################################################
+# DOXYGEN SUPPORT
+######################################################################
+
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+
+DX_INIT_DOXYGEN([$PACKAGE_NAME],[doc/seeks.dox],[doc/doxygen])
+
+######################################################################
+
+
 AC_CONFIG_FILES(Makefile doc/Makefile src/Makefile \
 src/lsh/Makefile \
 src/lsh/tests/Makefile \
@@ -717,21 +735,21 @@ AC_MSG_NOTICE([Configured to build seeks:
  Code status:		  ${cstatus}
  Host setup:		  ${host}
  Install prefix:	  ${prefix}
- Compiler:		  ${CC} 
- 
+ Compiler:		  ${CC}
+
  Dependencies:
  OpenCV-2.x:		  ${opencv2}
  libevent:		  ${le_found}
  protobuf:                ${protobuf}
  tokyocabinet: 		  ${tokyocabinet}
- 
+
  Testing:
  gtest                    ${with_gtest}
- 
+
  Enabled plugins:
  image websearch:	  ${imgwebsearch}
  HTTP server:		  ${httpservplugin}
  query capture:		  ${querycapture}
  URI capture:		  ${uricapture}
- Personalization:	  ${cf} 
+ Personalization:	  ${cf}
 ])
