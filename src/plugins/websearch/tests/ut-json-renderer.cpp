@@ -26,11 +26,13 @@
 using namespace seeks_plugins;
 using namespace json_renderer_private;
 
-TEST(JsonRendererTest, render_engines) {
+TEST(JsonRendererTest, render_engines)
+{
   EXPECT_EQ("\"google\",\"bing\",\"yauba\",\"yahoo\",\"exalead\",\"twitter\"", json_renderer::render_engines(SE_GOOGLE|SE_BING|SE_YAUBA|SE_YAHOO|SE_EXALEAD|SE_TWITTER));
 }
 
-TEST(JsonRendererTest, render_snippets) {
+TEST(JsonRendererTest, render_snippets)
+{
   websearch::_wconfig = new websearch_configuration("not a real filename");
   std::string json_str;
 
@@ -52,7 +54,7 @@ TEST(JsonRendererTest, render_snippets) {
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
   EXPECT_TRUE(json_str.find(s1._url) != std::string::npos);
   EXPECT_EQ(std::string::npos, json_str.find("thumb"));
-  
+
   // 1 snippet, page 1, thumbs on
   json_str = "";
   parameters.insert(std::pair<const char*,const char*>("thumbs", "on"));
@@ -107,7 +109,8 @@ TEST(JsonRendererTest, render_snippets) {
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
 }
 
-TEST(JsonRendererTest, render_clustered_snippets) {
+TEST(JsonRendererTest, render_clustered_snippets)
+{
   websearch::_wconfig = new websearch_configuration("not a real filename");
   query_context context;
   cluster clusters[3];
@@ -117,7 +120,7 @@ TEST(JsonRendererTest, render_clustered_snippets) {
   std::vector<search_snippet*> snippets;
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
-  
+
   search_snippet s1;
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
@@ -147,7 +150,8 @@ TEST(JsonRendererTest, render_clustered_snippets) {
   EXPECT_EQ(std::string::npos, json_str.find(clusters[2]._label));
 }
 
-TEST(JsonRendererTest, render_json_results) {
+TEST(JsonRendererTest, render_json_results)
+{
   websearch::_wconfig = new websearch_configuration("not a real filename");
   http_response* rsp;
   query_context context;
@@ -189,7 +193,8 @@ TEST(JsonRendererTest, render_json_results) {
   delete rsp;
 }
 
-TEST(JsonRendererTest, render_clustered_json_results) {
+TEST(JsonRendererTest, render_clustered_json_results)
+{
   websearch::_wconfig = new websearch_configuration("not a real filename");
 
   cluster clusters[1];
@@ -200,7 +205,7 @@ TEST(JsonRendererTest, render_clustered_json_results) {
   std::vector<search_snippet*> snippets;
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
-  
+
   search_snippet s1;
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
@@ -221,26 +226,30 @@ TEST(JsonRendererTest, render_clustered_json_results) {
   delete rsp;
 }
 
-TEST(JsonRendererTest, response) {
+TEST(JsonRendererTest, response)
+{
   http_response rsp;
   response(&rsp, "JSON");
   EXPECT_EQ(rsp._content_length, strlen(rsp._body));
   EXPECT_STREQ("JSON", rsp._body);
 }
 
-TEST(JsonRendererTest, query_clean) {
+TEST(JsonRendererTest, query_clean)
+{
   std::string q(":CMD<QUERY>");
   EXPECT_EQ("&lt;QUERY&gt;", query_clean(q));
 }
 
-TEST(JsonRendererTest, jsonp) {
+TEST(JsonRendererTest, jsonp)
+{
   std::string input("WHAT");
   const char* callback = "CALLBACK";
   EXPECT_EQ("CALLBACK(WHAT)", jsonp(input, callback));
   EXPECT_EQ("WHAT", jsonp(input, NULL));
 }
 
-TEST(JsonRendererTest, collect_json_results) {
+TEST(JsonRendererTest, collect_json_results)
+{
   websearch::_wconfig = new websearch_configuration("not a real filename");
   std::string result;
   std::list<std::string> results;
@@ -264,7 +273,7 @@ TEST(JsonRendererTest, collect_json_results) {
   EXPECT_EQ(std::string::npos, std::string(result).find("engines"));
   EXPECT_EQ(std::string::npos, std::string(result).find("\"yahoo\""));
 
-  // prs precedence logic 
+  // prs precedence logic
   websearch::_wconfig->_personalization = false;
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));

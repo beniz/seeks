@@ -45,215 +45,215 @@ namespace seeks_plugins
 #define hash_background_proxy        682905808ul /* "background-proxy" */
 #define hash_show_node_ip           4288369354ul /* "show-node-ip" */
 #define hash_personalization        1102733049ul /* "personalized-results" */
-#define hash_result_message          129100406ul /* "result-message" */  
+#define hash_result_message          129100406ul /* "result-message" */
 #define hash_dyn_ui                 3475528514ul /* "dynamic-ui" */
 #define hash_ui_theme                860616402ul /* "ui-theme" */
-   
-   websearch_configuration::websearch_configuration(const std::string &filename)
-     :configuration_spec(filename)
-       {
-          _se_enabled = std::bitset<NSEs>(0);
-          load_config();
-       }
 
-   websearch_configuration::~websearch_configuration()
-     {
-     }
+  websearch_configuration::websearch_configuration(const std::string &filename)
+      :configuration_spec(filename)
+  {
+    _se_enabled = std::bitset<NSEs>(0);
+    load_config();
+  }
 
-   void websearch_configuration::set_default_config()
-     {
-	_lang = "auto";
-	_Nr = 10;
-	_thumbs = false;
-	_se_enabled.set(); // all engines is default.
-	_query_context_delay = 300; // in seconds, 5 minutes.
-	_js = false; // default is no javascript, this may change later on.
-	_content_analysis = false;
-	_clustering = false;
-	_se_connect_timeout = 3;  // in seconds.
-	_se_transfer_timeout = 5; // in seconds.
-	_ct_connect_timeout = 1; // in seconds.
-	_ct_transfer_timeout = 3; // in seconds.
-	_max_expansions = 100;
-	_extended_highlight = false; // experimental.
-	_background_proxy_addr = ""; // no specific background proxy (means seeks' proxy).
-	_background_proxy_port = 0;
-	_show_node_ip = false;
-	_personalization = true;
-	_result_message = ""; // empty message.
-	_dyn_ui = false; // default is static user interface.
-	_ui_theme = "compact";
-     }
+  websearch_configuration::~websearch_configuration()
+  {
+  }
 
-   void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-                                                   char *buf, const unsigned long &linenum)
-     {
-	std::vector<std::string> bpvec;
-	switch(cmd_hash)
-	  {
-	   case hash_lang :
-	     _lang = std::string(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Websearch language");
-	     break;
-	     
-	   case hash_n :
-	       _Nr = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Number of websearch results per page");
-	     break;
-	     
-	   case hash_se :
-	     if (_se_enabled.count() == NSEs) // all bits set is default, so now reset to 0.
-	       _se_enabled.reset();
-	     
-	     if (strcasecmp(arg,"google") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-	     else if (strcasecmp(arg,"bing") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_BING);
-	     else if (strcasecmp(arg,"yahoo") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
-	     else if (strcasecmp(arg,"exalead") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
-	     else if (strcasecmp(arg,"twitter") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_TWITTER);
-	     else if (strcasecmp(arg,"identica") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
-	     else if (strcasecmp(arg,"youtube") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
-	     else if (strcasecmp(arg,"dailymotion") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
-	     else if (strcasecmp(arg,"yauba") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_YAUBA);
-	     else if (strcasecmp(arg,"blekko") == 0)
-	       _se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enabled search engine");
-	     break;
-	     
-	   case hash_thumbs:
-	      _thumbs = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable search results webpage thumbnails");
-	     break;
-	   
-	   case hash_qcd :
-	     _query_context_delay = strtod(arg,NULL);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Delay in seconds before deletion of cached websearches and results");
-	     break;
-	   
-	   case hash_js:
-	     _js = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable javascript use on the websearch result page");
-	     break;
-	     
-	   case hash_content_analysis:
-	     _content_analysis = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable the background download of webpages pointed to by websearch results and content analysis");
-	     break;
-	     
-	   case hash_se_transfer_timeout:
-	     _se_transfer_timeout = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Sets the transfer timeout in seconds for connections to a search engine");
-	     break;
-	     
-	   case hash_se_connect_timeout:
-	     _se_connect_timeout = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Sets the connection timeout in seconds for connections to a search engine");
-	     break;
-	     
-	   case hash_ct_transfer_timeout:
-	     _ct_transfer_timeout = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Sets the transfer timeout in seconds when fetching content for analysis and caching");
-	     break;
-	     
-	   case hash_ct_connect_timeout:
-	     _ct_connect_timeout = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Sets the connection timeout in seconds when fetching content for analysis and caching");
-	     break;
-	     
-	   case hash_clustering:
-	     _clustering = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enables the clustering from the UI");
-	     break;
-	     
-	   case hash_max_expansions:
-	     _max_expansions = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Sets the maximum number of query expansions");
-	     break;
+  void websearch_configuration::set_default_config()
+  {
+    _lang = "auto";
+    _Nr = 10;
+    _thumbs = false;
+    _se_enabled.set(); // all engines is default.
+    _query_context_delay = 300; // in seconds, 5 minutes.
+    _js = false; // default is no javascript, this may change later on.
+    _content_analysis = false;
+    _clustering = false;
+    _se_connect_timeout = 3;  // in seconds.
+    _se_transfer_timeout = 5; // in seconds.
+    _ct_connect_timeout = 1; // in seconds.
+    _ct_transfer_timeout = 3; // in seconds.
+    _max_expansions = 100;
+    _extended_highlight = false; // experimental.
+    _background_proxy_addr = ""; // no specific background proxy (means seeks' proxy).
+    _background_proxy_port = 0;
+    _show_node_ip = false;
+    _personalization = true;
+    _result_message = ""; // empty message.
+    _dyn_ui = false; // default is static user interface.
+    _ui_theme = "compact";
+  }
 
-	   case hash_extended_highlight:
-	     _extended_highlight = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enables a more discriminative word highlight scheme");
-	     break;
-	     
-	   case hash_background_proxy:
-	     _background_proxy_addr = std::string(arg);
-	     miscutil::tokenize(_background_proxy_addr,bpvec,":");
-	     if (bpvec.size()!=2)
-	       {
-		  errlog::log_error(LOG_LEVEL_ERROR, "wrong address:port for background proxy: %s",_background_proxy_addr.c_str());
-		  _background_proxy_addr = "";
-	       }
-	     else
-	       {
-		  _background_proxy_addr = bpvec.at(0);
-		  _background_proxy_port = atoi(bpvec.at(1).c_str());
-	       }
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Background proxy for fetching URLs");
-	     break;
-	     
-	   case hash_show_node_ip:
-	     _show_node_ip = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable rendering of the node IP address in the info bar");
-	     break;
-	     
-	   case hash_personalization:
-	     _personalization = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enable personalized result ranking");
-	     break;
-	     
-	   case hash_result_message:
-	     if (!arg)
-	       break;
-	     _result_message = std::string(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Message to appear in a panel next to the search results");
-	     break;
-	     
-	   case hash_dyn_ui:
-	     _dyn_ui = static_cast<bool>(atoi(arg));
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Enabled the dynamic UI");
-	     break;
-	       
-	   case hash_ui_theme:
-	     _ui_theme = std::string(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"User Interface selected theme");
-	     break;
-	     
-	   default:
-	     break;
-	     
-	  } // end of switch.
-     }
+  void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+      char *buf, const unsigned long &linenum)
+  {
+    std::vector<std::string> bpvec;
+    switch (cmd_hash)
+      {
+      case hash_lang :
+        _lang = std::string(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Websearch language");
+        break;
 
-   void websearch_configuration::finalize_configuration()
-     {
-     }
+      case hash_n :
+        _Nr = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Number of websearch results per page");
+        break;
+
+      case hash_se :
+        if (_se_enabled.count() == NSEs) // all bits set is default, so now reset to 0.
+          _se_enabled.reset();
+
+        if (strcasecmp(arg,"google") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
+        else if (strcasecmp(arg,"bing") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_BING);
+        else if (strcasecmp(arg,"yahoo") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
+        else if (strcasecmp(arg,"exalead") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+        else if (strcasecmp(arg,"twitter") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_TWITTER);
+        else if (strcasecmp(arg,"identica") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
+        else if (strcasecmp(arg,"youtube") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
+        else if (strcasecmp(arg,"dailymotion") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
+        else if (strcasecmp(arg,"yauba") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_YAUBA);
+        else if (strcasecmp(arg,"blekko") == 0)
+          _se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enabled search engine");
+        break;
+
+      case hash_thumbs:
+        _thumbs = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enable search results webpage thumbnails");
+        break;
+
+      case hash_qcd :
+        _query_context_delay = strtod(arg,NULL);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Delay in seconds before deletion of cached websearches and results");
+        break;
+
+      case hash_js:
+        _js = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enable javascript use on the websearch result page");
+        break;
+
+      case hash_content_analysis:
+        _content_analysis = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enable the background download of webpages pointed to by websearch results and content analysis");
+        break;
+
+      case hash_se_transfer_timeout:
+        _se_transfer_timeout = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the transfer timeout in seconds for connections to a search engine");
+        break;
+
+      case hash_se_connect_timeout:
+        _se_connect_timeout = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the connection timeout in seconds for connections to a search engine");
+        break;
+
+      case hash_ct_transfer_timeout:
+        _ct_transfer_timeout = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the transfer timeout in seconds when fetching content for analysis and caching");
+        break;
+
+      case hash_ct_connect_timeout:
+        _ct_connect_timeout = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the connection timeout in seconds when fetching content for analysis and caching");
+        break;
+
+      case hash_clustering:
+        _clustering = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enables the clustering from the UI");
+        break;
+
+      case hash_max_expansions:
+        _max_expansions = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the maximum number of query expansions");
+        break;
+
+      case hash_extended_highlight:
+        _extended_highlight = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enables a more discriminative word highlight scheme");
+        break;
+
+      case hash_background_proxy:
+        _background_proxy_addr = std::string(arg);
+        miscutil::tokenize(_background_proxy_addr,bpvec,":");
+        if (bpvec.size()!=2)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "wrong address:port for background proxy: %s",_background_proxy_addr.c_str());
+            _background_proxy_addr = "";
+          }
+        else
+          {
+            _background_proxy_addr = bpvec.at(0);
+            _background_proxy_port = atoi(bpvec.at(1).c_str());
+          }
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Background proxy for fetching URLs");
+        break;
+
+      case hash_show_node_ip:
+        _show_node_ip = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enable rendering of the node IP address in the info bar");
+        break;
+
+      case hash_personalization:
+        _personalization = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enable personalized result ranking");
+        break;
+
+      case hash_result_message:
+        if (!arg)
+          break;
+        _result_message = std::string(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Message to appear in a panel next to the search results");
+        break;
+
+      case hash_dyn_ui:
+        _dyn_ui = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Enabled the dynamic UI");
+        break;
+
+      case hash_ui_theme:
+        _ui_theme = std::string(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "User Interface selected theme");
+        break;
+
+      default:
+        break;
+
+      } // end of switch.
+  }
+
+  void websearch_configuration::finalize_configuration()
+  {
+  }
 
 } /* end of namespace. */

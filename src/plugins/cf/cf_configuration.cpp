@@ -20,43 +20,43 @@
 
 namespace seeks_plugins
 {
-   #define hash_domain_name_weight       1333166351ul  /* "domain-name-weight" */
+#define hash_domain_name_weight       1333166351ul  /* "domain-name-weight" */
 
-   cf_configuration* cf_configuration::_config = NULL;
-   
-   cf_configuration::cf_configuration(const std::string &filename)
-     :configuration_spec(filename)
-       {
-	  load_config();
-       }
-      
-   cf_configuration::~cf_configuration()
-     {
-     }
-     
-   void cf_configuration::set_default_config()
-     {
-	_domain_name_weight = 0.7;
-     }
-      
-   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-					    char *buf, const unsigned long &linenum)
-     {
-	switch(cmd_hash)
-	  {
-	   case hash_domain_name_weight:
-	     _domain_name_weight = atof(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Weight given to the domain names in the simple filter");
-	     break;
-	     
-	   default:
-	     break;
-	  }
-     }
-   
-   void cf_configuration::finalize_configuration()
-     {
-     }
-      
+  cf_configuration* cf_configuration::_config = NULL;
+
+  cf_configuration::cf_configuration(const std::string &filename)
+      :configuration_spec(filename)
+  {
+    load_config();
+  }
+
+  cf_configuration::~cf_configuration()
+  {
+  }
+
+  void cf_configuration::set_default_config()
+  {
+    _domain_name_weight = 0.7;
+  }
+
+  void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+      char *buf, const unsigned long &linenum)
+  {
+    switch (cmd_hash)
+      {
+      case hash_domain_name_weight:
+        _domain_name_weight = atof(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Weight given to the domain names in the simple filter");
+        break;
+
+      default:
+        break;
+      }
+  }
+
+  void cf_configuration::finalize_configuration()
+  {
+  }
+
 } /* end of namespace. */

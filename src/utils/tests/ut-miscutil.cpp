@@ -22,7 +22,8 @@
 
 #include "miscutil.h"
 
-TEST(MiscutilTest, join_string_list) {
+TEST(MiscutilTest, join_string_list)
+{
   std::list<std::string> l;
   l.push_back("a");
   EXPECT_EQ("a", sp::miscutil::join_string_list(",", l));

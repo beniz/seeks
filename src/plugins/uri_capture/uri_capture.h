@@ -24,72 +24,72 @@
 #include "stl_hash.h"
 #include "plugin.h"
 #include "interceptor_plugin.h"
- 
+
 using namespace sp;
 
 namespace seeks_plugins
 {
-   
-   class uri_db_sweepable : public user_db_sweepable
-     {
-      public:
-	uri_db_sweepable();
-	
-	virtual ~uri_db_sweepable();
-	
-	virtual bool sweep_me();
-	
-	virtual int sweep_records();
-     
-	time_t _last_sweep;
-     };
-      
-   class uri_capture : public plugin
-     {
-      public:
-	uri_capture();
-	
-	virtual ~uri_capture();
-	
-	virtual void start();
-	
-	virtual void stop();
-     
-	virtual sp::db_record* create_db_record();
-     
-	int remove_all_uri_records();
-     
-      public:
-	uint64_t _nr; /**< number of captured URI in user db. */
-     };
-      
-   class uri_capture_element : public interceptor_plugin
-     {
-      public:
-	uri_capture_element(plugin *parent);
-	
-	virtual ~uri_capture_element();
-	
-	virtual http_response* plugin_response(client_state *csp);
-	
-	void store_uri(const std::string &uri, const std::string &host) const;
-	
-	static std::string prepare_uri(const std::string &uri);
-	
-	void get_useful_headers(const std::list<const char*> &headers,
-				std::string &host, std::string &referer,
-				std::string &accept, std::string &get, 
-				bool &connect);
-      
-      private:
-	static std::string _capt_filename;
-	static std::string _cgi_site_host;
-	
-      public:
-	uri_db_sweepable _uds;
-     };   
-   
+
+  class uri_db_sweepable : public user_db_sweepable
+  {
+    public:
+      uri_db_sweepable();
+
+      virtual ~uri_db_sweepable();
+
+      virtual bool sweep_me();
+
+      virtual int sweep_records();
+
+      time_t _last_sweep;
+  };
+
+  class uri_capture : public plugin
+  {
+    public:
+      uri_capture();
+
+      virtual ~uri_capture();
+
+      virtual void start();
+
+      virtual void stop();
+
+      virtual sp::db_record* create_db_record();
+
+      int remove_all_uri_records();
+
+    public:
+      uint64_t _nr; /**< number of captured URI in user db. */
+  };
+
+  class uri_capture_element : public interceptor_plugin
+  {
+    public:
+      uri_capture_element(plugin *parent);
+
+      virtual ~uri_capture_element();
+
+      virtual http_response* plugin_response(client_state *csp);
+
+      void store_uri(const std::string &uri, const std::string &host) const;
+
+      static std::string prepare_uri(const std::string &uri);
+
+      void get_useful_headers(const std::list<const char*> &headers,
+                              std::string &host, std::string &referer,
+                              std::string &accept, std::string &get,
+                              bool &connect);
+
+    private:
+      static std::string _capt_filename;
+      static std::string _cgi_site_host;
+
+    public:
+      uri_db_sweepable _uds;
+  };
+
 } /* end of namespace. */
 
 #endif
-  
+

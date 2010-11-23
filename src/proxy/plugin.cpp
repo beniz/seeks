@@ -29,44 +29,44 @@
 
 namespace sp
 {
-   plugin::plugin()
-     :_interceptor_plugin(NULL),_action_plugin(NULL),_filter_plugin(NULL)
-     {	
-     }
-   
-   plugin::plugin(const std::string &config_filename)
-     : _config_filename(config_filename),
-       _interceptor_plugin(NULL),_action_plugin(NULL),
-       _filter_plugin(NULL)
-     {
-     }
-   
-   plugin::~plugin()
-     {
-	if (_interceptor_plugin)
-	  delete _interceptor_plugin;
-	if (_action_plugin)
-	  delete _action_plugin;
-	if (_filter_plugin)
-	  delete _filter_plugin;
+  plugin::plugin()
+      :_interceptor_plugin(NULL),_action_plugin(NULL),_filter_plugin(NULL)
+  {
+  }
 
-	for (size_t i=0;i<_cgi_dispatchers.size();i++)
-	  delete _cgi_dispatchers.at(i);
-     
-	if (_configuration)
-	  delete _configuration;
-     }
-   
-   std::string plugin::print() const
-     {
-	std::string res,s;
-	if (_interceptor_plugin)
-	  res = _interceptor_plugin->print();
-	if (_action_plugin)
-	  res += _action_plugin->print();
-	if (_filter_plugin)
-	  res += _filter_plugin->print();
-	return res;
-     }
-   
+  plugin::plugin(const std::string &config_filename)
+      : _config_filename(config_filename),
+      _interceptor_plugin(NULL),_action_plugin(NULL),
+      _filter_plugin(NULL)
+  {
+  }
+
+  plugin::~plugin()
+  {
+    if (_interceptor_plugin)
+      delete _interceptor_plugin;
+    if (_action_plugin)
+      delete _action_plugin;
+    if (_filter_plugin)
+      delete _filter_plugin;
+
+    for (size_t i=0; i<_cgi_dispatchers.size(); i++)
+      delete _cgi_dispatchers.at(i);
+
+    if (_configuration)
+      delete _configuration;
+  }
+
+  std::string plugin::print() const
+  {
+    std::string res,s;
+    if (_interceptor_plugin)
+      res = _interceptor_plugin->print();
+    if (_action_plugin)
+      res += _action_plugin->print();
+    if (_filter_plugin)
+      res += _filter_plugin->print();
+    return res;
+  }
+
 } /* end of namespace. */

@@ -37,86 +37,86 @@ using namespace sp;
 
 static std::string uris[3] =
 {
-   "http://www.seeks-project.info/",
-   "http://seeks-project.info/wiki/index.php/Documentation",
-   "http://sourceforge.net/projects/seeks"
+  "http://www.seeks-project.info/",
+  "http://seeks-project.info/wiki/index.php/Documentation",
+  "http://sourceforge.net/projects/seeks"
 };
 
 // tests.
 TEST(UserdbTest, all_fct)
 {
-   std::string dbfile = "seeks_test.db";
-   std::string basedir = "../../";
-   
-   unlink(dbfile.c_str());
-   
-   seeks_proxy::_configfile = "config";
-   seeks_proxy::_configfile = basedir + "/config";
-   
-   seeks_proxy::initialize_mutexes();
-   errlog::init_log_module();
-   errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
-   
-   seeks_proxy::_basedir = basedir.c_str();
-   plugin_manager::_plugin_repository = basedir + "/plugins/";
-   seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
-   
-   // XXX: beware of a running seeks using the user db static variable.
-   user_db *db = new user_db(dbfile);
-   db->open_db();
-   
-   plugin_manager::load_all_plugins();
-   plugin_manager::instanciate_plugins();
-   
-   // start tests.
-   
-   // check that db is empty.
-   uint64_t nr = db->number_records();
-   ASSERT_EQ(0,nr);
- 
-   // add records.
-   std::string plugin_name = "plugin_a";
-   for (int i=0;i<3;i++)
-     {
-	db_record dbr(plugin_name);
-	db->add_dbr(uris[i],dbr);		
-     }
-   nr = db->number_records();
-   ASSERT_EQ(3,nr);
-   
-   // find records.
-   for (int i=0;i<3;i++)
-     {
-	db_record *dbr = db->find_dbr(uris[i],plugin_name);
-	ASSERT_TRUE(NULL != dbr);
-	ASSERT_EQ(plugin_name,dbr->_plugin_name);
-	delete dbr;
-     }
-   
-   // remove record.
-   db->remove_dbr(uris[1],plugin_name);
-   nr = db->number_records();
-   ASSERT_EQ(2,nr);
-   
-   // prune by date.
-   struct timeval tv_now;
-   gettimeofday(&tv_now, NULL);
-   time_t ref_time = tv_now.tv_sec + 30; // 30 seconds in the future to be sure to prune all records.
-   db->prune_db(plugin_name,ref_time);
-   nr = db->number_records();
-   ASSERT_EQ(0,nr);
-   
-   // end of tests.
-   
-   db->clear_db();
-   db->close_db();
-   unlink(dbfile.c_str());
-   delete db;
+  std::string dbfile = "seeks_test.db";
+  std::string basedir = "../../";
+
+  unlink(dbfile.c_str());
+
+  seeks_proxy::_configfile = "config";
+  seeks_proxy::_configfile = basedir + "/config";
+
+  seeks_proxy::initialize_mutexes();
+  errlog::init_log_module();
+  errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
+
+  seeks_proxy::_basedir = basedir.c_str();
+  plugin_manager::_plugin_repository = basedir + "/plugins/";
+  seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
+
+  // XXX: beware of a running seeks using the user db static variable.
+  user_db *db = new user_db(dbfile);
+  db->open_db();
+
+  plugin_manager::load_all_plugins();
+  plugin_manager::instanciate_plugins();
+
+  // start tests.
+
+  // check that db is empty.
+  uint64_t nr = db->number_records();
+  ASSERT_EQ(0,nr);
+
+  // add records.
+  std::string plugin_name = "plugin_a";
+  for (int i=0; i<3; i++)
+    {
+      db_record dbr(plugin_name);
+      db->add_dbr(uris[i],dbr);
+    }
+  nr = db->number_records();
+  ASSERT_EQ(3,nr);
+
+  // find records.
+  for (int i=0; i<3; i++)
+    {
+      db_record *dbr = db->find_dbr(uris[i],plugin_name);
+      ASSERT_TRUE(NULL != dbr);
+      ASSERT_EQ(plugin_name,dbr->_plugin_name);
+      delete dbr;
+    }
+
+  // remove record.
+  db->remove_dbr(uris[1],plugin_name);
+  nr = db->number_records();
+  ASSERT_EQ(2,nr);
+
+  // prune by date.
+  struct timeval tv_now;
+  gettimeofday(&tv_now, NULL);
+  time_t ref_time = tv_now.tv_sec + 30; // 30 seconds in the future to be sure to prune all records.
+  db->prune_db(plugin_name,ref_time);
+  nr = db->number_records();
+  ASSERT_EQ(0,nr);
+
+  // end of tests.
+
+  db->clear_db();
+  db->close_db();
+  unlink(dbfile.c_str());
+  delete db;
 }
 
 int main(int argc, char **argv)
-{   
-   ::testing::InitGoogleTest(&argc, argv);
-   return RUN_ALL_TESTS();
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
 

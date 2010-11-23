@@ -24,69 +24,69 @@
 
 namespace seeks_plugins
 {
-   class se_parser_ggle : public se_parser
-     {
-      public:
-	se_parser_ggle();
-	
-	~se_parser_ggle();
-	
-	// virtual fct.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes);
-     
-	void end_element(parser_context *pc,
-			 const xmlChar *name);
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
+  class se_parser_ggle : public se_parser
+  {
+    public:
+      se_parser_ggle();
 
-	void post_process_snippet(search_snippet *&se);
-	
-      private:
-	bool _body_flag;
-	bool _h2_flag;
-	bool _h2_sr_flag;
-	bool _ol_flag;
-	bool _li_flag;
-	bool _h3_flag;
-	bool _div_flag_summary;
-	bool _div_flag_forum;
-	bool _sum_flag;
-	bool _link_flag;
-	bool _cite_flag;
-	bool _cached_flag;
-	bool _span_cached_flag;
-	bool _ff_flag;
-	bool _new_link_flag;
-	bool _spell_flag;
-	bool _sgg_spell_flag;
-	bool _end_sgg_spell_flag;
-	bool _rt_flag;
-	
-	std::string _link;
-	std::string _cached;
-	std::string _ff;
-	std::string _h3;
-	std::string _cite;
-	std::string _summary;
-	std::string _forum;
-	
-      public:
-	std::string _suggestion;
-     };
-   
+      ~se_parser_ggle();
+
+      // virtual fct.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+      void post_process_snippet(search_snippet *&se);
+
+    private:
+      bool _body_flag;
+      bool _h2_flag;
+      bool _h2_sr_flag;
+      bool _ol_flag;
+      bool _li_flag;
+      bool _h3_flag;
+      bool _div_flag_summary;
+      bool _div_flag_forum;
+      bool _sum_flag;
+      bool _link_flag;
+      bool _cite_flag;
+      bool _cached_flag;
+      bool _span_cached_flag;
+      bool _ff_flag;
+      bool _new_link_flag;
+      bool _spell_flag;
+      bool _sgg_spell_flag;
+      bool _end_sgg_spell_flag;
+      bool _rt_flag;
+
+      std::string _link;
+      std::string _cached;
+      std::string _ff;
+      std::string _h3;
+      std::string _cite;
+      std::string _summary;
+      std::string _forum;
+
+    public:
+      std::string _suggestion;
+  };
+
 } /* end of namespace. */
 
 #endif

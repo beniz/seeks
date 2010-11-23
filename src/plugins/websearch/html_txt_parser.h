@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #ifndef HTML_TXT_PARSER_H
 #define HTML_TXT_PARSER_H
 
@@ -24,42 +24,48 @@
 
 namespace seeks_plugins
 {
-   class html_txt_parser : public se_parser
-     {
-      public:
-	html_txt_parser();
-	
-	~html_txt_parser();
-	
-	// virtual.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes) {};
-	
-	void end_element(parser_context *pc,
-			 const xmlChar *name) {};
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
-	
-	std::string& get_txt_nocopy() { return _txt; };  
+  class html_txt_parser : public se_parser
+  {
+    public:
+      html_txt_parser();
 
-	std::string get_txt() const { return _txt; };
-	
-      public:
-	std::string _txt;
-     };
-   
+      ~html_txt_parser();
+
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes) {};
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name) {};
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+      std::string& get_txt_nocopy()
+      {
+        return _txt;
+      };
+
+      std::string get_txt() const
+      {
+        return _txt;
+      };
+
+    public:
+      std::string _txt;
+  };
+
 } /* end of namespace. */
 
 #endif

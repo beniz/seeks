@@ -20,50 +20,50 @@
 
 namespace seeks_plugins
 {
-   
+
 #define hash_server_port               2258587232ul /* "server-port" */
-#define hash_server_host                494776476ul /* "server-host" */ 
-   
-   httpserv_configuration* httpserv_configuration::_hconfig = NULL;
-   
-   httpserv_configuration::httpserv_configuration(const std::string &filename)
-     :configuration_spec(filename)
-       {
-	  load_config();
-       }
-   
-   httpserv_configuration::~httpserv_configuration()
-     {
-     }
-   
-   void httpserv_configuration::set_default_config()
-     {
-	_port = 8080;
-	_host = "localhost";
-     }
-      
-   void httpserv_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-						  char *buf, const unsigned long &linenum)
-     {
-	switch(cmd_hash)
-	  {
-	   case hash_server_port:
-	     _port = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,"HTTP server listening port.");
-	     break;
-	     
-	   case hash_server_host:
-	     _host = std::string(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,"HTTP server host.");
-	     break;
-	     
-	   default:
-	     break;
-	  } // end of switch.
-     }
-   
-   void httpserv_configuration::finalize_configuration()
-     {
-     }
-         
+#define hash_server_host                494776476ul /* "server-host" */
+
+  httpserv_configuration* httpserv_configuration::_hconfig = NULL;
+
+  httpserv_configuration::httpserv_configuration(const std::string &filename)
+      :configuration_spec(filename)
+  {
+    load_config();
+  }
+
+  httpserv_configuration::~httpserv_configuration()
+  {
+  }
+
+  void httpserv_configuration::set_default_config()
+  {
+    _port = 8080;
+    _host = "localhost";
+  }
+
+  void httpserv_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+      char *buf, const unsigned long &linenum)
+  {
+    switch (cmd_hash)
+      {
+      case hash_server_port:
+        _port = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,"HTTP server listening port.");
+        break;
+
+      case hash_server_host:
+        _host = std::string(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,"HTTP server host.");
+        break;
+
+      default:
+        break;
+      } // end of switch.
+  }
+
+  void httpserv_configuration::finalize_configuration()
+  {
+  }
+
 } /* end of namespace. */

@@ -24,52 +24,52 @@
 
 namespace seeks_plugins
 {
-   class se_parser_bing : public se_parser
-     {
-      public:
-	se_parser_bing();
-	~se_parser_bing();
-	
-	// virtual.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes);
-	
-	void end_element(parser_context *pc,
-			 const xmlChar *name);
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
-     
-      private:
-	bool _h1_sr_flag;
-	bool _results_flag;
-	bool _h3_flag;
-	bool _link_flag;
-	bool _p_flag;
-	bool _cite_flag;
-	bool _cached_flag;
-	
-	std::string _h3;
-	std::string _link;
-	std::string _summary;
-	std::string _cite;
-	std::string _cached;
-	
-	static std::string _sr_string_en;
-	static std::string _bing_stupid[2];
-     };
-   
+  class se_parser_bing : public se_parser
+  {
+    public:
+      se_parser_bing();
+      ~se_parser_bing();
+
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+    private:
+      bool _h1_sr_flag;
+      bool _results_flag;
+      bool _h3_flag;
+      bool _link_flag;
+      bool _p_flag;
+      bool _cite_flag;
+      bool _cached_flag;
+
+      std::string _h3;
+      std::string _link;
+      std::string _summary;
+      std::string _cite;
+      std::string _cached;
+
+      static std::string _sr_string_en;
+      static std::string _bing_stupid[2];
+  };
+
 };
 
 #endif

@@ -23,22 +23,22 @@
 
 void free_const(const void *p)
 {
-   std::free((void *) p);
-   p = NULL;
+  std::free((void *) p);
+  p = NULL;
 }
 
 void freez(void *p)
 {
-   std::free(p);
-   p = NULL;
+  std::free(p);
+  p = NULL;
 };
 
 void* zalloc(size_t size)
-{  
-   void * ret;
-   if ((ret = (void *)std::malloc(size)) != NULL)
-     {
-	std::memset(ret, 0, size);
-     }
-   return(ret);
+{
+  void * ret;
+  if ((ret = (void *)std::malloc(size)) != NULL)
+    {
+      std::memset(ret, 0, size);
+    }
+  return(ret);
 }

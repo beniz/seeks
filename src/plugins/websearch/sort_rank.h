@@ -24,31 +24,31 @@
 
 namespace seeks_plugins
 {
-   class sort_rank
-     {
-      public:
-	
-	
-	// merge snippets based on the target url.
-	static void sort_and_merge_snippets(std::vector<search_snippet*> &snippets,
-					    std::vector<search_snippet*> &unique_snippets);
-	
-	static void sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
-						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
-	
-	static void score_and_sort_by_similarity(query_context *qc, const char *id_str,
-						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						 search_snippet *&ref_sp,
-						 std::vector<search_snippet*> &sorted_snippets);
-	
-	static void group_by_types(query_context *qc, cluster *&clusters, short &K);
-     
+  class sort_rank
+  {
+    public:
+
+
+      // merge snippets based on the target url.
+      static void sort_and_merge_snippets(std::vector<search_snippet*> &snippets,
+                                          std::vector<search_snippet*> &unique_snippets);
+
+      static void sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
+      static void score_and_sort_by_similarity(query_context *qc, const char *id_str,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+          search_snippet *&ref_sp,
+          std::vector<search_snippet*> &sorted_snippets);
+
+      static void group_by_types(query_context *qc, cluster *&clusters, short &K);
+
 #if defined(PROTOBUF) && defined(TC)
-	static void personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
-					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+      static void personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
+                                             const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 #endif
-     };
-   
+  };
+
 } /* end of namespace. */
 
 #endif

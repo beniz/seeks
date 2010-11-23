@@ -20,36 +20,36 @@
 
 namespace seeks_plugins
 {
-   html_txt_parser::html_txt_parser()
-     : se_parser(),_txt("")
-       {
-       }
-   
-   html_txt_parser::~html_txt_parser()
-     {
-     }
-   
-   void html_txt_parser::characters(parser_context *pc,
-				    const xmlChar *chars,
-				    int length)
-     {
-	handle_characters(pc, chars, length);
-     }
-   
-   void html_txt_parser::cdata(parser_context *pc,
-			       const xmlChar *chars,
-			       int length)
-     {
-	return;
-     }
-   
-   void html_txt_parser::handle_characters(parser_context *pc,
-					   const xmlChar *chars,
-					   int length)
-     {
-	if (chars)
-	  _txt += std::string((char*)chars);
-     }
-   
-   
+  html_txt_parser::html_txt_parser()
+      : se_parser(),_txt("")
+  {
+  }
+
+  html_txt_parser::~html_txt_parser()
+  {
+  }
+
+  void html_txt_parser::characters(parser_context *pc,
+                                   const xmlChar *chars,
+                                   int length)
+  {
+    handle_characters(pc, chars, length);
+  }
+
+  void html_txt_parser::cdata(parser_context *pc,
+                              const xmlChar *chars,
+                              int length)
+  {
+    return;
+  }
+
+  void html_txt_parser::handle_characters(parser_context *pc,
+                                          const xmlChar *chars,
+                                          int length)
+  {
+    if (chars)
+      _txt += std::string((char*)chars);
+  }
+
+
 } /* end of namespace. */

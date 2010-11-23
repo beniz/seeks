@@ -18,47 +18,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- /**
- * \file$Id:
- * \brief Routines for random bits and numbers generation.
- * \author E. Benazera, juban@free.fr
- */
+/**
+* \file$Id:
+* \brief Routines for random bits and numbers generation.
+* \author E. Benazera, juban@free.fr
+*/
 
 #ifndef RANDOM_H
 #define RANDOM_H
 
 namespace lsh
 {
-   class Random
-     {
-      public:
-	static long getRbitsSeed () { return Random::_rbits_seed; }
-	
-	/**
-	 * \brief generate a random 32 bit unsigned integer between minB and maxB.
-	 * @param minB lower domain bound,
-	 * @param maxB upper domain bound.
-	 */
-	static unsigned long int genUniformUnsInt32 (const unsigned long int &minB,
-						     const unsigned long int &maxB);
-	
-	static double genUniformDbl32 (const double &minB, const double &maxB);
-	
-	/**
-	 * \brief generate a random real from a normal distribution N(0,1).
-	 */
-	static double genGaussianDbl32 ();
+  class Random
+  {
+    public:
+      static long getRbitsSeed ()
+      {
+        return Random::_rbits_seed;
+      }
 
-	/**
-	 * \brief random bit generator: should be removed sooner or later, since
-	 *        it is nr code and their licence sucks.
-	 */
-	static bool irbit2(unsigned long *iseed);
-	
-      private:
-	//static const long _rbits_seed = 9457920459875;
-	static const long _rbits_seed = 945792045;  //32 bits.
-     };
+      /**
+       * \brief generate a random 32 bit unsigned integer between minB and maxB.
+       * @param minB lower domain bound,
+       * @param maxB upper domain bound.
+       */
+      static unsigned long int genUniformUnsInt32 (const unsigned long int &minB,
+          const unsigned long int &maxB);
+
+      static double genUniformDbl32 (const double &minB, const double &maxB);
+
+      /**
+       * \brief generate a random real from a normal distribution N(0,1).
+       */
+      static double genGaussianDbl32 ();
+
+      /**
+       * \brief random bit generator: should be removed sooner or later, since
+       *        it is nr code and their licence sucks.
+       */
+      static bool irbit2(unsigned long *iseed);
+
+    private:
+      //static const long _rbits_seed = 9457920459875;
+      static const long _rbits_seed = 945792045;  //32 bits.
+  };
 }
 
 #endif

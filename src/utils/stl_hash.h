@@ -19,7 +19,7 @@
 #include "config.h"
 
 #ifdef HAVE_TR1_HASH_MAP
-//#include <tr1/unordered_map> 
+//#include <tr1/unordered_map>
 #include <ext/hash_map>
 #elif (__GNUC__ >=3)
 #include <ext/hash_map>
@@ -51,10 +51,10 @@ using std::hash_multimap;
 #define STRUCT_EQSTR
 struct eqstr
 {
-   bool operator()(const char* s1, const char* s2) const
-     {
-	return strcmp(s1, s2) == 0;
-     }
+  bool operator()(const char* s1, const char* s2) const
+  {
+    return strcmp(s1, s2) == 0;
+  }
 };
 #endif
 
@@ -66,9 +66,9 @@ struct eqstr
  */
 struct id_hash_uint : public std::unary_function<uint32_t,uint32_t>
 {
-   uint32_t operator()(const uint32_t &k) const
-     {
-	return k;
-     }
+  uint32_t operator()(const uint32_t &k) const
+  {
+    return k;
+  }
 };
 #endif

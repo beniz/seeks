@@ -21,19 +21,19 @@
 
 namespace sp
 {
-   
-   class user_db_fix
-     {
-      public:
-	/**
-	 * \brief fix bug in hash generation on non 32bit machines, by converting the
-	 *        whole DB.
-	 * XXX: this function is expected to be removed soon in the future once the
-	 *      existing user DB can be considered safely converted.
-	 */
-        static int fix_issue_169();
-     };
-      
+
+  class user_db_fix
+  {
+    public:
+      /**
+       * \brief fix bug in hash generation on non 32bit machines, by converting the
+       *        whole DB.
+       * XXX: this function is expected to be removed soon in the future once the
+       *      existing user DB can be considered safely converted.
+       */
+      static int fix_issue_169();
+  };
+
 } /* end of namespace. */
 
 #endif

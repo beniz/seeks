@@ -28,33 +28,33 @@ using namespace seeks_plugins;
 
 int main(int argc, char **argv)
 {
-   if (argc < 3)
-     {
-	std::cout << "Usage: <img1> <img2>\n";
-	exit(0);
-     }
-   
-   std::string img1 = std::string(argv[1]);
-   std::string img2 = std::string(argv[2]);
-   
-   IplImage *img1_obj = cvLoadImage(img1.c_str(),CV_LOAD_IMAGE_GRAYSCALE);
-   IplImage *img2_obj = cvLoadImage(img2.c_str(),CV_LOAD_IMAGE_GRAYSCALE);
-   
-   CvMemStorage* storage = cvCreateMemStorage(0);
-   
-   CvSeq *o1points = 0, *o1desc = 0;
-   CvSeq *o2points = 0, *o2desc = 0;
-   cvExtractSURF(img1_obj, 0, &o1points, &o1desc,
-		 storage, ocvsurf::_surf_params);
-   cvExtractSURF(img2_obj, 0, &o2points, &o2desc,
-		 storage, ocvsurf::_surf_params);
-   
-   std::cout << "keypoints1 size: " << o1points->total << std::endl;
-   std::cout << "descriptors1 size: " << o1desc->total << std::endl;
-   std::cout << "keypoints2 size: " << o2points->total << std::endl;
-   std::cout << "descriptors2 size: " << o2desc->total << std::endl;
-   
-   /* std::vector<surf_pair> ptpairs;
-   ocvsurf::flannFindPairs(o1desc,o2desc,
-   ptpairs); */
+  if (argc < 3)
+    {
+      std::cout << "Usage: <img1> <img2>\n";
+      exit(0);
+    }
+
+  std::string img1 = std::string(argv[1]);
+  std::string img2 = std::string(argv[2]);
+
+  IplImage *img1_obj = cvLoadImage(img1.c_str(),CV_LOAD_IMAGE_GRAYSCALE);
+  IplImage *img2_obj = cvLoadImage(img2.c_str(),CV_LOAD_IMAGE_GRAYSCALE);
+
+  CvMemStorage* storage = cvCreateMemStorage(0);
+
+  CvSeq *o1points = 0, *o1desc = 0;
+  CvSeq *o2points = 0, *o2desc = 0;
+  cvExtractSURF(img1_obj, 0, &o1points, &o1desc,
+                storage, ocvsurf::_surf_params);
+  cvExtractSURF(img2_obj, 0, &o2points, &o2desc,
+                storage, ocvsurf::_surf_params);
+
+  std::cout << "keypoints1 size: " << o1points->total << std::endl;
+  std::cout << "descriptors1 size: " << o1desc->total << std::endl;
+  std::cout << "keypoints2 size: " << o2points->total << std::endl;
+  std::cout << "descriptors2 size: " << o2desc->total << std::endl;
+
+  /* std::vector<surf_pair> ptpairs;
+  ocvsurf::flannFindPairs(o1desc,o2desc,
+  ptpairs); */
 }

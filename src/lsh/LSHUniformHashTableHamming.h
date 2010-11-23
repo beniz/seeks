@@ -1,6 +1,6 @@
 /**
- * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and 
- * does provide several locality sensitive hashing schemes for pattern matching over 
+ * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
+ * does provide several locality sensitive hashing schemes for pattern matching over
  * continuous and discrete spaces.
  * Copyright (C) 2006, 2009 Emmanuel Benazera, juban@free.fr
  *
@@ -39,35 +39,35 @@ namespace lsh
    * \brief LSH uniform hashtable with string and hashing based on Hamming distance.
    */
   class LSHUniformHashTableHamming : public LSHUniformHashTable<std::string>
-    {
+  {
     public:
       LSHUniformHashTableHamming (LSHSystemHamming *lsh_h);
 
       LSHUniformHashTableHamming (LSHSystemHamming *lsh_h,
-				  const unsigned long int &uhsize);
+                                  const unsigned long int &uhsize);
 
       ~LSHUniformHashTableHamming ();
 
-       /**-- functions for a local lsh. --*/
+      /**-- functions for a local lsh. --*/
       /**
        * Virtual functions.
        */
       void LcomputeMKey (std::string str,
-			 unsigned long int *Lmkeys);
+                         unsigned long int *Lmkeys);
 
       void LcomputeCKey (std::string str,
-			 unsigned long int *Lckeys);
+                         unsigned long int *Lckeys);
 
       void LcomputeMCKey (std::string str,
-			  unsigned long int *Lmkeys,
-			  unsigned long int *Lckeys);
-       
+                          unsigned long int *Lmkeys,
+                          unsigned long int *Lckeys);
 
-       /**
-	* LSHSystemHamming object associated to the uniform hashtable.
-	*/
-       LSHSystemHamming *_lsh_h;
-    };
+
+      /**
+      * LSHSystemHamming object associated to the uniform hashtable.
+      */
+      LSHSystemHamming *_lsh_h;
+  };
 
 } /* end of namespace. */
 

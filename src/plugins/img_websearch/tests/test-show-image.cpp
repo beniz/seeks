@@ -28,29 +28,29 @@ using namespace seeks_plugins;
 
 int main(int argc, char **argv)
 {
-   if (argc < 2)
-     {
-	std::cout << "Usage: <img url>\n";
-	exit(0);
-     }
-   
-   std::string addr = std::string(argv[1]);
-   std::vector<std::string> addrs;
-   addrs.push_back(addr);
-   
-   curl_mget cmg(1,60,0,60,0); // 60 seconds connection & transfer timeout.
-   std::string **outputs = cmg.www_mget(addrs,1,NULL,false); // don't use a proxy.
+  if (argc < 2)
+    {
+      std::cout << "Usage: <img url>\n";
+      exit(0);
+    }
 
-   //std::cout << *outputs[0] << std::endl;
-   
-   ocvsurf::init();
-   
-   //cv::Mat imgmat = ocvsurf::imload(*outputs[0],-1); // -1 for untouched img.
-   cv::Mat imgmat = cv::imread("tb2.jpg",-1);
-   
-   std::cout << "loaded\n";
+  std::string addr = std::string(argv[1]);
+  std::vector<std::string> addrs;
+  addrs.push_back(addr);
 
-   cv::namedWindow("Image", 1);
-   cv::imshow("Image",imgmat);
-   cvWaitKey(0);
+  curl_mget cmg(1,60,0,60,0); // 60 seconds connection & transfer timeout.
+  std::string **outputs = cmg.www_mget(addrs,1,NULL,false); // don't use a proxy.
+
+  //std::cout << *outputs[0] << std::endl;
+
+  ocvsurf::init();
+
+  //cv::Mat imgmat = ocvsurf::imload(*outputs[0],-1); // -1 for untouched img.
+  cv::Mat imgmat = cv::imread("tb2.jpg",-1);
+
+  std::cout << "loaded\n";
+
+  cv::namedWindow("Image", 1);
+  cv::imshow("Image",imgmat);
+  cvWaitKey(0);
 }

@@ -41,37 +41,37 @@ using namespace sp;
 
 namespace seeks_plugins
 {
-   class blocker : public plugin
-     {
-      public:
-	blocker();
-	
-	~blocker() {};
-	
-	virtual void start() {};
-	
-	virtual void stop() {};
-	
-      private:
-     };
-   
-   class blocker_element : public interceptor_plugin
-     {
-      public:
-	blocker_element(plugin *parent);
-	
-	~blocker_element() {};
-	
-	// virtual from plugin_element.
-	http_response* plugin_response(client_state *csp);
+  class blocker : public plugin
+  {
+    public:
+      blocker();
 
-      private:
-	http_response* block_url(client_state *csp);
-     
-	static std::string _bp_filename; // blocked patterns filename = "blocked-patterns";
-	static std::string _response; // minimal response (fast).
-     };
-    
+      ~blocker() {};
+
+      virtual void start() {};
+
+      virtual void stop() {};
+
+    private:
+  };
+
+  class blocker_element : public interceptor_plugin
+  {
+    public:
+      blocker_element(plugin *parent);
+
+      ~blocker_element() {};
+
+      // virtual from plugin_element.
+      http_response* plugin_response(client_state *csp);
+
+    private:
+      http_response* block_url(client_state *csp);
+
+      static std::string _bp_filename; // blocked patterns filename = "blocked-patterns";
+      static std::string _response; // minimal response (fast).
+  };
+
 } /* end of namespace. */
 
 #endif

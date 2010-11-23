@@ -27,43 +27,43 @@
 
 namespace seeks_plugins
 {
-   
-   class surf_pair
-     {
-      public:
-	surf_pair(const int &i, const int &j,
-		  const double &dist)
-	  :_i(i),_j(j),_dist(dist)
-	    {};
-	~surf_pair() {};
 
-	int _i;
-	int _j;
-	double _dist;
-     };
-      
-   class ocvsurf
-     {
-      public:
-	static void generate_surf_features(const std::string *img_content,
-					   CvSeq *&objectKeyPoints,
-					   CvSeq *&objectDescriptors,
-					   const img_search_snippet *sp);
-	
-	/* static void flannFindPairs(CvSeq *o1desc,
-				   CvSeq *o2desc,
-				   std::vector<surf_pair> &ptpairs); */
-	
-	static int bruteMatch(CvMat *&points1, CvMat *&points2,
-			      CvSeq *kp1, CvSeq *desc1, CvSeq *kp2, CvSeq *desc2,
-			      const bool &filter);
-	
-	static int removeOutliers(CvMat *&points1, CvMat *&points2);
-	
-	static CvSURFParams _surf_params;
-     };
-   
+  class surf_pair
+  {
+    public:
+      surf_pair(const int &i, const int &j,
+                const double &dist)
+          :_i(i),_j(j),_dist(dist)
+      {};
+      ~surf_pair() {};
+
+      int _i;
+      int _j;
+      double _dist;
+  };
+
+  class ocvsurf
+  {
+    public:
+      static void generate_surf_features(const std::string *img_content,
+                                         CvSeq *&objectKeyPoints,
+                                         CvSeq *&objectDescriptors,
+                                         const img_search_snippet *sp);
+
+      /* static void flannFindPairs(CvSeq *o1desc,
+      			   CvSeq *o2desc,
+      			   std::vector<surf_pair> &ptpairs); */
+
+      static int bruteMatch(CvMat *&points1, CvMat *&points2,
+                            CvSeq *kp1, CvSeq *desc1, CvSeq *kp2, CvSeq *desc2,
+                            const bool &filter);
+
+      static int removeOutliers(CvMat *&points1, CvMat *&points2);
+
+      static CvSURFParams _surf_params;
+  };
+
 } /* end of namespace. */
 
 #endif
-  
+

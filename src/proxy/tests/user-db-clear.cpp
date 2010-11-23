@@ -1,7 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
- *   
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -23,21 +23,21 @@
 #include <stdlib.h>
 
 using namespace sp;
-  
+
 int main(int argc, char **argv)
 {
-   if (argc < 2)
-     {
-	std::cout << "Usage <db_file>\n";
-	exit(0);
-     }
-   
-   std::string dbfile = argv[1];
-   
-   errlog::init_log_module();
-   errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
-   
-   user_db udb(dbfile);
-   udb.open_db();
-   udb.clear_db();
+  if (argc < 2)
+    {
+      std::cout << "Usage <db_file>\n";
+      exit(0);
+    }
+
+  std::string dbfile = argv[1];
+
+  errlog::init_log_module();
+  errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
+
+  user_db udb(dbfile);
+  udb.open_db();
+  udb.clear_db();
 }

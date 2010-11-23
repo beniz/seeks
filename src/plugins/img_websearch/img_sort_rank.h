@@ -24,21 +24,21 @@
 
 namespace seeks_plugins
 {
-   
-   class img_sort_rank
-     {
-      public:
-	static void sort_rank_and_merge_snippets(img_query_context *qc,
-						 std::vector<search_snippet*> &snippets);
-     
+
+  class img_sort_rank
+  {
+    public:
+      static void sort_rank_and_merge_snippets(img_query_context *qc,
+          std::vector<search_snippet*> &snippets);
+
 #ifdef FEATURE_OPENCV2
-	static void score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
-						 img_search_snippet *&ref_sp,
-						 std::vector<search_snippet*> &sorted_snippets,
-						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+      static void score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
+          img_search_snippet *&ref_sp,
+          std::vector<search_snippet*> &sorted_snippets,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 #endif
-     };
-   
+  };
+
 } /* end of namespace. */
 
 #endif

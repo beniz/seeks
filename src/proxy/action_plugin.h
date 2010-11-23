@@ -26,20 +26,26 @@
 
 namespace sp
 {
-   class action_plugin : public plugin_element
-     {
-      public:
-	action_plugin(const std::vector<url_spec*> &patterns,
-		      plugin *parent);
-	
-	virtual http_response* plugin_response(client_state *csp) { return NULL; }; 
+  class action_plugin : public plugin_element
+  {
+    public:
+      action_plugin(const std::vector<url_spec*> &patterns,
+                    plugin *parent);
 
-	virtual std::string print() { return ""; }; // virtual
-	
-      private:
-	std::string _action_file; /**< file with action description. */
-     };
-   
+      virtual http_response* plugin_response(client_state *csp)
+      {
+        return NULL;
+      };
+
+      virtual std::string print()
+      {
+        return "";
+      }; // virtual
+
+    private:
+      std::string _action_file; /**< file with action description. */
+  };
+
 } /* end of namespace. */
 
 #endif

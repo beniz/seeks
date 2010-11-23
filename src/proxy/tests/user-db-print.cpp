@@ -29,32 +29,32 @@ using namespace sp;
 
 int main(int argc, char **argv)
 {
-   if (argc < 3)
-     {
-	std::cout << "Usage: <db_file> <seeks base dir>\n";
-	exit(0);
-     }
-      
-   std::string dbfile = argv[1];
-   std::string basedir = argv[2];
-   
-   seeks_proxy::_configfile = basedir + "/config";
-   
-   seeks_proxy::initialize_mutexes();
-   errlog::init_log_module();
-   errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
-   
-   seeks_proxy::_basedir = basedir.c_str();
-   plugin_manager::_plugin_repository = basedir + "/plugins/";
-   seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
-   
-   seeks_proxy::_user_db = new user_db(dbfile);
-   seeks_proxy::_user_db->open_db_readonly();
-   
-   plugin_manager::load_all_plugins();
-   plugin_manager::instanciate_plugins();
-   
-   seeks_proxy::_user_db->print(std::cout);
-   
-   seeks_proxy::_user_db->close_db();
+  if (argc < 3)
+    {
+      std::cout << "Usage: <db_file> <seeks base dir>\n";
+      exit(0);
+    }
+
+  std::string dbfile = argv[1];
+  std::string basedir = argv[2];
+
+  seeks_proxy::_configfile = basedir + "/config";
+
+  seeks_proxy::initialize_mutexes();
+  errlog::init_log_module();
+  errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
+
+  seeks_proxy::_basedir = basedir.c_str();
+  plugin_manager::_plugin_repository = basedir + "/plugins/";
+  seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
+
+  seeks_proxy::_user_db = new user_db(dbfile);
+  seeks_proxy::_user_db->open_db_readonly();
+
+  plugin_manager::load_all_plugins();
+  plugin_manager::instanciate_plugins();
+
+  seeks_proxy::_user_db->print(std::cout);
+
+  seeks_proxy::_user_db->close_db();
 }

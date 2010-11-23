@@ -24,105 +24,105 @@
 
 namespace seeks_plugins
 {
-   
-   enum IMG_SE // in alphabetical order.
-     {
-	BING_IMG,
-	FLICKR,
-	GOOGLE_IMG,
-	WCOMMONS,
-        YAHOO_IMG
-     };
-   
-   class se_bing_img : public search_engine
-     {
-      public:
-	se_bing_img();
-	~se_bing_img();
-	
-	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url, const query_context *qc);
-	
-	static std::string _safe_search_cookie;
-     };
-   
-   class se_ggle_img : public search_engine
-     {
-      public:
-	se_ggle_img();
-	~se_ggle_img();
-	
-	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url, const query_context *qc);
-     };
-   
-   class se_flickr : public search_engine
-     {
-      public:
-	se_flickr();
-	~se_flickr();
-	
-	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url, const query_context *qc);
-     };
-      
-   class se_yahoo_img : public search_engine
-     {
-	
-      public:
-	se_yahoo_img();
-	~se_yahoo_img();
-	
-	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url, const query_context *qc);
-	
-	static std::string _safe_search_cookie;
-     };
-      
-   class se_wcommons : public search_engine
-     {
-      public:
-	se_wcommons();
-	~se_wcommons();
-	
-	virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				 std::string &url, const query_context *qc);
-     };
-      
-   class se_handler_img
-     {
-      public:
-	/*-- querying the search engines. --*/
-	static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled);
-	
-	static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				const IMG_SE &se, std::string &url, const query_context *qc,
-				std::list<const char*> *&lheaders);
-	
-	static void set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses);
-	
-	/*-- parsing --*/
-	static se_parser* create_se_parser(const IMG_SE &se, const bool &safesearch);
-	
-	static sp_err parse_ses_output(std::string **outputs, const int &nresults,
-				       std::vector<search_snippet*> &snippets,
-				       const int &count_offset,
-				       query_context *qr, const std::bitset<IMG_NSEs> &se_enabled);
-	
-	static void parse_output(const ps_thread_arg &args);
-	
-	 /*-- variables. --*/
-      public:
-	static se_bing_img _img_bing;
-	static se_ggle_img _img_ggle;
-	static se_flickr _img_flickr;
-	static se_yahoo_img _img_yahoo;
-	static se_wcommons _img_wcommons;
-	
-	static std::string _se_strings[IMG_NSEs];
-     };
-        
+
+  enum IMG_SE // in alphabetical order.
+  {
+    BING_IMG,
+    FLICKR,
+    GOOGLE_IMG,
+    WCOMMONS,
+    YAHOO_IMG
+  };
+
+  class se_bing_img : public search_engine
+  {
+    public:
+      se_bing_img();
+      ~se_bing_img();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+
+      static std::string _safe_search_cookie;
+  };
+
+  class se_ggle_img : public search_engine
+  {
+    public:
+      se_ggle_img();
+      ~se_ggle_img();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
+  class se_flickr : public search_engine
+  {
+    public:
+      se_flickr();
+      ~se_flickr();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
+  class se_yahoo_img : public search_engine
+  {
+
+    public:
+      se_yahoo_img();
+      ~se_yahoo_img();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+
+      static std::string _safe_search_cookie;
+  };
+
+  class se_wcommons : public search_engine
+  {
+    public:
+      se_wcommons();
+      ~se_wcommons();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
+  class se_handler_img
+  {
+    public:
+      /*-- querying the search engines. --*/
+      static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                        int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled);
+
+      static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                              const IMG_SE &se, std::string &url, const query_context *qc,
+                              std::list<const char*> *&lheaders);
+
+      static void set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses);
+
+      /*-- parsing --*/
+      static se_parser* create_se_parser(const IMG_SE &se, const bool &safesearch);
+
+      static sp_err parse_ses_output(std::string **outputs, const int &nresults,
+                                     std::vector<search_snippet*> &snippets,
+                                     const int &count_offset,
+                                     query_context *qr, const std::bitset<IMG_NSEs> &se_enabled);
+
+      static void parse_output(const ps_thread_arg &args);
+
+      /*-- variables. --*/
+    public:
+      static se_bing_img _img_bing;
+      static se_ggle_img _img_ggle;
+      static se_flickr _img_flickr;
+      static se_yahoo_img _img_yahoo;
+      static se_wcommons _img_wcommons;
+
+      static std::string _se_strings[IMG_NSEs];
+  };
+
 } /* end of namespace. */
 
 #endif

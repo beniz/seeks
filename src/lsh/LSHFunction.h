@@ -1,6 +1,6 @@
 /**
- * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and 
- * does provide several locality sensitive hashing schemes for pattern matching over 
+ * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
+ * does provide several locality sensitive hashing schemes for pattern matching over
  * continuous and discrete spaces.
  * Copyright (C) 2006 Emmanuel Benazera, juban@free.fr
  *
@@ -36,28 +36,40 @@ namespace lsh
    * \class LSHFunction
    */
   class LSHFunction
-    {
+  {
     public:
       static unsigned int _asize;
-    
+
     public:
       LSHFunction ();
       ~LSHFunction ();
 
       void init (const double &b);
 
-      void setA (const unsigned int &kpos, const double &v) { _a[kpos] = v; }
-      double getA (const unsigned int &kpos) const { return _a[kpos]; }
-      
-      void setB (const double &b) { _b = b; }
-      double getB () const { return _b; }
-      
+      void setA (const unsigned int &kpos, const double &v)
+      {
+        _a[kpos] = v;
+      }
+      double getA (const unsigned int &kpos) const
+      {
+        return _a[kpos];
+      }
+
+      void setB (const double &b)
+      {
+        _b = b;
+      }
+      double getB () const
+      {
+        return _b;
+      }
+
       std::ostream& print (std::ostream &output) const;
 
     private:
       double *_a;
       double _b;
-    };
+  };
 
 } /* end of namespace. */
 

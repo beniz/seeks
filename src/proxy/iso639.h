@@ -23,17 +23,17 @@
 
 namespace sp
 {
-   class iso639
-     {
-      public:
-	
-	static void initialize();
-	
-	static bool has_code(const char *c);
-	
-	static hash_map<const char*,bool,hash<const char*>,eqstr> _codes;
-     };
-      
+  class iso639
+  {
+    public:
+
+      static void initialize();
+
+      static bool has_code(const char *c);
+
+      static hash_map<const char*,bool,hash<const char*>,eqstr> _codes;
+  };
+
 } /* end of namespace. */
 
 #endif

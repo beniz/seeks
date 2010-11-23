@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-  
+
 #ifndef CLUSTERING_H
 #define CLUSTERING_H
 
@@ -25,107 +25,107 @@
 
 namespace seeks_plugins
 {
-   class centroid
-     {
-      public:
-	centroid();
-	
-	~centroid()
-	  {};
+  class centroid
+  {
+    public:
+      centroid();
 
-	void clear()
-	  {
-	     _features.clear();
-	  };
-	
-	hash_map<uint32_t,float,id_hash_uint> _features;
-     };
-      
-   class cluster
-     {
-      public:
-	static bool max_rank_cluster(const cluster &c1, const cluster &c2)
-	  {
-	     if (c1._rank > c2._rank)
-	       return true;
-	     else return false;
-	  };
+      ~centroid()
+      {};
 
-	static bool max_size_cluster(const cluster &c1, const cluster &c2)
-	  {
-	     if (c1._cpoints.size() > c2._cpoints.size())
-	       return true;
-	     else return false;
-	  };
-		
-      public:
-	cluster();
-	
-	~cluster()
-	  {};
+      void clear()
+      {
+        _features.clear();
+      };
 
-	void clear()
-	  {
-	     _cpoints.clear();
-	  }
-		
-	void add_point(const uint32_t &id,
-		       hash_map<uint32_t,float,id_hash_uint> *p);
-	
-	void compute_rank(const query_context *qc);
-	
-	void compute_label(const query_context *qc);
-	
-	centroid _c; /**< cluster's centroid. */
-	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint> _cpoints; /**< points associated to this cluster. */
-	double _rank; /**< cluster's rank among clusters. */
-	std::string _label; /**< cluster's label. */
-     };
-      
-   class clustering
-     {
-      public:
-	clustering();
-	
-	clustering(query_context *qc,
-		   const std::vector<search_snippet*> &snippets,
-		   const short &K);
-	
-	virtual ~clustering();
-	
-	virtual void initialize() {};
-	
-	virtual void clusterize() {};
-	
-	virtual void rank_elements(cluster &cl);
-	
-	void post_processing();
-	
-	void rank_clusters_elements();
-	
-	void compute_clusters_rank();
+      hash_map<uint32_t,float,id_hash_uint> _features;
+  };
 
-	void compute_cluster_labels();
-	
-      protected:
-	hash_map<uint32_t,float,id_hash_uint>* get_point_features(const short &np);
-	
-      public:
-	query_context *_qc;
-	
-	hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint> _points; /**< key is the snippet's id. */
+  class cluster
+  {
+    public:
+      static bool max_rank_cluster(const cluster &c1, const cluster &c2)
+      {
+        if (c1._rank > c2._rank)
+          return true;
+        else return false;
+      };
 
-	short _K; /**< number of clusters. */
-     
-	cluster *_clusters;
+      static bool max_size_cluster(const cluster &c1, const cluster &c2)
+      {
+        if (c1._cpoints.size() > c2._cpoints.size())
+          return true;
+        else return false;
+      };
 
-	std::vector<std::string> *_cluster_labels;
-	
-	cluster _garbage_cluster; /**< everything not attached elsewhere. */
-     
-	std::vector<search_snippet*> _snippets;
-     };
-   
+    public:
+      cluster();
+
+      ~cluster()
+      {};
+
+      void clear()
+      {
+        _cpoints.clear();
+      }
+
+      void add_point(const uint32_t &id,
+                     hash_map<uint32_t,float,id_hash_uint> *p);
+
+      void compute_rank(const query_context *qc);
+
+      void compute_label(const query_context *qc);
+
+      centroid _c; /**< cluster's centroid. */
+      hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint> _cpoints; /**< points associated to this cluster. */
+      double _rank; /**< cluster's rank among clusters. */
+      std::string _label; /**< cluster's label. */
+  };
+
+  class clustering
+  {
+    public:
+      clustering();
+
+      clustering(query_context *qc,
+                 const std::vector<search_snippet*> &snippets,
+                 const short &K);
+
+      virtual ~clustering();
+
+      virtual void initialize() {};
+
+      virtual void clusterize() {};
+
+      virtual void rank_elements(cluster &cl);
+
+      void post_processing();
+
+      void rank_clusters_elements();
+
+      void compute_clusters_rank();
+
+      void compute_cluster_labels();
+
+    protected:
+      hash_map<uint32_t,float,id_hash_uint>* get_point_features(const short &np);
+
+    public:
+      query_context *_qc;
+
+      hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint> _points; /**< key is the snippet's id. */
+
+      short _K; /**< number of clusters. */
+
+      cluster *_clusters;
+
+      std::vector<std::string> *_cluster_labels;
+
+      cluster _garbage_cluster; /**< everything not attached elsewhere. */
+
+      std::vector<search_snippet*> _snippets;
+  };
+
 } /* end of namespace. */
 
 #endif

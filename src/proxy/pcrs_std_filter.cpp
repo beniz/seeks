@@ -35,24 +35,24 @@
 
 namespace seeks_plugins
 {
-   /*- pcrs_std_filter_elt -*/
-   pcrs_std_filter_elt::pcrs_std_filter_elt(const char *pattern_filename,
-					    const char *code_filename,
-					    plugin *parent)
-     : filter_plugin(pattern_filename,code_filename,true,false,
-		     parent)
-       {
-       }
-   
-   pcrs_std_filter_elt::pcrs_std_filter_elt(const char *code_filename,
-					    plugin *parent)
-     : filter_plugin(code_filename, true, false, parent)  // always on.
-     {
-     }
-   
-   char* pcrs_std_filter_elt::run(client_state *csp, char *str)
-     {
-	return pcrs_plugin_response(csp, str);
-     }
-   
+  /*- pcrs_std_filter_elt -*/
+  pcrs_std_filter_elt::pcrs_std_filter_elt(const char *pattern_filename,
+      const char *code_filename,
+      plugin *parent)
+      : filter_plugin(pattern_filename,code_filename,true,false,
+                      parent)
+  {
+  }
+
+  pcrs_std_filter_elt::pcrs_std_filter_elt(const char *code_filename,
+      plugin *parent)
+      : filter_plugin(code_filename, true, false, parent)  // always on.
+  {
+  }
+
+  char* pcrs_std_filter_elt::run(client_state *csp, char *str)
+  {
+    return pcrs_plugin_response(csp, str);
+  }
+
 } /* end of namespace. */

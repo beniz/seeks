@@ -25,36 +25,36 @@ using sp::db_record;
 
 namespace seeks_plugins
 {
-   
-   class db_uri_record : public db_record
-     {
-      public:
-	db_uri_record(const time_t &creation_time,
-		      const std::string &plugin_name);
-	
-	db_uri_record(const std::string &plugin_name);
-	
-	db_uri_record();
-	
-	virtual ~db_uri_record();
-	
-	virtual int serialize(std::string &msg) const;
-	
-	virtual int deserialize(const std::string &msg);
-	
-	virtual int merge_with(const db_uri_record &dbr);
-	
-	void create_uri_record(sp::db::record &r) const;
-	
-	void read_uri_record(const sp::db::record &r);
-	
-	virtual std::ostream& print(std::ostream &output) const;
-	
-      public:
-	int _hits; /**< number of hits on this URI. */
-     };
-      
+
+  class db_uri_record : public db_record
+  {
+    public:
+      db_uri_record(const time_t &creation_time,
+                    const std::string &plugin_name);
+
+      db_uri_record(const std::string &plugin_name);
+
+      db_uri_record();
+
+      virtual ~db_uri_record();
+
+      virtual int serialize(std::string &msg) const;
+
+      virtual int deserialize(const std::string &msg);
+
+      virtual int merge_with(const db_uri_record &dbr);
+
+      void create_uri_record(sp::db::record &r) const;
+
+      void read_uri_record(const sp::db::record &r);
+
+      virtual std::ostream& print(std::ostream &output) const;
+
+    public:
+      int _hits; /**< number of hits on this URI. */
+  };
+
 } /* end of namespace. */
 
 #endif
-  
+

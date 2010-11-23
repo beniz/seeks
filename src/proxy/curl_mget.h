@@ -27,59 +27,59 @@
 
 namespace sp
 {
-   typedef struct _cbget
-     {
-	_cbget()
-	  :_url(NULL),_output(NULL),_proxy_port(0),_headers(NULL),_handler(NULL)
-	  {};
-	
-	~_cbget()
-	  {};
-		
-	const char *_url;
-	std::string *_output;
-	
-	long _connect_timeout_sec;
-	long _transfer_timeout_sec;
-	std::string _proxy_addr;
-	short _proxy_port;
-	const std::list<const char*> *_headers; // forced http headers
-	CURL *_handler; // optional
-	std::string _cookies; // optional
-     } cbget;
-   
-    void* pull_one_url(void *arg_cbget);
-   
-   class curl_mget
-     {
-      public:
-	curl_mget(const int &nrequests,
-		  const long &connect_timeout_sec,
-		  const long &connect_timeout_ms,
-		  const long &transfer_timeout_sec,
-		  const long &transfer_timeout_ms);
-	
-	~curl_mget();
-	
-	// direct connection.
-	std::string** www_mget(const std::vector<std::string> &urls, const int &nrequests,
-			       const std::vector<std::list<const char*>*> *headers,
-			       const std::string &proxy_addr, const short &proxy_port,
-			       std::vector<CURL*> *chandlers=NULL,
-			       std::vector<std::string> *cookies=NULL);
-	
-      public:
-	int _nrequests;
-	long _connect_timeout_sec;
-	long _connect_timeout_ms;
-	long _transfer_timeout_sec;
-	long _transfer_timeout_ms;
-	std::string _lang;
-	const std::list<const char*> *_headers; // forced http headers.
-	
-	std::string **_outputs;
-	cbget **_cbgets;
-     };
+  typedef struct _cbget
+  {
+    _cbget()
+        :_url(NULL),_output(NULL),_proxy_port(0),_headers(NULL),_handler(NULL)
+    {};
+
+    ~_cbget()
+    {};
+
+    const char *_url;
+    std::string *_output;
+
+    long _connect_timeout_sec;
+    long _transfer_timeout_sec;
+    std::string _proxy_addr;
+    short _proxy_port;
+    const std::list<const char*> *_headers; // forced http headers
+    CURL *_handler; // optional
+    std::string _cookies; // optional
+  } cbget;
+
+  void* pull_one_url(void *arg_cbget);
+
+  class curl_mget
+  {
+    public:
+      curl_mget(const int &nrequests,
+                const long &connect_timeout_sec,
+                const long &connect_timeout_ms,
+                const long &transfer_timeout_sec,
+                const long &transfer_timeout_ms);
+
+      ~curl_mget();
+
+      // direct connection.
+      std::string** www_mget(const std::vector<std::string> &urls, const int &nrequests,
+                             const std::vector<std::list<const char*>*> *headers,
+                             const std::string &proxy_addr, const short &proxy_port,
+                             std::vector<CURL*> *chandlers=NULL,
+                             std::vector<std::string> *cookies=NULL);
+
+    public:
+      int _nrequests;
+      long _connect_timeout_sec;
+      long _connect_timeout_ms;
+      long _transfer_timeout_sec;
+      long _transfer_timeout_ms;
+      std::string _lang;
+      const std::list<const char*> *_headers; // forced http headers.
+
+      std::string **_outputs;
+      cbget **_cbgets;
+  };
 } /* end of namespace */
 
 #endif

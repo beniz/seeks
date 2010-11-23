@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-  
+
 #include "mutexes.h"
 #include "errlog.h"
 
@@ -28,52 +28,52 @@ using sp::errlog;
 void mutex_lock(sp_mutex_t *mutex)
 {
 #ifdef FEATURE_PTHREAD
-   int err = pthread_mutex_lock(mutex);
-   if (err)
-     {
-	if (mutex != &errlog::_log_mutex)
-	  {
-	     errlog::log_error(LOG_LEVEL_FATAL,
-			       "Mutex locking failed: %s.\n", strerror(err));
-	  }
-	exit(1);
-     }
+  int err = pthread_mutex_lock(mutex);
+  if (err)
+    {
+      if (mutex != &errlog::_log_mutex)
+        {
+          errlog::log_error(LOG_LEVEL_FATAL,
+                            "Mutex locking failed: %s.\n", strerror(err));
+        }
+      exit(1);
+    }
 #else
-   EnterCriticalSection(mutex);
+  EnterCriticalSection(mutex);
 #endif /* def FEATURE_PTHREAD */
 }
 
 void mutex_unlock(sp_mutex_t *mutex)
 {
 #ifdef FEATURE_PTHREAD
-   int err = pthread_mutex_unlock(mutex);
-   if (err)
-     {
-	if (mutex != &errlog::_log_mutex)
-	  {
-	     errlog::log_error(LOG_LEVEL_FATAL,
-			       "Mutex unlocking failed: %s.\n", strerror(err));
-	  }
-	exit(1);
-     }
+  int err = pthread_mutex_unlock(mutex);
+  if (err)
+    {
+      if (mutex != &errlog::_log_mutex)
+        {
+          errlog::log_error(LOG_LEVEL_FATAL,
+                            "Mutex unlocking failed: %s.\n", strerror(err));
+        }
+      exit(1);
+    }
 #else
-	LeaveCriticalSection(mutex);
+  LeaveCriticalSection(mutex);
 #endif /* def FEATURE_PTHREAD */
 }
 
 void mutex_init(sp_mutex_t *mutex)
 {
 #ifdef FEATURE_PTHREAD
-   int err = pthread_mutex_init(mutex, 0);
-   if (err)
-     {
-	printf("Fatal error. Mutex initialization failed: %s.\n",
-	       strerror(err));
-	exit(1);
-     }
+  int err = pthread_mutex_init(mutex, 0);
+  if (err)
+    {
+      printf("Fatal error. Mutex initialization failed: %s.\n",
+             strerror(err));
+      exit(1);
+    }
 #else
-   InitializeCriticalSection(mutex);
+  InitializeCriticalSection(mutex);
 #endif /* def FEATURE_PTHREAD */
 }
 
-  
+
