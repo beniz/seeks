@@ -167,8 +167,7 @@
 		},
 
 		failure: function () {
-                    alert("fail");
-                    outputDiv.setContent(this.failureTemplate);
+                    outputDiv.setContent(failureTemplate);
 		}
             }
         });

@@ -15,6 +15,8 @@ snippetTweetTemplate =
 
 persTemplateFlag = '{prs}';
 
+failureTemplate = '';
+
 var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
 pagesDiv = Y.one("#search_page_current"), persHref = Y.one("#tab-pers"), langSpan = Y.one('#tab-language'),
 persSpan = Y.one("#tab-pers-flag"), pagePrev = Y.one("#search_page_prev"), pageNext = Y.one("#search_page_next");

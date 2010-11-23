@@ -15,6 +15,8 @@ snippetTweetTemplate =
 
 persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
 
+failureTemplate = '';
+
 var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
 pagesDiv = Y.one("#search_page_current"), pagesDivTop = Y.one("#search_page_current_top"), 
 persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
