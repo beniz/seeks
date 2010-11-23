@@ -96,7 +96,7 @@ personalized-ranking 1
 # Enables the dynamic ui (JSON-based). Do not use this UI if 
 # your browser is console-based and / or does not support javascript.
 # default: 0
-dynamic-ui 1
+dynamic-ui 0
 
 # User Interface theme identifier.
 # 'original' is the historical theme.
