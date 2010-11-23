@@ -8,7 +8,7 @@ search-language auto
 search-results-page 10
 
 # one or more enabled search engines
-# google, yahoo, bing, exalead, cuil, yauba, blekko
+# google, yahoo, bing, exalead, yauba, blekko
 search-engine google
 search-engine bing
 search-engine yahoo
@@ -96,7 +96,7 @@ personalized-ranking 1
 # Enables the dynamic ui (JSON-based). Do not use this UI if 
 # your browser is console-based and / or does not support javascript.
 # default: 0
-dynamic-ui 0
+dynamic-ui 1
 
 # User Interface theme identifier.
 # 'original' is the historical theme.
