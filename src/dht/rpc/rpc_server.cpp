@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -253,12 +254,19 @@ namespace dht
     //TODO: error catching...
     server->run();
   }
-
+  
+  int rpc_server::stop_thread()
+  {
+    int err = pthread_kill(_rpc_server_thread,0);
+    if (err = 0)
+      return DHT_ERR_OK;
+    else return DHT_ERR_PTHREAD;
+  }
+  
   dht_err rpc_server::serve_response(const std::string &msg,
                                      const std::string &addr,
                                      std::string &resp_msg)
   {
     return DHT_ERR_OK;
   }
-
 } /* end of namespace. */

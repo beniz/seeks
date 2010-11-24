@@ -37,9 +37,15 @@ namespace dht
       virtual ~rpc_server();
 
       dht_err run();
+      
       dht_err bind();
+      
       dht_err run_loop_once();
+      
       dht_err run_thread();
+      
+      dht_err stop_thread();
+      
       void close_socket();
 
       int detach_thread();

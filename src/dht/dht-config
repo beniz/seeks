@@ -5,7 +5,7 @@
 # In all cases, more virtual nodes means faster lookups on the DHT
 # for the node that hosts them.
 # default: 32
-number-vnodes 32
+number-vnodes 2
 
 # level-1 communication port. 
 # level-1 is for DHT low level coms and stabilization.
@@ -61,12 +61,16 @@ succlist-size 10
 # Routing is off by default for a better control of the core Seeks p2p
 # network. This may change in the future.
 # default: 0
-routing 0
+routing 1
 
 # Timeout in seconds between to rejoin trials after being cut off from
 # the network.
 # default: 30
 rejoing-timeout 30
+
+# Replication factor, i.e. the number of neighboring machines the data
+# are replicated onto.
+replication-factor 2
 
 # Search group options are below.
 

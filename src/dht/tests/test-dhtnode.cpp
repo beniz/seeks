@@ -43,8 +43,8 @@ void sig_handler(int the_signal)
       case SIGTERM:
       case SIGINT:
       case SIGHUP:
-	if (persistence)
-	  dnode->hibernate_vnodes_table();
+	//if (persistence) //TODO: remove existing table _before_ running, since they are now stored by default.
+	  //dnode->hibernate_vnodes_table();
 	exit(the_signal);
 	break;
       default:

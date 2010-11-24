@@ -76,7 +76,9 @@ namespace dht
    class Stabilizer : public BstTimeCbTree 
      {
       public:
-	Stabilizer();
+	Stabilizer(const bool &start=true);
+	
+	~Stabilizer();
 	
 	void add_fast(Stabilizable* stab) { _stab_elts_fast.push_back(stab); }
 	void add_slow(Stabilizable* stab) { _stab_elts_slow.push_back(stab); }  

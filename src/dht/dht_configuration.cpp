@@ -36,6 +36,7 @@ namespace dht
 #define hash_succlist_size                                2998048309ul  /* "succlist-size" */
 #define hash_routing                                      2057335831ul  /* "routing" */
 #define hash_rejoin_timeout                               2877119161ul  /* "rejoin-timeout" */
+#define hash_replication_factor                           1408115358ul  /* "replication-factor" */
    
    dht_configuration* dht_configuration::_dht_config = NULL;
    
@@ -62,6 +63,7 @@ namespace dht
 	_succlist_size = 10; // XXX: in the future, should be reset dynamically w.r.t. estimated number of nodes on the ring.
 	_routing = true; // XXX: in stable releases, routing will be set to false.
 	_rejoin_timeout = 30; // periodic rejoin check every 30 seconds after being cut from the network.
+	_replication_factor = 2; // up to _succlist_size.
      }
    
    void dht_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -143,6 +145,13 @@ namespace dht
 	     _rejoin_timeout = atoi(arg);
 	     configuration_spec::html_table_row(_config_args,cmd,arg,
 						"Timeout between two attempts to rejoin the circle of DHT nodes");
+	     break;
+	     
+	   case hash_replication_factor:
+	     _replication_factor = atoi(arg);
+	     if (_replication_factor > _succlist_size)
+	       errlog::log_error(LOG_LEVEL_INFO,"Replication factor cannot be above succlist size, forced to succlist size");
+	     _replication_factor = std::min(static_cast<int>(_replication_factor),_succlist_size);
 	     break;
 	     
 	   default:
