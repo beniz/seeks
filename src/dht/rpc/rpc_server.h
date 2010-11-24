@@ -29,65 +29,68 @@
 
 namespace dht
 {
-   class rpc_server
-     {
-      public:
-	rpc_server(const std::string &hostname, const short &port);
-	
-	virtual ~rpc_server();
-	
-	dht_err run();
+  class rpc_server
+  {
+    public:
+      rpc_server(const std::string &hostname, const short &port);
 
-	dht_err run_thread();
-	
-	int detach_thread();
-	
-	static void run_static(rpc_server *server);
-	
-	/*- server responses. -*/
-	virtual dht_err serve_response(const std::string &msg,
-				       const std::string &addr,
-				       std::string &resp_msg);
-				       		
-      public:
-	NetAddress _na;
-	pthread_t _rpc_server_thread;
-     };
-   
-   /*- exceptions. -*/
-   class rpc_server_msg_error_exception : public dht_exception
-     {
-      public:
-	rpc_server_msg_error_exception()
-	  :dht_exception()
-	    {
-	       _message = "received malformed or malserialized message";
-	    };
-	virtual ~rpc_server_msg_error_exception() {};
-     };
-   
-   class rpc_server_wrong_layer_exception : public dht_exception
-     {
-      public:
-	rpc_server_wrong_layer_exception()
-	  :dht_exception()
-	    {
-	       _message = "received another layer's message";
-	    };
-	virtual ~rpc_server_wrong_layer_exception() {};
-     };
+      virtual ~rpc_server();
 
-   class rpc_server_sending_error_exception : public dht_exception
-     {
-      public:
-	rpc_server_sending_error_exception()
-	  :dht_exception()
-	    {
-	       _message = "error sending msg by the rpc server";
-	    };
-	virtual ~rpc_server_sending_error_exception() {};
-     };
-      
+      dht_err run();
+      dht_err bind();
+      dht_err run_loop_once();
+      dht_err run_thread();
+      void close_socket();
+
+      int detach_thread();
+
+      static void run_static(rpc_server *server);
+
+      /*- server responses. -*/
+      virtual dht_err serve_response(const std::string &msg,
+                                     const std::string &addr,
+                                     std::string &resp_msg);
+
+    public:
+      NetAddress _na;
+      pthread_t _rpc_server_thread;
+      int _udp_sock;
+  };
+
+  /*- exceptions. -*/
+  class rpc_server_msg_error_exception : public dht_exception
+  {
+    public:
+      rpc_server_msg_error_exception()
+        :dht_exception()
+      {
+        _message = "received malformed or malserialized message";
+      };
+      virtual ~rpc_server_msg_error_exception() {};
+  };
+
+  class rpc_server_wrong_layer_exception : public dht_exception
+  {
+    public:
+      rpc_server_wrong_layer_exception()
+        :dht_exception()
+      {
+        _message = "received another layer's message";
+      };
+      virtual ~rpc_server_wrong_layer_exception() {};
+  };
+
+  class rpc_server_sending_error_exception : public dht_exception
+  {
+    public:
+      rpc_server_sending_error_exception()
+        :dht_exception()
+      {
+        _message = "error sending msg by the rpc server";
+      };
+      virtual ~rpc_server_sending_error_exception() {};
+  };
+
 } /* end of namespace. */
 
 #endif
