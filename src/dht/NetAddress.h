@@ -35,7 +35,7 @@ namespace dht
       public:
 	NetAddress();
 	
-	NetAddress(const std::string& naddress, const short& port);
+	NetAddress(const std::string& naddress, const unsigned short& port);
 
 	// deserialize constructor.
 	NetAddress(const uint32_t &ip, const std::string &port);
@@ -46,9 +46,9 @@ namespace dht
 	
 	bool empty() const;
 	std::string getNetAddress() const { return _net_address; }
-	short getPort() const { return _port; }
+	unsigned short getPort() const { return _port; }
 	void setNetAddress(const std::string& naddress) { _net_address = naddress; }
-	void setPort(const short& p) { _port = p; }      
+	void setPort(const unsigned short& p) { _port = p; }      
 		
 	/**
 	 * \brief converts to a full address string.
@@ -74,7 +74,7 @@ namespace dht
 	static std::string unserialize_ip(const uint32_t &ip);
 	
 	std::string serialize_port() const;
-	static short unserialize_port(const std::string &p);
+	static unsigned short unserialize_port(const std::string &p);
 	
       private:
 	/**
@@ -85,7 +85,7 @@ namespace dht
 	/**
 	 * communication port.
 	 */
-	short _port;
+	unsigned short _port;
      };
    
 } /* end of namespace. */

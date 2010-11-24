@@ -33,7 +33,7 @@ namespace dht
        {
        }
    
-   NetAddress::NetAddress(const std::string& naddress, const short& port)
+   NetAddress::NetAddress(const std::string& naddress, const unsigned short& port)
      : _net_address(naddress), _port(port)
        {
        }
@@ -141,11 +141,11 @@ namespace dht
 	return res;
      }
    
-   short NetAddress::unserialize_port(const std::string &p)
+   unsigned short NetAddress::unserialize_port(const std::string &p)
      {
 	std::vector<unsigned char> v;
 	std::copy(p.begin(),p.end(),std::back_inserter(v));
-	short res = 0;
+	unsigned short res = 0;
 	res = serialize::from_network_order(res,v);
 	return res;
      }
