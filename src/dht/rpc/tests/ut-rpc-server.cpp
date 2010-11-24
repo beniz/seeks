@@ -66,9 +66,7 @@ class ServerTest : public testing::Test
     virtual void SetUp()
     {
       DHTNode::_dht_config = new dht_configuration("");
-      DHTNode::_dht_config->set_default_config();
       _server = new test_rpc_server();
-      _server->bind();
     }
 
     virtual void TearDown()
@@ -79,10 +77,13 @@ class ServerTest : public testing::Test
     test_rpc_server* _server;
 };
 
-TEST_F(ServerTest, connect)
+TEST_F(ServerTest, bind)
 {
+  ASSERT_EQ(DHT_ERR_OK, _server->bind());
   ASSERT_NE(-1, _server->_udp_sock);
   ASSERT_NE(0, _server->_na.getPort());
+}
+
 #if 0
   _server->message2answer["IN"] = "OUT";
   std::string response;
@@ -90,7 +91,6 @@ TEST_F(ServerTest, connect)
   ASSERT_EQ(DHT_ERR_OK, client.do_rpc_call(_server->_na, "IN", true, response));
   ASSERT_EQ("OUT", response);
 #endif
-}
 
 int main(int argc, char **argv)
 {

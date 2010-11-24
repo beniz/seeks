@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2009, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -190,29 +191,6 @@ namespace dht
 	
       public:
 	static void deserialize(const std::string &str, l1::l1_response *l1r);
-     };
-   
-   /*- exceptions. -*/
-   class l1_fail_serialize_exception : public dht_exception
-     {
-      public:
-	l1_fail_serialize_exception()
-	  :dht_exception()
-	    {
-	       _message = "failed serialization of l1 message";
-	    };
-	virtual ~l1_fail_serialize_exception() {};
-     };
-   
-   class l1_fail_deserialize_exception : public dht_exception
-     {
-      public:
-	l1_fail_deserialize_exception()
-	  :dht_exception()
-	    {
-	       _message = "failed deserialization of l1 message";
-	    };
-	virtual ~l1_fail_deserialize_exception() {};
      };
       
 } /* end of namespace. */

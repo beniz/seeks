@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2009, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -61,40 +62,6 @@ namespace dht
       NetAddress _na;
       pthread_t _rpc_server_thread;
       int _udp_sock;
-  };
-
-  /*- exceptions. -*/
-  class rpc_server_msg_error_exception : public dht_exception
-  {
-    public:
-      rpc_server_msg_error_exception()
-        :dht_exception()
-      {
-        _message = "received malformed or malserialized message";
-      };
-      virtual ~rpc_server_msg_error_exception() {};
-  };
-
-  class rpc_server_wrong_layer_exception : public dht_exception
-  {
-    public:
-      rpc_server_wrong_layer_exception()
-        :dht_exception()
-      {
-        _message = "received another layer's message";
-      };
-      virtual ~rpc_server_wrong_layer_exception() {};
-  };
-
-  class rpc_server_sending_error_exception : public dht_exception
-  {
-    public:
-      rpc_server_sending_error_exception()
-        :dht_exception()
-      {
-        _message = "error sending msg by the rpc server";
-      };
-      virtual ~rpc_server_sending_error_exception() {};
   };
 
 } /* end of namespace. */

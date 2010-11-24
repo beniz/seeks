@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -57,31 +58,6 @@ namespace dht
 	 * deserialize and read from an intput stream.
 	 */
 	static void deserialize_from_stream(std::istream &in, l1::table::vnodes_table *vt);
-     };
-   
-   /*- exceptions. -*/
-   class l1_data_fail_serialize_exception : public dht_exception
-     {
-      public:
-	l1_data_fail_serialize_exception()
-	  :dht_exception()
-	    {
-	       _message = "failed serialization of vnodes table data";
-	    };
-	virtual ~l1_data_fail_serialize_exception() {};
-     };
-   
-   class l1_data_fail_deserialize_exception : public dht_exception
-     {
-      public:
-	l1_data_fail_deserialize_exception()
-	  :dht_exception()
-	    {
-	       _message = "failed deserialization of vnodes table data";
-	    };
-	virtual ~l1_data_fail_deserialize_exception() 
-	  {
-	  };
      };
    
 } /* end of namespace. */

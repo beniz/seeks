@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -53,10 +54,10 @@ namespace dht
 	if (!l2r)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't serialize null subscribe response");
-	     throw l2_fail_serialize_exception();
+	     throw dht_exception(DHT_ERR_MSG,"can't serialize null subscribe response");
 	  }
 	if (!l2r->SerializeToString(&str))
-	  throw l2_fail_serialize_exception();
+          throw dht_exception(DHT_ERR_MSG,"l2::SerializeToString");
      }
    
    dht_err l2_protob_wrapper::read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
@@ -89,10 +90,10 @@ namespace dht
 	if (!l2r)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null response");
-	     throw l2_fail_deserialize_exception();
+	     throw dht_exception(DHT_ERR_MSG,"can't deserialize to null response");
 	  }
 	if (!l2r->ParseFromString(str))
-	  throw l2_fail_deserialize_exception();
+          throw dht_exception(DHT_ERR_MSG,"l2::ParseFromString(" + str + ")");
      }
       
 } /* end of namespace. */

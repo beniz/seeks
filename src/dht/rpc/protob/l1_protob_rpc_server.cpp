@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -57,10 +58,10 @@ namespace dht
 	  {
 	     l1_protob_wrapper::deserialize(msg,&l1q);
 	  }
-	catch (l1_fail_deserialize_exception ex) 
+	catch (dht_exception ex) 
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
-	     return DHT_ERR_MSG;
+	     throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception" + ex.what());
 	  }
 			
 	// read query.
@@ -147,10 +148,7 @@ namespace dht
 						    std::string &resp_msg,
 						    const std::string &inc_msg)
      {
-	// XXX: we could communicate something nice back the sender,
-	// but we won't.
-	throw rpc_server_wrong_layer_exception();
-	return DHT_ERR_OK; // if no exception.
+       throw dht_exception(DHT_ERR_NETWORK, "received another layer's message");
      }
       
    dht_err l1_protob_rpc_server::execute_callback(const uint32_t &fct_id,

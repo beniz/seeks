@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -138,12 +139,12 @@ namespace dht
 	  {
 	     l2_data_protob_wrapper::serialize_to_string(l2_sg,str);
 	  }
-	catch (l2_fail_serialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     // error.
 	     errlog::log_error(LOG_LEVEL_DHT,"Error serializing searchgroup");
 	     delete l2_sg;
-	     return false;
+	     throw dht_exception(e.code(), "Error serializing searchgroup: " + e.what());
 	  }
 	delete l2_sg;
 	return true;
@@ -156,12 +157,12 @@ namespace dht
 	  {
 	     l2_data_protob_wrapper::deserialize_from_string(str,l2_sg);
 	  }
-	catch (l2_fail_deserialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     // error.
 	     errlog::log_error(LOG_LEVEL_DHT,"Error deserializing searchgroup");
 	     delete l2_sg;
-	     return NULL;
+	     throw dht_exception(e.code(), "Error deserializing searchgroup: " + e.what());
 	  }
 	
 	Searchgroup *sg = NULL;

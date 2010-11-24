@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -84,27 +85,24 @@ namespace dht
 	l1_protob_wrapper::serialize_to_string(l1q,msg_str);
 	std::string resp_str;
 	
-	// send & get response.
-	//dht_err err = do_rpc_call_threaded(recipient,msg_str,true,resp_str);
-	dht_err err = DHT_ERR_OK;
-	do_rpc_call(recipient,msg_str,true,resp_str,err);
-	delete l1q;
-	l1q = NULL;
-		
-	if (err != DHT_ERR_OK)
-	  {
-	     return err;
-	  }
-	
+        try
+          {
+            do_rpc_call(recipient,msg_str,true,resp_str);
+          }
+	catch (dht_exception &e)
+          {
+            delete l1q;
+            throw e;
+          }
+
 	// deserialize response.
 	try 
 	  {
 	     l1_protob_wrapper::deserialize(resp_str,l1r);
 	  }
-	catch (l1_fail_deserialize_exception &e)
+	catch (dht_exception &e)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l1 error: %s",e.what().c_str());
-	     return DHT_ERR_NETWORK;
+            throw dht_exception(DHT_ERR_NETWORK, e.what());
 	  }
 		     
 	return DHT_ERR_OK;

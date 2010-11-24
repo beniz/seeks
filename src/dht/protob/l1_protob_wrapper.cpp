@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2009, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -128,10 +129,10 @@ namespace dht
 	if (!l1q)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't serialize null query");
-	     throw l1_fail_serialize_exception();
+	     throw dht_exception(DHT_ERR_MSG, "can't serialize null query");
 	  }
 	if (!l1q->SerializeToString(&str)) // != 0 on error.
-	  throw l1_fail_serialize_exception();
+          throw dht_exception(DHT_ERR_MSG, "SerializeToString failed");
      }
    
    /*- responses. -*/
@@ -269,10 +270,10 @@ namespace dht
 	if (!l1r)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't serialize null response");
-	     throw l1_fail_serialize_exception();
+	     throw dht_exception(DHT_ERR_MSG, "can't serialize null response");
 	  }
-	if (!l1r->SerializeToString(&str))
-	  throw l1_fail_serialize_exception();
+	if (!l1r->SerializeToString(&str)) // != 0 on error.
+          throw dht_exception(DHT_ERR_MSG, "SerializeToString failed");
      }
       
    /*- protobuffers to data. -*/
@@ -367,10 +368,10 @@ namespace dht
 	if (!l1q)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null query");
-	     throw l1_fail_deserialize_exception();
+	     throw dht_exception(DHT_ERR_MSG, "can't deserialize to null query");
 	  }
 	if (!l1q->ParseFromString(str))
-	  throw l1_fail_deserialize_exception();
+          throw dht_exception(DHT_ERR_MSG, "ParseFromString(" + str + ") failed");
      }
 
    /*- responses -*/
@@ -532,10 +533,10 @@ namespace dht
 	if (!l1r)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null response");
-	     throw l1_fail_deserialize_exception();
+             throw dht_exception(DHT_ERR_MSG, "can't deserialize to null response");
 	  }
 	if (!l1r->ParseFromString(str))
-	  throw l1_fail_deserialize_exception();
+          throw dht_exception(DHT_ERR_MSG, "ParseFromString(" + str + ") failed");
      }
    
 } /* end of namespace. */

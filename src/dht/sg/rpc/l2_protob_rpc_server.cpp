@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -102,11 +103,11 @@ namespace dht
 	       {
 		  l2_data_protob_wrapper::deserialize_from_string(inc_msg,l1q);
 	       }
-	     catch (l2_fail_deserialize_exception &e)
+	     catch (dht_exception &e)
 	       {
 		  delete l1q;
 		  errlog::log_error(LOG_LEVEL_DHT,"l2_protob_rpc_server::lx_server_response exception %s",e.what().c_str());
-		  return DHT_ERR_MSG;
+		  throw e;
 	       }
 	     uint32_t fct_id2;
 	     DHTKey recipient_key2;

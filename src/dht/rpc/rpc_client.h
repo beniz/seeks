@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -77,62 +78,6 @@ namespace dht
 			    const std::string &msg,
 			    const bool &need_response,
 			    std::string &response);
-     };
-   
-   /*- exceptions. -*/
-   class rpc_client_socket_error_exception : public dht_exception
-     {
-      public:
-	rpc_client_socket_error_exception()
-	  :dht_exception()
-	    {
-	       _message = "rpc client socket error";
-	    };
-	virtual ~rpc_client_socket_error_exception() {};
-     };
-   	
-   class rpc_client_host_error_exception : public dht_exception
-     {
-      public:
-	rpc_client_host_error_exception(const std::string &host_str)
-	  :dht_exception()
-	    {
-	       _message = "rpc client unknown host: " + host_str;
-	    };
-	virtual ~rpc_client_host_error_exception() {};
-     };
-   
-   class rpc_client_sending_error_exception : public dht_exception
-     {
-      public:
-	rpc_client_sending_error_exception()
-	  :dht_exception()
-	    {
-	       _message = "rpc client sending error";
-	    }
-	virtual ~rpc_client_sending_error_exception() {};
-     };
-   
-   class rpc_client_reception_error_exception : public dht_exception
-     {
-      public:
-	rpc_client_reception_error_exception()
-	  :dht_exception()
-	    {
-	       _message = "rpc client sending error";
-	    }
-	virtual ~rpc_client_reception_error_exception() {};
-     };
-   
-   class rpc_client_timeout_error_exception : public dht_exception
-     {
-      public:
-	rpc_client_timeout_error_exception()
-	  :dht_exception()
-	    {
-	       _message = "rpc client timeout error";
-	    }
-	virtual ~rpc_client_timeout_error_exception() {};
      };
    
 } /* end of namespace. */

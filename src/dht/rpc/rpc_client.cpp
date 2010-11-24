@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -51,96 +52,6 @@ namespace dht
      {
      }
 
-   /* void rpc_client::do_rpc_call_static(rpc_call_args *args)
-     {
-	try
-	  {
-	     args->_err = args->_client->do_rpc_call(args->_server_na,args->_msg,
-						     args->_need_response,args->_response);
-	  }
-	catch (rpc_client_timeout_error_exception &e)
-	  {
-	     args->_err = DHT_ERR_COM_TIMEOUT;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_reception_error_exception &e)
-	  {
-	     args->_err = DHT_ERR_RESPONSE;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_socket_error_exception &e)
-	  {
-	     args->_err = DHT_ERR_SOCKET;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_host_error_exception &e)
-	  {
-	     args->_err = DHT_ERR_HOST;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_sending_error_exception &e)
-	  {
-	     args->_err = DHT_ERR_CALL;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-     } */
-   
-   /* dht_err rpc_client::do_rpc_call_threaded(const NetAddress &server_na,
-					    const std::string &msg,
-					    const bool &need_response,
-					    std::string &response)
-     {
-	rpc_call_args args(this,server_na,msg,need_response,response);
-	pthread_t rpc_call_thread;
-	int err = pthread_create(&rpc_call_thread,NULL, //joinable
-				 (void * (*)(void *))&rpc_client::do_rpc_call_static,&args);
-	
-	// join.
-	pthread_join(rpc_call_thread,NULL);
-	
-	response = args._response;
-	return args._err;
-     } */
-   
-   dht_err rpc_client::do_rpc_call(const NetAddress &server_na,
-				   const std::string &msg,
-				   const bool &need_response,
-				   std::string &response,
-				   dht_err &err)
-     {
-	try
-	  {
-	     err = do_rpc_call(server_na,msg,
-			       need_response,response);
-	  }
-	catch (rpc_client_timeout_error_exception &e)
-	  {
-	     err = DHT_ERR_COM_TIMEOUT;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_reception_error_exception &e)
-	  {
-	     err = DHT_ERR_RESPONSE;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_socket_error_exception &e)
-	  {
-	     err = DHT_ERR_SOCKET;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_host_error_exception &e)
-	  {
-	     err = DHT_ERR_HOST;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	catch (rpc_client_sending_error_exception &e)
-	  {
-	     err = DHT_ERR_CALL;
-	     errlog::log_error(LOG_LEVEL_DHT, e.what().c_str());
-	  }
-	return err;
-     }
-   
    dht_err rpc_client::do_rpc_call(const NetAddress &server_na,
 				   const std::string &msg,
 				   const bool &need_response,
@@ -168,7 +79,7 @@ namespace dht
 	  {
 	     spsockets::close_socket(udp_sock); // beware.
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error creating rpc_client socket");
-	     throw rpc_client_socket_error_exception();
+	     throw dht_exception(DHT_ERR_SOCKET,"Error creating rpc_client socket");
 	  }
 	
         /*
@@ -219,7 +130,7 @@ namespace dht
 	     freeaddrinfo(result);
 	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error sending rpc_client msg");
-	     throw rpc_client_sending_error_exception();
+	     throw dht_exception(DHT_ERR_CALL,"Error sending rpc_client msg");
 	  }
 	
 	// receive message, if necessary.
@@ -247,7 +158,7 @@ namespace dht
 	     
 	     errlog::log_error(LOG_LEVEL_ERROR, "Didn't receive response data in time to layer 1 call");
 	     response = "";
-	     throw rpc_client_timeout_error_exception();
+	     throw dht_exception(DHT_ERR_COM_TIMEOUT,"Didn't receive response data in time to layer 1 call");
 	  }
 	else if (m < 0)
 	  {
@@ -266,7 +177,7 @@ namespace dht
 	     response.clear();
 	     spsockets::close_socket(udp_sock);
 	     errlog::log_error(LOG_LEVEL_ERROR,"Error in response to rpc_client msg");
-	     throw rpc_client_reception_error_exception();
+	     throw dht_exception(DHT_ERR_RESPONSE,"Error in response to rpc_client msg");
 	  }
 	
 	//debug

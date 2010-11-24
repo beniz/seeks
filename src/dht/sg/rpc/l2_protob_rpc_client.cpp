@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,6 +22,7 @@
 #include "l2_protob_rpc_client.h"
 #include "l2_data_protob_wrapper.h"
 #include "errlog.h"
+#include "miscutil.h"
 
 using sp::errlog;
 
@@ -52,10 +54,10 @@ namespace dht
 	  {	
 	     l1_protob_wrapper::serialize_to_string(l2q,msg);
 	  }
-	catch(l1_fail_serialize_exception &e)
+	catch(dht_exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
-	     return DHT_ERR_CALL;
+	     throw dht_exception(DHT_ERR_CALL, "rpc " + sp::miscutil::to_string(fct_id) + " l2 error" + e.what());
 	  }
 		     
 	return RPC_call(msg,recipient,l2r);
@@ -80,10 +82,10 @@ namespace dht
 	  {
 	     l1_protob_wrapper::serialize_to_string(l2q,msg);
 	  }
-	catch(l1_fail_serialize_exception &e)
+	catch(dht_exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
-	     return DHT_ERR_CALL;
+	     throw dht_exception(DHT_ERR_CALL, "rpc " + sp::miscutil::to_string(fct_id) + " l2 error " + e.what());
 	  }
 	
 	return RPC_call(msg,recipient,l2r);
@@ -111,10 +113,10 @@ namespace dht
 	  {
 	     l2_data_protob_wrapper::serialize_to_string(l2q,msg);
 	  }
-	catch (l2_fail_serialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
-	     return DHT_ERR_CALL;
+	     throw dht_exception(DHT_ERR_CALL, "rpc " + sp::miscutil::to_string(fct_id) + " l2 error " + e.what());
 	  }
 	return RPC_call(msg,recipient,l1r);
      }
@@ -125,22 +127,17 @@ namespace dht
      {
 	// send & get response.
 	std::string resp_str;
-	dht_err err = DHT_ERR_OK;
-	do_rpc_call(recipient,msg,true,resp_str,err);
-	if (err != DHT_ERR_OK)
-	  {
-	     return err;
-	  }
+        do_rpc_call(recipient,msg,true,resp_str);
 	
 	// deserialize response.
 	try
 	  {
 	     l2_protob_wrapper::deserialize(resp_str,l2r);
 	  }
-	catch (l2_fail_deserialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
-	     return DHT_ERR_NETWORK;
+	     throw dht_exception(DHT_ERR_NETWORK, "rpc l2 error " + e.what());
 	  }
 	return DHT_ERR_OK;
      }
@@ -152,22 +149,17 @@ namespace dht
 	
 	// send & get response.
 	std::string resp_str;
-	dht_err err = DHT_ERR_OK;
-	do_rpc_call(recipient,msg,true,resp_str,err);
-	if (err != DHT_ERR_OK)
-	  {
-	     return err;
-	  }
+	do_rpc_call(recipient,msg,true,resp_str);
 	
 	// deserialize response.
 	try
 	  {
 	     l1_protob_wrapper::deserialize(resp_str,l1r);
 	  }
-	catch (l2_fail_deserialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
-	     return DHT_ERR_NETWORK;
+	     throw dht_exception(DHT_ERR_NETWORK, "rpc l2 error " + e.what());
 	  }
 	return DHT_ERR_OK;
      }

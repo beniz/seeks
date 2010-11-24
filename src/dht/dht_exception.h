@@ -1,7 +1,8 @@
-/**
+/** -*- mode: c++ -*-
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +18,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-  
+
 #ifndef DHT_EXCEPTION_H
 #define DHT_EXCEPTION_H
 
@@ -25,19 +26,23 @@
 
 namespace dht
 {
-   class dht_exception
-     {
-      public:
-	dht_exception() {};
-	
-	virtual ~dht_exception() {};
-	
-	const std::string& what() const { return _message; };
-     
-      protected:
-	std::string _message;
-     };
-   
+  class dht_exception
+  {
+    public:
+
+      dht_exception(int code, const std::string message) : _code(code), _message(message) {};
+
+      std::string what() const { return _message; }
+
+      int code() const { return _code; }
+
+    protected:
+
+      int _code;
+
+      std::string _message;
+  };
+
 } /* end of namespace. */
 
 #endif

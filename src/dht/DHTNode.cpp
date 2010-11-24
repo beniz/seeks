@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -237,10 +238,10 @@ namespace dht
 	  {
 	     l1_data_protob_wrapper::deserialize_from_stream(ifs,persistent_vt);
 	  }
-	catch (l1_fail_deserialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed deserializing vnode and location tables");
-	     return false;
+	     throw dht_exception(e.code(), "Failed deserializing vnode and location tables" + e.what());
 	  }
 	std::vector<const DHTKey*> vnode_ids;
 	std::vector<LocationTable*> vnode_ltables;
@@ -317,11 +318,11 @@ namespace dht
 	  {
 	     l1_data_protob_wrapper::serialize_to_stream(vt,ofs);
 	  }
-	catch (l1_fail_serialize_exception &e)
+	catch (dht_exception &e)
 	  {
 	     delete vt;
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed serializing vnode and location tables");
-	     return false;
+	     throw dht_exception(e.code(), "Failed serializing vnode and location tables" + e.what());
 	  }
 	delete vt;
 	return true;

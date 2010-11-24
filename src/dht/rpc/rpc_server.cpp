@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2009  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -181,8 +182,8 @@ namespace dht
 
     // get our caller's address.
     char addr_buf[NI_MAXHOST];
-    int retval = getnameinfo((struct sockaddr *) &from, fromlen,
-                             addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    getnameinfo((struct sockaddr *) &from, fromlen,
+                addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
     // message.
     errlog::log_error(LOG_LEVEL_DHT, "rpc_server: received a %d bytes datagram from %s", n, addr_buf);
@@ -224,7 +225,7 @@ namespace dht
       {
         close_socket();
         errlog::log_error(LOG_LEVEL_DHT, "Error sending rpc_server answer msg");
-        throw rpc_server_sending_error_exception();
+        throw dht_exception(DHT_ERR_MSG, "Error sending rpc_server answer msg");
       }
     return DHT_ERR_OK;
   }

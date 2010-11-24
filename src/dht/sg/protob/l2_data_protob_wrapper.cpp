@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -65,10 +66,10 @@ namespace dht
 	if (!l2_sg)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR,"can't serialize null response");
-	     throw l2_fail_serialize_exception();
+	     throw dht_exception(DHT_ERR_MSG,"can't serialize null response");
 	  }
 	if (!l2_sg->SerializeToString(&str))
-	  throw l2_fail_serialize_exception();
+          throw dht_exception(DHT_ERR_MSG,"l2_sg::SerializeToString");
      }
    
    dht_err l2_data_protob_wrapper::read_l2_searchgroup(const l2::sg::searchgroup *l2_sg, Searchgroup *&sg)
@@ -106,10 +107,10 @@ namespace dht
 	if (!l2_sg)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null response");
-	     throw l2_fail_deserialize_exception();
+	     throw dht_exception(DHT_ERR_MSG,"l2_sg:can't deserialize to null response");
 	  }
 	if (!l2_sg->ParseFromString(str))
-	  throw l2_fail_deserialize_exception();
+          throw dht_exception(DHT_ERR_MSG,"l2_sg::ParseFromString(" + str + ")");
      }
       
    /* messages. */
@@ -148,10 +149,10 @@ namespace dht
 	if (!l1r)
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT,"Can't serialize null replicated data");
-	     throw l2_fail_serialize_exception();
+	     throw dht_exception(DHT_ERR_MSG,"Can't serialize null replicated data");
 	  }
 	if (!l1r->SerializeToString(&str))
-	  throw l2_fail_serialize_exception();
+          throw dht_exception(DHT_ERR_MSG,"l1r::SerializeToString");
      }
    
    dht_err l2_data_protob_wrapper::read_l2_replication_query(const l1::l1_query *l1q,
@@ -192,10 +193,10 @@ namespace dht
 	if (!l1q)
 	  {
 	     errlog::log_error(LOG_LEVEL_ERROR, "can't deserialize to null response");
-	     throw l2_fail_deserialize_exception();
+	     throw dht_exception(DHT_ERR_MSG,"can't deserialize to null response");
 	  }
 	if (!l1q->ParseFromString(str))
-	  throw l2_fail_deserialize_exception();
+          throw dht_exception(DHT_ERR_MSG,"l1q::ParseFromString(" + str + ")");
      }
    
    
