@@ -35,43 +35,60 @@ namespace dht
       public:
 	/**
 	 * \brief constructor.
+	 * @param net_addr address of the DHT node server.
+	 * @param net_port port the DHT node server is listening on.
+	 * @param start_dht_node whether to start the node, i.e. its server
+	 *        and automated stabilization system.
 	 */
 	DHTNode(const char *net_addr, const short &net_port=0,
-		const bool &start_node=true);
+		const bool &start_dht_node=true);
 
+	/**
+	 * \brief destructor.
+	 */
 	~DHTNode();
 	
 	/**
-	 * start DHT node.
+	 * \brief start DHT node.
 	 */
 	void start_node();
 
 	/**
-	 * create virtual nodes.
+	 * \brief create virtual nodes.
 	 */
 	void create_vnodes();
 	
 	/**
-	 * create virtual node.
+	 * \brief create virtual node.
 	 */
 	virtual DHTVirtualNode* create_vnode();
 	virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
 					     LocationTable *lt);
 	
 	/**
-	 * fill up and sort sorted set of virtual nodes.
+	 * \brief fill up and sort sorted set of virtual nodes.
 	 */
 	void init_sorted_vnodes();
 	
 	/**
-	 * init servers.
+	 * \brief init servers.
 	 */
 	virtual void init_server();
 	
 	/**
-	 * resets data and structures that are dependent on the virtual nodes.
+	 * \brief resets data and structures that are dependent on the virtual nodes.
 	 */
 	virtual void reset_vnodes_dependent() {};
+	
+	/**
+	 * \brief stops DHT node.
+	 */
+	void stop_node();
+	
+	/**
+	 * \brief destroy all virtual nodes on this DHT node.
+	 */
+	void destroy_vnodes();
 	
 	/*- persistence. -*/
 	/**

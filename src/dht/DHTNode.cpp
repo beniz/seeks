@@ -43,7 +43,7 @@ namespace dht
    
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
-		    const bool &start_node)
+		    const bool &start_dht_node)
      : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false),_has_persistent_data(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
@@ -75,11 +75,15 @@ namespace dht
 	  _l1_na.setPort(_dht_config->_l1_port);
 	else _l1_na.setPort(net_port);
      
-	if (start_node)
-	  this->start_node();
+	if (start_dht_node)
+	  start_node();
      }
-   
-   
+
+   DHTNode::~DHTNode()
+     {
+	stop_node();
+     }
+      
    void DHTNode::start_node()
      {
 	/**
@@ -87,6 +91,9 @@ namespace dht
 	 */
 	_stabilizer = new Stabilizer();
 	
+	/**
+	 * Sets successor list size.
+	 */
 	SuccList::_max_list_size = DHTNode::_dht_config->_succlist_size;
 	
 	/**
@@ -117,19 +124,34 @@ namespace dht
 	 */
 	_l1_server->run_thread();
      }
-      
-   DHTNode::~DHTNode()
+   
+   void DHTNode::stop_node()
      {
 	/**
-	 * clears up memory.
+	 * stops server.
 	 */
-	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
-	  = _vnodes.begin();
-	while(hit!=_vnodes.end())
-	  {
-	     delete (*hit).second;
-	     ++hit;
-	  }
+	_l1_server->stop_thread();
+	
+	/**
+	 * destroy server and client.
+	 */
+	delete _l1_server;
+	delete _l1_client;
+		
+	/**
+	 * persistence of virtual nodes.
+	 */
+	hibernate_vnodes_table();
+	
+	/**
+	 * destroy virtual nodes.
+	 */
+	destroy_vnodes();
+	
+	/**
+	 * kill stabilizer.
+	 */
+	delete _stabilizer;
      }
    
    void DHTNode::create_vnodes()
@@ -159,6 +181,17 @@ namespace dht
 	errlog::log_error(LOG_LEVEL_DHT, "Successfully generated %u virtual nodes", _vnodes.size());
      }
 
+   void DHTNode::destroy_vnodes()
+     {
+	hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
+	  = _vnodes.begin();
+	while(hit!=_vnodes.end())
+	  {
+	     delete (*hit).second;
+	     ++hit;
+	  }
+     }
+      
    DHTVirtualNode* DHTNode::create_vnode()
      {
 	return new DHTVirtualNode(this);

@@ -67,13 +67,20 @@ namespace dht
    const int Stabilizer::_slow_timer_base = 8 * 1000;
    const int Stabilizer::_slow_timer_max = 2 * Stabilizer::_slow_timer_base;
 
-   Stabilizer::Stabilizer()
+   Stabilizer::Stabilizer(const bool &start)
      : BstTimeCbTree()
        {
-	  start_fast_stabilizer();
-	  start_slow_stabilizer();
+	  if (start)
+	    {
+	       start_fast_stabilizer();
+	       start_slow_stabilizer();
+	    }
        }
    
+   Stabilizer::~Stabilizer()
+     {
+     }
+      
    void Stabilizer::start_fast_stabilizer()
      {
 	fast_stabilize(static_cast<double>(_fast_timer_init));

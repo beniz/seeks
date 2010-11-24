@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -130,7 +131,7 @@ namespace dht
 	//debug
 	std::cerr << "[Debug]:rpc_server: listening for dgrams on "
 	  << _na.toString() << "...\n";
-	//debu
+	//debug
 	
 	while(true)
 	  {
@@ -212,6 +213,14 @@ namespace dht
    int rpc_server::detach_thread()
      {
 	return pthread_detach(_rpc_server_thread);
+     }
+      
+   int rpc_server::stop_thread()
+     {
+	int err = pthread_kill(_rpc_server_thread,0);
+	if (err = 0)
+	  return DHT_ERR_OK;
+	else return DHT_ERR_PTHREAD;
      }
       
    void rpc_server::run_static(rpc_server *server)

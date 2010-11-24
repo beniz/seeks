@@ -40,6 +40,8 @@ namespace dht
 
 	dht_err run_thread();
 	
+	dht_err stop_thread();
+	
 	int detach_thread();
 	
 	static void run_static(rpc_server *server);

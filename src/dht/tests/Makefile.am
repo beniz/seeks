@@ -1,7 +1,8 @@
 #automake file for seeks dht tests
 
-check_PROGRAMS=ut_dhtkey
+check_PROGRAMS=ut_dhtkey ut_dht_protocol
 ut_dhtkey_SOURCES=ut-dhtkey.cpp
+ut_dht_protocol_SOURCES=ut-dht-protocol.cpp
 
 TESTS = $(check_PROGRAMS)
 
