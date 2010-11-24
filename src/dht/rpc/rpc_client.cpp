@@ -171,6 +171,7 @@ namespace dht
 	     throw rpc_client_socket_error_exception();
 	  }
 	
+        /*
 	struct sockaddr_in server;
 	server.sin_family = AF_INET; // beware, should do AF_INET6 also.
 	struct hostent *hp = gethostbyname(server_na.getNetAddress().c_str());
@@ -180,7 +181,7 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR,"Unknown host for rpc_client %s", server_na.getNetAddress().c_str());
 	     throw rpc_client_host_error_exception(server_na.getNetAddress());
 	  }
-		
+        */	
 	/* bcopy((char*)hp->h_addr,(char*)&server.sin_addr,hp->h_length);
 	server.sin_port = htons(server_na.getPort());
 	int length = sizeof(struct sockaddr_in); */
