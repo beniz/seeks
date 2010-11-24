@@ -21,3 +21,7 @@ test_exalead_parser_SOURCES=test-exalead-parser.cpp
 test_html_txt_parser_SOURCES=test-html-text-parser.cpp
 
 include $(top_srcdir)/src/Makefile.include
+
+LDADD += \
+		 -lseekswebsearchplugin
+
