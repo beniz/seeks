@@ -258,7 +258,7 @@ namespace dht
   int rpc_server::stop_thread()
   {
     int err = pthread_kill(_rpc_server_thread,0);
-    if (err = 0)
+    if (err == 0)
       return DHT_ERR_OK;
     else return DHT_ERR_PTHREAD;
   }
