@@ -21,24 +21,79 @@
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
+#include <netinet/in.h>
 #include <string>
+#include <errno.h>
 #include <iostream>
 #include <assert.h>
+#include <map>
 
-class ServerTest : public testing::Test {
-protected:
-  virtual void SetUp() {
-  }
+#include "DHTNode.h"
+#include "rpc_server.h"
+#include "rpc_client.h"
 
-  virtual void TearDown() {
-  }
+using namespace dht;
+
+typedef std::map<std::string, std::string> string_map;
+
+class test_rpc_server : public rpc_server
+{
+  public:
+
+    test_rpc_server() : rpc_server("localhost", 0) {}
+
+    virtual dht_err serve_response(const std::string &msg,
+                                   const std::string &addr,
+                                   std::string &resp_msg)
+    {
+      if(message2answer.find(msg) != message2answer.end())
+        {
+          return DHT_ERR_RESPONSE;
+        }
+      else
+        {
+          resp_msg = message2answer[msg];
+          return DHT_ERR_OK;
+        }
+    }
+
+    string_map message2answer;
 };
 
-TEST_F(ServerTest, connect) {
+class ServerTest : public testing::Test
+{
+  protected:
+    virtual void SetUp()
+    {
+      DHTNode::_dht_config = new dht_configuration("");
+      DHTNode::_dht_config->set_default_config();
+      _server = new test_rpc_server();
+      _server->bind();
+    }
+
+    virtual void TearDown()
+    {
+      delete _server;
+    }
+
+    test_rpc_server* _server;
+};
+
+TEST_F(ServerTest, connect)
+{
+  ASSERT_NE(-1, _server->_udp_sock);
+  ASSERT_NE(0, _server->_na.getPort());
+#if 0
+  _server->message2answer["IN"] = "OUT";
+  std::string response;
+  rpc_client client;
+  ASSERT_EQ(DHT_ERR_OK, client.do_rpc_call(_server->_na, "IN", true, response));
+  ASSERT_EQ("OUT", response);
+#endif
 }
 
 int main(int argc, char **argv)
 {
-   ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
