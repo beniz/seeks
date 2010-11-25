@@ -196,7 +196,7 @@ namespace dht
 	     delete l2r;
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed subscribe call to %s: %s",
 			       recipient.toString().c_str(),e.what().c_str());
-	     return DHT_ERR_CALL;
+	     return e.code();
 	  }
 	
 	// check on local error status.
@@ -243,7 +243,7 @@ namespace dht
 	     delete l1r;
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed replicate call to %s: %s",
 			       recipient.toString().c_str(),e.what().c_str());
-	     return DHT_ERR_CALL;
+	     return e.code();
 	  }
 	
 	// check on local error status.
