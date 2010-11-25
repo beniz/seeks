@@ -132,7 +132,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed getSuccessor call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed getSuccessor call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed getSuccessor call to " + recipient.toString() + ":" + e.what());
 	  }
 
         // handle the response.
@@ -166,7 +166,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed getPredecessor call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed getPredecessor call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed getPredecessor call to " + recipient.toString() + ":" + e.what());
 	  }
 	
 	// handle the response.
@@ -202,7 +202,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed notify call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed notify call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed notify call to " + recipient.toString() + ":" + e.what());
 	  }
 	
 	// handle the response.
@@ -236,7 +236,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed getSuccList call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed getSuccList call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed getSuccList call to " + recipient.toString() + ":" + e.what());
 	  }
 	
 	/// handle the response.
@@ -273,7 +273,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed findClosestPredecessor call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed findClosestPredecessor call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed findClosestPredecessor call to " + recipient.toString() + ":" + e.what());
 	  }
 	
 	// handle the response.
@@ -313,7 +313,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed joinGetSucc call to %s: %s", 
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed joinGetSucc call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed joinGetSucc call to " + recipient.toString() + ":" + e.what());
 	  }
 		
 	// handle the response.
@@ -346,7 +346,7 @@ namespace dht
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed ping call to %s: %s",
 			       recipient.toString().c_str(), e.what().c_str());
-	     throw dht_exception(DHT_ERR_CALL, "Failed ping call to " + recipient.toString() + ":" + e.what());
+	     throw dht_exception(e.code(), "Failed ping call to " + recipient.toString() + ":" + e.what());
 	  }
 	
 	// handle the response.

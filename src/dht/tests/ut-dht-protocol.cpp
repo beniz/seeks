@@ -103,11 +103,21 @@ TEST_F(ProtocolTest, chord_protocol)
    DHTKey dkres;
    NetAddress nares;
    dht_err status = DHT_ERR_COM_TIMEOUT;
-   while(status == DHT_ERR_COM_TIMEOUT)
-     _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
-						dkres,nares,
-						status);
-   ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
+   while(true) {
+     try
+       {
+         _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
+                                              dkres,nares,
+                                              status);
+       }
+     catch(dht_exception &e)
+       {
+         if(e.code() != DHT_ERR_COM_TIMEOUT)
+           {
+             throw e;
+           }
+       }
+   }
    ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
    
    /*- test get predecessor RPC. -*/
