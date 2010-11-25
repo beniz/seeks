@@ -94,6 +94,7 @@ namespace dht
             delete l1q;
             throw e;
           }
+        delete l1q;
 
 	// deserialize response.
 	try 

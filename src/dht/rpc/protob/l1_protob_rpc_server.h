@@ -37,6 +37,10 @@ namespace dht
 				       const std::string &addr,
 				       std::string &resp_msg);
 	
+	void serve_response_uncaught(const std::string &msg,
+				       const std::string &addr,
+				       std::string &resp_msg);
+	
 	virtual void lx_server_response(const uint32_t &fct_id,
 					   const DHTKey &recipient_key,
 					   const NetAddress &recipient_na,
