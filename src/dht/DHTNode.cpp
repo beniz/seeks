@@ -583,11 +583,9 @@ namespace dht
 	Location* resloc = vnode->findLocation(dkres);
 	if (!resloc)
 	  {
-	     // XXX: we shoule never reach here.
+            // XXX: we should never reach here.
 	     std::cout << "[Error]:RPC_getSuccessor_cb: our own successor is an unknown location !\n"; 
-	     na = NetAddress();
-	     status = DHT_ERR_UNKNOWN_PEER_LOCATION;
-	     return;
+             throw dht_exception(DHT_ERR_UNKNOWN_PEER_LOCATION,"RPC_getSuccessor_cb: our own successor is an unknown location");
 	  }
 	
 	/**
@@ -596,7 +594,7 @@ namespace dht
 	na = resloc->getNetAddress();
 	
 	//debug
-	assert(dkres.count()>0);
+	//assert(dkres.count()>0);
 	//debug
      }
 
