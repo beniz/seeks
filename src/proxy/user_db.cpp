@@ -592,67 +592,11 @@ namespace sp
     output << "size on disk: " << disk_size() << std::endl;
     output << "db version: " << get_version() << std::endl;
     output << std::endl;
-
-    /* traverse records */
-    void *rkey = NULL;
-    void *value = NULL;
-    int rkey_size;
-    tchdbiterinit(_hdb);
-    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
-      {
-        int value_size;
-        value = tchdbget(_hdb, rkey, rkey_size, &value_size);
-        if (value)
-          {
-            std::string str = std::string((char*)value,value_size);
-            free(value);
-            std::string key, plugin_name;
-            std::string rkey_str = std::string((char*)rkey);
-            if (rkey_str != user_db::_db_version_key
-                && user_db::extract_plugin_and_key(rkey_str,
-                                                   plugin_name,key) != 0)
-              {
-                errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
-              }
-            else if (rkey_str != user_db::_db_version_key)
-              {
-                // get a proper object based on plugin name, and call the virtual function for reading the record.
-                plugin *pl = plugin_manager::get_plugin(plugin_name);
-                if (!pl)
-                  {
-                    // handle error.
-                    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for printing user db record",
-                                      plugin_name.c_str());
-                    output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name << std::endl;
-                  }
-                else
-                  {
-                    // call to plugin record creation function.
-                    db_record *dbr = pl->create_db_record();
-                    if (dbr->deserialize(str) != 0)
-                      {
-                        // deserialization error.
-                        // prints out information extracted from the record key.
-                        output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name
-                               << " (deserialization error)\n";
-                      }
-                    else
-                      {
-                        output << "db_record[" << key << "]\n\tplugin_name: " << dbr->_plugin_name
-                               << "\n\tcreation time: " << dbr->_creation_time << std::endl;
-                        dbr->print(output);
-                      }
-                    delete dbr;
-                  }
-                output << std::endl;
-              }
-          }
-        free(rkey);
-      }
+    output << export_db(output,"text") << std::endl;
     return output;
   }
 
-  int user_db::export_db(std::ostream &output, std::string format)
+  std::ostream& user_db::export_db(std::ostream &output, std::string format)
   {
 
     if (format == "text")
@@ -669,7 +613,7 @@ namespace sp
     else
       {
         errlog::log_error(LOG_LEVEL_ERROR,"Export format %s not supported.", format);
-        return 1;
+        return output;
       }
 
     /* traverse records */
@@ -741,7 +685,7 @@ namespace sp
       {
         output << "</querys>" << std::endl;
       }
-    return 0;
+    return output;
   }
 
   void user_db::register_sweeper(user_db_sweepable *uds)

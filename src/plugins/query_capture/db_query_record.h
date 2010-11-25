@@ -36,16 +36,16 @@ namespace seeks_plugins
   {
     public:
       vurl_data(const std::string &url)
-          :_url(url),_hits(1)
+        :_url(url),_hits(1)
       {};
 
       vurl_data(const std::string &url,
                 const short &hits)
-          :_url(url),_hits(hits)
+        :_url(url),_hits(hits)
       {};
 
       vurl_data(const vurl_data *vd)
-          :_url(vd->_url),_hits(vd->_hits)
+        :_url(vd->_url),_hits(vd->_hits)
       {};
 
       ~vurl_data() {};
@@ -54,8 +54,6 @@ namespace seeks_plugins
       {
         _hits += vd->_hits;
       };
-
-      std::ostream& print(std::ostream &output) const;
 
       std::string _url;
       short _hits;
@@ -84,8 +82,6 @@ namespace seeks_plugins
       vurl_data* find_vurl(const std::string &url) const;
 
       float vurls_total_hits() const;
-
-      std::ostream& print(std::ostream &output) const;
 
       std::string _query;
       const short _radius;
@@ -123,8 +119,6 @@ namespace seeks_plugins
       void create_query_record(sp::db::record &r) const;
 
       void read_query_record(sp::db::record &r);
-
-      virtual std::ostream& print(std::ostream &output) const;
 
       int fix_issue_169(user_db &cudb);
 

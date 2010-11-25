@@ -205,7 +205,7 @@ namespace sp
       /**
        * \brief export all db records.
        */
-      int export_db(std::ostream &output, std::string format);
+      std::ostream& export_db(std::ostream &output, std::string format);
 
       /**
        * \brief registers user_db_sweepable for plugin-directed db cleanup operations.

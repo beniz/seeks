@@ -54,6 +54,11 @@ namespace sp
       virtual ~db_record();
 
       /**
+       * operator.
+       */
+      std::ostream& operator<<(std::ostream &output) const;
+
+      /**
        * \brief update creation time.
        */
       void update_creation_time();
@@ -98,22 +103,17 @@ namespace sp
       };
 
       /**
-       * prints the record header.
-       */
-      std::ostream& print_header(std::ostream &output) const;
-
-      /**
        * prints the record out.
        */
-      virtual std::ostream& print(std::ostream &output) const;
+      std::ostream& print(std::ostream &output) const;
 
       /**
        * export the record.
        */
 
-      void json_export_record(const std::string &msg, std::ostream &output) const;
-      void xml_export_record(const std::string &msg, std::ostream &output) const;
-      void text_export_record(const std::string &msg, std::ostream &output) const;
+      virtual std::ostream& json_export_record(const std::string &msg, std::ostream &output) const;
+      virtual std::ostream& xml_export_record(const std::string &msg, std::ostream &output) const;
+      virtual std::ostream& text_export_record(const std::string &msg, std::ostream &output) const;
 
     public:
       time_t _creation_time;

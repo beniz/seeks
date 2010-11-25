@@ -105,49 +105,54 @@ namespace sp
     _plugin_name = r.plugin_name();
   }
 
-  std::ostream& db_record::print_header(std::ostream &output) const
-  {
-    output << "\tplugin_name: " << _plugin_name << "\n\tcreation time: " << _creation_time << std::endl;
-    return output;
-  }
-
   std::ostream& db_record::print(std::ostream &output) const
   {
-    return print_header(output);
+    std::string msg;
+    // Call the virtual one
+    serialize(msg);
+    return text_export_record(msg, output);
+  }
+
+  std::ostream& db_record::operator<<(std::ostream &output) const
+  {
+    return print(output);
   }
 
   /**
    * XXX: This fonction use a hack version of class google::protobuf::TextFormat
-   *      to produce JSON output
+   *      to produce JSON/XML/TEXT output
    *      All files copied and modified from protobuf are under protobuf_export_format/
    *      Parser are under sp::protobuf_format namespace and depend on protobuf
    *      To build a other export format duplicate json file and mod key, value decoration
    */
-  void db_record::json_export_record(const std::string &msg, std::ostream &output) const
+  std::ostream& db_record::json_export_record(const std::string &msg, std::ostream &output) const
   {
     sp::db::record r;
     r.ParseFromString(msg);
     google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
     sp::protobuf_format::JSONFormat::Print(r, fos);
     delete fos;
+    return output;
   }
 
-  void db_record::xml_export_record(const std::string &msg, std::ostream &output) const
+  std::ostream& db_record::xml_export_record(const std::string &msg, std::ostream &output) const
   {
     sp::db::record r;
     r.ParseFromString(msg);
     google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
     sp::protobuf_format::XMLFormat::Print(r, fos);
     delete fos;
+    return output;
   }
 
-  void db_record::text_export_record(const std::string &msg, std::ostream &output) const
+  std::ostream& db_record::text_export_record(const std::string &msg, std::ostream &output) const
   {
     sp::db::record r;
     r.ParseFromString(msg);
     google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
     google::protobuf::TextFormat::Print(r, fos);
     delete fos;
+    return output;
   }
 
 } /* end of namespace. */

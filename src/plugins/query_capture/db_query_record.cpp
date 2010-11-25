@@ -33,23 +33,17 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-  /*- vurl_data -*/
-  std::ostream& vurl_data::print(std::ostream &output) const
-  {
-    output << "\t\turl: " << _url << " -- hit: " << _hits << std::endl;
-  }
-
   /*- query_data -*/
   query_data::query_data(const std::string &query,
                          const short &radius)
-      :_query(query),_radius(radius),_hits(1),_visited_urls(NULL)
+    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL)
   {
   }
 
   query_data::query_data(const std::string &query,
                          const short &radius,
                          const std::string &url)
-      :_query(query),_radius(radius),_hits(1)
+    :_query(query),_radius(radius),_hits(1)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
     vurl_data *vd = new vurl_data(url);
@@ -57,7 +51,7 @@ namespace seeks_plugins
   }
 
   query_data::query_data(const query_data *qd)
-      :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL)
+    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL)
   {
     if (qd->_visited_urls)
       {
@@ -164,34 +158,17 @@ namespace seeks_plugins
       }
   }
 
-  std::ostream& query_data::print(std::ostream &output) const
-  {
-    output << "\t\tradius: " << _radius << std::endl;
-    output << "\t\thits: " << _hits << std::endl;
-    if (_visited_urls)
-      {
-        hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::const_iterator hit
-        = _visited_urls->begin();
-        while (hit!=_visited_urls->end())
-          {
-            (*hit).second->print(output);
-            ++hit;
-          }
-      }
-    return output;
-  }
-
   /*- db_query_record -*/
   db_query_record::db_query_record(const time_t &creation_time,
                                    const std::string &plugin_name)
-      :db_record(creation_time,plugin_name)
+    :db_record(creation_time,plugin_name)
   {
   }
 
   db_query_record::db_query_record(const std::string &plugin_name,
                                    const std::string &query,
                                    const short &radius)
-      :db_record(plugin_name)
+    :db_record(plugin_name)
   {
     query_data *qd = new query_data(query,radius);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
@@ -201,7 +178,7 @@ namespace seeks_plugins
                                    const std::string &query,
                                    const short &radius,
                                    const std::string &url)
-      :db_record(plugin_name)
+    :db_record(plugin_name)
   {
     query_data *qd = new query_data(query,radius,url);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
@@ -221,7 +198,7 @@ namespace seeks_plugins
   }
 
   db_query_record::db_query_record()
-      :db_record()
+    :db_record()
   {
   }
 
@@ -353,30 +330,6 @@ namespace seeks_plugins
           }
         _related_queries.insert(std::pair<const char*,query_data*>(rd->_query.c_str(),rd));
       }
-  }
-
-  std::ostream& db_query_record::print(std::ostream &output) const
-  {
-    //output << "\tquery: " << _query;
-    /*	if (!_visited_urls.empty())
-    	  {
-    	     std::set<std::string>::const_iterator sit = _visited_urls.begin();
-    	     while(sit!=_visited_urls.end())
-    	       {
-    		  output << "\n\turl: " << (*sit);
-    		  ++sit;
-    	       }
-    	  } */
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
-    = _related_queries.begin();
-    while (hit!=_related_queries.end())
-      {
-        output << "\tquery: " << (*hit).first << std::endl;
-        (*hit).second->print(output);
-        ++hit;
-      }
-    output << std::endl;
-    return output;
   }
 
   int db_query_record::fix_issue_169(user_db &cudb)

@@ -28,6 +28,7 @@
 #include "plugin.h"
 
 #include <iostream>
+#include <fstream>
 
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -94,16 +95,22 @@ TEST(UserdbTest, all_fct)
       delete dbr;
     }
 
+  // print records
+  std::ostringstream oss;
+  db_record *dbr = db->find_dbr(uris[0],plugin_name);
+  dbr->print(oss);
+  ASSERT_TRUE(oss.rdbuf()->str() != "");
+
   // export records
-  std::string file ("ut-export-test-db.json");
-  std::ofstream output (file);
+  std::string filename = "ut-export-test-db.json";
+  std::ofstream output (filename.c_str());
   db->export_db(output, "json");
   output.close();
 
   struct stat filestatus;
-  stat(file.c_str(), &filestatus );
+  stat(filename.c_str(), &filestatus );
   ASSERT_TRUE(filestatus.st_size > 0);
-  remove(file.c_str());
+  remove(filename.c_str());
 
   // remove record.
   db->remove_dbr(uris[1],plugin_name);
