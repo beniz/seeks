@@ -100,16 +100,15 @@ TEST_F(ProtocolTest, chord_protocol)
 {
    // test no successor found.
    //TODO: while.
-   int status = 0;
    DHTKey dkres;
    NetAddress nares;
-   dht_err err = DHT_ERR_COM_TIMEOUT;
-   while(err == DHT_ERR_COM_TIMEOUT)
-     err = _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
+   dht_err status = DHT_ERR_COM_TIMEOUT;
+   while(status == DHT_ERR_COM_TIMEOUT)
+     _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
 						dkres,nares,
 						status);
-   ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,err);
-   ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,err);
+   ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
+   ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
    
    /*- test get predecessor RPC. -*/
    // set predecessor
@@ -119,10 +118,9 @@ TEST_F(ProtocolTest, chord_protocol)
    
    // test get_predecessor
    status = 0;
-   err = _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
+   _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
 						dkres,nares,
 						status);
-   ASSERT_EQ(DHT_ERR_OK,err);
    ASSERT_EQ(DHT_ERR_OK,status);
    ASSERT_EQ(pred_key,dkres.to_rstring());
    ASSERT_EQ(nares.getNetAddress(),na_pred->getNetAddress());
@@ -135,11 +133,9 @@ TEST_F(ProtocolTest, chord_protocol)
    _v1node->setSuccessor(succ_dhtkey,*na_succ);
    
    // test set_predecessor
-   status = 0;
-   err = _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
+   _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
 					     dkres,nares,
 					     status);
-   ASSERT_EQ(DHT_ERR_OK,err);
    ASSERT_EQ(DHT_ERR_OK,status);
    ASSERT_EQ(succ_key,dkres.to_rstring());
    ASSERT_EQ(nares.getNetAddress(),na_succ->getNetAddress());
