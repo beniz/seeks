@@ -40,7 +40,7 @@ namespace dht
 	
 	static void serialize_to_string(const l2::sg::searchgroup *l2_sg, std::string &str);
 	
-	static dht_err read_l2_searchgroup(const l2::sg::searchgroup *l2_sg, Searchgroup *&sg);
+	static void read_l2_searchgroup(const l2::sg::searchgroup *l2_sg, Searchgroup *&sg);
 	
 	static void deserialize_from_string(const std::string &str, l2::sg::searchgroup *l2_sg);
 	
@@ -59,7 +59,7 @@ namespace dht
 	
 	static void serialize_to_string(const l1::l1_query *l1r, std::string &str);
 	
-	static dht_err read_l2_replication_query(const l1::l1_query *l1q,
+	static void read_l2_replication_query(const l1::l1_query *l1q,
 						 uint32_t &fct_id,
 						 DHTKey &recipientKey,
 						 NetAddress &recipient,

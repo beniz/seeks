@@ -22,7 +22,7 @@
 
 namespace dht
 {
-   dht_err dht_api::findClosestPredecessor(const DHTNode &dnode,
+   void dht_api::findClosestPredecessor(const DHTNode &dnode,
 					   const DHTKey &nodeKey,
 					   DHTKey &dkres, NetAddress &na,
 					   int &status)
@@ -36,7 +36,6 @@ namespace dht
 	vnode->findClosestPredecessor(nodeKey,dkres,na,
 				      dkres_succ,dkres_succ_na,
 				      status);
-	return status;
      }
  
    dht_err dht_api::findSuccessor(const DHTNode &dnode,
@@ -47,8 +46,7 @@ namespace dht
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
      
 	// make the RPC call.
-	dht_err err = vnode->find_successor(nodekey,dkres,na);
-	return err;
+	return vnode->find_successor(nodekey,dkres,na);
      }
 
    dht_err dht_api::findPredecessor(const DHTNode &dnode,
@@ -59,8 +57,7 @@ namespace dht
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
      
 	// make the RPC call.
-	dht_err err = vnode->find_predecessor(nodekey,dkres,na);
-	return err;
+	return vnode->find_predecessor(nodekey,dkres,na);
      }
 
    dht_err dht_api::ping(const DHTNode &dnode,

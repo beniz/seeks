@@ -98,9 +98,8 @@ int main(int argc, char *argv[])
    DHTKey skey;
    NetAddress sna;
    DHTKey nodekey;
-   dht_err err = l1_protob_wrapper::read_l1_query(l1qbis,layer_id,fid,
+   l1_protob_wrapper::read_l1_query(l1qbis,layer_id,fid,
 						  rkey,rna,skey,sna,nodekey);
-   assert(err == DHT_ERR_OK);
 
    std::cout << l1qbis->DebugString() << std::endl;
 }

@@ -33,11 +33,11 @@ namespace dht
 	
 	~l1_protob_rpc_server();
 	
-	virtual dht_err serve_response(const std::string &msg,
+	virtual void serve_response(const std::string &msg,
 				       const std::string &addr,
 				       std::string &resp_msg);
 	
-	virtual dht_err lx_server_response(const uint32_t &fct_id,
+	virtual void lx_server_response(const uint32_t &fct_id,
 					   const DHTKey &recipient_key,
 					   const NetAddress &recipient_na,
 					   const DHTKey &sender_key,
@@ -47,7 +47,7 @@ namespace dht
 					   std::string &resp_msg,
 					   const std::string &inc_msg);
 	
-	dht_err execute_callback(const uint32_t &fct_id,
+	void execute_callback(const uint32_t &fct_id,
 				 const DHTKey &recipient_key,
 				 const NetAddress &recipient_na,
 				 const DHTKey &sender_key,
@@ -57,42 +57,42 @@ namespace dht
 				 std::string &resp_msg);
      
 	/*- l1 interface. -*/
-	virtual dht_err RPC_getSuccessor_cb(const DHTKey& recipientKey,
+	virtual void RPC_getSuccessor_cb(const DHTKey& recipientKey,
 					    const NetAddress &recipient,
 					    DHTKey& dkres, NetAddress& na,
 					    int& status);
 	
-	virtual dht_err RPC_getPredecessor_cb(const DHTKey& recipientKey,
+	virtual void RPC_getPredecessor_cb(const DHTKey& recipientKey,
 					      const NetAddress &recipient,
 					      DHTKey& dkres, NetAddress& na,
 					      int& status);
 	
-	virtual dht_err RPC_notify_cb(const DHTKey& recipientKey,
+	virtual void RPC_notify_cb(const DHTKey& recipientKey,
 				      const NetAddress &recipient,
 				      const DHTKey& senderKey,
 				      const NetAddress& senderAddress,
 				      int& status);
 	
-	virtual dht_err RPC_getSuccList_cb(const DHTKey& recipientKey,
+	virtual void RPC_getSuccList_cb(const DHTKey& recipientKey,
 					   const NetAddress &recipient,
 					   std::list<DHTKey> &dkres_list, 
 					   std::list<NetAddress> &na_list,
 					   int& status);
 	
-	virtual dht_err RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
+	virtual void RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 						      const NetAddress &recipient,
 						      const DHTKey& nodeKey,
 						      DHTKey& dkres, NetAddress& na,
 						      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 						      int& status);
 	
-	virtual dht_err RPC_joinGetSucc_cb(const DHTKey& recipientKey,
+	virtual void RPC_joinGetSucc_cb(const DHTKey& recipientKey,
 					   const NetAddress& recipient,
 					   const DHTKey &senderKey,
 					   DHTKey& dkres, NetAddress& na,
 					   int& status);
      
-	virtual dht_err RPC_ping_cb(const DHTKey& recipientKey,
+	virtual void RPC_ping_cb(const DHTKey& recipientKey,
 				    const NetAddress &recipient,
 				    int& status);
      };

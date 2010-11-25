@@ -93,19 +93,19 @@ namespace dht
 	 * @param dkres_succ successor to dkres.
 	 * @param status result status.
 	 */
-	dht_err findClosestPredecessor(const DHTKey& nodeKey,
+	void findClosestPredecessor(const DHTKey& nodeKey,
 				       DHTKey& dkres, NetAddress& na,
 				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				       int& status);
 	/**
 	 * \brief this virtual node is being pinged from the outside world.
 	 */
-	dht_err ping();
+	void ping();
 	
 	/**---------------------------------------**/
 	
 	/**-- functions using RPCs. --**/
-	dht_err join(const DHTKey& dk_bootstrap,
+	void join(const DHTKey& dk_bootstrap,
 		     const NetAddress &dk_bootstrap_na,
 		     const DHTKey& senderKey,
 		     int& status);
@@ -169,14 +169,14 @@ namespace dht
 	 */
 	virtual dht_err replication_host_keys(const DHTKey &start_key) { return DHT_ERR_OK; };
 	
-	virtual dht_err replication_move_keys_backward(const DHTKey &start_key,
+	virtual void replication_move_keys_backward(const DHTKey &start_key,
 						       const DHTKey &end_key,
-						       const NetAddress &senderAddress) { return DHT_ERR_OK; };
+                                                    const NetAddress &senderAddress) { };
 	
-	virtual dht_err replication_move_keys_forward(const DHTKey &end_key) { return DHT_ERR_OK; };
+	virtual void replication_move_keys_forward(const DHTKey &end_key) { };
 	
-	virtual dht_err replication_trickle_forward(const DHTKey &start_key,
-						    const short &start_replication_radius) { return DHT_ERR_OK; };
+	virtual void replication_trickle_forward(const DHTKey &start_key,
+                                                 const short &start_replication_radius) { };
 	
       public:
 	/**

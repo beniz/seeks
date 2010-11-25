@@ -68,7 +68,7 @@ namespace dht
 	 * Successor information is unset by default, set only if the closest node 
 	 * is this virtual node.
 	 */
-	dht_err findClosestPredecessor(const DHTKey& nodeKey,
+	void findClosestPredecessor(const DHTKey& nodeKey,
 				       DHTKey& dkres, NetAddress& na,
 				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 				       int& status);

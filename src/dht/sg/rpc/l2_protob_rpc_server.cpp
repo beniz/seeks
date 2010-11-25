@@ -41,7 +41,7 @@ namespace dht
      {
      }
    
-   dht_err l2_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
+   void l2_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
 						    const DHTKey &recipient_key,
 						    const NetAddress &recipient_na,
 						    const DHTKey &sender_key,
@@ -132,11 +132,9 @@ namespace dht
 	     delete l1r;
 	  }
 	//TODO: other callback come here.
-     
-	return DHT_ERR_OK;
      }
    
-   dht_err l2_protob_rpc_server::RPC_subscribe_cb(const DHTKey &recipientKey,
+   void l2_protob_rpc_server::RPC_subscribe_cb(const DHTKey &recipientKey,
 						  const NetAddress &recipient,
 						  const DHTKey &senderKey,
 						  const NetAddress &sender,
@@ -144,12 +142,12 @@ namespace dht
 						  std::vector<Subscriber*> &peers,
 						  int &status)
      {
-	return static_cast<SGNode*>(_pnode)->RPC_subscribe_cb(recipientKey,recipient,
+	static_cast<SGNode*>(_pnode)->RPC_subscribe_cb(recipientKey,recipient,
 							      senderKey,sender,
 							      sgKey,peers,status);
      }
 
-   dht_err l2_protob_rpc_server::RPC_replicate_cb(const DHTKey &recipientKey,
+   void l2_protob_rpc_server::RPC_replicate_cb(const DHTKey &recipientKey,
 						  const NetAddress &recipient,
 						  const DHTKey &senderKey,
 						  const NetAddress &sender,
@@ -158,7 +156,7 @@ namespace dht
 						  const bool &sdiff,
 						  int &status)
      {
-	return static_cast<SGNode*>(_pnode)->RPC_replicate_cb(recipientKey,recipient,
+	static_cast<SGNode*>(_pnode)->RPC_replicate_cb(recipientKey,recipient,
 							      senderKey,sender,
 							      ownerKey,sgs,sdiff,status);
      }

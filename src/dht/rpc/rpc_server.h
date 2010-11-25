@@ -22,8 +22,6 @@
 #ifndef RPC_SERVER_H
 #define RPC_SERVER_H
 
-#include "dht_err.h"
-#include "dht_exception.h"
 #include "NetAddress.h"
 
 #include <pthread.h>
@@ -37,24 +35,22 @@ namespace dht
 
       virtual ~rpc_server();
 
-      dht_err run();
+      void run();
       
-      dht_err bind();
+      void bind();
       
-      dht_err run_loop_once();
+      void run_loop_once();
       
-      dht_err run_thread();
+      void run_thread();
       
-      dht_err stop_thread();
+      void stop_thread();
       
       void close_socket();
-
-      int detach_thread();
 
       static void run_static(rpc_server *server);
 
       /*- server responses. -*/
-      virtual dht_err serve_response(const std::string &msg,
+      virtual void serve_response(const std::string &msg,
                                      const std::string &addr,
                                      std::string &resp_msg);
 

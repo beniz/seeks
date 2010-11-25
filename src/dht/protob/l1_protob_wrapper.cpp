@@ -277,7 +277,7 @@ namespace dht
      }
       
    /*- protobuffers to data. -*/
-   dht_err l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
+   void l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
 					    uint32_t &layer_id,
 					    uint32_t &fct_id,
 					    DHTKey &recipient_dhtkey,
@@ -307,10 +307,9 @@ namespace dht
 	     sender_dhtkey = DHTKey();
 	     sender_na = NetAddress();
 	  }
-	return DHT_ERR_OK;
      }
    
-   dht_err l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
+   void l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
 					    uint32_t &layer_id,
 					    uint32_t &fct_id,
 					    DHTKey &recipient_dhtkey,
@@ -319,9 +318,9 @@ namespace dht
 					    NetAddress &sender_na,
 					    DHTKey &nodekey)
      {
-	dht_err err = l1_protob_wrapper::read_l1_query(l1q,layer_id,fct_id,
-						       recipient_dhtkey,recipient_na,
-						       sender_dhtkey,sender_na);
+       l1_protob_wrapper::read_l1_query(l1q,layer_id,fct_id,
+                                        recipient_dhtkey,recipient_na,
+                                        sender_dhtkey,sender_na);
 	l1::dht_key l1q_node_key = l1q->lookedup_key();
 	std::string node_key_str = l1q_node_key.key();
 	if (!node_key_str.empty()) // optional field.
@@ -330,12 +329,9 @@ namespace dht
 	     std::copy(node_key_str.begin(),node_key_str.end(),std::back_inserter(ser));
 	     nodekey = DHTKey::unserialize(ser);
 	  }
-	if (err != DHT_ERR_OK)
-	  return err;
-	else return DHT_ERR_OK;
      }
         
-   dht_err l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
+   void l1_protob_wrapper::read_l1_query(const l1::l1_query *l1q,
 					    uint32_t &layer_id,
 					    uint32_t &fct_id,
 					    std::string &recipient_key,
@@ -360,7 +356,6 @@ namespace dht
 	l1::net_address l1q_sender_addr = l1q_sender.addr();
 	sender_ip_addr = l1q_sender_addr.ip_addr();
 	sender_net_port = l1q_sender_addr.net_port();
-	return DHT_ERR_OK;
      }
    
    void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_query *l1q)
@@ -375,7 +370,7 @@ namespace dht
      }
 
    /*- responses -*/
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status,
 					       DHTKey &resultKey,
 					       NetAddress &resultAddress,
@@ -385,12 +380,10 @@ namespace dht
 	std::string result_key, found_key;
 	std::string result_ip_addr, found_ip_addr;
 	uint32_t result_net_port, found_net_port;
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,error_status,
+	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key,result_ip_addr,
 							  result_net_port,found_key,
 							  found_ip_addr,found_net_port);
-	if (err != DHT_ERR_OK)
-	  return err;
 	std::vector<unsigned char> ser;
 	std::copy(result_key.begin(),result_key.end(),std::back_inserter(ser));
 	resultKey = DHTKey::unserialize(ser);
@@ -402,10 +395,9 @@ namespace dht
 	     foundKey = DHTKey::unserialize(ser);
 	     foundAddress = NetAddress(found_ip_addr,found_net_port);
 	  }
-	return DHT_ERR_OK;
      }
       
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status,
 					       DHTKey &resultKey,
 					       NetAddress &resultAddress)
@@ -413,29 +405,24 @@ namespace dht
 	std::string result_key;
 	std::string result_ip_addr;
 	uint32_t result_net_port;
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,error_status,
+	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key,result_ip_addr,
 							  result_net_port);
-	if (err != DHT_ERR_OK)
-	  return err;
 	std::vector<unsigned char> ser;
 	std::copy(result_key.begin(),result_key.end(),std::back_inserter(ser));
 	resultKey = DHTKey::unserialize(ser);
 	resultAddress = NetAddress(result_ip_addr,result_net_port);
-	return DHT_ERR_OK;
      }
    
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status,
 					       std::list<DHTKey> &dkres_list,
 					       std::list<NetAddress> &na_list)
      {
 	std::list<std::string> result_key_list;
 	std::list<std::pair<std::string,uint32_t> > result_address_list;
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,error_status,
+	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key_list,result_address_list);
-	if (err != DHT_ERR_OK)
-	  return err;
 	std::vector<unsigned char> ser;
 	std::list<std::string>::const_iterator sit = result_key_list.begin();
 	while(sit!=result_key_list.end())
@@ -453,17 +440,14 @@ namespace dht
 	     na_list.push_back(resultAddress);
 	     ++tit;
 	  }
-	return DHT_ERR_OK;
      }
         
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status,
 					       std::list<std::string> &result_key_list,
 					       std::list<std::pair<std::string,uint32_t> > &result_address_list)
      {
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,error_status);
-	if (err != DHT_ERR_OK)
-	  return err;
+	l1_protob_wrapper::read_l1_response(l1r,error_status);
 	l1::nodelist l1r_vnodelist = l1r->vnodelist();
 	int nnodes = l1r_vnodelist.nodes_size();
 	for (int i=0;i<nnodes;i++)
@@ -478,10 +462,9 @@ namespace dht
 	     std::pair<std::string,uint32_t> pp(result_ip_addr,result_net_port);
 	     result_address_list.push_back(pp);
 	  }
-	return DHT_ERR_OK;
      }
    
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status,
 					       std::string &result_key,
 					       std::string &result_ip_addr,
@@ -490,42 +473,35 @@ namespace dht
 					       std::string &found_ip_addr,
 					       uint32_t &found_net_port)
      {
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,error_status,
+	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key,result_ip_addr,result_net_port);
-	if (err != DHT_ERR_OK)
-	  return err;
 	l1::vnodeid l1r_found_vnode_succ = l1r->found_vnode_succ();
 	l1::dht_key l1r_found_key = l1r_found_vnode_succ.key();
 	found_key = l1r_found_key.key();
 	l1::net_address l1r_found_addr = l1r_found_vnode_succ.addr();
 	found_ip_addr = l1r_found_addr.ip_addr();
 	found_net_port = l1r_found_addr.net_port();
-	return DHT_ERR_OK;
      }
         
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status,
 					       std::string &result_key,
 					       std::string &result_ip_addr,
 					       uint32_t &result_net_port)
      {
-	dht_err err = l1_protob_wrapper::read_l1_response(l1r,error_status);
-	if (err != DHT_ERR_OK)
-	  return err;
+	l1_protob_wrapper::read_l1_response(l1r,error_status);
 	l1::vnodeid l1r_found_vnode = l1r->found_vnode();
 	l1::dht_key l1r_result_key = l1r_found_vnode.key();
 	result_key = l1r_result_key.key();
 	l1::net_address l1r_result_addr = l1r_found_vnode.addr();
 	result_ip_addr = l1r_result_addr.ip_addr();
 	result_net_port = l1r_result_addr.net_port();
-	return DHT_ERR_OK;
      }
 
-   dht_err l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
+   void l1_protob_wrapper::read_l1_response(const l1::l1_response *l1r,
 					       uint32_t &error_status)
      {
 	error_status = l1r->error_status();
-	return error_status;
      }
    
    void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_response *l1r)

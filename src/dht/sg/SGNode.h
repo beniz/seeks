@@ -44,7 +44,7 @@ namespace dht
 	virtual void reset_vnodes_dependent();
 	
 	/*- RPC callbacks. -*/
-	dht_err RPC_subscribe_cb(const DHTKey &recipientKey,
+	void RPC_subscribe_cb(const DHTKey &recipientKey,
 				 const NetAddress &recipient,
 				 const DHTKey &senderKey,
 				 const NetAddress &sender,
@@ -52,7 +52,7 @@ namespace dht
 				 std::vector<Subscriber*> &peers,
 				 int &status);
 	
-	dht_err RPC_replicate_cb(const DHTKey &recipientKey,
+	void RPC_replicate_cb(const DHTKey &recipientKey,
 				 const NetAddress &recipient,
 				 const DHTKey &senderKey,
 				 const NetAddress &sender,

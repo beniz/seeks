@@ -137,7 +137,7 @@ namespace dht
 	 * Bootstraps itself by building a circle of its virtual nodes.
 	 * Useful only for the first node of a circle.
 	 */
-	dht_err self_bootstrap();
+	void self_bootstrap();
 
       private:
 	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
@@ -159,18 +159,18 @@ namespace dht
 	/**
 	 * \brief getSuccessor local callback.
 	 */
-	dht_err getSuccessor_cb(const DHTKey& recipientKey,
+	void getSuccessor_cb(const DHTKey& recipientKey,
 				DHTKey& dkres, NetAddress& na,
 				int& status);
 
-	dht_err getPredecessor_cb(const DHTKey& recipientKey,
+	void getPredecessor_cb(const DHTKey& recipientKey,
 				  DHTKey& dkres, NetAddress& na,
 				  int& status);
 	
 	/**
 	 * \brief notify callback.
 	 */
-	dht_err notify_cb(const DHTKey& recipientKey,
+	void notify_cb(const DHTKey& recipientKey,
 			  const DHTKey& senderKey,
 			  const NetAddress& senderAddress,
 			  int& status);
@@ -178,7 +178,7 @@ namespace dht
 	/**
 	 * \brief getSuccList callback.
 	 */
-	dht_err getSuccList_cb(const DHTKey &recipientKey,
+	void getSuccList_cb(const DHTKey &recipientKey,
 			       std::list<DHTKey> &dkres_list,
 			       std::list<NetAddress> &dkres_na,
 			       int &status);
@@ -186,7 +186,7 @@ namespace dht
 	/**
 	 * \brief findClosestPredecessor callback.
 	 */
-	dht_err findClosestPredecessor_cb(const DHTKey& recipientKey,
+	void findClosestPredecessor_cb(const DHTKey& recipientKey,
 					  const DHTKey& nodeKey,
 					  DHTKey& dkres, NetAddress& na,
 					  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
@@ -195,7 +195,7 @@ namespace dht
 	/**
 	 * \brief joinGetSucc callback.
 	 */
-	dht_err joinGetSucc_cb(const DHTKey &recipientKey,
+	void joinGetSucc_cb(const DHTKey &recipientKey,
 			       const DHTKey &senderKey,
 			       DHTKey& dkres, NetAddress& na,
 			       int& status);
@@ -203,7 +203,7 @@ namespace dht
 	/**
 	 * \brief ping callback.
 	 */
-	dht_err ping_cb(const DHTKey& recipientKey,
+	void ping_cb(const DHTKey& recipientKey,
 			int& status);
 	
 	/**----------------------------**/

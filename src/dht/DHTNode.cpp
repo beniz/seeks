@@ -422,7 +422,7 @@ namespace dht
 	std::cerr << "[Debug]: end join_start (failed)\n";
 	
 	// hermaphrodite, builds its own circle.
-	dht_err err = self_bootstrap();
+	self_bootstrap();
 	
 	return DHT_ERR_BOOTSTRAP; // TODO: check on error status.
      }
@@ -439,7 +439,7 @@ namespace dht
 	return DHT_ERR_OK;
      }
       
-   dht_err DHTNode::self_bootstrap()
+   void DHTNode::self_bootstrap()
      {
 	//debug
 	std::cerr << "[Debug]:self-bootstrap in hermaphrodite mode...\n";
@@ -519,7 +519,6 @@ namespace dht
 	// we are 'connected', to ourselves, but we are...
 	_connected = true;
 	
-	return DHT_ERR_OK;
      }
 
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
@@ -540,7 +539,7 @@ namespace dht
    /**
     * RPC virtual functions (callbacks).
     */
-   dht_err DHTNode::getSuccessor_cb(const DHTKey& recipientKey,
+   void DHTNode::getSuccessor_cb(const DHTKey& recipientKey,
 				    DHTKey& dkres, NetAddress& na,
 				    int& status)
      {
@@ -555,7 +554,7 @@ namespace dht
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }	
 	
 	/**
@@ -570,7 +569,7 @@ namespace dht
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
-	     return status;
+	     return;
 	  }
 	
 	/**
@@ -588,7 +587,7 @@ namespace dht
 	     std::cout << "[Error]:RPC_getSuccessor_cb: our own successor is an unknown location !\n"; 
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER_LOCATION;
-	     return status;
+	     return;
 	  }
 	
 	/**
@@ -599,11 +598,9 @@ namespace dht
 	//debug
 	assert(dkres.count()>0);
 	//debug
-	
-	return status;
      }
 
-   dht_err DHTNode::getPredecessor_cb(const DHTKey& recipientKey,
+   void DHTNode::getPredecessor_cb(const DHTKey& recipientKey,
 				      DHTKey& dkres, NetAddress& na,
 				      int& status)
      {
@@ -618,7 +615,7 @@ namespace dht
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }
 	
 	/**
@@ -630,7 +627,7 @@ namespace dht
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     status = DHT_ERR_NO_PREDECESSOR_FOUND;
-	     return status;
+	     return;
 	  }
 	
 	/**
@@ -647,18 +644,16 @@ namespace dht
 	     std::cout << "[Error]:RPC_getPredecessor_cb: our own predecessor is an unknown location !\n";
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER_LOCATION;
-	     return status;
+	     return;
 	  }
 	
 	/**
 	 * Setting RPC results.
 	 */
 	na = resloc->getNetAddress();
-	
-	return status;
      }
       
-   dht_err DHTNode::notify_cb(const DHTKey& recipientKey,
+   void DHTNode::notify_cb(const DHTKey& recipientKey,
 			      const DHTKey& senderKey,
 			      const NetAddress& senderAddress,
 			      int& status)
@@ -672,20 +667,18 @@ namespace dht
 	if (!vnode)
 	  {
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }
 	
 	/**
 	 * notifies this node that the argument node (key) thinks it is 
 	 * its predecessor.
 	 */
-	dht_err err = vnode->notify(senderKey, senderAddress);
-	
-	status = err;
-	return err;
+	status = vnode->notify(senderKey, senderAddress);
+
      }
 
-   dht_err DHTNode::getSuccList_cb(const DHTKey &recipientKey,
+   void DHTNode::getSuccList_cb(const DHTKey &recipientKey,
 				   std::list<DHTKey> &dkres_list,
 				   std::list<NetAddress> &na_list,
 				   int &status)
@@ -701,7 +694,7 @@ namespace dht
 	     dkres_list = std::list<DHTKey>();
 	     na_list = std::list<NetAddress>();
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }
 	
 	if (vnode->_successors.empty())
@@ -709,7 +702,7 @@ namespace dht
 	     dkres_list = std::list<DHTKey>();
 	     na_list = std::list<NetAddress>();
 	     status = DHT_ERR_OK;
-	     return status;
+	     return;
 	  }
 		
 	/**
@@ -726,7 +719,7 @@ namespace dht
 	  {
 	     na_list = std::list<NetAddress>();
 	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
-	     return status;
+	     return;
 	  }
 	
 	/**
@@ -741,7 +734,7 @@ namespace dht
 		  dkres_list.clear();
 		  na_list = std::list<NetAddress>();
 		  status = DHT_ERR_UNKNOWN_PEER_LOCATION;
-		  return status;
+		  return;
 	       }
 	     na_list.push_back(resloc->getNetAddress());
 	     ++tit;
@@ -750,11 +743,9 @@ namespace dht
 	//debug
 	assert(!na_list.empty());
 	//debug
-	
-	return status;
      }
         
-   dht_err DHTNode::findClosestPredecessor_cb(const DHTKey& recipientKey,
+   void DHTNode::findClosestPredecessor_cb(const DHTKey& recipientKey,
 					      const DHTKey& nodeKey,
 					      DHTKey& dkres, NetAddress& na,
 					      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
@@ -771,29 +762,26 @@ namespace dht
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }
 	
 	/**
 	 * return closest predecessor.
 	 */
-	dht_err err = vnode->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
+	vnode->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
 	
-	if ((err != DHT_ERR_OK && err != DHT_ERR_UNKNOWN_PEER_LOCATION)
-	    || status != DHT_ERR_OK)
+	if(status != DHT_ERR_OK && status != DHT_ERR_UNKNOWN_PEER_LOCATION)
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed findClosestPredecessor_cb");
-	     return err;
+	     return;
 	  }
 	
 	//debug
 	assert(dkres.count()>0);
 	//debug
-	
-	return err;
      }
    
-   dht_err DHTNode::joinGetSucc_cb(const DHTKey &recipientKey,
+   void DHTNode::joinGetSucc_cb(const DHTKey &recipientKey,
 				   const DHTKey &senderKey,
 				   DHTKey &dkres, NetAddress &na,
 				   int &status)
@@ -829,7 +817,7 @@ namespace dht
 	       {
 		  dkres = *curr;
 		  na = getNetAddress();
-		  return DHT_ERR_OK;
+		  return;
 	       }
 	     	       
 	     // recipient key is prev.
@@ -842,7 +830,7 @@ namespace dht
 	     dkres = DHTKey();
 	     na = NetAddress();
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }
 	
 	status = vnode->find_successor(senderKey, dkres, na);
@@ -856,14 +844,13 @@ namespace dht
 	  {
 	     na = NetAddress();
 	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
-	     return status;
+	     return;
 	  }
 	
 	status = DHT_ERR_OK;
-	return status;
      }
 
-   dht_err DHTNode::ping_cb(const DHTKey& recipientKey,
+   void DHTNode::ping_cb(const DHTKey& recipientKey,
 			    int& status)
      {
 	status = DHT_ERR_OK;
@@ -875,16 +862,13 @@ namespace dht
 	if (!vnode)
 	  {
 	     status = DHT_ERR_UNKNOWN_PEER;
-	     return status;
+	     return;
 	  }
 	
 	/**
 	 * ping this virtual node.
 	 */
-	dht_err err = vnode->ping();
-	
-	status = err;
-	return err;
+	vnode->ping();
      }
    
    /**-- Main routines using RPCs --**/
@@ -900,18 +884,11 @@ namespace dht
 	  {
 	     DHTVirtualNode *vnode = (*hit).second;
 	     int status = 0;
-	     dht_err err = vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // XXX: could make a single call instead ?
+	     vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // XXX: could make a single call instead ?
 	     
-	     // local errors.
-	     if (err != DHT_ERR_OK)
+	     if (status != DHT_ERR_OK)
 	       {
-		  return err;
-	       }
-	     
-	     // remote errors.
-	     if ((dht_err) status != DHT_ERR_OK)
-	       {
-		  return (dht_err) status; // let's fail and try from another bootstrap address. TODO: some nodes may have succeeded...
+		  return status;
 	       }
 	     
 	     ++hit;

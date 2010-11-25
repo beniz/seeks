@@ -36,13 +36,13 @@ namespace dht
 	~l2_protob_rpc_client();
 	
 	// call and response.
-	dht_err RPC_call(const uint32_t &fct_id,
+	void RPC_call(const uint32_t &fct_id,
 			 const DHTKey &recipientKey,
 			 const NetAddress &recipient,
 			 const DHTKey &sgKey,
 			 l2::l2_subscribe_response *l2r);
 	
-	dht_err RPC_call(const uint32_t &fct_id,
+	void RPC_call(const uint32_t &fct_id,
 			 const DHTKey &recipientKey,
 			 const NetAddress &recipient,
 			 const DHTKey &senderKey,
@@ -50,7 +50,7 @@ namespace dht
 			 const DHTKey &sgKey,
 			 l2::l2_subscribe_response *l2r);
 	
-	dht_err RPC_call(const uint32_t &fct_id,
+	void RPC_call(const uint32_t &fct_id,
 			 const DHTKey &recipientKey,
 			 const NetAddress &recipient,
 			 const DHTKey &senderKey,
@@ -60,16 +60,16 @@ namespace dht
 			 const bool &sdiff,
 			 l1::l1_response *l1r);
 	
-	dht_err RPC_call(const std::string &msg,
+	void RPC_call(const std::string &msg,
 			 const NetAddress &recipient,
 			 l2::l2_subscribe_response *l2r);
 	
-	dht_err RPC_call(const std::string &msg,
+	void RPC_call(const std::string &msg,
 			 const NetAddress &recipient,
 			 l1::l1_response *l1r);
 	
 	/*- l2 interface. -*/
-	virtual dht_err RPC_subscribe(const DHTKey &recipientKey,
+	virtual void RPC_subscribe(const DHTKey &recipientKey,
 				      const NetAddress &recipient,
 				      const DHTKey &senderKey,
 				      const NetAddress &senderAddress,
@@ -77,7 +77,7 @@ namespace dht
 				      std::vector<Subscriber*> &peers,
 				      int &status);
 	
-	virtual dht_err RPC_replicate(const DHTKey &recipientKey,
+	virtual void RPC_replicate(const DHTKey &recipientKey,
 				      const NetAddress &recipient,
 				      const DHTKey &senderKey,
 				      const NetAddress &senderAddress,

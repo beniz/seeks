@@ -52,7 +52,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_subscribe(const DHTKey &recipientKey,
+	virtual void RPC_subscribe(const DHTKey &recipientKey,
 				      const NetAddress &recipient,
 				      const DHTKey &senderKey,
 				      const NetAddress &senderAddress,
@@ -72,7 +72,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_replicate(const DHTKey &recipientKey,
+	virtual void RPC_replicate(const DHTKey &recipientKey,
 				      const NetAddress &recipient,
 				      const DHTKey &senderKey,
 				      const NetAddress &senderAddress,
@@ -100,7 +100,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_subscribe_cb(const DHTKey &recipientKey,
+	virtual void RPC_subscribe_cb(const DHTKey &recipientKey,
 					 const NetAddress &recipient,
 					 const DHTKey &senderKey,
 					 const NetAddress &sender,
@@ -119,7 +119,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_replicate_cb(const DHTKey &recipientKey,
+	virtual void RPC_replicate_cb(const DHTKey &recipientKey,
 					 const NetAddress &recipient,
 					 const DHTKey &senderKey,
 					 const NetAddress &sender,

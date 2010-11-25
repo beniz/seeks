@@ -60,7 +60,7 @@ namespace dht
           throw dht_exception(DHT_ERR_MSG,"l2::SerializeToString");
      }
    
-   dht_err l2_protob_wrapper::read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
+   void l2_protob_wrapper::read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
 							 uint32_t &error_status,
 							 std::vector<Subscriber*> &peers)
      {
@@ -82,7 +82,6 @@ namespace dht
 	     Subscriber *su = new Subscriber(skey,ip_addr,net_port);
 	     peers.push_back(su);
 	  }
-	return error_status;
      }
       
    void l2_protob_wrapper::deserialize(const std::string &str, l2::l2_subscribe_response *l2r)

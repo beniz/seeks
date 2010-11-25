@@ -152,29 +152,20 @@ namespace dht
 
    Searchgroup* Searchgroup::deserialize_from_string(const std::string &str)
      {
-	l2::sg::searchgroup *l2_sg = new l2::sg::searchgroup();
+       l2::sg::searchgroup l2_sg;
 	try
 	  {
-	     l2_data_protob_wrapper::deserialize_from_string(str,l2_sg);
+	     l2_data_protob_wrapper::deserialize_from_string(str,&l2_sg);
 	  }
 	catch (dht_exception &e)
 	  {
 	     // error.
 	     errlog::log_error(LOG_LEVEL_DHT,"Error deserializing searchgroup");
-	     delete l2_sg;
 	     throw dht_exception(e.code(), "Error deserializing searchgroup: " + e.what());
 	  }
 	
 	Searchgroup *sg = NULL;
-	dht_err err = l2_data_protob_wrapper::read_l2_searchgroup(l2_sg,sg);
-	if (err != DHT_ERR_OK)
-	  {
-	     // error.
-	     errlog::log_error(LOG_LEVEL_DHT,"Error instanciating deserialized searchgroup");
-	     delete l2_sg;
-	     return NULL;
-	  }
-	delete l2_sg;
+	l2_data_protob_wrapper::read_l2_searchgroup(&l2_sg,sg);
 	return sg;
      }
       

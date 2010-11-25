@@ -37,7 +37,7 @@ namespace dht
      {
      }
    
-   dht_err l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
+   void l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
 					  const DHTKey &recipientKey,
 					  const NetAddress &recipient,
 					  const DHTKey &sgKey,
@@ -60,10 +60,10 @@ namespace dht
 	     throw dht_exception(DHT_ERR_CALL, "rpc " + sp::miscutil::to_string(fct_id) + " l2 error" + e.what());
 	  }
 		     
-	return RPC_call(msg,recipient,l2r);
+	RPC_call(msg,recipient,l2r);
      }
 
-   dht_err l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
+   void l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
 					  const DHTKey &recipientKey,
 					  const NetAddress &recipient,
 					  const DHTKey &senderKey,
@@ -88,10 +88,10 @@ namespace dht
 	     throw dht_exception(DHT_ERR_CALL, "rpc " + sp::miscutil::to_string(fct_id) + " l2 error " + e.what());
 	  }
 	
-	return RPC_call(msg,recipient,l2r);
+	RPC_call(msg,recipient,l2r);
      }
 
-   dht_err l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
+   void l2_protob_rpc_client::RPC_call(const uint32_t &fct_id,
 					  const DHTKey &recipientKey,
 					  const NetAddress &recipient,
 					  const DHTKey &senderKey,
@@ -118,10 +118,10 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc %u l2 error: %s",fct_id,e.what().c_str());
 	     throw dht_exception(DHT_ERR_CALL, "rpc " + sp::miscutil::to_string(fct_id) + " l2 error " + e.what());
 	  }
-	return RPC_call(msg,recipient,l1r);
+	RPC_call(msg,recipient,l1r);
      }
    					  
-   dht_err l2_protob_rpc_client::RPC_call(const std::string &msg,
+   void l2_protob_rpc_client::RPC_call(const std::string &msg,
 					  const NetAddress &recipient,
 					  l2::l2_subscribe_response *l2r)
      {
@@ -139,10 +139,9 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
 	     throw dht_exception(DHT_ERR_NETWORK, "rpc l2 error " + e.what());
 	  }
-	return DHT_ERR_OK;
      }
    
-   dht_err l2_protob_rpc_client::RPC_call(const std::string &msg,
+   void l2_protob_rpc_client::RPC_call(const std::string &msg,
 					  const NetAddress &recipient,
 					  l1::l1_response *l1r)
      {
@@ -161,10 +160,9 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_ERROR,"rpc l2 error: %s",e.what().c_str());
 	     throw dht_exception(DHT_ERR_NETWORK, "rpc l2 error " + e.what());
 	  }
-	return DHT_ERR_OK;
      }
 	          
-   dht_err l2_protob_rpc_client::RPC_subscribe(const DHTKey &recipientKey,
+   void l2_protob_rpc_client::RPC_subscribe(const DHTKey &recipientKey,
 					       const NetAddress &recipient,
 					       const DHTKey &senderKey,
 					       const NetAddress &senderAddress,
@@ -177,44 +175,33 @@ namespace dht
 	//debug
 		
 	// do call, wait and get response.
-	l2::l2_subscribe_response *l2r = new l2::l2_subscribe_response();
-	dht_err err = DHT_ERR_OK;
+	l2::l2_subscribe_response l2r;
 	
 	try
 	  {
 	     if (senderKey.count() == 0)
-	       err = l2_protob_rpc_client::RPC_call(hash_subscribe,
+	       l2_protob_rpc_client::RPC_call(hash_subscribe,
 						    recipientKey,recipient,
-						    sgKey,l2r);
+						    sgKey,&l2r);
 	     else 
-	       err = l2_protob_rpc_client::RPC_call(hash_subscribe,
+	       l2_protob_rpc_client::RPC_call(hash_subscribe,
 						    recipientKey,recipient,
-						    senderKey,senderAddress,sgKey,l2r);
+						    senderKey,senderAddress,sgKey,&l2r);
 	  }
 	catch (dht_exception &e)
 	  {
-	     delete l2r;
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed subscribe call to %s: %s",
 			       recipient.toString().c_str(),e.what().c_str());
-	     return DHT_ERR_CALL;
-	  }
-	
-	// check on local error status.
-	if (err != DHT_ERR_OK)
-	  {
-	     delete l2r;
-	     return err;
+	     throw dht_exception(DHT_ERR_CALL, "Failed subscribe call to " + recipient.toString() + ":" + e.what());
 	  }
 	
 	// handle the response.
 	uint32_t error_status;
-	err = l2_protob_wrapper::read_l2_subscribe_response(l2r,error_status,peers);
+	l2_protob_wrapper::read_l2_subscribe_response(&l2r,error_status,peers);
 	status = error_status;
-	delete l2r;
-	return err;
      }
 
-   dht_err l2_protob_rpc_client::RPC_replicate(const DHTKey &recipientKey,
+   void l2_protob_rpc_client::RPC_replicate(const DHTKey &recipientKey,
 					       const NetAddress &recipient,
 					       const DHTKey &senderKey,
 					       const NetAddress &senderAddress,
@@ -228,37 +215,26 @@ namespace dht
 	//debug
 	
 	// do call, wait and get response.
-	l1::l1_response *l1r = new l1::l1_response();
-	dht_err err = DHT_ERR_OK;
+	l1::l1_response l1r;
 	
 	try
 	  {
-	     err = l2_protob_rpc_client::RPC_call(hash_replicate,
+	     l2_protob_rpc_client::RPC_call(hash_replicate,
 						  recipientKey,recipient,
 						  senderKey,senderAddress,
-						  ownerKey,sgs,sdiff,l1r);
+						  ownerKey,sgs,sdiff,&l1r);
 	  }
 	catch (dht_exception &e)
 	  {
-	     delete l1r;
 	     errlog::log_error(LOG_LEVEL_DHT, "Failed replicate call to %s: %s",
 			       recipient.toString().c_str(),e.what().c_str());
-	     return DHT_ERR_CALL;
+	     throw dht_exception(DHT_ERR_CALL, "Failed replicate call to " + recipient.toString() + ":" + e.what());
 	  }
-	
-	// check on local error status.
-	if (err != DHT_ERR_OK)
-	  {
-	     delete l1r;
-	     return err;
-	  }
-	
+
 	// handle the response.
 	uint32_t error_status;
-	err = l1_protob_wrapper::read_l1_response(l1r,error_status);
+	l1_protob_wrapper::read_l1_response(&l1r,error_status);
 	status = error_status;
-	delete l1r;
-	return err;
      }
       
 } /* end of namespace. */
