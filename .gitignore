@@ -22,6 +22,14 @@ Makefile.in
 /libtool
 /stamp-*
 
+# tags/ctags/etags
+/tags
+/TAGS
+/etags
+/ETAGS
+/ctags
+/CTAGS
+
 # Compiled Object files
 *.slo
 *.lo
@@ -39,28 +47,19 @@ Makefile.in
 *.pb.h
 *.pb.cc
 
-# bin test
+# bin test et ut
 /src/seeks
 /src/lsh/tests/gen_mrf_query_160
-/src/plugins/img_websearch/tests/test_bing_img_parser
-/src/plugins/img_websearch/tests/test_flickr_parser
-/src/plugins/img_websearch/tests/test_ggle_img_parser
-/src/plugins/img_websearch/tests/test_surf_sim
-/src/plugins/img_websearch/tests/test_wcommons_parser
-/src/plugins/img_websearch/tests/test_yahoo_img_parser
-/src/plugins/websearch/tests/test_bing_parser
-/src/plugins/websearch/tests/test_blekko_parser
-/src/plugins/websearch/tests/test_dailymotion_parser
-/src/plugins/websearch/tests/test_exalead_parser
-/src/plugins/websearch/tests/test_ggle_parser
-/src/plugins/websearch/tests/test_html_txt_parser
-/src/plugins/websearch/tests/test_twitter_parser
-/src/plugins/websearch/tests/test_yahoo_parser
-/src/plugins/websearch/tests/test_yauba_parser
-/src/plugins/websearch/tests/test_youtube_parser
-/src/proxy/tests/test_curl_mget
 /src/proxy/tests/shash
-/src/proxy/tests/user_db_clear
-/src/proxy/tests/user_db_find_key
-/src/proxy/tests/user_db_print
-/src/proxy/tests/user_db_remove
+/src/proxy/tests/user_db_*
+
+*/tests/test_*
+*/tests/ut_*
+*/*/tests/test_*
+*/*/tests/ut_*
+*/*/*/tests/test_*
+*/*/*/tests/ut_*
+
+
+
+

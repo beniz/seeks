@@ -203,6 +203,11 @@ namespace sp
       std::ostream& print(std::ostream &output);
 
       /**
+       * \brief export all db records.
+       */
+      std::ostream& export_db(std::ostream &output, std::string format);
+
+      /**
        * \brief registers user_db_sweepable for plugin-directed db cleanup operations.
        */
       void register_sweeper(user_db_sweepable *uds);

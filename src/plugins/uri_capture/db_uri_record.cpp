@@ -29,17 +29,17 @@ namespace seeks_plugins
 
   db_uri_record::db_uri_record(const time_t &creation_time,
                                const std::string &plugin_name)
-      :db_record(creation_time,plugin_name),_hits(1)
+    :db_record(creation_time,plugin_name),_hits(1)
   {
   }
 
   db_uri_record::db_uri_record(const std::string &plugin_name)
-      :db_record(plugin_name),_hits(1)
+    :db_record(plugin_name),_hits(1)
   {
   }
 
   db_uri_record::db_uri_record()
-      :db_record(),_hits(0)
+    :db_record(),_hits(0)
   {
   }
 
@@ -89,12 +89,6 @@ namespace seeks_plugins
   {
     read_base_record(r);
     _hits = r.GetExtension(sp::db::hits);
-  }
-
-  std::ostream& db_uri_record::print(std::ostream &output) const
-  {
-    output << "\thits: " << _hits << std::endl;
-    return output;
   }
 
 } /* end of namespace. */

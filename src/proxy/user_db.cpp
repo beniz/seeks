@@ -33,12 +33,13 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 namespace sp
 {
   /*- user_db_sweepable -*/
   user_db_sweepable::user_db_sweepable()
-      :sweepable()
+    :sweepable()
   {
   }
 
@@ -52,7 +53,7 @@ namespace sp
   float user_db::_db_version = 0.2;
 
   user_db::user_db()
-      :_opened(false)
+    :_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
@@ -98,7 +99,7 @@ namespace sp
   }
 
   user_db::user_db(const std::string &dbname)
-      :_name(dbname),_opened(false)
+    :_name(dbname),_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
@@ -591,8 +592,32 @@ namespace sp
     output << "size on disk: " << disk_size() << std::endl;
     output << "db version: " << get_version() << std::endl;
     output << std::endl;
+    output << export_db(output,"text") << std::endl;
+    return output;
+  }
+
+  std::ostream& user_db::export_db(std::ostream &output, std::string format)
+  {
+
+    if (format == "text")
+      {
+      }
+    else if (format == "json")
+      {
+        output << "{" << std::endl << "\"records\": [ " << std::endl;
+      }
+    else if (format == "xml")
+      {
+        output << "<querys>" << std::endl;
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Export format %s not supported.", format);
+        return output;
+      }
 
     /* traverse records */
+    bool first = true;
     void *rkey = NULL;
     void *value = NULL;
     int rkey_size;
@@ -619,34 +644,46 @@ namespace sp
                 plugin *pl = plugin_manager::get_plugin(plugin_name);
                 if (!pl)
                   {
-                    // handle error.
                     errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for printing user db record",
                                       plugin_name.c_str());
-                    output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name << std::endl;
                   }
                 else
                   {
                     // call to plugin record creation function.
                     db_record *dbr = pl->create_db_record();
-                    if (dbr->deserialize(str) != 0)
+                    if (format == "text")
                       {
-                        // deserialization error.
-                        // prints out information extracted from the record key.
-                        output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name
-                        << " (deserialization error)\n";
+                        output << "============================================" << std::endl;
+                        dbr->text_export_record(str, output);
                       }
-                    else
+                    else if (format == "json")
                       {
-                        output << "db_record[" << key << "]\n\tplugin_name: " << dbr->_plugin_name
-                        << "\n\tcreation time: " << dbr->_creation_time << std::endl;
-                        dbr->print(output);
+                        if (!first) output << " , " << std::endl;
+                        output << " { " << std::endl;
+                        dbr->json_export_record(str, output);
+                        output << " } " << std::endl;
+                      }
+                    else if (format == "xml")
+                      {
+                        output << " <query> " << std::endl;
+                        dbr->xml_export_record(str, output);
+                        output << " </query> " << std::endl;
                       }
                     delete dbr;
+                    first = false;
                   }
-                output << std::endl;
               }
           }
         free(rkey);
+      }
+
+    if (format == "json")
+      {
+        output << "] " << std::endl << "}" << std::endl;
+      }
+    else if ( format == "xml" )
+      {
+        output << "</querys>" << std::endl;
       }
     return output;
   }

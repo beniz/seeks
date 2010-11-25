@@ -21,24 +21,30 @@
 
 #include <sys/time.h>
 
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+#include "protobuf_export_format/json_format.h"
+#include "protobuf_export_format/xml_format.h"
+
 #include <iostream>
+#include <fstream>
 
 namespace sp
 {
   db_record::db_record(const time_t &creation_time,
                        const std::string &plugin_name)
-      :_creation_time(creation_time),_plugin_name(plugin_name)
+    :_creation_time(creation_time),_plugin_name(plugin_name)
   {
   }
 
   db_record::db_record(const std::string &plugin_name)
-      :_plugin_name(plugin_name)
+    :_plugin_name(plugin_name)
   {
     update_creation_time();
   }
 
   db_record::db_record()
-      :_creation_time(0)
+    :_creation_time(0)
   {
   }
 
@@ -99,15 +105,54 @@ namespace sp
     _plugin_name = r.plugin_name();
   }
 
-  std::ostream& db_record::print_header(std::ostream &output) const
+  std::ostream& db_record::print(std::ostream &output) const
   {
-    output << "\tplugin_name: " << _plugin_name << "\n\tcreation time: " << _creation_time << std::endl;
+    std::string msg;
+    // Call the virtual one
+    serialize(msg);
+    return text_export_record(msg, output);
+  }
+
+  std::ostream& db_record::operator<<(std::ostream &output) const
+  {
+    return print(output);
+  }
+
+  /**
+   * XXX: This fonction use a hack version of class google::protobuf::TextFormat
+   *      to produce JSON/XML/TEXT output
+   *      All files copied and modified from protobuf are under protobuf_export_format/
+   *      Parser are under sp::protobuf_format namespace and depend on protobuf
+   *      To build a other export format duplicate json file and mod key, value decoration
+   */
+  std::ostream& db_record::json_export_record(const std::string &msg, std::ostream &output) const
+  {
+    sp::db::record r;
+    r.ParseFromString(msg);
+    google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
+    sp::protobuf_format::JSONFormat::Print(r, fos);
+    delete fos;
     return output;
   }
 
-  std::ostream& db_record::print(std::ostream &output) const
+  std::ostream& db_record::xml_export_record(const std::string &msg, std::ostream &output) const
   {
-    return print_header(output);
+    sp::db::record r;
+    r.ParseFromString(msg);
+    google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
+    sp::protobuf_format::XMLFormat::Print(r, fos);
+    delete fos;
+    return output;
+  }
+
+  std::ostream& db_record::text_export_record(const std::string &msg, std::ostream &output) const
+  {
+    sp::db::record r;
+    r.ParseFromString(msg);
+    google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
+    google::protobuf::TextFormat::Print(r, fos);
+    delete fos;
+    return output;
   }
 
 } /* end of namespace. */
