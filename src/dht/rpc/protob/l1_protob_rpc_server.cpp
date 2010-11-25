@@ -48,6 +48,22 @@ namespace dht
 						const std::string &addr,
 						std::string &resp_msg)
      {
+       try
+         {
+           serve_response_uncaught(msg, addr, resp_msg);
+         }
+       catch (dht_exception ex) 
+         {
+           l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(ex.code());
+           l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
+           delete l1r;
+         }
+     }
+  
+   void l1_protob_rpc_server::serve_response_uncaught(const std::string &msg,
+						const std::string &addr,
+						std::string &resp_msg)
+     {
 	l1::l1_query l1q;
 	try 
 	  {
@@ -56,7 +72,7 @@ namespace dht
 	catch (dht_exception ex) 
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
-	     throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception" + ex.what());
+	     throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception " + ex.what());
 	  }
 			
 	// read query.
