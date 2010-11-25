@@ -102,6 +102,7 @@ namespace dht
 	  }
 	catch (dht_exception &e)
 	  {
+	    errlog::log_error(LOG_LEVEL_ERROR,"rpc l1 error: %s",e.what().c_str());
             throw dht_exception(DHT_ERR_NETWORK, e.what());
 	  }
 		     
