@@ -55,7 +55,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_getSuccessor(const DHTKey& recipientKey,
+	virtual void RPC_getSuccessor(const DHTKey& recipientKey,
 					 const NetAddress& recipient,
 					 DHTKey& dkres, NetAddress& na,
 					 int& status) = 0;
@@ -69,7 +69,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_getPredecessor(const DHTKey& recipientKey,
+	virtual void RPC_getPredecessor(const DHTKey& recipientKey,
 					   const NetAddress& recipient,
 					   DHTKey& dkres, NetAddress& na,
 					   int& status) = 0;
@@ -82,7 +82,7 @@ namespace dht
 	 * @param senderAddress Net address of the sender node.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_notify(const DHTKey& recipientKey,
+	virtual void RPC_notify(const DHTKey& recipientKey,
 				   const NetAddress& recipient,
 				   const DHTKey& senderKey,
 				   const NetAddress& senderAddress,
@@ -98,7 +98,7 @@ namespace dht
 	 * @param status result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_getSuccList(const DHTKey &recipientKey,
+	virtual void RPC_getSuccList(const DHTKey &recipientKey,
 					const NetAddress &recipient,
 					std::list<DHTKey> &dkres_list,
 					std::list<NetAddress> &na_list,
@@ -117,7 +117,7 @@ namespace dht
 	 * @param status result status.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_findClosestPredecessor(const DHTKey& recipientKey,
+	virtual void RPC_findClosestPredecessor(const DHTKey& recipientKey,
 						   const NetAddress& recipient,
 						   const DHTKey& nodeKey,
 						   DHTKey& dkres, NetAddress& na,
@@ -134,7 +134,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_joinGetSucc(const DHTKey &recipientKey,
+	virtual void RPC_joinGetSucc(const DHTKey &recipientKey,
 					const NetAddress &recipient,
 					const DHTKey &senderKey,
 					DHTKey &dkres, NetAddress &na,
@@ -146,7 +146,7 @@ namespace dht
 	 * @param recipient node on which this function will execute.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_ping(const DHTKey &recipientKey,
+	virtual void RPC_ping(const DHTKey &recipientKey,
 				 const NetAddress &recipient,
 				 int &status) = 0;
      };
@@ -170,7 +170,7 @@ namespace dht
 	 * @param status result status for handling erroneous results.
 	 * @return status.
 	 */
-	virtual dht_err RPC_getSuccessor_cb(const DHTKey& recipientKey,
+	virtual void RPC_getSuccessor_cb(const DHTKey& recipientKey,
 					    const NetAddress &recipient,
 					    DHTKey& dkres, NetAddress& na,
 					    int& status) = 0;
@@ -185,7 +185,7 @@ namespace dht
 	 * @param status result status for handling erroneous results.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_getPredecessor_cb(const DHTKey& recipientKey,
+	virtual void RPC_getPredecessor_cb(const DHTKey& recipientKey,
 					      const NetAddress &recipient,
 					      DHTKey& dkres, NetAddress& na,
 					      int& status) = 0;
@@ -198,7 +198,7 @@ namespace dht
 	 * @param senderAddress Net address of the sender node.
 	 * @return status.
 	 */
-	virtual dht_err RPC_notify_cb(const DHTKey& recipientKey,
+	virtual void RPC_notify_cb(const DHTKey& recipientKey,
 				      const NetAddress &recipient,
 				      const DHTKey& senderKey,
 				      const NetAddress& senderAddress,
@@ -214,7 +214,7 @@ namespace dht
 	 * @param status result status for handling erroneous results.
 	 * @return status.
 	  */
-	virtual dht_err RPC_getSuccList_cb(const DHTKey &recipientKey,
+	virtual void RPC_getSuccList_cb(const DHTKey &recipientKey,
 					   const NetAddress &recipient,
 					   std::list<DHTKey> &dkres_list,
 					   std::list<NetAddress> &dkres_na_list,
@@ -232,7 +232,7 @@ namespace dht
 	 * @param status result status.
 	 * @return error status.
 	 */
-	 virtual dht_err RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
+	 virtual void RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
 						       const NetAddress &recipient,
 						       const DHTKey& nodeKey,
 						       DHTKey& dkres, NetAddress& na,
@@ -248,7 +248,7 @@ namespace dht
 	 * @param status RPC result status for handling erroneous results.
 	 * @return error status.
 	 */
-	virtual dht_err RPC_joinGetSucc_cb(const DHTKey &recipientKey,
+	virtual void RPC_joinGetSucc_cb(const DHTKey &recipientKey,
 					   const NetAddress &recipient,
 					   const DHTKey &senderKey,
 					   DHTKey &dkres, NetAddress &na,
@@ -260,7 +260,7 @@ namespace dht
 	 * @param recipient Net address of the target node.
 	 * @return status.
 	 */
-	virtual dht_err RPC_ping_cb(const DHTKey& recipientKey,
+	virtual void RPC_ping_cb(const DHTKey& recipientKey,
 				    const NetAddress &recipient,
 				    int& status) = 0;
       

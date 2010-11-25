@@ -48,13 +48,13 @@ namespace dht
 	 */
 	virtual dht_err replication_host_keys(const DHTKey &start_key);
 	
-	virtual dht_err replication_move_keys_backward(const DHTKey &start_key,
+	virtual void replication_move_keys_backward(const DHTKey &start_key,
 						       const DHTKey &end_key,
 						       const NetAddress &senderAddress);
 	
-	virtual dht_err replication_move_keys_forward(const DHTKey &end_key);
+	virtual void replication_move_keys_forward(const DHTKey &end_key);
 	
-	virtual dht_err replication_trickle_forward(const DHTKey &start_key,
+	virtual void replication_trickle_forward(const DHTKey &start_key,
 						    const short &start_replication_radius);
 	
       public:

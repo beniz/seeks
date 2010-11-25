@@ -81,7 +81,7 @@ namespace dht
 	_sgmanager.clear_sg_db();
      }
       
-   dht_err SGNode::RPC_subscribe_cb(const DHTKey &recipientKey,
+   void SGNode::RPC_subscribe_cb(const DHTKey &recipientKey,
 				    const NetAddress &recipient,
 				    const DHTKey &senderKey,
 				    const NetAddress &sender,
@@ -97,7 +97,7 @@ namespace dht
 	if (sgKey.count() == 0)
 	  {
 	     status = DHT_ERR_UNSPECIFIED_SEARCHGROUP;
-	     return status;
+	     return;
 	  }
 		
 	/* check on subscription, i.e. if a sender address is specified. */
@@ -107,11 +107,6 @@ namespace dht
 	
 	/* find / create searchgroup. */
 	Searchgroup *sg = _sgmanager.find_load_or_create_sg(&sgKey);
-	if (!sg)
-	  {
-	     status = DHT_ERR_UNKNOWN_PEER; // XXX: should never happen, could use another error code.
-	     return status;
-	  }
 		
 	/* select peers. */
 	if ((int)sg->_vec_subscribers.size() > sg_configuration::_sg_config->_max_returned_peers)
@@ -132,11 +127,9 @@ namespace dht
 	
 	/* trigger a call to sweep (from sg_manager). */
 	_sgmanager._sgsw.sweep();
-	
-	return DHT_ERR_OK;
      }
 
-   dht_err SGNode::RPC_replicate_cb(const DHTKey &recipientKey,
+   void SGNode::RPC_replicate_cb(const DHTKey &recipientKey,
 				    const NetAddress &recipient,
 				    const DHTKey &senderKey,
 				    const NetAddress &sender,
@@ -150,7 +143,8 @@ namespace dht
 	if (sender.empty())
 	  {
 	     errlog::log_error(LOG_LEVEL_DHT,"rejected replication call with empty sender address");
-	     return DHT_ERR_SENDER_ADDR;
+	     status = DHT_ERR_SENDER_ADDR;
+             return;
 	  }
 		 
 	// if no peer in searchgroup, simply update the replication radius.

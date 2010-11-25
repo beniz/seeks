@@ -115,7 +115,7 @@ namespace dht
 	 * From protobuffers to data.
 	 */	
       public:
-	static dht_err read_l1_query(const l1::l1_query *l1q,
+	static void read_l1_query(const l1::l1_query *l1q,
 				     uint32_t &layer_id,
 				     uint32_t &fct_id,
 				     DHTKey &recipient_dhtkey,
@@ -123,7 +123,7 @@ namespace dht
 				     DHTKey &sender_dhtkey,
 				     NetAddress &sender_na);
 	
-	static dht_err read_l1_query(const l1::l1_query *l1q,
+	static void read_l1_query(const l1::l1_query *l1q,
 				     uint32_t &layer_id,
 				     uint32_t &fct_id,
 				     DHTKey &recipient_dhtkey,
@@ -133,7 +133,7 @@ namespace dht
 				     DHTKey &nodekey);
       
       private:
-	static dht_err read_l1_query(const l1::l1_query *l1q,
+	static void read_l1_query(const l1::l1_query *l1q,
 				     uint32_t &layer_id,
 				     uint32_t &fct_id,
 				     std::string &recipient_key,
@@ -147,30 +147,30 @@ namespace dht
      
 	// responses.
       public:
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status,
 					DHTKey &resultKey,
 					NetAddress &resultAddress,
 					DHTKey &foundKey,
 					NetAddress &foundAddress);
 	
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status,
 					DHTKey &resultKey,
 					NetAddress &resultAddress);
 	
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status,
 					std::list<DHTKey> &dkres_list,
 					std::list<NetAddress> &na_list);
 	
       private:
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status,
 					std::list<std::string> &result_key_list,
 					std::list<std::pair<std::string,uint32_t> > &result_address_list);
 	
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status,
 					std::string &result_key,
 					std::string &result_ip_addr,
@@ -179,14 +179,14 @@ namespace dht
 					std::string &found_ip_addr,
 					uint32_t &found_net_port);
    
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status,
 					std::string &result_key,
 					std::string &result_ip_addr,
 					uint32_t &result_net_port);
 	
       public:
-	static dht_err read_l1_response(const l1::l1_response *l1r,
+	static void read_l1_response(const l1::l1_response *l1r,
 					uint32_t &error_status);
 	
       public:

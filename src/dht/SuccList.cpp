@@ -95,8 +95,8 @@ namespace dht
 	
 	std::list<DHTKey> dkres_list;
 	std::list<NetAddress> na_list;
-	dht_err loc_err = _vnode->getPNode()->getSuccList_cb(*dk_succ,dkres_list,na_list,status);
-	if (loc_err == DHT_ERR_UNKNOWN_PEER)
+	_vnode->getPNode()->getSuccList_cb(*dk_succ,dkres_list,na_list,status);
+	if (status == DHT_ERR_UNKNOWN_PEER)
 	  _vnode->getPNode()->_l1_client->RPC_getSuccList(*dk_succ, loc_succ->getNetAddress(),
 							  dkres_list, na_list, status);
 	
@@ -104,7 +104,7 @@ namespace dht
 	 * XXX: we could handle failure, retry, and move to next successor in the list.
 	 * For now, this is done in stabilize, in FingerTable.
 	 */
-	if ((dht_err)status != DHT_ERR_OK)
+	if (status != DHT_ERR_OK)
 	  {
 #ifdef DEBUG
 	     //debug
@@ -113,7 +113,7 @@ namespace dht
 #endif
 	     
 	     errlog::log_error(LOG_LEVEL_DHT, "getSuccList failed");
-	     return (dht_err)status;
+	     return status;
 	  }
 	else
 	  {
@@ -401,11 +401,12 @@ namespace dht
 	  }
      }
       
-   dht_err SuccList::findClosestPredecessor(const DHTKey &nodeKey,
+   void SuccList::findClosestPredecessor(const DHTKey &nodeKey,
 					    DHTKey &dkres, NetAddress &na,
 					    DHTKey &dkres_succ, NetAddress &dkres_succ_na,
 					    int &status)
      {
+       status =  DHT_ERR_OK;
 	std::list<const DHTKey*>::const_iterator sit = _succs.end();
 	std::list<const DHTKey*>::const_iterator sit2 = sit;
 	while(sit!=_succs.begin())
@@ -436,11 +437,10 @@ namespace dht
 		       dkres_succ = loc2->getDHTKey();
 		       dkres_succ_na = loc2->getNetAddress();
 		    }
-		  return DHT_ERR_OK;
+		  return;
 	       }
 	     sit2 = sit;
 	  }
-	return DHT_ERR_OK; // beware.
      }
 
    bool SuccList::isStable()

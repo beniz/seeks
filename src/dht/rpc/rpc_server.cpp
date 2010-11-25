@@ -21,6 +21,7 @@
 
 #include "rpc_server.h"
 #include "spsockets.h"
+#include "dht_exception.h"
 #include "DHTNode.h" // for accessing dht_config.
 #include "miscutil.h"
 #include "errlog.h"
@@ -64,7 +65,7 @@ namespace dht
       }
   }
 
-  dht_err rpc_server::bind()
+  void rpc_server::bind()
   {
     // resolve hostname.
     std::string port_str = miscutil::to_string(_na.getPort());
@@ -86,7 +87,7 @@ namespace dht
       {
         errlog::log_error(LOG_LEVEL_FATAL, "Cannot resolve %s: %s", _na.getNetAddress().c_str(),
                           gai_strerror(err));
-        return err;
+        throw dht_exception(DHT_ERR_NETWORK, "Cannot resolve " + _na.getNetAddress() + ":" + gai_strerror(err));
       }
 
     // create socket.
@@ -114,8 +115,7 @@ namespace dht
                                   "There may be some other server running on port %d",
                                   _na.getNetAddress().c_str(),
                                   _na.getPort(), _na.getPort());
-                // TODO: throw exception.
-                return(-3);
+                throw dht_exception(DHT_ERR_NETWORK, "rpc_server: can't bind to " + _na.getNetAddress() + ":" + sp::miscutil::to_string(_na.getPort()) + ":" + "There may be some other server running on the same port");
               }
           }
         else
@@ -127,7 +127,7 @@ namespace dht
                 if(getsockname(_udp_sock, (sockaddr*)&a, &a_len) < 0)
                   {
                     errlog::log_error(LOG_LEVEL_FATAL, "getsockname(%d): %s", _udp_sock, strerror(errno));
-                    throw;
+                    throw dht_exception(DHT_ERR_NETWORK, "getsockname(" + sp::miscutil::to_string(_udp_sock) + "): " + strerror(errno));
                   }
                 _na.setPort(ntohs(a.sin_port));
               }
@@ -142,28 +142,31 @@ namespace dht
         close_socket();
         errlog::log_error(LOG_LEVEL_FATAL, "can't bind to %s:%d: %E",
                           _na.getNetAddress().c_str(), _na.getPort());
-        //TODO: throw exception.
+        throw dht_exception(DHT_ERR_NETWORK, "rpc_server: can't bind any IP " + _na.getNetAddress() + ":" + sp::miscutil::to_string(_na.getPort()));
       }
-    return DHT_ERR_OK;
   }
 
-  dht_err rpc_server::run()
+  void rpc_server::run()
   {
-    dht_err err;
+    bind();
 
-    if((err = bind()) != DHT_ERR_OK)
-      return err;
-
-    //debug
     std::cerr << "[Debug]:rpc_server: listening for dgrams on "
               << _na.toString() << "...\n";
-    //debu
 
-    while((err = run_loop_once()) == DHT_ERR_OK) ;
-    return err;
+    while(true)
+      {
+        try
+          {
+            run_loop_once();
+          } 
+        catch (dht_exception &e)
+          {
+            errlog::log_error(LOG_LEVEL_FATAL, "server loop caught %s", e.to_string().c_str());
+          }
+      }
   }
 
-  dht_err rpc_server::run_loop_once()
+  void rpc_server::run_loop_once()
   {
 
     // get messages, one by one.
@@ -177,13 +180,15 @@ namespace dht
       {
         close_socket();
         errlog::log_error(LOG_LEVEL_ERROR, "recvfrom: error receiving DGRAM message, %E");
-        return DHT_ERR_SOCKET; // TODO: exception.
+        throw new dht_exception(DHT_ERR_SOCKET, std::string("recvfrom: error receiving DGRAM message ") + strerror(errno));
       }
 
     // get our caller's address.
     char addr_buf[NI_MAXHOST];
-    getnameinfo((struct sockaddr *) &from, fromlen,
-                addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    if(getnameinfo((struct sockaddr *) &from, fromlen,
+                   addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
+      throw new dht_exception(DHT_ERR_SOCKET, std::string("getnameinfo ") + strerror(errno));
+
 
     // message.
     errlog::log_error(LOG_LEVEL_DHT, "rpc_server: received a %d bytes datagram from %s", n, addr_buf);
@@ -194,43 +199,20 @@ namespace dht
 
     // produce and send a response.
     std::string resp_msg;
-    try
-      {
-        serve_response(dtg_str,addr_str,resp_msg);
-      }
-    catch (dht_exception ex)
-      {
-        close_socket();
-        errlog::log_error(LOG_LEVEL_DHT, "rpc_server exception: %s", ex.what().c_str());
-        return DHT_ERR_CALLBACK;
-      }
+    serve_response(dtg_str,addr_str,resp_msg);
 
-    //debug
-    //std::cerr << "resp_msg: " << resp_msg << std::endl;
-    //debug
-
-    // send the response back.
     char msg_str[resp_msg.length()];
     for (size_t i=0; i<resp_msg.length(); i++)
       msg_str[i] = resp_msg[i];
-    //msg_str[resp_msg.length()] = '\0';
-
-    //debug
-    //std::cerr << "[Debug]:sending " << sizeof(msg_str) << " bytes\n";
-    //std::cerr << "sent msg: " << msg_str << std::endl;
-    //debug
-
-    n = sendto(_udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&from,fromlen);
-    if (n<0)
+    if(sendto(_udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&from,fromlen))
       {
         close_socket();
         errlog::log_error(LOG_LEVEL_DHT, "Error sending rpc_server answer msg");
         throw dht_exception(DHT_ERR_MSG, "Error sending rpc_server answer msg");
       }
-    return DHT_ERR_OK;
   }
 
-  dht_err rpc_server::run_thread()
+  void rpc_server::run_thread()
   {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
@@ -240,34 +222,25 @@ namespace dht
                              (void * (*)(void *))&rpc_server::run_static,this);
     pthread_attr_destroy(&attrs);
 
-    if (err == 0)
-      return DHT_ERR_OK;
-    else return DHT_ERR_PTHREAD;
-  }
-
-  int rpc_server::detach_thread()
-  {
-    return pthread_detach(_rpc_server_thread);
+    if (err)
+      throw dht_exception(DHT_ERR_PTHREAD, std::string("pthread_create ") + strerror(errno));
   }
 
   void rpc_server::run_static(rpc_server *server)
   {
-    //TODO: error catching...
     server->run();
   }
   
-  int rpc_server::stop_thread()
+  void rpc_server::stop_thread()
   {
     int err = pthread_kill(_rpc_server_thread,0);
-    if (err == 0)
-      return DHT_ERR_OK;
-    else return DHT_ERR_PTHREAD;
+    if (err)
+      throw dht_exception(DHT_ERR_PTHREAD, std::string("pthread_kill ") + strerror(errno));
   }
   
-  dht_err rpc_server::serve_response(const std::string &msg,
+  void rpc_server::serve_response(const std::string &msg,
                                      const std::string &addr,
                                      std::string &resp_msg)
   {
-    return DHT_ERR_OK;
   }
 } /* end of namespace. */

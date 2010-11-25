@@ -51,7 +51,7 @@ namespace dht
      {
      }
       
-   dht_err FingerTable::findClosestPredecessor(const DHTKey& nodeKey,
+   void FingerTable::findClosestPredecessor(const DHTKey& nodeKey,
 					       DHTKey& dkres, NetAddress& na,
 					       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 					       int& status)
@@ -83,7 +83,7 @@ namespace dht
 		  dkres_succ = DHTKey();
 		  dkres_succ_na = NetAddress();
 		  status = DHT_ERR_OK;
-		  return DHT_ERR_OK;
+		  return;
 	       }     
 	  }
 	
@@ -106,7 +106,7 @@ namespace dht
 #endif
 	     
 	     status = DHT_ERR_OK;
-	     return DHT_ERR_OK;
+	     return;
 	  }
 	
 	/**
@@ -120,8 +120,10 @@ namespace dht
 	na = getVNodeNetAddress();
 	dkres_succ = *getVNodeSuccessor();
 	Location *succ_loc = findLocation(dkres_succ);
-	if (!succ_loc)
-	  return DHT_ERR_UNKNOWN_PEER_LOCATION;
+	if (!succ_loc) {
+	  status = DHT_ERR_UNKNOWN_PEER_LOCATION;
+          return;
+        }
 	dkres_succ_na = succ_loc->getNetAddress();
 	
 #ifdef DEBUG
@@ -129,8 +131,6 @@ namespace dht
 	assert(dkres!=getVNodeIdKey()); // exit.
 	//debug
 #endif
-	
-	return DHT_ERR_OK;
      }
    
    int FingerTable::stabilize()
@@ -179,27 +179,27 @@ namespace dht
 	NetAddress na_succ_pred;
 	
 	bool successor_change = false;
-	int status = 0;
+	dht_err status = 0;
 	dht_err err = DHT_ERR_RETRY;
 	std::vector<Location*> dead_locs;
 	while (err != DHT_ERR_OK) // in case of failure, will try all successors in the list. If all fail, then rejoin.
 	  {
-	     err = _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
-	     if (err == DHT_ERR_UNKNOWN_PEER)
-	       err = _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+	     _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
+	     if (status == DHT_ERR_UNKNOWN_PEER)
+	       _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 									succ_pred, na_succ_pred, status);
 	     
 #ifdef DEBUG
 	     //debug
-	     std::cerr << "[Debug]: predecessor call: err=" << err << " -- status=" << status << std::endl;
+	     std::cerr << "[Debug]: predecessor call: -- status=" << status << std::endl;
 	     //debug
 #endif
 	     
 	     /**
 	      * handle successor failure, retry, then move down the successor list.
 	      */
-	     if (err != DHT_ERR_OK
-		 && (err == DHT_ERR_CALL || err == DHT_ERR_COM_TIMEOUT || err == DHT_ERR_UNKNOWN_PEER
+	     if (status != DHT_ERR_OK
+		 && (status == DHT_ERR_CALL || status == DHT_ERR_COM_TIMEOUT || status == DHT_ERR_UNKNOWN_PEER
 		     || ret == retries)) // node is not dead, but predecessor call has failed 'retries' times.
 	       {
 		  /**
@@ -276,7 +276,7 @@ namespace dht
 	     /**
 	      * check on RPC status.
 	      */
-	     if ((dht_err)status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
+	     if (status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
 	       {
 #ifdef DEBUG
 		  //debug
@@ -286,7 +286,7 @@ namespace dht
 		  
 		  break;
 	       }
-	     else if ((dht_err)status == DHT_ERR_OK)
+	     else if (status == DHT_ERR_OK)
 	       {
 		  /**
 		   * beware, the predecessor may be a dead node.
@@ -362,7 +362,7 @@ namespace dht
 	     _vnode->getPNode()->rejoin();
 	  }
 	
-	if ((dht_err)status != DHT_ERR_NO_PREDECESSOR_FOUND && (dht_err)status != DHT_ERR_OK)
+	if (status != DHT_ERR_NO_PREDECESSOR_FOUND && status != DHT_ERR_OK)
 	  {
 #ifdef DEBUG
 	     //debug
@@ -377,7 +377,7 @@ namespace dht
 	     std::cerr << "[Debug]: no more successors to try... Should try to rejoin the overlay network\n";
 	     exit(0);
 	  }
-	else if ((dht_err)status == DHT_ERR_OK)
+	else if (status == DHT_ERR_OK)
 	  {
 	     /**
 	      * look up succ_pred, add it to the location table if needed.
@@ -413,8 +413,8 @@ namespace dht
 	 */
 	if (DHTNode::_dht_config->_routing)
 	  {
-	     err = _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
-	     if (err == DHT_ERR_UNKNOWN_PEER)
+	     _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
+	     if (status == DHT_ERR_UNKNOWN_PEER)
 	       _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 							  getVNodeIdKey(),getVNodeNetAddress(),
 							  status);
@@ -422,10 +422,10 @@ namespace dht
 	     /**
 	      * check on RPC status.
 	      */
-	     if ((dht_err)status != DHT_ERR_OK)
+	     if (status != DHT_ERR_OK)
 	       {
 		  errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
-		  return (dht_err)status;
+		  return status;
 	       }
 	  }
 	else // in non routing mode, check whether our predecessor has changed.

@@ -42,18 +42,17 @@ class test_rpc_server : public rpc_server
 
     test_rpc_server() : rpc_server("localhost", 0) {}
 
-    virtual dht_err serve_response(const std::string &msg,
+    virtual void serve_response(const std::string &msg,
                                    const std::string &addr,
                                    std::string &resp_msg)
     {
       if(message2answer.find(msg) != message2answer.end())
         {
-          return DHT_ERR_RESPONSE;
+          throw dht_exception(DHT_ERR_RESPONSE, "not found");
         }
       else
         {
           resp_msg = message2answer[msg];
-          return DHT_ERR_OK;
         }
     }
 
@@ -79,7 +78,7 @@ class ServerTest : public testing::Test
 
 TEST_F(ServerTest, bind)
 {
-  ASSERT_EQ(DHT_ERR_OK, _server->bind());
+  _server->bind();
   ASSERT_NE(-1, _server->_udp_sock);
   ASSERT_NE(0, _server->_na.getPort());
 }

@@ -174,23 +174,20 @@ namespace dht
 	return DHT_ERR_OK;
      }
    
-   dht_err DHTVirtualNode::findClosestPredecessor(const DHTKey& nodeKey,
+   void DHTVirtualNode::findClosestPredecessor(const DHTKey& nodeKey,
 						  DHTKey& dkres, NetAddress& na,
 						  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
 						  int& status)
      {
-	return _fgt->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
+	_fgt->findClosestPredecessor(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
      }
 
-   dht_err DHTVirtualNode::ping()
+   void DHTVirtualNode::ping()
      {
-	// XXX: add protection against ping or some good reason not to respond with an OK status.
-	// alive.
-	return DHT_ERR_OK;
      }
       
    /**-- functions using RPCs. --**/
-   dht_err DHTVirtualNode::join(const DHTKey& dk_bootstrap,
+   void DHTVirtualNode::join(const DHTKey& dk_bootstrap,
 				const NetAddress &dk_bootstrap_na,
 				const DHTKey& senderKey,
 				int& status)
@@ -205,26 +202,16 @@ namespace dht
 	 */
 	DHTKey dkres;
 	NetAddress na;
-	dht_err err = _pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
+	_pnode->_l1_client->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
 							  senderKey,
 							  dkres, na, status);
 	
-	// local errors.
-	if (err != DHT_ERR_OK)
-	  {
-	     return err;
-	  }
-	else // we're connected.
-	  _connected = true;       
+	if (status != DHT_ERR_OK)
+	     return;
+        _connected = true;       
 	
-	// remote errors.
-	if ((dht_err)status == DHT_ERR_OK)
-	  {
-	     setSuccessor(dkres,na);
-	     update_successor_list_head();
-	  }
-	
-	return err;
+        setSuccessor(dkres,na);
+        update_successor_list_head();
      }
       
    dht_err DHTVirtualNode::find_successor(const DHTKey& nodeKey,
@@ -258,18 +245,18 @@ namespace dht
 	 * we check among local virtual nodes first.
 	 */
 	int status = 0;
-	dht_err loc_err = _pnode->getSuccessor_cb(dk_pred,dkres,na,status);
-	if (loc_err == DHT_ERR_UNKNOWN_PEER)
+	_pnode->getSuccessor_cb(dk_pred,dkres,na,status);
+	if (status == DHT_ERR_UNKNOWN_PEER)
 	  _pnode->_l1_client->RPC_getSuccessor(dk_pred, na_pred, 
 					       dkres, na, status);
-	if (loc_err == DHT_ERR_OK)
+	if (status == DHT_ERR_OK)
 	  {
 	     Location *uloc = findLocation(dk_pred);
 	     if (uloc)
 	       uloc->update_check_time();
 	  }
 	
-	return (dht_err)status;
+	return status;
      }
    
    dht_err DHTVirtualNode::find_predecessor(const DHTKey& nodeKey,
@@ -343,11 +330,11 @@ namespace dht
 	     /**
 	      * we make a local call to virtual nodes first, and a remote call if needed.
 	      */
-	     dht_err err = _pnode->findClosestPredecessor_cb(recipientKey,
+	     _pnode->findClosestPredecessor_cb(recipientKey,
 							     nodeKey, dkres, na,
 							     succ_key, succ_na, status);
-	     if (err == DHT_ERR_UNKNOWN_PEER)
-	       err = _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
+	     if (status == DHT_ERR_UNKNOWN_PEER)
+	       _pnode->_l1_client->RPC_findClosestPredecessor(recipientKey, recipient, 
 								    nodeKey, dkres, na, 
 								    succ_key, succ_na, status);
 	     
@@ -356,10 +343,10 @@ namespace dht
 	      * has undershot the looked up key. In general this means the call
 	      * has failed and should be retried.
 	      */
-	     if (err != DHT_ERR_OK)
+	     if (status != DHT_ERR_OK)
 	       {
-		  if (ret < retries && (err == DHT_ERR_CALL 
-					|| err == DHT_ERR_COM_TIMEOUT)) // failed call, remote node does not respond.
+		  if (ret < retries && (status == DHT_ERR_CALL 
+					|| status == DHT_ERR_COM_TIMEOUT)) // failed call, remote node does not respond.
 		    {
 #ifdef DEBUG
 		       //debug
@@ -370,27 +357,27 @@ namespace dht
 		       // let's undershoot by finding the closest predecessor to the 
 		       // dead node.
 		       std::vector<Location*>::iterator rtit = rit._hops.end();
-		       while(err != DHT_ERR_OK && rtit!=rit._hops.begin())
+		       while(status != DHT_ERR_OK && rtit!=rit._hops.begin())
 			 {
 			    --rtit;
 			    
 			    Location *past_loc = (*rtit);
 			    
-			    err = _pnode->findClosestPredecessor_cb(past_loc->getDHTKey(),
+			    _pnode->findClosestPredecessor_cb(past_loc->getDHTKey(),
 								    recipientKey,dkres,na,
 								    succ_key,succ_na,status);
-			    if (err == DHT_ERR_UNKNOWN_PEER)
-			      err = _pnode->_l1_client->RPC_findClosestPredecessor(past_loc->getDHTKey(),
+			    if (status == DHT_ERR_UNKNOWN_PEER)
+			      _pnode->_l1_client->RPC_findClosestPredecessor(past_loc->getDHTKey(),
 										   past_loc->getNetAddress(),
 										   recipientKey,dkres,na,
 										   succ_key,succ_na,status);
 			 }
 		    
-		       if (err != DHT_ERR_OK)
+		       if (status != DHT_ERR_OK)
 			 {
 			    // weird, undershooting did fail.
 			    errlog::log_error(LOG_LEVEL_DHT, "Tentative overshooting did fail in find_predecessor");
-			    return (dht_err)status;
+			    return status;
 			 }
 		       else
 			 {
@@ -413,7 +400,7 @@ namespace dht
 	     /**
 	      * check on rpc status.
 	      */
-	     if ((dht_err)status != DHT_ERR_OK)
+	     if (status != DHT_ERR_OK)
 	       {
 #ifdef DEBUG
 		  //debug
@@ -421,7 +408,7 @@ namespace dht
 		  //debug
 #endif
 		  
-		  return (dht_err)status;
+		  return status;
 	       }
 	     
 #ifdef DEBUG
@@ -440,7 +427,7 @@ namespace dht
 	     rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
 	     
 	     if (succ_key.count() > 0
-		 && (dht_err)status == DHT_ERR_OK)
+		 && status == DHT_ERR_OK)
 	       {
 	       }
 	     else
@@ -448,12 +435,12 @@ namespace dht
 		  /**
 		   * In general we need to ask rloc for its successor.
 		   */
-		  dht_err loc_err = _pnode->getSuccessor_cb(dkres,succ_key,succ_na,status);
-		  if (loc_err == DHT_ERR_UNKNOWN_PEER)
+		  _pnode->getSuccessor_cb(dkres,succ_key,succ_na,status);
+		  if (status == DHT_ERR_UNKNOWN_PEER)
 		    _pnode->_l1_client->RPC_getSuccessor(dkres, na,
 							 succ_key, succ_na, status);
 		  
-		  if ((dht_err)status != DHT_ERR_OK)
+		  if (status != DHT_ERR_OK)
 		    {
 #ifdef DEBUG
 		       //debug
@@ -463,7 +450,7 @@ namespace dht
 #endif
 		       
 		       errlog::log_error(LOG_LEVEL_DHT, "Failed call to getSuccessor in find_predecessor loop");
-		       return (dht_err)status;
+		       return status;
 		    }
 		  else 
 		    {
@@ -508,9 +495,9 @@ namespace dht
 	  {
 	     // let's ping that node.
 	     status = DHT_ERR_OK;
-	     dht_err err = _pnode->_l1_client->RPC_ping(recipientKey,na,
+	     _pnode->_l1_client->RPC_ping(recipientKey,na,
 							status);
-	     if (err == DHT_ERR_OK && (dht_err) status == DHT_ERR_OK)
+	     if (status == DHT_ERR_OK)
 	       {
 		  Location *uloc = findLocation(recipientKey);
 		  if (uloc)

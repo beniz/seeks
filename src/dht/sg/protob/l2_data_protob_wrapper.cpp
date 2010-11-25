@@ -72,7 +72,7 @@ namespace dht
           throw dht_exception(DHT_ERR_MSG,"l2_sg::SerializeToString");
      }
    
-   dht_err l2_data_protob_wrapper::read_l2_searchgroup(const l2::sg::searchgroup *l2_sg, Searchgroup *&sg)
+   void l2_data_protob_wrapper::read_l2_searchgroup(const l2::sg::searchgroup *l2_sg, Searchgroup *&sg)
      {
 	std::string sg_key_str = l2_sg->key().key();
 	std::vector<unsigned char> ser;
@@ -99,7 +99,6 @@ namespace dht
 	     sg->add_subscriber(sub);
 	  }
 	sg->_last_time_of_use = l2_sg->last_use();
-	return DHT_ERR_OK;
      }
       
    void l2_data_protob_wrapper::deserialize_from_string(const std::string &str, l2::sg::searchgroup *l2_sg)
@@ -155,7 +154,7 @@ namespace dht
           throw dht_exception(DHT_ERR_MSG,"l1r::SerializeToString");
      }
    
-   dht_err l2_data_protob_wrapper::read_l2_replication_query(const l1::l1_query *l1q,
+   void l2_data_protob_wrapper::read_l2_replication_query(const l1::l1_query *l1q,
 							     uint32_t &fct_id,
 							     DHTKey &recipientKey,
 							     NetAddress &recipient,
@@ -171,7 +170,6 @@ namespace dht
 	sdiff = l1q->GetExtension(l2::sg::diff);
 	l2::sg::r_searchgroups rsgs = l1q->GetExtension(l2::sg::rsg);
 	l2_data_protob_wrapper::read_replicated_searchgroups(rsgs,sgs);
-	return DHT_ERR_OK;
      }
    
    void l2_data_protob_wrapper::read_replicated_searchgroups(const l2::sg::r_searchgroups &rsgs,

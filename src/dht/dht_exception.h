@@ -23,6 +23,7 @@
 #define DHT_EXCEPTION_H
 
 #include <string>
+#include "miscutil.h"
 
 namespace dht
 {
@@ -35,6 +36,8 @@ namespace dht
       std::string what() const { return _message; }
 
       int code() const { return _code; }
+
+      std::string to_string() const { return "code = " + sp::miscutil::to_string(_code) + " message = " + _message; }
 
     protected:
 

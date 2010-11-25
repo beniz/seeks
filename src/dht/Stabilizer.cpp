@@ -290,11 +290,11 @@ namespace dht
 	     // try to bootstrap from every node in the list.
 	     dht_err status = DHT_ERR_OK;
 	     DHTKey dk_bootstrap; // empty key is handled by the called node when asking for a bootstrap.
-	     dht_err err = vnode->join(dk_bootstrap,na_boot,
+	     vnode->join(dk_bootstrap,na_boot,
 				       vnode->getIdKey(),status);
 	     
 	     // check on error and reschedule a rejoin call if needed.
-	     if (err != DHT_ERR_OK || (dht_err) status != DHT_ERR_OK)
+	     if (status != DHT_ERR_OK)
 		 {
 		    // failure, try next bootstrap node.
 		    ++vit;

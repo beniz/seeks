@@ -48,7 +48,7 @@ namespace dht
 	return DHT_ERR_OK;
      }
    
-   dht_err SGVirtualNode::replication_move_keys_backward(const DHTKey &start_key,
+   void SGVirtualNode::replication_move_keys_backward(const DHTKey &start_key,
 							 const DHTKey &end_key,
 							 const NetAddress &senderAddress)
      {
@@ -71,7 +71,7 @@ namespace dht
 	int status = DHT_ERR_OK;
 	DHTKey ownerKey; //TODO: unused.
 	l2_protob_rpc_client *l2_client = static_cast<l2_protob_rpc_client*>(_pnode->_l1_client);
-	dht_err err = l2_client->RPC_replicate(end_key,senderAddress,
+	l2_client->RPC_replicate(end_key,senderAddress,
 					       _idkey,_pnode->_l1_na,
 					       ownerKey,v_sgs,
 					       false,status);
@@ -85,12 +85,12 @@ namespace dht
 	h_sgs.clear();
      }
    
-   dht_err SGVirtualNode::replication_move_keys_forward(const DHTKey &end_key)
+   void SGVirtualNode::replication_move_keys_forward(const DHTKey &end_key)
      {
 	
      }
    
-   dht_err SGVirtualNode::replication_trickle_forward(const DHTKey &start_key,
+   void SGVirtualNode::replication_trickle_forward(const DHTKey &start_key,
 						      const short &start_replication_radius)
      {
 	

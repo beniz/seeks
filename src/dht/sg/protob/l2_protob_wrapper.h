@@ -42,7 +42,7 @@ namespace dht
 	static void serialize_to_string(const l2::l2_subscribe_response*, std::string &str);
      
       public:
-	static dht_err read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
+	static void read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
 						  uint32_t &error_status,
 						  std::vector<Subscriber*> &peers);
       
