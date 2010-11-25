@@ -23,8 +23,15 @@
 #include "json_renderer.h"
 #include "json_renderer_private.h"
 
+#include "seeks_proxy.h"
+#include "proxy_configuration.h"
+//#include "errlog.h"
+
 using namespace seeks_plugins;
 using namespace json_renderer_private;
+using sp::seeks_proxy;
+using sp::proxy_configuration;
+//using sp::errlog;
 
 TEST(JsonRendererTest, render_engines)
 {
@@ -180,7 +187,7 @@ TEST(JsonRendererTest, render_json_results)
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
-  EXPECT_EQ(std::string::npos, std::string(rsp->_body).find(s2._url));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
 
   // select page 2
@@ -222,7 +229,7 @@ TEST(JsonRendererTest, render_clustered_json_results)
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
-  std::cout << rsp->_body << std::endl;
+  //std::cerr << rsp->_body << std::endl;
   delete rsp;
 }
 
@@ -263,28 +270,28 @@ TEST(JsonRendererTest, collect_json_results)
   // select page 1
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
-  EXPECT_NE(std::string::npos, std::string(result).find("\"LANG\""));
-  EXPECT_NE(std::string::npos, std::string(result).find("\"date\""));
-  EXPECT_NE(std::string::npos, std::string(result).find("\"qtime\":1234"));
-  EXPECT_NE(std::string::npos, std::string(result).find("\"pers\":\"on\""));
-  EXPECT_NE(std::string::npos, std::string(result).find("\"&lt;QUERY&gt;\""));
-  EXPECT_EQ(std::string::npos, std::string(result).find("CMD"));
-  EXPECT_EQ(std::string::npos, std::string(result).find("suggestion"));
-  EXPECT_EQ(std::string::npos, std::string(result).find("engines"));
-  EXPECT_EQ(std::string::npos, std::string(result).find("\"yahoo\""));
+  EXPECT_NE(std::string::npos, result.find("\"LANG\""));
+  EXPECT_NE(std::string::npos, result.find("\"date\""));
+  EXPECT_NE(std::string::npos, result.find("\"qtime\":1234"));
+  EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
+  EXPECT_NE(std::string::npos, result.find("\"&lt;QUERY&gt;\""));
+  EXPECT_EQ(std::string::npos, result.find("\"CMD\""));
+  EXPECT_EQ(std::string::npos, result.find("\"suggestion\""));
+  EXPECT_EQ(std::string::npos, result.find("\"engines\""));
+  EXPECT_EQ(std::string::npos, result.find("\"yahoo\""));
 
   // prs precedence logic
   websearch::_wconfig->_personalization = false;
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
-  EXPECT_NE(std::string::npos, std::string(result).find("\"pers\":\"off\""));
+  EXPECT_NE(std::string::npos, result.find("\"pers\":\"off\""));
 
   parameters.insert(std::pair<const char*,const char*>("prs", "on"));
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
-  EXPECT_NE(std::string::npos, std::string(result).find("\"pers\":\"on\""));
+  EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
 
   // suggestion
   context._suggestions.push_back("SUGGESTION1");
@@ -292,16 +299,44 @@ TEST(JsonRendererTest, collect_json_results)
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
-  EXPECT_NE(std::string::npos, std::string(result).find("suggestion"));
-  EXPECT_NE(std::string::npos, std::string(result).find("SUGGESTION1"));
-  EXPECT_EQ(std::string::npos, std::string(result).find("SUGGESTION2"));
+  EXPECT_NE(std::string::npos, result.find("suggestion"));
+  EXPECT_NE(std::string::npos, result.find("SUGGESTION1"));
+  EXPECT_EQ(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
   context._engines = std::bitset<NSEs>(SE_YAHOO);
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
-  EXPECT_NE(std::string::npos, std::string(result).find("\"yahoo\""));
+  EXPECT_NE(std::string::npos, result.find("\"yahoo\""));
+}
+
+TEST(JsonRendererTest, render_node_options)
+{
+  // init logging module.
+  /* errlog::init_log_module();
+  errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_ERROR | LOG_LEVEL_INFO); */
+  
+  websearch::_wconfig = new websearch_configuration("../websearch-config");
+  client_state *csp = new client_state();
+  csp->_config = new proxy_configuration("../../../config");
+  csp->_cfd = 0;
+  std::list<std::string> opts;
+  std::string json_opts;
+
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_node_options(csp,opts));
+  json_opts = miscutil::join_string_list(",",opts);
+  //std::cerr << json_opts << std::endl;
+  EXPECT_NE(std::string::npos, json_opts.find("\"version\""));
+  EXPECT_EQ(std::string::npos, json_opts.find("\"my-ip-address\""));
+  EXPECT_NE(std::string::npos, json_opts.find("\"code-status\""));
+  EXPECT_EQ(std::string::npos, json_opts.find("\"admin-address\""));
+  EXPECT_NE(std::string::npos, json_opts.find("\"url-source-code\""));
+  
+  EXPECT_NE(std::string::npos, json_opts.find("\"thumbs\""));
+  EXPECT_NE(std::string::npos, json_opts.find("\"content-analysis\""));
+  EXPECT_NE(std::string::npos, json_opts.find("\"clustering\""));
+  delete csp;
 }
 
 int main(int argc, char **argv)

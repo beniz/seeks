@@ -26,11 +26,13 @@
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
 #include "img_query_context.h"
 #endif
+#include "proxy_configuration.h"
 
 using sp::cgisimple;
 using sp::miscutil;
 using sp::cgi;
 using sp::encode;
+using sp::proxy_configuration;
 using namespace json_renderer_private;
 
 namespace seeks_plugins
@@ -90,6 +92,52 @@ namespace seeks_plugins
       }
     return json_str_eng;
   }
+
+sp_err json_renderer::render_node_options(client_state *csp,
+                                          std::list<std::string> &opts)
+{
+  // system options.
+  hash_map<const char*, const char*, hash<const char*>, eqstr> *exports
+    = cgi::default_exports(csp,"");
+  const char *value = miscutil::lookup(exports,"version");
+  if (value)
+    opts.push_back("\"version\":\"" + std::string(value) + "\"");
+  if (websearch::_wconfig->_show_node_ip)
+    {
+      value = miscutil::lookup(exports,"my-ip-address");
+      if (value)
+        {
+          opts.push_back("\"my-ip-address\":\"" + std::string(value) + "\"");
+        }
+    }
+  value = miscutil::lookup(exports,"code-status");
+  if (value)
+    {
+      opts.push_back("\"code-status\":\"" + std::string(value) + "\"");
+    }
+  value = miscutil::lookup(exports,"admin-address");
+  if (value)
+    {
+      opts.push_back("\"admin-address\":\"" + std::string(value) + "\"");
+    }
+  opts.push_back("\"url-source-code\":\"" + csp->_config->_url_source_code + "\"");
+  
+  miscutil::free_map(exports);
+  
+  /*- websearch options. -*/
+  // thumbs.
+  std::string opt = "\"thumbs\":\"";
+  websearch::_wconfig->_thumbs ? opt += "\"on\"" : opt += "\"off\"";
+  opts.push_back(opt);
+  opt = "\"content-analysis\":\"";
+  websearch::_wconfig->_content_analysis ? opt += "\"on\"" : opt += "\"off\"";
+  opts.push_back(opt);
+  opt = "\"clustering\":\"";
+  websearch::_wconfig->_clustering ? opt += "\"on\"" : opt += "\"off\"";
+  opts.push_back(opt);
+
+  return SP_ERR_OK;
+}
 
   std::string json_renderer::render_img_engines(const query_context *qc)
   {
@@ -166,7 +214,6 @@ namespace seeks_plugins
             snisize = std::min(current_page*rpp,(int)snippets.size());
             snistart = (current_page-1)*rpp;
           }
-        //for (size_t i=snistart;i<snisize;i++)
         size_t count = 0;
         for (size_t i=0; i<ssize; i++)
           {
@@ -193,10 +240,10 @@ namespace seeks_plugins
   }
 
   sp_err json_renderer::render_clustered_snippets(const std::string &query_clean,
-      cluster *clusters, const short &K,
-      const query_context *qc,
-      std::string &json_str,
-      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+                                                  cluster *clusters, const short &K,
+                                                  const query_context *qc,
+                                                  std::string &json_str,
+                                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     json_str += "\"clusters\":[";
 
@@ -234,11 +281,11 @@ namespace seeks_plugins
   }
 
   sp_err json_renderer::render_json_results(const std::vector<search_snippet*> &snippets,
-      client_state *csp, http_response *rsp,
-      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-      const query_context *qc,
-      const double &qtime,
-      const bool &img)
+                                            client_state *csp, http_response *rsp,
+                                            const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                            const query_context *qc,
+                                            const double &qtime,
+                                            const bool &img)
   {
     const char *current_page_str = miscutil::lookup(parameters,"page");
     if (!current_page_str)
@@ -264,12 +311,23 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
+ sp_err json_renderer::render_json_node_options(client_state *csp, http_response *rsp,
+                                               const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+ {
+    std::list<std::string> opts;
+    sp_err err = json_renderer::render_node_options(csp,opts);
+    std::string json_str = "{" + miscutil::join_string_list(",",opts) + "}";
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return err;
+  }
+
   sp_err json_renderer::render_clustered_json_results(cluster *clusters,
-      const short &K,
-      client_state *csp, http_response *rsp,
-      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-      const query_context *qc,
-      const double &qtime)
+                                                      const short &K,
+                                                      client_state *csp, http_response *rsp,
+                                                      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                                      const query_context *qc,
+                                                      const double &qtime)
   {
     std::string query = query_clean(miscutil::lookup(parameters,"q"));
 
@@ -323,6 +381,7 @@ namespace json_renderer_private
                               const double &qtime,
                               const bool &img)
   {
+    /*- query info. -*/
     // query.
     results.push_back("\"query\":\"" + query_clean(miscutil::lookup(parameters,"q")) + "\"");
 
