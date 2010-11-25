@@ -30,6 +30,7 @@
 #include <iostream>
 
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -92,6 +93,17 @@ TEST(UserdbTest, all_fct)
       ASSERT_EQ(plugin_name,dbr->_plugin_name);
       delete dbr;
     }
+
+  // export records
+  std::string file ("ut-export-test-db.json");
+  std::ofstream output (file);
+  db->export_db(output, "json");
+  output.close();
+
+  struct stat filestatus;
+  stat(file.c_str(), &filestatus );
+  ASSERT_TRUE(filestatus.st_size > 0);
+  remove(file.c_str());
 
   // remove record.
   db->remove_dbr(uris[1],plugin_name);

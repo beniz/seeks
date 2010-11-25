@@ -107,6 +107,14 @@ namespace sp
        */
       virtual std::ostream& print(std::ostream &output) const;
 
+      /**
+       * export the record.
+       */
+
+      void json_export_record(const std::string &msg, std::ostream &output) const;
+      void xml_export_record(const std::string &msg, std::ostream &output) const;
+      void text_export_record(const std::string &msg, std::ostream &output) const;
+
     public:
       time_t _creation_time;
       std::string _plugin_name;

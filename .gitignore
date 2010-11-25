@@ -64,3 +64,4 @@ Makefile.in
 /src/proxy/tests/user_db_find_key
 /src/proxy/tests/user_db_print
 /src/proxy/tests/user_db_remove
+/src/proxy/tests/user_db_export

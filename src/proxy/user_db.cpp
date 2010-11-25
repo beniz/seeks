@@ -33,12 +33,13 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 namespace sp
 {
   /*- user_db_sweepable -*/
   user_db_sweepable::user_db_sweepable()
-      :sweepable()
+    :sweepable()
   {
   }
 
@@ -52,7 +53,7 @@ namespace sp
   float user_db::_db_version = 0.2;
 
   user_db::user_db()
-      :_opened(false)
+    :_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
@@ -98,7 +99,7 @@ namespace sp
   }
 
   user_db::user_db(const std::string &dbname)
-      :_name(dbname),_opened(false)
+    :_name(dbname),_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
@@ -633,12 +634,12 @@ namespace sp
                         // deserialization error.
                         // prints out information extracted from the record key.
                         output << "db_record[" << key << "]\n\tplugin_name: " << plugin_name
-                        << " (deserialization error)\n";
+                               << " (deserialization error)\n";
                       }
                     else
                       {
                         output << "db_record[" << key << "]\n\tplugin_name: " << dbr->_plugin_name
-                        << "\n\tcreation time: " << dbr->_creation_time << std::endl;
+                               << "\n\tcreation time: " << dbr->_creation_time << std::endl;
                         dbr->print(output);
                       }
                     delete dbr;
@@ -649,6 +650,98 @@ namespace sp
         free(rkey);
       }
     return output;
+  }
+
+  int user_db::export_db(std::ostream &output, std::string format)
+  {
+
+    if (format == "text")
+      {
+      }
+    else if (format == "json")
+      {
+        output << "{" << std::endl << "\"records\": [ " << std::endl;
+      }
+    else if (format == "xml")
+      {
+        output << "<querys>" << std::endl;
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Export format %s not supported.", format);
+        return 1;
+      }
+
+    /* traverse records */
+    bool first = true;
+    void *rkey = NULL;
+    void *value = NULL;
+    int rkey_size;
+    tchdbiterinit(_hdb);
+    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+      {
+        int value_size;
+        value = tchdbget(_hdb, rkey, rkey_size, &value_size);
+        if (value)
+          {
+            std::string str = std::string((char*)value,value_size);
+            free(value);
+            std::string key, plugin_name;
+            std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   plugin_name,key) != 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+              }
+            else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                if (!pl)
+                  {
+                    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for printing user db record",
+                                      plugin_name.c_str());
+                  }
+                else
+                  {
+                    // call to plugin record creation function.
+                    db_record *dbr = pl->create_db_record();
+                    if (format == "text")
+                      {
+                        output << "============================================" << std::endl;
+                        dbr->text_export_record(str, output);
+                      }
+                    else if (format == "json")
+                      {
+                        if (!first) output << " , " << std::endl;
+                        output << " { " << std::endl;
+                        dbr->json_export_record(str, output);
+                        output << " } " << std::endl;
+                      }
+                    else if (format == "xml")
+                      {
+                        output << " <query> " << std::endl;
+                        dbr->xml_export_record(str, output);
+                        output << " </query> " << std::endl;
+                      }
+                    delete dbr;
+                    first = false;
+                  }
+              }
+          }
+        free(rkey);
+      }
+
+    if (format == "json")
+      {
+        output << "] " << std::endl << "}" << std::endl;
+      }
+    else if ( format == "xml" )
+      {
+        output << "</querys>" << std::endl;
+      }
+    return 0;
   }
 
   void user_db::register_sweeper(user_db_sweepable *uds)
