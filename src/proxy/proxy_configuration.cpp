@@ -93,6 +93,7 @@ namespace sp
 #define hash_show_on_task_bar              4011152997ul /* "show-on-task-bar" */
 #define hash_auto_proxy_disable             312503207ul /* "automatic-proxy-disable" */
 #define hash_user_db_file                  2401853593ul /* "user-db-file" */
+#define hash_url_source_code               1714992061ul /* "url-source-code" */
 
   proxy_configuration::proxy_configuration(const std::string &filename)
       :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
@@ -153,6 +154,7 @@ namespace sp
 
     _automatic_proxy_disable = true;
     _user_db_file = ""; // default is $HOME/.seeks/seeks_user.db active when _user_db_file is unset.
+    _url_source_code = "http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree";
   }
 
   void proxy_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -827,6 +829,10 @@ namespace sp
 
       case hash_user_db_file:
         _user_db_file = std::string(arg);
+        break;
+
+      case hash_url_source_code:
+        _url_source_code = std::string(arg);
         break;
 
         /*************************************************************************

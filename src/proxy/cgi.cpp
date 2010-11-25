@@ -2185,6 +2185,12 @@ namespace sp
         if (!err) err = cgi::map_block_killer(exports, "have-help-info");
       }
 
+    if (!csp->_config->_url_source_code.empty())
+      {
+        if (!err) err = miscutil::add_map_entry(exports, "url-source-code", 1,
+                                                encode::html_encode(csp->_config->_url_source_code.c_str()), 0);
+      }
+    
     if (err)
       {
         miscutil::free_map(exports);

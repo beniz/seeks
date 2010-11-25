@@ -159,7 +159,10 @@ namespace sp
 
       /*  user db file. */
       std::string _user_db_file;
-  };
+  
+      /* pointer to source code. */
+      std::string _url_source_code;
+};
 
 } /* end of namespace. */
 
