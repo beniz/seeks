@@ -187,7 +187,7 @@ namespace dht
     char addr_buf[NI_MAXHOST];
     if(getnameinfo((struct sockaddr *) &from, fromlen,
                    addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
-      throw new dht_exception(DHT_ERR_SOCKET, std::string("getnameinfo ") + strerror(errno));
+      throw dht_exception(DHT_ERR_SOCKET, std::string("getnameinfo ") + strerror(errno));
 
 
     // message.

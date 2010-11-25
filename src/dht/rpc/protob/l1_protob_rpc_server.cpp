@@ -333,7 +333,7 @@ namespace dht
 						       DHTKey& dkres, NetAddress& na,
 						       int& status)
      {
-	return _pnode->getPredecessor_cb(recipientKey,dkres,na,status); 
+	_pnode->getPredecessor_cb(recipientKey,dkres,na,status); 
      }
       
    void l1_protob_rpc_server::RPC_notify_cb(const DHTKey& recipientKey,
