@@ -11,14 +11,17 @@ EXTRA_DIST=dht_layer2_data.proto dht_layer2.proto
 protoc_inputs=dht_layer2.proto dht_layer2_data.proto
 
 protoc_outputs=dht_layer2.pb.cc dht_layer2.pb.h dht_layer2_data.pb.cc dht_layer2_data.pb.h 
+
 BUILT_SOURCES = $(protoc_outputs)
 
 $(protoc_outputs): proto_middleman
 
 proto_middleman: protoc $(protoc_inputs)
+	touch proto_middleman
 	$^ --cpp_out=. --proto_path=${srcdir} --proto_path=${srcdir}/../../protob
 
-clean-local:
-	rm -f dht_layer2.pb.h dht_layer2.pb.cc dht_layer2_data.pb.h dht_layer2_data.pb.cc proto_middleman
+protoc:
+	touch protoc
 
-.PHONY: protoc
+clean-local:
+	rm -f dht_layer2.pb.h dht_layer2.pb.cc dht_layer2_data.pb.h dht_layer2_data.pb.cc protoc proto_middleman
