@@ -24,14 +24,18 @@
 #include "DHTNode.h"
 #include "errlog.h"
 
+#if GTEST_HAS_PARAM_TEST
+using ::testing::TestWithParam;
+using ::testing::Values;
+
 using namespace dht;
 using sp::errlog;
 
-class BootstrapTest : public testing::Test
+class BootstrapTest : public TestWithParam<int>
 {
 protected:
   BootstrapTest()
-    :_net_addr("localhost"),_net_port(11000),_dnode(NULL),
+    :_nvnodes(GetParam()),_net_addr("localhost"),_net_port(11000),_dnode(NULL),
      _na_dnode(NULL)
   {
   }
@@ -47,7 +51,8 @@ protected:
     errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
 
     DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
-    
+    DHTNode::_dht_config->_nvnodes = _nvnodes;
+
     _na_dnode = new NetAddress(_net_addr,_net_port);
     _dnode = new DHTNode(_na_dnode->getNetAddress().c_str(),_na_dnode->getPort(),false);
     _dnode->_stabilizer = new Stabilizer(false); // empty stabilizer, not started.             
@@ -63,13 +68,14 @@ protected:
     delete _dnode;
   }
 
+  int _nvnodes;
   std::string _net_addr;
   unsigned short _net_port;
   DHTNode *_dnode;
   NetAddress *_na_dnode;
 };
 
-TEST_F(BootstrapTest, self_bootstrap)
+TEST_P(BootstrapTest, self_bootstrap)
 {
   _dnode->self_bootstrap();
   
@@ -99,8 +105,24 @@ TEST_F(BootstrapTest, self_bootstrap)
     }
 }
 
+INSTANTIATE_TEST_CASE_P(
+                        OnTheFlyAndPreCalculated,
+                        BootstrapTest,
+                        Values(32)
+);
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+#else
+// Google Test may not support value-parameterized tests with some
+// compilers. If we use conditional compilation to compile out all
+// code referring to the gtest_main library, MSVC linker will not link
+// that library at all and consequently complain about missing entry
+// point defined in that library (fatal error LNK1561: entry point
+// must be defined). This dummy test keeps gtest_main linked in.
+TEST(DummyTest, ValueParameterizedTestsAreNotSupportedOnThisPlatform) {}
+#endif // GTEST_HAS_PARAM_TEST
