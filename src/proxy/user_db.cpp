@@ -612,7 +612,7 @@ namespace sp
       }
     else
       {
-        errlog::log_error(LOG_LEVEL_ERROR,"Export format %s not supported.", format);
+        errlog::log_error(LOG_LEVEL_ERROR,"Export format %s not supported.", format.c_str());
         return output;
       }
 

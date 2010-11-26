@@ -147,19 +147,15 @@ class XMLFormat::Parser::ParserImpl {
   }
 
   void ReportWarning(int line, int col, const string& message) {
-    if (error_collector_ == NULL) {
-      if (line >= 0) {
-        GOOGLE_LOG(WARNING) << "Warning parsing text-format "
-                     << root_message_type_->full_name()
-                     << ": " << (line + 1) << ":"
-                     << (col + 1) << ": " << message;
-      } else {
-        GOOGLE_LOG(WARNING) << "Warning parsing text-format "
-                     << root_message_type_->full_name()
-                     << ": " << message;
-      }
+    if (line >= 0) {
+    GOOGLE_LOG(WARNING) << "Warning parsing text-format "
+                    << root_message_type_->full_name()
+                    << ": " << (line + 1) << ":"
+                    << (col + 1) << ": " << message;
     } else {
-      error_collector_->AddWarning(line, col, message);
+    GOOGLE_LOG(WARNING) << "Warning parsing text-format "
+                    << root_message_type_->full_name()
+                    << ": " << message;
     }
   }
 
@@ -586,10 +582,6 @@ class XMLFormat::Parser::ParserImpl {
 
     virtual void AddError(int line, int column, const string& message) {
       parser_->ReportError(line, column, message);
-    }
-
-    virtual void AddWarning(int line, int column, const string& message) {
-      parser_->ReportWarning(line, column, message);
     }
 
    private:
