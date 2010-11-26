@@ -99,7 +99,7 @@ namespace sp
   }
 
   user_db::user_db(const std::string &dbname)
-    :_name(dbname),_opened(false)
+    :_opened(false),_name(dbname)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
@@ -565,7 +565,6 @@ namespace sp
   {
     uint64_t n = 0;
     void *rkey = NULL;
-    void *value = NULL;
     int rkey_size;
     tchdbiterinit(_hdb);
     while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
