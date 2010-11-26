@@ -85,10 +85,8 @@ class ProtocolTest : public testing::Test
         {
           try
             {
-              DHTKey dkres;
-              NetAddress nares;
               dht_err status;
-              _dnode->_l1_client->RPC_ping(dkres,nares,status);
+              _dnode->_l1_client->RPC_ping(DHTKey(),*_na_dnode,status);
               break;
             }
           catch(dht_exception &e)
