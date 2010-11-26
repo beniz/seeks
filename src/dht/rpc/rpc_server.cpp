@@ -204,7 +204,7 @@ namespace dht
     char msg_str[resp_msg.length()];
     for (size_t i=0; i<resp_msg.length(); i++)
       msg_str[i] = resp_msg[i];
-    if(sendto(_udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&from,fromlen))
+    if(sendto(_udp_sock,msg_str,sizeof(msg_str),0,(struct sockaddr*)&from,fromlen) < 0)
       {
         close_socket();
         errlog::log_error(LOG_LEVEL_DHT, "Error sending rpc_server answer msg");
