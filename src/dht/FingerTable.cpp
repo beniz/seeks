@@ -184,6 +184,7 @@ namespace dht
 	std::vector<Location*> dead_locs;
 	while (err != DHT_ERR_OK) // in case of failure, will try all successors in the list. If all fail, then rejoin.
 	  {
+             err = DHT_ERR_OK;
 	     _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
 	     if (status == DHT_ERR_UNKNOWN_PEER)
 	       _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
