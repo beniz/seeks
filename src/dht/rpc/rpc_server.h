@@ -23,7 +23,9 @@
 #define RPC_SERVER_H
 
 #include "NetAddress.h"
+#include "mutexes.h"
 
+#include <sys/select.h>
 #include <pthread.h>
 
 namespace dht
@@ -58,6 +60,10 @@ namespace dht
       NetAddress _na;
       pthread_t _rpc_server_thread;
       int _udp_sock;
+      bool _abort;
+      sp_mutex_t _run_mutex;
+      fd_set _rfds;
+      timeval _select_timeout;
   };
 
 } /* end of namespace. */

@@ -46,9 +46,9 @@ using sp::spsockets;
 namespace dht
 {
   rpc_server::rpc_server(const std::string &hostname, const short &port)
-    :_na(hostname,port),
-     _udp_sock(-1)
+    :_na(hostname,port),_udp_sock(-1),_abort(false)
   {
+    mutex_init(&_run_mutex);
   }
 
   rpc_server::~rpc_server()
@@ -149,26 +149,48 @@ namespace dht
   void rpc_server::run()
   {
     bind();
-
+    /*FD_ZERO(&_rfds);
+    FD_SET(_udp_sock,&_rfds); */
+    _select_timeout.tv_sec = 1; // 1 second timeout is default.
+    _select_timeout.tv_usec = 0;
+    
     std::cerr << "[Debug]:rpc_server: listening for dgrams on "
               << _na.toString() << "...\n";
-
-    while(true)
+    
+    int running = true;
+    while(running)
       {
         try
           {
-            run_loop_once();
-          } 
+            FD_ZERO(&_rfds);
+            FD_SET(_udp_sock,&_rfds);
+            
+            // non blocking on (single) service.
+            int m = select((int)_udp_sock+1,&_rfds,NULL,NULL,&_select_timeout);
+            if (m > 0)
+              run_loop_once();
+            else if (m < 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR, "rpc_server select() failed!: %E");
+                spsockets::close_socket(_udp_sock);
+                throw new dht_exception(DHT_ERR_SOCKET, std::string("rpc_server select ") + strerror(errno));
+              }
+            
+            mutex_lock(&_run_mutex);
+            running = !_abort;
+            mutex_unlock(&_run_mutex);
+          }
         catch (dht_exception &e)
           {
             errlog::log_error(LOG_LEVEL_FATAL, "server loop caught %s", e.to_string().c_str());
           }
       }
+    pthread_exit(NULL);
   }
 
   void rpc_server::run_loop_once()
   {
-
+    
     // get messages, one by one.
     size_t buflen = DHTNode::_dht_config->_l1_server_max_msg_bytes;  //TODO: of transient l2 messages!
     char buf[buflen];
@@ -188,8 +210,7 @@ namespace dht
     if(getnameinfo((struct sockaddr *) &from, fromlen,
                    addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
       throw dht_exception(DHT_ERR_SOCKET, std::string("getnameinfo ") + strerror(errno));
-
-
+    
     // message.
     errlog::log_error(LOG_LEVEL_DHT, "rpc_server: received a %d bytes datagram from %s", n, addr_buf);
     std::string dtg_str = std::string(buf,n);
@@ -233,9 +254,10 @@ namespace dht
   
   void rpc_server::stop_thread()
   {
-    int err = pthread_kill(_rpc_server_thread,0);
-    if (err)
-      throw dht_exception(DHT_ERR_PTHREAD, std::string("pthread_kill ") + strerror(errno));
+    mutex_lock(&_run_mutex);
+    _abort = true;
+    mutex_unlock(&_run_mutex);
+    pthread_join(_rpc_server_thread,NULL);
   }
   
   void rpc_server::serve_response(const std::string &msg,
