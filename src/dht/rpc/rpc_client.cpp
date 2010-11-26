@@ -138,9 +138,9 @@ namespace dht
 	  }
 	else if (m < 0)
 	  {
-	     errlog::log_error(LOG_LEVEL_ERROR, "select() failed!: %E");
+	     errlog::log_error(LOG_LEVEL_ERROR, "rpc_client select() failed!: %E");
 	     spsockets::close_socket(udp_sock);
-             throw new dht_exception(DHT_ERR_SOCKET, std::string("select ") + strerror(errno));
+             throw new dht_exception(DHT_ERR_SOCKET, std::string("rpc_client select ") + strerror(errno));
 	  }
 		  
 	size_t buflen = 1024;
