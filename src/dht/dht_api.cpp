@@ -2,7 +2,7 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
- * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -73,5 +73,17 @@ namespace dht
 	alive = !vnode->is_dead(nodekey,na,err);
 	return err;
      }
+  
+  dht_err dht_api::join_start(DHTNode &dnode,
+			      const std::vector<NetAddress> &bootstrap_nodes,
+			      const bool &reset)
+  {
+    return dnode.join_start(bootstrap_nodes,reset);
+  }
+  
+  void dht_api::self_bootstrap(DHTNode &dnode)
+  {
+    dnode.self_bootstrap();
+  }
       
 } /* end of namespace. */

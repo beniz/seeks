@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "DHTNode.h"
+#include "dht_api.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -137,10 +137,10 @@ int main(int argc, char **argv)
 	if (joinb)
 	  {
 	     bool reset = true;
-	     dnode->join_start(bootstrap_nodelist,reset);
+	     dht_api::join_start(*dnode,bootstrap_nodelist,reset);
 	  }
 	else if (sbootb)
-	  dnode->self_bootstrap();
+	  dht_api::self_bootstrap(*dnode);
      }
    
    pthread_join(dnode->_l1_server->_rpc_server_thread,NULL);

@@ -2,7 +2,7 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
- * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,13 +30,13 @@ namespace dht
    class dht_api
      {
       public:
-	static void findClosestPredecessor(const DHTNode &dnode,
-					      const DHTKey& nodeKey,
-					      DHTKey& dkres, NetAddress& na,
-					      int& status);
-	
-	static dht_err findSuccessor(const DHTNode &dnode,
-				     const DHTKey &nodekey,
+       static void findClosestPredecessor(const DHTNode &dnode,
+					  const DHTKey& nodeKey,
+					  DHTKey& dkres, NetAddress& na,
+					  int& status);
+       
+       static dht_err findSuccessor(const DHTNode &dnode,
+				    const DHTKey &nodekey,
 				     DHTKey &dkres, NetAddress &na);
      
 	static dht_err findPredecessor(const DHTNode &dnode,
@@ -47,8 +47,14 @@ namespace dht
 			    const DHTKey &nodekey,
 			    const NetAddress &na,
 			    bool &alive);
+        
+        static dht_err join_start(DHTNode &dnode,
+                                  const std::vector<NetAddress> &bootstrap_nodes,
+                                  const bool &reset);
+        
+        static void self_bootstrap(DHTNode &dnode);
      };
-      
+   
 } /* end of namespace. */
 
 #endif
