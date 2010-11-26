@@ -107,6 +107,7 @@ TEST_F(ProtocolTest, get_no_successor)
          _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
                                               dkres,nares,
                                               status);
+         break;
        }
      catch(dht_exception &e)
        {
