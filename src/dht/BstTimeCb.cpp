@@ -41,18 +41,33 @@ namespace dht
    BstTimeCb::BstTimeCb(const timespec& tv, callback<int>* cb)
      : Bst<timespec, callback<int>* >(tv, cb)
        {  
-	  BstTimeCb::setMaxVal(tv);
+         BstTimeCb::setMaxVal(tv);
        }
    
    BstTimeCb::BstTimeCb(const timespec& tv, callback<int>* cb,
 			BstTimeCb* rnode, BstTimeCb* lnode, BstTimeCb* fnode)
      : Bst<timespec, callback<int>* >(tv, cb, rnode, lnode, fnode)
        {
-	  BstTimeCb::setMaxVal(tv);
+         BstTimeCb::setMaxVal(tv);
        }
 
    BstTimeCb::~BstTimeCb()
      {
+       if (_ptR)
+         {
+           delete _ptR;
+           _ptR = NULL;
+         }
+       if (_ptL)
+         {
+           delete _ptL;
+           _ptL= NULL;
+         }
+       if (_ptF)
+         {
+           delete _ptF;
+           _ptF = NULL;
+         }
 	for (unsigned int i=0; i<_data.size(); i++)
 	  delete _data[i];
      }
@@ -101,20 +116,26 @@ namespace dht
    pthread_mutex_t _cbtree_mutex = PTHREAD_MUTEX_INITIALIZER;
    
    BstTimeCbTree::BstTimeCbTree()
-     :_bstcbtree(NULL)
+     :_bstcbtree(NULL),_abort(false)
      {
-	start_threaded_timecheck_loop();
+       mutex_init(&_cbtree_mutex);
+       mutex_init(&_run_mutex);
+       start_threaded_timecheck_loop();
      }
    
    BstTimeCbTree::BstTimeCbTree(const timespec& tv, callback<int>* cb)
      {
-	_bstcbtree = new BstTimeCb(tv, cb);
-	start_threaded_timecheck_loop();
+       mutex_init(&_cbtree_mutex);
+       mutex_init(&_run_mutex);
+       _bstcbtree = new BstTimeCb(tv, cb);
+       start_threaded_timecheck_loop();
      }
 
    BstTimeCbTree::~BstTimeCbTree()
      {
-	// TODO: delete _bstcbtree ?
+       stop_threaded_timecheck_loop();
+       if (_bstcbtree)
+         delete _bstcbtree;
      }
       
    void BstTimeCbTree::insert(const timespec& tv, callback<int>* cb)
@@ -126,7 +147,7 @@ namespace dht
    
    void BstTimeCbTree::timecheck()
      {
-	pthread_mutex_lock(&_cbtree_mutex);
+	mutex_lock(&_cbtree_mutex);
 	
 	/**
 	 * get the current clock.
@@ -209,7 +230,7 @@ namespace dht
 	//BstTimeCb::printBst(std::cout, _bstcbtree);
 	//debug
 	
-	pthread_mutex_unlock(&_cbtree_mutex);
+	mutex_unlock(&_cbtree_mutex);
      }
 
    void* timecheck_loop(void* bsttimecb)
@@ -217,8 +238,22 @@ namespace dht
 	BstTimeCbTree* btb = static_cast<BstTimeCbTree*>(bsttimecb);
 	for (;;)
 	  {
-	     btb->timecheck();
-	     sleep(5);  // TODO: was 1.
+            mutex_lock(&btb->_run_mutex);
+            if (btb->_abort)
+              {
+                mutex_unlock(&btb->_run_mutex);
+                
+                //debug                                                                
+                std::cerr << "[Debug]:BstTimeCb::timecheck_loop: stopped thread with id:"
+                          << btb->_tcl_thread << std::endl;
+                //debug
+              
+                pthread_exit(NULL);
+              }
+            mutex_unlock(&btb->_run_mutex);
+            
+            btb->timecheck();
+            sleep(5);
 	  }
 	return NULL;
      }
@@ -233,7 +268,9 @@ namespace dht
 	pthread_attr_t tcl_attr;
 	pthread_attr_init(&tcl_attr);
 	//pthread_attr_setdetachstate(&tcl_attr, PTHREAD_CREATE_DETACHED);
-	int tcl_thr_res = pthread_create(&_tcl_thread, &tcl_attr, timecheck_loop, (void*)this);
+	int tcl_thr_res = pthread_create(&_tcl_thread, &tcl_attr, 
+                                         &timecheck_loop, 
+                                         (void*)this);
 	
 	/**
 	 * TODO: checks that tcl_thr_res is 0, and deals with errors.
@@ -248,5 +285,13 @@ namespace dht
 	
 	return;
      }
+
+   void BstTimeCbTree::stop_threaded_timecheck_loop()
+    {
+      mutex_lock(&_run_mutex);
+      _abort = true;
+      mutex_unlock(&_run_mutex);
+      pthread_join(_tcl_thread,NULL);
+    }
    
 } /* end of namespace. */

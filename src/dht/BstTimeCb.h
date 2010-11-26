@@ -21,6 +21,7 @@
 
 #include "Bst.h"
 #include "callback.h"
+#include "mutexes.h"
 #include <time.h>  //GNU unix, TODO: win32.
 #include <pthread.h>
 #include <iostream>
@@ -108,12 +109,14 @@ namespace dht
 	 */
 	static timespec _maxval;
      };
-
+   
 #ifndef TIMECHECKLOOP
 #define TIMECHECKLOOP
    void* timecheck_loop(void* bsttimecb);
 #endif
-   
+
+   //typedef void (*tcl_ptr)(void*);
+
    /**
     * \class BstTimeCbTree
     * \brief this class is for managing a binary search tree with time dates as keys
@@ -139,11 +142,16 @@ namespace dht
 	 */
 	void start_threaded_timecheck_loop();
 	
+        /**
+         * \brief stops the threaded loop.
+         */
+        void stop_threaded_timecheck_loop();
+
 	/**
-	 * insert.
+	 * \brief insert a callback into the tree.
 	 */
 	void insert(const timespec& tv, callback<int>* cb);
-	
+        
 	/**
 	 * accessors.
 	 */
@@ -152,7 +160,7 @@ namespace dht
 	     return _tcl_thread; 
 	  }
 	
-      protected:
+      public:
 	/**
 	 * bst root.
 	 */
@@ -166,7 +174,11 @@ namespace dht
 	/**
 	 * pthread mutex on the tree.
 	 */
-	//pthread_mutex_t _cbtree_mutex;
+	sp_mutex_t _cbtree_mutex;
+     
+        bool _abort;
+        
+        sp_mutex_t _run_mutex;
      };
       
 } /* end of namespace. */
