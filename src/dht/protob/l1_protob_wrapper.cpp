@@ -384,6 +384,8 @@ namespace dht
 							  result_key,result_ip_addr,
 							  result_net_port,found_key,
 							  found_ip_addr,found_net_port);
+	if (error_status != DHT_ERR_OK)
+	  return;
 	std::vector<unsigned char> ser;
 	std::copy(result_key.begin(),result_key.end(),std::back_inserter(ser));
 	resultKey = DHTKey::unserialize(ser);
@@ -408,6 +410,8 @@ namespace dht
 	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key,result_ip_addr,
 							  result_net_port);
+	if (error_status != DHT_ERR_OK)
+	  return;
 	std::vector<unsigned char> ser;
 	std::copy(result_key.begin(),result_key.end(),std::back_inserter(ser));
 	resultKey = DHTKey::unserialize(ser);
@@ -423,6 +427,8 @@ namespace dht
 	std::list<std::pair<std::string,uint32_t> > result_address_list;
 	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key_list,result_address_list);
+	if (error_status != DHT_ERR_OK)
+	  return;
 	std::vector<unsigned char> ser;
 	std::list<std::string>::const_iterator sit = result_key_list.begin();
 	while(sit!=result_key_list.end())
@@ -448,6 +454,8 @@ namespace dht
 					       std::list<std::pair<std::string,uint32_t> > &result_address_list)
      {
 	l1_protob_wrapper::read_l1_response(l1r,error_status);
+	if (error_status != DHT_ERR_OK)
+	  return;
 	l1::nodelist l1r_vnodelist = l1r->vnodelist();
 	int nnodes = l1r_vnodelist.nodes_size();
 	for (int i=0;i<nnodes;i++)
@@ -475,6 +483,8 @@ namespace dht
      {
 	l1_protob_wrapper::read_l1_response(l1r,error_status,
 							  result_key,result_ip_addr,result_net_port);
+	if (error_status != DHT_ERR_OK)
+	  return;
 	l1::vnodeid l1r_found_vnode_succ = l1r->found_vnode_succ();
 	l1::dht_key l1r_found_key = l1r_found_vnode_succ.key();
 	found_key = l1r_found_key.key();
@@ -490,6 +500,8 @@ namespace dht
 					       uint32_t &result_net_port)
      {
 	l1_protob_wrapper::read_l1_response(l1r,error_status);
+	if (error_status != DHT_ERR_OK)
+	  return;
 	l1::vnodeid l1r_found_vnode = l1r->found_vnode();
 	l1::dht_key l1r_result_key = l1r_found_vnode.key();
 	result_key = l1r_result_key.key();
