@@ -48,7 +48,7 @@ protected:
   {
     // init logging module.                                                                    
     errlog::init_log_module();
-    errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
+    errlog::set_debug_level(LOG_LEVEL_INFO | LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
 
     DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
     DHTNode::_dht_config->_nvnodes = _nvnodes;
@@ -108,7 +108,7 @@ TEST_P(BootstrapTest, self_bootstrap)
 INSTANTIATE_TEST_CASE_P(
                         OnTheFlyAndPreCalculated,
                         BootstrapTest,
-                        Values(32)
+                        Values(1,2,3,4,8,16,32)
 );
 
 int main(int argc, char **argv)
