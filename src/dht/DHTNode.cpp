@@ -82,7 +82,10 @@ namespace dht
 
    DHTNode::~DHTNode()
      {
-	stop_node();
+       stop_node();
+       
+       if (DHTNode::_dht_config)
+         delete DHTNode::_dht_config; // XXX: beware, static variable.
      }
       
    void DHTNode::start_node()
