@@ -2,7 +2,7 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
- * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
  *
   * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,8 +27,8 @@
 using namespace dht;
 using sp::errlog;
 
-const std::string net_addr = "localhost";
-const short net_port = 11000; //TODO: 0 for first available port.
+//const std::string net_addr = "localhost";
+//const short net_port = 11000; //TODO: 0 for first available port.
 
 const std::string pred_key = "33c80b886cdd2eb535b649817a2c24e6fe63820d";
 const std::string pred_addr = "localhost";
@@ -77,8 +77,7 @@ class ProtocolTest : public testing::Test
 	
 	ASSERT_EQ(1,_dnode->_vnodes.size());
 	_v1node = (*_dnode->_vnodes.begin()).second;
-	std::cout << "vnode idkey: " << _v1node->getIdKey() << std::endl;
-     
+	     
 	_dnode->init_sorted_vnodes();
 	_dnode->init_server();
 	_dnode->_l1_server->run_thread();
@@ -96,13 +95,12 @@ class ProtocolTest : public testing::Test
    DHTVirtualNode *_v1node;
 };
 
-TEST_F(ProtocolTest, chord_protocol)
+TEST_F(ProtocolTest, get_no_successor)
 {
    // test no successor found.
-   //TODO: while.
    DHTKey dkres;
    NetAddress nares;
-   dht_err status = DHT_ERR_COM_TIMEOUT;
+   dht_err status = DHT_ERR_OK;
    while(true) {
      try
        {
@@ -119,47 +117,103 @@ TEST_F(ProtocolTest, chord_protocol)
        }
    }
    ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
-   
-   /*- test get predecessor RPC. -*/
-   // set predecessor
-   DHTKey pred_dhtkey = DHTKey::from_rstring(pred_key);
-   NetAddress *na_pred = new NetAddress(pred_addr,pred_port);
-   _v1node->setPredecessor(pred_dhtkey,*na_pred);
-   
-   // test get_predecessor
-   status = 0;
-   _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
-						dkres,nares,
-						status);
-   ASSERT_EQ(DHT_ERR_OK,status);
-   ASSERT_EQ(pred_key,dkres.to_rstring());
-   ASSERT_EQ(nares.getNetAddress(),na_pred->getNetAddress());
-   ASSERT_EQ(nares.getPort(),na_pred->getPort());
-   
-   /*- test get successor RPC. -*/
+}   
+
+TEST_F(ProtocolTest, get_no_predecessor)
+{
+  // test no predecessor found.
+  DHTKey dkres;
+  NetAddress nares;
+  dht_err status = DHT_ERR_OK;
+  while(true) {
+     try
+       {
+         _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
+                                                dkres,nares,
+                                                status);
+       }
+     catch(dht_exception &e)
+       {
+         if(e.code() != DHT_ERR_COM_TIMEOUT)
+           {
+             throw e;
+           }
+       }
+  }
+  ASSERT_EQ(DHT_ERR_NO_PREDECESSOR_FOUND,status);
+}
+
+TEST_F(ProtocolTest, get_predecessor)
+{
+  // set predecessor
+  DHTKey pred_dhtkey = DHTKey::from_rstring(pred_key);
+  NetAddress *na_pred = new NetAddress(pred_addr,pred_port);
+  _v1node->setPredecessor(pred_dhtkey,*na_pred);
+
+  // test predecessor.
+  DHTKey dkres;
+  NetAddress nares;
+  dht_err status = DHT_ERR_OK;
+  while(true) {
+    try
+      {
+        _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
+                                               dkres,nares,
+                                               status);
+      }
+    catch(dht_exception &e)
+      {
+        if(e.code() != DHT_ERR_COM_TIMEOUT)
+          {
+            throw e;
+          }
+      }
+  }
+  ASSERT_EQ(DHT_ERR_OK,status);
+  ASSERT_EQ(pred_key,dkres.to_rstring());
+  ASSERT_EQ(nares.getNetAddress(),na_pred->getNetAddress());
+  ASSERT_EQ(nares.getPort(),na_pred->getPort());
+}
+
+TEST_F(ProtocolTest, get_successor)
+{
    // set successor.
    DHTKey succ_dhtkey = DHTKey::from_rstring(succ_key);
    NetAddress *na_succ = new NetAddress(succ_addr,succ_port);
    _v1node->setSuccessor(succ_dhtkey,*na_succ);
+ 
+   // test predecessor.
+   DHTKey dkres;
+   NetAddress nares;
+   dht_err status = DHT_ERR_OK;
+  
+   while(true) {
+    try
+      {
+        _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
+                                             dkres,nares,
+                                             status);
+      }
+    catch(dht_exception &e)
+      {
+        if(e.code() != DHT_ERR_COM_TIMEOUT)
+          {
+            throw e;
+          }
+      }
+   }
    
-   // test set_predecessor
-   _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
-					     dkres,nares,
-					     status);
    ASSERT_EQ(DHT_ERR_OK,status);
    ASSERT_EQ(succ_key,dkres.to_rstring());
    ASSERT_EQ(nares.getNetAddress(),na_succ->getNetAddress());
    ASSERT_EQ(nares.getPort(),na_succ->getPort());
-      
+}
    //TOTO: test join
    
    
    //TODO: test notify.
    
    //TODO: test find_closest_predecessor.
-   status = 0;
-   
-}
 
 int main(int argc, char **argv)
 {
