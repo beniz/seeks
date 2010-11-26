@@ -114,6 +114,10 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);
+    
+    cgi_dispatcher *cgid_wb_node_info
+      = new cgi_dispatcher("info", &websearch::cgi_websearch_node_info, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_node_info);
 
     // interceptor plugins.
     _interceptor_plugin = new query_interceptor(this);
@@ -645,6 +649,16 @@ namespace seeks_plugins
         return err;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
+  }
+
+  sp_err websearch::cgi_websearch_node_info(client_state *csp, http_response *rsp,
+					    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    const char *output = miscutil::lookup(parameters,"output");
+    sp_err err = SP_ERR_OK;
+    if (!output || strcmpic(output,"json") == 0)
+      err = json_renderer::render_json_node_options(csp,rsp,parameters);
+    return err;
   }
 
   /*- internal functions. -*/

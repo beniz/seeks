@@ -110,6 +110,9 @@ namespace seeks_plugins
       static sp_err cgi_websearch_clusterize(client_state *csp, http_response *rsp,
                                              const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
+      static sp_err cgi_websearch_node_info(client_state *csp, http_response *rsp,
+					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
       /* websearch. */
       static void perform_action_threaded(wo_thread_arg *args);
 

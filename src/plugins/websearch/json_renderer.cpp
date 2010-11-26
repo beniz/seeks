@@ -126,13 +126,13 @@ sp_err json_renderer::render_node_options(client_state *csp,
   
   /*- websearch options. -*/
   // thumbs.
-  std::string opt = "\"thumbs\":\"";
+  std::string opt = "\"thumbs\":";
   websearch::_wconfig->_thumbs ? opt += "\"on\"" : opt += "\"off\"";
   opts.push_back(opt);
-  opt = "\"content-analysis\":\"";
+  opt = "\"content-analysis\":";
   websearch::_wconfig->_content_analysis ? opt += "\"on\"" : opt += "\"off\"";
   opts.push_back(opt);
-  opt = "\"clustering\":\"";
+  opt = "\"clustering\":";
   websearch::_wconfig->_clustering ? opt += "\"on\"" : opt += "\"off\"";
   opts.push_back(opt);
 
