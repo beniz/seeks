@@ -36,14 +36,17 @@ namespace dht
 
    LocationTable::~LocationTable()
      {
+       mutex_lock(&_lt_mutex);
 	// free the memory.
 	hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::iterator lit
 	  = _hlt.begin();
 	while(lit!=_hlt.end())
 	  {
-	     delete (*lit).second;
-	     ++lit;
+            Location *loc = (*lit).second;
+             ++lit;
+             delete loc;
 	  }
+        mutex_unlock(&_lt_mutex);
      }
       
    bool LocationTable::is_empty() const
