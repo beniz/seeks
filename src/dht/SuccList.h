@@ -68,7 +68,7 @@ namespace dht
 	
 	size_t size() const { return _succs.size(); };
 	
-	dht_err update_successors();
+	void update_successors();
 	
 	void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list);
 	

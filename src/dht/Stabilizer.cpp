@@ -22,6 +22,7 @@
 #include "Random.h"
 #include "DHTVirtualNode.h"
 #include "dht_configuration.h"
+#include "dht_exception.h"
 #include <math.h>
 #include <iostream>
 #include <time.h>
@@ -113,7 +114,16 @@ namespace dht
 	      * run fast stabilization on individual structures.
 	      */
 	     for (unsigned int i=0; i<_stab_elts_fast.size(); i++)
-	       _stab_elts_fast[i]->stabilize_fast();
+               {
+                 try
+                   {
+                     _stab_elts_fast[i]->stabilize_fast();
+                   }
+                 catch (dht_exception &e)
+                   {
+                     
+                   }
+               }
 	  }
 	
 	if (tround > Stabilizer::_fast_timer_max)
@@ -197,7 +207,16 @@ namespace dht
 	      * run slow stabilization on individual structures.
 	      */
 	     for (unsigned int i=0; i<_stab_elts_slow.size(); i++)
-	       _stab_elts_slow[i]->stabilize_slow();
+               {
+                 try
+                   {
+                     _stab_elts_slow[i]->stabilize_slow();
+                   }
+                 catch (dht_exception &e)
+                   {
+                     
+                   }
+               }
 	  }
 	
 	if (tround > Stabilizer::_slow_timer_max)
