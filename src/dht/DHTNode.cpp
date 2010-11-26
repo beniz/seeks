@@ -882,8 +882,15 @@ namespace dht
 	  {
 	     DHTVirtualNode *vnode = (*hit).second;
 	     int status = 0;
-	     vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // XXX: could make a single call instead ?
-	     
+             try
+               {
+                 vnode->join(dk_bootstrap, dk_bootstrap_na, *(*hit).first, status); // XXX: could make a single call instead ?
+               }
+             catch (dht_exception &e)
+               {
+                 status = e.code();
+               }
+             
 	     if (status != DHT_ERR_OK)
 	       {
 		  return status;
