@@ -50,75 +50,80 @@ faad1ea5e0e5c5ab54bf5225279ce509f3cb5edd
 
 class ProtocolTest : public testing::Test
 {
- protected:
-   ProtocolTest()
-     :_net_addr("localhost"),_net_port(11000),_dnode(NULL),
-      _na_dnode(NULL),_v1node(NULL)
-     {
-     }
-   
-   virtual ~ProtocolTest()
-     {
-     }
-      
-   virtual void SetUp()
-     {
-	// init logging module.
-	errlog::init_log_module();
-	errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
-	
-	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
-	DHTNode::_dht_config->_nvnodes = 1; // a single virtual node.
-	
-	_na_dnode = new NetAddress(_net_addr,_net_port);
-	_dnode = new DHTNode(_na_dnode->getNetAddress().c_str(),_na_dnode->getPort(),false); //TODO: set node key.
-	_dnode->_stabilizer = new Stabilizer(false); // empty stabilizer, not started.
-	_dnode->create_vnodes();
-	
-	ASSERT_EQ(1,_dnode->_vnodes.size());
-	_v1node = (*_dnode->_vnodes.begin()).second;
-	     
-	_dnode->init_sorted_vnodes();
-	_dnode->init_server();
-	_dnode->_l1_server->run_thread();
-     }
-   
-   virtual void TearDown()
-     {
-	delete _dnode; // stop server, client, stabilizer, hibernates & destroys vnodes.
-     }
-   
-   std::string _net_addr;
-   unsigned short _net_port;
-   DHTNode *_dnode;
-   NetAddress *_na_dnode;
-   DHTVirtualNode *_v1node;
+  protected:
+    ProtocolTest()
+      :_net_addr("localhost"),_net_port(11000),_dnode(NULL),
+       _na_dnode(NULL),_v1node(NULL)
+    {
+    }
+
+    virtual ~ProtocolTest()
+    {
+    }
+
+    virtual void SetUp()
+    {
+      // init logging module.
+      errlog::init_log_module();
+      errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
+
+      DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+      DHTNode::_dht_config->_nvnodes = 1; // a single virtual node.
+
+      _na_dnode = new NetAddress(_net_addr,_net_port);
+      _dnode = new DHTNode(_na_dnode->getNetAddress().c_str(),_na_dnode->getPort(),false); //TODO: set node key.
+      _dnode->_stabilizer = new Stabilizer(false); // empty stabilizer, not started.
+      _dnode->create_vnodes();
+
+      ASSERT_EQ(1,_dnode->_vnodes.size());
+      _v1node = (*_dnode->_vnodes.begin()).second;
+
+      _dnode->init_sorted_vnodes();
+      _dnode->init_server();
+      _dnode->_l1_server->run_thread();
+      while(true)
+        {
+          try
+            {
+              DHTKey dkres;
+              NetAddress nares;
+              dht_err status;
+              _dnode->_l1_client->RPC_ping(dkres,nares,status);
+              break;
+            }
+          catch(dht_exception &e)
+            {
+              if(e.code() != DHT_ERR_COM_TIMEOUT)
+                {
+                  throw e;
+                }
+            }
+        }
+    }
+
+    virtual void TearDown()
+    {
+      delete _dnode; // stop server, client, stabilizer, hibernates & destroys vnodes.
+    }
+
+    std::string _net_addr;
+    unsigned short _net_port;
+    DHTNode *_dnode;
+    NetAddress *_na_dnode;
+    DHTVirtualNode *_v1node;
 };
 
 TEST_F(ProtocolTest, get_no_successor)
 {
-   // test no successor found.
-   DHTKey dkres;
-   NetAddress nares;
-   dht_err status = DHT_ERR_OK;
-   while(true) {
-     try
-       {
-         _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
-                                              dkres,nares,
-                                              status);
-         break;
-       }
-     catch(dht_exception &e)
-       {
-         if(e.code() != DHT_ERR_COM_TIMEOUT)
-           {
-             throw e;
-           }
-       }
-   }
-   ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
-}   
+  // test no successor found.
+  DHTKey dkres;
+  NetAddress nares;
+  dht_err status = DHT_ERR_OK;
+  _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
+                                       dkres,nares,
+                                       status);
+  ASSERT_EQ(DHT_ERR_NO_SUCCESSOR_FOUND,status);
+}
 
 TEST_F(ProtocolTest, get_no_predecessor)
 {
@@ -126,21 +131,9 @@ TEST_F(ProtocolTest, get_no_predecessor)
   DHTKey dkres;
   NetAddress nares;
   dht_err status = DHT_ERR_OK;
-  while(true) {
-     try
-       {
-         _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
-                                                dkres,nares,
-                                                status);
-       }
-     catch(dht_exception &e)
-       {
-         if(e.code() != DHT_ERR_COM_TIMEOUT)
-           {
-             throw e;
-           }
-       }
-  }
+  _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
+                                         dkres,nares,
+                                         status);
   ASSERT_EQ(DHT_ERR_NO_PREDECESSOR_FOUND,status);
 }
 
@@ -155,21 +148,9 @@ TEST_F(ProtocolTest, get_predecessor)
   DHTKey dkres;
   NetAddress nares;
   dht_err status = DHT_ERR_OK;
-  while(true) {
-    try
-      {
-        _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
-                                               dkres,nares,
-                                               status);
-      }
-    catch(dht_exception &e)
-      {
-        if(e.code() != DHT_ERR_COM_TIMEOUT)
-          {
-            throw e;
-          }
-      }
-  }
+  _dnode->_l1_client->RPC_getPredecessor(_v1node->getIdKey(),*_na_dnode,
+                                         dkres,nares,
+                                         status);
   ASSERT_EQ(DHT_ERR_OK,status);
   ASSERT_EQ(pred_key,dkres.to_rstring());
   ASSERT_EQ(nares.getNetAddress(),na_pred->getNetAddress());
@@ -178,46 +159,33 @@ TEST_F(ProtocolTest, get_predecessor)
 
 TEST_F(ProtocolTest, get_successor)
 {
-   // set successor.
-   DHTKey succ_dhtkey = DHTKey::from_rstring(succ_key);
-   NetAddress *na_succ = new NetAddress(succ_addr,succ_port);
-   _v1node->setSuccessor(succ_dhtkey,*na_succ);
- 
-   // test predecessor.
-   DHTKey dkres;
-   NetAddress nares;
-   dht_err status = DHT_ERR_OK;
-  
-   while(true) {
-    try
-      {
-        _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
-                                             dkres,nares,
-                                             status);
-      }
-    catch(dht_exception &e)
-      {
-        if(e.code() != DHT_ERR_COM_TIMEOUT)
-          {
-            throw e;
-          }
-      }
-   }
-   
-   ASSERT_EQ(DHT_ERR_OK,status);
-   ASSERT_EQ(succ_key,dkres.to_rstring());
-   ASSERT_EQ(nares.getNetAddress(),na_succ->getNetAddress());
-   ASSERT_EQ(nares.getPort(),na_succ->getPort());
+  // set successor.
+  DHTKey succ_dhtkey = DHTKey::from_rstring(succ_key);
+  NetAddress *na_succ = new NetAddress(succ_addr,succ_port);
+  _v1node->setSuccessor(succ_dhtkey,*na_succ);
+
+  // test predecessor.
+  DHTKey dkres;
+  NetAddress nares;
+  dht_err status = DHT_ERR_OK;
+
+  _dnode->_l1_client->RPC_getSuccessor(_v1node->getIdKey(),*_na_dnode,
+                                       dkres,nares,
+                                       status);
+  ASSERT_EQ(DHT_ERR_OK,status);
+  ASSERT_EQ(succ_key,dkres.to_rstring());
+  ASSERT_EQ(nares.getNetAddress(),na_succ->getNetAddress());
+  ASSERT_EQ(nares.getPort(),na_succ->getPort());
 }
-   //TOTO: test join
-   
-   
-   //TODO: test notify.
-   
-   //TODO: test find_closest_predecessor.
+//TOTO: test join
+
+
+//TODO: test notify.
+
+//TODO: test find_closest_predecessor.
 
 int main(int argc, char **argv)
 {
-   ::testing::InitGoogleTest(&argc, argv);
-   return RUN_ALL_TESTS();
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
