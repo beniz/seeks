@@ -72,26 +72,23 @@ namespace dht
     struct addrinfo hints;
     struct addrinfo *result = NULL;
     std::memset(&hints,0,sizeof(struct addrinfo));
-    if (!miscutil::strcmpic(_na.getNetAddress().c_str(),"localhost"))
-      hints.ai_family = AF_INET;
-    else hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_DGRAM; // udp.
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
-    hints.ai_protocol = 0;
-    hints.ai_canonname = NULL;
-    hints.ai_addr = NULL;
-    hints.ai_next = NULL;
+
+    // create socket.
+    if((_udp_sock = socket(AF_INET,SOCK_DGRAM,0)) < 0)
+      {
+        throw dht_exception(DHT_ERR_NETWORK, std::string("socket ") + strerror(errno));
+      }
 
     int err = 0;
     if ((err = getaddrinfo(_na.getNetAddress().c_str(),port_str.c_str(),&hints,&result)))
       {
-        errlog::log_error(LOG_LEVEL_FATAL, "Cannot resolve %s: %s", _na.getNetAddress().c_str(),
+        errlog::log_error(LOG_LEVEL_ERROR, "Cannot resolve %s: %s", _na.getNetAddress().c_str(),
                           gai_strerror(err));
         throw dht_exception(DHT_ERR_NETWORK, "Cannot resolve " + _na.getNetAddress() + ":" + gai_strerror(err));
       }
-
-    // create socket.
-    _udp_sock = socket(AF_INET,SOCK_DGRAM,0);
 
     // bind socket.
     bool bindb = false;
@@ -111,7 +108,7 @@ namespace dht
               {
                 freeaddrinfo(result);
                 close_socket();
-                errlog::log_error(LOG_LEVEL_FATAL, "rpc_server: can't bind to %s:%d: "
+                errlog::log_error(LOG_LEVEL_ERROR, "rpc_server: can't bind to %s:%d: "
                                   "There may be some other server running on port %d",
                                   _na.getNetAddress().c_str(),
                                   _na.getPort(), _na.getPort());
@@ -126,7 +123,7 @@ namespace dht
                 socklen_t a_len = sizeof(a);
                 if(getsockname(_udp_sock, (sockaddr*)&a, &a_len) < 0)
                   {
-                    errlog::log_error(LOG_LEVEL_FATAL, "getsockname(%d): %s", _udp_sock, strerror(errno));
+                    errlog::log_error(LOG_LEVEL_ERROR, "getsockname(%d): %s", _udp_sock, strerror(errno));
                     throw dht_exception(DHT_ERR_NETWORK, "getsockname(" + sp::miscutil::to_string(_udp_sock) + "): " + strerror(errno));
                   }
                 _na.setPort(ntohs(a.sin_port));
@@ -136,11 +133,12 @@ namespace dht
           }
       }
 
+    freeaddrinfo(result);
+
     if (!bindb)
       {
-        freeaddrinfo(result);
         close_socket();
-        errlog::log_error(LOG_LEVEL_FATAL, "can't bind to %s:%d: %E",
+        errlog::log_error(LOG_LEVEL_ERROR, "can't bind to %s:%d: %E",
                           _na.getNetAddress().c_str(), _na.getPort());
         throw dht_exception(DHT_ERR_NETWORK, "rpc_server: can't bind any IP " + _na.getNetAddress() + ":" + sp::miscutil::to_string(_na.getPort()));
       }
@@ -153,10 +151,10 @@ namespace dht
     FD_SET(_udp_sock,&_rfds); */
     _select_timeout.tv_sec = 1; // 1 second timeout is default.
     _select_timeout.tv_usec = 0;
-    
+
     std::cerr << "[Debug]:rpc_server: listening for dgrams on "
               << _na.toString() << "...\n";
-    
+
     int running = true;
     while(running)
       {
@@ -164,7 +162,7 @@ namespace dht
           {
             FD_ZERO(&_rfds);
             FD_SET(_udp_sock,&_rfds);
-            
+
             // non blocking on (single) service.
             int m = select((int)_udp_sock+1,&_rfds,NULL,NULL,&_select_timeout);
             if (m > 0)
@@ -175,14 +173,14 @@ namespace dht
                 spsockets::close_socket(_udp_sock);
                 throw new dht_exception(DHT_ERR_SOCKET, std::string("rpc_server select ") + strerror(errno));
               }
-            
+
             mutex_lock(&_run_mutex);
             running = !_abort;
             mutex_unlock(&_run_mutex);
           }
         catch (dht_exception &e)
           {
-            errlog::log_error(LOG_LEVEL_FATAL, "server loop caught %s", e.to_string().c_str());
+            errlog::log_error(LOG_LEVEL_ERROR, "server loop caught %s", e.to_string().c_str());
           }
       }
     pthread_exit(NULL);
@@ -190,7 +188,7 @@ namespace dht
 
   void rpc_server::run_loop_once()
   {
-    
+
     // get messages, one by one.
     size_t buflen = DHTNode::_dht_config->_l1_server_max_msg_bytes;  //TODO: of transient l2 messages!
     char buf[buflen];
@@ -210,7 +208,7 @@ namespace dht
     if(getnameinfo((struct sockaddr *) &from, fromlen,
                    addr_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
       throw dht_exception(DHT_ERR_SOCKET, std::string("getnameinfo ") + strerror(errno));
-    
+
     // message.
     errlog::log_error(LOG_LEVEL_DHT, "rpc_server: received a %d bytes datagram from %s", n, addr_buf);
     std::string dtg_str = std::string(buf,n);
@@ -251,7 +249,7 @@ namespace dht
   {
     server->run();
   }
-  
+
   void rpc_server::stop_thread()
   {
     mutex_lock(&_run_mutex);
@@ -259,10 +257,10 @@ namespace dht
     mutex_unlock(&_run_mutex);
     pthread_join(_rpc_server_thread,NULL);
   }
-  
+
   void rpc_server::serve_response(const std::string &msg,
-                                     const std::string &addr,
-                                     std::string &resp_msg)
+                                  const std::string &addr,
+                                  std::string &resp_msg)
   {
   }
 } /* end of namespace. */
