@@ -184,8 +184,7 @@ namespace dht
 	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
-	     RPC_getSuccessor_cb(recipient_key,recipient_na,
-				 dkres,dkres_na,status);
+	     RPC_getSuccessor_cb(recipient_key,dkres,dkres_na,status);
 	     
 	     // create a response.
 	     if (status == DHT_ERR_OK)
@@ -202,8 +201,7 @@ namespace dht
 	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
-	     RPC_getPredecessor_cb(recipient_key,recipient_na,
-				   dkres,dkres_na,status);
+	     RPC_getPredecessor_cb(recipient_key,dkres,dkres_na,status);
 	     
 	     // create a response.
 	     if (status == DHT_ERR_OK)
@@ -218,8 +216,7 @@ namespace dht
 	     //debug
 #endif
 	     
-	     RPC_notify_cb(recipient_key,recipient_na,
-			   sender_key,sender_na,
+	     RPC_notify_cb(recipient_key,sender_key,sender_na,
 			   status);
 	     
 	     // create a response.
@@ -235,8 +232,7 @@ namespace dht
 	     
 	     std::list<DHTKey> dkres_list;
 	     std::list<NetAddress> na_list;
-	     RPC_getSuccList_cb(recipient_key,recipient_na,
-				dkres_list,na_list,status);
+	     RPC_getSuccList_cb(recipient_key,dkres_list,na_list,status);
 	     
 	     // create a response.
 	     if (status == DHT_ERR_OK)
@@ -260,7 +256,7 @@ namespace dht
 	     
 	     DHTKey dkres, dkres_succ;
 	     NetAddress dkres_na, dkres_succ_na;
-	     RPC_findClosestPredecessor_cb(recipient_key,recipient_na,
+	     RPC_findClosestPredecessor_cb(recipient_key,
 					   node_key,
 					   dkres,dkres_na,
 					   dkres_succ,dkres_succ_na,
@@ -286,7 +282,7 @@ namespace dht
 	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
-	     RPC_joinGetSucc_cb(recipient_key,recipient_na,
+	     RPC_joinGetSucc_cb(recipient_key,
 				sender_key,
 				dkres,dkres_na,status);
 	     
@@ -303,8 +299,7 @@ namespace dht
 	     //debug
 #endif
 	     
-	     RPC_ping_cb(recipient_key,recipient_na,
-			 status);
+	     RPC_ping_cb(recipient_key,status);
 	     
 	     // create a reponse.
 	     l1r = l1_protob_wrapper::create_l1_response(status);
@@ -337,26 +332,23 @@ namespace dht
 
    /*- l1 interface. -*/
    void l1_protob_rpc_server::RPC_getSuccessor_cb(const DHTKey& recipientKey,
-						     const NetAddress &recipient,
-						     DHTKey& dkres, NetAddress& na,
-						     int& status)
-     {
+						  DHTKey& dkres, NetAddress& na,
+						  int& status)
+   {
 	_pnode->getSuccessor_cb(recipientKey,dkres,na,status);
      }
       
    void l1_protob_rpc_server::RPC_getPredecessor_cb(const DHTKey& recipientKey,
-						       const NetAddress &recipient,
-						       DHTKey& dkres, NetAddress& na,
-						       int& status)
-     {
+						    DHTKey& dkres, NetAddress& na,
+						    int& status)
+   {
 	_pnode->getPredecessor_cb(recipientKey,dkres,na,status); 
      }
       
    void l1_protob_rpc_server::RPC_notify_cb(const DHTKey& recipientKey,
-					       const NetAddress &recipient,
-					       const DHTKey& senderKey,
-					       const NetAddress& senderAddress,
-					       int& status)
+					    const DHTKey& senderKey,
+					    const NetAddress& senderAddress,
+					    int& status)
      {
 	if (senderAddress.empty() || senderAddress.getPort()==0)
 	  status = DHT_ERR_ADDRESS_MISMATCH;
@@ -365,38 +357,34 @@ namespace dht
      }
 
    void l1_protob_rpc_server::RPC_getSuccList_cb(const DHTKey& recipientKey,
-						    const NetAddress &recipient,
-						    std::list<DHTKey> &dkres_list,
-						    std::list<NetAddress> &na_list,
-						    int& status)
-     {
+						 std::list<DHTKey> &dkres_list,
+						 std::list<NetAddress> &na_list,
+						 int& status)
+   {
 	_pnode->getSuccList_cb(recipientKey,dkres_list,na_list,status);
      }
-   
+  
    void l1_protob_rpc_server::RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
-							       const NetAddress &recipient,
-							       const DHTKey& nodeKey,
-							       DHTKey& dkres, NetAddress& na,
-							       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-							       int& status)
-     {
-       _pnode->findClosestPredecessor_cb(recipientKey,nodeKey,dkres,na,
-						 dkres_succ,dkres_succ_na,status);	
+							    const DHTKey& nodeKey,
+							    DHTKey& dkres, NetAddress& na,
+							    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+							    int& status)
+   {
+     _pnode->findClosestPredecessor_cb(recipientKey,nodeKey,dkres,na,
+				       dkres_succ,dkres_succ_na,status);	
      }
 
    void l1_protob_rpc_server::RPC_joinGetSucc_cb(const DHTKey& recipientKey,
-						    const NetAddress &recipient,
-						    const DHTKey& senderKey,
-						    DHTKey& dkres, NetAddress& na,
-						    int& status)
+						 const DHTKey& senderKey,
+						 DHTKey& dkres, NetAddress& na,
+						 int& status)
      {
        _pnode->joinGetSucc_cb(recipientKey,senderKey,dkres,na,status);
      }
       
    void l1_protob_rpc_server::RPC_ping_cb(const DHTKey& recipientKey,
-					     const NetAddress &recipient,
-					     int& status)
-     {
+					  int& status)
+   {
 	_pnode->ping_cb(recipientKey,status);
      }
       

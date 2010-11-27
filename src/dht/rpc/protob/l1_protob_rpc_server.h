@@ -62,43 +62,36 @@ namespace dht
      
 	/*- l1 interface. -*/
 	virtual void RPC_getSuccessor_cb(const DHTKey& recipientKey,
-					    const NetAddress &recipient,
-					    DHTKey& dkres, NetAddress& na,
-					    int& status);
+					 DHTKey& dkres, NetAddress& na,
+					 int& status);
 	
 	virtual void RPC_getPredecessor_cb(const DHTKey& recipientKey,
-					      const NetAddress &recipient,
-					      DHTKey& dkres, NetAddress& na,
-					      int& status);
-	
-	virtual void RPC_notify_cb(const DHTKey& recipientKey,
-				      const NetAddress &recipient,
-				      const DHTKey& senderKey,
-				      const NetAddress& senderAddress,
-				      int& status);
-	
-	virtual void RPC_getSuccList_cb(const DHTKey& recipientKey,
-					   const NetAddress &recipient,
-					   std::list<DHTKey> &dkres_list, 
-					   std::list<NetAddress> &na_list,
-					   int& status);
-	
-	virtual void RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
-						      const NetAddress &recipient,
-						      const DHTKey& nodeKey,
-						      DHTKey& dkres, NetAddress& na,
-						      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-						      int& status);
-	
-	virtual void RPC_joinGetSucc_cb(const DHTKey& recipientKey,
-					   const NetAddress& recipient,
-					   const DHTKey &senderKey,
 					   DHTKey& dkres, NetAddress& na,
 					   int& status);
-     
+	
+	virtual void RPC_notify_cb(const DHTKey& recipientKey,
+				   const DHTKey& senderKey,
+				   const NetAddress& senderAddress,
+				   int& status);
+	
+	virtual void RPC_getSuccList_cb(const DHTKey& recipientKey,
+					std::list<DHTKey> &dkres_list, 
+					std::list<NetAddress> &na_list,
+					int& status);
+	
+	virtual void RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
+						   const DHTKey& nodeKey,
+						   DHTKey& dkres, NetAddress& na,
+						   DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+						   int& status);
+	
+	virtual void RPC_joinGetSucc_cb(const DHTKey& recipientKey,
+					const DHTKey &senderKey,
+					DHTKey& dkres, NetAddress& na,
+					int& status);
+	
 	virtual void RPC_ping_cb(const DHTKey& recipientKey,
-				    const NetAddress &recipient,
-				    int& status);
+				 int& status);
      };
    
 } /* end of namespace. */
