@@ -31,7 +31,7 @@ using namespace dht;
 using sp::miscutil;
 using sp::errlog;
 
-const char *usage = "Usage: test_dhtnode <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file)\n";
+const char *usage = "Usage: test_dhtnode <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file) (--nvnodes number_of_virtual_nodes)\n";
 
 bool persistence = false;
 DHTNode *dnode = NULL;
@@ -71,6 +71,7 @@ int main(int argc, char **argv)
    errlog::init_log_module();
    errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
    
+   int nvnodes = -1;
    bool joinb = false;
    bool sbootb = false;
    if (argc > 2)
@@ -108,6 +109,11 @@ int main(int argc, char **argv)
 		  std::cout << "dht config: " << DHTNode::_dht_config_filename << std::endl;
 		  i+=2;
 	       }
+	     else if (strcmp(arg,"--nvnodes") == 0)
+	       {
+		 nvnodes = atoi(argv[i+1]);
+		 i+=2;
+	       }
 	     else
 	       {
 		  std::cout << usage << std::endl;
@@ -116,6 +122,8 @@ int main(int argc, char **argv)
 	  }
 	
 	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	if (nvnodes > 0)
+	  DHTNode::_dht_config->_nvnodes = nvnodes;
 	dnode = new DHTNode(net_addr,net_port,true);
 	
 	/**
