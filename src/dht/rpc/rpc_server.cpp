@@ -147,11 +147,7 @@ namespace dht
   void rpc_server::run()
   {
     bind();
-    /*FD_ZERO(&_rfds);
-    FD_SET(_udp_sock,&_rfds); */
-    _select_timeout.tv_sec = 1; // 1 second timeout is default.
-    _select_timeout.tv_usec = 0;
-
+    
     std::cerr << "[Debug]:rpc_server: listening for dgrams on "
               << _na.toString() << "...\n";
 
@@ -162,6 +158,8 @@ namespace dht
           {
             FD_ZERO(&_rfds);
             FD_SET(_udp_sock,&_rfds);
+	    _select_timeout.tv_sec = 1; // 1 second timeout is default.
+	    _select_timeout.tv_usec = 0;
 
             // non blocking on (single) service.
             int m = select((int)_udp_sock+1,&_rfds,NULL,NULL,&_select_timeout);
