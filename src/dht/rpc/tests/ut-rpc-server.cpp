@@ -36,6 +36,15 @@ using namespace dht;
 
 typedef std::map<std::string, std::string> string_map;
 
+class ServerTest : public testing::Test
+{
+  protected:
+    virtual void SetUp()
+    {
+      DHTNode::_dht_config = new dht_configuration("");
+    }
+};
+
 class test_rpc_server : public rpc_server
 {
   public:
@@ -43,8 +52,8 @@ class test_rpc_server : public rpc_server
     test_rpc_server() : rpc_server("localhost", 0) {}
 
     virtual void serve_response(const std::string &msg,
-                                   const std::string &addr,
-                                   std::string &resp_msg)
+                                const std::string &addr,
+                                std::string &resp_msg)
     {
       if(message2answer.find(msg) != message2answer.end())
         {
@@ -59,36 +68,57 @@ class test_rpc_server : public rpc_server
     string_map message2answer;
 };
 
-class ServerTest : public testing::Test
+TEST_F(ServerTest, bind_normal)
 {
-  protected:
-    virtual void SetUp()
-    {
-      DHTNode::_dht_config = new dht_configuration("");
-      _server = new test_rpc_server();
-    }
+  rpc_server server("localhost",0);
+  server.bind();
+  EXPECT_NE(-1, server._udp_sock);
+  EXPECT_NE(0, server._na.getPort());
+}
 
-    virtual void TearDown()
-    {
-      delete _server;
-    }
-
-    test_rpc_server* _server;
-};
-
-TEST_F(ServerTest, bind)
+TEST_F(ServerTest, bind_addressfail)
 {
-  _server->bind();
-  ASSERT_NE(-1, _server->_udp_sock);
-  ASSERT_NE(0, _server->_na.getPort());
+  rpc_server server("unlikely.unknown",0);
+  try
+    {
+      server.bind();
+    }
+  catch(dht_exception &e)
+    {
+      EXPECT_EQ(DHT_ERR_NETWORK,e.code());
+      EXPECT_NE(std::string::npos, e.what().find("unlikely.unknown"));
+    }
+}
+
+TEST_F(ServerTest, bind_socketfail)
+{
+  std::vector<int> v;
+  while(true)
+    {
+      int fd;
+      if((fd = socket(AF_INET,SOCK_DGRAM,0)) < 0)
+        break;
+      v.push_back(fd);
+    }
+  rpc_server server("127.0.0.1",0);
+  try
+    {
+      server.bind();
+    }
+  catch(dht_exception &e)
+    {
+      EXPECT_EQ(DHT_ERR_NETWORK,e.code());
+      EXPECT_NE(std::string::npos, e.what().find("socket "));
+    }
+  for(std::vector<int>::iterator i = v.begin(); i != v.end(); i++)
+    close(*i);
 }
 
 #if 0
-  _server->message2answer["IN"] = "OUT";
-  std::string response;
-  rpc_client client;
-  ASSERT_EQ(DHT_ERR_OK, client.do_rpc_call(_server->_na, "IN", true, response));
-  ASSERT_EQ("OUT", response);
+std::string response;
+rpc_client client;
+ASSERT_EQ(DHT_ERR_OK, client.do_rpc_call(_server._na, "IN", true, response));
+ASSERT_EQ("OUT", response);
 #endif
 
 int main(int argc, char **argv)
