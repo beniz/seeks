@@ -483,7 +483,7 @@ namespace dht
 	  {
 #ifdef DEBUG
 	     //debug
-	     std::cerr << "[Debug]:fix_fingers: error finding successor.\n";
+	     std::cerr << "[Debug]:fix_finger: error finding successor.\n";
 	     //debug
 #endif
 	     
