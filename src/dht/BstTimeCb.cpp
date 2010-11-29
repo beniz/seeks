@@ -17,6 +17,7 @@
  */
 
 #include "BstTimeCb.h"
+#include "dht_configuration.h"
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
@@ -253,7 +254,7 @@ namespace dht
             mutex_unlock(&btb->_run_mutex);
             
             btb->timecheck();
-            sleep(5);
+            sleep(dht_configuration::_dht_config->_event_timecheck);
 	  }
 	return NULL;
      }

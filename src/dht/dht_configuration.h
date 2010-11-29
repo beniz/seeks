@@ -54,7 +54,8 @@ namespace dht
 	bool _routing; /**< whether routing is activated, i.e. our nodes are active or spectators. */
 	short _rejoin_timeout; /**< timeout between two rejoin attempts, in seconds. */
 	short _replication_factor; /**< number of neighbors the node's hosted data are replicated to. */
-	
+	short _event_timecheck; /**< seconds between two events check (>= 1 second). */
+
 	static dht_configuration *_dht_config;
      };
    

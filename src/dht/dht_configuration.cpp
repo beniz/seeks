@@ -37,6 +37,7 @@ namespace dht
 #define hash_routing                                      2057335831ul  /* "routing" */
 #define hash_rejoin_timeout                               2877119161ul  /* "rejoin-timeout" */
 #define hash_replication_factor                           1408115358ul  /* "replication-factor" */
+#define hash_event_timecheck                              1295115161ul  /* "event-timecheck" */
    
    dht_configuration* dht_configuration::_dht_config = NULL;
    
@@ -58,12 +59,13 @@ namespace dht
 	_nvnodes = 32; // 32 vnodes by default.
 	_l1_port = 8231;  // the 8200 range by default.
 	_l1_server_max_msg_bytes = 1024; // 1Kb for now.
-	_l1_client_timeout = 5; // 5 seconds.
+	_l1_client_timeout = 1; // 5 seconds.
 	_max_hops = 12; // 12 hops ~ l(100000).
 	_succlist_size = 10; // XXX: in the future, should be reset dynamically w.r.t. estimated number of nodes on the ring.
 	_routing = true; // XXX: in stable releases, routing will be set to false.
 	_rejoin_timeout = 30; // periodic rejoin check every 30 seconds after being cut from the network.
 	_replication_factor = 2; // up to _succlist_size.
+	_event_timecheck = 1; // one second.
      }
    
    void dht_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -154,6 +156,10 @@ namespace dht
 	     _replication_factor = std::min(static_cast<int>(_replication_factor),_succlist_size);
 	     break;
 	     
+	  case hash_event_timecheck:
+	    _event_timecheck = atoi(arg);
+	    break;
+
 	   default:
 	     break;
 	     
