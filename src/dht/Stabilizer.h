@@ -35,6 +35,8 @@
 
 #include "BstTimeCb.h"
 
+#include <stdint.h>
+
 namespace dht
 {
    class Stabilizable
@@ -144,6 +146,10 @@ namespace dht
 	static const int _slow_timer_init;
 	static const int _slow_timer_base;
 	static const int _slow_timer_max;
+     
+     public:
+	uint64_t _slow_clicks; /**< number of executed slow stabilizing events. */
+	uint64_t _fast_clicks; /**< number of executed fast stabilizing events. */
      };
       
 } /* end of namespace. */
