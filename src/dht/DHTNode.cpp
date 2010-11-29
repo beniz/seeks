@@ -134,6 +134,12 @@ namespace dht
    
    void DHTNode::stop_node()
      {
+       /**                                                                                                                       
+	* kill stabilizer.                                                                                                       
+	*/
+       delete _stabilizer;
+       _stabilizer = NULL;
+
 	/**
 	 * stops server.
 	 */
@@ -143,7 +149,9 @@ namespace dht
 	 * destroy server and client.
 	 */
 	delete _l1_server;
+	_l1_server = NULL;
 	delete _l1_client;
+	_l1_client = NULL;
 		
 	/**
 	 * persistence of virtual nodes.
@@ -154,11 +162,6 @@ namespace dht
 	 * destroy virtual nodes.
 	 */
 	destroy_vnodes();
-	
-	/**
-	 * kill stabilizer.
-	 */
-	delete _stabilizer;
      }
    
    void DHTNode::create_vnodes()
