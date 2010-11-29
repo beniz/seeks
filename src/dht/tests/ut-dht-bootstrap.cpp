@@ -102,7 +102,11 @@ TEST_P(BootstrapTest, self_bootstrap)
                   vn->getSuccessor()->to_rstring());
       else ASSERT_EQ(_dnode->_sorted_vnodes_vec.at(0)->to_rstring(),
                        vn->getSuccessor()->to_rstring());
+    
+      // check on location table.
+      ASSERT_EQ(nvnodes,vn->getLocationTable()->size());
     }
+  
 }
 
 INSTANTIATE_TEST_CASE_P(
