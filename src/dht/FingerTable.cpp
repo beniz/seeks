@@ -45,8 +45,10 @@ namespace dht
 
 	  for (unsigned int i=0; i<KEYNBITS; i++)
 	    _locs[i] = NULL;
+       
+	  mutex_init(&_stable_mutex);
        }
-   
+  
    FingerTable::~FingerTable()
      {
      }
@@ -446,9 +448,11 @@ namespace dht
 
    int FingerTable::fix_finger()
      {
+       mutex_lock(&_stable_mutex);
 	_stable_pass2 = _stable_pass1;
 	_stable_pass1 = true; // below we check whether this is true.
-	
+	mutex_unlock(&_stable_mutex);
+
 	// TODO: seed.
 	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
 	
@@ -500,7 +504,9 @@ namespace dht
 	Location *curr_loc = _locs[rindex];
 	if (curr_loc && rloc != curr_loc)
 	  {
+	    mutex_lock(&_stable_mutex);
 	     _stable_pass1 = false;
+	     mutex_unlock(&_stable_mutex);
 	     
 	     // remove location if it not used in other lists.
 	     if (!_vnode->_successors.has_key(curr_loc->getDHTKey()))
@@ -508,7 +514,9 @@ namespace dht
 	  }
 	else if (!curr_loc)
 	  {
+	    mutex_lock(&_stable_mutex);
 	     _stable_pass1 = false;
+	     mutex_unlock(&_stable_mutex);
 	  }
 	
 	_locs[rindex] = rloc;
@@ -552,7 +560,7 @@ namespace dht
 	  }
      }
 
-   bool FingerTable::isStable()
+   bool FingerTable::isStable() const
      {
 	return (_stable_pass1 && _stable_pass2);
      }

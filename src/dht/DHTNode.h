@@ -145,7 +145,17 @@ namespace dht
 	 *        to its predecessor and successor.
 	 */
 	dht_err leave() const;
-
+	
+	/**
+	 * \brief whether every virtual node's successor list is stable.
+	 */ 
+	bool isSuccStable() const;
+	
+	/**
+	 * \brief whether every virtual node is stable (succlist + finger table).
+	 */
+	bool isStable() const;
+	
       private:
 	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
 	

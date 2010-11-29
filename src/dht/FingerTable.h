@@ -26,6 +26,7 @@
 #include "DHTVirtualNode.h"
 #include "DHTKey.h"
 #include "Stabilizer.h"
+#include "mutexes.h"
 
 namespace dht
 {
@@ -89,7 +90,7 @@ namespace dht
 	 */
 	virtual void stabilize_fast() { stabilize(); };
 	virtual void stabilize_slow() { fix_finger(); };
-	virtual bool isStable();
+	virtual bool isStable() const;
 
 	void print(std::ostream &out) const;
 	
@@ -123,6 +124,7 @@ namespace dht
 	 */
 	bool _stable_pass1;
 	bool _stable_pass2;
+	sp_mutex_t _stable_mutex; // mutex around stable indicator.
      };
       
 } /* end of namespace */

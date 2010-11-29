@@ -37,6 +37,7 @@ namespace dht
    SuccList::SuccList(DHTVirtualNode *vnode)
      : Stabilizable(), _vnode(vnode), _stable_pass1(false), _stable_pass2(false)
        {
+	 mutex_init(&_stable_mutex);
        }
    
    SuccList::~SuccList()
@@ -148,9 +149,11 @@ namespace dht
 	//debug
 #endif
 	
+	mutex_lock(&_stable_mutex);
 	_stable_pass2 = _stable_pass1;
 	_stable_pass1 = true; // assume we're stable, and check below if it is true.
-	
+	mutex_unlock(&_stable_mutex);
+
 	/**
 	 * Remove the last element if the list we got from our successor is longer 
 	 * than the requested size. This is because our successor's list contains at
@@ -197,7 +200,9 @@ namespace dht
 		       if (dead)
 			 _vnode->removeLocation(loc);
 		    }
+		  mutex_lock(&_stable_mutex);
 		  _stable_pass1 = false;
+		  mutex_unlock(&_stable_mutex);
 	       }
 	     else if (*(*sit) == (*kit))
 	       {
@@ -251,7 +256,9 @@ namespace dht
 				      _vnode->removeLocation(loc);
 				   }
 			      }
+			    mutex_lock(&_stable_mutex);
 			    _stable_pass1 = false;
+			    mutex_unlock(&_stable_mutex);
 			    loc = NULL;
 			    status = DHT_ERR_OK;
 			    dead = false;
@@ -305,7 +312,9 @@ namespace dht
 		       // add it to the list, before sit.
 		       prev_succ_key = (*sit);
 		       _vnode->_successors._succs.insert(sit,&loc->getDHTKeyRef());
+		       mutex_lock(&_stable_mutex);
 		       _stable_pass1 = false;
+		       mutex_unlock(&_stable_mutex);
 		       
 #ifdef DEBUG
 		       //debug
@@ -441,7 +450,7 @@ namespace dht
 	  }
      }
 
-   bool SuccList::isStable()
+   bool SuccList::isStable() const
      {
 	return (_stable_pass1 && _stable_pass2);
      }

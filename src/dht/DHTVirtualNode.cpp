@@ -709,6 +709,16 @@ namespace dht
 	_successors.set_direct_successor(_successor);
      }
 
+  bool DHTVirtualNode::isSuccStable() const
+  {
+    return _successors.isStable();
+  }
+
+  bool DHTVirtualNode::isStable() const
+  {
+    return _fgt->isStable();
+  }
+
    void DHTVirtualNode::estimate_nodes()
      {
 	estimate_nodes(_nnodes,_nnvnodes);

@@ -48,7 +48,7 @@ namespace dht
 	
 	virtual void stabilize_slow() {};
 	
-	virtual bool isStable() { return false; }
+	virtual bool isStable() const { return false; }
 	
 	void stabilize_fast_ct();
 	

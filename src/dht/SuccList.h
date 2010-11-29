@@ -25,6 +25,7 @@
 #include "NetAddress.h"
 #include "Stabilizer.h"
 #include "Location.h"
+#include "mutexes.h"
 #include "dht_err.h"
 
 #include <list>
@@ -88,7 +89,7 @@ namespace dht
 	
         virtual void stabilize_slow() { update_successors(); };
 	
-	virtual bool isStable();
+	virtual bool isStable() const;
 	
       public:
 	std::list<const DHTKey*> _succs;
@@ -103,6 +104,7 @@ namespace dht
 	 */
 	bool _stable_pass1;
 	bool _stable_pass2;
+	sp_mutex_t _stable_mutex; // mutex around stable indicator variables.
      };
       
 } /* end of namespace. */

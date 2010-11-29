@@ -561,6 +561,32 @@ namespace dht
     return err;
   }
   
+  bool DHTNode::isSuccStable() const
+  {
+    hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+      = _vnodes.begin();
+    while(hit!=_vnodes.end())
+      {
+	if (!(*hit).second->isSuccStable())
+	  return false;
+	++hit;
+      }
+    return true;
+  }
+
+  bool DHTNode::isStable() const
+  {
+    hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+      = _vnodes.begin();
+    while(hit!=_vnodes.end())
+      {
+	if (!(*hit).second->isStable())
+          return false;
+	++hit;
+      } 
+    return true;
+  }
+
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
      {
 	vnode_keys_ord.reserve(_vnodes.size());
