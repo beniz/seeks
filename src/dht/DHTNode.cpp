@@ -44,7 +44,8 @@ namespace dht
    
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
-		    const bool &start_dht_node)
+		    const bool &start_dht_node,
+		    const std::string &vnodes_table_file)
      : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false),_has_persistent_data(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
@@ -56,7 +57,7 @@ namespace dht
 #endif
 	  }
 	
-	_vnodes_table_file = "vnodes-table.dat";
+	_vnodes_table_file = vnodes_table_file;
 #ifdef SEEKS_LOCALSTATEDIR
 	_vnodes_table_file = SEEKS_LOCALSTATDIR "/" _vnodes_table_file;
 #else
@@ -64,7 +65,7 @@ namespace dht
 #endif
 			
 	//debug
-	//std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
+	std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
 	//debug
 	
 	if (!DHTNode::_dht_config)
@@ -85,7 +86,10 @@ namespace dht
        stop_node();
        
        if (DHTNode::_dht_config)
-         delete DHTNode::_dht_config; // XXX: beware, static variable.
+         {
+	   delete DHTNode::_dht_config; // XXX: beware, static variable.
+	   DHTNode::_dht_config = NULL;
+	 }
      }
       
    void DHTNode::start_node()
@@ -262,7 +266,11 @@ namespace dht
 	     errlog::log_error(LOG_LEVEL_DHT, "Successfully loaded %u persistent virtual nodes", vnode_ids.size());
 	     return true;
 	  }
-	else return false;
+	else 
+	  {
+	    errlog::log_error(LOG_LEVEL_DHT, "Found hibernated table of virtual nodes that doesn't match the requested number of virtual nodes (%d != %d). Virtual nodes will be recreated.",DHTNode::_dht_config->_nvnodes,(int)vnode_ids.size());
+	    return false;
+	  }
      }
    
    void DHTNode::load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
@@ -279,7 +287,7 @@ namespace dht
 	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
 								     dvn));
 	  
-	     errlog::log_error(LOG_LEVEL_DHT, "Loaded pervistent virtual node %s", dvn->getIdKey().to_rstring().c_str());
+	     errlog::log_error(LOG_LEVEL_DHT, "Loaded persistent virtual node %s", dvn->getIdKey().to_rstring().c_str());
 	     
 	     /**
 	      * register vnode routing structures to the stabilizer:
@@ -521,9 +529,38 @@ namespace dht
 	
 	// we are 'connected', to ourselves, but we are...
 	_connected = true;
-	
      }
 
+  dht_err DHTNode::leave() const
+  {
+    dht_err err = DHT_ERR_OK;
+
+    /**
+     * Since several virtual nodes may be successors / predecessors 
+     * on the circle, we ask them to leave in ascending order.
+     */
+    std::vector<const DHTKey*>::const_iterator vit = _sorted_vnodes_vec.begin();
+    while(vit!=_sorted_vnodes_vec.end())
+      {
+	const DHTKey *vkey = (*vit);
+	DHTVirtualNode *vnode = findVNode(*vkey);
+	if (vnode)
+	  {
+	    err += vnode->leave();
+	  }
+	else
+	  {
+	    // XXX: this should never happen, but since we're leaving
+	    // we're not bitching too much about it...
+	    errlog::log_error(LOG_LEVEL_ERROR, "leave: can't find virtual node %s",
+			      vkey->to_rstring().c_str());
+	}
+	++vit;
+      }
+
+    return err;
+  }
+  
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
      {
 	vnode_keys_ord.reserve(_vnodes.size());

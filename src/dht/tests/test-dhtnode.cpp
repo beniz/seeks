@@ -43,8 +43,8 @@ void sig_handler(int the_signal)
       case SIGTERM:
       case SIGINT:
       case SIGHUP:
-	//if (persistence) //TODO: remove existing table _before_ running, since they are now stored by default.
-	  //dnode->hibernate_vnodes_table();
+	dnode->leave();
+	delete dnode; // hibernates, stop threads and destroys internal structures.
 	exit(the_signal);
 	break;
       default:

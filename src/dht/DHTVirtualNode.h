@@ -119,6 +119,8 @@ namespace dht
 	bool is_dead(const DHTKey &recipientKey, const NetAddress &na,
 		     int &status);
 	
+	dht_err leave();
+
 	/**---------------------------**/
 	
 	/**

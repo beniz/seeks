@@ -507,7 +507,40 @@ namespace dht
 	     else return true;
 	  }
      }
-   
+  
+  dht_err DHTVirtualNode::leave()
+  {
+    dht_err err = DHT_ERR_OK;
+    
+    // send predecessor to successor.
+    if (getSuccessor() && getPredecessor())
+      {
+	int status = DHT_ERR_OK;
+	Location *succ_loc = findLocation(*getSuccessor());
+	Location *pred_loc = findLocation(*getPredecessor());
+	_pnode->_l1_client->RPC_notify(succ_loc->getDHTKey(),
+				       succ_loc->getNetAddress(),
+				       pred_loc->getDHTKey(),
+				       pred_loc->getNetAddress(),
+				       status);
+	if (status != DHT_ERR_OK)
+	  errlog::log_error(LOG_LEVEL_ERROR,"Failed to alert successor %s while leaving",
+			    succ_loc->getDHTKey().to_rstring().c_str());
+	err = status;
+      }
+    
+    /**
+     * this node could send the last element of its succlist to 
+     * its predecessor.
+     * However, this would require a dedicated RPC so we let the
+     * regular existing update of succlists do this instead.
+     */
+
+    errlog::log_error(LOG_LEVEL_DHT,"Virtual node %s successfully left the circle",
+		      getIdKey().to_rstring().c_str());
+
+    return err;
+  }
    
    /**
     * accessors.

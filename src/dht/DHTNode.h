@@ -41,7 +41,8 @@ namespace dht
 	 *        and automated stabilization system.
 	 */
 	DHTNode(const char *net_addr, const short &net_port=0,
-		const bool &start_dht_node=true);
+		const bool &start_dht_node=true,
+		const std::string &vnodes_table_file="vnodes-table.dat");
 
 	/**
 	 * \brief destructor.
@@ -138,6 +139,12 @@ namespace dht
 	 * Useful only for the first node of a circle.
 	 */
 	void self_bootstrap();
+
+	/**
+	 * \brief nodes voluntarily leave the circle, announces it
+	 *        to its predecessor and successor.
+	 */
+	dht_err leave() const;
 
       private:
 	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
