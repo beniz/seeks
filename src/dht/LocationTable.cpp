@@ -134,6 +134,12 @@ namespace dht
    void LocationTable::findClosestSuccessor(const DHTKey &dk,
 					    DHTKey &dkres)
      {
+       if (size() == 1)
+	 {
+	   dkres = DHTKey();
+	   return;
+	 }
+       
 	DHTKey min_diff;
 	min_diff.set();
 	Location *succ_loc = NULL;
@@ -156,7 +162,7 @@ namespace dht
 	     
 	     if (diff.count() == 0)
 	       {
-		  continue;
+		 continue;
 	       }
 	     	     
 	     if (diff < min_diff)

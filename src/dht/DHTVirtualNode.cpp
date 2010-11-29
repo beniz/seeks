@@ -82,7 +82,7 @@ namespace dht
 	
 	delete _fgt;
      
-	delete _lt;
+        delete _lt;
      }
    
    void DHTVirtualNode::init_vnode()
@@ -693,19 +693,19 @@ namespace dht
 	DHTKey closest_succ;
 	_lt->findClosestSuccessor(_idkey,closest_succ);
 	
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	//debug
 	assert(closest_succ.count()>0);
 	//debug
-#endif
+	#endif*/
 	
 	DHTKey diff = closest_succ - _idkey;
 
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	//debug
 	assert(diff.count()>0);
 	//debug
-#endif
+	#endif*/
 	
 	DHTKey density = diff;
 	size_t lts = _lt->size();
@@ -715,11 +715,11 @@ namespace dht
 	mask <<= KEYNBITS-1;
 	p = density.topBitPos();
 	
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	//debug
 	assert(p>0);
 	//debug
-#endif
+	#endif*/
 	
 	DHTKey nodes_estimate = mask;
 	nodes_estimate.operator>>=(p); // approximates mask/density.
@@ -737,7 +737,7 @@ namespace dht
 	     //debug
 #endif
 	     
-	     errlog::log_error(LOG_LEVEL_DHT, "Overflow error computing the number of nodes on the network. This is probably a bug, please report it");
+	     errlog::log_error(LOG_LEVEL_ERROR, "Overflow error computing the number of nodes on the network. This is probably a bug, please report it");
 	     nnodes = 0;
 	     nnvnodes = 0;
 	     return;
