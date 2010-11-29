@@ -20,7 +20,7 @@
  */
 
 #include "rpc_client.h"
-#include "DHTNode.h"
+#include "dht_configuration.h"
 #include "spsockets.h"
 #include "miscutil.h"
 #include "errlog.h"
@@ -125,7 +125,7 @@ namespace dht
 	FD_ZERO(&rfds);
 	FD_SET(udp_sock,&rfds);
 	timeval timeout;
-	timeout.tv_sec = DHTNode::_dht_config->_l1_client_timeout;
+	timeout.tv_sec = dht_configuration::_dht_config->_l1_client_timeout;
 	timeout.tv_usec = 0;
 	
 	int m = select((int)udp_sock+1,&rfds,NULL,NULL,&timeout);

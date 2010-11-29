@@ -303,14 +303,14 @@ namespace dht
 	     //debug
 #endif
 	     
-	     if (nhops > _pnode->_dht_config->_max_hops)
+	     if (nhops > dht_configuration::_dht_config->_max_hops)
 	       {
 #ifdef DEBUG
 		  //debug
-		  std::cerr << "[Debug]:reached the maximum number of " << _pnode->_dht_config->_max_hops << " hops\n";
+		 std::cerr << "[Debug]:reached the maximum number of " << dht_configuration::_dht_config->_max_hops << " hops\n";
 		  //debug
 #endif	  
-		  errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", _pnode->_dht_config->_max_hops);
+		 errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", dht_configuration::_dht_config->_max_hops);
 		  dkres = DHTKey();
 		  na = NetAddress();
 		  return DHT_ERR_MAXHOPS;
@@ -770,7 +770,7 @@ namespace dht
 	try
 	  {
 	     nnvnodes = nodes_estimate.to_ulong();
-	     nnodes = nnvnodes / DHTNode::_dht_config->_nvnodes;
+	     nnodes = nnvnodes / dht_configuration::_dht_config->_nvnodes;
 	  }
 	catch (std::exception ovex) // overflow error if too many bits are set.
 	  {

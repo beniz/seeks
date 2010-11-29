@@ -267,8 +267,7 @@ namespace dht
 	 * configuration.
 	 */
 	static std::string _dht_config_filename;
-	static dht_configuration *_dht_config;
-	
+		
 	/**
 	 * hash map of DHT virtual nodes.
 	 */

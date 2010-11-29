@@ -158,7 +158,7 @@ namespace dht
 	     /**
 	      * TODO: after debugging, write a better handling of this error.
               */
-	     std::cerr << "[Error]:DHTNode::stabilize: this virtual node has no successor: "
+	     std::cerr << "[Error]:FingerTable::stabilize: this virtual node has no successor: "
 	       << recipientKey << ". Exiting\n";
 	     exit(-1);
 	  }
@@ -414,7 +414,7 @@ namespace dht
 	 * XXX: in non routing mode, there is no notify callback call. This allows the node
 	 * to remain a connected spectator: successor and predecessors of other nodes remain unchanged.
 	 */
-	if (DHTNode::_dht_config->_routing)
+	if (dht_configuration::_dht_config->_routing)
 	  {
 	     _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
 	     if (status == DHT_ERR_UNKNOWN_PEER)

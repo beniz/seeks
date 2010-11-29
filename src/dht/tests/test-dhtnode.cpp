@@ -121,9 +121,9 @@ int main(int argc, char **argv)
 	       }
 	  }
 	
-	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	if (nvnodes > 0)
-	  DHTNode::_dht_config->_nvnodes = nvnodes;
+	  dht_configuration::_dht_config->_nvnodes = nvnodes;
 	dnode = new DHTNode(net_addr,net_port,true);
 	
 	/**

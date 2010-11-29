@@ -40,8 +40,7 @@ using sp::proxy_configuration;
 namespace dht
 {
    std::string DHTNode::_dht_config_filename = "";
-   dht_configuration* DHTNode::_dht_config = NULL;
-   
+  
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
 		    const bool &start_dht_node,
@@ -68,13 +67,13 @@ namespace dht
 	std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
 	//debug
 	
-	if (!DHTNode::_dht_config)
-	  DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	if (!dht_configuration::_dht_config)
+	  dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	
 	// this node net l1 address.
 	_l1_na.setNetAddress(net_addr);
 	if (net_port == 0) // no netport specified, default to config port.
-	  _l1_na.setPort(_dht_config->_l1_port);
+	  _l1_na.setPort(dht_configuration::_dht_config->_l1_port);
 	else _l1_na.setPort(net_port);
      
 	if (start_dht_node)
@@ -85,10 +84,10 @@ namespace dht
      {
        stop_node();
        
-       if (DHTNode::_dht_config)
+       if (dht_configuration::_dht_config)
          {
-	   delete DHTNode::_dht_config; // XXX: beware, static variable.
-	   DHTNode::_dht_config = NULL;
+	   delete dht_configuration::_dht_config; // XXX: beware, static variable.
+	   dht_configuration::_dht_config = NULL;
 	 }
      }
       
@@ -102,7 +101,7 @@ namespace dht
 	/**
 	 * Sets successor list size.
 	 */
-	SuccList::_max_list_size = DHTNode::_dht_config->_succlist_size;
+	SuccList::_max_list_size = dht_configuration::_dht_config->_succlist_size;
 	
 	/**
 	 * create the virtual nodes.
@@ -164,7 +163,7 @@ namespace dht
    
    void DHTNode::create_vnodes()
      {
-	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
+	for (int i=0; i<dht_configuration::_dht_config->_nvnodes; i++)
 	  {
 	     /**
 	      * creating virtual nodes.
@@ -260,7 +259,7 @@ namespace dht
 	 * fill up tables with our persistent data if the number of vnodes has not 
 	 * changed in configuration.
 	 */
-	if (DHTNode::_dht_config->_nvnodes == (int)vnode_ids.size())
+	if (dht_configuration::_dht_config->_nvnodes == (int)vnode_ids.size())
 	  {
 	     load_vnodes_and_tables(vnode_ids,vnode_ltables);
 	     errlog::log_error(LOG_LEVEL_DHT, "Successfully loaded %u persistent virtual nodes", vnode_ids.size());
@@ -268,7 +267,7 @@ namespace dht
 	  }
 	else 
 	  {
-	    errlog::log_error(LOG_LEVEL_DHT, "Found hibernated table of virtual nodes that doesn't match the requested number of virtual nodes (%d != %d). Virtual nodes will be recreated.",DHTNode::_dht_config->_nvnodes,(int)vnode_ids.size());
+	    errlog::log_error(LOG_LEVEL_DHT, "Found hibernated table of virtual nodes that doesn't match the requested number of virtual nodes (%d != %d). Virtual nodes will be recreated.",dht_configuration::_dht_config->_nvnodes,(int)vnode_ids.size());
 	    return false;
 	  }
      }
@@ -276,7 +275,7 @@ namespace dht
    void DHTNode::load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
 					const std::vector<LocationTable*> &vnode_ltables)
      {
-	for (int i=0;i<DHTNode::_dht_config->_nvnodes;i++)
+	for (int i=0;i<dht_configuration::_dht_config->_nvnodes;i++)
 	  {
 	     /**
 	      * create virtual nodes but specifies key and location table.
@@ -460,7 +459,7 @@ namespace dht
 	std::vector<const DHTKey*> vnode_keys_ord;
 	rank_vnodes(vnode_keys_ord);
 	int nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
-	int nvsucclist = std::min(nv-2,DHTNode::_dht_config->_succlist_size-1);
+	int nvsucclist = std::min(nv-2,dht_configuration::_dht_config->_succlist_size-1);
 	
 	for (int i=0;i<nv;i++)
 	  {
