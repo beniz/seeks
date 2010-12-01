@@ -177,11 +177,12 @@ YUI().use('event-key', function(Y) {
 <tr>
 <td>
 <!-- @if-have-one-column-results-head-start -->
-<div id="search_pages">xxprev<span id="search_page_current">xxpage</span>xxnext<small>page</small></div>
+<div id="search_pages_bottom">xxprev<span id="search_page_current">xxpage</span>xxnext</div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
-<div id="search_pages"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
+<div id="search_pages_bottom"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>
 <!-- if-have-clustered-results-head-end@ -->
+
 </td>
 <td></td>
 </tr>

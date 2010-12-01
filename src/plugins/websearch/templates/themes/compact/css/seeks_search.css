@@ -273,9 +273,12 @@ body {
 	
 }
 
-#search_pages, #search_pages_top {
+#search_pages_bottom, #search_pages_top {
 	font-size: 140%;
 	text-align:center;
+	padding-top:5px;
+	width: 67px;
+	height: 27px;
 	/*position: relative;
 	right: 0px;
 	padding-top: 26px;*/
@@ -285,13 +288,14 @@ body {
 	position: absolute;
 	top: 20px;
 	left: 455px;
-	width: 67px;
-	height: 27px;
-	padding-top:5px;
-	text-align:right;
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/pages.png);
 	background-position: top;
 	background-repeat:no-repeat;
+}
+
+#search_pages_bottom {
+  position: relative;
+  left: 40%;
 }
 
 #search_pages_back {
@@ -320,22 +324,31 @@ body {
 #search_page_prev, #search_page_next, #search_page_prev_top, #search_page_next_top, #search_page_end {
 	font-size: 18px;
 	width: 10px;
-	height: 18px;
-	padding: 5px;
+	height: 20px;
+	/*padding: 5px;
 	padding-top: 0px;
-	margin-right:1px;
+	margin-right:1px;*/
 }
 
 #search_page_prev, #search_page_prev_top {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_prev.png);
+  position:absolute;
+  left:5px;
+  top:3px;
 }
 
 #search_page_next, #search_page_next_top {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_next.png);
+  position:absolute;
+  left:53px;
+  top:3px;
 }
 
 #search_page_end {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/search_page_end.png);
+  position:absolute;
+  left:53px;
+  top:3px;
 }
 /*
 #search_home {
