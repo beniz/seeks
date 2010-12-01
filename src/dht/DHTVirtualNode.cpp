@@ -74,15 +74,18 @@ namespace dht
      {
 	if (_successor)
 	  delete _successor;
+	_successor = NULL;
 	if (_predecessor)
 	  delete _predecessor;
-	
-	// TODO: deregister succlist from stabilizer.
+	_predecessor = NULL;
+
 	_successors.clear();
 	
 	delete _fgt;
+	_fgt = NULL;
      
         delete _lt;
+	_lt = NULL;
      }
    
    void DHTVirtualNode::init_vnode()
@@ -112,7 +115,7 @@ namespace dht
    
    dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
      {
-	bool reset_pred = false;
+       bool reset_pred = false;
 	if (!_predecessor)
 	  reset_pred = true;
 	else if (*_predecessor != senderKey) // our predecessor may have changed.

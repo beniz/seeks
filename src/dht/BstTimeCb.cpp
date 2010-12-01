@@ -134,7 +134,9 @@ namespace dht
 
    BstTimeCbTree::~BstTimeCbTree()
      {
-       stop_threaded_timecheck_loop();
+       // XXX: thread needs to be stopped in child class
+       // before internal structures are destroyed.
+       //stop_threaded_timecheck_loop();
        if (_bstcbtree)
          delete _bstcbtree;
      }
