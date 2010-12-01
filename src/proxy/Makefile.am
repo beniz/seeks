@@ -29,7 +29,8 @@ libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
 if HAVE_TC
 if HAVE_PROTOBUF
 libseeksproxy_la_SOURCES+=protobuf_export_format/json_format.cc \
- 						  protobuf_export_format/xml_format.cc 
+ 						  protobuf_export_format/xml_format.cc \
+						  protobuf_export_format/strutil.cc
 
 protoc_inputs=db_record_msg.proto
 protoc_outputs=db_record_msg.pb.h db_record_msg.pb.cc

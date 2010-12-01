@@ -30,13 +30,14 @@
 
 // from google3/strings/strutil.cc
 
-#include <google/protobuf/stubs/strutil.h>
 #include <errno.h>
 #include <float.h>    // FLT_DIG and DBL_DIG
 #include <limits>
 #include <limits.h>
 #include <stdio.h>
 #include <iterator>
+
+#include "strutil.h"
 
 #ifdef _WIN32
 // MSVC has only _snprintf, not snprintf.
