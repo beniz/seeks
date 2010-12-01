@@ -107,6 +107,11 @@ body {
 	max-width: 720px;
 }
 
+#search_results {
+       padding-bottom: 10px;
+       clear: both;
+       max-width: 720px;
+}
 #search_results .search_snippet .preview {
 	# width: 0px;
 	# display: none;
@@ -271,6 +276,10 @@ body {
 	margin-top: 15px;
 	margin-left: 10px;
 	
+}
+#search_results h3 a:visited {
+       font-weight: normal;
+       color: #555555;
 }
 
 #search_pages_bottom, #search_pages_top {
