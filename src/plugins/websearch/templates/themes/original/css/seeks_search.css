@@ -224,6 +224,11 @@ body {
 	font-weight: normal;
 }
 
+#search_results h3 a:visited {
+       font-weight: normal;
+       color: #2E2E2E;
+}
+
 #search_pages {
 	position: absolute;
 	font-size: 140%;

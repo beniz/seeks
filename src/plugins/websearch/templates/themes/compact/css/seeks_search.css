@@ -277,9 +277,10 @@ body {
 	margin-left: 10px;
 	
 }
+
 #search_results h3 a:visited {
        font-weight: normal;
-       color: #555555;
+       color: #2E2E2E;
 }
 
 #search_pages_bottom, #search_pages_top {
