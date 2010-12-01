@@ -80,6 +80,7 @@ namespace dht
    
    Stabilizer::~Stabilizer()
      {
+       stop_threaded_timecheck_loop();
      }
       
    void Stabilizer::start_fast_stabilizer()
