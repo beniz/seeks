@@ -68,16 +68,16 @@ namespace dht
 				     const bool &need_response,
 				     std::string &response); */
 	
-	void do_rpc_call(const NetAddress &server_na,
+	/*dht_err do_rpc_call(const NetAddress &server_na,
 			    const std::string &msg,
 			    const bool &need_response,
 			    std::string &response,
-			    dht_err &err);
+			    dht_err &err);*/
 	
 	void do_rpc_call(const NetAddress &server_na,
-			    const std::string &msg,
-			    const bool &need_response,
-			    std::string &response);
+			 const std::string &msg,
+			 const bool &need_response,
+			 std::string &response);
      };
    
 } /* end of namespace. */
