@@ -66,6 +66,8 @@ class BootstrapTest : public TestWithParam<int>
     virtual void TearDown()
     {
       delete _dnode;
+      if (dht_configuration::_dht_config)
+	delete dht_configuration::_dht_config;
     }
 
     int _nvnodes;
