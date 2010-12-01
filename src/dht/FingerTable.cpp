@@ -25,7 +25,7 @@
 
 #include <assert.h>
 
-//#define DEBUG
+#define DEBUG
 
 using lsh::Random;
 using sp::errlog;
@@ -189,12 +189,23 @@ namespace dht
              err = DHT_ERR_OK;
 	     _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
 	     if (status == DHT_ERR_UNKNOWN_PEER)
-	       _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+	       {
+		 // XXX: temporary hack, catch the TIMEOUT exception.
+		 try
+		   {
+		     _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 									succ_pred, na_succ_pred, status);
+		   }
+		 catch (dht_exception &e)
+		   {
+		     if (e.code() != DHT_ERR_COM_TIMEOUT)
+		       throw e;
+		   }
+	       }
 	     
 #ifdef DEBUG
 	     //debug
-	     std::cerr << "[Debug]: predecessor call: -- status=" << status << std::endl;
+	     std::cerr << "[Debug]: predecessor call: -- status= " << status << std::endl;
 	     //debug
 #endif
 	     
@@ -341,7 +352,7 @@ namespace dht
 	/**
 	 * total failure, we're very much probably cut off from the network.
 	 * let's try to rejoin.
-	 * TODO: if join fails, let's fall back into a trying mode, in which
+	 * If join fails, let's fall back into a trying mode, in which
 	 * we try a join every x minutes.
 	 */
 	//TODO: rejoin + wrong test here.
@@ -416,7 +427,7 @@ namespace dht
 	 */
 	if (dht_configuration::_dht_config->_routing)
 	  {
-	     _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
+	    _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
 	     if (status == DHT_ERR_UNKNOWN_PEER)
 	       _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 							  getVNodeIdKey(),getVNodeNetAddress(),
@@ -425,11 +436,11 @@ namespace dht
 	     /**
 	      * check on RPC status.
 	      */
-	     if (status != DHT_ERR_OK)
+	     /* if (status != DHT_ERR_OK)
 	       {
-		  errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
-		  return status;
-	       }
+		 errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
+		 return status;
+		 } */
 	  }
 	else // in non routing mode, check whether our predecessor has changed.
 	  {
