@@ -176,12 +176,9 @@ namespace dht
 	
 	if (fct_id == hash_get_successor)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "get_successor\n";
-	     //debug
-#endif
-	     
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_successor from %s",recipient_key.to_rstring().c_str(),
+			      sender_key.to_rstring().c_str());
+
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_getSuccessor_cb(recipient_key,dkres,dkres_na,status);
@@ -193,12 +190,9 @@ namespace dht
 	  }
 	else if (fct_id == hash_get_predecessor)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "get_predecessor\n";
-	     //debug
-#endif
-	     
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_predecessor from %s",recipient_key.to_rstring().c_str(),
+			      sender_key.to_rstring().c_str());
+
 	     DHTKey dkres;
 	     NetAddress dkres_na;
 	     RPC_getPredecessor_cb(recipient_key,dkres,dkres_na,status);
@@ -210,11 +204,8 @@ namespace dht
 	  }
 	else if (fct_id == hash_notify)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "notify\n";
-	     //debug
-#endif
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving notify from %s",recipient_key.to_rstring().c_str(),
+			      sender_key.to_rstring().c_str());
 	     
 	     RPC_notify_cb(recipient_key,sender_key,sender_na,
 			   status);
@@ -224,12 +215,9 @@ namespace dht
 	  }
 	else if (fct_id == hash_get_succlist)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "get_succlist\n";
-	     //debug
-#endif
-	     
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_succlist from %s",recipient_key.to_rstring().c_str(),
+			      sender_key.to_rstring().c_str());
+
 	     std::list<DHTKey> dkres_list;
 	     std::list<NetAddress> na_list;
 	     RPC_getSuccList_cb(recipient_key,dkres_list,na_list,status);
@@ -241,12 +229,9 @@ namespace dht
 	  }
 	else if (fct_id == hash_find_closest_predecessor)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "find_closest_predecessor\n";
-	     //debug
-#endif
-	     
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving find_closest_predecessor from %s",recipient_key.to_rstring().c_str(),
+			      sender_key.to_rstring().c_str());
+
 #ifdef DEBUG
 	     //debug
 	     //TODO: catch this error.
@@ -274,11 +259,8 @@ namespace dht
 	  }
 	else if (fct_id == hash_join_get_succ)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "join_get_succ\n";
-	     //debug
-#endif
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving join from %s",recipient_key.to_rstring().c_str(),
+			      sender_key.to_rstring().c_str());
 	     
 	     DHTKey dkres;
 	     NetAddress dkres_na;
@@ -293,12 +275,9 @@ namespace dht
 	  }
 	else if (fct_id == hash_ping)
 	  {
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "ping\n";
-	     //debug
-#endif
-	     
+	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving ping from %s",recipient_key.to_rstring().c_str(),
+                               sender_key.to_rstring().c_str());
+
 	     RPC_ping_cb(recipient_key,status);
 	     
 	     // create a reponse.
@@ -306,15 +285,8 @@ namespace dht
 	  }
 	else 
 	  {
-	     // TODO: unknown cb.
-	     
-#ifdef DEBUG
-	     //debug
-	     std::cerr << "[Debug]:unknown callback.\n";
-	     //debug
-#endif
-	     
-	     errlog::log_error(LOG_LEVEL_DHT, "Couldn't find callback with id %u", fct_id);
+	    errlog::log_error(LOG_LEVEL_ERROR, "%s receiving unknown callback with id %u from %s", 
+			      recipient_key.to_rstring().c_str(),fct_id,sender_key.to_rstring().c_str());
 	     status = DHT_ERR_CALLBACK;
              return;
 	  }
