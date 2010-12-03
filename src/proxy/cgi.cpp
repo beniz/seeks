@@ -1730,9 +1730,11 @@ namespace sp
       }
 
     full_path = seeks_proxy::make_path(templates_dir_path, templatename);
+    std::string full_path_str = full_path;
+    freez(full_path);
     free_const(templates_dir_path);
 
-    if (full_path == NULL)
+    if (full_path_str.empty())
       {
         errlog::log_error(LOG_LEVEL_ERROR, "Out of memory while generating full template path for %s.",
                           templatename);
@@ -1743,23 +1745,19 @@ namespace sp
     file_buffer = strdup("");
     if (file_buffer == NULL)
       {
-        errlog::log_error(LOG_LEVEL_ERROR, "Not enough free memory to buffer %s.", full_path);
-        freez(full_path);
-        return SP_ERR_MEMORY;
+        errlog::log_error(LOG_LEVEL_ERROR, "Not enough free memory to buffer %s.", full_path_str.c_str());
+	return SP_ERR_MEMORY;
       }
 
     /* Open template file */
-    if (NULL == (fp = fopen(full_path, "r")))
+    if (NULL == (fp = fopen(full_path_str.c_str(), "r")))
       {
         if (!recursive)
-          errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path);
-        freez(full_path);
-        freez(file_buffer);
+          errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path_str.c_str());
+	freez(file_buffer);
         return SP_ERR_FILE;
       }
-
-    freez(full_path);
-
+    
     /*
      * Read the file, ignoring comments, and honoring #include
      * statements, unless we're already called recursively.
@@ -1783,7 +1781,7 @@ namespace sp
                                         csp->_config->_templdir,
                                         1)))
                   {
-                    errlog::log_error(LOG_LEVEL_ERROR, "Cannot open included template file %s: %E", full_path);
+                    errlog::log_error(LOG_LEVEL_ERROR, "Cannot open included template file %s: %E", buf);
                     freez(file_buffer);
                     fclose(fp);
                     return err;
@@ -2021,7 +2019,7 @@ namespace sp
     assert(templatename);
     assert(exports);
     assert(rsp);
-
+    
     err = cgi::template_load(csp, &rsp->_body, templatename, templatedir, 0);
     if (err == SP_ERR_FILE)
       {
