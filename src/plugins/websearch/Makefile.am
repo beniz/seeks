@@ -54,14 +54,19 @@ nobase_dist_websearchplugindata_DATA= \
 			  patterns/reject \
 			  patterns/forum \
 			  patterns/video \
+	                  templates/js/dyn_ui.js \
 			  templates/themes/original/css/seeks_hp_search.css \
 	                  templates/themes/original/css/seeks_search.css \
 			  templates/themes/original/seeks_result_template.html \
+	                  templates/themes/original/seeks_result_template_dyn.html \
 	                  templates/themes/original/seeks_ws_hp.html \
-			  templates/themes/compact/seeks_result_template.html \
+			  templates/themes/original/js/render.js \
+                          templates/themes/compact/seeks_result_template.html \
+                          templates/themes/compact/seeks_result_template_dyn.html \
 		          templates/themes/compact/seeks_ws_hp.html \
 			  templates/themes/compact/css/seeks_hp_search.css \
                           templates/themes/compact/css/seeks_search.css \
+	                  templates/themes/compact/js/render.js \
 			  public/images/search_engines/yahoo.svg \
 			  public/images/search_engines/bing.svg \
 			  public/images/search_engines/exalead.svg \
