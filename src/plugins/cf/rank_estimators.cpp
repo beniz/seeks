@@ -209,7 +209,8 @@ namespace seeks_plugins
         // estimate the url prior.
         bool personalized = false;
         float prior = 1.0;
-        if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB && (*vit)->_doc_type != TWEET) // not empty or not type with not enought competition on domains.
+        if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB 
+	    && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enought competition on domains.
           prior = estimate_prior(url,host,nuri,personalized);
         if (personalized)
           (*vit)->_personalized = true;
