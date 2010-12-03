@@ -71,7 +71,7 @@ protected:
   {
     // init logging module.
     errlog::init_log_module();
-    errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
+    errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT | LOG_LEVEL_INFO);
 
     // craft a default configuration.
     dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
@@ -134,8 +134,11 @@ protected:
   {
     if (_dnode2)
       delete _dnode2;
-    delete _dnode1;
+    if (_dnode1)
+      delete _dnode1;
     delete _na_dnode1;
+    if (dht_configuration::_dht_config)
+      delete dht_configuration::_dht_config;
   }
   
   std::string _net_addr1;
@@ -211,17 +214,25 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
 	    vnode2->getSuccessor()->to_rstring());
   
   // testing predecessors (notified by other node).
-  uint64_t max_fast_clicks = 2;
+  uint64_t max_fast_clicks = 10;
   while(_dnode2->_stabilizer->_fast_clicks < max_fast_clicks)
     {
       sleep(event_timecheck);
+      if (vnode1->getPredecessor() != NULL
+	  && *vnode1->getPredecessor() == vnode2->getIdKey())
+	break;
     }
+  ASSERT_TRUE(vnode1->getPredecessor() != NULL);
   ASSERT_EQ(vnode2->getIdKey().to_rstring(),
 	    vnode1->getPredecessor()->to_rstring());
   while(_dnode1->_stabilizer->_fast_clicks < max_fast_clicks)
     {
       sleep(event_timecheck);
+      if (vnode2->getPredecessor() != NULL
+	  && *vnode2->getPredecessor() == vnode1->getIdKey())
+	break;
     }
+  ASSERT_TRUE(vnode2->getPredecessor() != NULL);
   ASSERT_EQ(vnode1->getIdKey().to_rstring(),
             vnode2->getPredecessor()->to_rstring());
 
@@ -236,6 +247,34 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
 //TODO: estimate of number of nodes.
 
 //TODO: dnode1 gets down, dnode2 should correct its successor & predecessor.
+TEST_F(ProtocolTest2N, node_fail_before_stable)
+{
+  // create dnode2.
+  ProtocolTest2N::start_dnode(_dnode2,_na_dnode2,
+			      _net_addr2,_net_port2,
+			      dkey2);
+  DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
+  DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
+  dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
+  ASSERT_EQ(DHT_ERR_OK,status);
+  ASSERT_TRUE(vnode2->getSuccessor() != NULL);
+  ASSERT_EQ(dkey1,vnode2->getSuccessor()->to_rstring());
+
+  // dnode1 fails.
+  delete _dnode1;
+  _dnode1 = NULL;
+
+  uint64_t max_slow_clicks = 5; // at least two passes for stability.
+  short event_timecheck = dht_configuration::_dht_config->_event_timecheck;
+  while(_dnode2->_stabilizer->_slow_clicks < max_slow_clicks)
+    {
+      if (!_dnode2->isSuccStable())
+        sleep(event_timecheck);
+      else break;
+    }
+  ASSERT_TRUE(_dnode2->isSuccStable());
+}
 
 int main(int argc, char **argv)
 {
