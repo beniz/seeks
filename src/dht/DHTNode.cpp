@@ -84,11 +84,11 @@ namespace dht
      {
        stop_node();
        
-       if (dht_configuration::_dht_config)
+       /*if (dht_configuration::_dht_config)
          {
 	   delete dht_configuration::_dht_config; // XXX: beware, static variable.
 	   dht_configuration::_dht_config = NULL;
-	 }
+	   }*/
      }
       
    void DHTNode::start_node()
@@ -920,7 +920,7 @@ namespace dht
 			    int& status)
      {
 	status = DHT_ERR_OK;
-	
+		
 	/**
 	 * get virtual node.
 	 */
