@@ -61,19 +61,28 @@ nobase_dist_public_DATA=\
 			  public/images/seek_icon_48x48_transparent.png \
 			  public/images/seek_icon_64x64_transparent.png \
 			  public/images/seek_icon_16x16_transparent.ico \
-			  public/yui/3.0.0/cssreset/reset-min.css \
-			  public/yui/3.0.0/cssfonts/fonts-min.css \
-			  public/yui/3.0.0/cssgrids/grids-min.css \
-			  public/yui/3.0.0/yui/yui-min.js \
-			  public/yui/3.0.0/loader/loader-min.js \
-			  public/yui/3.0.0/dom/dom-base-min.js \
-			  public/yui/3.0.0/dom/selector-css2-min.js \
-			  public/yui/3.0.0/dom/selector-native-min.js \
-			  public/yui/3.0.0/event-custom/event-custom-base-min.js \
-			  public/yui/3.0.0/event/event-base-min.js \
-			  public/yui/3.0.0/event/event-key-min.js \
-			  public/yui/3.0.0/node/node-base-min.js \
-			  public/yui/3.0.0/oop/oop-min.js \
+			  public/yui/3.2.0/cssreset/reset-min.css \
+			  public/yui/3.2.0/cssfonts/fonts-min.css \
+			  public/yui/3.2.0/cssgrids/grids-min.css \
+			  public/yui/3.2.0/yui/yui-min.js \
+			  public/yui/3.2.0/loader/loader-min.js \
+			  public/yui/3.2.0/dom/dom-base-min.js \
+			  public/yui/3.2.0/dom/selector-css2-min.js \
+			  public/yui/3.2.0/dom/selector-native-min.js \
+			  public/yui/3.2.0/event-custom/event-custom-base-min.js \
+			  public/yui/3.2.0/event-custom/event-custom-min.js \
+			  public/yui/3.2.0/event/event-synthetic-min.js \
+			  public/yui/3.2.0/event/event-base-min.js \
+			  public/yui/3.2.0/event/event-key-min.js \
+			  public/yui/3.2.0/node/node-base-min.js \
+			  public/yui/3.2.0/oop/oop-min.js \
+	                  public/yui/3.2.0/jsonp/jsonp-min.js \
+	                  public/yui/3.2.0/substitute/substitute-min.js \
+	                  public/yui/3.2.0/dom/dom-min.js \
+	                  public/yui/3.2.0/node/node-style-min.js \
+	                  public/yui/3.2.0/transition/transition-min.js \
+	                  public/yui/3.2.0/collection/array-extras-min.js \
+	                  public/yui/3.2.0/querystring/querystring-min.js \
 			  lsh/swl/arabicST.txt \
 			  lsh/swl/bulgarianST.txt \
 			  lsh/swl/czechST.txt \
