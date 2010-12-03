@@ -199,7 +199,11 @@ namespace dht
 		 catch (dht_exception &e)
 		   {
 		     if (e.code() != DHT_ERR_COM_TIMEOUT)
-		       throw e;
+		       {
+			 std::cerr << "FingerTable: stabilizer getPredecessor throwing exception with code " << e.code() << std::endl;
+			 throw e;
+		       }
+		     else status = e.code();
 		   }
 	       }
 	     
@@ -220,8 +224,20 @@ namespace dht
 		   * our successor is not responding.
 		   * let's ping it, if it seems dead, let's move to the next successor on our list.
 		   */
-		  bool dead = _vnode->is_dead(*succ,succ_loc->getNetAddress(),
-					      status);
+		 
+		 // XXX: temporary hack, catch the TIMEOUT exception.
+		 bool dead = false;
+		 try
+		   {
+		     _vnode->is_dead(*succ,succ_loc->getNetAddress(),
+				     status);
+		   }
+		 catch (dht_exception &e)
+		   {
+		     if (e.code() != DHT_ERR_COM_TIMEOUT)
+		       throw e;
+		     else status = e.code();
+		   }
 		  
 		  if (dead || ret == retries)
 		    {
