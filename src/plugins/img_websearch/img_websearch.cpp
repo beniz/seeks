@@ -26,6 +26,7 @@
 #include "miscutil.h"
 #include "json_renderer.h"
 #include "static_renderer.h"
+#include "dynamic_renderer.h"
 #include "seeks_proxy.h"
 
 #include <unistd.h>
@@ -122,6 +123,19 @@ namespace seeks_plugins
           }
         else se_handler::preprocess_parameters(parameters); // preprocess the query...
 
+	// check on requested User Interface.
+	const char *ui = miscutil::lookup(parameters,"ui");
+	std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
+	const char *output = miscutil::lookup(parameters,"output");
+	std::string output_str = output ? std::string(output) : "html";
+	std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+	std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        if (ui_str == "dyn" && output_str == "html")
+          {
+	    sp_err err = dynamic_renderer::render_result_page(csp,rsp,parameters);
+	    return err;
+	  }
+
         // perform websearch or other requested action.
         const char *action = miscutil::lookup(parameters,"action");
         if (!action)
@@ -176,9 +190,14 @@ namespace seeks_plugins
             return cgisimple::cgi_error_404(csp,rsp,parameters);
           }
 
+        const char *ui = miscutil::lookup(parameters,"ui");
+	std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
         const char *output = miscutil::lookup(parameters,"output");
-        sp_err err = SP_ERR_OK;
-        if (!output || strcmp(output,"html")==0)
+	std::string output_str = output ? std::string(output) : "html";
+	std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+	std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+	sp_err err = SP_ERR_OK;
+        if (ui_str == "stat" && strcmp(output,"html")==0)
           {
             // sets the number of images per page, if not already set.
             const char *rpp = miscutil::lookup(parameters,"rpp");
@@ -197,7 +216,12 @@ namespace seeks_plugins
             if (param_exports)
               delete param_exports;
           }
-        else
+	else if (ui_str == "dyn" && output_str == "html")
+          {
+            // XXX: the template is filled up and returned earlier.
+            // dynamic UI uses JSON calls to fill up results.
+          }
+        else if (output_str == "json")
           {
             csp->_content_type = CT_JSON;
             err = json_renderer::render_json_results(qc->_cached_snippets,
@@ -326,9 +350,16 @@ namespace seeks_plugins
         mutex_unlock(&qc->_qc_mutex);
         return SP_ERR_OK;
       }
+    
+    const char *ui = miscutil::lookup(parameters,"ui");
+    std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
     const char *output = miscutil::lookup(parameters,"output");
+    std::string output_str = output ? std::string(output) : "html";
+    std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+    std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+    
     sp_err err = SP_ERR_OK;
-    if (!output || strcmp(output,"html")==0)
+    if (ui_str == "stat" && strcmp(output,"html")==0)
       {
         // sets the number of images per page, if not already set.
         const char *rpp = miscutil::lookup(parameters,"rpp");
@@ -347,7 +378,12 @@ namespace seeks_plugins
         if (param_exports)
           delete param_exports;
       }
-    else
+    else if (ui_str == "dyn" && output_str == "html")
+      {
+	// XXX: the template is filled up and returned earlier.                                                                        
+	// dynamic UI uses JSON calls to fill up results.                                                                              
+      }
+    else if (output_str == "json")
       {
         csp->_content_type = CT_JSON;
         err = json_renderer::render_json_results(qc->_cached_snippets,
