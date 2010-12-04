@@ -165,7 +165,7 @@ namespace seeks_plugins
          html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
       }
     else */
-    html_content += "<div>";
+    html_content += "</div></h3>";
     const char *cite_enc = NULL;
     if (!_cite.empty())
       {
@@ -216,7 +216,7 @@ namespace seeks_plugins
       html_content += "\">Similar</a>";
     else html_content += "\">Back</a>";
 #endif
-    html_content += "</div></li>\n";
+    html_content += "</li>\n";
     return html_content;
   }
 
