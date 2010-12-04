@@ -256,7 +256,7 @@ namespace seeks_plugins
           }
         else se_handler::preprocess_parameters(parameters); // preprocess the query...
 
-        //TODO: check on User Interface requested:
+        // check on requested User Interface:
         // - 'dyn' for dynamic interface: detach a thread for performing the requested
         //   action, but return the page with embedded JS right now.
         // - 'stat' for static interface: perform the requested action and render the page
@@ -822,25 +822,18 @@ namespace seeks_plugins
                 csp,rsp,parameters,qc);
         else if (ui_str == "dyn" && output_str == "html")
           {
-            //TODO: dynamic output.
-            //err = dynamic_renderer::render_result_page(csp,rsp,parameters);
-          }
+            // XXX: the template is filled up and returned earlier.
+	    // dynamic UI uses JSON calls to fill up results.
+	  }
         else if (output_str == "json")
           {
-            //std::cerr << "rendering json\n";
-            csp->_content_type = CT_JSON;
+	    csp->_content_type = CT_JSON;
             err = json_renderer::render_json_results(qc->_cached_snippets,
                   csp,rsp,parameters,qc,
                   qtime);
           }
-      } // render
-
-    // resets personalization flags.
-    /*if (strcasecmp(pers,"on") == 0)
-      {
-    qc->reset_snippets_personalization_flags();
-      } */
-
+      }
+    
     // unlock or destroy the query context.
     qc->_lock = false;
     mutex_unlock(&qc->_qc_mutex);
