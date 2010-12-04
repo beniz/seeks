@@ -129,7 +129,7 @@ function render_cluster(cluster,label,chtml,pi)
         var shtml = render_snippet(s,pi);
         chtml += shtml;
     }
-    chtml += '</div></ol><div class="clear"></div>';
+    chtml += '</ol><div class="clear"></div></div>';
     return chtml;
 }
 
