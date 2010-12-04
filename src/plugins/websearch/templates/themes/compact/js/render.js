@@ -4,7 +4,7 @@ snippetTxtTemplate =
 enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
 
 snippetImgTemplate =
-    '<li class="search_snippet search_snippet_img"><h3><a href="{url}"><img src="{cached}"><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
+    '<li class="search_snippet search_snippet_img"><h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
 
 snippetVidTemplate =
     '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div><cite>{date}</cite></div></li>';
@@ -40,7 +40,7 @@ function render_snippet(snippet,pi)
     // render url capture.
     if (pi.prs == "on")
     {
-        snippet.url = "/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
+        snippet.url = "@base-url@/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
     }
 
     // render engines. 
