@@ -197,7 +197,7 @@ namespace seeks_plugins
 	std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
 	std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
 	sp_err err = SP_ERR_OK;
-        if (ui_str == "stat" && strcmp(output,"html")==0)
+        if (ui_str == "stat" && output_str == "html")
           {
             // sets the number of images per page, if not already set.
             const char *rpp = miscutil::lookup(parameters,"rpp");
@@ -359,7 +359,7 @@ namespace seeks_plugins
     std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
     
     sp_err err = SP_ERR_OK;
-    if (ui_str == "stat" && strcmp(output,"html")==0)
+    if (ui_str == "stat" && output_str == "html")
       {
         // sets the number of images per page, if not already set.
         const char *rpp = miscutil::lookup(parameters,"rpp");
