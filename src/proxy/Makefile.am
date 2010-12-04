@@ -29,8 +29,8 @@ libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
 if HAVE_TC
 if HAVE_PROTOBUF
 libseeksproxy_la_SOURCES+=protobuf_export_format/json_format.cc \
- 						  protobuf_export_format/xml_format.cc \
-						  protobuf_export_format/strutil.cc
+ 			  protobuf_export_format/xml_format.cc \
+		          protobuf_export_format/strutil.cc
 
 protoc_inputs=db_record_msg.proto
 protoc_outputs=db_record_msg.pb.h db_record_msg.pb.cc
@@ -52,6 +52,7 @@ clean-local:
 	rm -f $(protoc_outputs)
 
 noinst_HEADERS = \
+	$(protoc_outputs) \
 	action_plugin.h \
 	cgi.h \
 	cgisimple.h \
@@ -80,7 +81,11 @@ noinst_HEADERS = \
 	sweeper.h \
 	urlmatch.h \
 	db_record.h \
-	user_db.h 
+	protobuf_export_format/json_format.h \
+	protobuf_export_format/xml_format.h \
+	protobuf_export_format/strutil.h \
+	user_db.h \
+	user_db_fix.h
 
 libseeksproxy_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' -DSEEKS_DATADIR='"$(datadir)/seeks/"' -DSEEKS_PLUGINS_LIBDIR='"$(libdir)/seeks/plugins/"'
 libseeksplugins_la_CXXFLAGS=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
