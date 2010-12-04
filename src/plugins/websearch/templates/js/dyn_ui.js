@@ -387,7 +387,6 @@ YUI().use('event-key', function(Y) {
         e.halt();
         Y.one('#search_input').select();
     }, document, 'press:102+ctrl');
-
 });
 
 // Shortcut for expansion, ctrl+e
@@ -396,15 +395,14 @@ YUI().use('event-key', function(Y) {
 	e.halt();
 	document.location = Y.one('#expansion').getAttribute('href');
     }, document, 'press:101+ctrl');
-
 });
 
-// Shortcut for clustering, ctrl+c                                                                                                                                                                                                                                                     
+// Shortcut for clustering, ctrl+k
 YUI().use('event-key', function(Y) {
     var handle = Y.on('key', function(e) {
 	e.halt();
 	document.location = Y.one('#cluster').getAttribute('href');
-    }, document, 'press:99+ctrl');
+    }, document, 'press:107+ctrl');
 });
 
 // Shortcut for previous page, ctrl+<
