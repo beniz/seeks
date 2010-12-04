@@ -2394,6 +2394,9 @@ reading_done:
     mutex_init(&seeks_proxy::_rand_mutex);
 #endif /* ndef HAVE_RANDOM */
 #endif /* def MUTEX_LOCKS_AVAILABLE */
+  
+    // initialize sweeper's mutex.
+    mutex_init(&sweeper::_mem_dust_mutex);
   }
 
 #ifdef _WIN32

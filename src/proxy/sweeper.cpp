@@ -37,13 +37,18 @@ namespace sp
 
   /*- sweeper. -*/
 
+  sp_mutex_t sweeper::_mem_dust_mutex;
+
   void sweeper::register_sweepable(sweepable *spable)
   {
+    mutex_lock(&sweeper::_mem_dust_mutex);
     seeks_proxy::_memory_dust.push_back(spable);
+    mutex_unlock(&sweeper::_mem_dust_mutex);
   }
 
   void sweeper::unregister_sweepable(sweepable *spable)
   {
+    mutex_lock(&sweeper::_mem_dust_mutex);
     std::vector<sweepable*>::iterator vit
     = seeks_proxy::_memory_dust.begin();
     while (vit!=seeks_proxy::_memory_dust.end())
@@ -51,10 +56,12 @@ namespace sp
         if ((*vit) == spable)
           {
             seeks_proxy::_memory_dust.erase(vit);
-            return;
+            mutex_unlock(&sweeper::_mem_dust_mutex);
+	    return;
           }
         ++vit;
       }
+    mutex_unlock(&sweeper::_mem_dust_mutex);
   }
 
   /*********************************************************************
@@ -133,7 +140,8 @@ namespace sp
     /* std::cerr << "[Debug]:sweeper: cleaning memory dust: "
      << seeks_proxy::_memory_dust.size() << " remaining items\n"; */
     //debug
-
+    
+    mutex_lock(&sweeper::_mem_dust_mutex);
     std::vector<sweepable*>::iterator vit = seeks_proxy::_memory_dust.begin();
     while (vit!=seeks_proxy::_memory_dust.end())
       {
@@ -145,6 +153,7 @@ namespace sp
           }
         else ++vit;
       }
+    mutex_unlock(&sweeper::_mem_dust_mutex);
 
 #if defined(PROTOBUF) && defined(TC)
     // user_db sweep.

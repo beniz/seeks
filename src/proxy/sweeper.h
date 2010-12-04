@@ -20,6 +20,8 @@
 #ifndef SWEEPER_H
 #define SWEEPER_H
 
+#include "mutexes.h"
+
 namespace sp
 {
   class sweepable
@@ -43,6 +45,8 @@ namespace sp
       static void unregister_sweepable(sweepable *spable);
 
       static unsigned int sweep();
+  
+      static sp_mutex_t _mem_dust_mutex;
   };
 
 } /* end of namespace. */
