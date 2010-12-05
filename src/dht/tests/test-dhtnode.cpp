@@ -43,8 +43,8 @@ void sig_handler(int the_signal)
       case SIGTERM:
       case SIGINT:
       case SIGHUP:
-	//if (persistence) //TODO: remove existing table _before_ running, since they are now stored by default.
-	  //dnode->hibernate_vnodes_table();
+	dnode->leave();
+	delete dnode; // hibernates, stop threads and destroys internal structures.
 	exit(the_signal);
 	break;
       default:
@@ -121,9 +121,9 @@ int main(int argc, char **argv)
 	       }
 	  }
 	
-	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	if (nvnodes > 0)
-	  DHTNode::_dht_config->_nvnodes = nvnodes;
+	  dht_configuration::_dht_config->_nvnodes = nvnodes;
 	dnode = new DHTNode(net_addr,net_port,true);
 	
 	/**

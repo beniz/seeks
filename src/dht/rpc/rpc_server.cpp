@@ -20,9 +20,10 @@
  */
 
 #include "rpc_server.h"
+#include "dht_err.h"
 #include "spsockets.h"
 #include "dht_exception.h"
-#include "DHTNode.h" // for accessing dht_config.
+#include "dht_configuration.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -188,7 +189,7 @@ namespace dht
   {
 
     // get messages, one by one.
-    size_t buflen = DHTNode::_dht_config->_l1_server_max_msg_bytes;  //TODO: of transient l2 messages!
+    size_t buflen = dht_configuration::_dht_config->_l1_server_max_msg_bytes;  //TODO: of transient l2 messages!
     char buf[buflen];
     struct sockaddr_in from;
     socklen_t fromlen = sizeof(struct sockaddr_in);

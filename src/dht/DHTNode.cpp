@@ -40,11 +40,11 @@ using sp::proxy_configuration;
 namespace dht
 {
    std::string DHTNode::_dht_config_filename = "";
-   dht_configuration* DHTNode::_dht_config = NULL;
-   
+  
    DHTNode::DHTNode(const char *net_addr,
 		    const short &net_port,
-		    const bool &start_dht_node)
+		    const bool &start_dht_node,
+		    const std::string &vnodes_table_file)
      : _nnodes(0),_nnvnodes(0),_l1_server(NULL),_l1_client(NULL),_connected(false),_has_persistent_data(false)
      {
 	if (DHTNode::_dht_config_filename.empty())
@@ -56,7 +56,7 @@ namespace dht
 #endif
 	  }
 	
-	_vnodes_table_file = "vnodes-table.dat";
+	_vnodes_table_file = vnodes_table_file;
 #ifdef SEEKS_LOCALSTATEDIR
 	_vnodes_table_file = SEEKS_LOCALSTATDIR "/" _vnodes_table_file;
 #else
@@ -64,16 +64,16 @@ namespace dht
 #endif
 			
 	//debug
-	//std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
+	std::cerr << "[Debug]: vnodes_table_file: " << _vnodes_table_file << std::endl;
 	//debug
 	
-	if (!DHTNode::_dht_config)
-	  DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	if (!dht_configuration::_dht_config)
+	  dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	
 	// this node net l1 address.
 	_l1_na.setNetAddress(net_addr);
 	if (net_port == 0) // no netport specified, default to config port.
-	  _l1_na.setPort(_dht_config->_l1_port);
+	  _l1_na.setPort(dht_configuration::_dht_config->_l1_port);
 	else _l1_na.setPort(net_port);
      
 	if (start_dht_node)
@@ -84,8 +84,11 @@ namespace dht
      {
        stop_node();
        
-       if (DHTNode::_dht_config)
-         delete DHTNode::_dht_config; // XXX: beware, static variable.
+       /*if (dht_configuration::_dht_config)
+         {
+	   delete dht_configuration::_dht_config; // XXX: beware, static variable.
+	   dht_configuration::_dht_config = NULL;
+	   }*/
      }
       
    void DHTNode::start_node()
@@ -98,7 +101,7 @@ namespace dht
 	/**
 	 * Sets successor list size.
 	 */
-	SuccList::_max_list_size = DHTNode::_dht_config->_succlist_size;
+	SuccList::_max_list_size = dht_configuration::_dht_config->_succlist_size;
 	
 	/**
 	 * create the virtual nodes.
@@ -131,6 +134,12 @@ namespace dht
    
    void DHTNode::stop_node()
      {
+       /**                                                                                                                       
+	* kill stabilizer.                                                                                                       
+	*/
+       delete _stabilizer;
+       _stabilizer = NULL;
+
 	/**
 	 * stops server.
 	 */
@@ -140,7 +149,9 @@ namespace dht
 	 * destroy server and client.
 	 */
 	delete _l1_server;
+	_l1_server = NULL;
 	delete _l1_client;
+	_l1_client = NULL;
 		
 	/**
 	 * persistence of virtual nodes.
@@ -151,16 +162,11 @@ namespace dht
 	 * destroy virtual nodes.
 	 */
 	destroy_vnodes();
-	
-	/**
-	 * kill stabilizer.
-	 */
-	delete _stabilizer;
      }
    
    void DHTNode::create_vnodes()
      {
-	for (int i=0; i<DHTNode::_dht_config->_nvnodes; i++)
+	for (int i=0; i<dht_configuration::_dht_config->_nvnodes; i++)
 	  {
 	     /**
 	      * creating virtual nodes.
@@ -256,19 +262,23 @@ namespace dht
 	 * fill up tables with our persistent data if the number of vnodes has not 
 	 * changed in configuration.
 	 */
-	if (DHTNode::_dht_config->_nvnodes == (int)vnode_ids.size())
+	if (dht_configuration::_dht_config->_nvnodes == (int)vnode_ids.size())
 	  {
 	     load_vnodes_and_tables(vnode_ids,vnode_ltables);
 	     errlog::log_error(LOG_LEVEL_DHT, "Successfully loaded %u persistent virtual nodes", vnode_ids.size());
 	     return true;
 	  }
-	else return false;
+	else 
+	  {
+	    errlog::log_error(LOG_LEVEL_DHT, "Found hibernated table of virtual nodes that doesn't match the requested number of virtual nodes (%d != %d). Virtual nodes will be recreated.",dht_configuration::_dht_config->_nvnodes,(int)vnode_ids.size());
+	    return false;
+	  }
      }
    
    void DHTNode::load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
 					const std::vector<LocationTable*> &vnode_ltables)
      {
-	for (int i=0;i<DHTNode::_dht_config->_nvnodes;i++)
+	for (int i=0;i<dht_configuration::_dht_config->_nvnodes;i++)
 	  {
 	     /**
 	      * create virtual nodes but specifies key and location table.
@@ -279,7 +289,7 @@ namespace dht
 	     _vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(dvn->getIdKey()), // memory leak?
 								     dvn));
 	  
-	     errlog::log_error(LOG_LEVEL_DHT, "Loaded pervistent virtual node %s", dvn->getIdKey().to_rstring().c_str());
+	     errlog::log_error(LOG_LEVEL_DHT, "Loaded persistent virtual node %s", dvn->getIdKey().to_rstring().c_str());
 	     
 	     /**
 	      * register vnode routing structures to the stabilizer:
@@ -452,7 +462,7 @@ namespace dht
 	std::vector<const DHTKey*> vnode_keys_ord;
 	rank_vnodes(vnode_keys_ord);
 	int nv = vnode_keys_ord.size(); // should be dht_config::_nvnodes, but safer to use the vector size.
-	int nvsucclist = std::min(nv-2,DHTNode::_dht_config->_succlist_size-1);
+	int nvsucclist = std::min(nv-2,dht_configuration::_dht_config->_succlist_size-1);
 	
 	for (int i=0;i<nv;i++)
 	  {
@@ -521,8 +531,63 @@ namespace dht
 	
 	// we are 'connected', to ourselves, but we are...
 	_connected = true;
-	
      }
+
+  dht_err DHTNode::leave() const
+  {
+    dht_err err = DHT_ERR_OK;
+
+    /**
+     * Since several virtual nodes may be successors / predecessors 
+     * on the circle, we ask them to leave in ascending order.
+     */
+    std::vector<const DHTKey*>::const_iterator vit = _sorted_vnodes_vec.begin();
+    while(vit!=_sorted_vnodes_vec.end())
+      {
+	const DHTKey *vkey = (*vit);
+	DHTVirtualNode *vnode = findVNode(*vkey);
+	if (vnode)
+	  {
+	    err += vnode->leave();
+	  }
+	else
+	  {
+	    // XXX: this should never happen, but since we're leaving
+	    // we're not bitching too much about it...
+	    errlog::log_error(LOG_LEVEL_ERROR, "leave: can't find virtual node %s",
+			      vkey->to_rstring().c_str());
+	}
+	++vit;
+      }
+
+    return err;
+  }
+  
+  bool DHTNode::isSuccStable() const
+  {
+    hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+      = _vnodes.begin();
+    while(hit!=_vnodes.end())
+      {
+	if (!(*hit).second->isSuccStable())
+	  return false;
+	++hit;
+      }
+    return true;
+  }
+
+  bool DHTNode::isStable() const
+  {
+    hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
+      = _vnodes.begin();
+    while(hit!=_vnodes.end())
+      {
+	if (!(*hit).second->isStable())
+          return false;
+	++hit;
+      } 
+    return true;
+  }
 
    void DHTNode::rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord)
      {
@@ -855,7 +920,7 @@ namespace dht
 			    int& status)
      {
 	status = DHT_ERR_OK;
-	
+		
 	/**
 	 * get virtual node.
 	 */

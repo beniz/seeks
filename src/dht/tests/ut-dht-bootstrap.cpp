@@ -50,8 +50,8 @@ class BootstrapTest : public TestWithParam<int>
       errlog::init_log_module();
       errlog::set_debug_level(LOG_LEVEL_INFO | LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
 
-      DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
-      DHTNode::_dht_config->_nvnodes = _nvnodes;
+      dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+      dht_configuration::_dht_config->_nvnodes = _nvnodes;
 
       _na_dnode = new NetAddress(_net_addr,_net_port);
       _dnode = new DHTNode(_na_dnode->getNetAddress().c_str(),_na_dnode->getPort(),false);
@@ -66,6 +66,8 @@ class BootstrapTest : public TestWithParam<int>
     virtual void TearDown()
     {
       delete _dnode;
+      if (dht_configuration::_dht_config)
+	delete dht_configuration::_dht_config;
     }
 
     int _nvnodes;
@@ -80,11 +82,11 @@ TEST_P(BootstrapTest, self_bootstrap)
   _dnode->self_bootstrap();
 
   // check number of virtual nodes.
-  ASSERT_EQ(DHTNode::_dht_config->_nvnodes,_dnode->_vnodes.size());
-  ASSERT_EQ(DHTNode::_dht_config->_nvnodes,_dnode->_sorted_vnodes_vec.size());
+  ASSERT_EQ(dht_configuration::_dht_config->_nvnodes,_dnode->_vnodes.size());
+  ASSERT_EQ(dht_configuration::_dht_config->_nvnodes,_dnode->_sorted_vnodes_vec.size());
 
   // check the correctness of the self-generated circle.
-  int nvnodes = DHTNode::_dht_config->_nvnodes;
+  int nvnodes = dht_configuration::_dht_config->_nvnodes;
   for (int i=0; i<nvnodes; i++)
     {
       const DHTKey *dk = _dnode->_sorted_vnodes_vec.at(i);
@@ -102,7 +104,11 @@ TEST_P(BootstrapTest, self_bootstrap)
                   vn->getSuccessor()->to_rstring());
       else ASSERT_EQ(_dnode->_sorted_vnodes_vec.at(0)->to_rstring(),
                        vn->getSuccessor()->to_rstring());
+    
+      // check on location table.
+      ASSERT_EQ(nvnodes,vn->getLocationTable()->size());
     }
+  
 }
 
 INSTANTIATE_TEST_CASE_P(

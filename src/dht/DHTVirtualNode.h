@@ -119,6 +119,8 @@ namespace dht
 	bool is_dead(const DHTKey &recipientKey, const NetAddress &na,
 		     int &status);
 	
+	dht_err leave();
+
 	/**---------------------------**/
 	
 	/**
@@ -162,6 +164,18 @@ namespace dht
 	void estimate_nodes(unsigned long &nnodes, 
 			    unsigned long &nnvnodes);
 	
+	/* stable flag. */
+	/**
+	 * \brief whether the list of successors is stabilized.
+	 */
+	bool isSuccStable() const;
+
+	/**
+	 * \brief whether the list of successors and the finger table are stabilized.
+	 */
+	bool isStable() const;
+
+	/* replication. */
 	/**
 	 * replication of content.
 	 * XXX: replication is not implemented at this level. Inherited classes

@@ -25,7 +25,7 @@
 
 #include <assert.h>
 
-//#define DEBUG
+#define DEBUG
 
 using lsh::Random;
 using sp::errlog;
@@ -45,8 +45,10 @@ namespace dht
 
 	  for (unsigned int i=0; i<KEYNBITS; i++)
 	    _locs[i] = NULL;
+       
+	  mutex_init(&_stable_mutex);
        }
-   
+  
    FingerTable::~FingerTable()
      {
      }
@@ -156,7 +158,7 @@ namespace dht
 	     /**
 	      * TODO: after debugging, write a better handling of this error.
               */
-	     std::cerr << "[Error]:DHTNode::stabilize: this virtual node has no successor: "
+	     std::cerr << "[Error]:FingerTable::stabilize: this virtual node has no successor: "
 	       << recipientKey << ". Exiting\n";
 	     exit(-1);
 	  }
@@ -187,12 +189,27 @@ namespace dht
              err = DHT_ERR_OK;
 	     _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
 	     if (status == DHT_ERR_UNKNOWN_PEER)
-	       _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+	       {
+		 // XXX: temporary hack, catch the TIMEOUT exception.
+		 try
+		   {
+		     _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 									succ_pred, na_succ_pred, status);
+		   }
+		 catch (dht_exception &e)
+		   {
+		     if (e.code() != DHT_ERR_COM_TIMEOUT)
+		       {
+			 std::cerr << "FingerTable: stabilizer getPredecessor throwing exception with code " << e.code() << std::endl;
+			 throw e;
+		       }
+		     else status = e.code();
+		   }
+	       }
 	     
 #ifdef DEBUG
 	     //debug
-	     std::cerr << "[Debug]: predecessor call: -- status=" << status << std::endl;
+	     std::cerr << "[Debug]: predecessor call: -- status= " << status << std::endl;
 	     //debug
 #endif
 	     
@@ -207,8 +224,20 @@ namespace dht
 		   * our successor is not responding.
 		   * let's ping it, if it seems dead, let's move to the next successor on our list.
 		   */
-		  bool dead = _vnode->is_dead(*succ,succ_loc->getNetAddress(),
-					      status);
+		 
+		 // XXX: temporary hack, catch the TIMEOUT exception.
+		 bool dead = false;
+		 try
+		   {
+		     _vnode->is_dead(*succ,succ_loc->getNetAddress(),
+				     status);
+		   }
+		 catch (dht_exception &e)
+		   {
+		     if (e.code() != DHT_ERR_COM_TIMEOUT)
+		       throw e;
+		     else status = e.code();
+		   }
 		  
 		  if (dead || ret == retries)
 		    {
@@ -339,7 +368,7 @@ namespace dht
 	/**
 	 * total failure, we're very much probably cut off from the network.
 	 * let's try to rejoin.
-	 * TODO: if join fails, let's fall back into a trying mode, in which
+	 * If join fails, let's fall back into a trying mode, in which
 	 * we try a join every x minutes.
 	 */
 	//TODO: rejoin + wrong test here.
@@ -412,9 +441,9 @@ namespace dht
 	 * XXX: in non routing mode, there is no notify callback call. This allows the node
 	 * to remain a connected spectator: successor and predecessors of other nodes remain unchanged.
 	 */
-	if (DHTNode::_dht_config->_routing)
+	if (dht_configuration::_dht_config->_routing)
 	  {
-	     _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
+	    _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
 	     if (status == DHT_ERR_UNKNOWN_PEER)
 	       _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
 							  getVNodeIdKey(),getVNodeNetAddress(),
@@ -423,11 +452,11 @@ namespace dht
 	     /**
 	      * check on RPC status.
 	      */
-	     if (status != DHT_ERR_OK)
+	     /* if (status != DHT_ERR_OK)
 	       {
-		  errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
-		  return status;
-	       }
+		 errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
+		 return status;
+		 } */
 	  }
 	else // in non routing mode, check whether our predecessor has changed.
 	  {
@@ -446,9 +475,11 @@ namespace dht
 
    int FingerTable::fix_finger()
      {
+       mutex_lock(&_stable_mutex);
 	_stable_pass2 = _stable_pass1;
 	_stable_pass1 = true; // below we check whether this is true.
-	
+	mutex_unlock(&_stable_mutex);
+
 	// TODO: seed.
 	unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
 	
@@ -479,7 +510,7 @@ namespace dht
 	  {
 #ifdef DEBUG
 	     //debug
-	     std::cerr << "[Debug]:fix_fingers: error finding successor.\n";
+	     std::cerr << "[Debug]:fix_finger: error finding successor.\n";
 	     //debug
 #endif
 	     
@@ -500,7 +531,9 @@ namespace dht
 	Location *curr_loc = _locs[rindex];
 	if (curr_loc && rloc != curr_loc)
 	  {
+	    mutex_lock(&_stable_mutex);
 	     _stable_pass1 = false;
+	     mutex_unlock(&_stable_mutex);
 	     
 	     // remove location if it not used in other lists.
 	     if (!_vnode->_successors.has_key(curr_loc->getDHTKey()))
@@ -508,7 +541,9 @@ namespace dht
 	  }
 	else if (!curr_loc)
 	  {
+	    mutex_lock(&_stable_mutex);
 	     _stable_pass1 = false;
+	     mutex_unlock(&_stable_mutex);
 	  }
 	
 	_locs[rindex] = rloc;
@@ -552,7 +587,7 @@ namespace dht
 	  }
      }
 
-   bool FingerTable::isStable()
+   bool FingerTable::isStable() const
      {
 	return (_stable_pass1 && _stable_pass2);
      }

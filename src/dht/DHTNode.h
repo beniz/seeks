@@ -41,7 +41,8 @@ namespace dht
 	 *        and automated stabilization system.
 	 */
 	DHTNode(const char *net_addr, const short &net_port=0,
-		const bool &start_dht_node=true);
+		const bool &start_dht_node=true,
+		const std::string &vnodes_table_file="vnodes-table.dat");
 
 	/**
 	 * \brief destructor.
@@ -139,6 +140,22 @@ namespace dht
 	 */
 	void self_bootstrap();
 
+	/**
+	 * \brief nodes voluntarily leave the circle, announces it
+	 *        to its predecessor and successor.
+	 */
+	dht_err leave() const;
+	
+	/**
+	 * \brief whether every virtual node's successor list is stable.
+	 */ 
+	bool isSuccStable() const;
+	
+	/**
+	 * \brief whether every virtual node is stable (succlist + finger table).
+	 */
+	bool isStable() const;
+	
       private:
 	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
 	
@@ -250,8 +267,7 @@ namespace dht
 	 * configuration.
 	 */
 	static std::string _dht_config_filename;
-	static dht_configuration *_dht_config;
-	
+		
 	/**
 	 * hash map of DHT virtual nodes.
 	 */

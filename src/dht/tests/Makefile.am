@@ -1,7 +1,8 @@
 #automake file for seeks dht tests
 
-check_PROGRAMS=ut_dhtkey ut_dht_protocol ut_dht_bootstrap
+check_PROGRAMS=ut_dhtkey ut_dht_bootstrap ut_dht_protocol #ut_dht_protocol_preliminary
 ut_dhtkey_SOURCES=ut-dhtkey.cpp
+ut_dht_protocol_preliminary_SOURCES=ut-dht-protocol-preliminary.cpp
 ut_dht_protocol_SOURCES=ut-dht-protocol.cpp
 ut_dht_bootstrap_SOURCES=ut-dht-bootstrap.cpp
 

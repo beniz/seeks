@@ -69,7 +69,7 @@ namespace dht
    const int Stabilizer::_slow_timer_max = 2 * Stabilizer::_slow_timer_base;
 
    Stabilizer::Stabilizer(const bool &start)
-     : BstTimeCbTree()
+     : BstTimeCbTree(),_slow_clicks(0),_fast_clicks(0)
        {
 	  if (start)
 	    {
@@ -80,6 +80,7 @@ namespace dht
    
    Stabilizer::~Stabilizer()
      {
+       stop_threaded_timecheck_loop();
      }
       
    void Stabilizer::start_fast_stabilizer()
@@ -94,6 +95,8 @@ namespace dht
    
    int Stabilizer::fast_stabilize(double tround)
      {
+       _fast_clicks++;
+
 	/**
 	 * If we've on-going rpcs wrt. stabilization,
 	 * we delay the next round by slowing down the calls.
@@ -183,6 +186,8 @@ namespace dht
 
    int Stabilizer::slow_stabilize(double tround)
      {
+       _slow_clicks++;
+       
 	bool stable = isstable_slow();
 	
 	/**

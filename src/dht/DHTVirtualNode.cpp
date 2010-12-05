@@ -74,15 +74,18 @@ namespace dht
      {
 	if (_successor)
 	  delete _successor;
+	_successor = NULL;
 	if (_predecessor)
 	  delete _predecessor;
-	
-	// TODO: deregister succlist from stabilizer.
+	_predecessor = NULL;
+
 	_successors.clear();
 	
 	delete _fgt;
+	_fgt = NULL;
      
-	delete _lt;
+        delete _lt;
+	_lt = NULL;
      }
    
    void DHTVirtualNode::init_vnode()
@@ -112,7 +115,7 @@ namespace dht
    
    dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
      {
-	bool reset_pred = false;
+       bool reset_pred = false;
 	if (!_predecessor)
 	  reset_pred = true;
 	else if (*_predecessor != senderKey) // our predecessor may have changed.
@@ -303,14 +306,14 @@ namespace dht
 	     //debug
 #endif
 	     
-	     if (nhops > _pnode->_dht_config->_max_hops)
+	     if (nhops > dht_configuration::_dht_config->_max_hops)
 	       {
 #ifdef DEBUG
 		  //debug
-		  std::cerr << "[Debug]:reached the maximum number of " << _pnode->_dht_config->_max_hops << " hops\n";
+		 std::cerr << "[Debug]:reached the maximum number of " << dht_configuration::_dht_config->_max_hops << " hops\n";
 		  //debug
 #endif	  
-		  errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", _pnode->_dht_config->_max_hops);
+		 errlog::log_error(LOG_LEVEL_DHT, "reached the maximum number of %u hops", dht_configuration::_dht_config->_max_hops);
 		  dkres = DHTKey();
 		  na = NetAddress();
 		  return DHT_ERR_MAXHOPS;
@@ -507,7 +510,40 @@ namespace dht
 	     else return true;
 	  }
      }
-   
+  
+  dht_err DHTVirtualNode::leave()
+  {
+    dht_err err = DHT_ERR_OK;
+    
+    // send predecessor to successor.
+    if (getSuccessor() && getPredecessor())
+      {
+	int status = DHT_ERR_OK;
+	Location *succ_loc = findLocation(*getSuccessor());
+	Location *pred_loc = findLocation(*getPredecessor());
+	_pnode->_l1_client->RPC_notify(succ_loc->getDHTKey(),
+				       succ_loc->getNetAddress(),
+				       pred_loc->getDHTKey(),
+				       pred_loc->getNetAddress(),
+				       status);
+	if (status != DHT_ERR_OK)
+	  errlog::log_error(LOG_LEVEL_ERROR,"Failed to alert successor %s while leaving",
+			    succ_loc->getDHTKey().to_rstring().c_str());
+	err = status;
+      }
+    
+    /**
+     * this node could send the last element of its succlist to 
+     * its predecessor.
+     * However, this would require a dedicated RPC so we let the
+     * regular existing update of succlists do this instead.
+     */
+
+    errlog::log_error(LOG_LEVEL_DHT,"Virtual node %s successfully left the circle",
+		      getIdKey().to_rstring().c_str());
+
+    return err;
+  }
    
    /**
     * accessors.
@@ -676,6 +712,16 @@ namespace dht
 	_successors.set_direct_successor(_successor);
      }
 
+  bool DHTVirtualNode::isSuccStable() const
+  {
+    return _successors.isStable();
+  }
+
+  bool DHTVirtualNode::isStable() const
+  {
+    return _fgt->isStable();
+  }
+
    void DHTVirtualNode::estimate_nodes()
      {
 	estimate_nodes(_nnodes,_nnvnodes);
@@ -693,19 +739,19 @@ namespace dht
 	DHTKey closest_succ;
 	_lt->findClosestSuccessor(_idkey,closest_succ);
 	
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	//debug
 	assert(closest_succ.count()>0);
 	//debug
-#endif
+	#endif*/
 	
 	DHTKey diff = closest_succ - _idkey;
 
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	//debug
 	assert(diff.count()>0);
 	//debug
-#endif
+	#endif*/
 	
 	DHTKey density = diff;
 	size_t lts = _lt->size();
@@ -715,11 +761,11 @@ namespace dht
 	mask <<= KEYNBITS-1;
 	p = density.topBitPos();
 	
-#ifdef DEBUG
+	/*#ifdef DEBUG
 	//debug
 	assert(p>0);
 	//debug
-#endif
+	#endif*/
 	
 	DHTKey nodes_estimate = mask;
 	nodes_estimate.operator>>=(p); // approximates mask/density.
@@ -727,7 +773,7 @@ namespace dht
 	try
 	  {
 	     nnvnodes = nodes_estimate.to_ulong();
-	     nnodes = nnvnodes / DHTNode::_dht_config->_nvnodes;
+	     nnodes = nnvnodes / dht_configuration::_dht_config->_nvnodes;
 	  }
 	catch (std::exception ovex) // overflow error if too many bits are set.
 	  {
@@ -737,7 +783,7 @@ namespace dht
 	     //debug
 #endif
 	     
-	     errlog::log_error(LOG_LEVEL_DHT, "Overflow error computing the number of nodes on the network. This is probably a bug, please report it");
+	     errlog::log_error(LOG_LEVEL_ERROR, "Overflow error computing the number of nodes on the network. This is probably a bug, please report it");
 	     nnodes = 0;
 	     nnvnodes = 0;
 	     return;

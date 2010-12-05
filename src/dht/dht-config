@@ -68,6 +68,10 @@ routing 1
 # default: 30
 rejoing-timeout 30
 
+# Number of seconds between to event checks in the DHT low
+# default: 1
+event-timecheck 1
+
 # Replication factor, i.e. the number of neighboring machines the data
 # are replicated onto.
 replication-factor 2

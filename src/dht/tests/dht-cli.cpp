@@ -121,7 +121,7 @@ int exec_command(std::vector<std::string> &tokens,
 	  {
 	     output = "no closest node found";
 	     if (err == DHT_ERR_MAXHOPS)
-	       output += " in the max number of hops (" + miscutil::to_string(sgnode._dht_config->_max_hops) + ")";
+	       output += " in the max number of hops (" + miscutil::to_string(dht_configuration::_dht_config->_max_hops) + ")";
 	     return 1;
 	  }
 	output = "host node to " + tokens.at(1) + " is " 
@@ -147,7 +147,7 @@ int exec_command(std::vector<std::string> &tokens,
 	  {
 	     output = "no closest node found";
 	     if (err == DHT_ERR_MAXHOPS)
-	       output += " in the max number of hops (" + miscutil::to_string(sgnode._dht_config->_max_hops) + ")";
+	       output += " in the max number of hops (" + miscutil::to_string(dht_configuration::_dht_config->_max_hops) + ")";
 	     return 1;
 	  }
 	output = "host node to " + tokens.at(1) + " is "
@@ -239,8 +239,8 @@ int main(int argc, char **argv)
 	       }
 	  }
 	
-	DHTNode::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
-	DHTNode::_dht_config->_routing = false;
+	dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
+	dht_configuration::_dht_config->_routing = false;
 	
 	dnode = new SGNode(net_addr,net_port);
 	

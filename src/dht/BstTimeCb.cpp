@@ -17,6 +17,7 @@
  */
 
 #include "BstTimeCb.h"
+#include "dht_configuration.h"
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
@@ -133,7 +134,9 @@ namespace dht
 
    BstTimeCbTree::~BstTimeCbTree()
      {
-       stop_threaded_timecheck_loop();
+       // XXX: thread needs to be stopped in child class
+       // before internal structures are destroyed.
+       //stop_threaded_timecheck_loop();
        if (_bstcbtree)
          delete _bstcbtree;
      }
@@ -253,7 +256,7 @@ namespace dht
             mutex_unlock(&btb->_run_mutex);
             
             btb->timecheck();
-            sleep(5);
+            sleep(dht_configuration::_dht_config->_event_timecheck);
 	  }
 	return NULL;
      }
