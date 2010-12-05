@@ -357,6 +357,7 @@ activated-plugin cf
 #
 #
 #  2.9. user-db-file
+#  ==========================
 #
 # Specifies:
 #
@@ -375,6 +376,7 @@ activated-plugin cf
 # user-db-file /path/to/file.db
 #
 #  2.10. url-source-code
+#  ==========================
 #
 # Specifies:
 #
