@@ -28,37 +28,37 @@ using sp::configuration_spec;
 
 namespace dht
 {
-   class dht_configuration : public configuration_spec
-     {
-      public:
-	dht_configuration(const std::string &filename);
-	
-	~dht_configuration();
-	
-	// virtual
-	virtual void set_default_config();
-	
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum);
-	
-	virtual void finalize_configuration();
-	
-	// main options.
-	short _nvnodes; /**< number of virtual nodes supported by this DHT node. */
-	short _l1_port; /**< listening port for level 1 communications. */
-	int _l1_server_max_msg_bytes; /**< maximum size of UDP datagrams served on layer 1. */
-	int _l1_client_timeout; /**< l1 client communication timeout. */
-	std::vector<NetAddress> _bootstrap_nodelist; /**< list of bootstrap nodes. */
-	int _max_hops; /**< max number of hops when finding a route around the circle. */
-	int _succlist_size; /**< max number of elements in successor list. */
-	bool _routing; /**< whether routing is activated, i.e. our nodes are active or spectators. */
-	short _rejoin_timeout; /**< timeout between two rejoin attempts, in seconds. */
-	short _replication_factor; /**< number of neighbors the node's hosted data are replicated to. */
-	short _event_timecheck; /**< seconds between two events check (>= 1 second). */
+  class dht_configuration : public configuration_spec
+  {
+    public:
+      dht_configuration(const std::string &filename);
 
-	static dht_configuration *_dht_config;
-     };
-   
+      ~dht_configuration();
+
+      // virtual
+      virtual void set_default_config();
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum);
+
+      virtual void finalize_configuration();
+
+      // main options.
+      short _nvnodes; /**< number of virtual nodes supported by this DHT node. */
+      short _l1_port; /**< listening port for level 1 communications. */
+      int _l1_server_max_msg_bytes; /**< maximum size of UDP datagrams served on layer 1. */
+      int _l1_client_timeout; /**< l1 client communication timeout, in milli seconds. */
+      std::vector<NetAddress> _bootstrap_nodelist; /**< list of bootstrap nodes. */
+      int _max_hops; /**< max number of hops when finding a route around the circle. */
+      int _succlist_size; /**< max number of elements in successor list. */
+      bool _routing; /**< whether routing is activated, i.e. our nodes are active or spectators. */
+      short _rejoin_timeout; /**< timeout between two rejoin attempts, in seconds. */
+      short _replication_factor; /**< number of neighbors the node's hosted data are replicated to. */
+      short _event_timecheck; /**< seconds between two events check (>= 1 second). */
+
+      static dht_configuration *_dht_config;
+  };
+
 } /* end of namespace. */
 
 #endif

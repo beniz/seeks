@@ -17,11 +17,11 @@ l1-port 8231
 # default: 8192
 l1-server-max-msg-bytes 8192
 
-# level-1 communication timeout in seconds.
+# level-1 communication client timeout in milli seconds.
 # This is the maximum amount of time waited by a client when
 # issuing a level-1 message on the network.
-# default: 5
-l1-client-timeout 5
+# default: 5000
+l1-client-timeout 5000
 
 # list of bootstrap nodes from the Seeks network.
 # IP addresses and port separated by a space or a tab.
