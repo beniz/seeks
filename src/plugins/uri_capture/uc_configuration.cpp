@@ -23,54 +23,54 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-   #define hash_uc_sweep_cycle             3107023570ul  /* "uc-sweep-cycle" */
-   #define hash_uc_retention               1589330358ul  /* "uc-retention" */
-   
-   uc_configuration* uc_configuration::_config = NULL;
-   
-   uc_configuration::uc_configuration(const std::string &filename)
-     :configuration_spec(filename)
-       {
-	  if (uc_configuration::_config)
-	    delete uc_configuration::_config;
-	  uc_configuration::_config = this;
-	  load_config();
-       }
-   
-   uc_configuration::~uc_configuration()
-     {
-     }
-   
-   void uc_configuration::set_default_config()
-     {
-	_sweep_cycle = 2592000;  // one month, in seconds.
-	_retention = 15552000;   // six months, in seconds.
-     }
-      
-   void uc_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-					    char *buf, const unsigned long &linenum)
-     {
-	switch(cmd_hash)
-	  {
-	   case hash_uc_sweep_cycle :
-	     _sweep_cycle = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"Time between two sweeping cycles of the URI user db records, in seconds");
-	     break;
-	     
-	   case hash_uc_retention:
-	     _retention = atoi(arg);
-	     configuration_spec::html_table_row(_config_args,cmd,arg,
-						"URI user db retention of records, in seconds");
-	     break;
-	     
-	   default:
-	     break;
-	  }
-     }
-      
-   void uc_configuration::finalize_configuration()
-     {
-     }
-      
+#define hash_uc_sweep_cycle             3107023570ul  /* "uc-sweep-cycle" */
+#define hash_uc_retention               1589330358ul  /* "uc-retention" */
+
+  uc_configuration* uc_configuration::_config = NULL;
+
+  uc_configuration::uc_configuration(const std::string &filename)
+      :configuration_spec(filename)
+  {
+    if (uc_configuration::_config)
+      delete uc_configuration::_config;
+    uc_configuration::_config = this;
+    load_config();
+  }
+
+  uc_configuration::~uc_configuration()
+  {
+  }
+
+  void uc_configuration::set_default_config()
+  {
+    _sweep_cycle = 2592000;  // one month, in seconds.
+    _retention = 15552000;   // six months, in seconds.
+  }
+
+  void uc_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+      char *buf, const unsigned long &linenum)
+  {
+    switch (cmd_hash)
+      {
+      case hash_uc_sweep_cycle :
+        _sweep_cycle = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Time between two sweeping cycles of the URI user db records, in seconds");
+        break;
+
+      case hash_uc_retention:
+        _retention = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "URI user db retention of records, in seconds");
+        break;
+
+      default:
+        break;
+      }
+  }
+
+  void uc_configuration::finalize_configuration()
+  {
+  }
+
 } /* end of namespace. */

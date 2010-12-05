@@ -38,7 +38,7 @@
 #include <stdio.h>
 
 /* Debug level for errors */
- 
+
 /* XXX: Should be renamed. */
 #define LOG_LEVEL_GPC        0x0001
 #define LOG_LEVEL_CONNECT    0x0002
@@ -64,52 +64,52 @@
 
 namespace sp
 {
-   class errlog
-     {
-      public:
-	static void init_error_log(const char *prog_name, const char *logfname);
-	static void set_debug_level(int debuglevel);
-	static void disable_logging();
-	static void init_log_module();
-	static void show_version(const char *prog_name);
-	static void log_error(int loglevel, const char *fmt, ...);
-	static const char* sp_err_to_string(int error);
+  class errlog
+  {
+    public:
+      static void init_error_log(const char *prog_name, const char *logfname);
+      static void set_debug_level(int debuglevel);
+      static void disable_logging();
+      static void init_log_module();
+      static void show_version(const char *prog_name);
+      static void log_error(int loglevel, const char *fmt, ...);
+      static const char* sp_err_to_string(int error);
 
-	static void fatal_error(const char *error_message);
+      static void fatal_error(const char *error_message);
 
-	static long get_thread_id();
-	
-	static size_t get_log_timestamp(char *buffer, size_t buffer_size);
-	static size_t get_clf_timestamp(char *buffer, size_t buffer_size);
-	static const char* get_log_level_string(int loglevel);
-	
+      static long get_thread_id();
+
+      static size_t get_log_timestamp(char *buffer, size_t buffer_size);
+      static size_t get_clf_timestamp(char *buffer, size_t buffer_size);
+      static const char* get_log_level_string(int loglevel);
+
 #ifdef _WIN32
-	static char *w32_socket_strerr(int errcode, char *tmp_buf);
+      static char *w32_socket_strerr(int errcode, char *tmp_buf);
 #endif
-	
+
 #ifdef MUTEX_LOCKS_AVAILABLE
-	static void lock_logfile();
-	static void unlock_logfile();
-	static void lock_loginit();
-	static void unlock_loginit();
+      static void lock_logfile();
+      static void unlock_logfile();
+      static void lock_loginit();
+      static void unlock_loginit();
 #else /* ! MUTEX_LOCKS_AVAILABLE */
-	/*
-	 * FIXME we need a cross-platform locking mechanism.
-	 * The locking/unlocking functions below should be
-	 * fleshed out for non-pthread implementations.
-	 */
-	static void lock_logfile() {};
-	static void unlock_logfile() {};
-	static void lock_loginit() {};
-	static void unlock_loginit() {};
+      /*
+       * FIXME we need a cross-platform locking mechanism.
+       * The locking/unlocking functions below should be
+       * fleshed out for non-pthread implementations.
+       */
+      static void lock_logfile() {};
+      static void unlock_logfile() {};
+      static void lock_loginit() {};
+      static void unlock_loginit() {};
 #endif
-	static FILE *_logfp;
-	static int _debug;
+      static FILE *_logfp;
+      static int _debug;
 #if defined(FEATURE_PTHREAD) || defined(_WIN32)
-	static sp_mutex_t _log_mutex;
+      static sp_mutex_t _log_mutex;
 #endif
-     
-     };
+
+  };
 } /* end of namespace. */
 
 #endif

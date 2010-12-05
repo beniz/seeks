@@ -1,6 +1,6 @@
 /**
- * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and 
- * does provide several locality sensitive hashing schemes for pattern matching over 
+ * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
+ * does provide several locality sensitive hashing schemes for pattern matching over
  * continuous and discrete spaces.
  * Copyright (C) 2006 Emmanuel Benazera, juban@free.fr
  *
@@ -25,39 +25,39 @@
 namespace lsh
 {
 
-unsigned int LSHFunction::_asize = 1;  /* default size. Size must be set depending on the dimension
+  unsigned int LSHFunction::_asize = 1;  /* default size. Size must be set depending on the dimension
 					  of the domain application. */
 
-LSHFunction::LSHFunction ()
-{
-}
-  
-LSHFunction::~LSHFunction ()
-{
-  delete []_a;
-}
+  LSHFunction::LSHFunction ()
+  {
+  }
 
-void LSHFunction::init (const double &b)
-{
-  _b = b;
-  
-  if (LSHFunction::_asize != 0)
-    _a = new double[LSHFunction::_asize];
-  else 
-    {
-      std::cout << "[Error]:LSHFunction::init: vector size is 0. Exiting.\n";
-      exit (EXIT_FAILURE);
-    }
-}
+  LSHFunction::~LSHFunction ()
+  {
+    delete []_a;
+  }
 
-std::ostream& LSHFunction::print (std::ostream &output) const 
-{
-  output << "******** lsh function (" << LSHFunction::_asize << ") ********\na: [ ";
-  for (unsigned int d=0; d<LSHFunction::_asize; d++)
-    output << _a[d] << " ";
-  output << "]\n";
-  output << "b: " << _b << std::endl;
-  return output;
-}
+  void LSHFunction::init (const double &b)
+  {
+    _b = b;
+
+    if (LSHFunction::_asize != 0)
+      _a = new double[LSHFunction::_asize];
+    else
+      {
+        std::cout << "[Error]:LSHFunction::init: vector size is 0. Exiting.\n";
+        exit (EXIT_FAILURE);
+      }
+  }
+
+  std::ostream& LSHFunction::print (std::ostream &output) const
+  {
+    output << "******** lsh function (" << LSHFunction::_asize << ") ********\na: [ ";
+    for (unsigned int d=0; d<LSHFunction::_asize; d++)
+      output << _a[d] << " ";
+    output << "]\n";
+    output << "b: " << _b << std::endl;
+    return output;
+  }
 
 } /* end of namespace. */

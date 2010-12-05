@@ -25,30 +25,30 @@ using sp::configuration_spec;
 
 namespace seeks_plugins
 {
-   
-   class httpserv_configuration : public configuration_spec
-     {
-      public:
-	httpserv_configuration(const std::string &filename);
-	
-	~httpserv_configuration();
-	
-	// virtual
-	virtual void set_default_config();
-	
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum);
-	
-	virtual void finalize_configuration();
-	
-	// main options.
-	short _port; /**< server port. */
-	std::string _host; /**< server host. */
-	
-      public:
-	static httpserv_configuration *_hconfig;
-     };
-      
+
+  class httpserv_configuration : public configuration_spec
+  {
+    public:
+      httpserv_configuration(const std::string &filename);
+
+      ~httpserv_configuration();
+
+      // virtual
+      virtual void set_default_config();
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum);
+
+      virtual void finalize_configuration();
+
+      // main options.
+      short _port; /**< server port. */
+      std::string _host; /**< server host. */
+
+    public:
+      static httpserv_configuration *_hconfig;
+  };
+
 } /* end of namespace. */
 
 #endif

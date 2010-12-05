@@ -26,25 +26,25 @@ using sp::plugin;
 
 namespace seeks_plugins
 {
-   
-   class cf : public plugin
-     {
-      public:
-	cf();
-	
-	virtual ~cf();
-	
-	virtual void start();
-	
-	virtual void stop();
-     
-	void estimate_ranks(const std::string &query,
-			    std::vector<search_snippet*> &snippets);
-     
-      public:
-	static plugin *_uc_plugin;
-     };
-   
+
+  class cf : public plugin
+  {
+    public:
+      cf();
+
+      virtual ~cf();
+
+      virtual void start();
+
+      virtual void stop();
+
+      void estimate_ranks(const std::string &query,
+                          std::vector<search_snippet*> &snippets);
+
+    public:
+      static plugin *_uc_plugin;
+  };
+
 } /* end of namespace. */
-  
+
 #endif

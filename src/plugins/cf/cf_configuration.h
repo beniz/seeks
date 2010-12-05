@@ -25,29 +25,29 @@ using sp::configuration_spec;
 
 namespace seeks_plugins
 {
-   
-   class cf_configuration : public configuration_spec
-     {
-      public:
-	cf_configuration(const std::string &filename);
-	
-	~cf_configuration();
-	
-	// virtual
-	virtual void set_default_config();
-	
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum);
-	
-	virtual void finalize_configuration();
-	
-	// main options.
-	float _domain_name_weight; /**< weight given to domain names. */
-     
-	static cf_configuration *_config;
-     };
-      
+
+  class cf_configuration : public configuration_spec
+  {
+    public:
+      cf_configuration(const std::string &filename);
+
+      ~cf_configuration();
+
+      // virtual
+      virtual void set_default_config();
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum);
+
+      virtual void finalize_configuration();
+
+      // main options.
+      float _domain_name_weight; /**< weight given to domain names. */
+
+      static cf_configuration *_config;
+  };
+
 } /* end of namespace. */
 
 #endif
-  
+

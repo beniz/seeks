@@ -26,27 +26,27 @@ using namespace sp;
 
 int main(int argc, char **argv)
 {
-   if (argc < 3)
-     {
-	std::cout << "Usage: <number of requests> <host1> ... <hostn>\n";
-	exit(0);
-     }
-   
-   int n_requests = atoi(argv[1]);
-   std::vector<std::string> addr;
-   for (int i=0;i<n_requests;i++)
-     {
-	addr.push_back(std::string(argv[i+2]));
-	//std::cout << "addr #" << i << ": " << argv[i+2] << std::endl;
-     }
-   
-   curl_mget cmg(n_requests,60,0,60,0); // 60 seconds connection & transfer timeout.
-   std::string **outputs = cmg.www_mget(addr,n_requests,NULL,"",0); // don't use a proxy.
+  if (argc < 3)
+    {
+      std::cout << "Usage: <number of requests> <host1> ... <hostn>\n";
+      exit(0);
+    }
 
-   //std::cout << "outputs:\n";
-   for (int i=0;i<n_requests;i++)
-     {
-	//std::cout << "\n\n";
-	std::cout << *outputs[i] << std::endl;
-     }
+  int n_requests = atoi(argv[1]);
+  std::vector<std::string> addr;
+  for (int i=0; i<n_requests; i++)
+    {
+      addr.push_back(std::string(argv[i+2]));
+      //std::cout << "addr #" << i << ": " << argv[i+2] << std::endl;
+    }
+
+  curl_mget cmg(n_requests,60,0,60,0); // 60 seconds connection & transfer timeout.
+  std::string **outputs = cmg.www_mget(addr,n_requests,NULL,"",0); // don't use a proxy.
+
+  //std::cout << "outputs:\n";
+  for (int i=0; i<n_requests; i++)
+    {
+      //std::cout << "\n\n";
+      std::cout << *outputs[i] << std::endl;
+    }
 }

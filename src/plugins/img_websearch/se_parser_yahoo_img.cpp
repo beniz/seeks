@@ -29,131 +29,131 @@ using sp::encode;
 
 namespace seeks_plugins
 {
-   
-   se_parser_yahoo_img::se_parser_yahoo_img()
-     :se_parser(),_results_flag(false),_cite_flag(false),_safesearch(true)
-       {
-       }
-   
-   se_parser_yahoo_img::~se_parser_yahoo_img()
-     {
-     }
-   
-   void se_parser_yahoo_img::start_element(parser_context *pc,
-					  const xmlChar *name,
-					  const xmlChar **attributes)
-     {
-	const char *tag = (const char*)name;
-     
-	if (!_results_flag && strcasecmp(tag,"ul") == 0)
-	  {
-	     const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
-	     if (a_id && strcasecmp(a_id,"yschimg") == 0)
-	       {
-		  _results_flag = true;
-	       }
-	  }
-	else if (_results_flag && strcasecmp(tag,"li") == 0)
-	  {
-	     // assert previous snippet if any.
-	     if (pc->_current_snippet)
-	       {
-		  if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-		      ||  pc->_current_snippet->_url.empty()
-		      || pc->_current_snippet->_cached.empty())
-		    {
-		       delete pc->_current_snippet;
-		       pc->_current_snippet = NULL;
-		       _count--;
-		    }
-		  else pc->_snippets->push_back(pc->_current_snippet);
-	       }
-	     img_search_snippet *sp = new img_search_snippet(_count+1);
-	     sp->_safe = _safesearch;
-	     _count++;
-	     sp->_img_engine |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
-	     pc->_current_snippet = sp;
-	  }
-	else if (_results_flag && strcasecmp(tag,"a") == 0)
-	  {
-	     const char *a_href = se_parser::get_attribute((const char**)attributes,"href");
-	     if (a_href)
-	       {
-		  std::string furl = a_href;
-		  size_t pos = furl.find("imgurl=");
-		  if (pos != std::string::npos && pos+7 < furl.size())
-		    {
-		       std::string imgurl = furl.substr(pos+7);
-		       char *imgurl_str = encode::url_decode(imgurl.c_str());
-		       imgurl = imgurl_str;
-		       free(imgurl_str);
-		       pos = imgurl.find("&");
-		       if (pos != std::string::npos)
-			 {
-			    imgurl = imgurl.substr(0,pos);
-			    imgurl = "http://" + imgurl;
-			    pc->_current_snippet->set_url(imgurl);
-			 }
-		    }
-	       }
-	  }
-	else if (_results_flag && strcasecmp(tag,"img") == 0)
-	  {
-	     const char *a_src = se_parser::get_attribute((const char**)attributes,"src");
-	     if (a_src)
-	       {
-		  pc->_current_snippet->_cached = a_src;
-	       }
-	  }
-	else if (_results_flag && strcasecmp(tag,"cite") == 0)
-	  {
-	     _cite_flag = true;
-	  }
-     }
-   
-   void se_parser_yahoo_img::characters(parser_context *pc,
-				       const xmlChar *chars,
-				       int length)
-     {
-	handle_characters(pc, chars, length);
-     }
-   
-   void se_parser_yahoo_img::cdata(parser_context *pc,
-				  const xmlChar *chars,
-				  int length)
-     {
-	//handle_characters(pc, chars, length);
-     }
-   
-                  
-   void se_parser_yahoo_img::handle_characters(parser_context *pc,
-					      const xmlChar *chars,
-					      int length)
-     {
-	if (_cite_flag)
-	  {
-	     std::string cite = std::string((char*)chars,length);
-	     _title += cite;
-	  }
-     }
-   
-   void se_parser_yahoo_img::end_element(parser_context *pc,
-					const xmlChar *name)
-     {
-	const char *tag = (const char*)name;
-	
-	if (!_results_flag) 
-	  return;
-     
-	if (_results_flag && strcasecmp(tag,"ul") == 0)
-	  _results_flag = false;
-     
-	if (_results_flag && strcasecmp(tag,"cite") == 0)
-	  {
-	     _cite_flag = false;
-	     pc->_current_snippet->_title = _title;
-	     _title.clear();
-	  }
-     }
-   
+
+  se_parser_yahoo_img::se_parser_yahoo_img()
+      :se_parser(),_results_flag(false),_cite_flag(false),_safesearch(true)
+  {
+  }
+
+  se_parser_yahoo_img::~se_parser_yahoo_img()
+  {
+  }
+
+  void se_parser_yahoo_img::start_element(parser_context *pc,
+                                          const xmlChar *name,
+                                          const xmlChar **attributes)
+  {
+    const char *tag = (const char*)name;
+
+    if (!_results_flag && strcasecmp(tag,"ul") == 0)
+      {
+        const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
+        if (a_id && strcasecmp(a_id,"yschimg") == 0)
+          {
+            _results_flag = true;
+          }
+      }
+    else if (_results_flag && strcasecmp(tag,"li") == 0)
+      {
+        // assert previous snippet if any.
+        if (pc->_current_snippet)
+          {
+            if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
+                ||  pc->_current_snippet->_url.empty()
+                || pc->_current_snippet->_cached.empty())
+              {
+                delete pc->_current_snippet;
+                pc->_current_snippet = NULL;
+                _count--;
+              }
+            else pc->_snippets->push_back(pc->_current_snippet);
+          }
+        img_search_snippet *sp = new img_search_snippet(_count+1);
+        sp->_safe = _safesearch;
+        _count++;
+        sp->_img_engine |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
+        pc->_current_snippet = sp;
+      }
+    else if (_results_flag && strcasecmp(tag,"a") == 0)
+      {
+        const char *a_href = se_parser::get_attribute((const char**)attributes,"href");
+        if (a_href)
+          {
+            std::string furl = a_href;
+            size_t pos = furl.find("imgurl=");
+            if (pos != std::string::npos && pos+7 < furl.size())
+              {
+                std::string imgurl = furl.substr(pos+7);
+                char *imgurl_str = encode::url_decode(imgurl.c_str());
+                imgurl = imgurl_str;
+                free(imgurl_str);
+                pos = imgurl.find("&");
+                if (pos != std::string::npos)
+                  {
+                    imgurl = imgurl.substr(0,pos);
+                    imgurl = "http://" + imgurl;
+                    pc->_current_snippet->set_url(imgurl);
+                  }
+              }
+          }
+      }
+    else if (_results_flag && strcasecmp(tag,"img") == 0)
+      {
+        const char *a_src = se_parser::get_attribute((const char**)attributes,"src");
+        if (a_src)
+          {
+            pc->_current_snippet->_cached = a_src;
+          }
+      }
+    else if (_results_flag && strcasecmp(tag,"cite") == 0)
+      {
+        _cite_flag = true;
+      }
+  }
+
+  void se_parser_yahoo_img::characters(parser_context *pc,
+                                       const xmlChar *chars,
+                                       int length)
+  {
+    handle_characters(pc, chars, length);
+  }
+
+  void se_parser_yahoo_img::cdata(parser_context *pc,
+                                  const xmlChar *chars,
+                                  int length)
+  {
+    //handle_characters(pc, chars, length);
+  }
+
+
+  void se_parser_yahoo_img::handle_characters(parser_context *pc,
+      const xmlChar *chars,
+      int length)
+  {
+    if (_cite_flag)
+      {
+        std::string cite = std::string((char*)chars,length);
+        _title += cite;
+      }
+  }
+
+  void se_parser_yahoo_img::end_element(parser_context *pc,
+                                        const xmlChar *name)
+  {
+    const char *tag = (const char*)name;
+
+    if (!_results_flag)
+      return;
+
+    if (_results_flag && strcasecmp(tag,"ul") == 0)
+      _results_flag = false;
+
+    if (_results_flag && strcasecmp(tag,"cite") == 0)
+      {
+        _cite_flag = false;
+        pc->_current_snippet->_title = _title;
+        _title.clear();
+      }
+  }
+
 } /* end of namespace. */

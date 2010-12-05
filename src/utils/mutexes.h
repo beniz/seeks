@@ -23,7 +23,7 @@
 
 #ifdef FEATURE_PTHREAD
 extern "C"
-{   
+{
 # include <pthread.h>
 }
 #endif

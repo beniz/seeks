@@ -24,46 +24,46 @@
 
 namespace seeks_plugins
 {
-   
-   class se_parser_bing_img : public se_parser
-     {
-      public:
-	se_parser_bing_img();
-	~se_parser_bing_img();
-	
-	// virtual.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes);
-	
-	void end_element(parser_context *pc,
-			 const xmlChar *name);
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
-		
-      private:
-	bool _results_flag;
-	bool _link_flag;
-	bool _title_flag;
-	
-	std::string _link;
-	std::string _title;
-      
-      public:
-	bool _safesearch;
-     };
-      
+
+  class se_parser_bing_img : public se_parser
+  {
+    public:
+      se_parser_bing_img();
+      ~se_parser_bing_img();
+
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+    private:
+      bool _results_flag;
+      bool _link_flag;
+      bool _title_flag;
+
+      std::string _link;
+      std::string _title;
+
+    public:
+      bool _safesearch;
+  };
+
 } /* end of namespace. */
 
 #endif

@@ -374,6 +374,17 @@ activated-plugin cf
 #
 # user-db-file /path/to/file.db
 #
+#  2.10. url-source-code
+#
+# Specifies:
+#
+#    Sets the URL where the source code of the Seeks node can be read.
+#
+# Default value:
+#
+#    http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree
+#
+# url-source-code url/to/source_code
 #
 #  3. DEBUGGING
 #  =============

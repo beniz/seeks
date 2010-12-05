@@ -24,44 +24,44 @@
 
 namespace seeks_plugins
 {
-   class se_parser_yauba : public se_parser
-     {
-      public:
-        se_parser_yauba();
-        ~se_parser_yauba();
+  class se_parser_yauba : public se_parser
+  {
+    public:
+      se_parser_yauba();
+      ~se_parser_yauba();
 
-        // virtual.
-        void start_element(parser_context *pc,
-                           const xmlChar *name,
-                           const xmlChar **attributes);
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
 
-        void end_element(parser_context *pc,
-                         const xmlChar *name);
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
 
-        void characters(parser_context *pc,
-                        const xmlChar *chars,
-                        int length);
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
 
-        void cdata(parser_context *pc,
-                   const xmlChar *chars,
-                   int length);
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
 
-        // local.
-        void handle_characters(parser_context *pc,
-                               const xmlChar *chars,
-                               int length);
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
 
-      private:
-        bool _in_item;
-        bool _in_title;
-        bool _in_result;
-        bool _in_summary;
-        bool _in_cite;
+    private:
+      bool _in_item;
+      bool _in_title;
+      bool _in_result;
+      bool _in_summary;
+      bool _in_cite;
 
-        std::string _title;
-        std::string _summary;
-        std::string _cite;
-     };
+      std::string _title;
+      std::string _summary;
+      std::string _cite;
+  };
 
 };
 

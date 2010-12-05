@@ -1,6 +1,6 @@
-<div id="search_results" class="yui-g clustered">
+<div id="search_results" class="yui3-g clustered">
 
-    <div class="yui-u first">
+    <div class="yui3-u-1-2 first">
       <div class="cluster">
       @ccluster0@
       </div>
@@ -21,7 +21,7 @@
 <!-- if-have-cluster6-end@ -->
 </div>
 
-    <div class="yui-u">
+    <div class="yui3-u-1-2">
       <div class="cluster">
         @ccluster1@
       </div>

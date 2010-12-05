@@ -26,149 +26,149 @@
 
 namespace seeks_plugins
 {
-   
-   void img_sort_rank::sort_rank_and_merge_snippets(img_query_context *qc,
-						    std::vector<search_snippet*> &snippets)
-     {
+
+  void img_sort_rank::sort_rank_and_merge_snippets(img_query_context *qc,
+      std::vector<search_snippet*> &snippets)
+  {
 #ifdef FEATURE_OPENCV2
-	static double st = 0.47; // similarity threshold.
-	if (img_websearch_configuration::_img_wconfig->_img_content_analysis)
-	  {
-	     // fill up the cache first.
-	     qc->update_unordered_cache();
-	     
-	     // fetch all image thumbnails and compute SURF features.
-	     // XXX: time consuming.
-	     img_content_handler::fetch_all_img_snippets_and_features(qc);
-	  
-	     // clear unordered cache.
-	     qc->_unordered_snippets.clear();
-	  }
+    static double st = 0.47; // similarity threshold.
+    if (img_websearch_configuration::_img_wconfig->_img_content_analysis)
+      {
+        // fill up the cache first.
+        qc->update_unordered_cache();
+
+        // fetch all image thumbnails and compute SURF features.
+        // XXX: time consuming.
+        img_content_handler::fetch_all_img_snippets_and_features(qc);
+
+        // clear unordered cache.
+        qc->_unordered_snippets.clear();
+      }
 #endif
-	
-	std::vector<search_snippet*>::iterator it = snippets.begin();
-	img_search_snippet *c_sp = NULL;
-	while(it != snippets.end())
-	  {
-	     img_search_snippet *sp = static_cast<img_search_snippet*>((*it));
-	     if (sp->_new)
-	       {
-		  if ((c_sp = static_cast<img_search_snippet*>(qc->get_cached_snippet(sp->_id)))!=NULL)
-		    {
-		       // merge image snippets.
-		       std::cerr << "merging into " << c_sp->_url << std::endl;
-		       img_search_snippet::merge_img_snippets(c_sp,sp);
-           it = snippets.erase(it);
-		       delete sp;
-		       sp = NULL;
-		       continue;
-		    }
+
+    std::vector<search_snippet*>::iterator it = snippets.begin();
+    img_search_snippet *c_sp = NULL;
+    while (it != snippets.end())
+      {
+        img_search_snippet *sp = static_cast<img_search_snippet*>((*it));
+        if (sp->_new)
+          {
+            if ((c_sp = static_cast<img_search_snippet*>(qc->get_cached_snippet(sp->_id)))!=NULL)
+              {
+                // merge image snippets.
+                std::cerr << "merging into " << c_sp->_url << std::endl;
+                img_search_snippet::merge_img_snippets(c_sp,sp);
+                it = snippets.erase(it);
+                delete sp;
+                sp = NULL;
+                continue;
+              }
 #ifdef FEATURE_OPENCV2
-		  if (img_websearch_configuration::_img_wconfig->_img_content_analysis) // compare to other snippets to detect identical images. 
-		    {
-		       // check on similarity w.r.t. other thumbnails.
-		       if (sp->_surf_keypoints)
-			 {
-			    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator sit = qc->_unordered_snippets.begin();
-			    while(sit!=qc->_unordered_snippets.end())
-			      {
-				 if ((*sit).second == (*it))
-				   {
-				      ++sit;
-				      continue;
-				   }
-				 
-				 img_search_snippet *ssp = static_cast<img_search_snippet*>((*sit).second);
-				 if (!ssp->_surf_keypoints)
-				   {
-				      ++sit;
-				      continue;
-				   }
-				 				 
-				 std::vector<surf_pair> ptpairs;
-				 /* ocvsurf::flannFindPairs(sp->_surf_descriptors,ssp->_surf_descriptors,
-							 ptpairs);
-				 double den = sp->_surf_keypoints->total + ssp->_surf_keypoints->total;
-				 size_t npt = ptpairs.size();
-				 int np = 0;
-				 for (size_t j=0;j<npt;j++)
-				   {
-				      if (ptpairs.at(j)._dist < 0.6)
-					np++;
-				   }
-				 double score = 2.0 * np / den; */
-				 CvMat *points1 = NULL;
-				 CvMat *points2 = NULL;
-				 double score = ocvsurf::bruteMatch(points1,points2,sp->_surf_keypoints,sp->_surf_descriptors,
-								    ssp->_surf_keypoints,ssp->_surf_descriptors,false);
-				 
-				 if (score > st) // over threshold, that is > ~0.5
-				   {
-				      // merge current image snippet and delete it.
-				      std::cerr << "merging (" << score << ") " << sp->_url << " into " << ssp->_url << std::endl;
-				      img_search_snippet::merge_img_snippets(ssp,sp);
-              it = snippets.erase(it);
-				      //qc->remove_from_unordered_cache(sp->_id);
-				      delete sp;
-				      sp = NULL;
-				      break;
-				   }
-				 else ++sit;
-			      }
-			 }
-		    }
+            if (img_websearch_configuration::_img_wconfig->_img_content_analysis) // compare to other snippets to detect identical images.
+              {
+                // check on similarity w.r.t. other thumbnails.
+                if (sp->_surf_keypoints)
+                  {
+                    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator sit = qc->_unordered_snippets.begin();
+                    while (sit!=qc->_unordered_snippets.end())
+                      {
+                        if ((*sit).second == (*it))
+                          {
+                            ++sit;
+                            continue;
+                          }
+
+                        img_search_snippet *ssp = static_cast<img_search_snippet*>((*sit).second);
+                        if (!ssp->_surf_keypoints)
+                          {
+                            ++sit;
+                            continue;
+                          }
+
+                        std::vector<surf_pair> ptpairs;
+                        /* ocvsurf::flannFindPairs(sp->_surf_descriptors,ssp->_surf_descriptors,
+                         		 ptpairs);
+                        double den = sp->_surf_keypoints->total + ssp->_surf_keypoints->total;
+                        size_t npt = ptpairs.size();
+                        int np = 0;
+                        for (size_t j=0;j<npt;j++)
+                          {
+                             if (ptpairs.at(j)._dist < 0.6)
+                         np++;
+                          }
+                        double score = 2.0 * np / den; */
+                        CvMat *points1 = NULL;
+                        CvMat *points2 = NULL;
+                        double score = ocvsurf::bruteMatch(points1,points2,sp->_surf_keypoints,sp->_surf_descriptors,
+                                                           ssp->_surf_keypoints,ssp->_surf_descriptors,false);
+
+                        if (score > st) // over threshold, that is > ~0.5
+                          {
+                            // merge current image snippet and delete it.
+                            std::cerr << "merging (" << score << ") " << sp->_url << " into " << ssp->_url << std::endl;
+                            img_search_snippet::merge_img_snippets(ssp,sp);
+                            it = snippets.erase(it);
+                            //qc->remove_from_unordered_cache(sp->_id);
+                            delete sp;
+                            sp = NULL;
+                            break;
+                          }
+                        else ++sit;
+                      }
+                  }
+              }
 #endif
-		  if (!sp)
-		    continue;
-		  
-		  sp->_seeks_rank = sp->_img_engine.count();
-		  sp->_new = false;
-		  
-		  qc->add_to_unordered_cache(sp);
-		  qc->add_to_unordered_cache_title(sp);
-	       } // end if new.
-	     ++it;
-	  }
-	
-	// sort by rank.
-	std::stable_sort(snippets.begin(),snippets.end(),
-			 img_search_snippet::max_seeks_rank);
-     }
+            if (!sp)
+              continue;
+
+            sp->_seeks_rank = sp->_img_engine.count();
+            sp->_new = false;
+
+            qc->add_to_unordered_cache(sp);
+            qc->add_to_unordered_cache_title(sp);
+          } // end if new.
+        ++it;
+      }
+
+    // sort by rank.
+    std::stable_sort(snippets.begin(),snippets.end(),
+                     img_search_snippet::max_seeks_rank);
+  }
 
 #ifdef FEATURE_OPENCV2
-   void img_sort_rank::score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
-						    img_search_snippet *&ref_sp,
-						    std::vector<search_snippet*> &sorted_snippets,
-						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
-     {
-	uint32_t id = (uint32_t)strtod(id_str,NULL);
-	
-	ref_sp = static_cast<img_search_snippet*>(qc->get_cached_snippet(id));
-	
-	if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
-	  return;
-	
-	ref_sp->set_back_similarity_link(parameters);
-	
-	img_content_handler::fetch_all_img_snippets_and_features(qc);
-	
-	// run similarity analysis and compute scores.
-	img_content_handler::feature_based_similarity_scoring(qc,sorted_snippets.size(),
-							      &sorted_snippets.at(0),ref_sp);
-	
-	// sort snippets according to computed scores.
-	std::sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
-     
-	//debug
-	/* for (size_t i=0;i<sorted_snippets.size();i++)
-	  {
-	     img_search_snippet *iss = static_cast<img_search_snippet*>(sorted_snippets.at(i));
-	     if (iss->_surf_keypoints)
-	       std::cerr << "[Debug]: url: " << iss->_url
-	       << " -- score: " << iss->_seeks_ir << " -- surf keypoints: " << iss->_surf_keypoints->total << std::endl;
-	  } */
-	//debug
-     }
+  void img_sort_rank::score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
+      img_search_snippet *&ref_sp,
+      std::vector<search_snippet*> &sorted_snippets,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  {
+    uint32_t id = (uint32_t)strtod(id_str,NULL);
+
+    ref_sp = static_cast<img_search_snippet*>(qc->get_cached_snippet(id));
+
+    if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
+      return;
+
+    ref_sp->set_back_similarity_link(parameters);
+
+    img_content_handler::fetch_all_img_snippets_and_features(qc);
+
+    // run similarity analysis and compute scores.
+    img_content_handler::feature_based_similarity_scoring(qc,sorted_snippets.size(),
+        &sorted_snippets.at(0),ref_sp);
+
+    // sort snippets according to computed scores.
+    std::sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
+
+    //debug
+    /* for (size_t i=0;i<sorted_snippets.size();i++)
+      {
+         img_search_snippet *iss = static_cast<img_search_snippet*>(sorted_snippets.at(i));
+         if (iss->_surf_keypoints)
+           std::cerr << "[Debug]: url: " << iss->_url
+           << " -- score: " << iss->_seeks_ir << " -- surf keypoints: " << iss->_surf_keypoints->total << std::endl;
+      } */
+    //debug
+  }
 #endif
-   
+
 } /* end of namespace. */

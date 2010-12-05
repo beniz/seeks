@@ -29,47 +29,47 @@ using namespace seeks_plugins;
 
 int main(int argc, char **argv)
 {
-   if (argc < 2)
-     {
-        std::cout << "Usage: test_youtube_parser <html_page>\n";
-        exit(0);
-     }
+  if (argc < 2)
+    {
+      std::cout << "Usage: test_youtube_parser <html_page>\n";
+      exit(0);
+    }
 
-   const char *htmlpage = argv[1];
+  const char *htmlpage = argv[1];
 
-   char *buffer;
-   std::ifstream ifs;
-   long offset = 0;
-   long length = -1;
-   ifs.open(htmlpage,std::ios::binary);
-   
-   if (!ifs.is_open())
-     {
-        std::cout << "[Error]: can't find file.\n";
-        return -1;
-     }
+  char *buffer;
+  std::ifstream ifs;
+  long offset = 0;
+  long length = -1;
+  ifs.open(htmlpage,std::ios::binary);
 
-   ifs.seekg (0, std::ios::end);
-   length = ((long)ifs.tellg()) - offset;
-   if(length==0)
-     {
-        ifs.close();
-        return 0;
-     }
+  if (!ifs.is_open())
+    {
+      std::cout << "[Error]: can't find file.\n";
+      return -1;
+    }
 
-   ifs.seekg (offset, std::ios::beg);
-   buffer = new char[length];
-   ifs.read (buffer, length);
-   ifs.close();
+  ifs.seekg (0, std::ios::end);
+  length = ((long)ifs.tellg()) - offset;
+  if (length==0)
+    {
+      ifs.close();
+      return 0;
+    }
 
-   //std::cout << "buffer: " << buffer << std::endl;
+  ifs.seekg (offset, std::ios::beg);
+  buffer = new char[length];
+  ifs.read (buffer, length);
+  ifs.close();
 
-   se_parser_youtube spb;
-   std::vector<search_snippet*> snippets;
-   spb.parse_output_xml(buffer,&snippets, 0);
-   
-   std::cout << "snippets size: " << snippets.size() << std::endl;
+  //std::cout << "buffer: " << buffer << std::endl;
 
-   for (size_t i=0;i<snippets.size();i++)
-     snippets.at(i)->print(std::cout);
+  se_parser_youtube spb;
+  std::vector<search_snippet*> snippets;
+  spb.parse_output_xml(buffer,&snippets, 0);
+
+  std::cout << "snippets size: " << snippets.size() << std::endl;
+
+  for (size_t i=0; i<snippets.size(); i++)
+    snippets.at(i)->print(std::cout);
 }

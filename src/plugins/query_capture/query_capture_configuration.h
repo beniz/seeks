@@ -25,32 +25,32 @@ using sp::configuration_spec;
 
 namespace seeks_plugins
 {
-   
-   class query_capture_configuration : public configuration_spec
-     {
-      public:
-	query_capture_configuration(const std::string &filename);
-	
-	~query_capture_configuration();
-	
-	// virtual
-	virtual void set_default_config();
-	
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum);
-	
-	virtual void finalize_configuration();
-     
-	// main options.
-	short _max_radius; /**< query LSH generation max radius. */
-	std::string _mode_intercept; /**< interception mode, "capture" or "redirect". */
-	time_t _sweep_cycle; /**< how long between two cycles of query db record sweeping. */
-	time_t _retention;   /**< query db record retention, in seconds. */
-	bool _protected_redirection; /**< whether URL redirection is protected against abuses. */
-	
-	static query_capture_configuration *_config;
-     };
-      
+
+  class query_capture_configuration : public configuration_spec
+  {
+    public:
+      query_capture_configuration(const std::string &filename);
+
+      ~query_capture_configuration();
+
+      // virtual
+      virtual void set_default_config();
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum);
+
+      virtual void finalize_configuration();
+
+      // main options.
+      short _max_radius; /**< query LSH generation max radius. */
+      std::string _mode_intercept; /**< interception mode, "capture" or "redirect". */
+      time_t _sweep_cycle; /**< how long between two cycles of query db record sweeping. */
+      time_t _retention;   /**< query db record retention, in seconds. */
+      bool _protected_redirection; /**< whether URL redirection is protected against abuses. */
+
+      static query_capture_configuration *_config;
+  };
+
 } /* end of namespace. */
 
 #endif

@@ -24,39 +24,39 @@
 
 namespace seeks_plugins
 {
-   
-   class se_parser_flickr : public se_parser
-     {
-      public:
-	se_parser_flickr();
-	~se_parser_flickr();
-	
-	// virtual.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes);
-	
-	void end_element(parser_context *pc,
-			 const xmlChar *name);
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
-		
-      private:
-	bool _results_flag;
-	bool _span_flag;
-     };
-      
+
+  class se_parser_flickr : public se_parser
+  {
+    public:
+      se_parser_flickr();
+      ~se_parser_flickr();
+
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+    private:
+      bool _results_flag;
+      bool _span_flag;
+  };
+
 } /* end of namespace. */
 
 #endif

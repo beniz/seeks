@@ -29,9 +29,9 @@ using sp::configuration_spec;
 namespace seeks_plugins
 {
 
-        /* engines in alphabetical order. */
+  /* engines in alphabetical order. */
 #define SE_BING               1U
-#define SE_CUIL               2U
+#define SE_BLEKKO             2U
 #define SE_DAILYMOTION        4U
 #define SE_EXALEAD            8U
 #define SE_GOOGLE            16U
@@ -40,50 +40,52 @@ namespace seeks_plugins
 #define SE_YAHOO            128U
 #define SE_YAUBA            256U
 #define SE_YOUTUBE          512U
-   
-   class websearch_configuration : public configuration_spec
-     {
-      public:
-	websearch_configuration(const std::string &filename);
-	
-	~websearch_configuration();
-	
-	// virtual
-	virtual void set_default_config();
-	
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum);
-	
-	virtual void finalize_configuration();
-	
-	// main options.
-	std::string _lang; /**< langage of the search results. */
-	int _Nr; /**< max number of search results per page. */
-	std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
-	bool _thumbs; /**< enabled thumbs */
-	bool _js; /**< enabled js */
-	bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */
-	bool _clustering; /**< whether to enable clustering in the UI. XXX: probably always on when dev is finished. */
-	
-	// others.
-	double _query_context_delay; /**< delay for query context before deletion, in seconds. */
-	
-	long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
-	long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
-	
-	long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
-	long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
-	int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
-	
-	bool _extended_highlight;
-	
-	std::string _background_proxy_addr; /**< address of a proxy through which to fetch URLs. */
-	int _background_proxy_port; /** < proxy port. */
-	bool _show_node_ip; /**< whether to show the node IP address when rendering the info bar. */
-	bool _personalization; /**< whether to use personalized ranking. */
-	std::string _result_message; /**< configurable message / warning to appear in a panel next to the results. */
-     };
-   
+
+  class websearch_configuration : public configuration_spec
+  {
+    public:
+      websearch_configuration(const std::string &filename);
+
+      ~websearch_configuration();
+
+      // virtual
+      virtual void set_default_config();
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum);
+
+      virtual void finalize_configuration();
+
+      // main options.
+      std::string _lang; /**< langage of the search results. */
+      int _Nr; /**< max number of search results per page. */
+      std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
+      bool _thumbs; /**< enabled thumbs */
+      bool _js; /**< enabled js */
+      bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */
+      bool _clustering; /**< whether to enable clustering in the UI. XXX: probably always on when dev is finished. */
+
+      // others.
+      double _query_context_delay; /**< delay for query context before deletion, in seconds. */
+
+      long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
+      long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
+
+      long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
+      long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
+      int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
+
+      bool _extended_highlight;
+
+      std::string _background_proxy_addr; /**< address of a proxy through which to fetch URLs. */
+      int _background_proxy_port; /** < proxy port. */
+      bool _show_node_ip; /**< whether to show the node IP address when rendering the info bar. */
+      bool _personalization; /**< whether to use personalized ranking. */
+      std::string _result_message; /**< configurable message / warning to appear in a panel next to the results. */
+      bool _dyn_ui; /**< user interface default, dynamic or static. */
+      std::string _ui_theme; /**< User Interface theme. */
+  };
+
 } /* end of namespace. */
 
 #endif

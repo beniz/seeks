@@ -1,4 +1,4 @@
-/**       
+/**
  * The seeks proxy is part of the SEEKS project
  * It is based on Privoxy (http://www.privoxy.org), developped
  * by the Privoxy team.
@@ -32,5 +32,5 @@ typedef int sp_err;
 #define SP_ERR_FILE       3 /**< Error opening, reading or writing a file */
 #define SP_ERR_PARSE      4 /**< Error parsing file                       */
 #define SP_ERR_MODIFIED   5 /**< File has been modified outside of the
-			         CGI actions editor.                      */
+CGI actions editor.                      */
 #define SP_ERR_COMPRESS   6 /**< Error on decompression                   */

@@ -1,4 +1,4 @@
-/**     
+/**
  * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
  * does provide several locality sensitive hashing schemes for pattern matching over
  * continuous and discrete spaces.
@@ -33,56 +33,56 @@ using sp::seeks_proxy;
 
 namespace lsh
 {
-   stopwordlist::stopwordlist(const std::string &filename)
-     :_swlistfile(filename),_loaded(false)
-       {
-       }
-   
-   stopwordlist::~stopwordlist()
-     {
-	hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit
-	  = _swlist.begin();
-	while(hit!=_swlist.end())
-	  {
-	     delete (*hit).first;
-	     ++hit;
-	  }
-     }
-   
-   int stopwordlist::load_list(const std::string &filename)
-     {
-	std::string fullfname = (seeks_proxy::_basedir) ? std::string(seeks_proxy::_basedir) + "/lsh/swl/" + filename
-	  : seeks_proxy::_datadir + "/lsh/swl/" + filename;
-	
-	std::ifstream infile;
-	infile.open(fullfname.c_str(),std::ifstream::in);
-	if (infile.fail())
-	  return 1;
-	
-	while (infile.good())
-	  {
-	     char word[256];
-	     infile.getline(word,256);
-	     if (strlen(word) > 0)
-	       _swlist.insert(std::pair<const char*,bool>(strndup(word,strlen(word)-1),true));
-	  }
-	
-	errlog::log_error(LOG_LEVEL_INFO,"Loaded stop word list %s, %d words",fullfname.c_str(),
-			  _swlist.size());
-	
-	infile.close();
-	
-	_loaded = true;
-	
-	return 0;
-     }
-   
-   bool stopwordlist::has_word(const std::string &w) const
-     {
-	hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
-	if ((hit=_swlist.find(w.c_str()))!=_swlist.end())
-	  return true;
-	else return false;
-     }
-      
+  stopwordlist::stopwordlist(const std::string &filename)
+      :_swlistfile(filename),_loaded(false)
+  {
+  }
+
+  stopwordlist::~stopwordlist()
+  {
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit
+    = _swlist.begin();
+    while (hit!=_swlist.end())
+      {
+        delete (*hit).first;
+        ++hit;
+      }
+  }
+
+  int stopwordlist::load_list(const std::string &filename)
+  {
+    std::string fullfname = (seeks_proxy::_basedir) ? std::string(seeks_proxy::_basedir) + "/lsh/swl/" + filename
+                            : seeks_proxy::_datadir + "/lsh/swl/" + filename;
+
+    std::ifstream infile;
+    infile.open(fullfname.c_str(),std::ifstream::in);
+    if (infile.fail())
+      return 1;
+
+    while (infile.good())
+      {
+        char word[256];
+        infile.getline(word,256);
+        if (strlen(word) > 0)
+          _swlist.insert(std::pair<const char*,bool>(strndup(word,strlen(word)-1),true));
+      }
+
+    errlog::log_error(LOG_LEVEL_INFO,"Loaded stop word list %s, %d words",fullfname.c_str(),
+                      _swlist.size());
+
+    infile.close();
+
+    _loaded = true;
+
+    return 0;
+  }
+
+  bool stopwordlist::has_word(const std::string &w) const
+  {
+    hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
+    if ((hit=_swlist.find(w.c_str()))!=_swlist.end())
+      return true;
+    else return false;
+  }
+
 } /* end of namespace. */

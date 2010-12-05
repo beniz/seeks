@@ -35,35 +35,35 @@ using sp::configuration_spec;
 
 namespace lsh
 {
-   class lsh_configuration : public configuration_spec
-     {
-      public:
-	lsh_configuration(const std::string &filename);
-	
-	~lsh_configuration();
-	
-	// virtual.
-	virtual void set_default_config();
-	
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum);
-	
-	virtual void finalize_configuration();
-	
-	// local.
-	stopwordlist* get_wordlist(const std::string &lang);
-	
-	// main options.
-	hash_map<const char*,stopwordlist*,hash<const char*>,eqstr> _swlists; /**< list of stop word, indexed by 2-char language indicator. */
-	std::string _lsh_delims; /**< default delimiters for tokenization in mrf. */
-	bool _query_length_protection; /**< protection against very long queries that generate hundreds of approximated hashes. */
-	
-	// mutex for loading stop word list.
-	sp_mutex_t _load_swl_mutex;
-     
-	static lsh_configuration *_config;
-     };
-      
+  class lsh_configuration : public configuration_spec
+  {
+    public:
+      lsh_configuration(const std::string &filename);
+
+      ~lsh_configuration();
+
+      // virtual.
+      virtual void set_default_config();
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum);
+
+      virtual void finalize_configuration();
+
+      // local.
+      stopwordlist* get_wordlist(const std::string &lang);
+
+      // main options.
+      hash_map<const char*,stopwordlist*,hash<const char*>,eqstr> _swlists; /**< list of stop word, indexed by 2-char language indicator. */
+      std::string _lsh_delims; /**< default delimiters for tokenization in mrf. */
+      bool _query_length_protection; /**< protection against very long queries that generate hundreds of approximated hashes. */
+
+      // mutex for loading stop word list.
+      sp_mutex_t _load_swl_mutex;
+
+      static lsh_configuration *_config;
+  };
+
 } /* end of namespace. */
 
 #endif

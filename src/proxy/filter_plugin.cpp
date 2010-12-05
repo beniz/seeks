@@ -20,74 +20,74 @@
 
 namespace sp
 {
-   // static members.
-   std::vector<std::string> filter_plugin::init_always()
-     {
-	std::vector<std::string> alw;
-	alw.push_back("*.*.*");  // DANGEROUS.
-	return alw;
-     }
-      
-   std::vector<std::string> filter_plugin::_always 
-     = filter_plugin::init_always();
-   
-   filter_plugin::filter_plugin(const std::vector<url_spec*> &pos_patterns,
-				const std::vector<url_spec*> &neg_patterns,
-				plugin *parent)
-     : plugin_element(pos_patterns, neg_patterns, parent)
-       {
-       }
-   
-   filter_plugin::filter_plugin(const std::vector<std::string> &pos_patterns,
-				const std::vector<std::string> &neg_patterns,
-				plugin *parent)
-     : plugin_element(pos_patterns, neg_patterns, parent)
-       {
-       }
-   
-   filter_plugin::filter_plugin(const char *filename,
-				plugin *parent)
-     : plugin_element(filename, parent)
-       {
-       }
-   
-   filter_plugin::filter_plugin(plugin *parent)
-     : plugin_element(filter_plugin::_always, 
-		      std::vector<std::string>(), parent)
-       {
-       }
-   
-   filter_plugin::filter_plugin(const std::vector<std::string> &pos_patterns,
-				const std::vector<std::string> &neg_patterns,
-				const char *code_filename,
-				const bool &pcrs, const bool &perl,
-				plugin *parent)
-     : plugin_element(pos_patterns,neg_patterns,
-		      code_filename,pcrs,perl,parent)
-     {
-     }
-   
-   filter_plugin:: filter_plugin(const char *pattern_filename,
-				 const char *code_filename,
-				 const bool &pcrs, const bool &perl,
-				 plugin *parent)
-     : plugin_element(pattern_filename,code_filename,
-		      pcrs,perl,parent)
-       {
-       }
-   
-   filter_plugin::filter_plugin(const char *code_filename,
-				const bool &pcrs, const bool &perl,
-				plugin *parent)
-     : plugin_element(filter_plugin::_always,
-		      std::vector<std::string>(),
-		      code_filename,pcrs,perl,parent)
-       {
-       }
-        
-   filter_plugin::~filter_plugin()
-     {
-     }
-   
-   
+  // static members.
+  std::vector<std::string> filter_plugin::init_always()
+  {
+    std::vector<std::string> alw;
+    alw.push_back("*.*.*");  // DANGEROUS.
+    return alw;
+  }
+
+  std::vector<std::string> filter_plugin::_always
+  = filter_plugin::init_always();
+
+  filter_plugin::filter_plugin(const std::vector<url_spec*> &pos_patterns,
+                               const std::vector<url_spec*> &neg_patterns,
+                               plugin *parent)
+      : plugin_element(pos_patterns, neg_patterns, parent)
+  {
+  }
+
+  filter_plugin::filter_plugin(const std::vector<std::string> &pos_patterns,
+                               const std::vector<std::string> &neg_patterns,
+                               plugin *parent)
+      : plugin_element(pos_patterns, neg_patterns, parent)
+  {
+  }
+
+  filter_plugin::filter_plugin(const char *filename,
+                               plugin *parent)
+      : plugin_element(filename, parent)
+  {
+  }
+
+  filter_plugin::filter_plugin(plugin *parent)
+      : plugin_element(filter_plugin::_always,
+                       std::vector<std::string>(), parent)
+  {
+  }
+
+  filter_plugin::filter_plugin(const std::vector<std::string> &pos_patterns,
+                               const std::vector<std::string> &neg_patterns,
+                               const char *code_filename,
+                               const bool &pcrs, const bool &perl,
+                               plugin *parent)
+      : plugin_element(pos_patterns,neg_patterns,
+                       code_filename,pcrs,perl,parent)
+  {
+  }
+
+  filter_plugin:: filter_plugin(const char *pattern_filename,
+                                const char *code_filename,
+                                const bool &pcrs, const bool &perl,
+                                plugin *parent)
+      : plugin_element(pattern_filename,code_filename,
+                       pcrs,perl,parent)
+  {
+  }
+
+  filter_plugin::filter_plugin(const char *code_filename,
+                               const bool &pcrs, const bool &perl,
+                               plugin *parent)
+      : plugin_element(filter_plugin::_always,
+                       std::vector<std::string>(),
+                       code_filename,pcrs,perl,parent)
+  {
+  }
+
+  filter_plugin::~filter_plugin()
+  {
+  }
+
+
 } /* end of namespace. */

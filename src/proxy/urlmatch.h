@@ -9,10 +9,10 @@
  *                Privoxy team. http://www.privoxy.org/
  *
  *                Based on the Internet Junkbuster originally written
- *                by and Copyright (C) 1997 Anonymous Coders and 
+ *                by and Copyright (C) 1997 Anonymous Coders and
  *                Junkbusters Corporation.  http://www.junkbusters.com
  *
- *                This program is free software; you can redistribute it 
+ *                This program is free software; you can redistribute it
  *                and/or modify it under the terms of the GNU General
  *                Public License as published by the Free Software
  *                Foundation; either version 2 of the License, or (at
@@ -40,60 +40,60 @@
 namespace sp
 {
 
-   enum regex_anchoring
-     {
-	NO_ANCHORING,
-	  LEFT_ANCHORED,
-	  RIGHT_ANCHORED,
-	  RIGHT_ANCHORED_HOST
-     };
-   
-   class urlmatch
-     {
-      public:
-	static void free_http_request(http_request *http);
+  enum regex_anchoring
+  {
+    NO_ANCHORING,
+    LEFT_ANCHORED,
+    RIGHT_ANCHORED,
+    RIGHT_ANCHORED_HOST
+  };
+
+  class urlmatch
+  {
+    public:
+      static void free_http_request(http_request *http);
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
-	static sp_err init_domain_components(http_request *http);
+      static sp_err init_domain_components(http_request *http);
 #endif
-	static sp_err parse_http_request(const char *req, http_request *&http);
-	static sp_err parse_http_url(const char *url,
-				     http_request *http,
-				     int require_protocol);
-	static void parse_url_host_and_path(const std::string &url,
-					    std::string &host, std::string &path);
-	
-	/**
-	 * \brief strips http, https & www from a URL.
-	 */
-	static std::string strip_url(const std::string &url);
+      static sp_err parse_http_request(const char *req, http_request *&http);
+      static sp_err parse_http_url(const char *url,
+                                   http_request *http,
+                                   int require_protocol);
+      static void parse_url_host_and_path(const std::string &url,
+                                          std::string &host, std::string &path);
+
+      /**
+       * \brief strips http, https & www from a URL.
+       */
+      static std::string strip_url(const std::string &url);
 
 #define REQUIRE_PROTOCOL 1
-	
-	static int url_match(const url_spec *pattern,
-			     const http_request *http);
-	static int match_portlist(const char *portlist, int port);
-	static sp_err parse_forwarder_address(char *address, char **hostname, int *port);
-     
-      private:
-	static sp_err compile_host_pattern(url_spec *url, const char *host_pattern);
-	static int unknown_method(const char *method);
-	
-      public:
-	static sp_err compile_pattern(const char *pattern, enum regex_anchoring anchoring,
-				      url_spec *url, regex_t **regex);
-	static sp_err compile_url_pattern(url_spec *url, char *buf);
-	
-      private:
-	static int simplematch(const char *pattern, const char *text);
-	static int simple_domaincmp(char **pcv, char **fv, int len);
-	static int domain_match(const url_spec *pattern, const http_request *fqn);
-	
-      public:
-	static int port_matches(const int port, const char *port_list);
-	static int host_matches(const http_request *http, const url_spec *pattern);
-	static int path_matches(const char *path, const url_spec *pattern);
-     };
-   
+
+      static int url_match(const url_spec *pattern,
+                           const http_request *http);
+      static int match_portlist(const char *portlist, int port);
+      static sp_err parse_forwarder_address(char *address, char **hostname, int *port);
+
+    private:
+      static sp_err compile_host_pattern(url_spec *url, const char *host_pattern);
+      static int unknown_method(const char *method);
+
+    public:
+      static sp_err compile_pattern(const char *pattern, enum regex_anchoring anchoring,
+                                    url_spec *url, regex_t **regex);
+      static sp_err compile_url_pattern(url_spec *url, char *buf);
+
+    private:
+      static int simplematch(const char *pattern, const char *text);
+      static int simple_domaincmp(char **pcv, char **fv, int len);
+      static int domain_match(const url_spec *pattern, const http_request *fqn);
+
+    public:
+      static int port_matches(const int port, const char *port_list);
+      static int host_matches(const http_request *http, const url_spec *pattern);
+      static int path_matches(const char *path, const url_spec *pattern);
+  };
+
 } /* end of namespace. */
-   
+
 #endif /* ndef URLMATCH_H */

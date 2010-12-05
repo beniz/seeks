@@ -22,39 +22,39 @@
 
 namespace sp
 {
-   class serialize
-     {
-      public:
-	template<typename integer_type>
-	  static std::vector<unsigned char> to_network_order(const integer_type &number,
-							     unsigned int byte_size = 8)
-	    {
-	       unsigned int const num_bytes_in_int = (sizeof(integer_type) * CHAR_BIT) / byte_size;
-	       
-	       unsigned int mask = 0;
-	       for (unsigned int i = 0; i < byte_size; ++i)
-		 mask = (mask << 1) | 0x1;
-	       
-	       std::vector<unsigned char> result(num_bytes_in_int);
-	       for (unsigned int i = 0; i < num_bytes_in_int; ++i)
-		 result[i] = (number >> (byte_size * i)) & mask;
-	       
-	       return result;
-	    };
-     
-	template<typename integer_type>
-	  static integer_type from_network_order(integer_type &res, 
-						 std::vector<unsigned char> bytestring,
-						 unsigned int byte_size = 8)
-	    {
-	       res = 0;
-	       unsigned int bs = bytestring.size();
-	       for (int i=bs-1;i>=0;i--)
-		 {
-		    res = (res << 8) + bytestring[i];
-		 }
-	       return res;
-	    };
-     };
-   
+  class serialize
+  {
+    public:
+      template<typename integer_type>
+      static std::vector<unsigned char> to_network_order(const integer_type &number,
+          unsigned int byte_size = 8)
+      {
+        unsigned int const num_bytes_in_int = (sizeof(integer_type) * CHAR_BIT) / byte_size;
+
+        unsigned int mask = 0;
+        for (unsigned int i = 0; i < byte_size; ++i)
+          mask = (mask << 1) | 0x1;
+
+        std::vector<unsigned char> result(num_bytes_in_int);
+        for (unsigned int i = 0; i < num_bytes_in_int; ++i)
+          result[i] = (number >> (byte_size * i)) & mask;
+
+        return result;
+      };
+
+      template<typename integer_type>
+      static integer_type from_network_order(integer_type &res,
+                                             std::vector<unsigned char> bytestring,
+                                             unsigned int byte_size = 8)
+      {
+        res = 0;
+        unsigned int bs = bytestring.size();
+        for (int i=bs-1; i>=0; i--)
+          {
+            res = (res << 8) + bytestring[i];
+          }
+        return res;
+      };
+  };
+
 } /* end of namespace. */

@@ -27,27 +27,27 @@ using namespace sp;
 
 namespace seeks_plugins
 {
-   class perl_std_filter_elt : public filter_plugin
-     {
-      public:
-	perl_std_filter_elt(const char *pattern_filename,
-			    const char *code_filename,
-			    plugin *parent,
-			    const std::string &perl_subr);
-	
-	perl_std_filter_elt(const char *code_filename,
-			    plugin *parent,
-			    const std::string &perl_subr);  // filter always activated, no pattern.
-	
-	~perl_std_filter_elt() {};
-	
-	// virtual from plugin_element.
-	char* run(client_state *csp, char *str);
-	
-      public:
-	std::string _perl_subr; // Perl subroutine to be executed by the plugin.
-     };
-      
+  class perl_std_filter_elt : public filter_plugin
+  {
+    public:
+      perl_std_filter_elt(const char *pattern_filename,
+                          const char *code_filename,
+                          plugin *parent,
+                          const std::string &perl_subr);
+
+      perl_std_filter_elt(const char *code_filename,
+                          plugin *parent,
+                          const std::string &perl_subr);  // filter always activated, no pattern.
+
+      ~perl_std_filter_elt() {};
+
+      // virtual from plugin_element.
+      char* run(client_state *csp, char *str);
+
+    public:
+      std::string _perl_subr; // Perl subroutine to be executed by the plugin.
+  };
+
 } /* end of namespace. */
 
 #endif

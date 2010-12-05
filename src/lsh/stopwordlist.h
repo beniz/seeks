@@ -27,22 +27,22 @@
 
 namespace lsh
 {
-   class stopwordlist
-     {
-      public:
-	stopwordlist(const std::string &filename);
-	
-	~stopwordlist();
-	
-	int load_list(const std::string &filename);
+  class stopwordlist
+  {
+    public:
+      stopwordlist(const std::string &filename);
 
-	bool has_word(const std::string &w) const;
-	
-	std::string _swlistfile;
-	hash_map<const char*,bool,hash<const char*>,eqstr> _swlist;
-	bool _loaded;
-     };
-   
+      ~stopwordlist();
+
+      int load_list(const std::string &filename);
+
+      bool has_word(const std::string &w) const;
+
+      std::string _swlistfile;
+      hash_map<const char*,bool,hash<const char*>,eqstr> _swlist;
+      bool _loaded;
+  };
+
 } /* end of namespace. */
 
 #endif

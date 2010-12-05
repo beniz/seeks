@@ -23,46 +23,46 @@
 
 namespace seeks_plugins
 {
-   class se_parser_yahoo : public se_parser
-     {
-      public:
-	se_parser_yahoo();
-	
-	~se_parser_yahoo();
-	
-	// virtual fct.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes);
-	
-	void end_element(parser_context *pc,
-			 const xmlChar *name);
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
-	
-	void post_process_snippet(search_snippet *&se);
-	
-      private:
-	bool _start_results;
-	bool _begin_results;
-	bool _title_flag;
-	bool _summary_flag;
+  class se_parser_yahoo : public se_parser
+  {
+    public:
+      se_parser_yahoo();
 
-	std::string _title;
-	std::string _summary;
-     };
-      
+      ~se_parser_yahoo();
+
+      // virtual fct.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+      void post_process_snippet(search_snippet *&se);
+
+    private:
+      bool _start_results;
+      bool _begin_results;
+      bool _title_flag;
+      bool _summary_flag;
+
+      std::string _title;
+      std::string _summary;
+  };
+
 } /* end of namespace. */
 
 #endif

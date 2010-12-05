@@ -28,7 +28,7 @@
  *                Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
  *********************************************************************/
- 
+
 #ifndef PCRS_STD_FILTER_H
 #define PCRS_STD_FILTER_H
 
@@ -41,24 +41,24 @@ using namespace sp;
 
 namespace seeks_plugins
 {
-   class pcrs_std_filter_elt : public filter_plugin
-     {
-      public:
-	pcrs_std_filter_elt(const char *pattern_filename,
-			    const char *code_filename,
-			    plugin *parent);
-	
-	pcrs_std_filter_elt(const char *code_filename,
-			    plugin *parent);  // filter always activated, no pattern.
+  class pcrs_std_filter_elt : public filter_plugin
+  {
+    public:
+      pcrs_std_filter_elt(const char *pattern_filename,
+                          const char *code_filename,
+                          plugin *parent);
 
-	~pcrs_std_filter_elt() {};
-	
-	// virtual from plugin_element.
-	char* run(client_state *csp, char* str);
-     
-      private:
-     };
-      
+      pcrs_std_filter_elt(const char *code_filename,
+                          plugin *parent);  // filter always activated, no pattern.
+
+      ~pcrs_std_filter_elt() {};
+
+      // virtual from plugin_element.
+      char* run(client_state *csp, char* str);
+
+    private:
+  };
+
 } /* end of namespace. */
 
 #endif

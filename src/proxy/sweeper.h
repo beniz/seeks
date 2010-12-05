@@ -16,32 +16,39 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
- 
+
 #ifndef SWEEPER_H
 #define SWEEPER_H
 
+#include "mutexes.h"
+
 namespace sp
 {
-   class sweepable
-     {
-      public:
-	sweepable();
-	virtual ~sweepable();
-     
-	virtual bool sweep_me() { return false; };
-     };
-         
-   class sweeper
-     {
-      public:
+  class sweepable
+  {
+    public:
+      sweepable();
+      virtual ~sweepable();
 
-	static void register_sweepable(sweepable *spable);
-	
-	static void unregister_sweepable(sweepable *spable);
-	
-	static unsigned int sweep();
-     };
-   
+      virtual bool sweep_me()
+      {
+        return false;
+      };
+  };
+
+  class sweeper
+  {
+    public:
+
+      static void register_sweepable(sweepable *spable);
+
+      static void unregister_sweepable(sweepable *spable);
+
+      static unsigned int sweep();
+  
+      static sp_mutex_t _mem_dust_mutex;
+  };
+
 } /* end of namespace. */
 
 #endif

@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 
+ * Copyright (C) 2009, 2010
  *  sileht, theli48@gmail.com
  *  Emmanuel Benazera, juban@free.fr
  *
@@ -26,54 +26,54 @@
 
 namespace seeks_plugins
 {
-   class se_parser_exalead : public se_parser
-     {
-      public:
-	se_parser_exalead();
-	~se_parser_exalead();
-	
-	// virtual.
-	void start_element(parser_context *pc,
-			   const xmlChar *name,
-			   const xmlChar **attributes);
-	
-	void end_element(parser_context *pc,
-			 const xmlChar *name);
-	
-	void characters(parser_context *pc,
-			const xmlChar *chars,
-			int length);
-	
-	void cdata(parser_context *pc,
-		   const xmlChar *chars,
-		   int length);
-	
-	// local.
-	void handle_characters(parser_context *pc,
-			       const xmlChar *chars,
-			       int length);
-	
-	bool bad_snippet(search_snippet *sp);
-	
-      private:
-	bool _result_flag;
-	bool _title_flag;
-	bool _p_flag;
-	bool _summary_flag;
-	bool _cite_flag;
-	bool _cached_flag;
-	bool _b_title_flag;
-	bool _b_summary_flag;
-	bool _ignore_flag;
-	
-	std::string _title;
-	std::string _summary;
-	std::string _cite;
-	std::string _cached;
-	
-	static std::string _sr_string_en;
-     };
-   
+  class se_parser_exalead : public se_parser
+  {
+    public:
+      se_parser_exalead();
+      ~se_parser_exalead();
+
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
+
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
+
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
+
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
+
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
+
+      bool bad_snippet(search_snippet *sp);
+
+    private:
+      bool _result_flag;
+      bool _title_flag;
+      bool _p_flag;
+      bool _summary_flag;
+      bool _cite_flag;
+      bool _cached_flag;
+      bool _b_title_flag;
+      bool _b_summary_flag;
+      bool _ignore_flag;
+
+      std::string _title;
+      std::string _summary;
+      std::string _cite;
+      std::string _cached;
+
+      static std::string _sr_string_en;
+  };
+
 };
 
 #endif

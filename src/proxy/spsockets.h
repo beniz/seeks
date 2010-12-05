@@ -6,15 +6,15 @@
  *
  * Copyright   :  Modified by Emmanuel Benazera for the Seeks Project,
  *                2009.
- *                
+ *
  *                Written by and Copyright (C) 2001-2009 the
  *                Privoxy team. http://www.privoxy.org/
  *
  *                Based on the Internet Junkbuster originally written
- *                by and Copyright (C) 1997 Anonymous Coders and 
+ *                by and Copyright (C) 1997 Anonymous Coders and
  *                Junkbusters Corporation.  http://www.junkbusters.com
  *
- *                This program is free software; you can redistribute it 
+ *                This program is free software; you can redistribute it
  *                and/or modify it under the terms of the GNU General
  *                Public License as published by the Free Software
  *                Foundation; either version 2 of the License, or (at
@@ -41,27 +41,27 @@
 
 namespace sp
 {
-   class client_state;
+  class client_state;
 
-   class spsockets
-     {
-      public:
-	static sp_socket connect_to(const char *host, int portnum, client_state *csp);
-	static int write_socket(sp_socket fd, const char *buf, size_t n);
-	static int read_socket(sp_socket fd, char *buf, int n);
-	static int data_is_available(sp_socket fd, int seconds_to_wait);
-	static void close_socket(sp_socket fd);
-	
-	static int bind_port(const char *hostnam, int portnum, sp_socket *pfd);
-	static int accept_connection(struct client_state * csp, sp_socket fd);
-	static void get_host_information(sp_socket afd, char **ip_address, char **hostname);
-	
-	static unsigned long resolve_hostname_to_ip(const char *host);
-	
-	static int socket_is_still_usable(sp_socket sfd);
-     };
-   	
+  class spsockets
+  {
+    public:
+      static sp_socket connect_to(const char *host, int portnum, client_state *csp);
+      static int write_socket(sp_socket fd, const char *buf, size_t n);
+      static int read_socket(sp_socket fd, char *buf, int n);
+      static int data_is_available(sp_socket fd, int seconds_to_wait);
+      static void close_socket(sp_socket fd);
+
+      static int bind_port(const char *hostnam, int portnum, sp_socket *pfd);
+      static int accept_connection(struct client_state * csp, sp_socket fd);
+      static void get_host_information(sp_socket afd, char **ip_address, char **hostname);
+
+      static unsigned long resolve_hostname_to_ip(const char *host);
+
+      static int socket_is_still_usable(sp_socket sfd);
+  };
+
 } /* end of namespace. */
-   
+
 #endif /* ndef SPSOCKETS_H */
 

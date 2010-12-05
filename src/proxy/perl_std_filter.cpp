@@ -16,33 +16,33 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
- 
+
 #include "perl_std_filter.h"
 
 namespace seeks_plugins
 {
-   perl_std_filter_elt::perl_std_filter_elt(const char *pattern_filename,
-					    const char *code_filename,
-					    plugin *parent,
-					    const std::string &perl_subr)
-     : filter_plugin(pattern_filename,code_filename,false,true,parent),
-       _perl_subr(perl_subr)
-       {
-       }
-   
-   perl_std_filter_elt::perl_std_filter_elt(const char *code_filename,
-					    plugin *parent,
-					    const std::string &perl_subr)
-     : filter_plugin(code_filename,false,true,parent),  // filter always on.
-       _perl_subr(perl_subr) 
-       {
-       }
-   
-   char* perl_std_filter_elt::run(client_state *csp, char *str)
-     {
-	char **output = perl_execute_subroutine(_perl_subr, &str);
-	return output[0]; // beware: returns the first string ? TODO: concat.
-     }
-   
-   
+  perl_std_filter_elt::perl_std_filter_elt(const char *pattern_filename,
+      const char *code_filename,
+      plugin *parent,
+      const std::string &perl_subr)
+      : filter_plugin(pattern_filename,code_filename,false,true,parent),
+      _perl_subr(perl_subr)
+  {
+  }
+
+  perl_std_filter_elt::perl_std_filter_elt(const char *code_filename,
+      plugin *parent,
+      const std::string &perl_subr)
+      : filter_plugin(code_filename,false,true,parent),  // filter always on.
+      _perl_subr(perl_subr)
+  {
+  }
+
+  char* perl_std_filter_elt::run(client_state *csp, char *str)
+  {
+    char **output = perl_execute_subroutine(_perl_subr, &str);
+    return output[0]; // beware: returns the first string ? TODO: concat.
+  }
+
+
 } /* end of namespace. */

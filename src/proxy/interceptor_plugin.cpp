@@ -20,25 +20,25 @@
 
 namespace sp
 {
-   interceptor_plugin::interceptor_plugin(const std::vector<url_spec*> &pos_patterns,
-					  const std::vector<url_spec*> &neg_patterns,
-					  plugin *parent)
-     : plugin_element(pos_patterns, neg_patterns, parent)
-       {
-       }
+  interceptor_plugin::interceptor_plugin(const std::vector<url_spec*> &pos_patterns,
+                                         const std::vector<url_spec*> &neg_patterns,
+                                         plugin *parent)
+      : plugin_element(pos_patterns, neg_patterns, parent)
+  {
+  }
 
-   interceptor_plugin::interceptor_plugin(const char *filename,
-					  plugin *parent)
-     : plugin_element(filename, parent)
-       {
-       }
-   
-   interceptor_plugin::interceptor_plugin(const std::vector<std::string> &pos_patterns,
-					  const std::vector<std::string> &neg_patterns,
-					  plugin *parent)
-     : plugin_element(pos_patterns, neg_patterns, parent)
-       {
-       }
-   
-   
+  interceptor_plugin::interceptor_plugin(const char *filename,
+                                         plugin *parent)
+      : plugin_element(filename, parent)
+  {
+  }
+
+  interceptor_plugin::interceptor_plugin(const std::vector<std::string> &pos_patterns,
+                                         const std::vector<std::string> &neg_patterns,
+                                         plugin *parent)
+      : plugin_element(pos_patterns, neg_patterns, parent)
+  {
+  }
+
+
 } /* end of namespace. */

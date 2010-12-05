@@ -27,23 +27,23 @@
 
 namespace seeks_plugins
 {
-   
-   class img_content_handler
-     {
-      public:
-	static void fetch_all_img_snippets_and_features(img_query_context *qc);
-	
-	static void extract_surf_features_from_snippets(img_query_context *qc,
-							const std::vector<std::string*> &img_contents,
-							const std::vector<img_search_snippet*> &sps);
-	
-	static void feature_based_similarity_scoring(img_query_context *qc,
-						     const size_t &nsps,
-						     search_snippet **sps,
-						     search_snippet *ref_sp);
-     };
-      
+
+  class img_content_handler
+  {
+    public:
+      static void fetch_all_img_snippets_and_features(img_query_context *qc);
+
+      static void extract_surf_features_from_snippets(img_query_context *qc,
+          const std::vector<std::string*> &img_contents,
+          const std::vector<img_search_snippet*> &sps);
+
+      static void feature_based_similarity_scoring(img_query_context *qc,
+          const size_t &nsps,
+          search_snippet **sps,
+          search_snippet *ref_sp);
+  };
+
 } /* end of namespace. */
 
 #endif
-  
+

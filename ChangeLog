@@ -1,3 +1,38 @@
+* DiAngelo-0.3.1-SOLO-stable
+
+- Added new 'compact' theme as the default search interface. Thanks
+  to gwip for design and implementation.
+
+- Added themes framework that allows contributors to create new themes
+  with no dependency to the inner machinery.
+
+- Added dynamic JSON-based User Interface with basic features. Faster
+  to use, and ready to be plugged to the p2p net when it is released.
+
+- Fixed key generation bug in user db. This version includes an automatic
+  fix for dbs that may have been affected by the bug, so this remains
+  transparent for the users and node maintainers.
+
+- Replaced YUI-3.0.0 with YUI-3.2.0.
+
+- Added generic export framework to the user db. Thanks to sileht
+  for the good work.
+
+- Added Blekko to the search engine parsers.
+
+- Remove Cuil from the search engine parsers (Cuil is dead).
+
+- Added infrastructure for unit testing based on gtests. Added unit
+  tests for several key components. Thanks to dachary for all the
+  hacking involved.
+
+- Fixed a bug in the grouping of similar snippet due to bad encoding
+  of URLs. Thanks to piti for discovering and fixing this.
+
+- Added coloration to already visited URLs.
+
+- Code documentation with doxygen.
+
 * DiAngelo-0.3-SOLO-stable
 
 - Added personalization of results. Queries & clicks on URIs are

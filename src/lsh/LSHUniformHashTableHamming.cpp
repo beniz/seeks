@@ -23,39 +23,39 @@
 namespace lsh
 {
 
-LSHUniformHashTableHamming::LSHUniformHashTableHamming(LSHSystemHamming *lsh_h)
-  : LSHUniformHashTable<std::string>(),_lsh_h(lsh_h)
-{
-}
+  LSHUniformHashTableHamming::LSHUniformHashTableHamming(LSHSystemHamming *lsh_h)
+      : LSHUniformHashTable<std::string>(),_lsh_h(lsh_h)
+  {
+  }
 
-LSHUniformHashTableHamming::LSHUniformHashTableHamming(LSHSystemHamming *lsh_h,
-						       const unsigned long int &uhsize)
-  : LSHUniformHashTable<std::string>(uhsize),_lsh_h(lsh_h)
-{
-}
+  LSHUniformHashTableHamming::LSHUniformHashTableHamming(LSHSystemHamming *lsh_h,
+      const unsigned long int &uhsize)
+      : LSHUniformHashTable<std::string>(uhsize),_lsh_h(lsh_h)
+  {
+  }
 
-LSHUniformHashTableHamming::~LSHUniformHashTableHamming()
-{
-}
+  LSHUniformHashTableHamming::~LSHUniformHashTableHamming()
+  {
+  }
 
-void LSHUniformHashTableHamming::LcomputeMKey (std::string str,
-					       unsigned long int *Lmkeys)
-{
-   _lsh_h->LmainKeyFromStr(str,Lmkeys,_uhsize);
-}
+  void LSHUniformHashTableHamming::LcomputeMKey (std::string str,
+      unsigned long int *Lmkeys)
+  {
+    _lsh_h->LmainKeyFromStr(str,Lmkeys,_uhsize);
+  }
 
-void LSHUniformHashTableHamming::LcomputeCKey (std::string str,
-                                               unsigned long int *Lckeys)
-{
-   _lsh_h->LcontrolKeyFromStr(str,Lckeys);
-}
+  void LSHUniformHashTableHamming::LcomputeCKey (std::string str,
+      unsigned long int *Lckeys)
+  {
+    _lsh_h->LcontrolKeyFromStr(str,Lckeys);
+  }
 
-void LSHUniformHashTableHamming::LcomputeMCKey (std::string str,
-						unsigned long int *Lmkeys,
-						unsigned long int *Lckeys)
-{
-   _lsh_h->LKeysFromStr(str,Lmkeys,Lckeys,_uhsize);
-}
+  void LSHUniformHashTableHamming::LcomputeMCKey (std::string str,
+      unsigned long int *Lmkeys,
+      unsigned long int *Lckeys)
+  {
+    _lsh_h->LKeysFromStr(str,Lmkeys,Lckeys,_uhsize);
+  }
 
 
 } /* end of namespace. */

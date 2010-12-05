@@ -25,55 +25,55 @@
 
 namespace sp
 {
-   class configuration_spec
-     {
-      public:
-	configuration_spec(const std::string &filename);
-	
-	virtual ~configuration_spec();
-	
-	// class methods.
-	sp_err load_config();
-	
-	sp_err parse_config_line(char *cmd, char* arg, char *tmp, char* buf);
-	
-	int check_file_changed();
-	
-	// virtual functions.
-	virtual void set_default_config() {};
+  class configuration_spec
+  {
+    public:
+      configuration_spec(const std::string &filename);
 
-	virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
-				       char *buf, const unsigned long &linenum) {};
-	
-	virtual void finalize_configuration() {};
+      virtual ~configuration_spec();
 
-	// static functions.
-	static void html_table_row(char *&args, char *option, char *value, 
-				   const char *description);
-	
-	// variables.
-      public:
-	std::string _filename; // config filename.
-	
-	/**
-	 * File last-modified time, so we can check if file has been changed.
-	 */
-	time_t _lastmodified;
-	
-	/**
-	 * All options from the config file, HTML-formatted.
-	 */
-	char *_config_args;
-	
-	/**
-	 * Table of changed values, for configuration reload.
-	 */
-	hash_map<const char*, bool, hash<const char*>, eqstr> _cchanges;
-	
-      protected:
-	
-     };
-   
+      // class methods.
+      sp_err load_config();
+
+      sp_err parse_config_line(char *cmd, char* arg, char *tmp, char* buf);
+
+      int check_file_changed();
+
+      // virtual functions.
+      virtual void set_default_config() {};
+
+      virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
+                                     char *buf, const unsigned long &linenum) {};
+
+      virtual void finalize_configuration() {};
+
+      // static functions.
+      static void html_table_row(char *&args, char *option, char *value,
+                                 const char *description);
+
+      // variables.
+    public:
+      std::string _filename; // config filename.
+
+      /**
+       * File last-modified time, so we can check if file has been changed.
+       */
+      time_t _lastmodified;
+
+      /**
+       * All options from the config file, HTML-formatted.
+       */
+      char *_config_args;
+
+      /**
+       * Table of changed values, for configuration reload.
+       */
+      hash_map<const char*, bool, hash<const char*>, eqstr> _cchanges;
+
+    protected:
+
+  };
+
 } /* end of namespace. */
 
 #endif

@@ -32,44 +32,44 @@ using sp::plugin;
 namespace seeks_plugins
 {
 
-   class img_websearch : public plugin
-     {
-      public:
-	img_websearch();
-	
-	~img_websearch();
-	
-	virtual void start() {};
-	virtual void stop() {};
-	
-	/* cgi calls. */
-	static sp_err cgi_img_websearch_search_css(client_state *csp,
-						   http_response *rsp,
-						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
-	static sp_err cgi_img_websearch_search(client_state *csp,
-					       http_response *rsp,
-					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
+  class img_websearch : public plugin
+  {
+    public:
+      img_websearch();
+
+      ~img_websearch();
+
+      virtual void start() {};
+      virtual void stop() {};
+
+      /* cgi calls. */
+      static sp_err cgi_img_websearch_search_css(client_state *csp,
+          http_response *rsp,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err cgi_img_websearch_search(client_state *csp,
+                                             http_response *rsp,
+                                             const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
 #ifdef FEATURE_OPENCV2
-	static sp_err cgi_img_websearch_similarity(client_state *csp,
-						   http_response *rsp,
-						   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      static sp_err cgi_img_websearch_similarity(client_state *csp,
+          http_response *rsp,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 #endif
-	
-	/* image websearch. */
-	static sp_err perform_img_websearch(client_state *csp,
-					    http_response *rsp,
-					    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-					    bool render=true);
-	
-	static std::vector<std::pair<std::string,std::string> >* safesearch_exports(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-	
-      public:
-	static img_websearch_configuration *_iwconfig;
-	static hash_map<uint32_t,query_context*,id_hash_uint> _active_img_qcontexts;
-     };
-      
+
+      /* image websearch. */
+      static sp_err perform_img_websearch(client_state *csp,
+                                          http_response *rsp,
+                                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                                          bool render=true);
+
+      static std::vector<std::pair<std::string,std::string> >* safesearch_exports(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+    public:
+      static img_websearch_configuration *_iwconfig;
+      static hash_map<uint32_t,query_context*,id_hash_uint> _active_img_qcontexts;
+  };
+
 } /* end of namespace. */
 
 #endif

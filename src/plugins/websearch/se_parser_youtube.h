@@ -24,45 +24,45 @@
 
 namespace seeks_plugins
 {
-   class se_parser_youtube : public se_parser
-     {
-      public:
-        se_parser_youtube();
-        ~se_parser_youtube();
+  class se_parser_youtube : public se_parser
+  {
+    public:
+      se_parser_youtube();
+      ~se_parser_youtube();
 
-        // virtual.
-        void start_element(parser_context *pc,
-                           const xmlChar *name,
-                           const xmlChar **attributes);
+      // virtual.
+      void start_element(parser_context *pc,
+                         const xmlChar *name,
+                         const xmlChar **attributes);
 
-        void end_element(parser_context *pc,
-                         const xmlChar *name);
+      void end_element(parser_context *pc,
+                       const xmlChar *name);
 
-        void characters(parser_context *pc,
-                        const xmlChar *chars,
-                        int length);
+      void characters(parser_context *pc,
+                      const xmlChar *chars,
+                      int length);
 
-        void cdata(parser_context *pc,
-                   const xmlChar *chars,
-                   int length);
+      void cdata(parser_context *pc,
+                 const xmlChar *chars,
+                 int length);
 
-        // local.
-        void handle_characters(parser_context *pc,
-                               const xmlChar *chars,
-                               int length);
+      // local.
+      void handle_characters(parser_context *pc,
+                             const xmlChar *chars,
+                             int length);
 
-      private:
-        bool _in_item;
-        bool _in_title;
-        bool _in_link;
-        bool _in_date;
-        bool _in_description;
+    private:
+      bool _in_item;
+      bool _in_title;
+      bool _in_link;
+      bool _in_date;
+      bool _in_description;
 
-        std::string _title;
-	std::string _link;
-	std::string _date;
-        std::string _description;
-     };
+      std::string _title;
+      std::string _link;
+      std::string _date;
+      std::string _description;
+  };
 
 };
 
