@@ -21,13 +21,13 @@
 <a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxnpers&ui=stat" title="Toggle personalization xxnpers"><img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_xxpers.png" style="border: 0;"/></a>
 <!-- home -->
 <!--
-<a title="Home (ctrl+h)" href="@base-url@/websearch-hp/" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/home_ico.png" style="border: 0;"/></a>
+<a title="Home" href="@base-url@/websearch-hp/" ><img src="@base-url@/plugins/websearch/public/themes/compact/images/home_ico.png" style="border: 0;"/></a>
 -->
 </div>
 
 <form method="GET" action="@base-url@/search_img" id="search_form">
 <input title="Language" id="tab-language" name="lang" value="xxlang" type="text"/>
-<input title="Search (ctrl+f)" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
+<input title="Search" id="search_input" autocomplete="off" name="q" maxlength="2048" value="qclean" type="text" />
 <input name="qknown" value="fullquery" type="hidden" />
 <input name="expansion" value="1" type="hidden" />
 <input name="action" value="expand" type="hidden" />
@@ -38,10 +38,10 @@
 </form>
 
 
-<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;ui=stat" title="Expand to xxexpn (ctrl+e). Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
+<a href="@base-url@/search_img?q=fullquery&amp;page=xxpage&amp;expansion=xxexpn&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;ui=stat" title="Expand to xxexpn. Deeper search." id="expansion" class="expansion_xxexp">xxexp</a>
 
 <!-- @if-have-clustering-start -->
-<!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster (ctrl+c)" id="cluster" class="cluster_off">&nbsp;</a> -->
+<!-- <a href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=clusterize&amp;clusters=xxnclust&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxcca&amp;prs=xxpers" title="Cluster" id="cluster" class="cluster_off">&nbsp;</a> -->
 <!-- if-have-clustering-end@ -->
 <!-- @if-not-have-clustering-start --><!-- if-not-have-clustering-end@ -->
 <a href="" title="Cluster (not yet available for images)" id="cluster" class="cluster_inactive">&nbsp;</a>
@@ -94,61 +94,6 @@
 <!-- @if-have-clustered-results-body-start -->
 #include websearch/templates/clustered_results_template
 <!-- if-have-clustered-results-body-end@ -->
-
-<!-- @if-websearch-have-js-start -->
-<script type="text/javascript" src="@base-url@/public/yui/3.2.0/yui/yui-min.js"></script>
-<script type="text/javascript">
-
-// Shortcut for search, ctrl+s
-YUI().use('event-key', function(Y) {
-    var handle = Y.on('key', function(e) {
-        e.halt();
-        Y.one('#search_input').select();
-    }, document, 'press:102+ctrl');
-});
-
-// Shortcut for expansion, ctrl+e
-YUI().use('event-key', function(Y) {
-    var handle = Y.on('key', function(e) {
-        e.halt();
-        document.location = Y.one('#expansion').getAttribute('href');
-    }, document, 'press:101+ctrl');
-});
-
-// Shortcut for clustering, ctrl+k
-YUI().use('event-key', function(Y) {
-    var handle = Y.on('key', function(e) {
-    e.halt();
-    document.location = Y.one('#cluster').getAttribute('href');
-    }, document, 'press:107+ctrl');
-});
-
-// Shortcut for previous page, ctrl+<
-YUI().use('event-key', function(Y) { 
-    var handle = Y.on('key', function(e) {
-        e.halt();                    
-        document.location = Y.one('#search_page_prev').getAttribute('href');
-    }, document, 'press:37+ctrl');
-});
-
-// Shortcut for previous page, ctrl+>
-YUI().use('event-key', function(Y) {
-    var handle = Y.on('key', function(e) {
-        e.halt();
-        document.location = Y.one('#search_page_next').getAttribute('href');
-    }, document, 'press:39+ctrl');
-});
-
-// Shortcut for home page, ctrl+h
-YUI().use('event-key', function(Y) {
-    var handle = Y.on('key', function(e) {
-        e.halt();
-        document.location = Y.one('#search_home').getAttribute('href');
-    }, document, 'press:104+ctrl');
-});
-
-</script>
-<!-- if-websearch-have-js-end@ -->
 
 </div> 
 </td>
