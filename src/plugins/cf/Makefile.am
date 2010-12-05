@@ -1,6 +1,6 @@
 #automake for cf plugin.
 
-cfpluginlibdir = $(libdir)/seeks/plugin/cf
+cfpluginlibdir = $(libdir)/seeks/plugins/cf
 cfplugindatadir = $(datadir)/seeks/plugins/cf
 
 AM_CXXFLAGS=-Wall -g -pipe
