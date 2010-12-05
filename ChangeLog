@@ -31,6 +31,8 @@
 
 - Added coloration to already visited URLs.
 
+- Code documentation with doxygen.
+
 * DiAngelo-0.3-SOLO-stable
 
 - Added personalization of results. Queries & clicks on URIs are
