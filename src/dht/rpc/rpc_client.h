@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-  
+
 #ifndef RPC_CLIENT_H
 #define RPC_CLIENT_H
 
@@ -26,60 +26,41 @@
 #include "dht_exception.h"
 #include "NetAddress.h"
 
+#include <netdb.h>
 #include <string>
 
 namespace dht
 {
-   class rpc_client;
-   
-   /* class rpc_call_args
-     {
-      public:
-	rpc_call_args(rpc_client *client,
-		      const NetAddress &server_na, const std::string &msg,
-		      const bool &need_response, std::string &response)
-	  :_client(client),_server_na(server_na),_msg(msg),
-	   _need_response(need_response),_response(response)
-	  {
-	     _err = DHT_ERR_OK;
-	  };
-	
-	~rpc_call_args() {};
-	
-	rpc_client *_client;
-	NetAddress _server_na;
-	std::string _msg;
-	bool _need_response;
-	std::string _response;
-	dht_err _err;
-     }; */
-      
-   class rpc_client
-     {
-      public:
-	rpc_client();
-	
-	virtual ~rpc_client();
-	  
-	/* static void do_rpc_call_static(rpc_call_args *args); */
-	
-	/* dht_err do_rpc_call_threaded(const NetAddress &server_na,
-				     const std::string &msg,
-				     const bool &need_response,
-				     std::string &response); */
-	
-	/*dht_err do_rpc_call(const NetAddress &server_na,
-			    const std::string &msg,
-			    const bool &need_response,
-			    std::string &response,
-			    dht_err &err);*/
-	
-	void do_rpc_call(const NetAddress &server_na,
-			 const std::string &msg,
-			 const bool &need_response,
-			 std::string &response);
-     };
-   
+  class rpc_client
+  {
+    public:
+      rpc_client();
+
+      virtual ~rpc_client();
+
+      void do_rpc_call(const NetAddress &server_na,
+                       const std::string &msg,
+                       const bool &need_response,
+                       std::string &response) const;
+
+      int open() const;
+
+      void send(int fd,
+                const NetAddress &server_na,
+                const std::string &msg) const;
+
+      struct addrinfo* resolve(const NetAddress &server_na) const;
+
+      void write(int fd, struct addrinfo* result, const std::string &msg) const;
+
+      void receive(int fd, std::string &response) const;
+
+      void wait(int fd) const;
+
+      void read(int fd, std::string &response) const;
+
+  };
+
 } /* end of namespace. */
 
 #endif
