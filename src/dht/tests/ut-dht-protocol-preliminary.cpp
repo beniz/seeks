@@ -72,42 +72,33 @@ class ProtocolPreliminaryTest : public testing::Test
 
       _na_dnode = new NetAddress(_net_addr,_net_port);
       _dnode = new DHTNode(_na_dnode->getNetAddress().c_str(),_na_dnode->getPort(),
-			   false,"ut-dht-protocol-vnodes-table.dat");
+                           false,"ut-dht-protocol-vnodes-table.dat");
       _dnode->_stabilizer = new Stabilizer(false); // empty stabilizer, not started.
       bool has_persistent_data = _dnode->load_vnodes_table();
       ASSERT_TRUE(has_persistent_data);
       ASSERT_EQ(4,_dnode->_vnodes.size());
-      
+
       _dnode->init_sorted_vnodes();
       _dkeys = &_dnode->_sorted_vnodes_vec[0];
-      
+
       // debug
       std::vector<const DHTKey*>::const_iterator vit
-	= _dnode->_sorted_vnodes_vec.begin();
+      = _dnode->_sorted_vnodes_vec.begin();
       while(vit!=_dnode->_sorted_vnodes_vec.end())
-	{
-	  std::cerr << *(*vit) << std::endl;
-	  ++vit;
-	}
+        {
+          std::cerr << *(*vit) << std::endl;
+          ++vit;
+        }
       // debug
-      
+
       _dnode->init_server();
       _dnode->_l1_server->run_thread();
       while(true)
         {
-          try
-            {
-              dht_err status;
-              _dnode->_l1_client->RPC_ping(DHTKey(),*_na_dnode,status);
-              break;
-            }
-          catch(dht_exception &e)
-            {
-              if(e.code() != DHT_ERR_COM_TIMEOUT)
-                {
-                  throw e;
-                }
-            }
+          dht_err status;
+          _dnode->_l1_client->RPC_ping(DHTKey(),*na_dnode,status);
+          if (status != DHT_ERR_COM_TIMEOUT)
+            break;
         }
     }
 
@@ -180,7 +171,7 @@ TEST_F(ProtocolPreliminaryTest, get_successor)
 {
   // get first virtual node.
   _v1node = _dnode->findVNode(*_dkeys[0]);
-  
+
   // set successor.
   DHTKey succ_dhtkey = *_dkeys[1];
   NetAddress *na_succ = new NetAddress(succ_addr,succ_port);
@@ -210,30 +201,30 @@ TEST_F(ProtocolPreliminaryTest, find_closest_predecessor)
   DHTKey succ_dhtkey = *_dkeys[1];
   NetAddress *na_succ = new NetAddress(succ_addr,succ_port);
   _v1node->setSuccessor(succ_dhtkey,*na_succ);
-  
+
   // set predecessor
   DHTKey pred_dhtkey = *_dkeys[3];
   NetAddress *na_pred = new NetAddress(pred_addr,pred_port);
   _v1node->setPredecessor(pred_dhtkey,*na_pred);
-  
+
   // test find_closest_predecessor.
   DHTKey dkres, dkres_succ;
   NetAddress nares, nares_succ;
   DHTKey nodekey = DHTKey::from_rstring(dkey1);
   dht_err status = -1;
   _dnode->_l1_client->RPC_findClosestPredecessor(_v1node->getIdKey(),
-						 _v1node->getNetAddress(),
-						 nodekey,
-						 dkres,nares,
-						 dkres_succ,nares_succ,
-						 status);
+      _v1node->getNetAddress(),
+      nodekey,
+      dkres,nares,
+      dkres_succ,nares_succ,
+      status);
   ASSERT_EQ(DHT_ERR_OK,status);
   ASSERT_EQ(succ_dhtkey.to_rstring(),dkres.to_rstring());
   ASSERT_TRUE(dkres < nodekey);
-    
+
   // dkres_succ is empty, findClosestPredecessor is not using succlist,
   // and cannot return successors.
-  ASSERT_EQ(DHTKey().to_rstring(),dkres_succ.to_rstring());  
+  ASSERT_EQ(DHTKey().to_rstring(),dkres_succ.to_rstring());
 
   delete na_pred;
   delete na_succ;
@@ -249,9 +240,9 @@ TEST_F(ProtocolPreliminaryTest, notify)
   dht_err status = -1;
   _v1node = _dnode->findVNode(*_dkeys[0]);
   _dnode->_l1_client->RPC_notify(_v1node->getIdKey(),*_na_dnode,
-				 pred_dhtkey,*na_pred,status);
+                                 pred_dhtkey,*na_pred,status);
   ASSERT_EQ(DHT_ERR_OK,status);
-  
+
   delete na_pred;
 }
 
