@@ -38,23 +38,23 @@ namespace dht
       virtual ~rpc_server();
 
       void run();
-      
+
       void bind();
-      
+
       void run_loop_once();
-      
+
       void run_thread();
-      
+
       void stop_thread();
-      
+
       void close_socket();
 
       static void run_static(rpc_server *server);
 
       /*- server responses. -*/
       virtual void serve_response(const std::string &msg,
-                                     const std::string &addr,
-                                     std::string &resp_msg);
+                                  const std::string &addr,
+                                  std::string &resp_msg);
 
     public:
       NetAddress _na;
@@ -62,8 +62,8 @@ namespace dht
       int _udp_sock;
       bool _abort;
       sp_mutex_t _run_mutex;
-      fd_set _rfds;
-      timeval _select_timeout;
+      sp_mutex_t _select_mutex;
+      timeval _timeout;
   };
 
 } /* end of namespace. */

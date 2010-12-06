@@ -35,6 +35,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -50,6 +51,10 @@ namespace dht
     :_na(hostname,port),_udp_sock(-1),_abort(false)
   {
     mutex_init(&_run_mutex);
+    mutex_init(&_select_mutex);
+    mutex_lock(&_select_mutex);
+    _timeout.tv_sec = 1;
+    _timeout.tv_usec = 0;
   }
 
   rpc_server::~rpc_server()
@@ -143,6 +148,10 @@ namespace dht
                           _na.getNetAddress().c_str(), _na.getPort());
         throw dht_exception(DHT_ERR_NETWORK, "rpc_server: can't bind any IP " + _na.getNetAddress() + ":" + sp::miscutil::to_string(_na.getPort()));
       }
+
+    int opts = fcntl(_udp_sock, F_GETFL);
+    if (fcntl(_udp_sock, F_SETFL, opts | O_NONBLOCK))
+      throw dht_exception(DHT_ERR_NETWORK, std::string("rpc_server: cannot set O_NONBLOCK ") + strerror(errno));
   }
 
   void rpc_server::run()
@@ -157,21 +166,26 @@ namespace dht
       {
         try
           {
-            FD_ZERO(&_rfds);
-            FD_SET(_udp_sock,&_rfds);
-            _select_timeout.tv_sec = 1; // 1 second timeout is default.
-            _select_timeout.tv_usec = 0;
+            fd_set rfds;
+            FD_ZERO(&rfds);
+            FD_SET(_udp_sock,&rfds);
+            timeval timeout = _timeout;
 
-            // non blocking on (single) service.
-            int m = select((int)_udp_sock+1,&_rfds,NULL,NULL,&_select_timeout);
+            // _select_mutex is used by tests to safely introspect the
+            // server structure while select is waiting.
+            mutex_unlock(&_select_mutex);
+            int m = select((int)_udp_sock+1,&rfds,NULL,NULL,&timeout);
+            mutex_lock(&_select_mutex);
             if (m > 0)
               run_loop_once();
             else if (m < 0)
               {
                 errlog::log_error(LOG_LEVEL_ERROR, "rpc_server select() failed!: %E");
                 spsockets::close_socket(_udp_sock);
-                throw new dht_exception(DHT_ERR_SOCKET, std::string("rpc_server select ") + strerror(errno));
+                throw dht_exception(DHT_ERR_SOCKET, std::string("rpc_server select ") + strerror(errno));
               }
+            else
+              ; // timeout
 
             mutex_lock(&_run_mutex);
             running = !_abort;
@@ -197,9 +211,12 @@ namespace dht
     int n = recvfrom(_udp_sock,buf,buflen,0,(struct sockaddr*)&from,&fromlen);
     if (n < 0)
       {
+        dht_err err = DHT_ERR_SOCKET;
+        if (errno == EWOULDBLOCK || errno == EAGAIN || errno == ECONNRESET)
+          err = DHT_ERR_COM_TIMEOUT;
         close_socket();
         errlog::log_error(LOG_LEVEL_ERROR, "recvfrom: error receiving DGRAM message, %E");
-        throw new dht_exception(DHT_ERR_SOCKET, std::string("recvfrom: error receiving DGRAM message ") + strerror(errno));
+        throw dht_exception(err, std::string("recvfrom: error receiving DGRAM message ") + strerror(errno));
       }
 
     // get our caller's address.
@@ -234,7 +251,6 @@ namespace dht
   {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    //pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_JOINABLE);
     int err = pthread_create(&_rpc_server_thread,&attrs,
                              (void * (*)(void *))&rpc_server::run_static,this);
