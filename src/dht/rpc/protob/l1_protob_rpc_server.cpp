@@ -62,7 +62,7 @@ namespace dht
   
    void l1_protob_rpc_server::serve_response_uncaught(const std::string &msg,
 						const std::string &addr,
-						std::string &resp_msg)
+						      std::string &resp_msg) throw (dht_exception)
      {
 	l1::l1_query l1q;
 	try 
@@ -152,7 +152,7 @@ namespace dht
 						    const DHTKey &node_key,
 						    int &status,
 						    std::string &resp_msg,
-						    const std::string &inc_msg)
+						 const std::string &inc_msg) throw (dht_exception)
      {
        throw dht_exception(DHT_ERR_NETWORK, "received another layer's message");
      }

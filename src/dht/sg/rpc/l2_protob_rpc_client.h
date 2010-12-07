@@ -40,7 +40,7 @@ namespace dht
 			 const DHTKey &recipientKey,
 			 const NetAddress &recipient,
 			 const DHTKey &sgKey,
-			 l2::l2_subscribe_response *l2r);
+		      l2::l2_subscribe_response *l2r) throw (dht_exception);
 	
 	void RPC_call(const uint32_t &fct_id,
 			 const DHTKey &recipientKey,
@@ -48,7 +48,7 @@ namespace dht
 			 const DHTKey &senderKey,
 			 const NetAddress &sender,
 			 const DHTKey &sgKey,
-			 l2::l2_subscribe_response *l2r);
+		      l2::l2_subscribe_response *l2r) throw (dht_exception);
 	
 	void RPC_call(const uint32_t &fct_id,
 			 const DHTKey &recipientKey,
@@ -58,15 +58,15 @@ namespace dht
 			 const DHTKey &ownerKey,
 			 const std::vector<Searchgroup*> &sgs,
 			 const bool &sdiff,
-			 l1::l1_response *l1r);
+		      l1::l1_response *l1r) throw (dht_exception);
 	
 	void RPC_call(const std::string &msg,
 			 const NetAddress &recipient,
-			 l2::l2_subscribe_response *l2r);
+		      l2::l2_subscribe_response *l2r) throw (dht_exception);
 	
 	void RPC_call(const std::string &msg,
 			 const NetAddress &recipient,
-			 l1::l1_response *l1r);
+		      l1::l1_response *l1r) throw (dht_exception);
 	
 	/*- l2 interface. -*/
 	virtual void RPC_subscribe(const DHTKey &recipientKey,
@@ -75,7 +75,7 @@ namespace dht
 				      const NetAddress &senderAddress,
 				      const DHTKey &sgKey,
 				      std::vector<Subscriber*> &peers,
-				      int &status);
+				   int &status) throw (dht_exception);
 	
 	virtual void RPC_replicate(const DHTKey &recipientKey,
 				      const NetAddress &recipient,
@@ -84,7 +84,7 @@ namespace dht
 				      const DHTKey &ownerKey,
 				      const std::vector<Searchgroup*> &sgs,
 				      const bool &sdiff,
-				      int &status);
+				   int &status) throw (dht_exception);
 	
      };
    

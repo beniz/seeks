@@ -69,9 +69,9 @@ namespace dht
 	
 	size_t size() const { return _succs.size(); };
 	
-	void update_successors();
+	void update_successors() throw (dht_exception);
 	
-	void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list);
+	void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list) throw (dht_exception);
 	
 	bool has_key(const DHTKey &key) const;
 		
@@ -85,9 +85,9 @@ namespace dht
 	/**
 	 * virtual functions, from Stabilizable.
 	 */
-        virtual void stabilize_fast() {};
+        virtual void stabilize_fast() throw (dht_exception) {};
 	
-        virtual void stabilize_slow() { update_successors(); };
+        virtual void stabilize_slow() throw (dht_exception) { update_successors(); };
 	
 	virtual bool isStable() const;
 	

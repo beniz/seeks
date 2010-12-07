@@ -136,7 +136,7 @@ namespace dht
 #endif
   }
 
-  int FingerTable::stabilize()
+  int FingerTable::stabilize() throw (dht_exception)
   {
     static int retries = 3;
     int ret = 0;
@@ -453,7 +453,7 @@ namespace dht
     return status;
   }
 
-  int FingerTable::fix_finger()
+  int FingerTable::fix_finger() throw (dht_exception)
   {
     mutex_lock(&_stable_mutex);
     _stable_pass2 = _stable_pass1;

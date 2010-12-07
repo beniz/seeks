@@ -22,7 +22,6 @@
 #include "rpc_server.h"
 #include "dht_err.h"
 #include "spsockets.h"
-#include "dht_exception.h"
 #include "dht_configuration.h"
 #include "miscutil.h"
 #include "errlog.h"
@@ -71,7 +70,7 @@ namespace dht
       }
   }
 
-  void rpc_server::bind()
+  void rpc_server::bind() throw (dht_exception)
   {
     // resolve hostname.
     std::string port_str = miscutil::to_string(_na.getPort());
@@ -199,9 +198,8 @@ namespace dht
     pthread_exit(NULL);
   }
 
-  void rpc_server::run_loop_once()
+  void rpc_server::run_loop_once() throw (dht_exception)
   {
-
     // get messages, one by one.
     size_t buflen = dht_configuration::_dht_config->_l1_server_max_msg_bytes;  //TODO: of transient l2 messages!
     char buf[buflen];
@@ -247,7 +245,7 @@ namespace dht
       }
   }
 
-  void rpc_server::run_thread()
+  void rpc_server::run_thread() throw (dht_exception)
   {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);

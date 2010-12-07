@@ -41,7 +41,7 @@ namespace dht
 					  const DHTKey &recipientKey,
 					  const NetAddress &recipient,
 					  const DHTKey &sgKey,
-					  l2::l2_subscribe_response *l2r)
+				       l2::l2_subscribe_response *l2r) throw (dht_exception)
      {
 	// serialize.
 	l1::l1_query *l2q = l1_protob_wrapper::create_l1_query(fct_id,recipientKey,
@@ -69,7 +69,7 @@ namespace dht
 					  const DHTKey &senderKey,
 					  const NetAddress &sender,
 					  const DHTKey &sgKey,
-					  l2::l2_subscribe_response *l2r)
+				       l2::l2_subscribe_response *l2r) throw (dht_exception)
      {
 	// serialize.
 	l1::l1_query *l2q = l1_protob_wrapper::create_l1_query(fct_id,recipientKey,recipient,
@@ -99,7 +99,7 @@ namespace dht
 					  const DHTKey &ownerKey,
 					  const std::vector<Searchgroup*> &sgs,
 					  const bool &sdiff,
-					  l1::l1_response *l1r)
+				       l1::l1_response *l1r) throw (dht_exception)
      {
 	// serialize.
 	l1::l1_query *l2q = l2_data_protob_wrapper::create_l2_replication_query(fct_id,recipientKey,recipient,
@@ -123,7 +123,7 @@ namespace dht
    					  
    void l2_protob_rpc_client::RPC_call(const std::string &msg,
 					  const NetAddress &recipient,
-					  l2::l2_subscribe_response *l2r)
+				       l2::l2_subscribe_response *l2r) throw (dht_exception)
      {
 	// send & get response.
 	std::string resp_str;
@@ -143,7 +143,7 @@ namespace dht
    
    void l2_protob_rpc_client::RPC_call(const std::string &msg,
 					  const NetAddress &recipient,
-					  l1::l1_response *l1r)
+				       l1::l1_response *l1r) throw (dht_exception)
      {
 	
 	// send & get response.
@@ -168,7 +168,7 @@ namespace dht
 					       const NetAddress &senderAddress,
 					       const DHTKey &sgKey,
 					       std::vector<Subscriber*> &peers,
-					       int &status)
+					    int &status) throw (dht_exception)
      {
 	//debug
 	std::cerr << "[Debug]: RPC_subscribe call\n";
@@ -208,7 +208,7 @@ namespace dht
 					       const DHTKey &ownerKey,
 					       const std::vector<Searchgroup*> &sgs,
 					       const bool &sdiff,
-					       int &status)
+					    int &status) throw (dht_exception)
      {
 	//debug
 	std::cerr << "[Debug]: RPC_replicate call\n";

@@ -57,7 +57,7 @@ namespace dht
   void rpc_client::do_rpc_call(const NetAddress &server_na,
                                const std::string &msg,
                                const bool &need_response,
-                               std::string &response) const
+                               std::string &response) const throw (dht_exception)
   {
     response.clear();
     int fd = open();
@@ -77,7 +77,7 @@ namespace dht
       }
   }
 
-  int rpc_client::open() const
+  int rpc_client::open() const throw (dht_exception)
   {
     // create socket.
     int udp_sock = socket(AF_INET,SOCK_DGRAM,0);
@@ -97,7 +97,7 @@ namespace dht
 
   void rpc_client::send(int fd,
                         const NetAddress &server_na,
-                        const std::string &msg) const
+                        const std::string &msg) const throw (dht_exception)
   {
     struct addrinfo *result = resolve(server_na);
     try
@@ -113,7 +113,7 @@ namespace dht
   }
 
 
-  struct addrinfo *rpc_client::resolve(const NetAddress &server_na) const
+  struct addrinfo *rpc_client::resolve(const NetAddress &server_na) const throw (dht_exception)
   {
     std::string port_str = miscutil::to_string(server_na.getPort());
     struct addrinfo hints;
@@ -136,7 +136,7 @@ namespace dht
 
   void rpc_client::write(int fd,
                          struct addrinfo *result,
-                         const std::string &msg) const
+                         const std::string &msg) const throw (dht_exception)
   {
     bool sent = false;
     struct addrinfo *rp;
@@ -169,7 +169,7 @@ namespace dht
     read(fd, response);
   }
 
-  void rpc_client::wait(int fd) const
+  void rpc_client::wait(int fd) const throw (dht_exception)
   {
     // non blocking on (single) response.
     fd_set rfds;
@@ -193,7 +193,7 @@ namespace dht
       }
   }
 
-  void rpc_client::read(int fd, std::string &response) const
+  void rpc_client::read(int fd, std::string &response) const throw (dht_exception)
   {
     size_t buflen = dht_configuration::_dht_config->_l1_server_max_msg_bytes;
     char buf[buflen];

@@ -45,7 +45,7 @@ namespace dht
 	/**
 	 * serialize and write the output to a stream.
 	 */
-	static void serialize_to_stream(const l1::table::vnodes_table *vt, std::ostream &out);
+	static void serialize_to_stream(const l1::table::vnodes_table *vt, std::ostream &out) throw (dht_exception);
 	
 	/**
 	 * From protobuffers to data.
@@ -57,7 +57,7 @@ namespace dht
 	/**
 	 * deserialize and read from an intput stream.
 	 */
-	static void deserialize_from_stream(std::istream &in, l1::table::vnodes_table *vt);
+	static void deserialize_from_stream(std::istream &in, l1::table::vnodes_table *vt) throw (dht_exception);
      };
    
 } /* end of namespace. */

@@ -96,7 +96,7 @@ namespace dht
 	 * \brief loads table of virtual nodes and location tables from persistent
 	 * data, if it exists.
 	 */
-	bool load_vnodes_table();
+	bool load_vnodes_table() throw (dht_exception);
 	
 	/**
 	 * \brief loads deserialized vnodes and tables into memory structures.
@@ -107,7 +107,7 @@ namespace dht
 	/**
 	 * \brief makes critical data (vnode keys and location tables) persistent.
 	 */
-	bool hibernate_vnodes_table();
+	bool hibernate_vnodes_table() throw (dht_exception);
 	
 	/**
 	 * \brief finds closest virtual node to the argument key.
@@ -178,7 +178,7 @@ namespace dht
 	 */
 	void getSuccessor_cb(const DHTKey& recipientKey,
 				DHTKey& dkres, NetAddress& na,
-				int& status);
+			     int& status) throw (dht_exception);
 
 	void getPredecessor_cb(const DHTKey& recipientKey,
 				  DHTKey& dkres, NetAddress& na,
@@ -248,7 +248,7 @@ namespace dht
 	 */
 	dht_err find_successor(const DHTKey& recipientKey,
 			       const DHTKey& nodeKey,
-			       DHTKey& dkres, NetAddress& na);
+			       DHTKey& dkres, NetAddress& na) throw (dht_exception);
 	
 	/**
 	 * \brief find nodekey's predecessor.
@@ -260,7 +260,7 @@ namespace dht
 	 */
 	dht_err find_predecessor(const DHTKey& recipientKey,
 				 const DHTKey& nodeKey,
-				 DHTKey& dkres, NetAddress& na);
+				 DHTKey& dkres, NetAddress& na) throw (dht_exception);
 	
       public:
 	/**

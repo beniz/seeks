@@ -41,23 +41,23 @@ namespace dht
       void do_rpc_call(const NetAddress &server_na,
                        const std::string &msg,
                        const bool &need_response,
-                       std::string &response) const;
+                       std::string &response) const throw (dht_exception);
 
-      int open() const;
+      int open() const throw (dht_exception);
 
       void send(int fd,
                 const NetAddress &server_na,
-                const std::string &msg) const;
+                const std::string &msg) const throw (dht_exception);
 
-      struct addrinfo* resolve(const NetAddress &server_na) const;
+      struct addrinfo* resolve(const NetAddress &server_na) const throw (dht_exception);
 
-      void write(int fd, struct addrinfo* result, const std::string &msg) const;
+      void write(int fd, struct addrinfo* result, const std::string &msg) const throw (dht_exception);
 
       void receive(int fd, std::string &response) const;
 
-      void wait(int fd) const;
+      void wait(int fd) const throw (dht_exception);
 
-      void read(int fd, std::string &response) const;
+      void read(int fd, std::string &response) const throw (dht_exception);
 
   };
 

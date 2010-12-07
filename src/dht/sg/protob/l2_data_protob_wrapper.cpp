@@ -61,7 +61,7 @@ namespace dht
      }
       
    void l2_data_protob_wrapper::serialize_to_string(const l2::sg::searchgroup *l2_sg,
-						    std::string &str)
+						    std::string &str) throw (dht_exception)
      {
 	if (!l2_sg)
 	  {
@@ -101,7 +101,7 @@ namespace dht
 	sg->_last_time_of_use = l2_sg->last_use();
      }
       
-   void l2_data_protob_wrapper::deserialize_from_string(const std::string &str, l2::sg::searchgroup *l2_sg)
+  void l2_data_protob_wrapper::deserialize_from_string(const std::string &str, l2::sg::searchgroup *l2_sg) throw (dht_exception)
      {
 	if (!l2_sg)
 	  {
@@ -143,7 +143,7 @@ namespace dht
 	return l2_rsgs;
      }
       
-   void l2_data_protob_wrapper::serialize_to_string(const l1::l1_query *l1r, std::string &str)
+  void l2_data_protob_wrapper::serialize_to_string(const l1::l1_query *l1r, std::string &str) throw (dht_exception)
      {
 	if (!l1r)
 	  {
@@ -186,7 +186,7 @@ namespace dht
 	  }
      }
 
-   void l2_data_protob_wrapper::deserialize_from_string(const std::string &str, l1::l1_query *l1q)
+  void l2_data_protob_wrapper::deserialize_from_string(const std::string &str, l1::l1_query *l1q) throw (dht_exception)
      {
 	if (!l1q)
 	  {

@@ -27,6 +27,7 @@
 #include "LocationTable.h"
 #include "SuccList.h"
 #include "mutexes.h"
+#include "dht_exception.h"
 
 #if (__GNUC__ >= 3)
 #include <ext/slist>
@@ -108,18 +109,18 @@ namespace dht
 	void join(const DHTKey& dk_bootstrap,
 		     const NetAddress &dk_bootstrap_na,
 		     const DHTKey& senderKey,
-		     int& status);
+		  int& status) throw (dht_exception);
 			       
 	dht_err find_successor(const DHTKey& nodeKey,
-			       DHTKey& dkres, NetAddress& na);
+			       DHTKey& dkres, NetAddress& na) throw (dht_exception);
 	
 	dht_err find_predecessor(const DHTKey& nodeKey,
-				 DHTKey& dkres, NetAddress& na);
+				 DHTKey& dkres, NetAddress& na) throw (dht_exception);
 	
 	bool is_dead(const DHTKey &recipientKey, const NetAddress &na,
-		     int &status);
+		     int &status) throw (dht_exception);
 	
-	dht_err leave();
+	dht_err leave() throw (dht_exception);
 
 	/**---------------------------**/
 	

@@ -49,7 +49,7 @@ namespace dht
 						    const DHTKey &node_key,
 						    int &status,
 						    std::string &resp_msg,
-						    const std::string &inc_msg)
+						 const std::string &inc_msg) throw (dht_exception)
      {
 #ifdef DEBUG
 	//debug

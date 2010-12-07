@@ -39,7 +39,7 @@ namespace dht
 								       const std::vector<Subscriber*> &peers);
 	
       public:
-	static void serialize_to_string(const l2::l2_subscribe_response*, std::string &str);
+	static void serialize_to_string(const l2::l2_subscribe_response*, std::string &str) throw (dht_exception);
      
       public:
 	static void read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
@@ -47,7 +47,7 @@ namespace dht
 						  std::vector<Subscriber*> &peers);
       
       public:
-	static void deserialize(const std::string &str, l2::l2_subscribe_response *l2r);
+	static void deserialize(const std::string &str, l2::l2_subscribe_response *l2r) throw (dht_exception);
      };
       
 } /* end of namespace. */

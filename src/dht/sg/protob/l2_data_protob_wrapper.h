@@ -38,11 +38,11 @@ namespace dht
 	/* search groups. */
 	static l2::sg::searchgroup* create_l2_searchgroup(const Searchgroup *sg);
 	
-	static void serialize_to_string(const l2::sg::searchgroup *l2_sg, std::string &str);
+	static void serialize_to_string(const l2::sg::searchgroup *l2_sg, std::string &str) throw (dht_exception);
 	
 	static void read_l2_searchgroup(const l2::sg::searchgroup *l2_sg, Searchgroup *&sg);
 	
-	static void deserialize_from_string(const std::string &str, l2::sg::searchgroup *l2_sg);
+	static void deserialize_from_string(const std::string &str, l2::sg::searchgroup *l2_sg) throw (dht_exception);
 	
 	/* messages. */
 	static l1::l1_query* create_l2_replication_query(const uint32_t &fct_id,
@@ -57,7 +57,7 @@ namespace dht
 	static l2::sg::r_searchgroups* create_replicated_searchgroups(l2::sg::r_searchgroups *l2_rsgs,
 								      const std::vector<Searchgroup*> &sgs);
 	
-	static void serialize_to_string(const l1::l1_query *l1r, std::string &str);
+	static void serialize_to_string(const l1::l1_query *l1r, std::string &str) throw (dht_exception);
 	
 	static void read_l2_replication_query(const l1::l1_query *l1q,
 						 uint32_t &fct_id,
@@ -72,7 +72,7 @@ namespace dht
 	static void read_replicated_searchgroups(const l2::sg::r_searchgroups &rsgs,
 						 std::vector<Searchgroup*> &sgs);
 	
-	static void deserialize_from_string(const std::string &str, l1::l1_query *l1q);	
+	static void deserialize_from_string(const std::string &str, l1::l1_query *l1q) throw (dht_exception);	
      };
       
 } /* end of namespace. */

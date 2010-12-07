@@ -24,6 +24,7 @@
 
 #include "NetAddress.h"
 #include "mutexes.h"
+#include "dht_exception.h"
 
 #include <sys/select.h>
 #include <pthread.h>
@@ -39,11 +40,11 @@ namespace dht
 
       void run();
 
-      void bind();
+      void bind() throw (dht_exception);
 
-      void run_loop_once();
+      void run_loop_once() throw (dht_exception);
 
-      void run_thread();
+      void run_thread() throw (dht_exception);
 
       void stop_thread();
 

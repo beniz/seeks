@@ -49,7 +49,7 @@ namespace dht
 	return l2r;
      }
         
-   void l2_protob_wrapper::serialize_to_string(const l2::l2_subscribe_response *l2r, std::string &str)
+  void l2_protob_wrapper::serialize_to_string(const l2::l2_subscribe_response *l2r, std::string &str) throw (dht_exception)
      {
 	if (!l2r)
 	  {
@@ -84,7 +84,7 @@ namespace dht
 	  }
      }
       
-   void l2_protob_wrapper::deserialize(const std::string &str, l2::l2_subscribe_response *l2r)
+  void l2_protob_wrapper::deserialize(const std::string &str, l2::l2_subscribe_response *l2r) throw (dht_exception)
      {
 	if (!l2r)
 	  {

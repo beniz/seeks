@@ -70,7 +70,7 @@ namespace dht
 	else (*_succs.begin()) = succ_key;
      }
    
-   void SuccList::update_successors()
+  void SuccList::update_successors() throw (dht_exception)
      {
 #ifdef DEBUG
 	//debug
@@ -127,7 +127,7 @@ namespace dht
      	merge_succ_list(dkres_list,na_list);
      }
    
-   void SuccList::merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list)
+  void SuccList::merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list) throw (dht_exception)
      {
 #ifdef DEBUG
 	//debug

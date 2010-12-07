@@ -22,27 +22,27 @@
 
 namespace dht
 {
-   void dht_api::findClosestPredecessor(const DHTNode &dnode,
+  /* void dht_api::findClosestPredecessor(const DHTNode &dnode,
 					   const DHTKey &nodeKey,
 					   DHTKey &dkres, NetAddress &na,
 					   int &status)
      {
-	// grab the closest virtual node to make the RPC call from it.
+	// grab the closest virtual node to search in its finger table.
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodeKey);
 	
-	// make the RPC call.
+	// search the finger table.
 	DHTKey dkres_succ;
 	NetAddress dkres_succ_na;
 	vnode->findClosestPredecessor(nodeKey,dkres,na,
 				      dkres_succ,dkres_succ_na,
 				      status);
-     }
+				      } */
  
    dht_err dht_api::findSuccessor(const DHTNode &dnode,
 				  const DHTKey &nodekey,
-				  DHTKey &dkres, NetAddress &na)
+				  DHTKey &dkres, NetAddress &na) throw (dht_exception)
      {
-	// grab the closest virtual node to make the RPC call from it.
+	// grab the closest virtual node to nodekey, to make the RPC call from it.
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
      
 	// make the RPC call.
@@ -51,9 +51,9 @@ namespace dht
 
    dht_err dht_api::findPredecessor(const DHTNode &dnode,
 				    const DHTKey &nodekey,
-				    DHTKey &dkres, NetAddress &na)
+				    DHTKey &dkres, NetAddress &na) throw (dht_exception)
      {
-	// grab the closest virtual node to make the RPC call from it.
+	// grab the closest virtual node to nodekey, to make the RPC call from it.
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
      
 	// make the RPC call.
@@ -63,7 +63,7 @@ namespace dht
    dht_err dht_api::ping(const DHTNode &dnode,
 			 const DHTKey &nodekey,
 			 const NetAddress &na,
-			 bool &alive)
+			 bool &alive) throw (dht_exception)
      {
 	// grab the closest virtual node to make the RPC call from it.
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);

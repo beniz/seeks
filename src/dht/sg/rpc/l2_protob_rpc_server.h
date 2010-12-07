@@ -44,7 +44,7 @@ namespace dht
 					   const DHTKey &node_key,
 					   int &status,
 					   std::string &resp_msg,
-					   const std::string &inc_msg);
+					const std::string &inc_msg) throw (dht_exception);
      
 	void execute_callback(const uint32_t &fct_id,
 				 const DHTKey &recipient_key,

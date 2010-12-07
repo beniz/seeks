@@ -73,7 +73,7 @@ namespace dht
     return l1_vt;
   }
 
-  void l1_data_protob_wrapper::serialize_to_stream(const l1::table::vnodes_table *vt, std::ostream &out)
+  void l1_data_protob_wrapper::serialize_to_stream(const l1::table::vnodes_table *vt, std::ostream &out) throw (dht_exception)
   {
     if (!vt)
       {
@@ -131,7 +131,7 @@ namespace dht
     //debug
   }
 
-  void l1_data_protob_wrapper::deserialize_from_stream(std::istream &in, l1::table::vnodes_table *vt)
+  void l1_data_protob_wrapper::deserialize_from_stream(std::istream &in, l1::table::vnodes_table *vt) throw (dht_exception)
   {
     if (!vt)
       {

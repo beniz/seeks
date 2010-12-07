@@ -230,8 +230,8 @@ namespace dht
 	_l1_server = new l1_protob_rpc_server(_l1_na.getNetAddress(),_l1_na.getPort(),this);
 	_l1_client = new l1_protob_rpc_client();
      }
-      
-   bool DHTNode::load_vnodes_table()
+  
+  bool DHTNode::load_vnodes_table() throw (dht_exception)
      {
 	std::ifstream ifs;
 	ifs.open(_vnodes_table_file.c_str(),std::ios::binary);
@@ -306,7 +306,7 @@ namespace dht
 	  }
      }
 
-   bool DHTNode::hibernate_vnodes_table()
+  bool DHTNode::hibernate_vnodes_table() throw (dht_exception)
      {
 	std::vector<const DHTKey*> vnode_ids;
 	std::vector<LocationTable*> vnode_ltables;
@@ -609,7 +609,7 @@ namespace dht
     */
    void DHTNode::getSuccessor_cb(const DHTKey& recipientKey,
 				    DHTKey& dkres, NetAddress& na,
-				    int& status)
+				 int& status) throw (dht_exception)
      {
 	status = DHT_ERR_OK;
 	
@@ -944,7 +944,7 @@ namespace dht
              catch (dht_exception &e)
                {
                  status = e.code();
-               }
+               } // XXX: no throw ?
              
 	     if (status != DHT_ERR_OK)
 	       {
@@ -962,7 +962,7 @@ namespace dht
    
    dht_err DHTNode::find_successor(const DHTKey& recipientKey,
 				   const DHTKey& nodeKey,
-				   DHTKey& dkres, NetAddress& na)
+				   DHTKey& dkres, NetAddress& na) throw (dht_exception)
      {
 	/**
 	 * get the virtual node and deal with possible errors.
@@ -980,7 +980,7 @@ namespace dht
    
    dht_err DHTNode::find_predecessor(const DHTKey& recipientKey,
 				     const DHTKey& nodeKey,
-				     DHTKey& dkres, NetAddress& na)
+				     DHTKey& dkres, NetAddress& na) throw (dht_exception)
      {
 	/**
 	 * get the virtual node and deal with possible errors.
@@ -995,19 +995,7 @@ namespace dht
 	
 	return vnode->find_predecessor(nodeKey, dkres, na);
      }
-
-   /* dht_err DHTNode::stabilize(const DHTKey& recipientKey)
-     {
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-	if (!vnode)
-	  {
-	     return 3;
-	  }
-
-	dht_err status = vnode->stabilize();
-	return status;
-     } */
-      
+  
    /**----------------------------**/   
    
    DHTVirtualNode* DHTNode::findVNode(const DHTKey& dk) const

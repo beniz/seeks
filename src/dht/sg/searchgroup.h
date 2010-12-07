@@ -25,6 +25,7 @@
 #include "subscriber.h"
 #include "sweeper.h"
 #include "sg_configuration.h"
+#include "dht_exception.h"
 
 #include <time.h>
 #include <vector>
@@ -57,9 +58,9 @@ namespace dht
 	virtual bool sweep_me();
 	
 	//TODO: storage.
-	bool serialize_to_string(std::string &str);
+	bool serialize_to_string(std::string &str) throw (dht_exception);
 	
-	static Searchgroup* deserialize_from_string(const std::string &str); //TODO.
+	static Searchgroup* deserialize_from_string(const std::string &str) throw (dht_exception);
 		
 	/* peer selection. */
 	void random_peer_selection(const int &npeers, std::vector<Subscriber*> &rpeers);

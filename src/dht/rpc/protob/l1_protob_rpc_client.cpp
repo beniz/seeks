@@ -40,7 +40,7 @@ namespace dht
                                       const DHTKey &recipientKey,
                                       const NetAddress& recipient,
                                       const DHTKey &nodeKey,
-                                      l1::l1_response *l1r)
+                                      l1::l1_response *l1r) throw (dht_exception)
   {
     // serialize.
     l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
@@ -52,7 +52,7 @@ namespace dht
   void l1_protob_rpc_client::RPC_call(const uint32_t &fct_id,
                                       const DHTKey &recipientKey,
                                       const NetAddress &recipient,
-                                      l1::l1_response *l1r)
+                                      l1::l1_response *l1r) throw (dht_exception)
   {
     // serialize.
     l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
@@ -66,20 +66,20 @@ namespace dht
                                       const NetAddress& recipient,
                                       const DHTKey &senderKey,
                                       const NetAddress& senderAddress,
-                                      l1::l1_response *l1r)
+                                      l1::l1_response *l1r) throw (dht_exception)
   {
     // serialize.
     DHTKey nodeKey;
     l1::l1_query *l1q = l1_protob_wrapper::create_l1_query(fct_id,
                         recipientKey,recipient,
                         senderKey,senderAddress,
-                        nodeKey); // emty nodeKey.
+                        nodeKey); // empty nodeKey.
     RPC_call(l1q,recipient,l1r);
   }
 
   void l1_protob_rpc_client::RPC_call(l1::l1_query *&l1q,
                                       const NetAddress &recipient,
-                                      l1::l1_response *l1r)
+                                      l1::l1_response *l1r) throw (dht_exception)
   {
     std::string msg_str;
     l1_protob_wrapper::serialize_to_string(l1q,msg_str);
@@ -117,9 +117,9 @@ namespace dht
   }
 
   void l1_protob_rpc_client::RPC_getSuccessor(const DHTKey &recipientKey,
-      const NetAddress& recipient,
-      DHTKey& dkres, NetAddress& na,
-      int& status)
+					      const NetAddress& recipient,
+					      DHTKey& dkres, NetAddress& na,
+					      int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -151,9 +151,9 @@ namespace dht
   }
 
   void l1_protob_rpc_client::RPC_getPredecessor(const DHTKey& recipientKey,
-      const NetAddress& recipient,
-      DHTKey& dkres, NetAddress& na,
-      int& status)
+						const NetAddress& recipient,
+						DHTKey& dkres, NetAddress& na,
+						int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -188,7 +188,7 @@ namespace dht
                                         const NetAddress& recipient,
                                         const DHTKey& senderKey,
                                         const NetAddress& senderAddress,
-                                        int& status)
+                                        int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -220,10 +220,10 @@ namespace dht
   }
 
   void l1_protob_rpc_client::RPC_getSuccList(const DHTKey &recipientKey,
-      const NetAddress &recipient,
-      std::list<DHTKey> &dkres_list,
-      std::list<NetAddress> &na_list,
-      int &status)
+					     const NetAddress &recipient,
+					     std::list<DHTKey> &dkres_list,
+					     std::list<NetAddress> &na_list,
+					     int &status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -260,7 +260,7 @@ namespace dht
       DHTKey& dkres, NetAddress& na,
       DHTKey& dkres_succ,
       NetAddress &dkres_succ_na,
-      int& status)
+							int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -296,7 +296,7 @@ namespace dht
       const NetAddress& recipient,
       const DHTKey &senderKey,
       DHTKey& dkres, NetAddress& na,
-      int& status)
+					     int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -333,7 +333,7 @@ namespace dht
 
   void l1_protob_rpc_client::RPC_ping(const DHTKey& recipientKey,
                                       const NetAddress& recipient,
-                                      int& status)
+                                      int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug

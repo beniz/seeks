@@ -197,7 +197,7 @@ namespace dht
    void DHTVirtualNode::join(const DHTKey& dk_bootstrap,
 				const NetAddress &dk_bootstrap_na,
 				const DHTKey& senderKey,
-				int& status)
+			     int& status) throw (dht_exception)
      {
 	/**
 	 * reset predecessor.
@@ -224,7 +224,7 @@ namespace dht
      }
       
    dht_err DHTVirtualNode::find_successor(const DHTKey& nodeKey,
-					  DHTKey& dkres, NetAddress& na)
+					  DHTKey& dkres, NetAddress& na) throw (dht_exception)
      {
 	DHTKey dk_pred;
 	NetAddress na_pred;
@@ -269,7 +269,7 @@ namespace dht
      }
    
    dht_err DHTVirtualNode::find_predecessor(const DHTKey& nodeKey,
-					    DHTKey& dkres, NetAddress& na)
+					    DHTKey& dkres, NetAddress& na) throw (dht_exception)
      {
 	static short retries = 2;
 	int ret = 0;
@@ -488,7 +488,7 @@ namespace dht
      }
 
    bool DHTVirtualNode::is_dead(const DHTKey &recipientKey, const NetAddress &na,
-				   int &status)
+				int &status) throw (dht_exception)
      {
 	if (_pnode->findVNode(recipientKey))
 	  {
@@ -518,7 +518,7 @@ namespace dht
 	  }
      }
   
-  dht_err DHTVirtualNode::leave()
+  dht_err DHTVirtualNode::leave() throw (dht_exception)
   {
     dht_err err = DHT_ERR_OK;
     

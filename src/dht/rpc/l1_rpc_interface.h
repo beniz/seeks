@@ -24,6 +24,7 @@
 #include "dht_err.h"
 #include "DHTKey.h"
 #include "NetAddress.h"
+#include "dht_exception.h"
 #include <list>
 
 namespace dht
@@ -58,7 +59,7 @@ namespace dht
 	virtual void RPC_getSuccessor(const DHTKey& recipientKey,
 					 const NetAddress& recipient,
 					 DHTKey& dkres, NetAddress& na,
-					 int& status) = 0;
+				      int& status) throw (dht_exception) = 0;
 	
 	/**
 	 * \brief getPredecessor RPC.
@@ -72,7 +73,7 @@ namespace dht
 	virtual void RPC_getPredecessor(const DHTKey& recipientKey,
 					   const NetAddress& recipient,
 					   DHTKey& dkres, NetAddress& na,
-					   int& status) = 0;
+					int& status) throw (dht_exception) = 0;
 	
 	/**
 	 * \brief Notify RPC: sender notifies recipient that it thinks it is it's successor.
@@ -86,7 +87,7 @@ namespace dht
 				   const NetAddress& recipient,
 				   const DHTKey& senderKey,
 				   const NetAddress& senderAddress,
-				   int& status) = 0;
+				int& status) throw (dht_exception) = 0;
 	
 	/**
 	 * \brief getSuccList RPC: returns the recipient's successor list.
@@ -102,7 +103,7 @@ namespace dht
 					const NetAddress &recipient,
 					std::list<DHTKey> &dkres_list,
 					std::list<NetAddress> &na_list,
-					int &status) = 0;
+				     int &status) throw (dht_exception) = 0;
 	
 	/**
 	 * \brief findClosestPredecessor RPC: ask recipient to find
@@ -123,7 +124,7 @@ namespace dht
 						   DHTKey& dkres, NetAddress& na,
 						   DHTKey& dkres_succ,
 						   NetAddress &dkres_succ_na,
-						   int& status) = 0;
+						int& status) throw (dht_exception) = 0;
 	/**
 	 * \brief joinGetSucc: find_successor remote call when bootstrapping.
 	 * @param recipientKey identification key of the target node.
@@ -138,7 +139,7 @@ namespace dht
 					const NetAddress &recipient,
 					const DHTKey &senderKey,
 					DHTKey &dkres, NetAddress &na,
-					int &status) = 0;
+				     int &status) throw (dht_exception) = 0;
      
 	/**
 	 * \brief ping: pings a remote node. 
@@ -148,7 +149,7 @@ namespace dht
 	 */
 	virtual void RPC_ping(const DHTKey &recipientKey,
 				 const NetAddress &recipient,
-				 int &status) = 0;
+			      int &status) throw (dht_exception) = 0;
      };
 
    class l1_rpc_server_interface

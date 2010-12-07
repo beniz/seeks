@@ -30,23 +30,23 @@ namespace dht
    class dht_api
      {
       public:
-       static void findClosestPredecessor(const DHTNode &dnode,
+       /* static void findClosestPredecessor(const DHTNode &dnode,
 					  const DHTKey& nodeKey,
 					  DHTKey& dkres, NetAddress& na,
-					  int& status);
+					  int& status); */
        
        static dht_err findSuccessor(const DHTNode &dnode,
 				    const DHTKey &nodekey,
-				     DHTKey &dkres, NetAddress &na);
+				    DHTKey &dkres, NetAddress &na) throw (dht_exception);
      
 	static dht_err findPredecessor(const DHTNode &dnode,
 				       const DHTKey &nodekey,
-				       DHTKey &dkres, NetAddress &na);
+				       DHTKey &dkres, NetAddress &na) throw (dht_exception);
 	
 	static dht_err ping(const DHTNode &dnode,
 			    const DHTKey &nodekey,
 			    const NetAddress &na,
-			    bool &alive);
+			    bool &alive) throw (dht_exception);
         
         static dht_err join_start(DHTNode &dnode,
                                   const std::vector<NetAddress> &bootstrap_nodes,

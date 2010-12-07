@@ -124,7 +124,7 @@ namespace dht
 	return l1q;
      }
    
-   void l1_protob_wrapper::serialize_to_string(const l1::l1_query *l1q, std::string &str)
+  void l1_protob_wrapper::serialize_to_string(const l1::l1_query *l1q, std::string &str) throw (dht_exception)
      {
 	if (!l1q)
 	  {
@@ -265,7 +265,7 @@ namespace dht
 	return l1r;
      }
 
-   void l1_protob_wrapper::serialize_to_string(const l1::l1_response *l1r, std::string &str)
+  void l1_protob_wrapper::serialize_to_string(const l1::l1_response *l1r, std::string &str) throw (dht_exception)
      {
 	if (!l1r)
 	  {
@@ -358,7 +358,7 @@ namespace dht
 	sender_net_port = l1q_sender_addr.net_port();
      }
    
-   void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_query *l1q)
+  void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_query *l1q) throw (dht_exception)
      {
 	if (!l1q)
 	  {
@@ -516,7 +516,7 @@ namespace dht
 	error_status = l1r->error_status();
      }
    
-   void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_response *l1r)
+  void l1_protob_wrapper::deserialize(const std::string &str, l1::l1_response *l1r) throw (dht_exception)
      {
 	if (!l1r)
 	  {

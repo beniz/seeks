@@ -132,7 +132,7 @@ namespace dht
 	rpeers.erase(vit,rpeers.end());
      }
 
-   bool Searchgroup::serialize_to_string(std::string &str)
+  bool Searchgroup::serialize_to_string(std::string &str) throw (dht_exception)
      {
 	l2::sg::searchgroup *l2_sg = l2_data_protob_wrapper::create_l2_searchgroup(this);
 	try
@@ -150,7 +150,7 @@ namespace dht
 	return true;
      }
 
-   Searchgroup* Searchgroup::deserialize_from_string(const std::string &str)
+  Searchgroup* Searchgroup::deserialize_from_string(const std::string &str) throw (dht_exception)
      {
        l2::sg::searchgroup l2_sg;
 	try

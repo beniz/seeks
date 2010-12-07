@@ -71,7 +71,7 @@ namespace dht
 					     const std::string &sender_ip_addr,
 					     const short &sender_net_port);
       public:
-	static void serialize_to_string(const l1::l1_query *l1q, std::string &str);
+	static void serialize_to_string(const l1::l1_query *l1q, std::string &str) throw (dht_exception);
 	
 	// responses.
       public:
@@ -109,7 +109,7 @@ namespace dht
 						   const short &found_net_port);
 	
       public:
-	static void serialize_to_string(const l1::l1_response *l1r, std::string &str);
+	static void serialize_to_string(const l1::l1_response *l1r, std::string &str) throw (dht_exception);
 	
 	/**
 	 * From protobuffers to data.
@@ -143,7 +143,7 @@ namespace dht
 				     std::string &sender_ip_addr,
 				     uint32_t &sender_net_port);
       public:
-	static void deserialize(const std::string &str, l1::l1_query *l1q);
+	static void deserialize(const std::string &str, l1::l1_query *l1q) throw (dht_exception);
      
 	// responses.
       public:
@@ -190,7 +190,7 @@ namespace dht
 					uint32_t &error_status);
 	
       public:
-	static void deserialize(const std::string &str, l1::l1_response *l1r);
+	static void deserialize(const std::string &str, l1::l1_response *l1r) throw (dht_exception);
      };
       
 } /* end of namespace. */

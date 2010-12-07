@@ -39,7 +39,7 @@ namespace dht
 	
 	void serve_response_uncaught(const std::string &msg,
 				       const std::string &addr,
-				       std::string &resp_msg);
+				     std::string &resp_msg) throw (dht_exception);
 	
 	virtual void lx_server_response(const uint32_t &fct_id,
 					   const DHTKey &recipient_key,
@@ -49,7 +49,7 @@ namespace dht
 					   const DHTKey &node_key,
 					   int &status,
 					   std::string &resp_msg,
-					   const std::string &inc_msg);
+					const std::string &inc_msg) throw (dht_exception);
 	
 	void execute_callback(const uint32_t &fct_id,
 				 const DHTKey &recipient_key,
