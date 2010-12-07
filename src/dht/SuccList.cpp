@@ -82,23 +82,23 @@ namespace dht
 	 * RPC call to get successor list.
 	 */
 	int status = 0;
-	DHTKey *dk_succ = _vnode->getSuccessor();
-	if (!dk_succ)
+	DHTKey dk_succ = _vnode->getSuccessorS();
+	if (!dk_succ.count())
 	  {
 	     // TODO: errlog.
 	     // XXX: should never reach here...
 	     std::cerr << "[Error]:SuccList::update_successors: this virtual node has no successor:"
-	       << *dk_succ << ".Exiting\n";
+	       << dk_succ << ".Exiting\n";
 	     exit(-1);
 	  }
 	
-	Location *loc_succ = _vnode->findLocation(*dk_succ);
+	Location *loc_succ = _vnode->findLocation(dk_succ);
 	
 	std::list<DHTKey> dkres_list;
 	std::list<NetAddress> na_list;
-	_vnode->getPNode()->getSuccList_cb(*dk_succ,dkres_list,na_list,status);
+	_vnode->getPNode()->getSuccList_cb(dk_succ,dkres_list,na_list,status);
 	if (status == DHT_ERR_UNKNOWN_PEER)
-	  _vnode->getPNode()->_l1_client->RPC_getSuccList(*dk_succ, loc_succ->getNetAddress(),
+	  _vnode->getPNode()->_l1_client->RPC_getSuccList(dk_succ, loc_succ->getNetAddress(),
 							  dkres_list, na_list, status);
 	
 	/** 
@@ -118,7 +118,7 @@ namespace dht
 	  }
 	else
 	  {
-	     Location *uloc = _vnode->findLocation(*dk_succ);
+	     Location *uloc = _vnode->findLocation(dk_succ);
 	     if (uloc)
 	       uloc->update_check_time();
 	  }

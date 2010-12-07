@@ -129,10 +129,12 @@ namespace dht
 	const DHTKey& getIdKey() const { return _idkey; }
 	const DHTKey* getIdKeyPtr() const { return &_idkey; }
 	DHTNode* getPNode() const { return _pnode; }
-	DHTKey* getSuccessor() const { return _successor; }
+	DHTKey *getSuccessorPtr() const { return _successor; }
+	DHTKey getSuccessorS();
 	void setSuccessor(const DHTKey &dk);
 	void setSuccessor(const DHTKey& dk, const NetAddress& na);
-	DHTKey* getPredecessor() const { return _predecessor; }
+	DHTKey* getPredecessorPtr() const { return _predecessor; }
+	DHTKey getPredecessorS();
 	void setPredecessor(const DHTKey &dk);
 	void setPredecessor(const DHTKey& dk, const NetAddress& na);
 	void clearSuccsList() { _successors.clear(); };
@@ -150,8 +152,8 @@ namespace dht
 	void removeLocation(Location *loc);
 	NetAddress getNetAddress() const;
 	Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
-	bool isPredecessorEqual(const DHTKey &key) const;
-	bool not_used_location(Location *loc) const;
+	bool isPredecessorEqual(const DHTKey &key);
+	bool not_used_location(Location *loc);
 	
 	/* update of successor list. */
 	void update_successor_list_head();

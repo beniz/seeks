@@ -120,7 +120,7 @@ namespace dht
     status = DHT_ERR_OK;
     dkres = getVNodeIdKey();
     na = getVNodeNetAddress();
-    dkres_succ = *getVNodeSuccessor();
+    dkres_succ = getVNodeSuccessorS();
     Location *succ_loc = findLocation(dkres_succ);
     if (!succ_loc)
       {
@@ -153,12 +153,12 @@ namespace dht
     /**
      * get successor's predecessor.
      */
-    DHTKey* succ;
-    if ((succ = _vnode->getSuccessor()) == NULL)
+    DHTKey succ = _vnode->getSuccessorS();
+    if (!succ.count())
       {
         /**
          * TODO: after debugging, write a better handling of this error.
-               */
+	 */
         std::cerr << "[Error]:FingerTable::stabilize: this virtual node has no successor: "
                   << recipientKey << ". Exiting\n";
         exit(-1);
@@ -167,11 +167,11 @@ namespace dht
     /**
      * lookup for the peer.
      */
-    Location* succ_loc = findLocation(*succ);
+    Location* succ_loc = findLocation(succ);
     if (!succ_loc)
       {
         errlog::log_error(LOG_LEVEL_DHT,"Stabilize: cannot find successor %s in location table",
-                          succ->to_rstring().c_str());
+                          succ.to_rstring().c_str());
         return DHT_ERR_UNKNOWN_PEER_LOCATION;
       }
 
@@ -212,7 +212,7 @@ namespace dht
              */
 
             bool dead = false;
-            _vnode->is_dead(*succ,succ_loc->getNetAddress(),
+            _vnode->is_dead(succ,succ_loc->getNetAddress(),
                             status);
 
             if (dead || ret == retries)
@@ -231,9 +231,9 @@ namespace dht
                   : _vnode->getFirstSuccessor();
 
                 /**
-                			* if we're at the end, game over, we will need to rejoin the network
-                			* (we're probably cut off because of network failure, or some weird configuration).
-                			*/
+		 * if we're at the end, game over, we will need to rejoin the network
+		 * (we're probably cut off because of network failure, or some weird configuration).
+		 */
                 if (kit == _vnode->_successors.end())
                   break; // we're out of potential successors.
 
@@ -243,13 +243,15 @@ namespace dht
                 //debug
 #endif
 
-                succ = const_cast<DHTKey*>((*kit));
-
+                DHTKey *succ_ptr = const_cast<DHTKey*>((*kit));
+		assert(succ_ptr); // beware, TODO: this should never happen, take it into account ?
+		succ = *succ_ptr;
+		
                 // mark dead nodes for tentative removal from location table.
                 dead_locs.push_back(succ_loc);
 
                 // sets a new successor.
-                succ_loc = findLocation(*succ);
+                succ_loc = findLocation(succ);
 
                 // replaces the successor and the head of the successor list as well.
                 _vnode->setSuccessor(succ_loc->getDHTKeyRef(),succ_loc->getNetAddress());
@@ -333,7 +335,7 @@ namespace dht
 #ifdef DEBUG
         //debug
         assert(!_vnode->_successors.has_key(dead_loc->getDHTKey()));
-        assert(*_vnode->getSuccessor() != dead_loc->getDHTKey());
+        assert(*_vnode->getSuccessorPtr() != dead_loc->getDHTKey());
         //debug
 #endif
 
@@ -395,7 +397,7 @@ namespace dht
          * key check: if a node has taken place in between us and our
          * successor.
          */
-        if (succ_pred.between(recipientKey, *succ))
+        if (succ_pred.between(recipientKey,succ))
           {
             Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
             _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
@@ -407,7 +409,8 @@ namespace dht
             // where k is the replication factor.
             //TODO: needs to move everything from 0 to k-1 !
             //TODO: beware of bootstrap.
-            _vnode->replication_move_keys_forward(*_vnode->getSuccessor());
+	    DHTKey vsucc = _vnode->getSuccessorS();
+            _vnode->replication_move_keys_forward(vsucc);
           }
       }
 
@@ -437,12 +440,13 @@ namespace dht
     else // in non routing mode, check whether our predecessor has changed.
       {
         Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
-        if (_vnode->getPredecessor() && (*_vnode->getPredecessor() == _vnode->getIdKey()))
+        DHTKey vpred = _vnode->getPredecessorS();
+	if (vpred.count() && (vpred == _vnode->getIdKey()))
           {
             // XXX: this should not happen. It does when self-bootstrapping in non routing mode,
             // a hopeless situation.
           }
-        else if (!_vnode->getPredecessor() || succ_pred_loc->getDHTKey() != *_vnode->getPredecessor())
+        else if (!vpred.count() || succ_pred_loc->getDHTKey() != vpred)
           _vnode->setPredecessor(succ_pred_loc->getDHTKey(), succ_pred_loc->getNetAddress());
       }
 
@@ -571,10 +575,12 @@ namespace dht
   void FingerTable::print(std::ostream &out) const
   {
     out << "   ftable: " << _vnode->getIdKey() << std::endl;
-    if (_vnode->getSuccessor())
-      out << "successor: " << *_vnode->getSuccessor() << std::endl;
-    if (_vnode->getPredecessor())
-      out << "predecessor: " << *_vnode->getPredecessor() << std::endl;
+    DHTKey vpred = _vnode->getPredecessorS();
+    DHTKey vsucc = _vnode->getSuccessorS();
+    if (vsucc.count())
+      out << "successor: " << vsucc << std::endl;
+    if (vpred.count())
+      out << "predecessor: " << vpred << std::endl;
     out << "successor list (" << _vnode->_successors.size() << "): ";
     std::list<const DHTKey*>::const_iterator lit = _vnode->_successors._succs.begin();
     while(lit!=_vnode->_successors._succs.end())

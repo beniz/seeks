@@ -72,13 +72,18 @@ namespace dht
       
    DHTVirtualNode::~DHTVirtualNode()
      {
+       mutex_lock(&_succ_mutex);
 	if (_successor)
 	  delete _successor;
 	_successor = NULL;
+	mutex_unlock(&_succ_mutex);
+	
+	mutex_lock(&_pred_mutex);
 	if (_predecessor)
 	  delete _predecessor;
 	_predecessor = NULL;
-
+	mutex_unlock(&_pred_mutex);
+	
 	_successors.clear();
 	
 	delete _fgt;
@@ -116,9 +121,10 @@ namespace dht
    dht_err DHTVirtualNode::notify(const DHTKey& senderKey, const NetAddress& senderAddress)
      {
        bool reset_pred = false;
-	if (!_predecessor)
-	  reset_pred = true;
-	else if (*_predecessor != senderKey) // our predecessor may have changed.
+       DHTKey pred = getPredecessorS();
+       if (pred.count() == 0)
+	 reset_pred = true;	 
+       	else if (pred != senderKey) // our predecessor may have changed.
 	  {
 	     /**
 	      * If we are the new successor of a node, because some other node did 
@@ -132,21 +138,19 @@ namespace dht
 	      * time has passed.
 	      */
 	     // TODO: slow down the time between two pings by looking at a location 'alive' flag.
-	     Location *pred_loc = findLocation(*_predecessor);
+	     Location *pred_loc = findLocation(pred);
 	     int status = 0;
 	     bool dead = is_dead(pred_loc->getDHTKey(),pred_loc->getNetAddress(),status);
 	     if (dead)
 	       reset_pred = true;
-	     else if (senderKey.between(*_predecessor, _idkey))
+	     else if (senderKey.between(pred, _idkey))
 	       reset_pred = true;
 	  }
-	
+       
 	if (reset_pred)
 	  {
 	     Location *old_pred_loc = NULL;
-	     if (_predecessor)
-	       old_pred_loc = findLocation(*_predecessor);
-	     
+	     old_pred_loc = findLocation(pred);
 	     setPredecessor(senderKey, senderAddress);
 	  
 	     //TODO: move keys (+ catch errors ?)
@@ -198,7 +202,9 @@ namespace dht
 	/**
 	 * reset predecessor.
 	 */
+       mutex_lock(&_pred_mutex);
 	_predecessor = NULL;
+	mutex_unlock(&_pred_mutex);
 	
 	/**
 	 * query the bootstrap node for our successor.
@@ -279,9 +285,10 @@ namespace dht
 	 */
 	Location rloc(_idkey, getNetAddress());
 	
-	if (!getSuccessor())
+	DHTKey succ = getSuccessorS();
+	if (!succ.count())
 	  {
-	     /**
+	    /**
 	      * TODO: after debugging, write a better handling of this error.
               */
 	     // this should not happen though...
@@ -291,7 +298,7 @@ namespace dht
 	     exit(-1);
 	  }
 	
-	Location succloc(*getSuccessor(),NetAddress()); // warning: at this point the address is not needed.
+	Location succloc(succ,NetAddress()); // warning: at this point the address is not needed.
 	RouteIterator rit;
 	rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
 	
@@ -516,11 +523,13 @@ namespace dht
     dht_err err = DHT_ERR_OK;
     
     // send predecessor to successor.
-    if (getSuccessor() && getPredecessor())
+    DHTKey succ = getSuccessorS();
+    DHTKey pred = getPredecessorS();
+    if (succ.count() && pred.count())
       {
 	int status = DHT_ERR_OK;
-	Location *succ_loc = findLocation(*getSuccessor());
-	Location *pred_loc = findLocation(*getPredecessor());
+	Location *succ_loc = findLocation(succ);
+	Location *pred_loc = findLocation(pred);
 	_pnode->_l1_client->RPC_notify(succ_loc->getDHTKey(),
 				       succ_loc->getNetAddress(),
 				       pred_loc->getDHTKey(),
@@ -538,7 +547,7 @@ namespace dht
      * However, this would require a dedicated RPC so we let the
      * regular existing update of succlists do this instead.
      */
-
+    
     errlog::log_error(LOG_LEVEL_DHT,"Virtual node %s successfully left the circle",
 		      getIdKey().to_rstring().c_str());
 
@@ -565,13 +574,15 @@ namespace dht
    
    void DHTVirtualNode::setSuccessor(const DHTKey& dk, const NetAddress& na)
      {
-	if (_successor && *_successor == dk)
-	  {
+       DHTKey succ = getSuccessorS();
+       if (succ.count() && succ == dk)
+	 {
 	     /**
 	      * lookup for the corresponding location.
 	      */
 	     Location* loc = addOrFindToLocationTable(dk,na);
 	     
+	     //TODO: do something with this error ?
 	     //debug
 	     if (!loc)
 	       {
@@ -621,12 +632,14 @@ namespace dht
 
    void DHTVirtualNode::setPredecessor(const DHTKey& dk, const NetAddress& na)
      {
-	if (_predecessor && *_predecessor == dk)
+       DHTKey pred = getPredecessorS();
+       if (pred.count() && pred == dk)
 	  {
-	     /**
+	    /**
 	      * lookup for the corresponding location.
               */
 	     Location* loc = addOrFindToLocationTable(dk,na);
+	     
 	     //debug
 	     if (!loc)
 	       {
@@ -643,7 +656,7 @@ namespace dht
 	  }
 	else
 	  {
-	     Location* loc = findLocation(dk);
+	    Location* loc = findLocation(dk);
 	     if (!loc)
 	       {
 		  /**
@@ -676,8 +689,10 @@ namespace dht
      {
 	_fgt->removeLocation(loc);
 	_successors.removeKey(loc->getDHTKey());
+	mutex_lock(&_pred_mutex);
 	if (_predecessor && *_predecessor == loc->getDHTKey())
 	  _predecessor = NULL; // beware.
+	mutex_unlock(&_pred_mutex);
 	_lt->removeLocation(loc);
      }
    
@@ -691,25 +706,37 @@ namespace dht
 	return _lt->addOrFindToLocationTable(key, na);
      }
 
-   bool DHTVirtualNode::isPredecessorEqual(const DHTKey &key) const
+   bool DHTVirtualNode::isPredecessorEqual(const DHTKey &key)
      {
-	if (!_predecessor)
+       mutex_lock(&_pred_mutex);
+       if (!_predecessor)
+	 {
+	   mutex_unlock(&_pred_mutex);
 	  return false;
-	return (*_predecessor == key);
+	 }
+       else 
+	 {
+	   bool test = (*_predecessor == key);
+	   mutex_unlock(&_pred_mutex);
+	   return test;
+	 }
      }
 
-   bool DHTVirtualNode::not_used_location(Location *loc) const
+   bool DHTVirtualNode::not_used_location(Location *loc)
      {
-	if (!_fgt->has_key(-1,loc)
-	    && !isPredecessorEqual(loc->getDHTKey())
-	    && *_successor != loc->getDHTKey())
-	  return true;
-	else return false;
+       DHTKey succ = getSuccessorS();
+       if (!_fgt->has_key(-1,loc)
+	   && !isPredecessorEqual(loc->getDHTKey())
+	   && (!succ.count() || succ != loc->getDHTKey()))
+	 return true;
+       return false;
      }
       
    void DHTVirtualNode::update_successor_list_head()
      {
+       mutex_lock(&_succ_mutex);
 	_successors.set_direct_successor(_successor);
+	mutex_unlock(&_succ_mutex);
      }
 
   bool DHTVirtualNode::isSuccStable() const
@@ -791,5 +818,37 @@ namespace dht
      
 	_pnode->estimate_nodes(nnodes,nnvnodes);
      }
-      
+
+  DHTKey DHTVirtualNode::getPredecessorS()
+  {
+    mutex_lock(&_pred_mutex);
+    if (_predecessor)
+      {
+	DHTKey res = *_predecessor;
+	mutex_unlock(&_pred_mutex);
+	return res;
+      }
+    else 
+      {
+	mutex_unlock(&_pred_mutex);
+	return DHTKey();
+      }
+  }
+
+  DHTKey DHTVirtualNode::getSuccessorS()
+  {
+    mutex_lock(&_succ_mutex);
+    if (_successor)
+      { 
+	DHTKey res = *_successor;
+	mutex_unlock(&_succ_mutex);
+	return res;
+      } 
+    else
+      { 
+	mutex_unlock(&_succ_mutex);
+	return DHTKey();
+      }
+  }
+  
 } /* end of namespace. */

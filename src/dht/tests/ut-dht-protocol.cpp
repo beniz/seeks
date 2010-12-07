@@ -156,8 +156,8 @@ TEST_F(ProtocolTest2N, join)
   DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
   dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
   ASSERT_EQ(DHT_ERR_OK,status);
-  ASSERT_TRUE(vnode2->getSuccessor() != NULL);
-  ASSERT_EQ(dkey1,vnode2->getSuccessor()->to_rstring());
+  ASSERT_TRUE(vnode2->getSuccessorS().count() > 0);
+  ASSERT_EQ(dkey1,vnode2->getSuccessorS().to_rstring());
 
   // voluntary leave.
   _dnode2->leave();
@@ -175,8 +175,8 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
   DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
   dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
   ASSERT_EQ(DHT_ERR_OK,status);
-  ASSERT_TRUE(vnode2->getSuccessor() != NULL);
-  ASSERT_EQ(dkey1,vnode2->getSuccessor()->to_rstring());
+  ASSERT_TRUE(vnode2->getSuccessorS().count() > 0);
+  ASSERT_EQ(dkey1,vnode2->getSuccessorS().to_rstring());
 
   /* std::cerr << "dnode1 slow clicks: " << _dnode1->_stabilizer->_slow_clicks << std::endl;
      std::cerr << "dnode2 slow clicks: " << _dnode2->_stabilizer->_slow_clicks << std::endl; */
@@ -192,7 +192,7 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
     }
   ASSERT_TRUE(_dnode1->isSuccStable());
   ASSERT_EQ(vnode2->getIdKey().to_rstring(),
-            vnode1->getSuccessor()->to_rstring());
+            vnode1->getSuccessorS().to_rstring());
 
   while(_dnode2->_stabilizer->_slow_clicks < max_slow_clicks)
     {
@@ -202,30 +202,30 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
     }
   ASSERT_TRUE(_dnode2->isSuccStable());
   ASSERT_EQ(vnode1->getIdKey().to_rstring(),
-            vnode2->getSuccessor()->to_rstring());
+            vnode2->getSuccessorS().to_rstring());
 
   // testing predecessors (notified by other node).
   uint64_t max_fast_clicks = 10;
   while(_dnode2->_stabilizer->_fast_clicks < max_fast_clicks)
     {
       sleep(event_timecheck);
-      if (vnode1->getPredecessor() != NULL
-          && *vnode1->getPredecessor() == vnode2->getIdKey())
+      if (vnode1->getPredecessorS().count() > 0
+          && vnode1->getPredecessorS() == vnode2->getIdKey())
         break;
     }
-  ASSERT_TRUE(vnode1->getPredecessor() != NULL);
+  ASSERT_TRUE(vnode1->getPredecessorS().count() > 0);
   ASSERT_EQ(vnode2->getIdKey().to_rstring(),
-            vnode1->getPredecessor()->to_rstring());
+            vnode1->getPredecessorS().to_rstring());
   while(_dnode1->_stabilizer->_fast_clicks < max_fast_clicks)
     {
       sleep(event_timecheck);
-      if (vnode2->getPredecessor() != NULL
-          && *vnode2->getPredecessor() == vnode1->getIdKey())
+      if (vnode2->getPredecessorS().count() > 0
+          && vnode2->getPredecessorS() == vnode1->getIdKey())
         break;
     }
-  ASSERT_TRUE(vnode2->getPredecessor() != NULL);
+  ASSERT_TRUE(vnode2->getPredecessorS().count() > 0);
   ASSERT_EQ(vnode1->getIdKey().to_rstring(),
-            vnode2->getPredecessor()->to_rstring());
+            vnode2->getPredecessorS().to_rstring());
 
   // voluntary leave.
   _dnode2->leave();
@@ -250,8 +250,8 @@ TEST_F(ProtocolTest2N, node_fail_before_stable)
   DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
   dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
   ASSERT_EQ(DHT_ERR_OK,status);
-  ASSERT_TRUE(vnode2->getSuccessor() != NULL);
-  ASSERT_EQ(dkey1,vnode2->getSuccessor()->to_rstring());
+  ASSERT_TRUE(vnode2->getSuccessorS().count() > 0);
+  ASSERT_EQ(dkey1,vnode2->getSuccessorS().to_rstring());
 
   // dnode1 fails.
   delete _dnode1;

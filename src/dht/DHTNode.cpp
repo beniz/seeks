@@ -628,22 +628,15 @@ namespace dht
 	/**
 	 * return successor info.
 	 */
-	DHTKey* dkres_ptr = vnode->getSuccessor();
-	if (!dkres_ptr)
+	dkres = vnode->getSuccessorS();
+	if (!dkres.count())
 	  {
 	     //TODO: this node has no successor yet: this means it must have joined 
 	     //      the network a short time ago or that it is alone on the network.
-	     
-	     dkres = DHTKey();
-	     na = NetAddress();
-	     status = DHT_ERR_NO_SUCCESSOR_FOUND;
-	     return;
+	    na = NetAddress();
+	    status = DHT_ERR_NO_SUCCESSOR_FOUND;
+	    return;
 	  }
-	
-	/**
-	 * copy found successor key.
-	 */
-	dkres = *dkres_ptr;
 	
 	/**
 	 * fetch location information.
@@ -687,19 +680,13 @@ namespace dht
 	/**
 	 * return predecessor info.
 	 */
-	DHTKey* dkres_ptr = vnode->getPredecessor();
-	if (!dkres_ptr)
+	dkres = vnode->getPredecessorS();
+	if (!dkres.count())
 	  {
-	     dkres = DHTKey();
-	     na = NetAddress();
-	     status = DHT_ERR_NO_PREDECESSOR_FOUND;
-	     return;
+	    na = NetAddress();
+	    status = DHT_ERR_NO_PREDECESSOR_FOUND;
+	    return;
 	  }
-	
-	/**
-	 * copy found predecessor key.
-	 */
-	dkres = *dkres_ptr;
 	
 	/**
 	 * fetch location information.

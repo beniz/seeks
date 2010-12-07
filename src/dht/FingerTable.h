@@ -51,7 +51,8 @@ namespace dht
 	const DHTKey& getVNodeIdKey() const { return _vnode->getIdKey(); }
 	Location* getVNodeLocation() const { return _vnode->getLocation(); }
 	NetAddress getVNodeNetAddress() const { return _vnode->getNetAddress(); }
-	DHTKey* getVNodeSuccessor() const { return _vnode->getSuccessor(); }
+	DHTKey* getVNodeSuccessorPtr() const { return _vnode->getSuccessorPtr(); }
+	DHTKey getVNodeSuccessorS() const { return _vnode->getSuccessorS(); }
 	Location* findLocation(const DHTKey& dk) const { return _vnode->findLocation(dk); }  
 	
 	/**

@@ -95,15 +95,15 @@ TEST_P(BootstrapTest, self_bootstrap)
       // assert predecessor.
       if (i == 0)
         ASSERT_EQ(_dnode->_sorted_vnodes_vec.at(nvnodes-1)->to_rstring(),
-                  vn->getPredecessor()->to_rstring());
+                  vn->getPredecessorS().to_rstring());
       else ASSERT_EQ(_dnode->_sorted_vnodes_vec.at(i-1)->to_rstring(),
-                       vn->getPredecessor()->to_rstring());
+                       vn->getPredecessorS().to_rstring());
       // assert successor.
       if (i!=nvnodes-1)
         ASSERT_EQ(_dnode->_sorted_vnodes_vec.at(i+1)->to_rstring(),
-                  vn->getSuccessor()->to_rstring());
+                  vn->getSuccessorS().to_rstring());
       else ASSERT_EQ(_dnode->_sorted_vnodes_vec.at(0)->to_rstring(),
-                       vn->getSuccessor()->to_rstring());
+		     vn->getSuccessorS().to_rstring());
     
       // check on location table.
       ASSERT_EQ(nvnodes,vn->getLocationTable()->size());
