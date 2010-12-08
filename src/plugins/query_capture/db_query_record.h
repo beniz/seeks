@@ -84,7 +84,7 @@ namespace seeks_plugins
       float vurls_total_hits() const;
 
       std::string _query;
-      const short _radius;
+      short _radius;
       short _hits;
       hash_map<const char*,vurl_data*,hash<const char*>,eqstr> *_visited_urls;
   };
