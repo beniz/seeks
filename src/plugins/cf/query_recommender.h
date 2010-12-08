@@ -16,36 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CF_H
-#define CF_H
+#ifndef QUERY_RECOMMENDER_H
+#define QUERY_RECOMMENDER_H
 
-#include "plugin.h"
-#include "search_snippet.h"
-
-using sp::plugin;
+#include <string>
+#include <map>
+#include "stl_hash.h"
 
 namespace seeks_plugins
 {
 
-  class cf : public plugin
+  class query_recommender
   {
-    public:
-      cf();
-
-      virtual ~cf();
-
-      virtual void start();
-
-      virtual void stop();
-
-      void estimate_ranks(const std::string &query,
-                          std::vector<search_snippet*> &snippets);
-      
-      void get_related_queries(const std::string &query,
-			       std::multimap<double,std::string,std::less<double> > &related_queries);
-
-    public:
-      static plugin *_uc_plugin;
+  public:
+    static void recommend_queries(const std::string &query,
+				  std::multimap<double,std::string,std::less<double> > &related_queries);
+    
+    static void merge_recommended_queries(std::multimap<double,std::string,std::less<double> > &related_queries,
+					  hash_map<const char*,double,hash<const char*>,eqstr> &update);
   };
 
 } /* end of namespace. */

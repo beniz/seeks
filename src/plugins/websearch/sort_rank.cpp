@@ -293,14 +293,20 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
-      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets)
   {
     if (!websearch::_cf_plugin)
       return;
     static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,snippets);
     std::stable_sort(snippets.begin(),snippets.end(),
                      search_snippet::max_seeks_rank);
+  }
+
+  void sort_rank::get_related_queries(query_context *qc)
+  {
+    if (!websearch::_cf_plugin)
+      return;
+    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_suggestions);
   }
 #endif
 
