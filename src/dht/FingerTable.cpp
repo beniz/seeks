@@ -25,7 +25,7 @@
 
 #include <assert.h>
 
-#define DEBUG
+//#define DEBUG
 
 using lsh::Random;
 using sp::errlog;
