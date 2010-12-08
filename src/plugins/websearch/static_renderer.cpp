@@ -81,17 +81,35 @@ namespace seeks_plugins
         std::string base_url_str = "";
         if (base_url)
           base_url_str = std::string(base_url);
-        std::string suggestion_str = "Suggestion:&nbsp;<a href=\"";
-        // for now, let's grab the first suggestion only.
-        std::string suggested_q_str = qc->_suggestions[0];
-        const char *sugg_enc = encode::html_encode(suggested_q_str.c_str());
-        std::string sugg_enc_str = std::string(sugg_enc);
-        free_const(sugg_enc);
-        suggestion_str += base_url_str + cgi_base + "q=" + qc->_in_query_command + " "
-                          + sugg_enc_str + "&amp;expansion=1&amp;action=expand&amp;ui=stat";
-        suggestion_str += "\">";
-        suggestion_str += sugg_enc_str;
-        suggestion_str += "</a>";
+        std::string suggestion_str = "Suggestion";
+	if (qc->_suggestions.size()>1)
+	  suggestion_str += "s";
+	suggestion_str += ":";
+        
+	int k = 0;
+	std::multimap<double,std::string,std::less<double> >::const_iterator mit
+	  = qc->_suggestions.begin();
+	while(mit!=qc->_suggestions.end())
+	  {
+	    std::string suggested_q_str = (*mit).second;
+	    char *sugg_html_enc = encode::html_encode(suggested_q_str.c_str());
+	    std::string sugg_html_enc_str = std::string(sugg_html_enc);
+	    free(sugg_html_enc);
+	    char *sugg_url_enc = encode::url_encode(suggested_q_str.c_str());
+	    std::string sugg_url_enc_str = std::string(sugg_url_enc);
+	    free(sugg_url_enc);
+	    suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "q=";
+	    if (!qc->_in_query_command.empty())
+	      suggestion_str += qc->_in_query_command + " ";
+	    suggestion_str += sugg_url_enc_str + "&amp;expansion=1&amp;action=expand&amp;ui=stat";
+	    suggestion_str += "\">";
+	    suggestion_str += sugg_html_enc_str;
+	    suggestion_str += "</a>";
+	    ++mit;
+	    ++k;
+	    if (k > websearch::_wconfig->_num_reco_queries)
+	      break;
+	  }
         miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
       }
     else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);

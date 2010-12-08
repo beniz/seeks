@@ -326,8 +326,7 @@ namespace seeks_plugins
     if (strcasecmp(pers,"on") == 0)
       {
 #if defined(PROTOBUF) && defined(TC)
-        sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets,
-                                              parameters);
+        sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
 #endif
       }
 

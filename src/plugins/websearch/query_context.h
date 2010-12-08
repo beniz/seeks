@@ -239,7 +239,7 @@ namespace seeks_plugins
       /* others. */
       bool _blekko; // we limit to a single call to blekko.
 
-      std::vector<std::string> _suggestions; // suggested related queries.
+      std::multimap<double,std::string,std::less<double> > _suggestions; // suggested related queries.
 
       /* LSH subsystem for regrouping textual elements. */
       LSHSystemHamming *_lsh_ham;

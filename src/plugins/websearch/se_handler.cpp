@@ -867,9 +867,11 @@ namespace seeks_plugins
       {
         // get more stuff from the parser.
         se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
-        // XXX: suggestions (later on, we expect to do improve this with shared queries).
+	
+        // XXX: suggestions (max weight is given to engines' suggestions,
+	//                   this may change in the future).
         if (!se_p_ggle->_suggestion.empty())
-          args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
+          args._qr->_suggestions.insert(std::pair<double,std::string>(1.0,se_p_ggle->_suggestion));
       }
     delete se;
   }

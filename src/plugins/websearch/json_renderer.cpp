@@ -399,8 +399,18 @@ namespace json_renderer_private
 
     // suggestion.
     if (!qc->_suggestions.empty())
-      results.push_back("\"suggestion\":\"" + qc->_suggestions.at(0) + "\"");
-
+      {
+	std::list<std::string> suggs;
+	std::multimap<double,std::string,std::less<double> >::const_iterator mit
+	  = qc->_suggestions.begin();
+	while(mit!=qc->_suggestions.end())
+	  {
+	    suggs.push_back("\"" + (*mit).second + "\"");
+	    ++mit;
+	  }
+	results.push_back("\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]");
+      }
+    
     // engines.
     if (qc->_engines.to_ulong() > 0)
       {
