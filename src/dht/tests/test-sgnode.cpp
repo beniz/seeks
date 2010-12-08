@@ -19,6 +19,7 @@
  */
 
 #include "SGNode.h"
+#include "dht_api.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -31,7 +32,7 @@ using namespace dht;
 using sp::miscutil;
 using sp::errlog;
 
-const char *usage = "Usage: test_sgnode <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file)\n";
+const char *usage = "Usage: test_sgnode <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file) (--nvnodes number_of_virtual_nodes) (--sync sg db sync mode on)\n";
 
 bool persistence = false;
 bool db_sync = false;
@@ -44,11 +45,12 @@ void sig_handler(int the_signal)
       case SIGTERM:
       case SIGINT:
       case SIGHUP:
-	if (persistence)
-	  dnode->hibernate_vnodes_table();
+	dnode->leave();
 	dnode->_sgmanager.sync(); // sync sgs db.
 	dnode->_sgmanager._sdb.close_db();
-	//delete dnode;
+	delete dnode; // hibernates, stop threads and destroys internal structures.
+	delete sg_configuration::_sg_config;
+	delete dht_configuration::_dht_config;
 	exit(the_signal);
 	break;
       default:
@@ -74,7 +76,8 @@ int main(int argc, char **argv)
    // init logging module.
    errlog::init_log_module();
    errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
-      
+   
+   int nvnodes = -1;
    bool joinb = false;
    bool sbootb = false;
    if (argc > 2)
@@ -117,6 +120,11 @@ int main(int argc, char **argv)
 		  db_sync = true;
 		  i++;
 	       }
+	     else if (strcmp(arg,"--nvnodes") == 0)
+               {
+                 nvnodes = atoi(argv[i+1]);
+		 i+=2;
+	       }
 	     else 
 	       {
 		  std::cout << usage << std::endl;
@@ -125,8 +133,11 @@ int main(int argc, char **argv)
 	  }
 	
 	sg_configuration::_sg_config = new sg_configuration(DHTNode::_dht_config_filename);
+	dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	if (db_sync)
 	  sg_configuration::_sg_config->_db_sync_mode = 1; // sync.
+	if (nvnodes > 0)
+	  dht_configuration::_dht_config->_nvnodes = nvnodes;
 	dnode = new SGNode(net_addr,net_port);
 	
 	/**
@@ -148,10 +159,10 @@ int main(int argc, char **argv)
 	if (joinb)
 	  {
 	     bool reset = true;
-	     dnode->join_start(bootstrap_nodelist,reset);
+	     dht_api::join_start(*dnode,bootstrap_nodelist,reset);
 	  }
 	else if (sbootb)
-	  dnode->self_bootstrap();
+	  dht_api::self_bootstrap(*dnode);
      }
    	
    pthread_join(dnode->_l1_server->_rpc_server_thread,NULL);
