@@ -34,7 +34,7 @@ using namespace dht;
 using sp::miscutil;
 using sp::errlog;
 
-const char *usage = "Usage: dht_cli <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file)\n";
+const char *usage = "Usage: dht_cli <ip:port> (--join ip:port) or (--self-bootstrap) (--persist) (--config config_file) (--nvnodes number_of_virtual_nodes)\n";
 
 bool persistence = false;
 SGNode *dnode = NULL;
@@ -46,8 +46,8 @@ void sig_handler(int the_signal)
       case SIGTERM:
       case SIGINT:
       case SIGHUP:
-	if (persistence)
-	  dnode->hibernate_vnodes_table();
+	dnode->leave();
+        delete dnode; // hibernates, stop threads and destroys internal structures.
 	exit(the_signal);
 	break;
       default:
@@ -92,12 +92,20 @@ int exec_command(std::vector<std::string> &tokens,
 	  }
 	NetAddress na(elts.at(0),atoi(elts.at(1).c_str()));
 	bool alive = false;
-	dht_err err = dht_api::ping(sgnode,nodekey,na,alive);
-	if (err != DHT_ERR_OK)
+	dht_err err = DHT_ERR_OK;
+	try
 	  {
-	     if (err == DHT_ERR_UNKNOWN_PEER)
-	       output = "unknown peer on remote node";
-	     return 1;
+	    err = dht_api::ping(sgnode,nodekey,na,alive);
+	  }
+	catch (dht_exception &e)
+	  {
+	    output = e.what();
+	    return 1;
+	  }
+	if (err == DHT_ERR_UNKNOWN_PEER)
+	  {
+	    output = "unknown peer on remote node";
+	    return 1;
 	  }
 	output = "node " + tokens.at(1) + " at " + addr_str + " is ";
 	if (alive)
@@ -116,7 +124,16 @@ int exec_command(std::vector<std::string> &tokens,
 	if (node)
 	  delete node;
 	node = new Location();
-	dht_err err = sg_api::find_sg(sgnode,key,*node);
+	dht_err err = DHT_ERR_OK;
+	try
+	  {
+	    err = sg_api::find_sg(sgnode,key,*node);
+	  }
+	catch (dht_exception &e)
+	  {
+	    output = e.what();
+	    return 1;
+	  }
 	if (err != DHT_ERR_OK)
 	  {
 	     output = "no closest node found";
@@ -140,9 +157,29 @@ int exec_command(std::vector<std::string> &tokens,
 	assert(node != NULL);
 	dht_err err;
 	if (command == "subscribe_sg")
-	  err = sg_api::get_sg_peers_and_subscribe(sgnode,key,*node,peers);
+	  {
+	    try
+	      {
+		err = sg_api::get_sg_peers_and_subscribe(sgnode,key,*node,peers);
+	      }
+	    catch (dht_exception &e)
+	      {
+		output = e.what();
+		return 1;
+	      }
+	  }
 	else if (command == "subscribe")
-	  err = sg_api::get_sg_peers(sgnode,key,*node,peers);	
+	  {
+	    try
+	      {
+		err = sg_api::get_sg_peers(sgnode,key,*node,peers);
+	      }
+	    catch (dht_exception &e)
+	      {
+		output = e.what();
+		return 1;
+	      }
+	  }
 	if (err != DHT_ERR_OK)
 	  {
 	     output = "no closest node found";
@@ -195,7 +232,8 @@ int main(int argc, char **argv)
    // init logging module.
    errlog::init_log_module();
    //errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT);
-      
+     
+   int nvnodes = -1;
    bool joinb = false;
    bool sbootb = false;
    if (argc > 2)
@@ -232,6 +270,11 @@ int main(int argc, char **argv)
 		  DHTNode::_dht_config_filename = argv[i+1];
 		  i+=2;
 	       }
+	     else if (strcmp(arg,"--nvnodes") == 0)
+               {
+                 nvnodes = atoi(argv[i+1]);
+                 i+=2;
+               }
 	     else 
 	       {
 		  std::cout << usage << std::endl;
@@ -241,6 +284,8 @@ int main(int argc, char **argv)
 	
 	dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
 	dht_configuration::_dht_config->_routing = false;
+	if (nvnodes > 0)
+	  dht_configuration::_dht_config->_nvnodes = nvnodes;
 	
 	dnode = new SGNode(net_addr,net_port);
 	
@@ -269,10 +314,17 @@ int main(int argc, char **argv)
 	  dht_api::self_bootstrap(*dnode);
      }
    
-   //pthread_join(dnode->_l1_server->_rpc_server_thread,NULL);
+   // let the server thread start.
+   NetAddress na_dnode(net_addr,net_port);
+   while(true)
+     {
+       dht_err status;
+       dnode->_l1_client->RPC_ping(DHTKey(),na_dnode,status);
+       if (status != DHT_ERR_COM_TIMEOUT)
+	 break;
+     }
    
-   sleep(1); // let's the server thread start.
-   
+   // enter the prompt.
    std::string promptc = "###> ";
    std::string command;
    std::string output;
@@ -290,5 +342,8 @@ int main(int argc, char **argv)
 	std::cout << std::endl;
      }
    
-   //TODO: clean exit.
+   // clean exit.
+   dnode->leave();
+   delete dnode;
+   delete dht_configuration::_dht_config;
 }
