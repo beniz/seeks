@@ -47,9 +47,7 @@ namespace dht
 	
 	/* init server. */
 	start_node();
-	//init_server();
-	//_l1_server->run_thread();
-	
+
 	/* init sweeper. */
 	sg_sweeper::init(&_sgmanager);
      }
