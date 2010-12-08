@@ -30,11 +30,6 @@ namespace dht
    class dht_api
      {
       public:
-       /* static void findClosestPredecessor(const DHTNode &dnode,
-					  const DHTKey& nodeKey,
-					  DHTKey& dkres, NetAddress& na,
-					  int& status); */
-       
        static dht_err findSuccessor(const DHTNode &dnode,
 				    const DHTKey &nodekey,
 				    DHTKey &dkres, NetAddress &na) throw (dht_exception);

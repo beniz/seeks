@@ -22,23 +22,7 @@
 
 namespace dht
 {
-  /* void dht_api::findClosestPredecessor(const DHTNode &dnode,
-					   const DHTKey &nodeKey,
-					   DHTKey &dkres, NetAddress &na,
-					   int &status)
-     {
-	// grab the closest virtual node to search in its finger table.
-	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodeKey);
-	
-	// search the finger table.
-	DHTKey dkres_succ;
-	NetAddress dkres_succ_na;
-	vnode->findClosestPredecessor(nodeKey,dkres,na,
-				      dkres_succ,dkres_succ_na,
-				      status);
-				      } */
- 
-   dht_err dht_api::findSuccessor(const DHTNode &dnode,
+  dht_err dht_api::findSuccessor(const DHTNode &dnode,
 				  const DHTKey &nodekey,
 				  DHTKey &dkres, NetAddress &na) throw (dht_exception)
      {
@@ -69,9 +53,9 @@ namespace dht
 	DHTVirtualNode *vnode = dnode.find_closest_vnode(nodekey);
 	
 	// make the RPC call.
-	dht_err err;
-	alive = !vnode->is_dead(nodekey,na,err);
-	return err;
+	dht_err status;
+	alive = !vnode->is_dead(nodekey,na,status);
+	return status;
      }
   
   dht_err dht_api::join_start(DHTNode &dnode,
