@@ -60,18 +60,8 @@ namespace seeks_plugins
       }
   }
 
-  /*- simple_re -*/
-  simple_re::simple_re()
-      :rank_estimator()
-  {
-  }
-
-  simple_re::~simple_re()
-  {
-  }
-
-  void simple_re::extract_queries(const std::vector<db_record*> &records,
-                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
+  void rank_estimator::extract_queries(const std::vector<db_record*> &records,
+				       hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
   {
     static std::string qc_str = "query-capture";
 
@@ -100,7 +90,7 @@ namespace seeks_plugins
                     // XXX: when the query contains > 8 words there are many features generated
                     // for the same radius. The original query data can be fetched from any
                     // of the generated features, so we take the first one.
-                    assert(features.size()>=1);
+                    //assert(features.size()>=1);
                     std::string key_str = (*features.begin()).second.to_rstring();
                     db_record *dbr_data = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
                     assert(dbr_data != NULL); // beware.
@@ -113,9 +103,10 @@ namespace seeks_plugins
                             && (*qit2).second->_query == qd->_query)
                           {
                             query_data *dbqrc = new query_data((*qit2).second);
-                            qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
+                            dbqrc->_radius = qd->_radius; // update radius relatively to original query.
+			    qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
                                          dbqrc));
-                            break;
+			    break;
                           }
                         ++qit2;
                       }
@@ -128,18 +119,28 @@ namespace seeks_plugins
       }
   }
 
+  /*- simple_re -*/
+  simple_re::simple_re()
+    :rank_estimator()
+  {
+  }
+
+  simple_re::~simple_re()
+  {
+  }
+
   void simple_re::estimate_ranks(const std::string &query,
                                  std::vector<search_snippet*> &snippets)
   {
     // fetch records from user DB.
     std::vector<db_record*> records;
-    fetch_user_db_record(query,records);
+    rank_estimator::fetch_user_db_record(query,records);
 
     //std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
 
     // extract queries.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    extract_queries(records,qdata);
+    rank_estimator::extract_queries(records,qdata);
 
     //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
 
@@ -185,7 +186,6 @@ namespace seeks_plugins
       {
         std::string url = (*vit)->_url;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
-        //std::string surl = urlmatch::strip_url(url);
         std::string host, path;
         urlmatch::parse_url_host_and_path(url,host,path);
         host = urlmatch::strip_url(host);
@@ -197,13 +197,12 @@ namespace seeks_plugins
           {
             float qpost = estimate_rank((*vit),ns,(*hit).second,q_vurl_hits[i++],
                                         url,host,path);
-            //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
+	    //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
             qpost *= 1.0/static_cast<float>(((*hit).second->_radius + 1.0)); // account for distance to original query.
             posteriors[j] += qpost; // boosting over similar queries.
 
             //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
-
-            ++hit;
+	    ++hit;
           }
 
         // estimate the url prior.

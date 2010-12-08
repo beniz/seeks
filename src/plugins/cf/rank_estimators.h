@@ -35,8 +35,11 @@ namespace seeks_plugins
       virtual void estimate_ranks(const std::string &query,
                                   std::vector<search_snippet*> &snippets) {};
 
-      void fetch_user_db_record(const std::string &query,
-                                std::vector<db_record*> &records);
+      static void fetch_user_db_record(const std::string &query,
+				       std::vector<db_record*> &records);
+      
+      static void extract_queries(const std::vector<db_record*> &records,
+                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
   };
 
   class simple_re : public rank_estimator
@@ -45,10 +48,7 @@ namespace seeks_plugins
       simple_re();
 
       virtual ~simple_re();
-
-      void extract_queries(const std::vector<db_record*> &records,
-                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
-
+      
       virtual void estimate_ranks(const std::string &query,
                                   std::vector<search_snippet*> &snippets);
 
