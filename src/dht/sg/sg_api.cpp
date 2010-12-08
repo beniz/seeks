@@ -27,7 +27,7 @@ using lsh::qprocess;
 namespace dht
 {
    dht_err sg_api::find_sg(const SGNode &sgnode,
-			   const DHTKey &sg_key, Location &node)
+			   const DHTKey &sg_key, Location &node) throw (dht_exception)
      {
 	DHTKey host_key;
 	NetAddress host_na;
@@ -39,7 +39,7 @@ namespace dht
    dht_err sg_api::get_sg_peers(const SGNode &sgnode,
 				const DHTKey &sg_key, 
 				const Location &node,
-				std::vector<Subscriber*> &peers)
+				std::vector<Subscriber*> &peers) throw (dht_exception)
      {
 	// level 2 subscribe call with no subscription.
 	DHTKey senderKey;
@@ -56,7 +56,7 @@ namespace dht
    dht_err sg_api::get_sg_peers_and_subscribe(const SGNode &sgnode,
 					      const DHTKey &sg_key,
 					      const Location &node,
-					      std::vector<Subscriber*> &peers)
+					      std::vector<Subscriber*> &peers) throw (dht_exception)
      {
 	// level 2 subscribe call with subscription.
 	DHTVirtualNode *vnode = sgnode.find_closest_vnode(node.getDHTKey()); // grab the closest virtual node.

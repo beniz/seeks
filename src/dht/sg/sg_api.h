@@ -36,17 +36,17 @@ namespace dht
      {
       public:
 	static dht_err find_sg(const SGNode &sgnode,
-			       const DHTKey &sg_key, Location &node);
+			       const DHTKey &sg_key, Location &node) throw (dht_exception);
 	
 	static dht_err get_sg_peers(const SGNode &sgnode,
 				    const DHTKey &sg_key, 
 				    const Location &node,
-				    std::vector<Subscriber*> &peers);
+				    std::vector<Subscriber*> &peers) throw (dht_exception);
      
 	static dht_err get_sg_peers_and_subscribe(const SGNode &sgnode,
 						  const DHTKey &sg_key,
 						  const Location &node,
-						  std::vector<Subscriber*> &peers);
+						  std::vector<Subscriber*> &peers) throw (dht_exception);
      };
     
 } /* end of namespace. */

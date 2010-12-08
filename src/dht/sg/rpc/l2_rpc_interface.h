@@ -58,7 +58,7 @@ namespace dht
 				      const NetAddress &senderAddress,
 				      const DHTKey &sgKey,
 				      std::vector<Subscriber*> &peers,
-				      int &status) = 0;
+				   int &status) throw (dht_exception) = 0;
 	
 	/**
 	 * \brief replicate callback.
@@ -79,7 +79,7 @@ namespace dht
 				      const DHTKey &ownerKey,
 				      const std::vector<Searchgroup*> &sgs,
 				      const bool &sdiff,
-				      int &status) = 0;
+				   int &status) throw (dht_exception) = 0;
      };
    
    class l2_rpc_server_interface
