@@ -118,7 +118,7 @@ namespace sp
         return ss.str();
       };
 
-      static std::string chomp_cpp(std::string &s);
+      static std::string chomp_cpp(const std::string &s);
 
       /**
        * \brief replaces pattern in str with repl.
