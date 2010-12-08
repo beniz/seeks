@@ -19,9 +19,12 @@
 #include "query_recommender.h"
 #include "rank_estimators.h"
 #include "query_capture.h"
+#include "miscutil.h"
 
 #include <vector>
 #include <iostream>
+
+using sp::miscutil;
 
 namespace seeks_plugins
 {
@@ -39,6 +42,7 @@ namespace seeks_plugins
   
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
+    qquery = miscutil::chomp_cpp(qquery);
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
