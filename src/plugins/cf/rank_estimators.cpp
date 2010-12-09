@@ -303,21 +303,21 @@ namespace seeks_plugins
     float furi = static_cast<float>(nuri);
     db_record *dbr = seeks_proxy::_user_db->find_dbr(surl,uc_str);
     if (!dbr)
-      prior = 1.0 / log(furi + 1.0);
+      prior = 1.0 / (log(furi + 1.0) + 1.0);
     else
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
-        prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ log(furi + 1.0);
+        prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ (log(furi + 1.0) + 1.0);
         delete uc_dbr;
         personalized = true;
       }
     dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
     if (!dbr)
-      prior *= 1.0 / log(furi + 1.0);
+      prior *= 1.0 / (log(furi + 1.0) + 1.0);
     else
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
-        prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / log(furi + 1.0);
+        prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / (log(furi + 1.0) + 1.0);
         delete uc_dbr;
         personalized = true;
       }
