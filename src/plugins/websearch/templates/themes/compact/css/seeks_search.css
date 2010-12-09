@@ -386,7 +386,7 @@ body {
 }
 
 #search_sugg a {
-	font-weight: bold;
+    	font-weight: normal;
 	text-decoration: none;
 }
 
