@@ -48,7 +48,7 @@ namespace seeks_plugins
     qquery = miscutil::chomp_cpp(qquery);
     str_chain strc_query(qquery,0,true);
     strc_query = strc_query.rank_alpha();
-    qquery = strc_query.print_str();
+    std::string ra_qquery = strc_query.print_str();
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
@@ -61,9 +61,9 @@ namespace seeks_plugins
 	rquery = query_capture_element::no_command_query(rquery);
 	strc_query = str_chain(rquery,0,true);
 	strc_query = strc_query.rank_alpha();
-	rquery = strc_query.print_str();
+	std::string ra_query = strc_query.print_str();
 	
-	if (rquery != qquery) //TODO: alphabetical order of words then compare...
+	if (ra_query != ra_qquery) //TODO: alphabetical order of words then compare...
 	  {
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;
