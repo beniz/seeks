@@ -21,11 +21,13 @@
 #include "query_capture.h"
 #include "miscutil.h"
 #include "mem_utils.h"
+#include "mrf.h" // for str_chain
 
 #include <vector>
 #include <iostream>
 
 using sp::miscutil;
+using lsh::str_chain;
 
 namespace seeks_plugins
 {
@@ -44,6 +46,9 @@ namespace seeks_plugins
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);
+    str_chain strc_query(qquery,0,true);
+    strc_query = strc_query.rank_alpha();
+    qquery = strc_query.print_str();
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
@@ -54,8 +59,11 @@ namespace seeks_plugins
       {
 	std::string rquery = (*hit).second->_query;
 	rquery = query_capture_element::no_command_query(rquery);
+	strc_query = str_chain(rquery,0,true);
+	strc_query = strc_query.rank_alpha();
+	rquery = strc_query.print_str();
 	
-	if (rquery != qquery)
+	if (rquery != qquery) //TODO: alphabetical order of words then compare...
 	  {
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;
