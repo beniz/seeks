@@ -50,7 +50,7 @@ namespace sp
   /*- user_db -*/
   std::string user_db::_db_name = "seeks_user.db"; // default.
   std::string user_db::_db_version_key = "db-version";
-  float user_db::_db_version = 0.2;
+  float user_db::_db_version = 0.3;
 
   user_db::user_db()
     :_opened(false)
@@ -222,7 +222,7 @@ namespace sp
       {
         return 0.0;
       }
-    float v = *(static_cast<float*>(value));
+    float v = *((float*)value);
     return v;
   }
 
