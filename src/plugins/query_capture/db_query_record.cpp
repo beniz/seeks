@@ -104,7 +104,7 @@ namespace seeks_plugins
         return;
       }
 
-    assert(qd->_radius == _radius);
+    //assert(qd->_radius == _radius);
 
     if (!qd->_visited_urls)
       return;

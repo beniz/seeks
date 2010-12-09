@@ -90,10 +90,20 @@ namespace seeks_plugins
                     // XXX: when the query contains > 8 words there are many features generated
                     // for the same radius. The original query data can be fetched from any
                     // of the generated features, so we take the first one.
-                    //assert(features.size()>=1);
-                    std::string key_str = (*features.begin()).second.to_rstring();
+		    if (features.empty()) // this should never happen.
+		      {
+			++qit;
+			continue;
+		      }
+		      
+		    std::string key_str = (*features.begin()).second.to_rstring();
                     db_record *dbr_data = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
-                    assert(dbr_data != NULL); // beware.
+		    if (!dbr_data) // this should never happen.
+		      {
+			++qit;
+			continue;
+		      }
+
                     db_query_record *dbqr_data = static_cast<db_query_record*>(dbr_data);
                     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit2
                     = dbqr_data->_related_queries.begin();
