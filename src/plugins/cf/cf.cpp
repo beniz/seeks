@@ -19,6 +19,7 @@
 #include "cf.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
+#include "query_recommender.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 #include "plugin_manager.h"
@@ -83,7 +84,13 @@ namespace seeks_plugins
     simple_re sre; // estimator.
     sre.estimate_ranks(query,snippets);
   }
-
+  
+  void cf::get_related_queries(const std::string &query,
+			       std::multimap<double,std::string,std::less<double> > &related_queries)
+  {
+    query_recommender::recommend_queries(query,related_queries);
+  }
+  
 #if defined(ON_OPENBSD) || defined(ON_OSX)
   extern "C"
   {

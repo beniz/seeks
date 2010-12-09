@@ -18,6 +18,7 @@
 
 #include "db_query_record.h"
 #include "db_query_record_msg.pb.h"
+#include "miscutil.h"
 #include "errlog.h"
 
 #include "DHTKey.h" // for fixing issue 169.
@@ -30,6 +31,7 @@ using lsh::qprocess;
 #include <iostream>
 
 using sp::errlog;
+using sp::miscutil;
 
 namespace seeks_plugins
 {
@@ -383,6 +385,38 @@ namespace seeks_plugins
       }
 
     return 0;
+  }
+
+  int db_query_record::fix_issue_263()
+  {
+    std::vector<query_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+      = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+	std::string query = qd->_query;
+	std::string fixed_query = miscutil::chomp_cpp(query);
+	if (fixed_query != qd->_query)
+	  {
+	    //std::cerr << "fix 263: " << qd->_query << " -- " << fixed_query << std::endl;
+	    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
+	    ++hit;
+	    _related_queries.erase(hit2);
+	    qd->_query = fixed_query;
+	    to_insert.push_back(qd);
+	  }
+	else ++hit;
+      }
+    size_t tis = to_insert.size();
+    if (tis > 0)
+      {
+	for (size_t i=0;i<tis;i++)
+	  _related_queries.insert(std::pair<const char*,query_data*>(to_insert.at(i)->_query.c_str(),
+								     to_insert.at(i)));
+	return 1;
+      }
+    else return 0;
   }
 
 } /* end of namespace. */

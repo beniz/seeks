@@ -144,4 +144,84 @@ namespace sp
     else unlink(cudb._name.c_str()); // erase temporary db.
   }
 
+  int user_db_fix::fix_issue_263()
+  {
+    user_db udb; // existing user db.
+    int err = udb.open_db();
+    if (err != 0)
+      {
+	// handle error.
+	errlog::log_error(LOG_LEVEL_ERROR,"Could not open the user db for fixing it");
+	return -1;
+      }
+    
+    // traverse records.
+    size_t frec = 0;
+    std::map<std::string,db_record*> to_add;
+    void *rkey = NULL;
+    int rkey_size;
+    std::vector<std::string> to_remove;
+    tchdbiterinit(udb._hdb);
+    while ((rkey = tchdbiternext(udb._hdb,&rkey_size)) != NULL)
+      {
+        int value_size;
+        void *value = tchdbget(udb._hdb, rkey, rkey_size, &value_size);
+        if (value)
+          {
+	    std::string str = std::string((char*)value,value_size);
+            free(value);
+	    std::string key, plugin_name;
+	    std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   plugin_name,key) != 0)
+              {
+		errlog::log_error(LOG_LEVEL_ERROR,"Fix 263: could not extract record plugin and key from internal user db key");
+	      }
+	    else if (plugin_name != "query-capture")
+	      {
+	      }
+	    else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                db_record *dbr = NULL;
+                if (!pl)
+                  {
+                    // handle error.
+		    errlog::log_error(LOG_LEVEL_ERROR,"Fix 263: could not find plugin %s for pruning user db record",
+                                      plugin_name.c_str());
+		    dbr = new db_record();
+		  }
+		else
+                  {     
+		    dbr = pl->create_db_record();
+		  }
+
+                if (dbr->deserialize(str) != 0)
+                  {
+                    // deserialization error.
+                  }
+                else 
+		  {
+		    int f = static_cast<db_query_record*>(dbr)->fix_issue_263();
+		    
+		    if (f != 0)
+		      {
+			frec++;
+			udb.remove_dbr(rkey_str);
+			udb.add_dbr(key,*dbr);
+		      }
+		  }
+		delete dbr;
+	      }
+          }
+	free(rkey);
+      }
+
+    udb.close_db();
+    errlog::log_error(LOG_LEVEL_INFO,"Fix 263: fixed %u records in user db",frec);
+    return err;
+  }
+
 } /* end of namespace. */

@@ -1005,6 +1005,25 @@ namespace sp
   }
 
   /*-- C++ string. */
+  std::string miscutil::chomp_cpp(const std::string &s)
+  {
+    std::string sc = s;
+    size_t p = 0;
+
+    // strip leading whitespace.
+    while(p < sc.length() && isspace(sc[p]))
+      p++;
+    sc.erase(0,p);
+    
+    // strip trailing whitespace.
+    p = sc.length()-1;
+    while(p > 0 && isspace(sc[p]))
+      p--;
+    sc.erase(p+1,sc.length()-p+1);
+    
+    return sc;
+  }
+
   size_t miscutil::replace_in_string(std::string &str, const std::string &pattern,
                                      const std::string &repl)
   {

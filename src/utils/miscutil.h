@@ -118,6 +118,8 @@ namespace sp
         return ss.str();
       };
 
+      static std::string chomp_cpp(const std::string &s);
+
       /**
        * \brief replaces pattern in str with repl.
        * returns a positive value if changes were made to the argument string.

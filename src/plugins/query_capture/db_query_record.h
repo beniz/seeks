@@ -84,7 +84,7 @@ namespace seeks_plugins
       float vurls_total_hits() const;
 
       std::string _query;
-      const short _radius;
+      short _radius;
       short _hits;
       hash_map<const char*,vurl_data*,hash<const char*>,eqstr> *_visited_urls;
   };
@@ -121,6 +121,8 @@ namespace seeks_plugins
       void read_query_record(sp::db::record &r);
 
       int fix_issue_169(user_db &cudb);
+
+      int fix_issue_263();
 
     public:
       hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;

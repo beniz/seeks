@@ -31,6 +31,14 @@ TEST(MiscutilTest, join_string_list)
   EXPECT_EQ("a,b", sp::miscutil::join_string_list(",", l));
 }
 
+TEST(MiscutilTest, chomp_cpp)
+{
+  std::string s(" seeks ");
+  EXPECT_EQ("seeks",sp::miscutil::chomp_cpp(s));
+  s = "  seeks project  ";
+  EXPECT_EQ("seeks project",sp::miscutil::chomp_cpp(s));
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

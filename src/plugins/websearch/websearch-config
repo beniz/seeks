@@ -104,3 +104,7 @@ dynamic-ui 0
 # Custom themes can be designed easily.
 # default: compact
 ui-theme compact
+
+# Maximum number of recommended queries in results.
+# default: 20
+num-recommended-queries 20

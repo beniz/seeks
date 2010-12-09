@@ -87,7 +87,6 @@ namespace seeks_plugins
   }
 
   /*- query_capture -*/
-
   query_capture_configuration* query_capture::_config = NULL;
 
   query_capture::query_capture()
@@ -253,8 +252,8 @@ namespace seeks_plugins
   {
     query_capture_element::store_queries(query,get_name());
   }
-
-  /*- uri_capture_element -*/
+  
+  /*- query_capture_element -*/
   std::string query_capture_element::_capt_filename = "query_capture/query-patterns";
   std::string query_capture_element::_cgi_site_host = CGI_SITE_1_HOST;
 
@@ -375,6 +374,7 @@ namespace seeks_plugins
   {
     // strip query.
     std::string q = query_capture_element::no_command_query(query);
+    q = miscutil::chomp_cpp(q);
 
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
