@@ -122,6 +122,8 @@ namespace seeks_plugins
 
       int fix_issue_169(user_db &cudb);
 
+      int fix_issue_263();
+
     public:
       hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;
   };
