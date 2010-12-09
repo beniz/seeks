@@ -20,6 +20,7 @@
 #include "rank_estimators.h"
 #include "query_capture.h"
 #include "miscutil.h"
+#include "mem_utils.h"
 
 #include <vector>
 #include <iostream>
@@ -46,17 +47,22 @@ namespace seeks_plugins
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
+    hash_map<const char*,double,hash<const char*>,eqstr>::iterator uit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
       = qdata.begin();
     while(hit!=qdata.end())
       {
 	std::string rquery = (*hit).second->_query;
+	rquery = query_capture_element::no_command_query(rquery);
+	
 	if (rquery != qquery)
 	  {
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;
 	    double hits = (*hit).second->_hits;
-	    update.insert(std::pair<const char*,double>(rquery.c_str(),radius/hits));
+	    if ((uit = update.find(rquery.c_str()))!=update.end())
+	      (*uit).second *= radius/hits;
+	    else update.insert(std::pair<const char*,double>(strdup(rquery.c_str()),radius/hits));
 	  }
 	++hit;
       }
@@ -95,11 +101,15 @@ namespace seeks_plugins
 	else ++mit;
       }
     hit = update.begin();
+    hash_map<const char*,double,hash<const char*>,eqstr>::iterator chit;
     while(hit!=update.end())
       {
 	related_queries.insert(std::pair<double,std::string>((*hit).second,std::string((*hit).first)));
+	chit = hit;
 	++hit;
+	free_const((*chit).first);
       }
+
   }
 
 } /* end of namespace. */
