@@ -131,8 +131,25 @@ namespace lsh
       :_radius(radius),_skip(false)
   {
     add_token(str);
-    if (str == "<skip>")
-      _skip = true;
+  }
+  
+  str_chain::str_chain(const std::string &str,
+		       const int &radius,
+		       const bool &tokenize)
+  {
+    if (tokenize)
+      {
+	std::vector<std::string> tokens;
+	mrf::tokenize(str,tokens,mrf::_default_delims);
+	std::vector<std::string>::const_iterator vit
+	  = tokens.begin();
+	while(vit!=tokens.end())
+	  {
+	    add_token((*vit));
+	    ++vit;
+	  }
+      }
+    else add_token(str);
   }
 
   str_chain::str_chain(const str_chain &sc)
@@ -144,6 +161,8 @@ namespace lsh
   void str_chain::add_token(const std::string &str)
   {
     _chain.push_back(str);
+    if (str == "<skip>")
+      _skip = true;
   }
 
   str_chain str_chain::rank_alpha() const
@@ -163,6 +182,19 @@ namespace lsh
 #endif
 
     return cchain;
+  }
+
+  std::string str_chain::print_str() const
+  {
+    std::string res;
+    int l = _chain.size();
+    for (int i=0;i<l;i++)
+      {
+	res += _chain.at(i);
+	if (i < l-1)
+	  res += " ";
+      }
+    return res;
   }
 
   std::ostream& str_chain::print(std::ostream &output) const
@@ -499,8 +531,7 @@ namespace lsh
                 // second generated chain: add a 'skip' token.
                 str_chain chain2 = chain;
                 chain2.add_token("<skip>");
-                chain2.set_skip();
-
+                
                 nchains.push(chain1);
                 nchains.push(chain2);
               }

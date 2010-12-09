@@ -79,8 +79,13 @@ namespace lsh
     public:
       str_chain(const std::string &str,
                 const int &radius);
-
+      
+      str_chain(const std::string &str,
+		const int &radius,
+		const bool &tokenize);
+      
       str_chain(const str_chain &sc);
+      
       ~str_chain() {};
 
       void add_token(const std::string &str);
@@ -121,6 +126,7 @@ namespace lsh
         _skip = true;
       }
       str_chain rank_alpha() const;
+      std::string print_str() const;
       std::ostream& print(std::ostream &output) const;
 
     private:
