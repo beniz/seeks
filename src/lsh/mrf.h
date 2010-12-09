@@ -280,8 +280,7 @@ namespace lsh
                     // second generated chain: add a 'skip' token.
                     str_chain chain2 = chain;
                     chain2.add_token("<skip>");
-                    chain2.set_skip();
-
+                    
                     nchains.push(chain1);
                     nchains.push(chain2);
                   }
