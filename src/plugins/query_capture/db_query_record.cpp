@@ -158,6 +158,7 @@ namespace seeks_plugins
         res += (*hit).second->_hits;
         ++hit;
       }
+    return res;
   }
 
   /*- db_query_record -*/
