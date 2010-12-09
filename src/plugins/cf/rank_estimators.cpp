@@ -277,7 +277,8 @@ namespace seeks_plugins
 
     // host.
     vd = qd->find_vurl(host);
-    if (!vd || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET)  // empty or type with not enough competition on domains.
+    if (!vd || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
+	|| s->_doc_type == IMAGE)  // empty or type with not enough competition on domains.
       posterior *= cf_configuration::_config->_domain_name_weight
                    / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
     else
