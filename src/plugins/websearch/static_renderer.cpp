@@ -127,12 +127,21 @@ namespace seeks_plugins
           base_url_str = std::string(base_url);
 	std::string reco_str = "Related results:";
 	
-	int k=0;
-	hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator vit
-	  = qc->_recommended_snippets.begin();
-	while(vit!=qc->_recommended_snippets.end())
+	std::vector<search_snippet*> sorted_reco;
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
+          = qc->_recommended_snippets.begin();
+	while(hit!=qc->_recommended_snippets.end())
 	  {
-	    search_snippet *rs = (*vit).second;
+	    sorted_reco.push_back((*hit).second);
+	    ++hit;
+	  }
+	std::sort(sorted_reco.begin(),sorted_reco.end(),search_snippet::max_seeks_rank);
+	  
+	int k=0;
+	std::vector<search_snippet*>::const_iterator vit = sorted_reco.begin();
+	while(vit!=sorted_reco.end())
+	  {
+	    search_snippet *rs = (*vit);
 	    char *url_enc = encode::url_encode(rs->_url.c_str());
 	    char *url_html_enc = encode::html_encode(rs->_url.c_str());
 	    reco_str += "<br><a href=\"" + base_url_str + "/qc_redir?q=" + qc->_url_enc_query + "&url="
