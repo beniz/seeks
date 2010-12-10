@@ -81,11 +81,8 @@ namespace seeks_plugins
         std::string base_url_str = "";
         if (base_url)
           base_url_str = std::string(base_url);
-        std::string suggestion_str = "Related queries";
-	if (qc->_suggestions.size()>1)
-	  suggestion_str += "s";
-	suggestion_str += ":";
-        
+        std::string suggestion_str = "Related queries:";
+	        
 	int k = 0;
 	std::multimap<double,std::string,std::less<double> >::const_iterator mit
 	  = qc->_suggestions.begin();
