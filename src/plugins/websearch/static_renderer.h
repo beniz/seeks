@@ -41,6 +41,10 @@ namespace seeks_plugins
                                      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                      const std::string &cgi_base="/search?");
 
+      static void render_recommendations(const query_context *qc,
+					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					 const std::string &cgi_base="/search?");
+
       static void render_lang(const query_context *qc,
                               hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 

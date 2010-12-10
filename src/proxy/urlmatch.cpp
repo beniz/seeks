@@ -403,6 +403,8 @@ namespace sp
       surl = surl.substr(8);
     if (miscutil::strncmpic(surl.c_str(),"www.",4)==0)
       surl = surl.substr(4);
+    if (surl[surl.length()-1]=='/') // remove trailing '/'.
+      surl = surl.substr(0,surl.length()-1);
     return surl;
   }
 
