@@ -930,7 +930,9 @@ namespace seeks_plugins
     if (s1->_cite.length() > s2->_cite.length())
       s1->_cite = s2->_cite;
 
-    // TODO: snippet type.
+    // snippet type: more specialize type wins.
+    // for now, very basic.
+    s1->_doc_type = std::max(s1->_doc_type,s2->_doc_type);
 
     // TODO: merge dates.
 

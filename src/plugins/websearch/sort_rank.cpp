@@ -92,8 +92,8 @@ namespace seeks_plugins
 
         if (sp->_new)
           {
-            if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL
-                && c_sp->_doc_type == sp->_doc_type)
+            if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
+	      //&& c_sp->_doc_type == sp->_doc_type)
               {
                 // merging snippets.
                 search_snippet::merge_snippets(c_sp,sp);
