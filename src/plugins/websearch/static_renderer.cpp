@@ -155,6 +155,41 @@ namespace seeks_plugins
     else miscutil::add_map_entry(exports,"$xxreco",1,strdup(""),0);
   }
 
+  void static_renderer::render_cached_queries(hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					      const std::string &cgi_base)
+  {
+    const char *base_url = miscutil::lookup(exports,"base-url");
+    std::string base_url_str = "";
+    if (base_url)
+      base_url_str = std::string(base_url);
+    std::string cqueries_str;
+    
+    int k = 0;
+    std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
+    while(sit!=seeks_proxy::_memory_dust.end())
+      {
+	query_context *qc = dynamic_cast<query_context*>((*sit));
+	if (!qc)
+	  {
+	    ++sit;
+	    continue;
+	  }
+	std::string query_clean = se_handler::no_command_query(qc->_query);
+	char *html_enc_query = encode::html_encode(query_clean.c_str());
+	cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
+	  + qc->_url_enc_query +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
+	  + std::string(html_enc_query) + "</a>";
+	free(html_enc_query);
+	++sit;
+	++k;
+	if (k > websearch::_wconfig->_num_reco_queries)
+	  break;
+      }
+    if (!cqueries_str.empty())
+      cqueries_str = "Recent queries:" + cqueries_str;
+    miscutil::add_map_entry(exports,"$xxqcache",1,cqueries_str.c_str(),1);
+  }
+
   void static_renderer::render_lang(const query_context *qc,
                                     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
   {
@@ -758,6 +793,9 @@ namespace seeks_plugins
     // recommended URLs.
     static_renderer::render_recommendations(qc,exports,cgi_base);
 
+    // queries in cache.
+    static_renderer::render_cached_queries(exports,cgi_base);
+    
     // language.
     static_renderer::render_lang(qc,exports);
 
