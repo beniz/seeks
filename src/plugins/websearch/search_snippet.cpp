@@ -612,17 +612,6 @@ namespace seeks_plugins
     _id = mrf::mrf_single_feature(surl,"");
   }
 
-  void search_snippet::set_url(const char *url)
-  {
-    char *url_dec = encode::url_decode_but_not_plus(url);
-    _url = std::string(url_dec);
-    free(url_dec);
-    std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
-    std::string surl = urlmatch::strip_url(url_lc);
-    _id = mrf::mrf_single_feature(surl,"");
-  }
-
   void search_snippet::set_url_no_decode(const std::string &url)
   {
     _url = url;
@@ -911,15 +900,7 @@ namespace seeks_plugins
 #endif
     return false;
   }
-
-  void search_snippet::delete_snippets(std::vector<search_snippet*> &snippets)
-  {
-    size_t snippets_size = snippets.size();
-    for (size_t i=0; i<snippets_size; i++)
-      delete snippets.at(i);
-    snippets.clear();
-  }
-
+  
   void search_snippet::merge_snippets(search_snippet *s1,
                                       const search_snippet *s2)
   {
