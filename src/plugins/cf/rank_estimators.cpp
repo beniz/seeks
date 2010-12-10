@@ -212,22 +212,19 @@ namespace seeks_plugins
             float qpost = estimate_rank((*vit),ns,(*hit).second,q_vurl_hits[i++],
                                         url,host);
 	    //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
-            qpost *= 1.0/static_cast<float>(((*hit).second->_radius + 1.0)); // account for distance to original query.
-            posteriors[j] += qpost; // boosting over similar queries.
+            qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
+	    posteriors[j] += qpost; // boosting over similar queries.
 
             //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
 	    ++hit;
           }
 
         // estimate the url prior.
-        bool personalized = false;
         float prior = 1.0;
         if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB 
 	    && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enought competition on domains.
-          prior = estimate_prior(url,host,nuri,personalized);
-        if (personalized)
-          (*vit)->_personalized = true;
-        posteriors[j] *= prior;
+          prior = estimate_prior((*vit),url,host,nuri);
+	posteriors[j] *= prior;
 
         //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
 
@@ -287,7 +284,10 @@ namespace seeks_plugins
       {
         posterior = (log(vd_url->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
         if (s)
-	  s->_personalized = true;
+	  {
+	    s->_personalized = true;
+	    s->_engine |= SE_SEEKS;
+	  }
       }
 
     // host.
@@ -308,10 +308,10 @@ namespace seeks_plugins
     return posterior;
   }
 
-  float simple_re::estimate_prior(const std::string &surl,
+  float simple_re::estimate_prior(search_snippet *s,
+				  const std::string &surl,
                                   const std::string &host,
-                                  const uint64_t &nuri,
-                                  bool &personalized)
+                                  const uint64_t &nuri)
   {
     static std::string uc_str = "uri-capture";
     float prior = 0.0;
@@ -324,7 +324,11 @@ namespace seeks_plugins
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
         prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ (log(furi + 1.0) + 1.0);
         delete uc_dbr;
-        personalized = true;
+	if (s)
+	  {
+	    s->_personalized = true;
+	    s->_engine |= SE_SEEKS;
+	  }
       }
     dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
     if (!dbr)
@@ -334,7 +338,8 @@ namespace seeks_plugins
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
         prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / (log(furi + 1.0) + 1.0);
         delete uc_dbr;
-        personalized = true;
+	if (s)
+	 s->_personalized = true;
       }
     return prior;
   }
@@ -410,7 +415,7 @@ namespace seeks_plugins
 		posterior = estimate_rank(NULL,nvurls,vd,NULL,q_vurl_hits[i]);
 	      
 		// level them down according to query radius. 
-		posterior *= (1.0 / static_cast<float>(qd->_radius + 1.0)); // account for distance to original query.
+		posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.
 		
 		// update or create snippet.
 		std::string surl = urlmatch::strip_url(vd->_url);

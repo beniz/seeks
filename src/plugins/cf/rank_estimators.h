@@ -69,10 +69,10 @@ namespace seeks_plugins
 			  const vurl_data *vd_host,
                           const float &total_hits);
       
-      float estimate_prior(const std::string &surl,
+      float estimate_prior(search_snippet *s,
+			   const std::string &surl,
                            const std::string &host,
-                           const uint64_t &nuri,
-                           bool &personalized);
+                           const uint64_t &nuri);
   };
 
 } /* end of namespace. */
