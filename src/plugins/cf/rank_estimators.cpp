@@ -409,13 +409,11 @@ namespace seeks_plugins
 	      {
 		posterior = estimate_rank(NULL,nvurls,vd,NULL,q_vurl_hits[i]);
 	      
-		
 		// level them down according to query radius. 
 		posterior *= (1.0 / static_cast<float>(qd->_radius + 1.0)); // account for distance to original query.
 		
 		// update or create snippet.
 		std::string surl = urlmatch::strip_url(vd->_url);
-		std::cerr << "surl reco: " << surl << std::endl;
 		uint32_t sid = mrf::mrf_single_feature(surl,""); //TODO: generic id generator.
 		if ((sit = snippets.find(sid))!=snippets.end())
 		  (*sit).second->_seeks_rank = posterior; // update.
@@ -423,6 +421,7 @@ namespace seeks_plugins
 		  {
 		    search_snippet *sp = new search_snippet();
 		    sp->set_url(vd->_url);
+		    sp->_meta_rank = 1;
 		    sp->_seeks_rank = posterior;
 		    snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
 		  }
