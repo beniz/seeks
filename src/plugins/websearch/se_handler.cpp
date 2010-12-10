@@ -470,6 +470,8 @@ namespace seeks_plugins
     "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
     // identica: http://identi.ca/api/search.atom?q=paris&rpp=20&page=1
     "http://identi.ca/api/search.atom?q=%query&page=%start&rpp=%num",
+    // seeks.
+    "",
     // twitter: http://search.twitter.com/search.atom?q=seeksproject
     "http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num",
     // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr

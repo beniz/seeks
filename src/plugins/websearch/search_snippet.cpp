@@ -425,6 +425,14 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
         html_content += yt_se_icon;
       }
+    if (_engine.to_ulong()&SE_SEEKS)
+      {
+	std::string sk_se_icon = se_icon;
+	miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
+	miscutil::replace_in_string(sk_se_icon,"setitle","Seeks");
+	miscutil::replace_in_string(sk_se_icon,"seeng","seeks");
+	html_content += sk_se_icon;
+      }
 
     if (_doc_type == TWEET)
       if (_meta_rank > 1)
