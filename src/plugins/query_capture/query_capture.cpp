@@ -20,6 +20,7 @@
 #include "query_capture_configuration.h"
 #include "db_query_record.h"
 #include "seeks_proxy.h" // for user_db.
+#include "proxy_configuration.h"
 #include "user_db.h"
 #include "proxy_dts.h"
 #include "urlmatch.h"
@@ -134,10 +135,10 @@ namespace seeks_plugins
       {
         errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for query capture plugin to work with it");
       }
-    else
+    else if (seeks_proxy::_config->_user_db_startup_check)
       {
-        // preventive sweep of records.
-        static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
+	// preventive sweep of records.
+	static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
 
         // get number of captured URI already in user_db.
         uint64_t nr = seeks_proxy::_user_db->number_records(_name);
@@ -224,8 +225,6 @@ namespace seeks_plugins
     std::string host,path;
     urlmatch::parse_url_host_and_path(url,host,path);
     host = urlmatch::strip_url(host);
-    if (url[url.length()-1]=='/') // remove trailing '/'.
-      url = url.substr(0,url.length()-1);
     std::transform(url.begin(),url.end(),url.begin(),tolower);
     std::transform(host.begin(),host.end(),host.begin(),tolower);
     query_capture::store_queries(query,url,host);
