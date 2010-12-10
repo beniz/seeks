@@ -51,6 +51,7 @@ namespace seeks_plugins
     EXALEAD,
     GOOGLE,
     IDENTICA,
+    SEEKS,
     TWITTER,
     YAHOO,
     YAUBA,
