@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,9 +25,9 @@
  *        This is inspired from the same mechanism in Chord.
  *        It uses a binary search tree and a threaded loop to call on functions at more
  *        or less (thread dependent) the correct planned date.
- * 
+ *
  *        We're scheduling operations on all the virtual nodes at once.
- * 
+ *
  * \author E. Benazera, juban@free.fr
  */
 
@@ -40,119 +41,140 @@
 
 namespace dht
 {
-   class Stabilizable
-     {
-      public:
-	Stabilizable(); 
-	
-	virtual ~Stabilizable() {};
-	
-	virtual void stabilize_fast() throw (dht_exception) {};
-	
-	virtual void stabilize_slow() throw (dht_exception) {};
-	
-	virtual bool isStable() const { return false; }
-	
-	void stabilize_fast_ct();
-	
-	void stabilize_slow_ct();
-	
-	int getStabilizingFast() const { return _stabilizing_fast; }
-	
-	int getStabilizingSlow() const { return _stabilizing_slow; }
-	
-	bool isStabilizingFast() const { return _stabilizing_fast > 0; }
-	
-	bool isStabilizingSlow() const { return _stabilizing_slow > 0; }
-	
-      protected:
-	/**
-	 * Indicators of on-going rpcs. Useful for counting
-	 * running asynchronous calls.
-	 */
-	int _stabilizing_fast;
-	int _stabilizing_slow;
-     };
+  class Stabilizable
+  {
+    public:
+      Stabilizable();
 
-   class DHTVirtualNode;
-   
-   class Stabilizer : public BstTimeCbTree 
-     {
-      public:
-	Stabilizer(const bool &start=true);
-	
-	~Stabilizer();
-	
-	void add_fast(Stabilizable* stab) { _stab_elts_fast.push_back(stab); }
-	void add_slow(Stabilizable* stab) { _stab_elts_slow.push_back(stab); }  
-	
-	/**
-	 * \brief
-	 */
-	void start_fast_stabilizer();
-	
-	/**
-	 * \brief 
-	 */
-	void start_slow_stabilizer();
-	
-	/**
-	 * \brief 
-	 */
-	int fast_stabilize(double tround);
-	
-	/**
-	 * \brief 
-	 */
-	int slow_stabilize(double tround);
+      virtual ~Stabilizable() {};
 
-	/**
-	 * whether the structure is stable or not.
-	 */
-	bool isstable_slow() const;
-	
-	/**
-	 * \brief if one elt is stabilizing, return true, else false.
-	 */
-	bool fast_stabilizing() const;
-	bool slow_stabilizing() const;
-	
-	/**
-	 * \brief rejoin scheme for virtual nodes that for some random reason (network problem,
-	 * latency, ...) may have left the circle.
-	 */
-	int rejoin(DHTVirtualNode *vnode);
-	
-      private:
-	/**
-	 * vectors of stabilizable structures.
-	 * We dissociate the two types of structures so we don't make useless
-	 * virtual calls.
-	 */
-	std::vector<Stabilizable*> _stab_elts_fast;
-	
-	std::vector<Stabilizable*> _stab_elts_slow;  
+      virtual void stabilize_fast() throw (dht_exception) {};
 
-	/**
-	 * constants. Time values are in milliseconds.
-	 * \Warning: these are for now copied from Chord. 
-	 */
-	static const int _decrease_timer;
-	static const double _slowdown_factor;
+      virtual void stabilize_slow() throw (dht_exception) {};
 
-	static const int _fast_timer_init;
-	static const int _fast_timer_base;
-	static const int _fast_timer_max;
+      virtual bool isStable() const
+      {
+        return false;
+      }
 
-	static const int _slow_timer_init;
-	static const int _slow_timer_base;
-	static const int _slow_timer_max;
-     
-     public:
-	uint64_t _slow_clicks; /**< number of executed slow stabilizing events. */
-	uint64_t _fast_clicks; /**< number of executed fast stabilizing events. */
-     };
-      
+      void stabilize_fast_ct();
+
+      void stabilize_slow_ct();
+
+      int getStabilizingFast() const
+      {
+        return _stabilizing_fast;
+      }
+
+      int getStabilizingSlow() const
+      {
+        return _stabilizing_slow;
+      }
+
+      bool isStabilizingFast() const
+      {
+        return _stabilizing_fast > 0;
+      }
+
+      bool isStabilizingSlow() const
+      {
+        return _stabilizing_slow > 0;
+      }
+
+    protected:
+      /**
+       * Indicators of on-going rpcs. Useful for counting
+       * running asynchronous calls.
+       */
+      int _stabilizing_fast;
+      int _stabilizing_slow;
+  };
+
+  class DHTVirtualNode;
+
+  class Stabilizer : public BstTimeCbTree
+  {
+    public:
+      Stabilizer(const bool &start=true);
+
+      ~Stabilizer();
+
+      void add_fast(Stabilizable* stab)
+      {
+        _stab_elts_fast.push_back(stab);
+      }
+      void add_slow(Stabilizable* stab)
+      {
+        _stab_elts_slow.push_back(stab);
+      }
+
+      /**
+       * \brief
+       */
+      void start_fast_stabilizer();
+
+      /**
+       * \brief
+       */
+      void start_slow_stabilizer();
+
+      /**
+       * \brief
+       */
+      int fast_stabilize(double tround);
+
+      /**
+       * \brief
+       */
+      int slow_stabilize(double tround);
+
+      /**
+       * whether the structure is stable or not.
+       */
+      bool isstable_slow() const;
+
+      /**
+       * \brief if one elt is stabilizing, return true, else false.
+       */
+      bool fast_stabilizing() const;
+      bool slow_stabilizing() const;
+
+      /**
+       * \brief rejoin scheme for virtual nodes that for some random reason (network problem,
+       * latency, ...) may have left the circle.
+       */
+      int rejoin(DHTVirtualNode *vnode);
+
+    private:
+      /**
+       * vectors of stabilizable structures.
+       * We dissociate the two types of structures so we don't make useless
+       * virtual calls.
+       */
+      std::vector<Stabilizable*> _stab_elts_fast;
+
+      std::vector<Stabilizable*> _stab_elts_slow;
+
+      /**
+       * constants. Time values are in milliseconds.
+       * \Warning: these are for now copied from Chord.
+       */
+      static const int _decrease_timer;
+      static const double _slowdown_factor;
+
+      static const int _fast_timer_init;
+      static const int _fast_timer_base;
+      static const int _fast_timer_max;
+
+      static const int _slow_timer_init;
+      static const int _slow_timer_base;
+      static const int _slow_timer_max;
+
+    public:
+      uint64_t _slow_clicks; /**< number of executed slow stabilizing events. */
+      uint64_t _fast_clicks; /**< number of executed fast stabilizing events. */
+  };
+
 } /* end of namespace. */
 
 #endif

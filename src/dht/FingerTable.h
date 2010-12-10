@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,104 +31,131 @@
 
 namespace dht
 {
-   class LocationTable;
-   
-   class FingerTable : public Stabilizable
-     {
-      public:
-	FingerTable(DHTVirtualNode* vnode, LocationTable* lt);
-	
-	~FingerTable();
-	
-	/**
-	 * accessors.
-	 */
-	Location* getFinger(const int& i) { return _locs[i]; } 
-	void setFinger(const int& i, Location* loc);
+  class LocationTable;
 
-	/**
-	 * accessors to vnode stuff.
-	 */
-	const DHTKey& getVNodeIdKey() const { return _vnode->getIdKey(); }
-	Location* getVNodeLocation() const { return _vnode->getLocation(); }
-	NetAddress getVNodeNetAddress() const { return _vnode->getNetAddress(); }
-	DHTKey* getVNodeSuccessorPtr() const { return _vnode->getSuccessorPtr(); }
-	DHTKey getVNodeSuccessorS() const { return _vnode->getSuccessorS(); }
-	Location* findLocation(const DHTKey& dk) const { return _vnode->findLocation(dk); }  
-	
-	/**
-	 * \brief test whether a location is used in the finger table.
-	 */
-	bool has_key(const int &index, Location *loc) const;
-	
-	/**
-	 * \brief remove location from all indexes in the finger table. 
-	 */
-	void removeLocation(Location *loc);
-	
-	/**
-	 * \brief find closest predecessor to a given key.
-	 * Successor information is unset by default, set only if the closest node 
-	 * is this virtual node.
-	 */
-	void findClosestPredecessor(const DHTKey& nodeKey,
-				       DHTKey& dkres, NetAddress& na,
-				       DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-				       int& status);
+  class FingerTable : public Stabilizable
+  {
+    public:
+      FingerTable(DHTVirtualNode* vnode, LocationTable* lt);
 
-	/**
-	 * \brief verifies our successor is the right one,
-	 * and notify it about us. This function does RPC calls.
-	 */
-	int stabilize() throw (dht_exception);
-	
-	/**
-	 * \brief refresh a random table entry.
-	 */
-	int fix_finger() throw (dht_exception);
+      ~FingerTable();
 
-	/**
-	 * virtual functions, from Stabilizable.
-	 */
-	virtual void stabilize_fast() throw (dht_exception) { stabilize(); };
-	virtual void stabilize_slow() throw (dht_exception) { fix_finger(); };
-	virtual bool isStable() const;
+      /**
+       * accessors.
+       */
+      Location* getFinger(const int& i)
+      {
+        return _locs[i];
+      }
+      void setFinger(const int& i, Location* loc);
 
-	void print(std::ostream &out) const;
-	
-      private:
-	/**
-	 * virtual node to which this table refers.
-	 */
-	DHTVirtualNode* _vnode;
-	
-	/**
-	 * shared table of known peers on the network.
-	 */
-	LocationTable* _lt;
-	
-	/**
-	 * \brief finger table starting point:
-	 * i.e. [k] = (n+2^{k-1}) mod 2^m, 1<k<m, with m=KEYNBITS,
-	 * and n is the virtual node's key.
-	 */
-	DHTKey _starts[KEYNBITS];
+      /**
+       * accessors to vnode stuff.
+       */
+      const DHTKey& getVNodeIdKey() const
+      {
+        return _vnode->getIdKey();
+      }
+      Location* getVNodeLocation() const
+      {
+        return _vnode->getLocation();
+      }
+      NetAddress getVNodeNetAddress() const
+      {
+        return _vnode->getNetAddress();
+      }
+      DHTKey* getVNodeSuccessorPtr() const
+      {
+        return _vnode->getSuccessorPtr();
+      }
+      DHTKey getVNodeSuccessorS() const
+      {
+        return _vnode->getSuccessorS();
+      }
+      Location* findLocation(const DHTKey& dk) const
+      {
+        return _vnode->findLocation(dk);
+      }
 
-      public:
-	/**
-	 * \brief finger table: each location _locs[i] is the peer with key
-	 * that is the closest known successor to _starts[i].
-	 */
-	Location* _locs[KEYNBITS];
-     
-	/**
-	 * Finger table staibility is maintained over two passes.
-	 */
-	bool _stable_pass1;
-	bool _stable_pass2;
-	sp_mutex_t _stable_mutex; // mutex around stable indicator.
-     };
-      
+      /**
+       * \brief test whether a location is used in the finger table.
+       */
+      bool has_key(const int &index, Location *loc) const;
+
+      /**
+       * \brief remove location from all indexes in the finger table.
+       */
+      void removeLocation(Location *loc);
+
+      /**
+       * \brief find closest predecessor to a given key.
+       * Successor information is unset by default, set only if the closest node
+       * is this virtual node.
+       */
+      void findClosestPredecessor(const DHTKey& nodeKey,
+                                  DHTKey& dkres, NetAddress& na,
+                                  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+                                  int& status);
+
+      /**
+       * \brief verifies our successor is the right one,
+       * and notify it about us. This function does RPC calls.
+       */
+      int stabilize() throw (dht_exception);
+
+      /**
+       * \brief refresh a random table entry.
+       */
+      int fix_finger() throw (dht_exception);
+
+      /**
+       * virtual functions, from Stabilizable.
+       */
+      virtual void stabilize_fast() throw (dht_exception)
+      {
+        stabilize();
+      };
+      virtual void stabilize_slow() throw (dht_exception)
+      {
+        fix_finger();
+      };
+      virtual bool isStable() const;
+
+      void print(std::ostream &out) const;
+
+    private:
+      /**
+       * virtual node to which this table refers.
+       */
+      DHTVirtualNode* _vnode;
+
+      /**
+       * shared table of known peers on the network.
+       */
+      LocationTable* _lt;
+
+      /**
+       * \brief finger table starting point:
+       * i.e. [k] = (n+2^{k-1}) mod 2^m, 1<k<m, with m=KEYNBITS,
+       * and n is the virtual node's key.
+       */
+      DHTKey _starts[KEYNBITS];
+
+    public:
+      /**
+       * \brief finger table: each location _locs[i] is the peer with key
+       * that is the closest known successor to _starts[i].
+       */
+      Location* _locs[KEYNBITS];
+
+      /**
+       * Finger table staibility is maintained over two passes.
+       */
+      bool _stable_pass1;
+      bool _stable_pass2;
+      sp_mutex_t _stable_mutex; // mutex around stable indicator.
+  };
+
 } /* end of namespace */
 
 #endif

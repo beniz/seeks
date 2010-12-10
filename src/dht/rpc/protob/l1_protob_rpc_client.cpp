@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if 0
+
 #include "l1_protob_rpc_client.h"
 #include "errlog.h"
 
@@ -117,9 +119,9 @@ namespace dht
   }
 
   void l1_protob_rpc_client::RPC_getSuccessor(const DHTKey &recipientKey,
-					      const NetAddress& recipient,
-					      DHTKey& dkres, NetAddress& na,
-					      int& status) throw (dht_exception)
+      const NetAddress& recipient,
+      DHTKey& dkres, NetAddress& na,
+      int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -151,9 +153,9 @@ namespace dht
   }
 
   void l1_protob_rpc_client::RPC_getPredecessor(const DHTKey& recipientKey,
-						const NetAddress& recipient,
-						DHTKey& dkres, NetAddress& na,
-						int& status) throw (dht_exception)
+      const NetAddress& recipient,
+      DHTKey& dkres, NetAddress& na,
+      int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -220,10 +222,10 @@ namespace dht
   }
 
   void l1_protob_rpc_client::RPC_getSuccList(const DHTKey &recipientKey,
-					     const NetAddress &recipient,
-					     std::list<DHTKey> &dkres_list,
-					     std::list<NetAddress> &na_list,
-					     int &status) throw (dht_exception)
+      const NetAddress &recipient,
+      std::list<DHTKey> &dkres_list,
+      std::list<NetAddress> &na_list,
+      int &status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -260,7 +262,7 @@ namespace dht
       DHTKey& dkres, NetAddress& na,
       DHTKey& dkres_succ,
       NetAddress &dkres_succ_na,
-							int& status) throw (dht_exception)
+      int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -296,7 +298,7 @@ namespace dht
       const NetAddress& recipient,
       const DHTKey &senderKey,
       DHTKey& dkres, NetAddress& na,
-					     int& status) throw (dht_exception)
+      int& status) throw (dht_exception)
   {
 #ifdef DEBUG
     //debug
@@ -364,3 +366,5 @@ namespace dht
   }
 
 } /* end of namespace. */
+
+#endif /* 0 */

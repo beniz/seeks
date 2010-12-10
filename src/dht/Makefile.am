@@ -6,7 +6,7 @@ AM_CPPFLAGS=-I${srcdir}/protob -Iprotob -I${srcdir}/../utils -I${srcdir}/../lsh 
 AM_CXXFLAGS=-Wall -g -Wno-deprecated
 libseeksdht_la_SOURCES=\
 	NetAddress.cpp DHTKey.cpp dht_configuration.cpp FingerTable.cpp \
-	DHTVirtualNode.cpp Location.cpp LocationTable.cpp DHTNode.cpp Stabilizer.cpp \
+	DHTVirtualNode.cpp Location.cpp LocationTable.cpp DHTNode.cpp Transport.cpp Transport.h Stabilizer.cpp \
 	BstTimeCb.cpp SuccList.cpp RouteIterator.cpp dht_api.cpp \
 	Bst.h \
 	BstTimeCb.h \

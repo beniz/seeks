@@ -25,304 +25,312 @@
 #include "dht_configuration.h"
 #include "DHTVirtualNode.h"
 #include "Stabilizer.h"
-#include "l1_rpc_server.h"
-#include "l1_rpc_client.h"
 
 namespace dht
 {
-   class DHTNode
-     {
-      public:
-	/**
-	 * \brief constructor.
-	 * @param net_addr address of the DHT node server.
-	 * @param net_port port the DHT node server is listening on.
-	 * @param start_dht_node whether to start the node, i.e. its server
-	 *        and automated stabilization system.
-	 */
-	DHTNode(const char *net_addr, const short &net_port=0,
-		const bool &start_dht_node=true,
-		const std::string &vnodes_table_file="vnodes-table.dat");
+  class Transport;
 
-	/**
-	 * \brief destructor.
-	 */
-	~DHTNode();
-	
-	/**
-	 * \brief start DHT node.
-	 */
-	void start_node();
+  class DHTNode
+  {
+    public:
+      /**
+       * \brief constructor.
+       * @param net_addr address of the DHT node server.
+       * @param net_port port the DHT node server is listening on.
+       * @param start_dht_node whether to start the node, i.e. its server
+       *        and automated stabilization system.
+       */
+      DHTNode(const char *net_addr, const short &net_port=0,
+              const bool &start_dht_node=true,
+              const std::string &vnodes_table_file="vnodes-table.dat");
 
-	/**
-	 * \brief create virtual nodes.
-	 */
-	void create_vnodes();
-	
-	/**
-	 * \brief create virtual node.
-	 */
-	virtual DHTVirtualNode* create_vnode();
-	virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
-					     LocationTable *lt);
-	
-	/**
-	 * \brief fill up and sort sorted set of virtual nodes.
-	 */
-	void init_sorted_vnodes();
-	
-	/**
-	 * \brief init servers.
-	 */
-	virtual void init_server();
-	
-	/**
-	 * \brief resets data and structures that are dependent on the virtual nodes.
-	 */
-	virtual void reset_vnodes_dependent() {};
-	
-	/**
-	 * \brief stops DHT node.
-	 */
-	void stop_node();
-	
-	/**
-	 * \brief destroy all virtual nodes on this DHT node.
-	 */
-	void destroy_vnodes();
-	
-	/*- persistence. -*/
-	/**
-	 * \brief loads table of virtual nodes and location tables from persistent
-	 * data, if it exists.
-	 */
-	bool load_vnodes_table() throw (dht_exception);
-	
-	/**
-	 * \brief loads deserialized vnodes and tables into memory structures.
-	 */
-	void load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
-				    const std::vector<LocationTable*> &vnode_ltables);
-	
-	/**
-	 * \brief makes critical data (vnode keys and location tables) persistent.
-	 */
-	bool hibernate_vnodes_table() throw (dht_exception);
-	
-	/**
-	 * \brief finds closest virtual node to the argument key.
-	 */
-	DHTVirtualNode* find_closest_vnode(const DHTKey &key) const;
-	
-	/*- main functions -*/
-	/**
-	 * \brief DHTNode key generation, one per virtual node.
-	 */
-	static DHTKey generate_uniform_key();
-	
-	/**
-	 * \brief join at startup.
-	 * tries from the list in configuration file and with the LocationTable information if any, 
-	 * and if reset is not true.
-	 */
-	dht_err join_start(const std::vector<NetAddress> &bootstrap_nodelist, 
-			   const bool &reset);
-	
-	/**
-	 * \brief rejoin all virtual nodes.
-	 */
-	dht_err rejoin();
-	
-	/**
-	 * \brief self-boostrap.
-	 * Bootstraps itself by building a circle of its virtual nodes.
-	 * Useful only for the first node of a circle.
-	 */
-	void self_bootstrap();
+      /**
+       * \brief destructor.
+       */
+      ~DHTNode();
 
-	/**
-	 * \brief nodes voluntarily leave the circle, announces it
-	 *        to its predecessor and successor.
-	 */
-	dht_err leave() const;
-	
-	/**
-	 * \brief whether every virtual node's successor list is stable.
-	 */ 
-	bool isSuccStable() const;
-	
-	/**
-	 * \brief whether every virtual node is stable (succlist + finger table).
-	 */
-	bool isStable() const;
-	
-      private:
-	void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
-	
-      public:
-	void estimate_nodes(const unsigned long &nnodes,
-			    const unsigned long &nnvnodes);
-	
-	bool on_ring_of_virtual_nodes();
-	
-      public:
-	/**
-	 * accessors.
-	 */
-	DHTVirtualNode* findVNode(const DHTKey& dk) const;
-	NetAddress getNetAddress() const { return _l1_na; }
-	
-	/**----------------------------**/
-	/**
-	 * \brief getSuccessor local callback.
-	 */
-	void getSuccessor_cb(const DHTKey& recipientKey,
-				DHTKey& dkres, NetAddress& na,
-			     int& status) throw (dht_exception);
+      /**
+       * \brief start DHT node.
+       */
+      void start_node();
 
-	void getPredecessor_cb(const DHTKey& recipientKey,
-				  DHTKey& dkres, NetAddress& na,
-				  int& status);
-	
-	/**
-	 * \brief notify callback.
-	 */
-	void notify_cb(const DHTKey& recipientKey,
-			  const DHTKey& senderKey,
-			  const NetAddress& senderAddress,
-			  int& status);
-	
-	/**
-	 * \brief getSuccList callback.
-	 */
-	void getSuccList_cb(const DHTKey &recipientKey,
-			       std::list<DHTKey> &dkres_list,
-			       std::list<NetAddress> &dkres_na,
-			       int &status);
+      /**
+       * \brief create virtual nodes.
+       */
+      void create_vnodes();
 
-	/**
-	 * \brief findClosestPredecessor callback.
-	 */
-	void findClosestPredecessor_cb(const DHTKey& recipientKey,
-					  const DHTKey& nodeKey,
-					  DHTKey& dkres, NetAddress& na,
-					  DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-					  int& status);
-	
-	/**
-	 * \brief joinGetSucc callback.
-	 */
-	void joinGetSucc_cb(const DHTKey &recipientKey,
-			       const DHTKey &senderKey,
-			       DHTKey& dkres, NetAddress& na,
-			       int& status);
-	
-	/**
-	 * \brief ping callback.
-	 */
-	void ping_cb(const DHTKey& recipientKey,
-			int& status);
-	
-	/**----------------------------**/
-	/**
-	 * Main routines using RPCs.
-	 */
-	
-	/**
-	 * \brief joins the circle by asking dk for the successor to its own key. 
-	 *        This is done for _all_ the virtual nodes of a peer.
-	 * @param na_bootstrap network address of a bootstrap node (any known peer).
-	 * @param dk_bootstrap DHT key of the bootstrap node.
-	 * @return status.
-	 */
-	dht_err join(const NetAddress& dk_bootstrap_na,
-		     const DHTKey &dk_bootstrap);
-	
-	/**
-	 * \brief find nodeKey's successor.
-	 * @param recipientKey identification key of the target node.
-	 * @param nodekey identification key to which the successor must be found.
-	 * @param dkres result identification key of nodeKey's successor.
-	 * @param na result net address of nodeKey's successor.
-	 * @return status
-	 */
-	dht_err find_successor(const DHTKey& recipientKey,
-			       const DHTKey& nodeKey,
-			       DHTKey& dkres, NetAddress& na) throw (dht_exception);
-	
-	/**
-	 * \brief find nodekey's predecessor.
-	 * @param recipientKey identification key of the first target node.
-	 * @param nodeKey identification key to which the predecessor must be found.
-	 * @param dkres result identification key of nodeKey's predecessor.
-	 * @param na result net address of nodeKey's predecessor.
-	 * @return status.
-	 */
-	dht_err find_predecessor(const DHTKey& recipientKey,
-				 const DHTKey& nodeKey,
-				 DHTKey& dkres, NetAddress& na) throw (dht_exception);
-	
-      public:
-	/**
-	 * configuration.
-	 */
-	static std::string _dht_config_filename;
-		
-	/**
-	 * hash map of DHT virtual nodes.
-	 */
-	hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
+      /**
+       * \brief create virtual node.
+       */
+      virtual DHTVirtualNode* create_vnode();
+      virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
+                                           LocationTable *lt);
 
-	/**
-	 * Sortable list of virtual nodes.
-	 */
-	std::vector<const DHTKey*> _sorted_vnodes_vec;
-	
-	/**
-	 * this peer net address.
-	 */
-	NetAddress _l1_na;
-	
-	/**
-	 * estimate of the number of peers on the circle.
-	 */
-	int _nnodes;
-	int _nnvnodes;
-	
-	/**
-	 * rpc layer1 server.
-	 */
-	l1_rpc_server *_l1_server;
-	
-	/**
-	 * rpc layer1 client.
-	 */
-	l1_rpc_client *_l1_client;
-	
-	/**
-	 * node's stabilizer.
-	 */
-	Stabilizer* _stabilizer;
-     
-	/**
-	 * persistent table of virtual nodes and location tables, in a file.
-	 */
-	std::string _vnodes_table_file;
-     
-	/**
-	 * whether this node is connected to the ring
-	 * (i.e. at least one of its virtual nodes is).
-	 */
-	bool _connected;
-     
-	/**
-	 * whether this node is running on persistent data
-	 * (virtual node keys that were created and left by
-	 * another object, another run).
-	 */
-	bool _has_persistent_data;
-     };
-   
+#if 0
+      /**
+       * \brief fill up and sort sorted set of virtual nodes.
+       */
+      void init_sorted_vnodes();
+#endif
+
+      /**
+       * \brief init servers.
+       */
+      virtual void init_server();
+
+      /**
+       * \brief resets data and structures that are dependent on the virtual nodes.
+       */
+      virtual void reset_vnodes_dependent() {};
+
+      /**
+       * \brief stops DHT node.
+       */
+      void stop_node();
+
+      /**
+       * \brief destroy all virtual nodes on this DHT node.
+       */
+      void destroy_vnodes();
+
+      /*- persistence. -*/
+      /**
+       * \brief loads table of virtual nodes and location tables from persistent
+       * data, if it exists.
+       */
+      bool load_vnodes_table() throw (dht_exception);
+
+      /**
+       * \brief loads deserialized vnodes and tables into memory structures.
+       */
+      void load_vnodes_and_tables(const std::vector<const DHTKey*> &vnode_ids,
+                                  const std::vector<LocationTable*> &vnode_ltables);
+
+      /**
+       * \brief makes critical data (vnode keys and location tables) persistent.
+       */
+      bool hibernate_vnodes_table() throw (dht_exception);
+
+#if 0
+      /**
+       * \brief finds closest virtual node to the argument key.
+       */
+      DHTVirtualNode* find_closest_vnode(const DHTKey &key) const;
+#endif
+      /*- main functions -*/
+      /**
+       * \brief DHTNode key generation, one per virtual node.
+       */
+      static DHTKey generate_uniform_key();
+
+      /**
+       * \brief join at startup.
+       * tries from the list in configuration file and with the LocationTable information if any,
+       * and if reset is not true.
+       */
+      dht_err join_start(const std::vector<NetAddress> &bootstrap_nodelist,
+                         const bool &reset);
+#if 0
+      /**
+       * \brief rejoin all virtual nodes.
+       */
+      dht_err rejoin();
+#endif
+
+      /**
+       * \brief self-boostrap.
+       * Bootstraps itself by building a circle of its virtual nodes.
+       * Useful only for the first node of a circle.
+       */
+      void self_bootstrap();
+
+      /**
+       * \brief nodes voluntarily leave the circle, announces it
+       *        to its predecessor and successor.
+       */
+      dht_err leave() const;
+
+#if 0
+      /**
+       * \brief whether every virtual node's successor list is stable.
+       */
+      bool isSuccStable() const;
+
+      /**
+       * \brief whether every virtual node is stable (succlist + finger table).
+       */
+      bool isStable() const;
+#endif
+#if 0
+    private:
+      void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
+#endif
+
+    public:
+      void estimate_nodes(const unsigned long &nnodes,
+                          const unsigned long &nnvnodes);
+
+      bool on_ring_of_virtual_nodes();
+
+    public:
+      /**
+       * accessors.
+       */
+#if 0
+      DHTVirtualNode* findVNode(const DHTKey& dk) const;
+#endif
+      NetAddress getNetAddress() const
+      {
+        return _l1_na;
+      }
+
+#if 0
+      /**----------------------------**/
+      /**
+       * \brief getSuccessor local callback.
+       */
+      void getSuccessor_cb(const DHTKey& recipientKey,
+                           DHTKey& dkres, NetAddress& na,
+                           int& status) throw (dht_exception);
+
+      void getPredecessor_cb(const DHTKey& recipientKey,
+                             DHTKey& dkres, NetAddress& na,
+                             int& status);
+
+      /**
+       * \brief notify callback.
+       */
+      void notify_cb(const DHTKey& recipientKey,
+                     const DHTKey& senderKey,
+                     const NetAddress& senderAddress,
+                     int& status);
+
+      /**
+       * \brief getSuccList callback.
+       */
+      void getSuccList_cb(const DHTKey &recipientKey,
+                          std::list<DHTKey> &dkres_list,
+                          std::list<NetAddress> &dkres_na,
+                          int &status);
+
+      /**
+       * \brief findClosestPredecessor callback.
+       */
+      void findClosestPredecessor_cb(const DHTKey& recipientKey,
+                                     const DHTKey& nodeKey,
+                                     DHTKey& dkres, NetAddress& na,
+                                     DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+                                     int& status);
+
+      /**
+       * \brief joinGetSucc callback.
+       */
+      void joinGetSucc_cb(const DHTKey &recipientKey,
+                          const DHTKey &senderKey,
+                          DHTKey& dkres, NetAddress& na,
+                          int& status);
+
+      /**
+       * \brief ping callback.
+       */
+      void ping_cb(const DHTKey& recipientKey,
+                   int& status);
+
+#endif
+      /**----------------------------**/
+      /**
+       * Main routines using RPCs.
+       */
+
+      /**
+       * \brief joins the circle by asking dk for the successor to its own key.
+       *        This is done for _all_ the virtual nodes of a peer.
+       * @param na_bootstrap network address of a bootstrap node (any known peer).
+       * @param dk_bootstrap DHT key of the bootstrap node.
+       * @return status.
+       */
+      dht_err join(const NetAddress& dk_bootstrap_na,
+                   const DHTKey &dk_bootstrap);
+
+#if 0
+      /**
+       * \brief find nodeKey's successor.
+       * @param recipientKey identification key of the target node.
+       * @param nodekey identification key to which the successor must be found.
+       * @param dkres result identification key of nodeKey's successor.
+       * @param na result net address of nodeKey's successor.
+       * @return status
+       */
+      dht_err find_successor(const DHTKey& recipientKey,
+                             const DHTKey& nodeKey,
+                             DHTKey& dkres, NetAddress& na) throw (dht_exception);
+
+      /**
+       * \brief find nodekey's predecessor.
+       * @param recipientKey identification key of the first target node.
+       * @param nodeKey identification key to which the predecessor must be found.
+       * @param dkres result identification key of nodeKey's predecessor.
+       * @param na result net address of nodeKey's predecessor.
+       * @return status.
+       */
+      dht_err find_predecessor(const DHTKey& recipientKey,
+                               const DHTKey& nodeKey,
+                               DHTKey& dkres, NetAddress& na) throw (dht_exception);
+#endif
+
+    public:
+      /**
+       * configuration.
+       */
+      static std::string _dht_config_filename;
+
+      /**
+       * hash map of DHT virtual nodes.
+       */
+      hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
+
+      /**
+       * Sortable list of virtual nodes.
+       */
+      std::vector<const DHTKey*> _sorted_vnodes_vec;
+
+      /**
+       * this peer net address.
+       */
+      NetAddress _l1_na;
+
+      /**
+       * estimate of the number of peers on the circle.
+       */
+      int _nnodes;
+      int _nnvnodes;
+
+      Transport *_transport;
+
+      /**
+       * node's stabilizer.
+       */
+      Stabilizer* _stabilizer;
+
+      /**
+       * persistent table of virtual nodes and location tables, in a file.
+       */
+      std::string _vnodes_table_file;
+
+      /**
+       * whether this node is connected to the ring
+       * (i.e. at least one of its virtual nodes is).
+       */
+      bool _connected;
+
+      /**
+       * whether this node is running on persistent data
+       * (virtual node keys that were created and left by
+       * another object, another run).
+       */
+      bool _has_persistent_data;
+  };
+
 } /* end of namespace. */
 
 #endif

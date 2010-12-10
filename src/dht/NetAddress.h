@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -28,66 +29,78 @@
 
 namespace dht
 {
-   class NetAddress
-     {
-	friend std::ostream &operator<<(std::ostream& output, const NetAddress& na);
-	
-      public:
-	NetAddress();
-	
-	NetAddress(const std::string& naddress, const unsigned short& port);
+  class NetAddress
+  {
+      friend std::ostream &operator<<(std::ostream& output, const NetAddress& na);
 
-	// deserialize constructor.
-	NetAddress(const uint32_t &ip, const std::string &port);
-	
-	NetAddress(const NetAddress &na);
-	
-	~NetAddress() {};
-	
-	bool empty() const;
-	std::string getNetAddress() const { return _net_address; }
-	unsigned short getPort() const { return _port; }
-	void setNetAddress(const std::string& naddress) { _net_address = naddress; }
-	void setPort(const unsigned short& p) { _port = p; }      
-		
-	/**
-	 * \brief converts to a full address string.
-	 */
-	std::string toString(const std::string& protocol="",
-			     const std::string& aend="") const;
+    public:
+      NetAddress();
 
-	/**
-	 * operators.
-	 */
-	bool operator==(const NetAddress& na) const;
-	bool operator!=(const NetAddress& na) const;
-	
-	/**
-	 * printing.
-	 */
-	std::ostream& print (std::ostream &output) const;
+      NetAddress(const std::string& naddress, const unsigned short& port);
 
-	/**
-	 * serialization.
-	 */
-	uint32_t serialize_ip() const;
-	static std::string unserialize_ip(const uint32_t &ip);
-	
-	std::string serialize_port() const;
-	static unsigned short unserialize_port(const std::string &p);
-	
-      private:
-	/**
-	 * ip or dns address.
-	 */
-	std::string _net_address;
-	
-	/**
-	 * communication port.
-	 */
-	unsigned short _port;
-     };
-   
+      // deserialize constructor.
+      NetAddress(const uint32_t &ip, const std::string &port);
+
+      NetAddress(const NetAddress &na);
+
+      ~NetAddress() {};
+
+      bool empty() const;
+      std::string getNetAddress() const
+      {
+        return _net_address;
+      }
+      unsigned short getPort() const
+      {
+        return _port;
+      }
+      void setNetAddress(const std::string& naddress)
+      {
+        _net_address = naddress;
+      }
+      void setPort(const unsigned short& p)
+      {
+        _port = p;
+      }
+
+      /**
+       * \brief converts to a full address string.
+       */
+      std::string toString(const std::string& protocol="",
+                           const std::string& aend="") const;
+
+      /**
+       * operators.
+       */
+      bool operator==(const NetAddress& na) const;
+      bool operator!=(const NetAddress& na) const;
+
+      /**
+       * printing.
+       */
+      std::ostream& print (std::ostream &output) const;
+
+      /**
+       * serialization.
+       */
+      uint32_t serialize_ip() const;
+      static std::string unserialize_ip(const uint32_t &ip);
+
+      std::string serialize_port() const;
+      static unsigned short unserialize_port(const std::string &p);
+
+    private:
+      /**
+       * ip or dns address.
+       */
+      std::string _net_address;
+
+      /**
+       * communication port.
+       */
+      unsigned short _port;
+  };
+
 } /* end of namespace. */
 
 #endif

@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -158,7 +159,7 @@ namespace dht
       {
         /**
          * TODO: after debugging, write a better handling of this error.
-	 */
+        	 */
         std::cerr << "[Error]:FingerTable::stabilize: this virtual node has no successor: "
                   << recipientKey << ". Exiting\n";
         exit(-1);
@@ -231,9 +232,9 @@ namespace dht
                   : _vnode->getFirstSuccessor();
 
                 /**
-		 * if we're at the end, game over, we will need to rejoin the network
-		 * (we're probably cut off because of network failure, or some weird configuration).
-		 */
+                		 * if we're at the end, game over, we will need to rejoin the network
+                		 * (we're probably cut off because of network failure, or some weird configuration).
+                		 */
                 if (kit == _vnode->_successors.end())
                   break; // we're out of potential successors.
 
@@ -244,9 +245,9 @@ namespace dht
 #endif
 
                 DHTKey *succ_ptr = const_cast<DHTKey*>((*kit));
-		assert(succ_ptr); // beware, TODO: this should never happen, take it into account ?
-		succ = *succ_ptr;
-		
+                assert(succ_ptr); // beware, TODO: this should never happen, take it into account ?
+                succ = *succ_ptr;
+
                 // mark dead nodes for tentative removal from location table.
                 dead_locs.push_back(succ_loc);
 
@@ -409,7 +410,7 @@ namespace dht
             // where k is the replication factor.
             //TODO: needs to move everything from 0 to k-1 !
             //TODO: beware of bootstrap.
-	    DHTKey vsucc = _vnode->getSuccessorS();
+            DHTKey vsucc = _vnode->getSuccessorS();
             _vnode->replication_move_keys_forward(vsucc);
           }
       }
@@ -441,7 +442,7 @@ namespace dht
       {
         Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
         DHTKey vpred = _vnode->getPredecessorS();
-	if (vpred.count() && (vpred == _vnode->getIdKey()))
+        if (vpred.count() && (vpred == _vnode->getIdKey()))
           {
             // XXX: this should not happen. It does when self-bootstrapping in non routing mode,
             // a hopeless situation.

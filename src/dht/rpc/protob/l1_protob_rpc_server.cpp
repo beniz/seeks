@@ -18,10 +18,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-  
+
 #include "l1_protob_rpc_server.h"
 #include "l1_protob_wrapper.h"
 #include "DHTNode.h"
+#include "Transport.h"
 #include "errlog.h"
 
 #include <sys/types.h>
@@ -34,330 +35,330 @@ using sp::errlog;
 
 namespace dht
 {
-   l1_protob_rpc_server::l1_protob_rpc_server(const std::string &hostname, const short &port,
-					      DHTNode *pnode)
-     :l1_rpc_server(hostname,port,pnode)
-       {
-       }
-   
-   l1_protob_rpc_server::~l1_protob_rpc_server()
-     {
-     }
-   
-   void l1_protob_rpc_server::serve_response(const std::string &msg,
-						const std::string &addr,
-						std::string &resp_msg)
-     {
-       try
-         {
-           serve_response_uncaught(msg, addr, resp_msg);
-         }
-       catch (dht_exception ex) 
-         {
-           l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(ex.code());
-           l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
-           delete l1r;
-         }
-     }
-  
-   void l1_protob_rpc_server::serve_response_uncaught(const std::string &msg,
-						const std::string &addr,
-						      std::string &resp_msg) throw (dht_exception)
-     {
-	l1::l1_query l1q;
-	try 
-	  {
-	     l1_protob_wrapper::deserialize(msg,&l1q);
-	  }
-	catch (dht_exception ex) 
-	  {
-	     errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
-	     throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception " + ex.what());
-	  }
-			
-	// read query.
-	uint32_t layer_id;
-	uint32_t fct_id;
-	DHTKey recipient_key, sender_key, node_key;
-	NetAddress recipient_na, sender_na;
-	l1_protob_wrapper::read_l1_query(&l1q,layer_id,fct_id,recipient_key,
-					 recipient_na,sender_key,sender_na,node_key);
-	// check on the layer id.
-	if (layer_id != 1)
-	  {
-	     int status = DHT_ERR_OK;
-	     lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,
-				status,resp_msg,msg);
-	     return;
-	  }
-	
-	// check on sender address, if specified, that sender is not lying.
-	if (sender_na.empty())
-	  sender_na = NetAddress(addr,0);
-	else
-	  {
-	     struct addrinfo hints, *result;
-	     memset((char *)&hints, 0, sizeof(hints));
-	     hints.ai_family = AF_UNSPEC;
-	     hints.ai_socktype = SOCK_DGRAM;
-	     hints.ai_flags = AI_ADDRCONFIG; /* avoid service look-up */
-	     int ret = getaddrinfo(sender_na.getNetAddress().c_str(), NULL, &hints, &result);
-	     if (ret != 0)
-	       {
-		  errlog::log_error(LOG_LEVEL_ERROR,
-				    "Can not resolve %s: %s", sender_na.getNetAddress().c_str(), 
-				    gai_strerror(ret));
-		  sender_na = NetAddress();
-	       }
-	     else
-	       {
-		  bool lying = true;
-		  struct addrinfo *rp;
-		  for (rp = result; rp != NULL; rp = rp->ai_next)
-		    {
-		       struct sockaddr_in *ai_addr = (struct sockaddr_in*)rp->ai_addr;
-		       uint32_t v4_addr = ai_addr->sin_addr.s_addr;
-		       std::string addr_from = NetAddress::unserialize_ip(v4_addr);
-		       
-		       if (addr_from == addr)
-			 {
-			    lying = false;
-			    break;
-			 }
-		    }
-		  if (lying)
-		    {
-		       /**
-			* Seems like the sender is lying on its address.
-			* We still serve it, but we do not use the potentially
-			* fake/lying IP.
-			*/
-		       sender_na = NetAddress();
-		    }
-	       }
-	  }
-		
-	// decides which response to give.
-	int status = DHT_ERR_OK;
-	execute_callback(fct_id,recipient_key,recipient_na,
-				       sender_key,sender_na,node_key,status,resp_msg);
-	
-     }
-   
-   void l1_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
-						    const DHTKey &recipient_key,
-						    const NetAddress &recipient_na,
-						    const DHTKey &sender_key,
-						    const NetAddress &sender_na,
-						    const DHTKey &node_key,
-						    int &status,
-						    std::string &resp_msg,
-						 const std::string &inc_msg) throw (dht_exception)
-     {
-       throw dht_exception(DHT_ERR_NETWORK, "received another layer's message");
-     }
-      
-   void l1_protob_rpc_server::execute_callback(const uint32_t &fct_id,
-						  const DHTKey &recipient_key,
-						  const NetAddress &recipient_na,
-						  const DHTKey &sender_key,
-						  const NetAddress &sender_na,
-						  const DHTKey &node_key,
-						  int& status,
-						  std::string &resp_msg)
-     {
+  l1_protob_rpc_server::l1_protob_rpc_server(const std::string &hostname, const short &port,
+      Transport *transport)
+    :l1_rpc_server(hostname,port,NULL), _transport(transport)
+  {
+  }
+
+  l1_protob_rpc_server::~l1_protob_rpc_server()
+  {
+  }
+
+  void l1_protob_rpc_server::serve_response(const std::string &msg,
+      const std::string &addr,
+      std::string &resp_msg)
+  {
+    try
+      {
+        serve_response_uncaught(msg, addr, resp_msg);
+      }
+    catch (dht_exception ex)
+      {
+        l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(ex.code());
+        l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
+        delete l1r;
+      }
+  }
+
+  void l1_protob_rpc_server::serve_response_uncaught(const std::string &msg,
+      const std::string &addr,
+      std::string &resp_msg) throw (dht_exception)
+  {
+    l1::l1_query l1q;
+    try
+      {
+        l1_protob_wrapper::deserialize(msg,&l1q);
+      }
+    catch (dht_exception ex)
+      {
+        errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
+        throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception " + ex.what());
+      }
+
+    // read query.
+    uint32_t layer_id;
+    uint32_t fct_id;
+    DHTKey recipient_key, sender_key, node_key;
+    NetAddress recipient_na, sender_na;
+    l1_protob_wrapper::read_l1_query(&l1q,layer_id,fct_id,recipient_key,
+                                     recipient_na,sender_key,sender_na,node_key);
+    // check on the layer id.
+    if (layer_id != 1)
+      {
+        int status = DHT_ERR_OK;
+        lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,
+                           status,resp_msg,msg);
+        return;
+      }
+
+    // check on sender address, if specified, that sender is not lying.
+    if (sender_na.empty())
+      sender_na = NetAddress(addr,0);
+    else
+      {
+        struct addrinfo hints, *result;
+        memset((char *)&hints, 0, sizeof(hints));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_DGRAM;
+        hints.ai_flags = AI_ADDRCONFIG; /* avoid service look-up */
+        int ret = getaddrinfo(sender_na.getNetAddress().c_str(), NULL, &hints, &result);
+        if (ret != 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,
+                              "Can not resolve %s: %s", sender_na.getNetAddress().c_str(),
+                              gai_strerror(ret));
+            sender_na = NetAddress();
+          }
+        else
+          {
+            bool lying = true;
+            struct addrinfo *rp;
+            for (rp = result; rp != NULL; rp = rp->ai_next)
+              {
+                struct sockaddr_in *ai_addr = (struct sockaddr_in*)rp->ai_addr;
+                uint32_t v4_addr = ai_addr->sin_addr.s_addr;
+                std::string addr_from = NetAddress::unserialize_ip(v4_addr);
+
+                if (addr_from == addr)
+                  {
+                    lying = false;
+                    break;
+                  }
+              }
+            if (lying)
+              {
+                /**
+                			* Seems like the sender is lying on its address.
+                			* We still serve it, but we do not use the potentially
+                			* fake/lying IP.
+                			*/
+                sender_na = NetAddress();
+              }
+          }
+      }
+
+    // decides which response to give.
+    int status = DHT_ERR_OK;
+    execute_callback(fct_id,recipient_key,recipient_na,
+                     sender_key,sender_na,node_key,status,resp_msg);
+
+  }
+
+  void l1_protob_rpc_server::lx_server_response(const uint32_t &fct_id,
+      const DHTKey &recipient_key,
+      const NetAddress &recipient_na,
+      const DHTKey &sender_key,
+      const NetAddress &sender_na,
+      const DHTKey &node_key,
+      int &status,
+      std::string &resp_msg,
+      const std::string &inc_msg) throw (dht_exception)
+  {
+    throw dht_exception(DHT_ERR_NETWORK, "received another layer's message");
+  }
+
+  void l1_protob_rpc_server::execute_callback(const uint32_t &fct_id,
+      const DHTKey &recipient_key,
+      const NetAddress &recipient_na,
+      const DHTKey &sender_key,
+      const NetAddress &sender_na,
+      const DHTKey &node_key,
+      int& status,
+      std::string &resp_msg)
+  {
 #ifdef DEBUG
-	//debug
-	std::cerr << "[Debug]:execute_callback: ";
-	//debug
+    //debug
+    std::cerr << "[Debug]:execute_callback: ";
+    //debug
 #endif
-	
-	l1::l1_response *l1r = NULL;
-	
-	if (fct_id == hash_get_successor)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_successor from %s",recipient_key.to_rstring().c_str(),
-			      sender_key.to_rstring().c_str());
 
-	     DHTKey dkres;
-	     NetAddress dkres_na;
-	     RPC_getSuccessor_cb(recipient_key,dkres,dkres_na,status);
-	     
-	     // create a response.
-	     if (status == DHT_ERR_OK)
-	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
-	     else l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else if (fct_id == hash_get_predecessor)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_predecessor from %s",recipient_key.to_rstring().c_str(),
-			      sender_key.to_rstring().c_str());
+    l1::l1_response *l1r = NULL;
 
-	     DHTKey dkres;
-	     NetAddress dkres_na;
-	     RPC_getPredecessor_cb(recipient_key,dkres,dkres_na,status);
-	     
-	     // create a response.
-	     if (status == DHT_ERR_OK)
-	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
-	     else l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else if (fct_id == hash_notify)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving notify from %s",recipient_key.to_rstring().c_str(),
-			      sender_key.to_rstring().c_str());
-	     
-	     RPC_notify_cb(recipient_key,sender_key,sender_na,
-			   status);
-	     
-	     // create a response.
-	     l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else if (fct_id == hash_get_succlist)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_succlist from %s",recipient_key.to_rstring().c_str(),
-			      sender_key.to_rstring().c_str());
+    if (fct_id == hash_get_successor)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_successor from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
 
-	     std::list<DHTKey> dkres_list;
-	     std::list<NetAddress> na_list;
-	     RPC_getSuccList_cb(recipient_key,dkres_list,na_list,status);
-	     
-	     // create a response.
-	     if (status == DHT_ERR_OK)
-	       l1r = l1_protob_wrapper::create_l1_response(status,dkres_list,na_list);
-	     else l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else if (fct_id == hash_find_closest_predecessor)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving find_closest_predecessor from %s",recipient_key.to_rstring().c_str(),
-			      sender_key.to_rstring().c_str());
+        DHTKey dkres;
+        NetAddress dkres_na;
+        RPC_getSuccessor_cb(recipient_key,dkres,dkres_na,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_get_predecessor)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_predecessor from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        DHTKey dkres;
+        NetAddress dkres_na;
+        RPC_getPredecessor_cb(recipient_key,dkres,dkres_na,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_notify)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving notify from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        RPC_notify_cb(recipient_key,sender_key,sender_na,
+                      status);
+
+        // create a response.
+        l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_get_succlist)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_succlist from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        std::list<DHTKey> dkres_list;
+        std::list<NetAddress> na_list;
+        RPC_getSuccList_cb(recipient_key,dkres_list,na_list,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres_list,na_list);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_find_closest_predecessor)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving find_closest_predecessor from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
 
 #ifdef DEBUG
-	     //debug
-	     //TODO: catch this error.
-	     assert(node_key.count()>0);
-	     //debug
+        //debug
+        //TODO: catch this error.
+        assert(node_key.count()>0);
+        //debug
 #endif
-	     
-	     DHTKey dkres, dkres_succ;
-	     NetAddress dkres_na, dkres_succ_na;
-	     RPC_findClosestPredecessor_cb(recipient_key,
-					   node_key,
-					   dkres,dkres_na,
-					   dkres_succ,dkres_succ_na,
-					   status);
-	     
-	     // create a response.
-	     if (status == DHT_ERR_OK)
-	       {
-		  if (dkres_succ.count() > 0)
-		    l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
-								dkres_succ,dkres_succ_na);
-		  else l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
-	       }
-	     else l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else if (fct_id == hash_join_get_succ)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving join from %s",recipient_key.to_rstring().c_str(),
-			      sender_key.to_rstring().c_str());
-	     
-	     DHTKey dkres;
-	     NetAddress dkres_na;
-	     RPC_joinGetSucc_cb(recipient_key,
-				sender_key,
-				dkres,dkres_na,status);
-	     
-	     // create a response.
-	     if (status == DHT_ERR_OK)
-	       l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
-	     else l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else if (fct_id == hash_ping)
-	  {
-	    errlog::log_error(LOG_LEVEL_INFO,"%s receiving ping from %s",recipient_key.to_rstring().c_str(),
-                               sender_key.to_rstring().c_str());
 
-	     RPC_ping_cb(recipient_key,status);
-	     
-	     // create a reponse.
-	     l1r = l1_protob_wrapper::create_l1_response(status);
-	  }
-	else 
-	  {
-	    errlog::log_error(LOG_LEVEL_ERROR, "%s receiving unknown callback with id %u from %s", 
-			      recipient_key.to_rstring().c_str(),fct_id,sender_key.to_rstring().c_str());
-	     status = DHT_ERR_CALLBACK;
-             return;
-	  }
-	
-	// serialize the response.
-	l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
-	delete l1r;
-	
-	//debug
-	/* l1::l1_response l1rt;
-	l1_protob_wrapper::deserialize(resp_msg,&l1rt);
-	std::cerr << "layer_id resp deser: " << l1rt.head().layer_id() << std::endl; */
-	//debug
-     }
+        DHTKey dkres, dkres_succ;
+        NetAddress dkres_na, dkres_succ_na;
+        RPC_findClosestPredecessor_cb(recipient_key,
+                                      node_key,
+                                      dkres,dkres_na,
+                                      dkres_succ,dkres_succ_na,
+                                      status);
 
-   /*- l1 interface. -*/
-   void l1_protob_rpc_server::RPC_getSuccessor_cb(const DHTKey& recipientKey,
-						  DHTKey& dkres, NetAddress& na,
-						  int& status)
-   {
-	_pnode->getSuccessor_cb(recipientKey,dkres,na,status);
-     }
-      
-   void l1_protob_rpc_server::RPC_getPredecessor_cb(const DHTKey& recipientKey,
-						    DHTKey& dkres, NetAddress& na,
-						    int& status)
-   {
-	_pnode->getPredecessor_cb(recipientKey,dkres,na,status); 
-     }
-      
-   void l1_protob_rpc_server::RPC_notify_cb(const DHTKey& recipientKey,
-					    const DHTKey& senderKey,
-					    const NetAddress& senderAddress,
-					    int& status)
-     {
-	if (senderAddress.empty() || senderAddress.getPort()==0)
-	  status = DHT_ERR_ADDRESS_MISMATCH;
-	else
-          _pnode->notify_cb(recipientKey,senderKey,senderAddress,status);
-     }
+        // create a response.
+        if (status == DHT_ERR_OK)
+          {
+            if (dkres_succ.count() > 0)
+              l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
+                    dkres_succ,dkres_succ_na);
+            else l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+          }
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_join_get_succ)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving join from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
 
-   void l1_protob_rpc_server::RPC_getSuccList_cb(const DHTKey& recipientKey,
-						 std::list<DHTKey> &dkres_list,
-						 std::list<NetAddress> &na_list,
-						 int& status)
-   {
-	_pnode->getSuccList_cb(recipientKey,dkres_list,na_list,status);
-     }
-  
-   void l1_protob_rpc_server::RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
-							    const DHTKey& nodeKey,
-							    DHTKey& dkres, NetAddress& na,
-							    DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-							    int& status)
-   {
-     _pnode->findClosestPredecessor_cb(recipientKey,nodeKey,dkres,na,
-				       dkres_succ,dkres_succ_na,status);	
-     }
+        DHTKey dkres;
+        NetAddress dkres_na;
+        RPC_joinGetSucc_cb(recipient_key,
+                           sender_key,
+                           dkres,dkres_na,status);
 
-   void l1_protob_rpc_server::RPC_joinGetSucc_cb(const DHTKey& recipientKey,
-						 const DHTKey& senderKey,
-						 DHTKey& dkres, NetAddress& na,
-						 int& status)
-     {
-       _pnode->joinGetSucc_cb(recipientKey,senderKey,dkres,na,status);
-     }
-      
-   void l1_protob_rpc_server::RPC_ping_cb(const DHTKey& recipientKey,
-					  int& status)
-   {
-	_pnode->ping_cb(recipientKey,status);
-     }
-      
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_ping)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving ping from %s",recipient_key.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        RPC_ping_cb(recipient_key,status);
+
+        // create a reponse.
+        l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "%s receiving unknown callback with id %u from %s",
+                          recipient_key.to_rstring().c_str(),fct_id,sender_key.to_rstring().c_str());
+        status = DHT_ERR_CALLBACK;
+        return;
+      }
+
+    // serialize the response.
+    l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
+    delete l1r;
+
+    //debug
+    /* l1::l1_response l1rt;
+    l1_protob_wrapper::deserialize(resp_msg,&l1rt);
+    std::cerr << "layer_id resp deser: " << l1rt.head().layer_id() << std::endl; */
+    //debug
+  }
+
+  /*- l1 interface. -*/
+  void l1_protob_rpc_server::RPC_getSuccessor_cb(const DHTKey& recipientKey,
+      DHTKey& dkres, NetAddress& na,
+      int& status)
+  {
+    _transport->getSuccessor_cb(recipientKey,dkres,na,status);
+  }
+
+  void l1_protob_rpc_server::RPC_getPredecessor_cb(const DHTKey& recipientKey,
+      DHTKey& dkres, NetAddress& na,
+      int& status)
+  {
+    _transport->getPredecessor_cb(recipientKey,dkres,na,status);
+  }
+
+  void l1_protob_rpc_server::RPC_notify_cb(const DHTKey& recipientKey,
+      const DHTKey& senderKey,
+      const NetAddress& senderAddress,
+      int& status)
+  {
+    if (senderAddress.empty() || senderAddress.getPort()==0)
+      status = DHT_ERR_ADDRESS_MISMATCH;
+    else
+      _transport->notify_cb(recipientKey,senderKey,senderAddress,status);
+  }
+
+  void l1_protob_rpc_server::RPC_getSuccList_cb(const DHTKey& recipientKey,
+      std::list<DHTKey> &dkres_list,
+      std::list<NetAddress> &na_list,
+      int& status)
+  {
+    _transport->getSuccList_cb(recipientKey,dkres_list,na_list,status);
+  }
+
+  void l1_protob_rpc_server::RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
+      const DHTKey& nodeKey,
+      DHTKey& dkres, NetAddress& na,
+      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+      int& status)
+  {
+    _transport->findClosestPredecessor_cb(recipientKey,nodeKey,dkres,na,
+                                          dkres_succ,dkres_succ_na,status);
+  }
+
+  void l1_protob_rpc_server::RPC_joinGetSucc_cb(const DHTKey& recipientKey,
+      const DHTKey& senderKey,
+      DHTKey& dkres, NetAddress& na,
+      int& status)
+  {
+    _transport->joinGetSucc_cb(recipientKey,senderKey,dkres,na,status);
+  }
+
+  void l1_protob_rpc_server::RPC_ping_cb(const DHTKey& recipientKey,
+                                         int& status)
+  {
+    _transport->ping_cb(recipientKey,status);
+  }
+
 } /* end of namespace. */

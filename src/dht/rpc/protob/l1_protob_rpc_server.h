@@ -25,75 +25,80 @@
 
 namespace dht
 {
-   class l1_protob_rpc_server : public l1_rpc_server
-     {
-      public:
-	l1_protob_rpc_server(const std::string &hostname, const short &port,
-			     DHTNode *pnode);
-	
-	~l1_protob_rpc_server();
-	
-	virtual void serve_response(const std::string &msg,
-				       const std::string &addr,
-				       std::string &resp_msg);
-	
-	void serve_response_uncaught(const std::string &msg,
-				       const std::string &addr,
-				     std::string &resp_msg) throw (dht_exception);
-	
-	virtual void lx_server_response(const uint32_t &fct_id,
-					   const DHTKey &recipient_key,
-					   const NetAddress &recipient_na,
-					   const DHTKey &sender_key,
-					   const NetAddress &sender_na,
-					   const DHTKey &node_key,
-					   int &status,
-					   std::string &resp_msg,
-					const std::string &inc_msg) throw (dht_exception);
-	
-	void execute_callback(const uint32_t &fct_id,
-				 const DHTKey &recipient_key,
-				 const NetAddress &recipient_na,
-				 const DHTKey &sender_key,
-				 const NetAddress &sender_na,
-				 const DHTKey &node_key,
-				 int &status,
-				 std::string &resp_msg);
-     
-	/*- l1 interface. -*/
-	virtual void RPC_getSuccessor_cb(const DHTKey& recipientKey,
-					 DHTKey& dkres, NetAddress& na,
-					 int& status);
-	
-	virtual void RPC_getPredecessor_cb(const DHTKey& recipientKey,
-					   DHTKey& dkres, NetAddress& na,
-					   int& status);
-	
-	virtual void RPC_notify_cb(const DHTKey& recipientKey,
-				   const DHTKey& senderKey,
-				   const NetAddress& senderAddress,
-				   int& status);
-	
-	virtual void RPC_getSuccList_cb(const DHTKey& recipientKey,
-					std::list<DHTKey> &dkres_list, 
-					std::list<NetAddress> &na_list,
-					int& status);
-	
-	virtual void RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
-						   const DHTKey& nodeKey,
-						   DHTKey& dkres, NetAddress& na,
-						   DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-						   int& status);
-	
-	virtual void RPC_joinGetSucc_cb(const DHTKey& recipientKey,
-					const DHTKey &senderKey,
-					DHTKey& dkres, NetAddress& na,
-					int& status);
-	
-	virtual void RPC_ping_cb(const DHTKey& recipientKey,
-				 int& status);
-     };
-   
+
+  class Transport;
+
+  class l1_protob_rpc_server : public l1_rpc_server
+  {
+    public:
+      l1_protob_rpc_server(const std::string &hostname, const short &port,
+                           Transport *transport);
+
+      ~l1_protob_rpc_server();
+
+      virtual void serve_response(const std::string &msg,
+                                  const std::string &addr,
+                                  std::string &resp_msg);
+
+      void serve_response_uncaught(const std::string &msg,
+                                   const std::string &addr,
+                                   std::string &resp_msg) throw (dht_exception);
+
+      virtual void lx_server_response(const uint32_t &fct_id,
+                                      const DHTKey &recipient_key,
+                                      const NetAddress &recipient_na,
+                                      const DHTKey &sender_key,
+                                      const NetAddress &sender_na,
+                                      const DHTKey &node_key,
+                                      int &status,
+                                      std::string &resp_msg,
+                                      const std::string &inc_msg) throw (dht_exception);
+
+      void execute_callback(const uint32_t &fct_id,
+                            const DHTKey &recipient_key,
+                            const NetAddress &recipient_na,
+                            const DHTKey &sender_key,
+                            const NetAddress &sender_na,
+                            const DHTKey &node_key,
+                            int &status,
+                            std::string &resp_msg);
+
+      /*- l1 interface. -*/
+      virtual void RPC_getSuccessor_cb(const DHTKey& recipientKey,
+                                       DHTKey& dkres, NetAddress& na,
+                                       int& status);
+
+      virtual void RPC_getPredecessor_cb(const DHTKey& recipientKey,
+                                         DHTKey& dkres, NetAddress& na,
+                                         int& status);
+
+      virtual void RPC_notify_cb(const DHTKey& recipientKey,
+                                 const DHTKey& senderKey,
+                                 const NetAddress& senderAddress,
+                                 int& status);
+
+      virtual void RPC_getSuccList_cb(const DHTKey& recipientKey,
+                                      std::list<DHTKey> &dkres_list,
+                                      std::list<NetAddress> &na_list,
+                                      int& status);
+
+      virtual void RPC_findClosestPredecessor_cb(const DHTKey& recipientKey,
+          const DHTKey& nodeKey,
+          DHTKey& dkres, NetAddress& na,
+          DHTKey& dkres_succ, NetAddress &dkres_succ_na,
+          int& status);
+
+      virtual void RPC_joinGetSucc_cb(const DHTKey& recipientKey,
+                                      const DHTKey &senderKey,
+                                      DHTKey& dkres, NetAddress& na,
+                                      int& status);
+
+      virtual void RPC_ping_cb(const DHTKey& recipientKey,
+                               int& status);
+
+      Transport* _transport;
+  };
+
 } /* end of namespace. */
 
 #endif
