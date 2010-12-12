@@ -70,14 +70,8 @@ namespace dht
        */
       DHTVirtualNode(Transport *transport, const DHTKey &idkey, LocationTable *lt);
 
-      /**
-       * \brief destructor.
-       */
       ~DHTVirtualNode();
 
-      /**
-       * Initializes structures and mutexes.
-       */
       void init_vnode();
 
       /**-- functions used in RPC callbacks. --**/
@@ -216,6 +210,7 @@ namespace dht
        */
       bool isStable() const;
 
+#if 0
       /* replication. */
       /**
        * replication of content.
@@ -235,6 +230,7 @@ namespace dht
 
       virtual void replication_trickle_forward(const DHTKey &start_key,
           const short &start_replication_radius) { };
+#endif
 
       /**----------------------------**/
       /**
