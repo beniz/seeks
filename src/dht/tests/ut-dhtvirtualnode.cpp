@@ -21,24 +21,15 @@
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
-#include "DHTNode.h"
+#include "DHTVirtualNode.h"
+#include "Transport.h"
+#include "dht_configuration.h"
 #include "errlog.h"
 
 #include <unistd.h>
 
 using namespace dht;
 using sp::errlog;
-
-//const std::string net_addr = "localhost";
-//const short net_port = 11000; //TODO: 0 for first available port.
-
-//const std::string pred_key = "33c80b886cdd2eb535b649817a2c24e6fe63820d";
-const std::string pred_addr = "localhost";
-const short pred_port = 12000;
-
-//const std::string succ_key = "4535fe26b86398a7cddf6047e9c9404074f20a8d";
-const std::string succ_addr = "localhost";
-const short succ_port = 13000;
 
 const std::string dkey1 = "9ae34be97ae732e5319ce2992cb489eea99f18ed";
 const std::string dkey2 = "12b10bf4851cb0b569eee7023b79db6aecfc7bed";
@@ -51,19 +42,15 @@ faad1ea5e0e5c5ab54bf5225279ce509f3cb5edd
 6e67359c3d66fbb024ba788e50ebd5770ad45b3d */
 
 /*- protocol tests. -*/
-class ProtocolTest2N : public testing::Test
+class DHTVirtualNodeTest : public testing::Test
 {
   protected:
-    ProtocolTest2N()
-      :_net_addr1("localhost"),_net_port1(11000),
-       _net_addr2("localhost"),_net_port2(12000),
-       _dnode1(NULL),_dnode2(NULL),
-       _na_dnode1(NULL),_na_dnode2(NULL)
+    DHTVirtualNodeTest()
+      : _transport(NetAddress())
     {
-
     }
 
-    virtual ~ProtocolTest2N()
+    virtual ~DHTVirtualNodeTest()
     {
     }
 
@@ -74,19 +61,41 @@ class ProtocolTest2N : public testing::Test
       errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT | LOG_LEVEL_INFO);
 
       // craft a default configuration.
-      dht_configuration::_dht_config = new dht_configuration(DHTNode::_dht_config_filename);
-      dht_configuration::_dht_config->_nvnodes = 1;
-
-      // create a DHT node.
-      ProtocolTest2N::start_dnode(_dnode1,_na_dnode1,
-                                  _net_addr1,_net_port1,
-                                  dkey1);
-
-      // self-bootstrap node 1.
-      // -> node 2 joins in tests.
-      _dnode1->self_bootstrap();
+      dht_configuration::_dht_config = new dht_configuration("");
     }
 
+    virtual void TearDown()
+    {
+      if (dht_configuration::_dht_config)
+        delete dht_configuration::_dht_config;
+
+      hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
+      = _transport._vnodes.begin();
+      while(hit!=_transport._vnodes.end())
+        {
+          delete (*hit).second;
+          ++hit;
+        }
+    }
+
+    DHTVirtualNode* new_vnode()
+    {
+      DHTVirtualNode* vnode = new DHTVirtualNode(&_transport);
+      _transport._vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(vnode->getIdKey()),
+                                vnode));
+      return vnode;
+    }
+
+    DHTVirtualNode* new_bootstraped_vnode()
+    {
+      DHTVirtualNode* vnode = new_vnode();
+      vnode->setSuccessor(vnode->getIdKey(), vnode->getNetAddress());
+      vnode->setPredecessor(vnode->getIdKey(), vnode->getNetAddress());
+      vnode->_connected = true;
+      return vnode;
+    }
+
+#if 0
     void start_dnode(DHTNode *&dnode, NetAddress *&na_dnode,
                      const std::string &net_addr,
                      const unsigned &net_port,
@@ -120,37 +129,30 @@ class ProtocolTest2N : public testing::Test
             break;
         }
     }
+#endif
 
-    virtual void TearDown()
-    {
-      if (_dnode2)
-        delete _dnode2;
-      if (_dnode1)
-        delete _dnode1;
-      delete _na_dnode1;
-      if (dht_configuration::_dht_config)
-        delete dht_configuration::_dht_config;
-    }
-
-    std::string _net_addr1;
-    unsigned short _net_port1;
-    std::string _net_addr2;
-    unsigned short _net_port2;
-    DHTNode *_dnode1;
-    DHTNode *_dnode2;
-    NetAddress *_na_dnode1;
-    NetAddress *_na_dnode2;
-    std::vector<const DHTKey*> _vnode_ids;
-    std::vector<LocationTable*> _vnode_lttables;
+    Transport _transport;
 };
 
-//TODO: join.
-TEST_F(ProtocolTest2N, join)
+TEST_F(DHTVirtualNodeTest, join)
 {
+  DHTVirtualNode* vnode = new_bootstraped_vnode();
+  DHTVirtualNode* joining = new_vnode();
+
+  int status = DHT_ERR_UNKNOWN;
+  ASSERT_FALSE(joining->_connected);
+  joining->join(vnode->getIdKey(), vnode->getNetAddress(), joining->getIdKey(), status);
+  ASSERT_EQ(DHT_ERR_OK, status);
+  ASSERT_TRUE(joining->_connected);
+  EXPECT_EQ(*joining->getSuccessorPtr(), vnode->getIdKey());
+  EXPECT_EQ(*vnode->getSuccessorPtr(), vnode->getIdKey());
+
+#if 0
+  DHTVirtualNode
   // create dnode2.
-  ProtocolTest2N::start_dnode(_dnode2,_na_dnode2,
-                              _net_addr2,_net_port2,
-                              dkey2);
+  DHTVirtualNodeTest::start_dnode(_dnode2,_na_dnode2,
+                                  _net_addr2,_net_port2,
+                                  dkey2);
   DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
   DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
   DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
@@ -161,14 +163,15 @@ TEST_F(ProtocolTest2N, join)
 
   // voluntary leave.
   _dnode2->leave();
+#endif
 }
-
+#if 0
 //TODO: test predecessor & successor.
-TEST_F(ProtocolTest2N, predecessor_successor_stable)
+TEST_F(DHTVirtualNodeTest, predecessor_successor_stable)
 {
-  ProtocolTest2N::start_dnode(_dnode2,_na_dnode2,
-                              _net_addr2,_net_port2,
-                              dkey2);
+  DHTVirtualNodeTest::start_dnode(_dnode2,_na_dnode2,
+                                  _net_addr2,_net_port2,
+                                  dkey2);
   DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
   DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
   DHTVirtualNode *vnode1 = _dnode1->findVNode(dhtkey1);
@@ -230,6 +233,7 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
   // voluntary leave.
   _dnode2->leave();
 }
+#endif
 
 //TODO: test finger table.
 
@@ -239,12 +243,12 @@ TEST_F(ProtocolTest2N, predecessor_successor_stable)
 
 //TODO: dnode1 gets down, dnode2 should correct its successor & predecessor.
 #if 0
-TEST_F(ProtocolTest2N, node_fail_before_stable)
+TEST_F(DHTVirtualNodeTest, node_fail_before_stable)
 {
   // create dnode2.
-  ProtocolTest2N::start_dnode(_dnode2,_na_dnode2,
-                              _net_addr2,_net_port2,
-                              dkey2);
+  DHTVirtualNodeTest::start_dnode(_dnode2,_na_dnode2,
+                                  _net_addr2,_net_port2,
+                                  dkey2);
   DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
   DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
   DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);

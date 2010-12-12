@@ -47,7 +47,6 @@ namespace dht
 {
 
   class Location;
-  class Stabilizer;
   class FingerTable;
   class Transport;
 

@@ -212,6 +212,8 @@ namespace dht
     _predecessor = NULL;
     mutex_unlock(&_pred_mutex);
 
+    assert(senderKey == _idkey);
+
     /**
      * query the bootstrap node for our successor.
      */

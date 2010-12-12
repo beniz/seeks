@@ -175,14 +175,14 @@ namespace dht
          */
         _stabilizer->add_slow(&dvn->_successors);
       }
-    errlog::log_error(LOG_LEVEL_DHT, "Successfully generated %u virtual nodes", _vnodes.size());
+    errlog::log_error(LOG_LEVEL_DHT, "Successfully generated %u virtual nodes", _transport->_vnodes.size());
   }
 
   void DHTNode::destroy_vnodes()
   {
     hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
-    = _vnodes.begin();
-    while(hit!=_vnodes.end())
+    = _transport->_vnodes.begin();
+    while(hit!=_transport->_vnodes.end())
       {
         delete (*hit).second;
         ++hit;
@@ -300,7 +300,7 @@ namespace dht
     std::vector<LocationTable*> vnode_ltables;
     hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator
     hit = _transport->_vnodes.begin();
-    while(hit!=_vnodes.end())
+    while(hit!=_transport->_vnodes.end())
       {
         vnode_ids.push_back((*hit).first);
         vnode_ltables.push_back((*hit).second->_lt);
@@ -371,7 +371,7 @@ namespace dht
         //debug
 
         hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit
-        = _vnodes.begin();
+        = _transport->_vnodes.begin();
         while(hit != _transport->_vnodes.end())
           {
             std::vector<Location*> dead_locs;
@@ -929,7 +929,7 @@ namespace dht
      */
     hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit
     = _transport->_vnodes.begin();
-    while(hit != _vnodes.end())
+    while(hit != _transport->_vnodes.end())
       {
         DHTVirtualNode *vnode = (*hit).second;
         int status = 0;
@@ -1120,7 +1120,7 @@ namespace dht
   {
     hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator
     hit = _transport->_vnodes.begin();
-    while(hit!=_vnodes.end())
+    while(hit!=_transport->_vnodes.end())
       {
         if (!(*hit).second->getLocationTable()->has_only_virtual_nodes(this))
           return false;

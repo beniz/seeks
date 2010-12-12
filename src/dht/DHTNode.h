@@ -285,11 +285,6 @@ namespace dht
       static std::string _dht_config_filename;
 
       /**
-       * hash map of DHT virtual nodes.
-       */
-      hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
-
-      /**
        * this peer net address.
        */
       NetAddress _l1_na;
