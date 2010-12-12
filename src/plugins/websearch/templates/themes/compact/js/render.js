@@ -65,10 +65,13 @@ function render_snippet(snippet,pi,query_words)
 	var regx = new RegExp(query_words[i],"gi");
 	snippet.summary = snippet.summary.replace(regx,"<b>" + query_words[i] + "</b>");
     }
-    for (var i=0;i<snippet.words.length;i++)
+    if ('words' in snippet)
     {
-	var regx = new RegExp(snippet.words[i],"gi");
-	snippet.summary = snippet.summary.replace(regx,"<span class=\"highlight\">" + snippet.words[i] + "</span>");
+	for (var i=0;i<snippet.words.length;i++)
+	{
+	    var regx = new RegExp(snippet.words[i],"gi");
+	    snippet.summary = snippet.summary.replace(regx,"<span class=\"highlight\">" + snippet.words[i] + "</span>");
+	}
     }
     
     var shtml = '';
@@ -136,11 +139,12 @@ function render_cluster(cluster,label,chtml,pi)
     var l = cluster.length;
     if (l == 0)
         return chtml;
+    var query_words = query.split(" ");
     chtml += '<div class="cluster"><h2>' + label + ' <font size="2"> (' + l + ')</font></h2><br><ol>';
     for (i=0;i<l;++i)
     {
         var s = cluster[i];
-        var shtml = render_snippet(s,pi);
+        var shtml = render_snippet(s,pi,query_words);
         chtml += shtml;
     }
     chtml += '</ol><div class="clear"></div></div>';
