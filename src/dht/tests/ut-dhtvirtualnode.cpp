@@ -32,21 +32,24 @@
 using namespace dht;
 using sp::errlog;
 
-const std::string dkey1 = "9ae34be97ae732e5319ce2992cb489eea99f18ed";
-const std::string dkey2 = "12b10bf4851cb0b569eee7023b79db6aecfc7bed";
-/*d17b8d98350865e759426ade8899e77cc970f11d
-c8eb560e300210de9be0ecc84c7789c24043bc9d
-275d59a3083ac6fa87b40130de276620a621879d
-8b3715ee2b5aa49854dbd4c09a5883b93afa135d
-faad1ea5e0e5c5ab54bf5225279ce509f3cb5edd
-7da78291e4d8fe6a8fea412fe45701a0b137ac3d
-6e67359c3d66fbb024ba788e50ebd5770ad45b3d */
+// dkey1 < dkey2 < ... < dkey9
+const std::string dkey1 = "10000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey2 = "20000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey3 = "30000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey4 = "40000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey5 = "50000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey6 = "60000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey7 = "70000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey8 = "80000bf4851cb0b569eee7023b79db6aecfc7bed";
+const std::string dkey9 = "90000bf4851cb0b569eee7023b79db6aecfc7bed";
+
+#define PORT 1234
 
 class TransportTest : public Transport
 {
   public:
 
-    TransportTest() : Transport(NetAddress("self", 1234)) {}
+    TransportTest() : Transport(NetAddress("self", PORT)) {}
 
     virtual void do_rpc_call(const NetAddress &server_na,
                              const DHTKey &recipientKey,
@@ -103,20 +106,30 @@ class DHTVirtualNodeTest : public testing::Test
         }
     }
 
-    DHTVirtualNode* new_vnode()
+    DHTVirtualNode* new_vnode(DHTKey key = DHTKey::randomKey())
     {
-      DHTVirtualNode* vnode = new DHTVirtualNode(&_transport);
+      DHTVirtualNode* vnode = new DHTVirtualNode(&_transport, key);
       _transport._vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(vnode->getIdKey()),
                                 vnode));
       return vnode;
     }
 
-    DHTVirtualNode* new_bootstraped_vnode()
+    DHTVirtualNode* bootstrap(DHTVirtualNode* vnode)
     {
-      DHTVirtualNode* vnode = new_vnode();
       vnode->setSuccessor(vnode->getIdKey(), vnode->getNetAddress());
       vnode->_connected = true;
       return vnode;
+    }
+
+    void connect(DHTVirtualNode* first, DHTVirtualNode* second, DHTVirtualNode* third)
+    {
+      first->setSuccessor(second->getIdKey(), second->getNetAddress());
+      second->setPredecessor(first->getIdKey());
+
+      second->setSuccessor(third->getIdKey(), third->getNetAddress());
+      third->setPredecessor(second->getIdKey());
+
+      second->_connected = true;
     }
 
     TransportTest _transport;
@@ -132,7 +145,7 @@ TEST_F(DHTVirtualNodeTest, init_vnode)
 
 TEST_F(DHTVirtualNodeTest, join)
 {
-  DHTVirtualNode* vnode = new_bootstraped_vnode();
+  DHTVirtualNode* vnode = bootstrap(new_vnode());
   DHTVirtualNode* joining = new_vnode();
 
   int status = DHT_ERR_UNKNOWN;
@@ -160,7 +173,7 @@ TEST_F(DHTVirtualNodeTest, join)
 
 TEST_F(DHTVirtualNodeTest, notify)
 {
-  DHTVirtualNode* vnode = new_bootstraped_vnode();
+  DHTVirtualNode* vnode = bootstrap(new_vnode());
   DHTVirtualNode* joining = new_vnode();
 
   int status = DHT_ERR_UNKNOWN;
@@ -169,6 +182,28 @@ TEST_F(DHTVirtualNodeTest, notify)
   ASSERT_EQ(0, vnode->getPredecessorS().count());
   ASSERT_EQ(DHT_ERR_OK, vnode->notify(joining->getIdKey(), joining->getNetAddress()));
   ASSERT_EQ(joining->getIdKey(), vnode->getPredecessorS());
+}
+
+TEST_F(DHTVirtualNodeTest, find_predecessor)
+{
+  DHTVirtualNode* vnode9 = bootstrap(new_vnode(DHTKey::from_rstring(dkey9)));
+  {
+    DHTKey dkres;
+    NetAddress na;
+    EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(vnode9->getIdKey(), dkres, na));
+    EXPECT_EQ(vnode9->getIdKey(), dkres);
+    EXPECT_EQ(PORT, na.getPort());
+  }
+  DHTVirtualNode* vnode3 = new_vnode(DHTKey::from_rstring(dkey3));
+  connect(vnode9, vnode3, vnode9);
+  {
+    DHTKey dkres;
+    NetAddress na;
+    EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(vnode3->getIdKey(), dkres, na));
+    EXPECT_EQ(vnode3->getIdKey(), dkres);
+    EXPECT_EQ(PORT, na.getPort());
+  }
+
 }
 
 int main(int argc, char **argv)

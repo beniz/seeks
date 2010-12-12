@@ -401,14 +401,14 @@ namespace dht
                 ret++; // we have a limited number of such routing trials.
               }
           } /* end if !DHT_ERR_OK */
+#if 0
         else
           {
-#if 0
             Location *uloc = findLocation(recipientKey);
             if (uloc)
               uloc->update_check_time();
-#endif
           }
+#endif
 
         /**
          * check on rpc status.
