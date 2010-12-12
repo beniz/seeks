@@ -94,6 +94,11 @@ namespace dht
     _lt = NULL;
   }
 
+  NetAddress DHTVirtualNode::getNetAddress() const
+  {
+    return _transport->getNetAddress();
+  }
+
   void DHTVirtualNode::init_vnode()
   {
     /**
