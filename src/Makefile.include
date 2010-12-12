@@ -7,9 +7,6 @@ DHTCPPFLAGS = \
 	     -I${top_srcdir}/src/dht/protob \
 	     -I${top_srcdir}/src/dht/rpc \
 	     -I${top_srcdir}/src/dht/rpc/protob \
-	     -I${top_srcdir}/src/dht/sg \
-	     -I${top_srcdir}/src/dht/sg/protob \
-	     -I${top_srcdir}/src/dht/sg/rpc \
 	     -I${top_srcdir}/src/proxy \
 	     `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 
@@ -18,9 +15,6 @@ DHTLDFLAGS = \
 	-L$(top_builddir)/src/dht/protob \
 	-L$(top_builddir)/src/dht/rpc \
 	-L$(top_builddir)/src/dht/rpc/protob \
-	-L$(top_builddir)/src/dht/sg \
-	-L$(top_builddir)/src/dht/sg/protob \
-	-L$(top_builddir)/src/dht/sg/rpc \
 	-L$(top_builddir)/src/proxy \
 	`pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 
@@ -29,9 +23,6 @@ DHTLDADD = \
 	-lseeksdhtprotob\
 	-lseeksrpcprotob \
 	-lseeksrpc \
-	-lseeksdhtsg \
-	-lseeksdhtsgrpc \
-	-lseeksdhtsgprotob \
 	-lseeksproxy
 
 SEEKSCPPFLAGS = \
