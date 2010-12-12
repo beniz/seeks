@@ -57,8 +57,8 @@ namespace dht
     init_vnode();
   }
 
-  DHTVirtualNode::DHTVirtualNode(Transport *transport, const DHTKey &idkey, LocationTable *lt)
-    : _lt(lt), _transport(transport),_successor(NULL),_predecessor(NULL),
+  DHTVirtualNode::DHTVirtualNode(Transport *transport, const DHTKey &idkey)
+    : _lt(NULL), _transport(transport),_successor(NULL),_predecessor(NULL),
       _successors(this),_fgt(NULL),_nnodes(0),_nnvnodes(0),_connected(false)
   {
     /**

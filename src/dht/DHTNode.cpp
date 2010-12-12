@@ -197,7 +197,8 @@ namespace dht
   DHTVirtualNode* DHTNode::create_vnode(const DHTKey &idkey,
                                         LocationTable *lt)
   {
-    return new DHTVirtualNode(_transport,idkey,lt);
+    assert(!"loading lt not implemented in DHTVirtualNode");
+    return new DHTVirtualNode(_transport,idkey);
   }
 
 #if 0

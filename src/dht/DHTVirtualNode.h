@@ -68,7 +68,7 @@ namespace dht
        * \brief constructor based on persistent data, loaded at startup
        *        in Transport.
        */
-      DHTVirtualNode(Transport *transport, const DHTKey &idkey, LocationTable *lt);
+      DHTVirtualNode(Transport *transport, const DHTKey &idkey);
 
       ~DHTVirtualNode();
 
