@@ -37,8 +37,8 @@ using sp::errlog;
 namespace dht
 {
   DHTVirtualNode::DHTVirtualNode(Transport* transport)
-    : _transport(transport),_successor(NULL),_predecessor(NULL),
-      _successors(this),_nnodes(0),_nnvnodes(0),_connected(false)
+    : _lt(NULL),_transport(transport),_successor(NULL),_predecessor(NULL),
+      _successors(this),_fgt(NULL),_nnodes(0),_nnvnodes(0),_connected(false)
   {
     /**
      * We generate a random key as the node's id.
@@ -59,7 +59,7 @@ namespace dht
 
   DHTVirtualNode::DHTVirtualNode(Transport *transport, const DHTKey &idkey, LocationTable *lt)
     : _lt(lt), _transport(transport),_successor(NULL),_predecessor(NULL),
-      _successors(this),_nnodes(0),_nnvnodes(0),_connected(false)
+      _successors(this),_fgt(NULL),_nnodes(0),_nnvnodes(0),_connected(false)
   {
     /**
      * no need to generate the virtual node key, we have it from
@@ -162,6 +162,7 @@ namespace dht
         //TODO: move keys (+ catch errors ?)
         if (old_pred_loc)
           {
+#if 0
             short start_replication_radius = 0;
             if (old_pred_loc->getDHTKey() > senderKey) // our old predecessor did leave or fail.
               {
@@ -178,7 +179,7 @@ namespace dht
 
             //TODO: forward replication.
             replication_trickle_forward(old_pred_loc->getDHTKey(),start_replication_radius);
-
+#endif
             // remove old_pred_loc from location table.
             if (!_successors.has_key(old_pred_loc->getDHTKey())) // XXX: prevents rare case in which our predecessor is also our successor (two-nodes ring).
               removeLocation(old_pred_loc);
