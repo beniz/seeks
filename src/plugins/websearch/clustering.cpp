@@ -98,11 +98,11 @@ namespace seeks_plugins
       }
     f_totals.clear();
 
-    // we need query words and the english stopword list for rejecting labels.
+    // we need query words and a stopword list for rejecting labels.
     std::vector<std::string> words;
     miscutil::tokenize(qc->_query,words," ");
     size_t nwords = words.size();
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist("en");
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
 
     // turn features into word labels.
     int k=0;
