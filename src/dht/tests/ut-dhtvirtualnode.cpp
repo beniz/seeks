@@ -25,6 +25,7 @@
 #include "Transport.h"
 #include "dht_configuration.h"
 #include "errlog.h"
+#include "l1_protob_rpc_server.h"
 
 #include <unistd.h>
 
@@ -41,11 +42,36 @@ faad1ea5e0e5c5ab54bf5225279ce509f3cb5edd
 7da78291e4d8fe6a8fea412fe45701a0b137ac3d
 6e67359c3d66fbb024ba788e50ebd5770ad45b3d */
 
+class TransportTest : public Transport
+{
+  public:
+
+    TransportTest() : Transport(NetAddress("self", 1234)) {}
+
+    virtual void do_rpc_call(const NetAddress &server_na,
+                             const DHTKey &recipientKey,
+                             const std::string &msg,
+                             const bool &need_response,
+                             std::string &response)
+    {
+      DHTVirtualNode* vnode = findVNode(recipientKey);
+
+      if(vnode)
+        {
+          _l1_server->serve_response(msg,"<self>",response);
+        }
+      else
+        {
+          throw dht_exception(DHT_ERR_COM_TIMEOUT, "test server timeout");
+        }
+    }
+};
+
 class DHTVirtualNodeTest : public testing::Test
 {
   protected:
     DHTVirtualNodeTest()
-      : _transport(NetAddress("self", 1234))
+      : _transport()
     {
     }
 
@@ -89,13 +115,20 @@ class DHTVirtualNodeTest : public testing::Test
     {
       DHTVirtualNode* vnode = new_vnode();
       vnode->setSuccessor(vnode->getIdKey(), vnode->getNetAddress());
-      vnode->setPredecessor(vnode->getIdKey(), vnode->getNetAddress());
       vnode->_connected = true;
       return vnode;
     }
 
-    Transport _transport;
+    TransportTest _transport;
 };
+
+TEST_F(DHTVirtualNodeTest, init_vnode)
+{
+  DHTVirtualNode* vnode = new_vnode();
+  ASSERT_NE((Location*)NULL, vnode->findLocation(vnode->getIdKey()));
+  ASSERT_NE((FingerTable*)NULL, vnode->getFingerTable());
+  ASSERT_NE((LocationTable*)NULL, vnode->getLocationTable());
+}
 
 TEST_F(DHTVirtualNodeTest, join)
 {
@@ -107,6 +140,12 @@ TEST_F(DHTVirtualNodeTest, join)
   ASSERT_EQ((Location*)NULL, joining->findLocation(vnode->getIdKey()));
   EXPECT_TRUE(joining->_successors.empty());
 
+  // try to join a node that timesout
+  joining->join(DHTKey(), NetAddress(), joining->getIdKey(), status);
+  ASSERT_FALSE(joining->_connected);
+  ASSERT_EQ(DHT_ERR_COM_TIMEOUT, status);
+
+  // successfull join
   joining->join(vnode->getIdKey(), vnode->getNetAddress(), joining->getIdKey(), status);
 
   ASSERT_EQ(DHT_ERR_OK, status);
@@ -117,6 +156,19 @@ TEST_F(DHTVirtualNodeTest, join)
   EXPECT_EQ(location->getNetAddress(), vnode->getNetAddress());
   EXPECT_EQ(*joining->getSuccessorPtr(), vnode->getIdKey());
   EXPECT_EQ(*vnode->getSuccessorPtr(), vnode->getIdKey());
+}
+
+TEST_F(DHTVirtualNodeTest, notify)
+{
+  DHTVirtualNode* vnode = new_bootstraped_vnode();
+  DHTVirtualNode* joining = new_vnode();
+
+  int status = DHT_ERR_UNKNOWN;
+  joining->join(vnode->getIdKey(), vnode->getNetAddress(), joining->getIdKey(), status);
+  ASSERT_EQ(DHT_ERR_OK, status);
+  ASSERT_EQ(0, vnode->getPredecessorS().count());
+  ASSERT_EQ(DHT_ERR_OK, vnode->notify(joining->getIdKey(), joining->getNetAddress()));
+  ASSERT_EQ(joining->getIdKey(), vnode->getPredecessorS());
 }
 
 int main(int argc, char **argv)
