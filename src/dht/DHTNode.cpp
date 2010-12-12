@@ -20,6 +20,7 @@
  */
 
 #include "DHTNode.h"
+#include "Transport.h"
 #include "FingerTable.h"
 #include "net_utils.h"
 #include "errlog.h"
@@ -112,7 +113,7 @@ namespace dht
     _has_persistent_data = load_vnodes_table();
     if (!_has_persistent_data)
       create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data. (virtual).
-    init_sorted_vnodes();
+    _transport->init_sorted_vnodes();
 
     /**
      * start rpc client & server.
@@ -215,7 +216,7 @@ namespace dht
 
   void DHTNode::init_server()
   {
-    _transport = new Transport(_l1_na.getNetAddress(),_l1_na.getPort());
+    _transport = new Transport(_l1_na);
   }
 
   bool DHTNode::load_vnodes_table() throw (dht_exception)
@@ -467,7 +468,6 @@ namespace dht
 #endif
 
         vnode->clearSuccsList();
-        vnode->clearPredsList();
 
         int j = i+2;
         if (i == nv-1)

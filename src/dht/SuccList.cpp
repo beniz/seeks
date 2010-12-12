@@ -22,7 +22,7 @@
 #include "SuccList.h"
 #include "DHTVirtualNode.h"
 #include "FingerTable.h"
-#include "DHTNode.h"
+#include "Transport.h"
 #include "errlog.h"
 
 #include <iostream>
@@ -97,10 +97,8 @@ namespace dht
 
     std::list<DHTKey> dkres_list;
     std::list<NetAddress> na_list;
-    _vnode->getPNode()->getSuccList_cb(dk_succ,dkres_list,na_list,status);
-    if (status == DHT_ERR_UNKNOWN_PEER)
-      _vnode->getPNode()->_l1_client->RPC_getSuccList(dk_succ, loc_succ->getNetAddress(),
-          dkres_list, na_list, status);
+    _vnode->RPC_getSuccList(dk_succ, loc_succ->getNetAddress(),
+                            dkres_list, na_list, status);
 
     /**
      * XXX: we could handle failure, retry, and move to next successor in the list.
@@ -278,7 +276,7 @@ namespace dht
             // add the new node, list to be pruned out later.
             // let's ping that node.
             bool alive = false;
-            if (_vnode->getPNode()->findVNode((*kit)))
+            if (_vnode->getTransport()->findVNode((*kit)))
               {
                 /**
                 			* this is a local virtual node... Either our successor

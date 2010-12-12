@@ -21,7 +21,6 @@
 
 #include "l1_protob_rpc_server.h"
 #include "l1_protob_wrapper.h"
-#include "DHTNode.h"
 #include "Transport.h"
 #include "errlog.h"
 

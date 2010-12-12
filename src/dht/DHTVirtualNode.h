@@ -49,6 +49,7 @@ namespace dht
   class Location;
   class Stabilizer;
   class FingerTable;
+  class Transport;
 
   /**
    * \brief Virtual node of the DHT.
@@ -158,13 +159,13 @@ namespace dht
       {
         _successors.clear();
       };
-      void clearPredsList()
-      {
-        _predecessors.clear();
-      };
       Location* getLocation() const
       {
         return _loc;
+      }
+      Transport* getTransport()
+      {
+        return _transport;
       }
       FingerTable* getFingerTable()
       {
@@ -185,9 +186,7 @@ namespace dht
       void addToLocationTable(const DHTKey& dk, const NetAddress& na,
                               Location *&loc) const;
       void removeLocation(Location *loc);
-#if 0 // not sure what it is used for, see implementation
       NetAddress getNetAddress() const;
-#endif
       Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
       bool isPredecessorEqual(const DHTKey &key);
       bool not_used_location(Location *loc);
@@ -377,9 +376,9 @@ namespace dht
 
     public:
       /**
-       * Sorted list of predecessors.
+       * Sorted list of successors.
        */
-      slist<const DHTKey*> _predecessors;
+      SuccList _successors;
 
     protected:
       /**

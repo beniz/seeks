@@ -21,23 +21,26 @@
 #ifndef TRANSPORT_H
 #define TRANSPORT_H
 
+#include "DHTKey.h"
 #include "NetAddress.h"
 #include "dht_exception.h"
-#include "l1_protob_rpc_server.h"
-#include "l1_protob_rpc_client.h"
 
 namespace dht
 {
+  class DHTVirtualNode;
+  class rpc_client;
+  class l1_protob_rpc_server;
+
   class Transport
   {
     public:
-      Transport(const std::string &hostname, const short &port);
+      Transport(const NetAddress& na);
 
       virtual ~Transport();
 
       void run();
 
-      void run_thread() throw (dht_exception);
+      void run_thread();
 
       void stop_thread();
 
@@ -45,12 +48,15 @@ namespace dht
                        const DHTKey &recipientKey,
                        const std::string &msg,
                        const bool &need_response,
-                       std::string &response) const throw (dht_exception);
+                       std::string &response);
 
-    private:
+      NetAddress getNetAddress() const
+      {
+        return _na;
+      }
+
       void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
 
-    public:
 
       /**
        * \brief fill up and sort sorted set of virtual nodes.
@@ -62,7 +68,9 @@ namespace dht
        */
       DHTVirtualNode* find_closest_vnode(const DHTKey &key) const;
 
-      DHTVirtualNode* findVNode(const DHTKey& dk) const;
+      DHTVirtualNode* findClosestVNode(const DHTKey& key);
+
+      DHTVirtualNode* findVNode(const DHTKey& recipientKey) const;
 
       void getSuccessor_cb(const DHTKey& recipientKey,
                            DHTKey& dkres, NetAddress& na,
@@ -98,12 +106,21 @@ namespace dht
 
       l1_protob_rpc_server *_l1_server;
 
-      l1_protob_rpc_client *_l1_client;
+      rpc_client *_l1_client;
+
+      /**
+       * Sortable list of virtual nodes.
+       */
+      std::vector<const DHTKey*> _sorted_vnodes_vec;
 
       /**
        * hash map of DHT virtual nodes.
        */
       hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
+      /**
+       * this peer net address.
+       */
+      NetAddress _na;
   };
 
 } /* end of namespace. */

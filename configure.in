@@ -41,6 +41,10 @@ AC_PROG_LIBTOOL
 # Set the language.
 AC_LANG(C++)
 
+if test "$GCC" = "yes"; then
+   CFLAGS="$CFLAGS -Wno-deprecated"
+fi
+
 # Checks for libraries.
 AC_SEARCH_LIBS(accept, socket)
 AC_SEARCH_LIBS(gethostbyname, nsl)

@@ -20,6 +20,7 @@
 
 #include "LocationTable.h"
 #include "DHTNode.h"
+#include "Transport.h"
 #include "errlog.h"
 
 #include <assert.h>

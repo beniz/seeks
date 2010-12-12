@@ -18,12 +18,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Transport.h"
+#include "l1_protob_rpc_server.h"
+#include "rpc_client.h"
+#include "DHTVirtualNode.h"
+
 namespace dht
 {
-  Transport::Transport(const std::string &hostname, const short &port)
+  Transport::Transport(const NetAddress& na) :
+    _na(na)
   {
-    _l1_server = new l1_protob_rpc_server(hostname,port,this);
-    _l1_client = new l1_protob_rpc_client();
+    _l1_server = new l1_protob_rpc_server(_na.getNetAddress(),_na.getPort(),this);
+    _l1_client = new rpc_client();
   }
 
   Transport::~Transport()
@@ -81,50 +87,40 @@ namespace dht
                      DHTKey::lowdhtkey);
   }
 
-  DHTVirtualNode* Transport::findVNode(const DHTKey& recipientKey)
+  DHTVirtualNode* Transport::findClosestVNode(const DHTKey& key)
   {
-    {
-      hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
-      = _vnodes.begin();
-      if(hit==_vnodes.end())
-        return NULL;
-    }
+    DHTKey contactKey = key;
 
-    DHTKey contactKey = recipientKey;
+    // rank local nodes.
+    std::vector<const DHTKey*> vnode_keys_ord;
+    rank_vnodes(vnode_keys_ord);
 
-    if (contactKey.count() == 0)
+    // pick up the closest one.
+    DHTKey *curr = NULL, *prev = NULL;
+    std::vector<const DHTKey*>::const_iterator dit = vnode_keys_ord.begin();
+    while(dit!=vnode_keys_ord.end())
       {
-        // rank local nodes.
-        std::vector<const DHTKey*> vnode_keys_ord;
-        rank_vnodes(vnode_keys_ord);
-
-        // pick up the closest one.
-        DHTKey *curr = NULL, *prev = NULL;
-        std::vector<const DHTKey*>::const_iterator dit = vnode_keys_ord.begin();
-        while(dit!=vnode_keys_ord.end())
-          {
-            curr = const_cast<DHTKey*>((*dit));
-            if (senderKey > *curr)
-              break;
-            prev = curr;
-            ++dit;
-          }
-
-        contactKey = prev ? *prev : *curr;
+        curr = const_cast<DHTKey*>((*dit));
+        if (contactKey > *curr)
+          break;
+        prev = curr;
+        ++dit;
       }
 
+    contactKey = prev ? *prev : *curr;
+
+    return _vnodes.find(&contactKey)->second;
+  }
+
+  DHTVirtualNode* Transport::findVNode(const DHTKey& recipientKey) const
+  {
     hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
-    if ((hit = _vnodes.find(&contactKey)) != _vnodes.end())
+    if ((hit = _vnodes.find(&recipientKey)) != _vnodes.end())
       return (*hit).second;
     else
       {
         return NULL;
       }
-  }
-
-  DHTVirtualNode* Transport::findVNode(const DHTKey& dk) const
-  {
-
   }
 
   void Transport::getSuccessor_cb(const DHTKey& recipientKey,
@@ -239,14 +235,11 @@ namespace dht
                                  int &status)
   {
     status = DHT_ERR_OK;
-    vnode = findVNode(recipientKey);
+
+    DHTVirtualNode* vnode = findVNode(recipientKey);
+
     if (!vnode)
-      {
-        dkres = DHTKey();
-        na = NetAddress();
-        status = DHT_ERR_UNKNOWN_PEER;
-        return;
-      }
+      vnode = findClosestVNode(senderKey);
 
     vnode->joinGetSucc_cb(senderKey, dkres, na, status);
   }

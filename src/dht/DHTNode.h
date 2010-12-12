@@ -290,11 +290,6 @@ namespace dht
       hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
 
       /**
-       * Sortable list of virtual nodes.
-       */
-      std::vector<const DHTKey*> _sorted_vnodes_vec;
-
-      /**
        * this peer net address.
        */
       NetAddress _l1_na;

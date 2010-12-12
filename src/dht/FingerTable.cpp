@@ -21,6 +21,7 @@
 
 #include "FingerTable.h"
 #include "DHTNode.h"
+#include "Transport.h"
 #include "Random.h"
 #include "errlog.h"
 
@@ -189,10 +190,8 @@ namespace dht
     while (err != DHT_ERR_OK) // in case of failure, will try all successors in the list. If all fail, then rejoin.
       {
         err = DHT_ERR_OK;
-        _vnode->getPNode()->getPredecessor_cb(succ_loc->getDHTKey(), succ_pred, na_succ_pred, status);
-        if (status == DHT_ERR_UNKNOWN_PEER)
-          _vnode->getPNode()->_l1_client->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
-              succ_pred, na_succ_pred, status);
+        _vnode->RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+                                   succ_pred, na_succ_pred, status);
 
 #ifdef DEBUG
         //debug
@@ -357,7 +356,7 @@ namespace dht
         errlog::log_error(LOG_LEVEL_DHT,"Node %s has no more successors",_vnode->getIdKey().to_rstring().c_str());
 
         // single virtual node rejoin scheme.
-        _vnode->getPNode()->_stabilizer->rejoin(_vnode);
+        // _vnode->getPNode()->_stabilizer->rejoin(_vnode); AAAA
 
         //exit(0);
       }
@@ -368,7 +367,7 @@ namespace dht
         // rejoin.
         // XXX: this should occur after the DHT node has lost connection
         // with the outside world from all of its virtual nodes.
-        _vnode->getPNode()->rejoin();
+        // _vnode->getPNode()->rejoin(); AAAA
       }
 
     if (status != DHT_ERR_NO_PREDECESSOR_FOUND && status != DHT_ERR_OK)
@@ -423,11 +422,9 @@ namespace dht
      */
     if (dht_configuration::_dht_config->_routing)
       {
-        _vnode->getPNode()->notify_cb(succ_loc->getDHTKey(), getVNodeIdKey(), getVNodeNetAddress(), status);
-        if (status == DHT_ERR_UNKNOWN_PEER)
-          _vnode->getPNode()->_l1_client->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
-              getVNodeIdKey(),getVNodeNetAddress(),
-              status);
+        _vnode->RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+                           getVNodeIdKey(),getVNodeNetAddress(),
+                           status);
         // XXX: handle successor failure, retry, then move down the successor list.
         /**
          * check on RPC status.
@@ -532,7 +529,7 @@ namespace dht
     if (!_stable_pass1)
       {
         // reestimate the estimated number of nodes.
-        _vnode->estimate_nodes();
+        // _vnode->estimate_nodes(); AAAA
       }
 
 #ifdef DEBUG

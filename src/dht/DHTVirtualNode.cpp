@@ -19,11 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "dht_configuration.h"
 #include "DHTVirtualNode.h"
 #include "Transport.h"
 #include "FingerTable.h"
 #include "RouteIterator.h"
 #include "errlog.h"
+#include "l1_rpc_interface.h"
 
 #include <math.h>
 
@@ -210,9 +212,9 @@ namespace dht
      */
     DHTKey dkres;
     NetAddress na;
-    _transport->RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
-                                senderKey,
-                                dkres, na, status);
+    RPC_joinGetSucc(dk_bootstrap, dk_bootstrap_na,
+                    senderKey,
+                    dkres, na, status);
 
     if (status != DHT_ERR_OK)
       return;
@@ -253,8 +255,8 @@ namespace dht
      * we check among local virtual nodes first.
      */
     int status = 0;
-    _transport->RPC_getSuccessor(dk_pred, na_pred,
-                                 dkres, na, status);
+    RPC_getSuccessor(dk_pred, na_pred,
+                     dkres, na, status);
     if (status == DHT_ERR_OK)
       {
         Location *uloc = findLocation(dk_pred);
@@ -334,9 +336,9 @@ namespace dht
         dkres = DHTKey();
         na = NetAddress();
 
-        _transport->RPC_findClosestPredecessor(recipientKey, recipient,
-                                               nodeKey, dkres, na,
-                                               succ_key, succ_na, status);
+        RPC_findClosestPredecessor(recipientKey, recipient,
+                                   nodeKey, dkres, na,
+                                   succ_key, succ_na, status);
 
         /**
         	      * If the call has failed, then our current findPredecessor function
@@ -363,10 +365,10 @@ namespace dht
 
                     Location *past_loc = (*rtit);
 
-                    _transport->RPC_findClosestPredecessor(past_loc->getDHTKey(),
-                                                           past_loc->getNetAddress(),
-                                                           recipientKey,dkres,na,
-                                                           succ_key,succ_na,status);
+                    RPC_findClosestPredecessor(past_loc->getDHTKey(),
+                                               past_loc->getNetAddress(),
+                                               recipientKey,dkres,na,
+                                               succ_key,succ_na,status);
                   }
 
                 if (status != DHT_ERR_OK)
@@ -428,8 +430,8 @@ namespace dht
           }
         else
           {
-            _transport->RPC_getSuccessor(dkres, na,
-                                         succ_key, succ_na, status);
+            RPC_getSuccessor(dkres, na,
+                             succ_key, succ_na, status);
 
             if (status != DHT_ERR_OK)
               {
@@ -473,8 +475,8 @@ namespace dht
   {
     // let's ping that node.
     status = DHT_ERR_OK;
-    _transport->RPC_ping(recipientKey,na,
-                         status);
+    RPC_ping(recipientKey,na,
+             status);
     if (status == DHT_ERR_OK)
       {
         Location *uloc = findLocation(recipientKey);
@@ -497,11 +499,11 @@ namespace dht
         int status = DHT_ERR_OK;
         Location *succ_loc = findLocation(succ);
         Location *pred_loc = findLocation(pred);
-        _transport->RPC_notify(succ_loc->getDHTKey(),
-                               succ_loc->getNetAddress(),
-                               pred_loc->getDHTKey(),
-                               pred_loc->getNetAddress(),
-                               status);
+        RPC_notify(succ_loc->getDHTKey(),
+                   succ_loc->getNetAddress(),
+                   pred_loc->getDHTKey(),
+                   pred_loc->getNetAddress(),
+                   status);
         if (status != DHT_ERR_OK)
           errlog::log_error(LOG_LEVEL_ERROR,"Failed to alert successor %s while leaving",
                             succ_loc->getDHTKey().to_rstring().c_str());
