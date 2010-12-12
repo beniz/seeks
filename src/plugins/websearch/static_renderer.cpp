@@ -845,7 +845,8 @@ namespace seeks_plugins
       const short &K,
       client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-      const query_context *qc)
+							      const query_context *qc,
+							      const std::string &cgi_base)
   {
     std::string result_tmpl_name = "websearch/templates/themes/"
                                    + websearch::_wconfig->_ui_theme + "/seeks_result_template.html"; // XXX: for using this along with the image plugin, we would need to externalize the the theme choice.
@@ -869,8 +870,14 @@ namespace seeks_plugins
     static_renderer::render_current_page(parameters,exports,current_page);
 
     // suggestions.
-    static_renderer::render_suggestions(qc,exports);
+    static_renderer::render_suggestions(qc,exports,cgi_base);
 
+    // recommended URLs.
+    static_renderer::render_recommendations(qc,exports,cgi_base);
+    
+    // queries in cache.
+    static_renderer::render_cached_queries(exports,cgi_base);
+    
     // language.
     static_renderer::render_lang(qc,exports);
 
