@@ -42,6 +42,7 @@ namespace seeks_plugins
                           std::vector<search_snippet*> &snippets);
       
       void get_related_queries(const std::string &query,
+			       const query_context *qc,
 			       std::multimap<double,std::string,std::less<double> > &related_queries);
       
       void get_recommended_urls(const std::string &query,

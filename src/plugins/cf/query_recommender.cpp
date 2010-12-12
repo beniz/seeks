@@ -21,18 +21,57 @@
 #include "query_capture.h"
 #include "miscutil.h"
 #include "mem_utils.h"
-#include "mrf.h" // for str_chain
+
+#include <ctype.h>
 
 #include <vector>
+#include <algorithm>
 #include <iostream>
 
 using sp::miscutil;
-using lsh::str_chain;
 
 namespace seeks_plugins
 {
   
+  bool query_recommender::select_and_rewrite_query(const str_chain &strc_query,
+						   std::string &rquery,
+						   stopwordlist *swl)
+  {
+    rquery = query_capture_element::no_command_query(rquery);
+    std::transform(rquery.begin(),rquery.end(),rquery.begin(),tolower);
+    str_chain strc_rquery = str_chain(rquery,0,true);
+    strc_rquery = strc_rquery.rank_alpha();
+    std::string ra_rquery = strc_rquery.print_str();
+    if (strc_query.print_str() == ra_rquery)
+      return false;
+    
+    // intersect queries.
+    std::vector<std::string> inter;
+    for (size_t i=0;i<strc_query.size();i++)
+      {
+	for (size_t j=0;j<strc_rquery.size();j++)
+	  {
+	    if (strc_query.at(i) == strc_rquery.at(j))
+	      {
+		inter.push_back(strc_rquery.at(j));
+	      }
+	  }
+      }
+    
+    // reject stopwords.
+    bool reject = true;
+    for (size_t i=0;i<inter.size();i++)
+      if (!swl->has_word(inter.at(i)))
+	{
+	  reject = false;
+	  break;
+	}
+    
+    return !reject;
+  }
+
   void query_recommender::recommend_queries(const std::string &query,
+					    const query_context *qc,
 					    std::multimap<double,std::string,std::less<double> > &related_queries)
   {
     // fetch records from user db.
@@ -46,9 +85,12 @@ namespace seeks_plugins
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);
+    std::transform(qquery.begin(),qquery.end(),qquery.begin(),tolower);
     str_chain strc_query(qquery,0,true);
     strc_query = strc_query.rank_alpha();
-    std::string ra_qquery = strc_query.print_str();
+
+    // stopword list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
@@ -58,12 +100,7 @@ namespace seeks_plugins
     while(hit!=qdata.end())
       {
 	std::string rquery = (*hit).second->_query;
-	rquery = query_capture_element::no_command_query(rquery);
-	strc_query = str_chain(rquery,0,true);
-	strc_query = strc_query.rank_alpha();
-	std::string ra_query = strc_query.print_str();
-	
-	if (ra_query != ra_qquery) //TODO: alphabetical order of words then compare...
+	if (query_recommender::select_and_rewrite_query(strc_query,rquery,swl))
 	  {
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;

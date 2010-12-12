@@ -306,7 +306,7 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_suggestions);
+    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc,qc->_suggestions);
   }
 
   void sort_rank::get_recommended_urls(query_context *qc)
