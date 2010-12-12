@@ -44,11 +44,11 @@ namespace dht
 
       void stop_thread();
 
-      void do_rpc_call(const NetAddress &server_na,
-                       const DHTKey &recipientKey,
-                       const std::string &msg,
-                       const bool &need_response,
-                       std::string &response);
+      virtual void do_rpc_call(const NetAddress &server_na,
+                               const DHTKey &recipientKey,
+                               const std::string &msg,
+                               const bool &need_response,
+                               std::string &response);
 
       NetAddress getNetAddress() const
       {
