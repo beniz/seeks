@@ -117,9 +117,11 @@ namespace dht
       }
     else
       {
+#if 0
         Location *uloc = _vnode->findLocation(dk_succ);
         if (uloc)
           uloc->update_check_time();
+#endif
       }
 
     // merge succlist.

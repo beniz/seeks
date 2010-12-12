@@ -24,49 +24,51 @@
 
 namespace dht
 {
-   Location::Location()
-     {
-     }
-      
-   Location::Location(const DHTKey& key, const NetAddress& na)
-     : _key(key), _na(na)
-       {
-       }
-   
-   Location::~Location()
-     {
-     }
-   
-   void Location::update(const NetAddress& na)
-     {
-	if (_na.operator!=(na))
-	  {
-	     _na = na;
-	  }
-     }
-   
-   void Location::update_check_time()
-     {
-	struct timeval *tvz = (struct timeval*) malloc(sizeof(struct timeval));
-	gettimeofday(tvz,NULL);
-	_last_check_time = tvz->tv_sec;
-	free(tvz);
-     }
+  Location::Location()
+  {
+  }
 
-   bool Location::operator==(const Location &loc) const
-     {
-	if (_key == loc.getDHTKey()
-	    && _na == loc.getNetAddress())  // XXX: do not test on _last_check_time.
-	  return true;
-	return false;
-     }
-   
-   bool Location::operator!=(const Location &loc) const
-     {
-	if (_key != loc.getDHTKey()
-	    || _na != loc.getNetAddress())
-	  return true;
-	return false;
-     }
-      
+  Location::Location(const DHTKey& key, const NetAddress& na)
+    : _key(key), _na(na)
+  {
+  }
+
+  Location::~Location()
+  {
+  }
+
+  void Location::update(const NetAddress& na)
+  {
+    if (_na.operator!=(na))
+      {
+        _na = na;
+      }
+  }
+
+#if 0
+  void Location::update_check_time()
+  {
+    struct timeval *tvz = (struct timeval*) malloc(sizeof(struct timeval));
+    gettimeofday(tvz,NULL);
+    _last_check_time = tvz->tv_sec;
+    free(tvz);
+  }
+#endif
+
+  bool Location::operator==(const Location &loc) const
+  {
+    if (_key == loc.getDHTKey()
+        && _na == loc.getNetAddress())  // XXX: do not test on _last_check_time.
+      return true;
+    return false;
+  }
+
+  bool Location::operator!=(const Location &loc) const
+  {
+    if (_key != loc.getDHTKey()
+        || _na != loc.getNetAddress())
+      return true;
+    return false;
+  }
+
 } /* end of namespace. */

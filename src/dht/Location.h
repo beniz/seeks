@@ -26,43 +26,60 @@
 
 namespace dht
 {
-   class Location
-     {
-      public:
-	Location();
-	
-	Location(const DHTKey& key, const NetAddress& na);
-	
-	~Location();
-	
-	/**
-	 * accessors.
-	 */
-	DHTKey getDHTKey() const { return _key; }
-	DHTKey& getDHTKeyRef() { return _key; };
-	void setDHTKey(const DHTKey &dk) { _key = dk; }
-	NetAddress getNetAddress() const { return _na; }
-	void setNetAddress(const NetAddress& na) { _na = na; }
-	
-	/**
-	 * /brief updates the net address of this location.
-	 * @param na net address.
-	 */
-	void update(const NetAddress& na);
-	void update_check_time();
-	
-	/**
-	 * operators.
-	 */
-	bool operator==(const Location &loc) const;
-	bool operator!=(const Location &loc) const;
-	
-      private:
-	DHTKey _key;  /**< location key id. */
-	NetAddress _na; /**< location address. */
-	uint32_t _last_check_time; /**< last time this node has responded. */
-     };
-    
+  class Location
+  {
+    public:
+      Location();
+
+      Location(const DHTKey& key, const NetAddress& na);
+
+      ~Location();
+
+      /**
+       * accessors.
+       */
+      DHTKey getDHTKey() const
+      {
+        return _key;
+      }
+      DHTKey& getDHTKeyRef()
+      {
+        return _key;
+      };
+      void setDHTKey(const DHTKey &dk)
+      {
+        _key = dk;
+      }
+      NetAddress getNetAddress() const
+      {
+        return _na;
+      }
+      void setNetAddress(const NetAddress& na)
+      {
+        _na = na;
+      }
+
+      /**
+       * /brief updates the net address of this location.
+       * @param na net address.
+       */
+      void update(const NetAddress& na);
+#if 0
+      void update_check_time();
+#endif
+
+      /**
+       * operators.
+       */
+      bool operator==(const Location &loc) const;
+      bool operator!=(const Location &loc) const;
+
+    private:
+      DHTKey _key;  /**< location key id. */
+      NetAddress _na; /**< location address. */
+      uint32_t _last_check_time; /**< last time this node has responded. */
+  };
+
 } /* end of namespace */
 
 #endif

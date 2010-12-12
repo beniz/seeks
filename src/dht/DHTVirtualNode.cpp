@@ -265,12 +265,14 @@ namespace dht
     int status = 0;
     RPC_getSuccessor(dk_pred, na_pred,
                      dkres, na, status);
+#if 0
     if (status == DHT_ERR_OK)
       {
         Location *uloc = findLocation(dk_pred);
         if (uloc)
           uloc->update_check_time();
       }
+#endif
 
     return status;
   }
@@ -310,6 +312,7 @@ namespace dht
     rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
 
     short nhops = 0;
+    // while(!nodekey in ]rloc,succloc])
     while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey())
           && nodeKey != succloc.getDHTKey()) // equality: host node is the node with the same key as the looked up key.
       {
@@ -387,20 +390,24 @@ namespace dht
                   }
                 else
                   {
+#if 0
                     Location *uloc = findLocation((*rtit)->getDHTKey());
-                    rtit++;
-                    rit.erase_from(rtit);
                     if (uloc)
                       uloc->update_check_time();
+#endif
+                    rtit++;
+                    rit.erase_from(rtit);
                   }
                 ret++; // we have a limited number of such routing trials.
               }
           } /* end if !DHT_ERR_OK */
         else
           {
+#if 0
             Location *uloc = findLocation(recipientKey);
             if (uloc)
               uloc->update_check_time();
+#endif
           }
 
         /**
@@ -455,9 +462,11 @@ namespace dht
               }
             else
               {
+#if 0
                 Location *uloc = findLocation(dkres);
                 if (uloc)
                   uloc->update_check_time();
+#endif
               }
           }
 
@@ -487,9 +496,11 @@ namespace dht
              status);
     if (status == DHT_ERR_OK)
       {
+#if 0
         Location *uloc = findLocation(recipientKey);
         if (uloc)
           uloc->update_check_time();
+#endif
         return false;
       }
     else return true;
