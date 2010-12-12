@@ -41,12 +41,11 @@ faad1ea5e0e5c5ab54bf5225279ce509f3cb5edd
 7da78291e4d8fe6a8fea412fe45701a0b137ac3d
 6e67359c3d66fbb024ba788e50ebd5770ad45b3d */
 
-/*- protocol tests. -*/
 class DHTVirtualNodeTest : public testing::Test
 {
   protected:
     DHTVirtualNodeTest()
-      : _transport(NetAddress())
+      : _transport(NetAddress("self", 1234))
     {
     }
 
@@ -95,42 +94,6 @@ class DHTVirtualNodeTest : public testing::Test
       return vnode;
     }
 
-#if 0
-    void start_dnode(DHTNode *&dnode, NetAddress *&na_dnode,
-                     const std::string &net_addr,
-                     const unsigned &net_port,
-                     const std::string &dkey)
-    {
-      // create dummy node.
-      na_dnode = new NetAddress(net_addr,net_port);
-      dnode = new DHTNode(na_dnode->getNetAddress().c_str(),na_dnode->getPort(),
-                          false,"");
-
-      // create running stabilizer.
-      dnode->_stabilizer = new Stabilizer(true);
-
-      // craft virtual node keys.
-      DHTKey dhtkey = DHTKey::from_rstring(dkey);
-      _vnode_ids.push_back(&dhtkey);
-      _vnode_lttables.push_back(new LocationTable());
-      dnode->load_vnodes_and_tables(_vnode_ids,_vnode_lttables);
-      _vnode_ids.clear();
-
-      // init server.
-      dnode->init_sorted_vnodes();
-      dnode->init_server();
-      dnode->_l1_server->run_thread();
-
-      while(true)
-        {
-          dht_err status;
-          dnode->_l1_client->RPC_ping(DHTKey(),*na_dnode,status);
-          if (status != DHT_ERR_COM_TIMEOUT)
-            break;
-        }
-    }
-#endif
-
     Transport _transport;
 };
 
@@ -141,137 +104,20 @@ TEST_F(DHTVirtualNodeTest, join)
 
   int status = DHT_ERR_UNKNOWN;
   ASSERT_FALSE(joining->_connected);
+  ASSERT_EQ((Location*)NULL, joining->findLocation(vnode->getIdKey()));
+  EXPECT_TRUE(joining->_successors.empty());
+
   joining->join(vnode->getIdKey(), vnode->getNetAddress(), joining->getIdKey(), status);
+
   ASSERT_EQ(DHT_ERR_OK, status);
   ASSERT_TRUE(joining->_connected);
+  Location* location = joining->findLocation(vnode->getIdKey());
+  ASSERT_NE((Location*)NULL, location);
+  EXPECT_FALSE(joining->_successors.empty());
+  EXPECT_EQ(location->getNetAddress(), vnode->getNetAddress());
   EXPECT_EQ(*joining->getSuccessorPtr(), vnode->getIdKey());
   EXPECT_EQ(*vnode->getSuccessorPtr(), vnode->getIdKey());
-
-#if 0
-  DHTVirtualNode
-  // create dnode2.
-  DHTVirtualNodeTest::start_dnode(_dnode2,_na_dnode2,
-                                  _net_addr2,_net_port2,
-                                  dkey2);
-  DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
-  DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
-  DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
-  dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
-  ASSERT_EQ(DHT_ERR_OK,status);
-  ASSERT_TRUE(vnode2->getSuccessorS().count() > 0);
-  ASSERT_EQ(dkey1,vnode2->getSuccessorS().to_rstring());
-
-  // voluntary leave.
-  _dnode2->leave();
-#endif
 }
-#if 0
-//TODO: test predecessor & successor.
-TEST_F(DHTVirtualNodeTest, predecessor_successor_stable)
-{
-  DHTVirtualNodeTest::start_dnode(_dnode2,_na_dnode2,
-                                  _net_addr2,_net_port2,
-                                  dkey2);
-  DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
-  DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
-  DHTVirtualNode *vnode1 = _dnode1->findVNode(dhtkey1);
-  DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
-  dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
-  ASSERT_EQ(DHT_ERR_OK,status);
-  ASSERT_TRUE(vnode2->getSuccessorS().count() > 0);
-  ASSERT_EQ(dkey1,vnode2->getSuccessorS().to_rstring());
-
-  /* std::cerr << "dnode1 slow clicks: " << _dnode1->_stabilizer->_slow_clicks << std::endl;
-     std::cerr << "dnode2 slow clicks: " << _dnode2->_stabilizer->_slow_clicks << std::endl; */
-
-  // testing stability of succlist and successors.
-  uint64_t max_slow_clicks = 3; // at least two passes for stability.
-  short event_timecheck = dht_configuration::_dht_config->_event_timecheck;
-  while(_dnode1->_stabilizer->_slow_clicks < max_slow_clicks)
-    {
-      if (!_dnode1->isSuccStable())
-        sleep(event_timecheck);
-      else break;
-    }
-  ASSERT_TRUE(_dnode1->isSuccStable());
-  ASSERT_EQ(vnode2->getIdKey().to_rstring(),
-            vnode1->getSuccessorS().to_rstring());
-
-  while(_dnode2->_stabilizer->_slow_clicks < max_slow_clicks)
-    {
-      if (!_dnode2->isSuccStable())
-        sleep(event_timecheck);
-      else break;
-    }
-  ASSERT_TRUE(_dnode2->isSuccStable());
-  ASSERT_EQ(vnode1->getIdKey().to_rstring(),
-            vnode2->getSuccessorS().to_rstring());
-
-  // testing predecessors (notified by other node).
-  uint64_t max_fast_clicks = 10;
-  while(_dnode2->_stabilizer->_fast_clicks < max_fast_clicks)
-    {
-      sleep(event_timecheck);
-      if (vnode1->getPredecessorS().count() > 0
-          && vnode1->getPredecessorS() == vnode2->getIdKey())
-        break;
-    }
-  ASSERT_TRUE(vnode1->getPredecessorS().count() > 0);
-  ASSERT_EQ(vnode2->getIdKey().to_rstring(),
-            vnode1->getPredecessorS().to_rstring());
-  while(_dnode1->_stabilizer->_fast_clicks < max_fast_clicks)
-    {
-      sleep(event_timecheck);
-      if (vnode2->getPredecessorS().count() > 0
-          && vnode2->getPredecessorS() == vnode1->getIdKey())
-        break;
-    }
-  ASSERT_TRUE(vnode2->getPredecessorS().count() > 0);
-  ASSERT_EQ(vnode1->getIdKey().to_rstring(),
-            vnode2->getPredecessorS().to_rstring());
-
-  // voluntary leave.
-  _dnode2->leave();
-}
-#endif
-
-//TODO: test finger table.
-
-//TODO: find closest predecessor.
-
-//TODO: estimate of number of nodes.
-
-//TODO: dnode1 gets down, dnode2 should correct its successor & predecessor.
-#if 0
-TEST_F(DHTVirtualNodeTest, node_fail_before_stable)
-{
-  // create dnode2.
-  DHTVirtualNodeTest::start_dnode(_dnode2,_na_dnode2,
-                                  _net_addr2,_net_port2,
-                                  dkey2);
-  DHTKey dhtkey1 = DHTKey::from_rstring(dkey1);
-  DHTKey dhtkey2 = DHTKey::from_rstring(dkey2);
-  DHTVirtualNode *vnode2 = _dnode2->findVNode(dhtkey2);
-  dht_err status = _dnode2->join(*_na_dnode1,dhtkey1);
-  ASSERT_EQ(DHT_ERR_OK,status);
-  ASSERT_TRUE(vnode2->getSuccessorS().count() > 0);
-  ASSERT_EQ(dkey1,vnode2->getSuccessorS().to_rstring());
-
-  // dnode1 fails.
-  delete _dnode1;
-  _dnode1 = NULL;
-
-  uint64_t max_slow_clicks = 5; // at least two passes for stability.
-  short event_timecheck = dht_configuration::_dht_config->_event_timecheck;
-  while(_dnode2->_stabilizer->_slow_clicks < max_slow_clicks)
-    {
-      if (!_dnode2->isSuccStable())
-        sleep(event_timecheck);
-      else break;
-    }
-  ASSERT_TRUE(_dnode2->isSuccStable());
-}
-#endif
 
 int main(int argc, char **argv)
 {
