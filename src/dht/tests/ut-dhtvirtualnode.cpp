@@ -199,11 +199,26 @@ TEST_F(DHTVirtualNodeTest, find_predecessor)
   {
     DHTKey dkres;
     NetAddress na;
-    EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(vnode3->getIdKey(), dkres, na));
+    EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(vnode9->getIdKey(), dkres, na));
     EXPECT_EQ(vnode3->getIdKey(), dkres);
     EXPECT_EQ(PORT, na.getPort());
   }
-
+  {
+    DHTKey dkres;
+    NetAddress na;
+    EXPECT_EQ(DHT_ERR_OK, vnode3->find_predecessor(vnode9->getIdKey(), dkres, na));
+    EXPECT_EQ(vnode3->getIdKey(), dkres);
+    EXPECT_EQ(PORT, na.getPort());
+  }
+  DHTVirtualNode* vnode2 = new_vnode(DHTKey::from_rstring(dkey2));
+  connect(vnode9, vnode2, vnode3);
+  {
+    DHTKey dkres;
+    NetAddress na;
+    EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(vnode3->getIdKey(), dkres, na));
+    EXPECT_EQ(vnode2->getIdKey(), dkres);
+    EXPECT_EQ(PORT, na.getPort());
+  }
 }
 
 int main(int argc, char **argv)
