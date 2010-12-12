@@ -21,7 +21,7 @@ var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.
 pagesDiv = Y.one("#search_page_current"), persHref = Y.one("#tab-pers"), langSpan = Y.one('#tab-language'),
 persSpan = Y.one("#tab-pers-flag"), pagePrev = Y.one("#search_page_prev"), pageNext = Y.one("#search_page_next");
 
-function render_snippet(snippet,pi)
+function render_snippet(snippet,pi,query_words)
 {
     var snippet_html = '';
 
@@ -57,6 +57,18 @@ function render_snippet(snippet,pi)
     // encoded query.
     snippet.enc_query = enc_query;
 
+    // render summary.
+    for (var i=0;i<query_words.length;i++)
+    {
+        var regx = new RegExp(query_words[i],"gi");
+        snippet.summary = snippet.summary.replace(regx,"<b>" + query_words[i] + "</b>");
+    }
+    for (var i=0;i<snippet.words.length;i++)
+    {
+        var regx = new RegExp(snippet.words[i],"gi");
+        snippet.summary = snippet.summary.replace(regx,"<span class=\"highlight\">" + snippet.words[i] + "</span>");
+    }
+
     var shtml = '';
     if (ti.txt == 1)
         shtml = Y.substitute(snippetTxtTemplate, snippet);
@@ -78,6 +90,8 @@ function render_snippets(rsnippets,pi)
 	rsnippets.sort(sort_score);
     else rsnippets.sort(sort_meta);
 
+    var query_words = query.split(" ");
+    
     var k = 0;
     for (id in rsnippets)
     {
