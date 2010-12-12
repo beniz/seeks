@@ -482,6 +482,8 @@ namespace dht
         else
           vnode->setPredecessor(*vnode_keys_ord.at(i-1),_l1_na);
 
+        vnode->_connected = true;
+
         vnode->update_successor_list_head(); // sets successor in successor list.
 
 #ifdef DEBUG
