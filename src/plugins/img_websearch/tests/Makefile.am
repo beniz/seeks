@@ -20,8 +20,8 @@ if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
 if HAVE_DHT
- AM_CPPFLAGS += -I${srcdir}/../../../dht -I${srcdir}/../../../dht/rpc -I${srcdir}/../../../dht/rpc/protob -I${srcdir}/../../../dht/protob
- AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/rpc/protob  `pkg-config --libs protobuf` \
+ AM_CPPFLAGS += -I${srcdir}/../../../dht -I${srcdir}/../../../dht/rpc -I${srcdir}/../../../dht/protob
+ AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob `pkg-config --libs protobuf` \
                `pkg-config --libs tokyocabinet`
 endif
 if HAVE_OPENCV2
@@ -29,5 +29,5 @@ AM_LDFLAGS += `pkg-config opencv --libs`
 endif
 LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
 if HAVE_DHT
- LDADD+=-lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lrmd160 -levent
+ LDADD+=-lseeksdht -lseeksrpc -lseeksdhtprotob -lrmd160 -levent
 endif

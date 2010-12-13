@@ -841,6 +841,150 @@ namespace dht
       }
   }
 
+  void DHTVirtualNode::execute_callback(const uint32_t &fct_id,
+                                        const DHTKey &sender_key,
+                                        const NetAddress &sender_na,
+                                        const DHTKey &node_key,
+                                        int& status,
+                                        std::string &resp_msg)
+  {
+#ifdef DEBUG
+    //debug
+    std::cerr << "[Debug]:execute_callback: ";
+    //debug
+#endif
+
+    l1::l1_response *l1r = NULL;
+
+    if (fct_id == hash_get_successor)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_successor from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        DHTKey dkres;
+        NetAddress dkres_na;
+        getSuccessor_cb(dkres,dkres_na,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_get_predecessor)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_predecessor from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        DHTKey dkres;
+        NetAddress dkres_na;
+        getPredecessor_cb(dkres,dkres_na,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_notify)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving notify from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        notify_cb(sender_key,sender_na,
+                  status);
+
+        // create a response.
+        l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_get_succlist)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving get_succlist from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        std::list<DHTKey> dkres_list;
+        std::list<NetAddress> na_list;
+        getSuccList_cb(dkres_list,na_list,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres_list,na_list);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_find_closest_predecessor)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving find_closest_predecessor from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+#ifdef DEBUG
+        //debug
+        //TODO: catch this error.
+        assert(node_key.count()>0);
+        //debug
+#endif
+
+        DHTKey dkres, dkres_succ;
+        NetAddress dkres_na, dkres_succ_na;
+        findClosestPredecessor_cb(
+          node_key,
+          dkres,dkres_na,
+          dkres_succ,dkres_succ_na,
+          status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          {
+            if (dkres_succ.count() > 0)
+              l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na,
+                    dkres_succ,dkres_succ_na);
+            else l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+          }
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_join_get_succ)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving join from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        DHTKey dkres;
+        NetAddress dkres_na;
+        joinGetSucc_cb(
+          sender_key,
+          dkres,dkres_na,status);
+
+        // create a response.
+        if (status == DHT_ERR_OK)
+          l1r = l1_protob_wrapper::create_l1_response(status,dkres,dkres_na);
+        else l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else if (fct_id == hash_ping)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"%s receiving ping from %s",_idkey.to_rstring().c_str(),
+                          sender_key.to_rstring().c_str());
+
+        ping_cb(status);
+
+        // create a reponse.
+        l1r = l1_protob_wrapper::create_l1_response(status);
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "%s receiving unknown callback with id %u from %s",
+                          _idkey.to_rstring().c_str(),fct_id,sender_key.to_rstring().c_str());
+        status = DHT_ERR_CALLBACK;
+        return;
+      }
+
+    // serialize the response.
+    l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
+    delete l1r;
+
+    //debug
+    /* l1::l1_response l1rt;
+    l1_protob_wrapper::deserialize(resp_msg,&l1rt);
+    std::cerr << "layer_id resp deser: " << l1rt.head().layer_id() << std::endl; */
+    //debug
+  }
+
+
   /**----------------------------**/
   /**
    * RPC virtual functions (callbacks).
@@ -929,6 +1073,12 @@ namespace dht
     const NetAddress& senderAddress,
     int& status)
   {
+    if (senderAddress.empty() || senderAddress.getPort()==0)
+      {
+        status = DHT_ERR_ADDRESS_MISMATCH;
+        return;
+      }
+
     status = DHT_ERR_OK;
 
     DHTVirtualNode* vnode = this;

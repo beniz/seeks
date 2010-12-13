@@ -1,3 +1,22 @@
+#
+# This is the p2p messaging component of the Seeks project,
+# a collaborative websearch overlay network.
+#
+# Copyright (C) 2010  Loic Dachary <loic@dachary.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 AM_CPPFLAGS= $(DHTCPPFLAGS) $(SEEKSCPPFLAGS) 
 AM_LDFLAGS= $(DHTLDFLAGS) $(SEEKSLDFLAGS) 
 LDADD=$(DHTLDADD) $(SEEKSLDADD) $(DHTLDADD) -lseeksdht
@@ -6,7 +25,6 @@ DHTCPPFLAGS = \
 	     -I${top_srcdir}/src/dht \
 	     -I${top_srcdir}/src/dht/protob \
 	     -I${top_srcdir}/src/dht/rpc \
-	     -I${top_srcdir}/src/dht/rpc/protob \
 	     -I${top_srcdir}/src/proxy \
 	     `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 
@@ -14,14 +32,12 @@ DHTLDFLAGS = \
 	-L$(top_builddir)/src/dht \
 	-L$(top_builddir)/src/dht/protob \
 	-L$(top_builddir)/src/dht/rpc \
-	-L$(top_builddir)/src/dht/rpc/protob \
 	-L$(top_builddir)/src/proxy \
 	`pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 
 DHTLDADD = \
 	-lseeksdht \
 	-lseeksdhtprotob\
-	-lseeksrpcprotob \
 	-lseeksrpc \
 	-lseeksproxy
 

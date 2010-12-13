@@ -1,3 +1,23 @@
+#
+# This is the p2p messaging component of the Seeks project,
+# a collaborative websearch overlay network.
+#
+# Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+# Copyright (C) 2010  Loic Dachary <loic@dachary.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 publicdir=$(datadir)/seeks
 proxydir=$(datadir)/seeks
 
@@ -9,7 +29,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir}/plugins/websearch `pkg-config opencv --cflags`
 	    -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy 
 if HAVE_DHT
-AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc -I${srcdir}/dht/rpc/protob
+AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc 
 endif
 AM_CPPFLAGS += @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'
@@ -21,7 +41,7 @@ AM_LDFLAGS+=-Lplugins/websearch
 endif
 
 if HAVE_DHT
- AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/rpc/protob `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+ AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
@@ -37,7 +57,7 @@ LDADD += -lseeksimgwebsearchplugin
 endif
 LDADD += -lseeksutils 
 if HAVE_DHT
-LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksrpcprotob -lrmd160 -levent
+LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lrmd160 -levent
 endif
 LDADD += -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
 

@@ -19,40 +19,26 @@
  */
 
 #include "Transport.h"
-#include "l1_protob_rpc_server.h"
+#include "rpc_server.h"
 #include "rpc_client.h"
+#include "errlog.h"
 #include "DHTVirtualNode.h"
+#include "l1_protob_wrapper.h"
+
+using sp::errlog;
 
 namespace dht
 {
   Transport::Transport(const NetAddress& na) :
-    _na(na)
+    rpc_server(na.getNetAddress(),na.getPort())
   {
-    _l1_server = new l1_protob_rpc_server(_na.getNetAddress(),_na.getPort(),this);
     _l1_client = new rpc_client();
   }
 
   Transport::~Transport()
   {
-    delete _l1_server;
-    _l1_server = NULL;
     delete _l1_client;
     _l1_client = NULL;
-  }
-
-  void Transport::run()
-  {
-    _l1_server->run();
-  }
-
-  void Transport::run_thread()
-  {
-    _l1_server->run_thread();
-  }
-
-  void Transport::stop_thread()
-  {
-    _l1_server->stop_thread();
   }
 
   void Transport::do_rpc_call(const NetAddress &server_na,
@@ -65,7 +51,7 @@ namespace dht
 
     if(vnode)
       {
-        _l1_server->serve_response(msg,"<self>",response);
+        serve_response(msg,"<self>",response);
       }
     else
       {
@@ -123,146 +109,107 @@ namespace dht
       }
   }
 
-  void Transport::getSuccessor_cb(const DHTKey& recipientKey,
-                                  DHTKey& dkres, NetAddress& na,
-                                  int& status) throw (dht_exception)
+  void Transport::serve_response(const std::string &msg,
+                                 const std::string &addr,
+                                 std::string &resp_msg)
   {
-    status = DHT_ERR_OK;
-
-    /**
-     * get virtual node and deal with possible errors.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)
+    try
       {
-        dkres = DHTKey();
-        na = NetAddress();
-        status = DHT_ERR_UNKNOWN_PEER;
-        return;
+        serve_response_uncaught(msg, addr, resp_msg);
       }
-    vnode->getSuccessor_cb(dkres, na, status);
+    catch (dht_exception ex)
+      {
+        l1::l1_response *l1r = l1_protob_wrapper::create_l1_response(ex.code());
+        l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
+        delete l1r;
+      }
   }
 
-  void Transport::getPredecessor_cb(const DHTKey& recipientKey,
-                                    DHTKey& dkres, NetAddress& na,
-                                    int& status)
+  void Transport::serve_response_uncaught(const std::string &msg,
+                                          const std::string &addr,
+                                          std::string &resp_msg) throw (dht_exception)
   {
-    status = DHT_ERR_OK;
-
-    /**
-     * get virtual node and deal with possible errors.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)
+    l1::l1_query l1q;
+    try
       {
-        dkres = DHTKey();
-        na = NetAddress();
-        status = DHT_ERR_UNKNOWN_PEER;
-        return;
+        l1_protob_wrapper::deserialize(msg,&l1q);
       }
-    vnode->getPredecessor_cb(dkres, na, status);
-  }
-
-  void Transport::notify_cb(const DHTKey& recipientKey,
-                            const DHTKey& senderKey,
-                            const NetAddress& senderAddress,
-                            int& status)
-  {
-    status = DHT_ERR_OK;
-
-    /**
-     * get virtual node.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)
+    catch (dht_exception ex)
       {
-        status = DHT_ERR_UNKNOWN_PEER;
-        return;
+        errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
+        throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception " + ex.what());
       }
 
-    vnode->notify_cb(senderKey, senderAddress, status);
+    // read query.
+    uint32_t layer_id;
+    uint32_t fct_id;
+    DHTKey recipient_key, sender_key, node_key;
+    NetAddress recipient_na, sender_na;
+    l1_protob_wrapper::read_l1_query(&l1q,layer_id,fct_id,recipient_key,
+                                     recipient_na,sender_key,sender_na,node_key);
 
-  }
-
-  void Transport::getSuccList_cb(const DHTKey &recipientKey,
-                                 std::list<DHTKey> &dkres_list,
-                                 std::list<NetAddress> &na_list,
-                                 int &status)
-  {
-    status = DHT_ERR_OK;
-
-    /**
-     * get virtual node and deal with possible errors.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)
+    // check on sender address, if specified, that sender is not lying.
+    if (sender_na.empty())
+      sender_na = NetAddress(addr,0);
+    else
       {
-        dkres_list = std::list<DHTKey>();
-        na_list = std::list<NetAddress>();
-        status = DHT_ERR_UNKNOWN_PEER;
-        return;
+        struct addrinfo hints, *result;
+        memset((char *)&hints, 0, sizeof(hints));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_DGRAM;
+        hints.ai_flags = AI_ADDRCONFIG; /* avoid service look-up */
+        int ret = getaddrinfo(sender_na.getNetAddress().c_str(), NULL, &hints, &result);
+        if (ret != 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,
+                              "Can not resolve %s: %s", sender_na.getNetAddress().c_str(),
+                              gai_strerror(ret));
+            sender_na = NetAddress();
+          }
+        else
+          {
+            bool lying = true;
+            struct addrinfo *rp;
+            for (rp = result; rp != NULL; rp = rp->ai_next)
+              {
+                struct sockaddr_in *ai_addr = (struct sockaddr_in*)rp->ai_addr;
+                uint32_t v4_addr = ai_addr->sin_addr.s_addr;
+                std::string addr_from = NetAddress::unserialize_ip(v4_addr);
+
+                if (addr_from == addr)
+                  {
+                    lying = false;
+                    break;
+                  }
+              }
+            if (lying)
+              {
+                /**
+                			* Seems like the sender is lying on its address.
+                			* We still serve it, but we do not use the potentially
+                			* fake/lying IP.
+                			*/
+                sender_na = NetAddress();
+              }
+          }
       }
 
-    vnode->getSuccList_cb(dkres_list, na_list, status);
-  }
-
-  void Transport::findClosestPredecessor_cb(const DHTKey& recipientKey,
-      const DHTKey& nodeKey,
-      DHTKey& dkres, NetAddress& na,
-      DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-      int& status)
-  {
-    status = DHT_ERR_OK;
-
-    /**
-     * get virtual node.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
+    // decides which response to give.
+    int status = DHT_ERR_OK;
+    DHTVirtualNode* vnode = findVNode(recipient_key);
     if (!vnode)
+      throw dht_exception(DHT_ERR_UNKNOWN_PEER, "could not find virtual node for DHTKey " + recipient_key.to_rstring());
+#if 0
+    // check on the layer id. AAAA
+    if (layer_id != 1)
       {
-        dkres = DHTKey();
-        na = NetAddress();
-        status = DHT_ERR_UNKNOWN_PEER;
+        int status = DHT_ERR_OK;
+        lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,
+                           status,resp_msg,msg);
         return;
       }
-
-    vnode->findClosestPredecessor_cb(nodeKey, dkres, na, dkres_succ, dkres_succ_na, status);
-  }
-
-  void Transport::joinGetSucc_cb(const DHTKey &recipientKey,
-                                 const DHTKey &senderKey,
-                                 DHTKey &dkres, NetAddress &na,
-                                 int &status)
-  {
-    status = DHT_ERR_OK;
-
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-
-    if (!vnode)
-      vnode = findClosestVNode(senderKey);
-
-    vnode->joinGetSucc_cb(senderKey, dkres, na, status);
-  }
-
-  void Transport::ping_cb(const DHTKey& recipientKey,
-                          int& status)
-  {
-    status = DHT_ERR_OK;
-
-    /**
-     * get virtual node.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)
-      {
-        status = DHT_ERR_UNKNOWN_PEER;
-        return;
-      }
-
-    /**
-     * ping this virtual node.
-     */
-    vnode->ping_cb(status);
+#endif
+    vnode->execute_callback(fct_id,sender_key,sender_na,node_key,status,resp_msg);
   }
 
   DHTVirtualNode* Transport::find_closest_vnode(const DHTKey &key) const

@@ -232,6 +232,13 @@ namespace dht
           const short &start_replication_radius) { };
 #endif
 
+      virtual void execute_callback(const uint32_t &fct_id,
+                                    const DHTKey &sender_key,
+                                    const NetAddress &sender_na,
+                                    const DHTKey &node_key,
+                                    int& status,
+                                    std::string &resp_msg);
+
       /**----------------------------**/
       /**
        * \brief getSuccessor local callback.

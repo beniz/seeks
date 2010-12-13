@@ -22,7 +22,6 @@
 #include "miscutil.h"
 #include "errlog.h"
 #include "Transport.h"
-#include "l1_protob_rpc_server.h"
 
 #include <iostream>
 #include <string.h>
@@ -153,5 +152,5 @@ int main(int argc, char **argv)
         dht_api::self_bootstrap(*dnode);
     }
 
-  pthread_join(dnode->_transport->_l1_server->_rpc_server_thread,NULL);
+  pthread_join(dnode->_transport->_rpc_server_thread,NULL);
 }

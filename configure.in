@@ -1,6 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@.free.fr
+# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@free.fr
+# Copyright (C) 2010 Loic Dachary <loic@dachary.org>
 #
 # Permission is hereby granted to distribute this software for
 # non-commercial research purposes, provided that this copyright
@@ -781,7 +782,6 @@ src/dht/Makefile \
 src/dht/tests/Makefile \
 src/dht/rpc/Makefile \
 src/dht/rpc/tests/Makefile \
-src/dht/rpc/protob/Makefile \
 src/dht/protob/Makefile \
 src/dht/protob/tests/Makefile \
 src/dht/sg/Makefile \

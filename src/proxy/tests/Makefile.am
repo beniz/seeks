@@ -11,7 +11,7 @@ endif
 
 AM_LDFLAGS=-L. -L../ -L../../utils -L../../lsh
 if HAVE_DHT
-AM_LDFLAGS += -L../../dht -L../../dht/rpc -L../../dht/rpc/protob -L../../dht/protob \
+AM_LDFLAGS += -L../../dht -L../../dht/rpc -L../../dht/protob \
 	      -L../../proxy `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 endif
 if USE_PERL
@@ -19,7 +19,7 @@ AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
 LDADD = @CURL_LDADD@ -lseeksutils
 if HAVE_DHT
-LDADD += -lseeksdht -lseeksrpc -lseeksrpcprotob -lseeksdhtprotob -lrmd160 -levent -lseeksproxy
+LDADD += -lseeksdht -lseeksrpc -lseeksdhtprotob -lrmd160 -levent -lseeksproxy
 endif
 LDADD +=  -lseekslsh -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lpthread -lz
 if !HAVE_BSD

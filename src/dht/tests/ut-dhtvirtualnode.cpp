@@ -25,7 +25,6 @@
 #include "Transport.h"
 #include "dht_configuration.h"
 #include "errlog.h"
-#include "l1_protob_rpc_server.h"
 
 #include <unistd.h>
 
@@ -61,7 +60,7 @@ class TransportTest : public Transport
 
       if(vnode)
         {
-          _l1_server->serve_response(msg,"<self>",response);
+          serve_response(msg,"<self>",response);
         }
       else
         {

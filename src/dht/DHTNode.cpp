@@ -25,8 +25,6 @@
 #include "net_utils.h"
 #include "errlog.h"
 #include "proxy_configuration.h"
-#include "l1_protob_rpc_server.h"
-#include "l1_protob_rpc_client.h"
 #include "l1_data_protob_wrapper.h"
 
 #include <sys/time.h>

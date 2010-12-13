@@ -23,26 +23,28 @@
 
 #include "DHTKey.h"
 #include "NetAddress.h"
+#include "rpc_server.h"
 #include "dht_exception.h"
 
 namespace dht
 {
   class DHTVirtualNode;
   class rpc_client;
-  class l1_protob_rpc_server;
 
-  class Transport
+  class Transport : public rpc_server
   {
     public:
       Transport(const NetAddress& na);
 
       virtual ~Transport();
 
-      void run();
+      virtual void serve_response(const std::string &msg,
+                                  const std::string &addr,
+                                  std::string &resp_msg);
 
-      void run_thread();
-
-      void stop_thread();
+      void serve_response_uncaught(const std::string &msg,
+                                   const std::string &addr,
+                                   std::string &resp_msg) throw (dht_exception);
 
       virtual void do_rpc_call(const NetAddress &server_na,
                                const DHTKey &recipientKey,
@@ -72,40 +74,6 @@ namespace dht
 
       DHTVirtualNode* findVNode(const DHTKey& recipientKey) const;
 
-      void getSuccessor_cb(const DHTKey& recipientKey,
-                           DHTKey& dkres, NetAddress& na,
-                           int& status) throw (dht_exception);
-
-      void getPredecessor_cb(const DHTKey& recipientKey,
-                             DHTKey& dkres, NetAddress& na,
-                             int& status);
-
-      void notify_cb(const DHTKey& recipientKey,
-                     const DHTKey& senderKey,
-                     const NetAddress& senderAddress,
-                     int& status);
-
-      void getSuccList_cb(const DHTKey &recipientKey,
-                          std::list<DHTKey> &dkres_list,
-                          std::list<NetAddress> &dkres_na,
-                          int &status);
-
-      void findClosestPredecessor_cb(const DHTKey& recipientKey,
-                                     const DHTKey& nodeKey,
-                                     DHTKey& dkres, NetAddress& na,
-                                     DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-                                     int& status);
-
-      void joinGetSucc_cb(const DHTKey &recipientKey,
-                          const DHTKey &senderKey,
-                          DHTKey& dkres, NetAddress& na,
-                          int& status);
-
-      void ping_cb(const DHTKey& recipientKey,
-                   int& status);
-
-      l1_protob_rpc_server *_l1_server;
-
       rpc_client *_l1_client;
 
       /**
@@ -117,10 +85,6 @@ namespace dht
        * hash map of DHT virtual nodes.
        */
       hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey> _vnodes;
-      /**
-       * this peer net address.
-       */
-      NetAddress _na;
   };
 
 } /* end of namespace. */
