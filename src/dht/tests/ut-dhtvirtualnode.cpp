@@ -184,6 +184,30 @@ TEST_F(DHTVirtualNodeTest, notify)
   ASSERT_EQ(joining->getIdKey(), vnode->getPredecessorS());
 }
 
+TEST_F(DHTVirtualNodeTest, find_successor)
+{
+  DHTVirtualNode* vnode9 = bootstrap(new_vnode(DHTKey::from_rstring(dkey9)));
+  {
+    DHTKey dkres;
+    NetAddress na;
+    EXPECT_EQ(DHT_ERR_OK, vnode9->find_successor(vnode9->getIdKey(), dkres, na));
+    EXPECT_EQ(vnode9->getIdKey(), dkres);
+    EXPECT_EQ(PORT, na.getPort());
+  }
+  DHTVirtualNode* vnode3 = new_vnode(DHTKey::from_rstring(dkey3));
+  connect(vnode9, vnode3, vnode9);
+  DHTVirtualNode* vnode2 = new_vnode(DHTKey::from_rstring(dkey2));
+  connect(vnode9, vnode2, vnode3);
+  // introduce a dead node
+  vnode3->setSuccessor(DHTKey::from_rstring(dkey6), NetAddress());
+  vnode9->setPredecessor(DHTKey::from_rstring(dkey6));
+  {
+    DHTKey dkres;
+    NetAddress na;
+    EXPECT_EQ(DHT_ERR_COM_TIMEOUT, vnode3->find_successor(DHTKey::from_rstring(dkey2), dkres, na));
+  }
+}
+
 TEST_F(DHTVirtualNodeTest, find_predecessor)
 {
   DHTVirtualNode* vnode9 = bootstrap(new_vnode(DHTKey::from_rstring(dkey9)));
