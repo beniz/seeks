@@ -199,16 +199,6 @@ namespace dht
     DHTVirtualNode* vnode = findVNode(recipient_key);
     if (!vnode)
       throw dht_exception(DHT_ERR_UNKNOWN_PEER, "could not find virtual node for DHTKey " + recipient_key.to_rstring());
-#if 0
-    // check on the layer id. AAAA
-    if (layer_id != 1)
-      {
-        int status = DHT_ERR_OK;
-        lx_server_response(fct_id,recipient_key,recipient_na,sender_key,sender_na,node_key,
-                           status,resp_msg,msg);
-        return;
-      }
-#endif
     vnode->execute_callback(fct_id,sender_key,sender_na,node_key,status,resp_msg,msg);
   }
 
