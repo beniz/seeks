@@ -102,15 +102,12 @@ namespace sp
   int seeks_proxy::_Argc = 0;
   const char** seeks_proxy::_Argv = NULL;
 
-#if 0
 #ifdef WITH_DHT
   SGNode* seeks_proxy::_dhtnode = NULL;
-#endif
 #endif
 
   bool seeks_proxy::_run_proxy = true;
   pthread_t* seeks_proxy::_httpserv_thread = NULL;
-
 #ifdef FEATURE_TOGGLE
   /* Seeks proxy is enabled by default. */
   int seeks_proxy::_global_toggle_state = 1;
@@ -2894,11 +2891,11 @@ reading_done:
 #endif /* ifndef _WIN32 */
         strlcat(path, file, path_size);
 
+
         return path;
       }
   }
 
-#if 0
 #ifdef WITH_DHT
   dht_err seeks_proxy::start_sgnode()
   {
@@ -2908,7 +2905,6 @@ reading_done:
     = seeks_proxy::_dhtnode->join_start(dht_configuration::_dht_config->_bootstrap_nodelist,reset);
     return err;
   }
-#endif
 #endif
 
 } /* end of namespace. */

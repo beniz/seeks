@@ -786,7 +786,6 @@ src/dht/protob/Makefile \
 src/dht/protob/tests/Makefile \
 src/dht/sg/Makefile \
 src/dht/sg/protob/Makefile \
-src/dht/sg/rpc/Makefile \
 src/utils/Makefile)
 
 AC_OUTPUT

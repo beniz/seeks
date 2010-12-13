@@ -28,10 +28,8 @@
 #include "sweeper.h"
 #include "lsh_configuration.h"
 
-#if 0
 #ifdef WITH_DHT
 #include "SGNode.h"
-#endif
 #endif
 
 #if (defined __NetBSD__) || (defined __OpenBSD__)
@@ -53,10 +51,8 @@ typedef CRITICAL_SECTION sp_mutex_t;
 
 using lsh::lsh_configuration;
 
-#if 0
 #ifdef WITH_DHT
 using dht::SGNode;
-#endif
 #endif
 
 namespace sp
@@ -198,10 +194,8 @@ namespace sp
 
       static char* make_path(const char *dir, const char *file);
 
-#if 0
 #ifdef WITH_DHT
       static dht_err start_sgnode();
-#endif
 #endif
 
     private:
@@ -209,10 +203,8 @@ namespace sp
       static const cruncher _crunchers_light[];
 
     public:
-#if 0
 #ifdef WITH_DHT
       static SGNode *_dhtnode; // DHT node.
-#endif
 #endif
       static bool _run_proxy;
       static pthread_t *_httpserv_thread; // running HTTP server plugin thread, if any.

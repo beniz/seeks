@@ -25,6 +25,27 @@ AM_CPPFLAGS=-I${srcdir}/rpc -I${srcdir}/protob -Iprotob -I${srcdir}/.. -I${srcdi
 	    -I${srcdir}/../../proxy -I${srcdir}/../protob -I../protob -I${srcdir}/../rpc -I${srcdir}/../rpc/protob \
 	    `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 AM_CXXFLAGS=-Wall -g -Wno-deprecated
-libseeksdhtsg_la_SOURCES=subscriber.cpp searchgroup.cpp sg_configuration.cpp sg_manager.cpp SGNode.cpp SGVirtualNode.cpp sg_api.cpp sg_sweeper.cpp sg_db.cpp searchgroup.h sg_api.h sg_configuration.h sg_db.h sg_manager.h SGNode.h SGVirtualNode.h sg_sweeper.h subscriber.h
+dist_libseeksdhtsg_la_SOURCES=subscriber.cpp searchgroup.cpp sg_configuration.cpp sg_manager.cpp SGNode.cpp SGVirtualNode.cpp sg_api.cpp sg_sweeper.cpp sg_db.cpp searchgroup.h sg_api.h sg_configuration.h sg_db.h sg_manager.h SGNode.h SGVirtualNode.h sg_sweeper.h subscriber.h l2_protob_wrapper.cpp l2_protob_wrapper.h l2_data_protob_wrapper.cpp l2_data_protob_wrapper.h
+nodist_libseeksdhtsg_la_SOURCES=$(protoc_outputs)
 
-SUBDIRS=protob rpc #protob/tests rpc/tests tests
+EXTRA_DIST=dht_layer2_data.proto dht_layer2.proto
+
+protoc_inputs=dht_layer2.proto dht_layer2_data.proto
+
+protoc_outputs=dht_layer2.pb.cc dht_layer2.pb.h dht_layer2_data.pb.cc dht_layer2_data.pb.h 
+
+BUILT_SOURCES = $(protoc_outputs)
+
+$(protoc_outputs): proto_middleman
+
+proto_middleman: protoc $(protoc_inputs)
+	touch proto_middleman
+	$^ --cpp_out=. --proto_path=${srcdir} --proto_path=${srcdir}/../protob
+
+protoc:
+	touch protoc
+
+clean-local:
+	rm -f dht_layer2.pb.h dht_layer2.pb.cc dht_layer2_data.pb.h dht_layer2_data.pb.cc protoc proto_middleman
+
+

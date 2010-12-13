@@ -31,25 +31,25 @@
 
 namespace dht
 {
-   
-   class l2_protob_wrapper
-     {
-      public:
-	static l2::l2_subscribe_response* create_l2_subscribe_response(const uint32_t &error_status,
-								       const std::vector<Subscriber*> &peers);
-	
-      public:
-	static void serialize_to_string(const l2::l2_subscribe_response*, std::string &str) throw (dht_exception);
-     
-      public:
-	static void read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
-						  uint32_t &error_status,
-						  std::vector<Subscriber*> &peers);
-      
-      public:
-	static void deserialize(const std::string &str, l2::l2_subscribe_response *l2r) throw (dht_exception);
-     };
-      
+
+  class l2_protob_wrapper
+  {
+    public:
+      static l2::l2_subscribe_response* create_l2_subscribe_response(const uint32_t &error_status,
+          const std::vector<Subscriber*> &peers);
+
+    public:
+      static void serialize_to_string(const l2::l2_subscribe_response*, std::string &str) throw (dht_exception);
+
+    public:
+      static void read_l2_subscribe_response(const l2::l2_subscribe_response *l2r,
+                                             uint32_t &error_status,
+                                             std::vector<Subscriber*> &peers);
+
+    public:
+      static void deserialize(const std::string &str, l2::l2_subscribe_response *l2r) throw (dht_exception);
+  };
+
 } /* end of namespace. */
 
 #endif

@@ -32,13 +32,13 @@ namespace dht
   Transport::Transport(const NetAddress& na) :
     rpc_server(na.getNetAddress(),na.getPort())
   {
-    _l1_client = new rpc_client();
+    _client = new rpc_client();
   }
 
   Transport::~Transport()
   {
-    delete _l1_client;
-    _l1_client = NULL;
+    delete _client;
+    _client = NULL;
   }
 
   void Transport::do_rpc_call(const NetAddress &server_na,
@@ -55,7 +55,7 @@ namespace dht
       }
     else
       {
-        _l1_client->do_rpc_call(server_na, msg, need_response, response);
+        _client->do_rpc_call(server_na, msg, need_response, response);
       }
   }
 
@@ -209,7 +209,7 @@ namespace dht
         return;
       }
 #endif
-    vnode->execute_callback(fct_id,sender_key,sender_na,node_key,status,resp_msg);
+    vnode->execute_callback(fct_id,sender_key,sender_na,node_key,status,resp_msg,msg);
   }
 
   DHTVirtualNode* Transport::find_closest_vnode(const DHTKey &key) const

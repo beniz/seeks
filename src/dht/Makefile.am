@@ -46,4 +46,4 @@ libseeksdht_la_SOURCES=\
 	Stabilizer.h \
 	SuccList.h
 
-SUBDIRS=protob rpc #sg #protob/tests rpc/tests tests
+SUBDIRS=protob rpc sg #protob/tests rpc/tests tests

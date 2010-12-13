@@ -237,7 +237,8 @@ namespace dht
                                     const NetAddress &sender_na,
                                     const DHTKey &node_key,
                                     int& status,
-                                    std::string &resp_msg);
+                                    std::string &resp_msg,
+                                    const std::string &inc_msg);
 
       /**----------------------------**/
       /**
@@ -310,6 +311,11 @@ namespace dht
                     l1::l1_response *l1r) throw (dht_exception);
 
       void RPC_call(l1::l1_query *&l1q,
+                    const DHTKey &recipientKey,
+                    const NetAddress &recipient,
+                    l1::l1_response *l1r) throw (dht_exception);
+
+      void RPC_call(const std::string &msg_str,
                     const DHTKey &recipientKey,
                     const NetAddress &recipient,
                     l1::l1_response *l1r) throw (dht_exception);

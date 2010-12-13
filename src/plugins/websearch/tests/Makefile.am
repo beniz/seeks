@@ -15,11 +15,11 @@ if USE_PERL
  AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
 if HAVE_DHT
- AM_CPPFLAGS += -I${srcdir}/../../../dht -I${srcdir}/../../../dht/rpc -I${srcdir}/../../../dht/protob 
- AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob `pkg-config --libs protobuf` \
+ AM_CPPFLAGS += -I${srcdir}/../../../dht -I${srcdir}/../../../dht/rpc -I${srcdir}/../../../dht/protob -I${srcdir}/../../../dht/sg
+ AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/sg `pkg-config --libs protobuf` \
 	       `pkg-config --libs tokyocabinet`
 endif
 LDADD=-lseekswebsearchplugin -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
 if HAVE_DHT
- LDADD+=-lseeksdht -lseeksrpc -lseeksdhtprotob -lrmd160 -levent
+ LDADD+=-lseeksdht -lseeksrpc -lseeksdhtprotob -lseeksdhtsg -lrmd160 -levent
 endif

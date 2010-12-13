@@ -846,7 +846,8 @@ namespace dht
                                         const NetAddress &sender_na,
                                         const DHTKey &node_key,
                                         int& status,
-                                        std::string &resp_msg)
+                                        std::string &resp_msg,
+                                        const std::string &inc_msg)
   {
 #ifdef DEBUG
     //debug
@@ -1265,6 +1266,23 @@ namespace dht
   {
     std::string msg_str;
     l1_protob_wrapper::serialize_to_string(l1q,msg_str);
+    try
+      {
+        RPC_call(msg_str,recipientKey,recipient,l1r);
+      }
+    catch (dht_exception &e)
+      {
+        delete l1q;
+        throw e;
+      }
+    delete l1q;
+  }
+
+  void DHTVirtualNode::RPC_call(const std::string &msg_str,
+                                const DHTKey &recipientKey,
+                                const NetAddress &recipient,
+                                l1::l1_response *l1r) throw (dht_exception)
+  {
     std::string resp_str;
 
     try
@@ -1273,7 +1291,6 @@ namespace dht
       }
     catch (dht_exception &e)
       {
-        delete l1q;
         if (e.code() == DHT_ERR_COM_TIMEOUT)
           {
             l1r->set_error_status(e.code());
@@ -1284,7 +1301,6 @@ namespace dht
             throw e;
           }
       }
-    delete l1q;
 
     // deserialize response.
     try

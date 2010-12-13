@@ -531,10 +531,8 @@ int main(int argc, const char *argv[])
     }
   plugin_manager::instanciate_plugins();
 
-#if 0
 #ifdef WITH_DHT
   seeks_proxy::start_sgnode();
-#endif
 #endif
 
   // start proxy.

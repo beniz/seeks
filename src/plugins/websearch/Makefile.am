@@ -6,7 +6,7 @@ websearchplugindatadir = $(datadir)/seeks/plugins/websearch
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy
 if HAVE_DHT
-AM_CPPFLAGS += -I${srcdir}/../../dht -I${srcdir}/../../dht/rpc -I${srcdir}/../../dht/rpc/protob -I${srcdir}/../../dht/protob 
+AM_CPPFLAGS += -I${srcdir}/../../dht -I${srcdir}/../../dht/rpc -I${srcdir}/../../dht/rpc/protob -I${srcdir}/../../dht/protob -I${srcdir}/../../dht/sg 
 endif
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
@@ -22,6 +22,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 	json_renderer.h \
 	oskmeans.h \
 	qc_event.h \
+	qc_sg.h \
 	query_context.h \
 	query_interceptor.h \
 	search_snippet.h \
@@ -33,12 +34,19 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 	se_parser.h \
 	se_parser_yahoo.h \
 	se_query.h \
+	sg.h \
 	sort_rank.h \
 	static_renderer.h \
 	websearch_configuration.h \
-	websearch.h 
+	websearch.h \
+	websearch_sg.h
 
 libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @CURL_CFLAGS@ @XML2_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+
+if HAVE_DHT
+libseekswebsearchplugin_la_SOURCES += qc_event.cpp qc_sg.cpp sg.cpp websearch_sg.cpp
+libseekswebsearchplugin_la_CXXFLAGS += -I${srcdir}/../../dht
+endif
 
 if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`

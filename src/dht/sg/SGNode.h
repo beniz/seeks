@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-  
+
 #ifndef SGNODE_H
 #define SGNODE_H
 
@@ -27,46 +27,26 @@
 
 namespace dht
 {
-   
-   class SGNode : public DHTNode
-     {
-      public:
-	SGNode(const char *net_addr, const short &net_port);
-		
-	~SGNode();
-	
-	virtual DHTVirtualNode* create_vnode();
-	virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
-					     LocationTable *lt);
-	
-	virtual void init_server();
 
-	virtual void reset_vnodes_dependent();
-	
-	/*- RPC callbacks. -*/
-	void RPC_subscribe_cb(const DHTKey &recipientKey,
-				 const NetAddress &recipient,
-				 const DHTKey &senderKey,
-				 const NetAddress &sender,
-				 const DHTKey &sgKey,
-				 std::vector<Subscriber*> &peers,
-				 int &status);
-	
-	void RPC_replicate_cb(const DHTKey &recipientKey,
-				 const NetAddress &recipient,
-				 const DHTKey &senderKey,
-				 const NetAddress &sender,
-				 const DHTKey &ownerKey,
-				 const std::vector<Searchgroup*> &sgs,
-				 const bool &sdiff,
-				 int &status);
-	
-      public:
-	sg_manager _sgmanager;
-	
-	static std::string _sg_config_filename;
-     };
-   
+  class SGNode : public DHTNode
+  {
+    public:
+      SGNode(const char *net_addr, const short &net_port);
+
+      ~SGNode();
+
+      virtual DHTVirtualNode* create_vnode();
+      virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
+                                           LocationTable *lt);
+
+      virtual void reset_vnodes_dependent();
+
+    public:
+      sg_manager _sgmanager;
+
+      static std::string _sg_config_filename;
+  };
+
 } /* end of namespace. */
 
 #endif

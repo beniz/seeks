@@ -29,7 +29,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir}/plugins/websearch `pkg-config opencv --cflags`
 	    -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy 
 if HAVE_DHT
-AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc 
+AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc -I${srcdir}/dht/sg 
 endif
 AM_CPPFLAGS += @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'
@@ -41,7 +41,7 @@ AM_LDFLAGS+=-Lplugins/websearch
 endif
 
 if HAVE_DHT
- AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+ AM_LDFLAGS += -Ldht -Ldht/rpc -Ldht/protob -Ldht/sg `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
@@ -57,7 +57,7 @@ LDADD += -lseeksimgwebsearchplugin
 endif
 LDADD += -lseeksutils 
 if HAVE_DHT
-LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lrmd160 -levent
+LDADD += -lseeksdht -lseeksdhtprotob -lseeksrpc -lseeksdhtsg -lrmd160 -levent
 endif
 LDADD += -lseeksproxy -lseeksplugins -lpcre -lpcreposix -lseekslsh -lpthread -lz @CURL_LDADD@ @XML2_LDADD@
 

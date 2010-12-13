@@ -74,7 +74,7 @@ namespace dht
 
       DHTVirtualNode* findVNode(const DHTKey& recipientKey) const;
 
-      rpc_client *_l1_client;
+      rpc_client *_client;
 
       /**
        * Sortable list of virtual nodes.
