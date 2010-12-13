@@ -46,6 +46,7 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
       static void personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets);
       static void get_related_queries(query_context *qc);
+      static void get_recommended_urls(query_context *qc);
 #endif
   };
 

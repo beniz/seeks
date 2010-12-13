@@ -41,6 +41,13 @@ namespace seeks_plugins
                                      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                      const std::string &cgi_base="/search?");
 
+      static void render_recommendations(const query_context *qc,
+					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					 const std::string &cgi_base="/search?");
+      
+      static void render_cached_queries(hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					const std::string &cgi_base="/search?");
+
       static void render_lang(const query_context *qc,
                               hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 
@@ -126,7 +133,8 @@ namespace seeks_plugins
           const short &K,
           client_state *csp, http_response *rsp,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-          const query_context *qc);
+							const query_context *qc,
+							const std::string &cgi_base="/search?");
 
       static sp_err render_neighbors_result_page(client_state *csp, http_response *rsp,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

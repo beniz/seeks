@@ -30,6 +30,7 @@
 #include "encode.h"
 
 #include <sys/time.h>
+#include <algorithm>
 #include <iostream>
 
 using sp::sweeper;
@@ -125,8 +126,19 @@ namespace seeks_plugins
         free_const(k);
       }
 
-    search_snippet::delete_snippets(_cached_snippets);
-
+    std::for_each(_cached_snippets.begin(),_cached_snippets.end(),
+		  delete_object());
+    
+    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator idhit1, idhit2;
+    idhit1 = _recommended_snippets.begin();
+    while(idhit1!=_recommended_snippets.end())
+      {
+	idhit2 = idhit1;
+	++idhit1;
+	delete (*idhit2).second;
+	_recommended_snippets.erase(idhit2);
+      }
+    
     // clears the LSH hashtable.
     if (_ulsh_ham)
       delete _ulsh_ham;
@@ -697,6 +709,23 @@ namespace seeks_plugins
       {
         (*vit)->_personalized = false;
         ++vit;
+      }
+  }
+  
+  void query_context::update_recommended_urls()
+  {
+    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit, hit2, cit;
+    hit = _recommended_snippets.begin();
+    while(hit!=_recommended_snippets.end())
+      {
+	if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
+	  {
+	    hit2 = hit;
+	    ++hit;
+	    delete (*hit2).second;
+	    _recommended_snippets.erase(hit2);
+	  }
+	else ++hit;
       }
   }
 

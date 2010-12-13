@@ -86,9 +86,17 @@ namespace seeks_plugins
   }
   
   void cf::get_related_queries(const std::string &query,
+			       const query_context *qc,
 			       std::multimap<double,std::string,std::less<double> > &related_queries)
   {
-    query_recommender::recommend_queries(query,related_queries);
+    query_recommender::recommend_queries(query,qc,related_queries);
+  }
+
+  void cf::get_recommended_urls(const std::string &query,
+				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
+  {
+    simple_re sre; // estimator.
+    sre.recommend_urls(query,snippets);
   }
   
 #if defined(ON_OPENBSD) || defined(ON_OSX)

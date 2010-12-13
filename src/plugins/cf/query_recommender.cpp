@@ -20,8 +20,12 @@
 #include "rank_estimators.h"
 #include "query_capture.h"
 #include "miscutil.h"
+#include "mem_utils.h"
+
+#include <ctype.h>
 
 #include <vector>
+#include <algorithm>
 #include <iostream>
 
 using sp::miscutil;
@@ -29,7 +33,45 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   
+  bool query_recommender::select_and_rewrite_query(const str_chain &strc_query,
+						   std::string &rquery,
+						   stopwordlist *swl)
+  {
+    rquery = query_capture_element::no_command_query(rquery);
+    std::transform(rquery.begin(),rquery.end(),rquery.begin(),tolower);
+    str_chain strc_rquery = str_chain(rquery,0,true);
+    strc_rquery = strc_rquery.rank_alpha();
+    std::string ra_rquery = strc_rquery.print_str();
+    if (strc_query.print_str() == ra_rquery)
+      return false;
+    
+    // intersect queries.
+    std::vector<std::string> inter;
+    for (size_t i=0;i<strc_query.size();i++)
+      {
+	for (size_t j=0;j<strc_rquery.size();j++)
+	  {
+	    if (strc_query.at(i) == strc_rquery.at(j))
+	      {
+		inter.push_back(strc_rquery.at(j));
+	      }
+	  }
+      }
+    
+    // reject stopwords.
+    bool reject = true;
+    for (size_t i=0;i<inter.size();i++)
+      if (!swl->has_word(inter.at(i)))
+	{
+	  reject = false;
+	  break;
+	}
+    
+    return !reject;
+  }
+
   void query_recommender::recommend_queries(const std::string &query,
+					    const query_context *qc,
 					    std::multimap<double,std::string,std::less<double> > &related_queries)
   {
     // fetch records from user db.
@@ -43,20 +85,29 @@ namespace seeks_plugins
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);
+    std::transform(qquery.begin(),qquery.end(),qquery.begin(),tolower);
+    str_chain strc_query(qquery,0,true);
+    strc_query = strc_query.rank_alpha();
+
+    // stopword list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
+    hash_map<const char*,double,hash<const char*>,eqstr>::iterator uit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
       = qdata.begin();
     while(hit!=qdata.end())
       {
 	std::string rquery = (*hit).second->_query;
-	if (rquery != qquery)
+	if (query_recommender::select_and_rewrite_query(strc_query,rquery,swl))
 	  {
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;
 	    double hits = (*hit).second->_hits;
-	    update.insert(std::pair<const char*,double>(rquery.c_str(),radius/hits));
+	    if ((uit = update.find(rquery.c_str()))!=update.end())
+	      (*uit).second *= radius/hits;
+	    else update.insert(std::pair<const char*,double>(strdup(rquery.c_str()),radius/hits));
 	  }
 	++hit;
       }
@@ -95,11 +146,15 @@ namespace seeks_plugins
 	else ++mit;
       }
     hit = update.begin();
+    hash_map<const char*,double,hash<const char*>,eqstr>::iterator chit;
     while(hit!=update.end())
       {
 	related_queries.insert(std::pair<double,std::string>((*hit).second,std::string((*hit).first)));
+	chit = hit;
 	++hit;
+	free_const((*chit).first);
       }
+
   }
 
 } /* end of namespace. */

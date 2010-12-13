@@ -23,14 +23,18 @@
 #include "query_capture.h"
 #include "uri_capture.h"
 #include "db_uri_record.h"
+#include "mrf.h" // id generation.
 #include "urlmatch.h"
+#include "miscutil.h"
 
 #include <assert.h>
 #include <math.h>
 #include <iostream>
 
 using lsh::qprocess;
+using lsh::mrf;
 using sp::urlmatch;
+using sp::miscutil;
 
 namespace seeks_plugins
 {
@@ -90,10 +94,20 @@ namespace seeks_plugins
                     // XXX: when the query contains > 8 words there are many features generated
                     // for the same radius. The original query data can be fetched from any
                     // of the generated features, so we take the first one.
-                    //assert(features.size()>=1);
-                    std::string key_str = (*features.begin()).second.to_rstring();
+		    if (features.empty()) // this should never happen.
+		      {
+			++qit;
+			continue;
+		      }
+		      
+		    std::string key_str = (*features.begin()).second.to_rstring();
                     db_record *dbr_data = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
-                    assert(dbr_data != NULL); // beware.
+		    if (!dbr_data) // this should never happen.
+		      {
+			++qit;
+			continue;
+		      }
+
                     db_query_record *dbqr_data = static_cast<db_query_record*>(dbr_data);
                     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit2
                     = dbqr_data->_related_queries.begin();
@@ -196,24 +210,21 @@ namespace seeks_plugins
         while (hit!=qdata.end())
           {
             float qpost = estimate_rank((*vit),ns,(*hit).second,q_vurl_hits[i++],
-                                        url,host,path);
+                                        url,host);
 	    //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
-            qpost *= 1.0/static_cast<float>(((*hit).second->_radius + 1.0)); // account for distance to original query.
-            posteriors[j] += qpost; // boosting over similar queries.
+            qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
+	    posteriors[j] += qpost; // boosting over similar queries.
 
             //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
 	    ++hit;
           }
 
         // estimate the url prior.
-        bool personalized = false;
         float prior = 1.0;
         if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB 
 	    && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enought competition on domains.
-          prior = estimate_prior(url,host,nuri,personalized);
-        if (personalized)
-          (*vit)->_personalized = true;
-        posteriors[j] *= prior;
+          prior = estimate_prior((*vit),url,host,nuri);
+	posteriors[j] *= prior;
 
         //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
 
@@ -249,68 +260,184 @@ namespace seeks_plugins
                                  const query_data *qd,
                                  const float &total_hits,
                                  const std::string &surl,
-                                 const std::string &host, const std::string &path)
+                                 const std::string &host)
+  {
+    // URL and host.
+    vurl_data *vd_url = qd->find_vurl(surl);
+    vurl_data *vd_host = qd->find_vurl(host);
+    
+    // compute rank.
+    return estimate_rank(s,ns,vd_url,vd_host,total_hits);
+  }
+
+  float simple_re::estimate_rank(search_snippet *s, const int &ns,
+				 const vurl_data *vd_url,
+				 const vurl_data *vd_host,
+				 const float &total_hits)
   {
     float posterior = 0.0;
-
-    // URL.
-    vurl_data *vd = qd->find_vurl(surl);
-
-    if (!vd)
+    
+    if (!vd_url)
       //posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
       posterior = 1.0 / (log(total_hits + 1.0) + ns);
     else
       {
-        posterior = (log(vd->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
-        s->_personalized = true;
+        posterior = (log(vd_url->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
+        if (s)
+	  {
+	    s->_personalized = true;
+	    s->_engine |= SE_SEEKS;
+	  }
       }
 
     // host.
-    vd = qd->find_vurl(host);
-    if (!vd || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET)  // empty or type with not enough competition on domains.
+    if (!vd_host || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
+	|| s->_doc_type == IMAGE)  // empty or type with not enough competition on domains.
       posterior *= cf_configuration::_config->_domain_name_weight
                    / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
     else
       {
         posterior *= cf_configuration::_config->_domain_name_weight
-                     * (log(vd->_hits + 1.0) + 1.0)
+                     * (log(vd_host->_hits + 1.0) + 1.0)
                      / (log(total_hits + 1.0) + ns); // with domain-name weight factor.
-        s->_personalized = true;
+        if (s)
+	  s->_personalized = true;
       }
     //std::cerr << "posterior: " << posterior << std::endl;
 
     return posterior;
   }
 
-  float simple_re::estimate_prior(const std::string &surl,
+  float simple_re::estimate_prior(search_snippet *s,
+				  const std::string &surl,
                                   const std::string &host,
-                                  const uint64_t &nuri,
-                                  bool &personalized)
+                                  const uint64_t &nuri)
   {
     static std::string uc_str = "uri-capture";
     float prior = 0.0;
     float furi = static_cast<float>(nuri);
     db_record *dbr = seeks_proxy::_user_db->find_dbr(surl,uc_str);
     if (!dbr)
-      prior = 1.0 / log(furi + 1.0);
+      prior = 1.0 / (log(furi + 1.0) + 1.0);
     else
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
-        prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ log(furi + 1.0);
+        prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ (log(furi + 1.0) + 1.0);
         delete uc_dbr;
-        personalized = true;
+	if (s)
+	  {
+	    s->_personalized = true;
+	    s->_engine |= SE_SEEKS;
+	  }
       }
     dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
     if (!dbr)
-      prior *= 1.0 / log(furi + 1.0);
+      prior *= 1.0 / (log(furi + 1.0) + 1.0);
     else
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
-        prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / log(furi + 1.0);
+        prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / (log(furi + 1.0) + 1.0);
         delete uc_dbr;
-        personalized = true;
+	if (s)
+	 s->_personalized = true;
       }
     return prior;
+  }
+
+  void simple_re::recommend_urls(const std::string &query,
+				 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
+  {
+        // fetch records from user DB.
+    std::vector<db_record*> records;
+    rank_estimator::fetch_user_db_record(query,records);
+
+    //std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
+
+    // extract queries.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    rank_estimator::extract_queries(records,qdata);
+
+    //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
+
+    // destroy records.
+    std::vector<db_record*>::iterator rit = records.begin();
+    while (rit!=records.end())
+      {
+        db_record *dbr = (*rit);
+        rit = records.erase(rit);
+        delete dbr;
+      }
+
+    // gather normalizing values.
+    int nvurls = 0;
+    int i = 0;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
+      = qdata.begin();
+    float q_vurl_hits[qdata.size()];
+    while (hit!=qdata.end())
+      {
+	int vhits = (*hit).second->vurls_total_hits();
+        q_vurl_hits[i++] = vhits;
+	if (vhits > 0)
+	  nvurls += (*hit).second->_visited_urls->size();
+	++hit;
+      }
+    
+    // get number of captured URIs.
+    uint64_t nuri = 0;
+    if (cf::_uc_plugin)
+      nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
+    
+    // look for URLs to recommend.
+    hit = qdata.begin();
+    while(hit!=qdata.end())
+      {
+	query_data *qd = (*hit).second;
+	if (!qd->_visited_urls)
+	  {
+	    ++hit;
+	    continue;
+	  }
+
+	// rank all URLs for this query.
+	int i = 0;
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator sit;
+	hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::const_iterator vit
+	  = qd->_visited_urls->begin();
+	while(vit!=qd->_visited_urls->end())
+	  {
+	    float posterior = 0.0;
+	    vurl_data *vd = (*vit).second;
+	    
+	    // we do not recommend hosts.
+	    if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now.
+	      {
+		posterior = estimate_rank(NULL,nvurls,vd,NULL,q_vurl_hits[i]);
+	      
+		// level them down according to query radius. 
+		posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.
+		
+		// update or create snippet.
+		std::string surl = urlmatch::strip_url(vd->_url);
+		uint32_t sid = mrf::mrf_single_feature(surl,""); //TODO: generic id generator.
+		if ((sit = snippets.find(sid))!=snippets.end())
+		  (*sit).second->_seeks_rank = posterior; // update.
+		else
+		  {
+		    search_snippet *sp = new search_snippet();
+		    sp->set_url(vd->_url);
+		    sp->_meta_rank = 1;
+		    sp->_seeks_rank = posterior;
+		    snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
+		  }
+	      }
+	    
+	    ++vit;
+	    ++i;
+	  }
+	
+	++hit;
+      }
   }
 
 } /* end of namespace. */

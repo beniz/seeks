@@ -220,6 +220,11 @@ namespace seeks_plugins
        */
       void reset_snippets_personalization_flags();
 
+      /**
+       * \brief update recommended URLs.
+       */
+      void update_recommended_urls();
+
     public:
       std::string _query;
       std::string _url_enc_query;
@@ -239,8 +244,12 @@ namespace seeks_plugins
       /* others. */
       bool _blekko; // we limit to a single call to blekko.
 
-      std::multimap<double,std::string,std::less<double> > _suggestions; // suggested related queries.
+      /* suggested queries. */
+      std::multimap<double,std::string,std::less<double> > _suggestions;
 
+      /* recomended urls from user profile(s). */
+      hash_map<uint32_t,search_snippet*,id_hash_uint> _recommended_snippets;
+      
       /* LSH subsystem for regrouping textual elements. */
       LSHSystemHamming *_lsh_ham;
       LSHUniformHashTableHamming *_ulsh_ham;

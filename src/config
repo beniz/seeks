@@ -357,6 +357,7 @@ activated-plugin cf
 #
 #
 #  2.9. user-db-file
+#  ==================
 #
 # Specifies:
 #
@@ -374,7 +375,28 @@ activated-plugin cf
 #
 # user-db-file /path/to/file.db
 #
-#  2.10. url-source-code
+#  2.10. user-db-startup-check
+#  ===========================
+#
+# Specifies:
+#
+#    Whether to check the user db at startup for removing old records.
+#    On nodes with much content this makes startup slow, so this option
+#    allows to deactivate the check at startup.
+#
+# Type of value:
+#
+#  0 or 1
+#
+# Default value: 
+#
+#    1
+#
+# user-db-startup-check 1
+#
+#
+#  2.11. url-source-code
+#  ======================
 #
 # Specifies:
 #

@@ -569,7 +569,6 @@ int main(int argc, const char *argv[])
     }
   if (db_version < 0.3)
     {
-      std::cerr <<" ready to fix 263!\n";
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_263();
       seeks_proxy::_user_db->open_db();

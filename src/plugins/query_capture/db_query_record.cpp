@@ -104,7 +104,7 @@ namespace seeks_plugins
         return;
       }
 
-    assert(qd->_radius == _radius);
+    //assert(qd->_radius == _radius);
 
     if (!qd->_visited_urls)
       return;
@@ -158,6 +158,7 @@ namespace seeks_plugins
         res += (*hit).second->_hits;
         ++hit;
       }
+    return res;
   }
 
   /*- db_query_record -*/

@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -81,11 +81,8 @@ namespace seeks_plugins
         std::string base_url_str = "";
         if (base_url)
           base_url_str = std::string(base_url);
-        std::string suggestion_str = "Suggestion";
-	if (qc->_suggestions.size()>1)
-	  suggestion_str += "s";
-	suggestion_str += ":";
-        
+        std::string suggestion_str = "Related queries:";
+	        
 	int k = 0;
 	std::multimap<double,std::string,std::less<double> >::const_iterator mit
 	  = qc->_suggestions.begin();
@@ -113,6 +110,84 @@ namespace seeks_plugins
         miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
       }
     else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
+  }
+
+  void static_renderer::render_recommendations(const query_context *qc,
+					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					       const std::string &cgi_base)
+  {
+    if (!qc->_recommended_snippets.empty())
+      {
+	const char *base_url = miscutil::lookup(exports,"base-url");
+	std::string base_url_str = "";
+	if (base_url)
+          base_url_str = std::string(base_url);
+	std::string reco_str = "Related results:";
+	
+	std::vector<search_snippet*> sorted_reco;
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
+          = qc->_recommended_snippets.begin();
+	while(hit!=qc->_recommended_snippets.end())
+	  {
+	    sorted_reco.push_back((*hit).second);
+	    ++hit;
+	  }
+	std::sort(sorted_reco.begin(),sorted_reco.end(),search_snippet::max_seeks_rank);
+	  
+	int k=0;
+	std::vector<search_snippet*>::const_iterator vit = sorted_reco.begin();
+	while(vit!=sorted_reco.end())
+	  {
+	    search_snippet *rs = (*vit);
+	    char *url_enc = encode::url_encode(rs->_url.c_str());
+	    char *url_html_enc = encode::html_encode(rs->_url.c_str());
+	    reco_str += "<br><a href=\"" + base_url_str + "/qc_redir?q=" + qc->_url_enc_query + "&url="
+	      + std::string(url_enc) + "\">" + std::string(url_html_enc) + "</a>";
+	    free(url_enc);
+	    free(url_html_enc);
+	    ++vit;
+	    ++k;
+	    if (k > websearch::_wconfig->_num_reco_queries)
+              break;
+	  }
+	miscutil::add_map_entry(exports,"$xxreco",1,reco_str.c_str(),1);
+      }
+    else miscutil::add_map_entry(exports,"$xxreco",1,strdup(""),0);
+  }
+
+  void static_renderer::render_cached_queries(hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+					      const std::string &cgi_base)
+  {
+    const char *base_url = miscutil::lookup(exports,"base-url");
+    std::string base_url_str = "";
+    if (base_url)
+      base_url_str = std::string(base_url);
+    std::string cqueries_str;
+    
+    int k = 0;
+    std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
+    while(sit!=seeks_proxy::_memory_dust.end())
+      {
+	query_context *qc = dynamic_cast<query_context*>((*sit));
+	if (!qc)
+	  {
+	    ++sit;
+	    continue;
+	  }
+	std::string query_clean = se_handler::no_command_query(qc->_query);
+	char *html_enc_query = encode::html_encode(query_clean.c_str());
+	cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
+	  + qc->_url_enc_query +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
+	  + std::string(html_enc_query) + "</a>";
+	free(html_enc_query);
+	++sit;
+	++k;
+	if (k > websearch::_wconfig->_num_reco_queries)
+	  break;
+      }
+    if (!cqueries_str.empty())
+      cqueries_str = "Recent queries:" + cqueries_str;
+    miscutil::add_map_entry(exports,"$xxqcache",1,cqueries_str.c_str(),1);
   }
 
   void static_renderer::render_lang(const query_context *qc,
@@ -715,6 +790,12 @@ namespace seeks_plugins
     // suggestions.
     static_renderer::render_suggestions(qc,exports,cgi_base);
 
+    // recommended URLs.
+    static_renderer::render_recommendations(qc,exports,cgi_base);
+
+    // queries in cache.
+    static_renderer::render_cached_queries(exports,cgi_base);
+    
     // language.
     static_renderer::render_lang(qc,exports);
 
@@ -764,7 +845,8 @@ namespace seeks_plugins
       const short &K,
       client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-      const query_context *qc)
+							      const query_context *qc,
+							      const std::string &cgi_base)
   {
     std::string result_tmpl_name = "websearch/templates/themes/"
                                    + websearch::_wconfig->_ui_theme + "/seeks_result_template.html"; // XXX: for using this along with the image plugin, we would need to externalize the the theme choice.
@@ -788,8 +870,14 @@ namespace seeks_plugins
     static_renderer::render_current_page(parameters,exports,current_page);
 
     // suggestions.
-    static_renderer::render_suggestions(qc,exports);
+    static_renderer::render_suggestions(qc,exports,cgi_base);
 
+    // recommended URLs.
+    static_renderer::render_recommendations(qc,exports,cgi_base);
+    
+    // queries in cache.
+    static_renderer::render_cached_queries(exports,cgi_base);
+    
     // language.
     static_renderer::render_lang(qc,exports);
 

@@ -92,8 +92,8 @@ namespace seeks_plugins
 
         if (sp->_new)
           {
-            if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL
-                && c_sp->_doc_type == sp->_doc_type)
+            if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
+	      //&& c_sp->_doc_type == sp->_doc_type)
               {
                 // merging snippets.
                 search_snippet::merge_snippets(c_sp,sp);
@@ -306,7 +306,15 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_suggestions);
+    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc,qc->_suggestions);
+  }
+
+  void sort_rank::get_recommended_urls(query_context *qc)
+  {
+    if (!websearch::_cf_plugin)
+      return;
+    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_recommended_snippets);
+    qc->update_recommended_urls();
   }
 #endif
 

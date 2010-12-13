@@ -425,6 +425,14 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
         html_content += yt_se_icon;
       }
+    if (_engine.to_ulong()&SE_SEEKS)
+      {
+	std::string sk_se_icon = se_icon;
+	miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
+	miscutil::replace_in_string(sk_se_icon,"setitle","Seeks");
+	miscutil::replace_in_string(sk_se_icon,"seeng","seeks");
+	html_content += sk_se_icon;
+      }
 
     if (_doc_type == TWEET)
       if (_meta_rank > 1)
@@ -606,17 +614,6 @@ namespace seeks_plugins
     char *url_str = encode::url_decode_but_not_plus(url.c_str());
     _url = std::string(url_str);
     free(url_str);
-    std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
-    std::string surl = urlmatch::strip_url(url_lc);
-    _id = mrf::mrf_single_feature(surl,"");
-  }
-
-  void search_snippet::set_url(const char *url)
-  {
-    char *url_dec = encode::url_decode_but_not_plus(url);
-    _url = std::string(url_dec);
-    free(url_dec);
     std::string url_lc(_url);
     std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
     std::string surl = urlmatch::strip_url(url_lc);
@@ -911,15 +908,7 @@ namespace seeks_plugins
 #endif
     return false;
   }
-
-  void search_snippet::delete_snippets(std::vector<search_snippet*> &snippets)
-  {
-    size_t snippets_size = snippets.size();
-    for (size_t i=0; i<snippets_size; i++)
-      delete snippets.at(i);
-    snippets.clear();
-  }
-
+  
   void search_snippet::merge_snippets(search_snippet *s1,
                                       const search_snippet *s2)
   {
@@ -949,7 +938,9 @@ namespace seeks_plugins
     if (s1->_cite.length() > s2->_cite.length())
       s1->_cite = s2->_cite;
 
-    // TODO: snippet type.
+    // snippet type: more specialize type wins.
+    // for now, very basic.
+    s1->_doc_type = std::max(s1->_doc_type,s2->_doc_type);
 
     // TODO: merge dates.
 

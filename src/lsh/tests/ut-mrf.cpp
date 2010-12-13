@@ -1,6 +1,8 @@
 /**
- * This file is part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * The Locality Sensitive Hashing (LSH) library is part of the SEEKS project and
+ * does provide several locality sensitive hashing schemes for pattern matching over
+ * continuous and discrete spaces.
+ * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -16,33 +18,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
-#include <cstring>
+#define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
+#include <gtest/gtest.h>
 
-#ifndef MEM_UTILS_H
-#define MEM_UTILS_H
+#include "mrf.h"
 
-#ifndef FREE_CONST
-#define FREE_CONST
-void free_const(const void *p);
-#endif
+using namespace lsh;
 
-#ifndef FREEZ
-#define FREEZ
-void freez(void *p);
-#endif
+TEST(MrfTest, str_chain)
+{
+  str_chain s("seeks project",0,true);
+  str_chain rs = s.rank_alpha();
+  EXPECT_EQ("project seeks",rs.print_str());
+}
 
-#ifndef ZALLOC
-void* zalloc(size_t size);
-#endif
-
-struct delete_object 
-{    
-  template<typename T>
-  void operator()(const T* ptr) const
-  {
-    delete ptr;
-  }
-};
-
-#endif
+int main(int argc, char **argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

@@ -1,20 +1,21 @@
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@.free.fr
+# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@free.fr
+#                                                                                                                                
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the                                                             
+# License, or (at your option) any later version.
 #
-# Permission is hereby granted to distribute this software for
-# non-commercial research purposes, provided that this copyright
-# notice is included with any such distribution.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
-# EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
-# SOFTWARE IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU
-# ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
-#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT(Seeks, 0.3.1, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.3.2, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -28,8 +29,8 @@ AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
 AC_DEFINE(SEEKS_VERSION_MINOR,"3","")
-AC_DEFINE(SEEKS_VERSION_POINT,"1","")
-AC_DEFINE(SEEKS_VERSION,"0.3.1","")
+AC_DEFINE(SEEKS_VERSION_POINT,"2","")
+AC_DEFINE(SEEKS_VERSION,"0.3.2","")
 AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.
