@@ -206,6 +206,13 @@ TEST_F(DHTVirtualNodeTest, find_predecessor)
   {
     DHTKey dkres;
     NetAddress na;
+    EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(DHTKey::from_rstring(dkey4), dkres, na));
+    EXPECT_EQ(vnode3->getIdKey(), dkres);
+    EXPECT_EQ(PORT, na.getPort());
+  }
+  {
+    DHTKey dkres;
+    NetAddress na;
     EXPECT_EQ(DHT_ERR_OK, vnode3->find_predecessor(vnode9->getIdKey(), dkres, na));
     EXPECT_EQ(vnode3->getIdKey(), dkres);
     EXPECT_EQ(PORT, na.getPort());
@@ -218,6 +225,17 @@ TEST_F(DHTVirtualNodeTest, find_predecessor)
     EXPECT_EQ(DHT_ERR_OK, vnode9->find_predecessor(vnode3->getIdKey(), dkres, na));
     EXPECT_EQ(vnode2->getIdKey(), dkres);
     EXPECT_EQ(PORT, na.getPort());
+  }
+  DHTVirtualNode* vnode4 = new_vnode(DHTKey::from_rstring(dkey4));
+  connect(vnode3, vnode4, vnode9);
+  // introduce a dead node
+  vnode4->setSuccessor(DHTKey::from_rstring(dkey6), NetAddress());
+  vnode9->setPredecessor(DHTKey::from_rstring(dkey6));
+  {
+    DHTKey dkres;
+    NetAddress na;
+    // immediately returns because node6 timesout (RPC_getSuccessor fails)
+    EXPECT_EQ(DHT_ERR_COM_TIMEOUT, vnode4->find_predecessor(vnode2->getIdKey(), dkres, na));
   }
 }
 
