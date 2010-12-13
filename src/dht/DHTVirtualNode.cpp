@@ -683,12 +683,6 @@ namespace dht
     mutex_unlock(&_pred_mutex);
     _lt->removeLocation(loc);
   }
-#if 0
-  NetAddress DHTVirtualNode::getNetAddress() const
-  {
-    return _transport->getNetAddress();
-  }
-#endif
   Location* DHTVirtualNode::addOrFindToLocationTable(const DHTKey& key, const NetAddress& na)
   {
     return _lt->addOrFindToLocationTable(key, na);

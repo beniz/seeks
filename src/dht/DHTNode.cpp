@@ -199,20 +199,6 @@ namespace dht
     return new DHTVirtualNode(_transport,idkey);
   }
 
-#if 0
-  void DHTNode::init_sorted_vnodes()
-  {
-    hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::const_iterator hit
-    = _vnodes.begin();
-    while(hit!=_vnodes.end())
-      {
-        _sorted_vnodes_vec.push_back((*hit).second->getIdKeyPtr());
-        ++hit;
-      }
-    std::sort(_sorted_vnodes_vec.begin(),_sorted_vnodes_vec.end(),DHTKey::lowdhtkey);
-  }
-#endif
-
   void DHTNode::init_server()
   {
     _transport = new Transport(_l1_na);
@@ -328,28 +314,6 @@ namespace dht
     return true;
   }
 
-#if 0
-  DHTVirtualNode* DHTNode::find_closest_vnode(const DHTKey &key) const
-  {
-    DHTVirtualNode *vnode = NULL;
-    std::vector<const DHTKey*>::const_iterator vit = _sorted_vnodes_vec.begin();
-    DHTKey vidkey = *(*vit);
-    if (key < *(*vit))
-      vidkey = *(_sorted_vnodes_vec.back());
-    else
-      {
-        while(vit!=_sorted_vnodes_vec.end()
-              && *(*vit) < key)
-          {
-            vidkey = *(*vit);
-            ++vit;
-          }
-      }
-    vnode = findVNode(vidkey);
-    return vnode;
-  }
-#endif
-
   dht_err DHTNode::join_start(const std::vector<NetAddress> &btrap_nodelist,
                               const bool &reset)
   {
@@ -428,20 +392,6 @@ namespace dht
 
     return DHT_ERR_BOOTSTRAP; // TODO: check on error status.
   }
-
-#if 0
-  dht_err DHTNode::rejoin()
-  {
-    hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator
-    hit = _vnodes.begin();
-    while(hit!=_vnodes.end())
-      {
-        _stabilizer->rejoin((*hit).second);
-        ++hit;
-      }
-    return DHT_ERR_OK;
-  }
-#endif
 
   void DHTNode::self_bootstrap()
   {
@@ -956,64 +906,6 @@ namespace dht
 
     return DHT_ERR_OK;
   }
-
-#if 0
-  dht_err DHTNode::find_successor(const DHTKey& recipientKey,
-                                  const DHTKey& nodeKey,
-                                  DHTKey& dkres, NetAddress& na) throw (dht_exception)
-  {
-    /**
-     * get the virtual node and deal with possible errors.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)  // TODO: error handling.
-      {
-        dkres = DHTKey();
-        na = NetAddress();
-        return 3;
-      }
-
-    return vnode->find_successor(nodeKey, dkres, na);
-  }
-
-  dht_err DHTNode::find_predecessor(const DHTKey& recipientKey,
-                                    const DHTKey& nodeKey,
-                                    DHTKey& dkres, NetAddress& na) throw (dht_exception)
-  {
-    /**
-     * get the virtual node and deal with possible errors.
-     */
-    DHTVirtualNode* vnode = findVNode(recipientKey);
-    if (!vnode)
-      {
-        dkres = DHTKey();
-        na = NetAddress();
-        return 3;
-      }
-
-    return vnode->find_predecessor(nodeKey, dkres, na);
-  }
-#endif
-
-#if 0
-  /**----------------------------**/
-
-  DHTVirtualNode* DHTNode::findVNode(const DHTKey& dk) const
-  {
-    hash_map<const DHTKey*, DHTVirtualNode*, hash<const DHTKey*>, eqdhtkey>::const_iterator hit;
-    if ((hit = _vnodes.find(&dk)) != _vnodes.end())
-      return (*hit).second;
-    else
-      {
-#ifdef DEBUG
-        std::cout << "[Debug]:DHTNode::findVNode: virtual node: " << dk
-                  << " is unknown on this node.\n";
-#endif
-        return NULL;
-      }
-
-  }
-#endif
 
   DHTKey DHTNode::generate_uniform_key()
   {

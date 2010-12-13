@@ -56,12 +56,6 @@ namespace dht
       {
         return _vnode->getIdKey();
       }
-#if 0
-      Location* getVNodeLocation() const
-      {
-        return _vnode->getLocation();
-      }
-#endif
       NetAddress getVNodeNetAddress() const
       {
         return _vnode->getNetAddress();

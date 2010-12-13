@@ -152,12 +152,6 @@ namespace dht
       {
         _successors.clear();
       };
-#if 0
-      Location* getLocation() const
-      {
-        return _loc;
-      }
-#endif
       Transport* getTransport()
       {
         return _transport;
@@ -395,13 +389,6 @@ namespace dht
        * finger table.
        */
       FingerTable* _fgt;
-
-#if 0
-      /**
-       * this virtual node local location.
-       */
-      Location* _loc;
-#endif
 
       /**
        * predecessor and successor mutexes.

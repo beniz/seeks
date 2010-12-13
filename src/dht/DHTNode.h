@@ -66,13 +66,6 @@ namespace dht
       virtual DHTVirtualNode* create_vnode(const DHTKey &idkey,
                                            LocationTable *lt);
 
-#if 0
-      /**
-       * \brief fill up and sort sorted set of virtual nodes.
-       */
-      void init_sorted_vnodes();
-#endif
-
       /**
        * \brief init servers.
        */
@@ -111,12 +104,6 @@ namespace dht
        */
       bool hibernate_vnodes_table() throw (dht_exception);
 
-#if 0
-      /**
-       * \brief finds closest virtual node to the argument key.
-       */
-      DHTVirtualNode* find_closest_vnode(const DHTKey &key) const;
-#endif
       /*- main functions -*/
       /**
        * \brief DHTNode key generation, one per virtual node.
@@ -130,13 +117,6 @@ namespace dht
        */
       dht_err join_start(const std::vector<NetAddress> &bootstrap_nodelist,
                          const bool &reset);
-#if 0
-      /**
-       * \brief rejoin all virtual nodes.
-       */
-      dht_err rejoin();
-#endif
-
       /**
        * \brief self-boostrap.
        * Bootstraps itself by building a circle of its virtual nodes.
@@ -150,21 +130,6 @@ namespace dht
        */
       dht_err leave() const;
 
-#if 0
-      /**
-       * \brief whether every virtual node's successor list is stable.
-       */
-      bool isSuccStable() const;
-
-      /**
-       * \brief whether every virtual node is stable (succlist + finger table).
-       */
-      bool isStable() const;
-#endif
-#if 0
-    private:
-      void rank_vnodes(std::vector<const DHTKey*> &vnode_keys_ord);
-#endif
 
     public:
       void estimate_nodes(const unsigned long &nnodes,
@@ -176,67 +141,11 @@ namespace dht
       /**
        * accessors.
        */
-#if 0
-      DHTVirtualNode* findVNode(const DHTKey& dk) const;
-#endif
       NetAddress getNetAddress() const
       {
         return _l1_na;
       }
 
-#if 0
-      /**----------------------------**/
-      /**
-       * \brief getSuccessor local callback.
-       */
-      void getSuccessor_cb(const DHTKey& recipientKey,
-                           DHTKey& dkres, NetAddress& na,
-                           int& status) throw (dht_exception);
-
-      void getPredecessor_cb(const DHTKey& recipientKey,
-                             DHTKey& dkres, NetAddress& na,
-                             int& status);
-
-      /**
-       * \brief notify callback.
-       */
-      void notify_cb(const DHTKey& recipientKey,
-                     const DHTKey& senderKey,
-                     const NetAddress& senderAddress,
-                     int& status);
-
-      /**
-       * \brief getSuccList callback.
-       */
-      void getSuccList_cb(const DHTKey &recipientKey,
-                          std::list<DHTKey> &dkres_list,
-                          std::list<NetAddress> &dkres_na,
-                          int &status);
-
-      /**
-       * \brief findClosestPredecessor callback.
-       */
-      void findClosestPredecessor_cb(const DHTKey& recipientKey,
-                                     const DHTKey& nodeKey,
-                                     DHTKey& dkres, NetAddress& na,
-                                     DHTKey& dkres_succ, NetAddress &dkres_succ_na,
-                                     int& status);
-
-      /**
-       * \brief joinGetSucc callback.
-       */
-      void joinGetSucc_cb(const DHTKey &recipientKey,
-                          const DHTKey &senderKey,
-                          DHTKey& dkres, NetAddress& na,
-                          int& status);
-
-      /**
-       * \brief ping callback.
-       */
-      void ping_cb(const DHTKey& recipientKey,
-                   int& status);
-
-#endif
       /**----------------------------**/
       /**
        * Main routines using RPCs.
@@ -251,32 +160,6 @@ namespace dht
        */
       dht_err join(const NetAddress& dk_bootstrap_na,
                    const DHTKey &dk_bootstrap);
-
-#if 0
-      /**
-       * \brief find nodeKey's successor.
-       * @param recipientKey identification key of the target node.
-       * @param nodekey identification key to which the successor must be found.
-       * @param dkres result identification key of nodeKey's successor.
-       * @param na result net address of nodeKey's successor.
-       * @return status
-       */
-      dht_err find_successor(const DHTKey& recipientKey,
-                             const DHTKey& nodeKey,
-                             DHTKey& dkres, NetAddress& na) throw (dht_exception);
-
-      /**
-       * \brief find nodekey's predecessor.
-       * @param recipientKey identification key of the first target node.
-       * @param nodeKey identification key to which the predecessor must be found.
-       * @param dkres result identification key of nodeKey's predecessor.
-       * @param na result net address of nodeKey's predecessor.
-       * @return status.
-       */
-      dht_err find_predecessor(const DHTKey& recipientKey,
-                               const DHTKey& nodeKey,
-                               DHTKey& dkres, NetAddress& na) throw (dht_exception);
-#endif
 
     public:
       /**
