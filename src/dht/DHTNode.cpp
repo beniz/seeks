@@ -99,6 +99,12 @@ namespace dht
     SuccList::_max_list_size = dht_configuration::_dht_config->_succlist_size;
 
     /**
+     * start rpc client & server.
+     * (virtual call).
+     */
+    init_server();
+
+    /**
      * create the virtual nodes.
      * Persistance of vnodes and associated location tables works as follows:
      * - default is to save vnodes' ids after they are created, and location tables
@@ -114,12 +120,6 @@ namespace dht
     if (!_has_persistent_data)
       create_vnodes(); // create the vnodes from scratch only if we couldn't deal with the persistent data. (virtual).
     _transport->init_sorted_vnodes();
-
-    /**
-     * start rpc client & server.
-     * (virtual call).
-     */
-    init_server();
 
     _transport->run_thread();
   }
@@ -489,8 +489,8 @@ namespace dht
 
 #ifdef DEBUG
         //debug
-        std::cerr << "predecessor: " << *vnode->getPredecessor() << std::endl;
-        std::cerr << "successor: " << *vnode->getSuccessor() << std::endl;
+        std::cerr << "predecessor: " << vnode->getPredecessorS() << std::endl;
+        std::cerr << "successor: " << vnode->getSuccessorS() << std::endl;
         //debug
 #endif
 
