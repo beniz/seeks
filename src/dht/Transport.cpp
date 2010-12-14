@@ -198,6 +198,8 @@ namespace dht
     int status = DHT_ERR_OK;
     DHTVirtualNode* vnode = findVNode(recipient_key);
     if (!vnode)
+      vnode = findClosestVNode(recipient_key);
+    if (!vnode)
       throw dht_exception(DHT_ERR_UNKNOWN_PEER, "could not find virtual node for DHTKey " + recipient_key.to_rstring());
     vnode->execute_callback(fct_id,sender_key,sender_na,node_key,status,resp_msg,msg);
   }
