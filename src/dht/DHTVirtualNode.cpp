@@ -25,7 +25,6 @@
 #include "FingerTable.h"
 #include "RouteIterator.h"
 #include "errlog.h"
-#include "l1_rpc_interface.h"
 
 #include <math.h>
 
@@ -834,6 +833,14 @@ namespace dht
         return DHTKey();
       }
   }
+
+#define hash_get_successor                 3682586751ul    /* "get-successor" */
+#define hash_get_predecessor               3440834331ul    /* "get-predecessor" */
+#define hash_notify                        4267298065ul    /* "notify" */
+#define hash_find_closest_predecessor      3893622114ul    /* "find-closest-predecessor" */
+#define hash_join_get_succ                 2753881080ul    /* "join-get-succ" */
+#define hash_ping                           491110822ul    /* "ping" */
+#define hash_get_succlist                  2523960002ul    /* "get-succlist" */
 
   void DHTVirtualNode::execute_callback(const uint32_t &fct_id,
                                         const DHTKey &sender_key,
