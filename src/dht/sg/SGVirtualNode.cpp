@@ -133,6 +133,10 @@ namespace dht
         l1_protob_wrapper::serialize_to_string(l1r,resp_msg);
         delete l1r;
       }
+    else
+      {
+        DHTVirtualNode::execute_callback(fct_id,sender_key,sender_na,node_key,status,resp_msg,inc_msg);
+      }
     //TODO: other callback come here.
   }
 
