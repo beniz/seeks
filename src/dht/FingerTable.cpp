@@ -528,11 +528,14 @@ namespace dht
 
     _locs[rindex] = rloc;
 
+#if 0
     if (!_stable_pass1)
       {
         // reestimate the estimated number of nodes.
-        // _vnode->estimate_nodes(); AAAA
+        _vnode->estimate_nodes();
+        AAAA
       }
+#endif
 
 #ifdef DEBUG
     //debug
