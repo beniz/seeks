@@ -62,6 +62,7 @@ namespace dht
   DHTVirtualNode* SGNode::create_vnode(const DHTKey &idkey,
                                        LocationTable *lt)
   {
+    errlog::log_error(LOG_LEVEL_DHT,"loading lt not implemented in SGVirtualNode");
     return new SGVirtualNode(_transport, &_sgmanager, idkey);
   }
 
