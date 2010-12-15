@@ -46,6 +46,7 @@ namespace seeks_plugins
 			       std::multimap<double,std::string,std::less<double> > &related_queries);
       
       void get_recommended_urls(const std::string &query,
+				const query_context *qc,
 				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
       
     public:

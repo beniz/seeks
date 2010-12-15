@@ -313,7 +313,7 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_recommended_snippets);
+    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc,qc->_recommended_snippets);
     qc->update_recommended_urls();
   }
 #endif

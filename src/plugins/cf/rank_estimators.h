@@ -56,7 +56,8 @@ namespace seeks_plugins
                                   std::vector<search_snippet*> &snippets);
 
       virtual void recommend_urls(const std::string &query,
-                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
+				  const query_context *qc,
+				  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
 
       float estimate_rank(search_snippet *s, const int &ns,
                           const query_data *qd,

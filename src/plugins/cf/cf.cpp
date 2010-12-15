@@ -93,10 +93,11 @@ namespace seeks_plugins
   }
 
   void cf::get_recommended_urls(const std::string &query,
+				const query_context *qc,
 				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
   {
     simple_re sre; // estimator.
-    sre.recommend_urls(query,snippets);
+    sre.recommend_urls(query,qc,snippets);
   }
   
 #if defined(ON_OPENBSD) || defined(ON_OSX)

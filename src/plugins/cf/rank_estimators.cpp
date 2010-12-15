@@ -17,13 +17,14 @@
  */
 
 #include "rank_estimators.h"
+#include "query_recommender.h"
 #include "cf.h"
 #include "cf_configuration.h"
 #include "qprocess.h"
 #include "query_capture.h"
 #include "uri_capture.h"
 #include "db_uri_record.h"
-#include "mrf.h" // id generation.
+#include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
 
@@ -33,6 +34,8 @@
 
 using lsh::qprocess;
 using lsh::mrf;
+using lsh::str_chain;
+using lsh::stopwordlist;
 using sp::urlmatch;
 using sp::miscutil;
 
@@ -345,6 +348,7 @@ namespace seeks_plugins
   }
 
   void simple_re::recommend_urls(const std::string &query,
+				 const query_context *qc,
 				 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
   {
         // fetch records from user DB.
@@ -368,19 +372,36 @@ namespace seeks_plugins
         delete dbr;
       }
 
+    // stopword list.
+    str_chain strc_query(query,0,true);
+    strc_query = strc_query.rank_alpha();
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
+    
     // gather normalizing values.
     int nvurls = 0;
     int i = 0;
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
       = qdata.begin();
     float q_vurl_hits[qdata.size()];
     while (hit!=qdata.end())
       {
-	int vhits = (*hit).second->vurls_total_hits();
-        q_vurl_hits[i++] = vhits;
-	if (vhits > 0)
-	  nvurls += (*hit).second->_visited_urls->size();
-	++hit;
+	std::string rquery = (*hit).second->_query;
+	if (!query_recommender::select_and_rewrite_query(strc_query,rquery,swl))
+	  {
+	    chit = hit;
+	    ++hit;
+	    delete (*chit).second;
+	    qdata.erase(chit);
+	  }
+	else
+	  {
+	    int vhits = (*hit).second->vurls_total_hits();
+	    q_vurl_hits[i++] = vhits;
+	    if (vhits > 0)
+	      nvurls += (*hit).second->_visited_urls->size();
+	    ++hit;
+	  }
       }
     
     // get number of captured URIs.
