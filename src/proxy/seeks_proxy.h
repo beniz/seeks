@@ -160,6 +160,7 @@ namespace sp
       static void initialize_mutexes();
 
       /* main stuff. */
+      static void gracious_exit();
 #if !defined(_WIN32)
       static void sig_handler(int the_signal);
 #endif
