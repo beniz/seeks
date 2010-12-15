@@ -17,13 +17,13 @@
 	this.prs = "xxpers";
 	this.ca = "xxca"; // content analysis.
 	this.nclusters = "xxnclust";
-	this.suggestion = '';
+	this.suggestions = '';
 	this.reset = function() {
             this.cpage = 1;
             this.engines = '';
             this.expansion = 1;
             this.nexpansion = 2;
-            this.suggestion = '';
+            this.suggestions = '';
 	};
     }
     var pi_txt = new page_info();
@@ -154,7 +154,9 @@
 			pi = pi_twe;
                     pi.expansion = response.expansion;
                     pi.nexpansion = eval(response.expansion) + 1;
-                    pi.suggestion = response.suggestion;
+                    
+		    if ('suggestions' in response)
+			pi.suggestions = response.suggestions;
 		    
                     // personalization.
                     pi.prs = response.pers;
@@ -189,53 +191,58 @@ function process_query(obj)
     else return obj.pquery;
 }
 
-    // Click the search button to send the JSONP request
-    Y.one("#search_form").on("submit", function (e) {
-        var nquery = queryInput.get('value');
-        var pi;
-        if (ti.txt == 1)
-            pi = pi_txt;
-        else if (ti.img == 1)
-        {
-            pi = pi_img;
+function new_search(nquery)
+{
+    var pi;
+    if (ti.txt == 1)
+        pi = pi_txt;
+    else if (ti.img == 1)
+    {
+        pi = pi_img;
+        eimg = "_img";
+    }
+    else if (ti.vid == 1)
+        pi = pi_vid;
+    else if (ti.twe == 1)
+        pi = pi_twe;
+    
+    // detect and process in-query commands.
+    var prq = {pquery:nquery,nlang:''};
+    process_query(prq);
+    if (prq.nlang == '')
+    {
+	var ilang = langInput.get('value');
+	if (ilang != lang && ilang != '')
+	    prq.nlang = ilang;
+	else prq.nlang = lang;
+    }
+    if (query != prq.pquery || lang != prq.nlang)
+    {
+	var eimg = '';
+        if (ti.img == 1)
             eimg = "_img";
-        }
-        else if (ti.vid == 1)
-            pi = pi_vid;
-        else if (ti.twe == 1)
-            pi = pi_twe;
-	
-	// detect and process in-query commands.
-	var prq = {pquery:nquery,nlang:''};
-	process_query(prq);
-	if (prq.nlang == '')
-	{
-	    var ilang = langInput.get('value');
-	    if (ilang != lang && ilang != '')
-		prq.nlang = ilang;
-	    else prq.nlang = lang;
-	}
-        if (query != prq.pquery || lang != prq.nlang)
-        {
-	    var eimg = '';
-            if (ti.img == 1)
-                eimg = "_img";
-            var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"lang":prq.nlang,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
-            for (id in hashSnippets)
-                delete hashSnippets[id];
-            pi_txt.reset();
-            pi_img.reset();
-            pi_vid.reset();
-	    pi_twe.reset();
-            refresh(url);
-        }
-	queryInput.set('value',prq.pquery);
+        var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"lang":prq.nlang,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+        for (id in hashSnippets)
+            delete hashSnippets[id];
+        pi_txt.reset();
+        pi_img.reset();
+        pi_vid.reset();
+	pi_twe.reset();
+        refresh(url);
+    }
+    queryInput.set('value',prq.pquery);
 	pi.cpage = 1;
-        clustered = 0;
-        render();
-        return false;
-    });
+    clustered = 0;
+    render();
+}
 
+// Click the search button to send the JSONP request	
+Y.one("#search_form").on("submit", function (e) {
+    var nquery = queryInput.get('value');
+    new_search(nquery);
+    return false;
+});
+				 
     Y.one("#expansion").on("click",function(e) {
 	var eimg = '';
         var pi;
