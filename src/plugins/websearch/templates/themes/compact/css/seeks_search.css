@@ -394,6 +394,24 @@ body {
 	text-decoration: none;
 }
 
+#search_reco {
+        font-size: 90%;
+}
+
+#search_reco a {
+        font-weight: normal;
+        text-decoration: none;
+}
+
+#search_cache {
+        font-size: 90%;
+}       
+ 
+#search_cache a {
+        font-weight: normal;
+        text-decoration: none;
+}
+
 #query_suggestion {
     font-weight: normal;
     text-decoration: none;

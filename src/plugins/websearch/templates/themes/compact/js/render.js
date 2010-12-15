@@ -17,7 +17,8 @@ persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact
 
 failureTemplate = '';
 
-var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
+var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"), 
+recoDiv = Y.one("#search_reco"), cacheDiv = Y.one("#search_cache"),
 pagesDiv = Y.one("#search_page_current"), pagesDivTop = Y.one("#search_page_current_top"), 
 persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
 persSpan = Y.one("#tab-pers-flag"), pagePrev = Y.one("#search_page_prev"),
@@ -161,10 +162,25 @@ function render_query_suggestions(pi)
     suggDiv.setContent(sugg_str);
 }
 
-/*function new_search2(word)
+function render_url_recommendations(pi)
 {
+    var sugg_str = 'Related results:';
+    for (var i=0;i<pi.recommendations.length;i++)
+    {
+	sugg_str += '<br><a href="' + pi.recommendations[i].url + '">' + pi.recommendations[i].url + '</a>';
+    }
+    recoDiv.setContent(sugg_str);
+}
 
-}*/
+function render_cached_queries(pi)
+{
+    var sugg_str = 'Recent queries:';
+    for (var i=0;i<pi.queries.length;i++)
+    {
+	sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.queries[i] + '\'));">' + pi.queries[i] + '</a>';
+    }
+    cacheDiv.setContent(sugg_str);
+}
 
 function render()
 {
@@ -257,8 +273,15 @@ function render()
     // render language.
     langInput.set('value',lang);
 
-    // query suggestion.
-    //suggDiv.setContent(pi.suggestion);
+    // query suggestions.
     if (pi.suggestions != '')
 	render_query_suggestions(pi);
+
+    // URLs recommendations.
+    if (pi.recommendations != '')
+	render_url_recommendations(pi);
+
+    // cached queries.
+    if (pi.queries != '')
+	render_cached_queries(pi);
 }

@@ -18,12 +18,16 @@
 	this.ca = "xxca"; // content analysis.
 	this.nclusters = "xxnclust";
 	this.suggestions = '';
+	this.recommendations = '';
+	this.queries = '';
 	this.reset = function() {
             this.cpage = 1;
             this.engines = '';
             this.expansion = 1;
             this.nexpansion = 2;
             this.suggestions = '';
+	    this.recommendations = '';
+	    this.queries = '';
 	};
     }
     var pi_txt = new page_info();
@@ -157,7 +161,11 @@
                     
 		    if ('suggestions' in response)
 			pi.suggestions = response.suggestions;
-		    
+		    if ('recommendations' in response)
+			pi.recommendations = response.recommendations;
+		    if ('queries' in response)
+			pi.queries = response.queries;
+
                     // personalization.
                     pi.prs = response.pers;
 

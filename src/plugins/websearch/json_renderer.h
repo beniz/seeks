@@ -32,6 +32,13 @@ namespace seeks_plugins
       static sp_err render_node_options(client_state *csp,
                                         std::list<std::string> &opts);
                                
+      static std::string render_related_queries(const query_context *qc);
+
+      static std::string render_recommendations(const std::string &query_clean,
+						const query_context *qc);
+      
+      static std::string render_cached_queries();
+
       static std::string render_img_engines(const query_context *qc);
 
       static sp_err render_snippets(const std::string &query_clean,
