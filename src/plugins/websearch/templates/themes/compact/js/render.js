@@ -156,7 +156,6 @@ function render_query_suggestions(pi)
     var sugg_str = 'Related queries:';
     for (var i=0;i<pi.suggestions.length;i++)
     {
-	//sugg_str += '<br><span class="query_suggestion" onclick="javascript:new_search2(\'' + pi.suggestions[i] + '\');">' + pi.suggestions[i] + '</span>';
 	sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.suggestions[i] + '\'));">' + pi.suggestions[i] + '</a>';
     }
     suggDiv.setContent(sugg_str);

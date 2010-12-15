@@ -191,7 +191,7 @@ function process_query(obj)
     else return obj.pquery;
 }
 
-function new_search(nquery)
+this.new_search = function(nquery)
 {
     var pi;
     if (ti.txt == 1)
@@ -221,7 +221,7 @@ function new_search(nquery)
 	var eimg = '';
         if (ti.img == 1)
             eimg = "_img";
-        var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":1,"lang":prq.nlang,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+        var url = '@base-url@/search' + eimg + '?' + Y.QueryString.stringify({"q":nquery,"expansion":1,"lang":prq.nlang,"action":"expand","rpp":pi.rpp,"prs":"on","content_analysis":pi.ca,"ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
         for (id in hashSnippets)
             delete hashSnippets[id];
         pi_txt.reset();
