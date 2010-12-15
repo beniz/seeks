@@ -154,30 +154,42 @@ function render_cluster(cluster,label,chtml,pi)
 
 function render_query_suggestions(pi)
 {
-    var sugg_str = 'Related queries:';
-    for (var i=0;i<pi.suggestions.length;i++)
+    var sugg_str = '';
+    if (pi.suggestions != '')
     {
-	sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.suggestions[i] + '\'));">' + pi.suggestions[i] + '</a>';
+	sugg_str += 'Related queries:';
+	for (var i=0;i<pi.suggestions.length;i++)
+	{
+	    sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.suggestions[i] + '\'));">' + pi.suggestions[i] + '</a>';
+	}
     }
     suggDiv.setContent(sugg_str);
 }
 
 function render_url_recommendations(pi)
 {
-    var sugg_str = 'Related results:';
-    for (var i=0;i<pi.recommendations.length;i++)
+    var sugg_str = '';
+    if (pi.recommendations != '')
     {
-	sugg_str += '<br><a href="' + pi.recommendations[i].url + '">' + pi.recommendations[i].url + '</a>';
+	sugg_str += 'Related results:';
+	for (var i=0;i<pi.recommendations.length;i++)
+	{
+	    sugg_str += '<br><a href="' + pi.recommendations[i].url + '">' + pi.recommendations[i].url + '</a>';
+	}
     }
     recoDiv.setContent(sugg_str);
 }
 
 function render_cached_queries(pi)
 {
-    var sugg_str = 'Recent queries:';
-    for (var i=0;i<pi.queries.length;i++)
+    var sugg_str = '';
+    if (pi.queries != '')
     {
-	sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.queries[i] + '\'));">' + pi.queries[i] + '</a>';
+	sugg_str += 'Recent queries:';
+	for (var i=0;i<pi.queries.length;i++)
+	{
+	    sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.queries[i] + '\'));">' + pi.queries[i] + '</a>';
+	}
     }
     cacheDiv.setContent(sugg_str);
 }
@@ -274,14 +286,11 @@ function render()
     langInput.set('value',lang);
 
     // query suggestions.
-    if (pi.suggestions != '')
-	render_query_suggestions(pi);
+    render_query_suggestions(pi);
 
     // URLs recommendations.
-    if (pi.recommendations != '')
-	render_url_recommendations(pi);
+    render_url_recommendations(pi);
 
     // cached queries.
-    if (pi.queries != '')
-	render_cached_queries(pi);
+    render_cached_queries(pi);
 }
