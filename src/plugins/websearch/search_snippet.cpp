@@ -37,6 +37,7 @@
 
 #include "mrf.h"
 
+#include <ctype.h>
 #include <iostream>
 
 using sp::miscutil;
@@ -137,8 +138,17 @@ namespace seeks_plugins
               if (query_words.at(j) == (*bit).second)
                 add = false;
             if (add)
-              words.push_back((*bit).second);
-            i++;
+	      {
+		for (size_t k=0;k<(*bit).second.length();k++) // alphabetical characters only.
+		  if (!isalpha((*bit).second[k]))
+		    {
+		      add = false;
+		      break;
+		    }
+		if (add)
+		  words.push_back((*bit).second);
+		i++;
+	      }
             if (i>=max_highlights)
               break;
           }
