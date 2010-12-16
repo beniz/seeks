@@ -401,17 +401,17 @@ namespace dht
             _vnode->setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
             _vnode->update_successor_list_head();
           }
+#if 0
         else if (successor_change)
           {
-#if 0
             //TODO: replication, move to successor the keys with a replication radius equal to k-1 -> NOP.
             // where k is the replication factor.
             //TODO: needs to move everything from 0 to k-1 !
             //TODO: beware of bootstrap.
             DHTKey vsucc = _vnode->getSuccessorS();
             _vnode->replication_move_keys_forward(vsucc);
-#endif
           }
+#endif
       }
 
     /**
