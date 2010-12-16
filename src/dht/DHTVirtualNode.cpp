@@ -1562,4 +1562,317 @@ namespace dht
     status = error_status;
   }
 
+  dht_err DHTVirtualNode::stabilize() throw (dht_exception)
+  {
+    static int retries = 3;
+    int ret = 0;
+
+#ifdef DEBUG
+    //debug
+    std::cerr << "[Debug]:FingerTable::stabilize()\n";
+    //debug
+#endif
+
+    DHTKey recipientKey = getIdKey();
+    NetAddress na = getNetAddress();
+
+    /**
+     * get successor's predecessor.
+     */
+    DHTKey succ = getSuccessorS();
+    if (!succ.count())
+      {
+        /**
+         * TODO: after debugging, write a better handling of this error.
+        	 */
+        std::cerr << "[Error]:FingerTable::stabilize: this virtual node has no successor: "
+                  << recipientKey << ". Exiting\n";
+        exit(-1);
+      }
+
+    /**
+     * lookup for the peer.
+     */
+    Location* succ_loc = findLocation(succ);
+    if (!succ_loc)
+      {
+        errlog::log_error(LOG_LEVEL_DHT,"Stabilize: cannot find successor %s in location table",
+                          succ.to_rstring().c_str());
+        return DHT_ERR_UNKNOWN_PEER_LOCATION;
+      }
+
+    /**
+    	 * RPC call to get the predecessor.
+    	 */
+    DHTKey succ_pred;
+    NetAddress na_succ_pred;
+
+    bool successor_change = false;
+    dht_err status = 0;
+    dht_err err = DHT_ERR_RETRY;
+    std::vector<Location*> dead_locs;
+    while (err != DHT_ERR_OK) // in case of failure, will try all successors in the list. If all fail, then rejoin.
+      {
+        err = DHT_ERR_OK;
+        RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+                                   succ_pred, na_succ_pred, status);
+
+#ifdef DEBUG
+        //debug
+        std::cerr << "[Debug]: predecessor call: -- status= " << status << std::endl;
+        //debug
+#endif
+
+        /**
+         * handle successor failure, retry, then move down the successor list.
+         */
+        if (status != DHT_ERR_OK
+            && (status == DHT_ERR_CALL || status == DHT_ERR_COM_TIMEOUT || status == DHT_ERR_UNKNOWN_PEER
+                || ret == retries)) // node is not dead, but predecessor call has failed 'retries' times.
+          {
+            /**
+             * our successor is not responding.
+             * let's ping it, if it seems dead, let's move to the next successor on our list.
+             */
+
+            bool dead = false;
+            is_dead(succ,succ_loc->getNetAddress(),
+                            status);
+
+            if (dead || ret == retries)
+              {
+#ifdef DEBUG
+                //debug
+                std::cerr << "[Debug]:dead successor detected\n";
+                //debug
+#endif
+
+                // get a new successor.
+                _successors.pop_front(); // removes our current successor.
+
+                std::list<const DHTKey*>::const_iterator kit
+                = _successors.empty() ? _successors.end()
+                  : getFirstSuccessor();
+
+                /**
+                		 * if we're at the end, game over, we will need to rejoin the network
+                		 * (we're probably cut off because of network failure, or some weird configuration).
+                		 */
+                if (kit == _successors.end())
+                  break; // we're out of potential successors.
+
+#ifdef DEBUG
+                //debug
+                std::cerr << "[Debug]:trying successor: " << *(*kit) << std::endl;
+                //debug
+#endif
+
+                succ = *(*kit);
+
+                // mark dead nodes for tentative removal from location table.
+                dead_locs.push_back(succ_loc);
+
+                // sets a new successor.
+                succ_loc = findLocation(succ);
+
+                // replaces the successor and the head of the successor list as well.
+                setSuccessor(succ_loc->getDHTKeyRef(),succ_loc->getNetAddress());
+                successor_change = true;
+
+                // resets the error.
+                err = status = DHT_ERR_RETRY;
+              }
+            else
+              {
+                // let's retry the getpredecessor call.
+                ret++;
+              }
+          }
+
+        /**
+         * Let's loop if we did change our successor.
+         */
+        if (err == DHT_ERR_RETRY)
+          {
+#ifdef DEBUG
+            //debug
+            std::cerr << "[Debug]: trying to call the (new) successor, one more loop.\n";
+            //debug
+#endif
+
+            continue;
+          }
+
+        /**
+         * check on RPC status.
+         */
+        if (status == DHT_ERR_NO_PREDECESSOR_FOUND) // our successor has an unset predecessor.
+          {
+#ifdef DEBUG
+            //debug
+            std::cerr << "[Debug]:stabilize: our successor has no predecessor set.\n";
+            //debug
+#endif
+
+            break;
+          }
+        else if (status == DHT_ERR_OK)
+          {
+            /**
+             * beware, the predecessor may be a dead node.
+             * this may happen when our successor has failed and was replaced by its
+             * successor in the list. Asked for its predecessor, this new successor may
+             * with high probability return our old dead successor.
+             * The check below ensures we detect this case.
+             */
+            Location *pred_loc = findLocation(succ_pred);
+            if (pred_loc)
+              {
+                for (size_t i=0; i<dead_locs.size(); i++)
+                  if (pred_loc == dead_locs.at(i)) // comparing ptr.
+                    {
+                      status = DHT_ERR_NO_PREDECESSOR_FOUND;
+                      succ_pred.reset(); // clears every bit.
+                      na_succ_pred = NetAddress();
+                      break;
+                    }
+              }
+            break;
+          }
+        else
+          {
+            // other errors: our successor has replied, but with a signaled error.
+            err = status;
+            break;
+          }
+
+        status = DHT_ERR_OK;
+      }
+
+    // clear dead nodes.
+    for (size_t i=0; i<dead_locs.size(); i++)
+      {
+        Location *dead_loc = dead_locs.at(i);
+
+#ifdef DEBUG
+        //debug
+        assert(!_successors.has_key(dead_loc->getDHTKey()));
+        assert(*getSuccessorPtr() != dead_loc->getDHTKey());
+        //debug
+#endif
+
+        removeLocation(dead_loc);
+      }
+    dead_locs.clear();
+
+    /**
+     * total failure, we're very much probably cut off from the network.
+     * let's try to rejoin.
+     * If join fails, let's fall back into a trying mode, in which
+     * we try a join every x minutes.
+     */
+    //TODO: rejoin + wrong test here.
+    if (_successors.empty())
+      {
+        /* std::cerr << "[Debug]: no more successors... Should try to rejoin the overlay network\n"; */
+        errlog::log_error(LOG_LEVEL_DHT,"Node %s has no more successors",getIdKey().to_rstring().c_str());
+
+        // single virtual node rejoin scheme.
+        // getPNode()->_stabilizer->rejoin(_vnode); AAAA
+
+        //exit(0);
+      }
+    else if (successor_change)
+      {
+        // check wether we are on a ring of our virtual nodes only,
+        // that is if we are not cut from the network, and need to
+        // rejoin.
+        // XXX: this should occur after the DHT node has lost connection
+        // with the outside world from all of its virtual nodes.
+        // getPNode()->rejoin(); AAAA
+      }
+
+    if (status != DHT_ERR_NO_PREDECESSOR_FOUND && status != DHT_ERR_OK)
+      {
+#ifdef DEBUG
+        //debug
+        std::cerr << "[Debug]:FingerTable::stabilize: failed return from getPredecessor\n";
+        //debug
+#endif
+
+        errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed return from getPredecessor, %u",
+                          status);
+        //return (dht_err)status;
+
+        std::cerr << "[Debug]: no more successors to try... Should try to rejoin the overlay network\n";
+        exit(0);
+      }
+    else if (status == DHT_ERR_OK)
+      {
+        /**
+         * look up succ_pred, add it to the location table if needed.
+         * -> because succ_pred should be in the succlist or a predecessor anyways.
+         */
+        //Location *succ_pred_loc = addOrFindToLocationTable(succ_pred, na_succ_pred);
+
+        /**
+         * key check: if a node has taken place in between us and our
+         * successor.
+         */
+        if (succ_pred.between(recipientKey,succ))
+          {
+            Location *succ_pred_loc = addOrFindToLocationTable(succ_pred, na_succ_pred);
+            setSuccessor(succ_pred_loc->getDHTKeyRef(),succ_pred_loc->getNetAddress());
+            update_successor_list_head();
+          }
+#if 0
+        else if (successor_change)
+          {
+            //TODO: replication, move to successor the keys with a replication radius equal to k-1 -> NOP.
+            // where k is the replication factor.
+            //TODO: needs to move everything from 0 to k-1 !
+            //TODO: beware of bootstrap.
+            DHTKey vsucc = getSuccessorS();
+            replication_move_keys_forward(vsucc);
+          }
+#endif
+      }
+
+    /**
+     * notify RPC.
+     *
+     * XXX: in non routing mode, there is no notify callback call. This allows the node
+     * to remain a connected spectator: successor and predecessors of other nodes remain unchanged.
+     */
+    if (dht_configuration::_dht_config->_routing)
+      {
+        RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+                           getIdKey(),getNetAddress(),
+                           status);
+        // XXX: handle successor failure, retry, then move down the successor list.
+        /**
+         * check on RPC status.
+         */
+        /* if (status != DHT_ERR_OK)
+          {
+        		 errlog::log_error(LOG_LEVEL_DHT, "FingerTable::stabilize: failed notify call");
+        		 return status;
+        		 } */
+      }
+    else // in non routing mode, check whether our predecessor has changed.
+      {
+        Location *succ_pred_loc = addOrFindToLocationTable(succ_pred, na_succ_pred);
+        DHTKey vpred = getPredecessorS();
+        if (vpred.count() && (vpred == getIdKey()))
+          {
+            // XXX: this should not happen. It does when self-bootstrapping in non routing mode,
+            // a hopeless situation.
+          }
+        else if (!vpred.count() || succ_pred_loc->getDHTKey() != vpred)
+          setPredecessor(succ_pred_loc->getDHTKey(), succ_pred_loc->getNetAddress());
+      }
+
+    return status;
+  }
+
 } /* end of namespace. */

@@ -354,6 +354,9 @@ namespace dht
       virtual void RPC_ping(const DHTKey& recipientKey,
                             const NetAddress& recipient,
                             int& status) throw (dht_exception);
+
+      dht_err stabilize() throw (dht_exception);
+
     public:
       /**
        * location table.
