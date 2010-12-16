@@ -322,7 +322,7 @@ namespace dht
             break;
           }
 
-        status = 0;
+        status = DHT_ERR_OK;
       }
 
     // clear dead nodes.
