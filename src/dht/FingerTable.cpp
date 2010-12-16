@@ -243,9 +243,7 @@ namespace dht
                 //debug
 #endif
 
-                DHTKey *succ_ptr = const_cast<DHTKey*>((*kit));
-                assert(succ_ptr); // beware, TODO: this should never happen, take it into account ?
-                succ = *succ_ptr;
+                succ = *(*kit);
 
                 // mark dead nodes for tentative removal from location table.
                 dead_locs.push_back(succ_loc);
