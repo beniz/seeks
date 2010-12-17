@@ -203,11 +203,17 @@ body {
 #search_results .search_snippet_img {
 	width: 172px;
 	height: 220px;
-	/*overflow: hidden;*/
+	max-height: 220px;
+	overflow: hidden;
 	float: left;
 	display: inline;
 	text-align: center;
 	clear: none !important;
+}
+
+.search_snippet_img img {
+       max-width: 150px;
+       max-height: 210px;
 }
 
 /* css3 image zooming */
@@ -229,7 +235,7 @@ body {
 	
 	/*margin-bottom: 70px;*/ /*to move the text while the image grows*/
 /*	border: 6px solid grey;
-} */
+}*/
 
 
 #search_results .search_snippet_vid {
