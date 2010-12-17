@@ -120,12 +120,12 @@ namespace seeks_plugins
       {
         // preventive sweep of records.
 	static_cast<uri_capture_element*>(_interceptor_plugin)->_uds.sweep_records();
-
-        // get number of captured URI already in user_db.
-        _nr = seeks_proxy::_user_db->number_records(_name);
-
-        errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
       }
+    
+    // get number of captured URI already in user_db.
+    _nr = seeks_proxy::_user_db->number_records(_name);
+    
+    errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
   }
 
   void uri_capture::stop()
