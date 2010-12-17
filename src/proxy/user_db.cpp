@@ -551,6 +551,67 @@ namespace sp
     return err;
   }
 
+  int user_db::do_smthg_db(const std::string &plugin_name,
+			   void *data)
+  {
+    void *rkey = NULL;
+    int rkey_size;
+    std::vector<std::string> to_remove;
+    tchdbiterinit(_hdb);
+    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+      {
+        int value_size;
+        void *value = tchdbget(_hdb, rkey, rkey_size, &value_size);
+        if (value)
+          {
+            std::string str = std::string((char*)value,value_size);
+            free(value);
+            std::string key, cplugin_name;
+            std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   cplugin_name,key) != 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+              }
+            else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                db_record *dbr = NULL;
+                if (!pl)
+                  {
+                    // handle error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
+                                      plugin_name.c_str());
+                    dbr = new db_record();
+                  }
+                else
+                  {
+                    dbr = pl->create_db_record();
+                  }
+
+                if (dbr->deserialize(str) != 0)
+                  {
+                    // deserialization error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing record %s",rkey_str.c_str());
+                  }
+                else if (dbr->_plugin_name == plugin_name)
+                  dbr->do_smthg(data);
+		delete dbr;
+              }
+          }
+        free(rkey);
+      }
+    int err = 0;
+    size_t trs = to_remove.size();
+    for (size_t i=0; i<trs; i++)
+      err += remove_dbr(to_remove.at(i));
+    errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db belonging to plugin %s",
+                      trs,plugin_name.c_str());
+    return err;
+  }
+
   uint64_t user_db::disk_size() const
   {
     return tchdbfsiz(_hdb);

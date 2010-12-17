@@ -182,6 +182,13 @@ namespace sp
                    const time_t date = 0);
 
       /**
+       * \brief applies a virtual function do_smthg over data for every
+       *        record matching plugin plugin_name.
+       */
+      int do_smthg_db(const std::string &plugin_name,
+		      void *data);
+
+      /**
        * \brief returns db size on disk.
        */
       uint64_t disk_size() const;
