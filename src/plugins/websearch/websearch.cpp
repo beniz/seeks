@@ -793,7 +793,7 @@ namespace seeks_plugins
 	sort_rank::get_recommended_urls(qc);
 #endif
       }
-
+    
     if (expanded)
       qc->_compute_tfidf_features = true;
 
@@ -835,6 +835,13 @@ namespace seeks_plugins
           }
       }
     
+    if (strcasecmp(pers,"on") == 0)
+      {
+#if defined(PROTOBUF) && defined(TC)
+	qc->reset_snippets_personalization_flags();
+#endif
+      }
+
     // unlock or destroy the query context.
     qc->_lock = false;
     mutex_unlock(&qc->_qc_mutex);
