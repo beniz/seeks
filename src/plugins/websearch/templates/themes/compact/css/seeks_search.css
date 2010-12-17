@@ -271,6 +271,11 @@ body {
 	text-decoration: none;
 }
 
+#search_results .highlight:hover {
+        cursor: pointer;
+	color: red;
+}
+
 #search_results h3 {
 	font-weight: normal;
 }

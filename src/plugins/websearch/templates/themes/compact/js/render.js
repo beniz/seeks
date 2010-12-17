@@ -1,6 +1,6 @@
 /* main result widget stuff. */
 snippetTxtTemplate =
-    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{summary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
+    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
 enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
 
 snippetImgTemplate =
@@ -23,6 +23,13 @@ pagesDiv = Y.one("#search_page_current"), pagesDivTop = Y.one("#search_page_curr
 persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
 persSpan = Y.one("#tab-pers-flag"), pagePrev = Y.one("#search_page_prev"),
 pageNext = Y.one("#search_page_next"), pagePrevTop = Y.one("#search_page_prev_top"), pageNextTop = Y.one("#search_page_next_top");
+
+function regexpEscape(text) {
+    return text.replace(/[(){}/\|!:=?*+^$]/g, function(value) {
+	return '\\' + value;
+    }
+  );
+}
     
 function render_snippet(snippet,pi,query_words)
 {
@@ -61,17 +68,19 @@ function render_snippet(snippet,pi,query_words)
     snippet.enc_query = enc_query;
 
     // render summary.
+    snippet.hsummary = snippet.summary;
     for (var i=0;i<query_words.length;i++)
     {
-	var regx = new RegExp(query_words[i],"gi");
-	snippet.summary = snippet.summary.replace(regx,"<b>" + query_words[i] + "</b>");
+	var qw = regexpEscape(query_words[i]);
+	var regx = new RegExp(qw,"gi");
+	snippet.hsummary = snippet.hsummary.replace(regx,query_words[i].bold());
     }
     if ('words' in snippet)
     {
 	for (var i=0;i<snippet.words.length;i++)
 	{
 	    var regx = new RegExp(snippet.words[i],"gi");
-	    snippet.summary = snippet.summary.replace(regx,"<span class=\"highlight\">" + snippet.words[i] + "</span>");
+	    snippet.hsummary = snippet.hsummary.replace(regx,"<span class=\"highlight\" onclick=\"new_search('" + query + " " + snippet.words[i] + "');\">" + snippet.words[i] + "</span>");
 	}
     }
     
