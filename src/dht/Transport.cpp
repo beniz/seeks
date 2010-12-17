@@ -125,29 +125,8 @@ namespace dht
       }
   }
 
-  void Transport::serve_response_uncaught(const std::string &msg,
-                                          const std::string &addr,
-                                          std::string &resp_msg) throw (dht_exception)
+  void Transport::validate_sender_na(NetAddress& sender_na, const std::string& addr)
   {
-    l1::l1_query l1q;
-    try
-      {
-        l1_protob_wrapper::deserialize(msg,&l1q);
-      }
-    catch (dht_exception ex)
-      {
-        errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
-        throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception " + ex.what());
-      }
-
-    // read query.
-    uint32_t layer_id;
-    uint32_t fct_id;
-    DHTKey recipient_key, sender_key, node_key;
-    NetAddress recipient_na, sender_na;
-    l1_protob_wrapper::read_l1_query(&l1q,layer_id,fct_id,recipient_key,
-                                     recipient_na,sender_key,sender_na,node_key);
-
     // check on sender address, if specified, that sender is not lying.
     if (sender_na.empty())
       sender_na = NetAddress(addr,0);
@@ -193,6 +172,32 @@ namespace dht
               }
           }
       }
+  }
+
+  void Transport::serve_response_uncaught(const std::string &msg,
+                                          const std::string &addr,
+                                          std::string &resp_msg) throw (dht_exception)
+  {
+    l1::l1_query l1q;
+    try
+      {
+        l1_protob_wrapper::deserialize(msg,&l1q);
+      }
+    catch (dht_exception ex)
+      {
+        errlog::log_error(LOG_LEVEL_DHT, "l1_protob_rpc_server::serve_response exception %s", ex.what().c_str());
+        throw dht_exception(DHT_ERR_MSG, "l1_protob_rpc_server::serve_response exception " + ex.what());
+      }
+
+    // read query.
+    uint32_t layer_id;
+    uint32_t fct_id;
+    DHTKey recipient_key, sender_key, node_key;
+    NetAddress recipient_na, sender_na;
+    l1_protob_wrapper::read_l1_query(&l1q,layer_id,fct_id,recipient_key,
+                                     recipient_na,sender_key,sender_na,node_key);
+
+    validate_sender_na(sender_na, addr);
 
     // decides which response to give.
     int status = DHT_ERR_OK;

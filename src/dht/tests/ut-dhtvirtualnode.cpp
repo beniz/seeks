@@ -67,6 +67,12 @@ class TransportTest : public Transport
           throw dht_exception(DHT_ERR_COM_TIMEOUT, "test server timeout");
         }
     }
+
+  virtual void validate_sender_na(NetAddress& sender_na, const std::string& addr)
+  {
+    // relax sender verification for to allow for simulations
+  }
+
 };
 
 class DHTVirtualNodeTest : public testing::Test
@@ -260,6 +266,191 @@ TEST_F(DHTVirtualNodeTest, find_predecessor)
     // immediately returns because node6 timesout (RPC_getSuccessor fails)
     EXPECT_EQ(DHT_ERR_COM_TIMEOUT, vnode4->find_predecessor(vnode2->getIdKey(), dkres, na));
   }
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize)
+{
+  DHTKey key1 = DHTKey::from_rstring(dkey1);
+  DHTVirtualNode* vnode1 = new_vnode(key1);
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+  DHTKey key3 = DHTKey::from_rstring(dkey3);
+  DHTVirtualNode* vnode3 = new_vnode(key3);
+  DHTKey key4 = DHTKey::from_rstring(dkey4);
+  DHTVirtualNode* vnode4 = new_vnode(key4);
+
+  // 
+  //   key1    key2    key3    key4
+  // before
+  //             --------------->    A
+  //     <-------------- <-------    B
+  //                     ------->    C
+  //         
+  // after
+  //             -------> ------>    D
+  //             <------- <------    E
+  //
+  vnode2->setSuccessor(key4, NetAddress());   // A
+  vnode2->update_successor_list_head();
+  EXPECT_EQ(key4, vnode2->getSuccessorS());
+  vnode4->setPredecessor(key3, NetAddress()); // B
+  EXPECT_EQ(key3, vnode4->getPredecessorS());
+  vnode3->setPredecessor(key1, NetAddress()); // B
+  EXPECT_EQ(key1, vnode3->getPredecessorS());
+  vnode3->setSuccessor(key4, NetAddress());   // C
+  vnode3->update_successor_list_head();
+  EXPECT_EQ(key4, vnode3->getSuccessorS());
+  
+  vnode2->stabilize();
+
+  EXPECT_EQ(key3, vnode2->getSuccessorS());   // D
+  EXPECT_EQ(key4, vnode3->getSuccessorS());   // D
+  EXPECT_EQ(key2, vnode3->getPredecessorS()); // E
+  EXPECT_EQ(key3, vnode4->getPredecessorS()); // E
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_throw)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+
+  DHTKey successor_predecessor;
+  NetAddress na_successor_predecessor;
+
+  // the successor list is empty, 
+  bool caught = false;
+  try
+    {
+      vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor);
+    }
+  catch(dht_exception& e)
+    {
+      caught = true;
+      EXPECT_EQ(DHT_ERR_RETRY, e.code());
+    }
+  EXPECT_TRUE(caught);
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_found)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+
+  DHTKey successor_predecessor;
+  NetAddress na_successor_predecessor;
+
+  // the successor is found
+  DHTKey key4 = DHTKey::from_rstring(dkey4);
+  DHTVirtualNode* vnode4 = new_vnode(key4);
+  vnode2->setSuccessor(key4, NetAddress());
+  vnode2->update_successor_list_head();
+  vnode4->setPredecessor(key2, NetAddress());
+  EXPECT_TRUE(vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor));
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_give_up)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+
+  DHTKey successor_predecessor;
+  NetAddress na_successor_predecessor;
+
+  //
+  // the successor list contains
+  //   key3
+  //   key4
+  // when the function reaches key3, it times out and skips to the next entry
+  // when it gets to key4, the corresponding virtual node answers that its predecessor is key3
+  // since key3 is known to be dead (the function remembers the key of dead nodes), 
+  // the function gives up and returns false
+  // key4 will eventually (at a later point in time) notice that key3 is
+  // defunct and another call to the function will provide the caller with an better predecessor.
+  // 
+  DHTKey key4 = DHTKey::from_rstring(dkey4);
+  DHTVirtualNode* vnode4 = new_vnode(key4);
+  DHTKey key3 = DHTKey::from_rstring(dkey3); // note that there is *no* vnode3, this yields to timeout
+  vnode2->setSuccessor(key4, NetAddress());
+  vnode2->update_successor_list_head();
+  vnode2->_successors._succs.push_front(&key3);
+  vnode2->addOrFindToLocationTable(key3, NetAddress());
+  vnode4->setPredecessor(key3, NetAddress());
+  EXPECT_FALSE(vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor));
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_fallback)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+
+  DHTKey successor_predecessor;
+  NetAddress na_successor_predecessor;
+
+  //
+  // the successor list contains
+  //   key3
+  //   key4
+  // when the function reaches key3, it times out and skips to the next entry
+  // key4 returns its predecessor : key2
+  // 
+  DHTKey key4 = DHTKey::from_rstring(dkey4);
+  DHTVirtualNode* vnode4 = new_vnode(key4);
+  DHTKey key3 = DHTKey::from_rstring(dkey3); // note that there is *no* vnode3, this yields to timeout
+  vnode2->setSuccessor(key4, NetAddress());
+  vnode2->update_successor_list_head();
+  vnode2->_successors._succs.push_front(&key3);
+  vnode2->addOrFindToLocationTable(key3, NetAddress());
+  vnode4->setPredecessor(key2, NetAddress());
+  EXPECT_TRUE(vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor));
+  EXPECT_EQ(key2, successor_predecessor);
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+  DHTKey key4 = DHTKey::from_rstring(dkey4);
+
+  // key4 is not an existing node and the call is expected to timeout
+  vnode2->setSuccessor(key4, NetAddress());
+  DHTKey predecessor;
+  NetAddress na_predecessor;
+  EXPECT_EQ(DHT_ERR_COM_TIMEOUT, vnode2->stabilize_successor_predecessor(key4, predecessor, na_predecessor));
+
+  // key4 exists but has no predecessor
+  DHTVirtualNode* vnode4 = new_vnode(key4);
+  EXPECT_EQ(DHT_ERR_NO_PREDECESSOR_FOUND, vnode2->stabilize_successor_predecessor(key4, predecessor, na_predecessor));
+
+  // key4 exists and has a predecessor
+  DHTKey key3 = DHTKey::from_rstring(dkey3);
+  vnode4->setPredecessor(key3, NetAddress());
+  EXPECT_EQ(DHT_ERR_OK, vnode2->stabilize_successor_predecessor(key4, predecessor, na_predecessor));
+  EXPECT_EQ(key3, predecessor);
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_notify)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+  DHTKey key4 = DHTKey::from_rstring(dkey4);
+  DHTVirtualNode* vnode4 = new_vnode(key4);
+
+  // vnode2 becomes vnode4 predecessor
+  vnode2->setSuccessor(key4, vnode4->getNetAddress());
+  EXPECT_EQ((DHTKey*)NULL, vnode4->getPredecessorPtr());
+  vnode2->stabilize_notify();
+  EXPECT_EQ(key2, vnode4->getPredecessorS());
+
+  // vnode3 takes over as vnode4 predecessor
+  DHTKey key3 = DHTKey::from_rstring(dkey3);
+  DHTVirtualNode* vnode3 = new_vnode(key3);
+  vnode3->setSuccessor(key4, vnode4->getNetAddress());
+  vnode3->stabilize_notify();
+  EXPECT_EQ(key3, vnode4->getPredecessorS());
+
+  // vnode2 tries to takes over as vnode4 predecessor but fails
+  vnode2->stabilize_notify();
+  EXPECT_EQ(key3, vnode4->getPredecessorS());
 }
 
 int main(int argc, char **argv)

@@ -42,6 +42,8 @@ namespace dht
                                   const std::string &addr,
                                   std::string &resp_msg);
 
+      virtual void validate_sender_na(NetAddress& sender_na, const std::string& addr);
+
       void serve_response_uncaught(const std::string &msg,
                                    const std::string &addr,
                                    std::string &resp_msg) throw (dht_exception);
