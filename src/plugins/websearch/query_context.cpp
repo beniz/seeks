@@ -708,7 +708,9 @@ namespace seeks_plugins
     while (vit!=_cached_snippets.end())
       {
         (*vit)->_personalized = false;
-        ++vit;
+        (*vit)->_meta_rank = (*vit)->_engine.count();
+	(*vit)->bing_yahoo_us_merge();
+	++vit;
       }
   }
   

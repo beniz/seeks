@@ -178,6 +178,10 @@ namespace seeks_plugins
       // merging of snippets (merge s2 into s2, according to certain rules).
       static void merge_snippets(search_snippet *s1, const search_snippet *s2);
 
+      // hack for correcting meta rank after Bing and Yahoo merged their results in 
+      // the US.
+      void bing_yahoo_us_merge();
+      
       // get doc type in a string form.
       std::string get_doc_type_str() const;
 

@@ -968,14 +968,19 @@ namespace seeks_plugins
     else
       {
         s1->_meta_rank = s1->_engine.count();
-
-        // XXX: hack, on English queries, Bing & Yahoo are the same engine,
-        // therefore the rank must be tweaked accordingly in this special case.
-        if (s1->_qc->_auto_lang == "en"
-            && (s1->_engine.to_ulong()&SE_YAHOO)
-            && (s1->_engine.to_ulong()&SE_BING))
-          s1->_meta_rank--;
+	
+	s1->bing_yahoo_us_merge();
       }
+  }
+
+  void search_snippet::bing_yahoo_us_merge()
+  {
+    // XXX: hack, on English queries, Bing & Yahoo are the same engine,
+    // therefore the rank must be tweaked accordingly in this special case.
+    if (_qc->_auto_lang == "en"
+	&& (_engine.to_ulong()&SE_YAHOO)
+	&& (_engine.to_ulong()&SE_BING))
+      _meta_rank--;
   }
 
   std::string search_snippet::get_doc_type_str() const
