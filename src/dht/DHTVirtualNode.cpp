@@ -1582,7 +1582,7 @@ namespace dht
       }
     else
       {
-        stabilize_notify(successor_predecessor, na_successor_predecessor);
+        stabilize_no_routing(successor_predecessor, na_successor_predecessor);
       }
   }
 
@@ -1631,7 +1631,7 @@ namespace dht
                status);
   }
 
-  void DHTVirtualNode::stabilize_notify(const DHTKey& successor_predecessor, const NetAddress& na_successor_predecessor)
+  void DHTVirtualNode::stabilize_no_routing(const DHTKey& successor_predecessor, const NetAddress& na_successor_predecessor)
   {
     /**
      * XXX: in non routing mode, there is no notify callback call. This allows the node

@@ -363,7 +363,7 @@ namespace dht
 
       void stabilize_notify();
 
-      void stabilize_notify(const DHTKey& successor_predecessor, const NetAddress& na_successor_predecessor);
+      void stabilize_no_routing(const DHTKey& successor_predecessor, const NetAddress& na_successor_predecessor);
 
     public:
       /**
