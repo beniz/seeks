@@ -224,7 +224,7 @@ namespace seeks_plugins
 
         // estimate the url prior.
         float prior = 1.0;
-        if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB 
+	if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB 
 	    && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enought competition on domains.
           prior = estimate_prior((*vit),url,host,nuri);
 	posteriors[j] *= prior;
@@ -290,6 +290,7 @@ namespace seeks_plugins
 	  {
 	    s->_personalized = true;
 	    s->_engine |= SE_SEEKS;
+	    s->_meta_rank++;
 	  }
       }
 
@@ -297,7 +298,7 @@ namespace seeks_plugins
     if (!vd_host || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
 	|| s->_doc_type == IMAGE)  // empty or type with not enough competition on domains.
       posterior *= cf_configuration::_config->_domain_name_weight
-                   / static_cast<float>(ns); // XXX: may replace ns with a less discriminative value.
+	           / (log(total_hits + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
     else
       {
         posterior *= cf_configuration::_config->_domain_name_weight
@@ -331,19 +332,37 @@ namespace seeks_plugins
 	  {
 	    s->_personalized = true;
 	    s->_engine |= SE_SEEKS;
+	    s->_meta_rank++;
 	  }
       }
     dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
-    if (!dbr)
-      prior *= 1.0 / (log(furi + 1.0) + 1.0);
+    
+    // XXX: code below is too aggressive and pushes other results to quickly
+    //      below all the personalized results.
+    /*if (!dbr)
+      prior *= cf_configuration::_config->_domain_name_weight / (log(furi + 1.0) + 1.0);
     else
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
-        prior *= (log(uc_dbr->_hits + 1.0) + 1.0) / (log(furi + 1.0) + 1.0);
-        delete uc_dbr;
+        prior *= cf_configuration::_config->_domain_name_weight
+	  * (log(uc_dbr->_hits + 1.0) + 1.0) / (log(furi + 1.0) + 1.0);
+	delete uc_dbr;
 	if (s)
 	 s->_personalized = true;
+	 }*/
+    
+    // code below treats domain recommendation as another search engines:
+    // the meta rank of the snippet is incremented. This allows search engine
+    // results to compete with the personalized results.
+    if (dbr)
+      {
+	if (s)
+	  {
+	    s->_meta_rank++;
+	    s->_personalized = true;
+	  }
       }
+    //std::cerr << "prior: " << prior << std::endl;
     return prior;
   }
 
@@ -434,7 +453,8 @@ namespace seeks_plugins
 	    if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now.
 	      {
 		posterior = estimate_rank(NULL,nvurls,vd,NULL,q_vurl_hits[i]);
-	      
+		//std::cerr << "posterior: " << posterior << std::endl;
+
 		// level them down according to query radius. 
 		posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.
 		
