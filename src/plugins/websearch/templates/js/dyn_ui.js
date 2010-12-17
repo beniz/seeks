@@ -201,6 +201,8 @@ function process_query(obj)
 
 this.new_search = function(nquery)
 {
+    //alert(nquery);
+
     var pi;
     if (ti.txt == 1)
         pi = pi_txt;
