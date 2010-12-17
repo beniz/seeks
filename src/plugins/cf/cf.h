@@ -39,7 +39,8 @@ namespace seeks_plugins
       virtual void stop();
 
       void estimate_ranks(const std::string &query,
-                          std::vector<search_snippet*> &snippets);
+                          const query_context *qc,
+			  std::vector<search_snippet*> &snippets);
       
       void get_related_queries(const std::string &query,
 			       const query_context *qc,

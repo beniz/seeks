@@ -33,11 +33,11 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   
-  bool query_recommender::select_and_rewrite_query(const str_chain &strc_query,
-						   std::string &rquery,
-						   stopwordlist *swl)
+  bool query_recommender::select_query(const str_chain &strc_query,
+				       const std::string &query,
+				       stopwordlist *swl)
   {
-    rquery = query_capture_element::no_command_query(rquery);
+    std::string rquery = query_capture_element::no_command_query(query);
     std::transform(rquery.begin(),rquery.end(),rquery.begin(),tolower);
     str_chain strc_rquery = str_chain(rquery,0,true);
     strc_rquery = strc_rquery.rank_alpha();
@@ -80,18 +80,13 @@ namespace seeks_plugins
     
     // aggregate related queries.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(records,qdata);
+    rank_estimator::extract_queries(query,qc,records,qdata);
   
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);
     std::transform(qquery.begin(),qquery.end(),qquery.begin(),tolower);
-    str_chain strc_query(qquery,0,true);
-    strc_query = strc_query.rank_alpha();
-
-    // stopword list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
-
+    
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
     hash_map<const char*,double,hash<const char*>,eqstr>::iterator uit;
@@ -100,7 +95,10 @@ namespace seeks_plugins
     while(hit!=qdata.end())
       {
 	std::string rquery = (*hit).second->_query;
-	if (query_recommender::select_and_rewrite_query(strc_query,rquery,swl))
+	rquery = query_capture_element::no_command_query(rquery);
+	std::transform(rquery.begin(),rquery.end(),rquery.begin(),tolower);
+	
+	if (qquery != rquery)
 	  {
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;
@@ -109,6 +107,7 @@ namespace seeks_plugins
 	      (*uit).second *= radius/hits;
 	    else update.insert(std::pair<const char*,double>(strdup(rquery.c_str()),radius/hits));
 	  }
+	
 	++hit;
       }
 

@@ -79,10 +79,11 @@ namespace seeks_plugins
   }
 
   void cf::estimate_ranks(const std::string &query,
+			  const query_context *qc,
                           std::vector<search_snippet*> &snippets)
   {
     simple_re sre; // estimator.
-    sre.estimate_ranks(query,snippets);
+    sre.estimate_ranks(query,qc,snippets);
   }
   
   void cf::get_related_queries(const std::string &query,

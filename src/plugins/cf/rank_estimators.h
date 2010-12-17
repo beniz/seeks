@@ -33,7 +33,8 @@ namespace seeks_plugins
       virtual ~rank_estimator() {};
 
       virtual void estimate_ranks(const std::string &query,
-                                  std::vector<search_snippet*> &snippets) {};
+                                  const query_context *qc,
+				  std::vector<search_snippet*> &snippets) {};
       
       virtual void recommend_urls(const std::string &query,
 				  std::vector<search_snippet*> &snippets) {};
@@ -41,7 +42,9 @@ namespace seeks_plugins
       static void fetch_user_db_record(const std::string &query,
 				       std::vector<db_record*> &records);
       
-      static void extract_queries(const std::vector<db_record*> &records,
+      static void extract_queries(const std::string &query,
+				  const query_context *qc,
+				  const std::vector<db_record*> &records,
                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
   };
 
@@ -53,7 +56,8 @@ namespace seeks_plugins
       virtual ~simple_re();
       
       virtual void estimate_ranks(const std::string &query,
-                                  std::vector<search_snippet*> &snippets);
+                                  const query_context *qc,
+				  std::vector<search_snippet*> &snippets);
 
       virtual void recommend_urls(const std::string &query,
 				  const query_context *qc,

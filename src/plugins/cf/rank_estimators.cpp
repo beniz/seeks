@@ -67,11 +67,18 @@ namespace seeks_plugins
       }
   }
 
-  void rank_estimator::extract_queries(const std::vector<db_record*> &records,
+  void rank_estimator::extract_queries(const std::string &query,
+				       const query_context *qc,
+				       const std::vector<db_record*> &records,
 				       hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
   {
     static std::string qc_str = "query-capture";
-
+    
+    
+    str_chain strc_query(query_capture_element::no_command_query(query),0,true);
+    strc_query = strc_query.rank_alpha();
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
+    
     // iterate records and gather queries and data.
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit;
     std::vector<db_record*>::const_iterator vit = records.begin();
@@ -83,6 +90,12 @@ namespace seeks_plugins
         while (qit!=dbqr->_related_queries.end())
           {
             query_data *qd = (*qit).second;
+	    if (!query_recommender::select_query(strc_query,qd->_query,swl))
+	      {
+		++qit;
+		continue;
+	      }
+	    
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
                 if (qd->_radius == 0) // contains the data.
@@ -147,7 +160,8 @@ namespace seeks_plugins
   }
 
   void simple_re::estimate_ranks(const std::string &query,
-                                 std::vector<search_snippet*> &snippets)
+                                 const query_context *qc,
+				 std::vector<search_snippet*> &snippets)
   {
     // fetch records from user DB.
     std::vector<db_record*> records;
@@ -157,7 +171,7 @@ namespace seeks_plugins
 
     // extract queries.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(records,qdata);
+    rank_estimator::extract_queries(query,qc,records,qdata);
 
     //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
 
@@ -378,7 +392,7 @@ namespace seeks_plugins
 
     // extract queries.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(records,qdata);
+    rank_estimator::extract_queries(query,qc,records,qdata);
 
     //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
 
@@ -390,11 +404,6 @@ namespace seeks_plugins
         rit = records.erase(rit);
         delete dbr;
       }
-
-    // stopword list.
-    str_chain strc_query(query,0,true);
-    strc_query = strc_query.rank_alpha();
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
     
     // gather normalizing values.
     int nvurls = 0;
@@ -405,22 +414,12 @@ namespace seeks_plugins
     float q_vurl_hits[qdata.size()];
     while (hit!=qdata.end())
       {
-	std::string rquery = (*hit).second->_query;
-	if (!query_recommender::select_and_rewrite_query(strc_query,rquery,swl))
-	  {
-	    chit = hit;
-	    ++hit;
-	    delete (*chit).second;
-	    qdata.erase(chit);
-	  }
-	else
-	  {
-	    int vhits = (*hit).second->vurls_total_hits();
-	    q_vurl_hits[i++] = vhits;
-	    if (vhits > 0)
-	      nvurls += (*hit).second->_visited_urls->size();
-	    ++hit;
-	  }
+	//std::string rquery = (*hit).second->_query;
+	int vhits = (*hit).second->vurls_total_hits();
+	q_vurl_hits[i++] = vhits;
+	if (vhits > 0)
+	  nvurls += (*hit).second->_visited_urls->size();
+	++hit;
       }
     
     // get number of captured URIs.
