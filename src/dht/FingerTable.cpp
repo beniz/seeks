@@ -437,7 +437,7 @@ namespace dht
         		 return status;
         		 } */
       }
-    else // in non routing mode, check whether our predecessor has changed.
+    else if (succ_pred.count()) // in non routing mode, check whether our predecessor has changed.
       {
         Location *succ_pred_loc = _vnode->addOrFindToLocationTable(succ_pred, na_succ_pred);
         DHTKey vpred = _vnode->getPredecessorS();
