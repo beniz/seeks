@@ -92,6 +92,12 @@ namespace seeks_plugins
           json_str_eng += ",";
         json_str_eng += "\"youtube\"";
       }
+    if (engines.to_ulong()&SE_SEEKS)
+      {
+	if (!json_str_eng.empty())
+	  json_str_eng += ",";
+	json_str_eng += "\"seeks\"";
+      }
     return json_str_eng;
   }
 
