@@ -354,6 +354,17 @@ namespace dht
       virtual void RPC_ping(const DHTKey& recipientKey,
                             const NetAddress& recipient,
                             int& status) throw (dht_exception);
+
+      void stabilize() throw (dht_exception);
+
+      bool stabilize_successor_predecessor_loop(DHTKey& successor_predecessor, NetAddress& na_successor_predecessor);
+
+      dht_err stabilize_successor_predecessor(const DHTKey& successor, DHTKey& predecessor, NetAddress& na_predecessor);
+
+      void stabilize_notify();
+
+      void stabilize_notify(const DHTKey& successor_predecessor, const NetAddress& na_successor_predecessor);
+
     public:
       /**
        * location table.

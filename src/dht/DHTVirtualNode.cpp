@@ -26,6 +26,7 @@
 #include "RouteIterator.h"
 #include "errlog.h"
 
+#include <set>
 #include <math.h>
 
 using sp::errlog;
@@ -1560,6 +1561,90 @@ namespace dht
     uint32_t error_status;
     l1_protob_wrapper::read_l1_response(&l1r,error_status);
     status = error_status;
+  }
+
+  void DHTVirtualNode::stabilize() throw (dht_exception)
+  {
+    DHTKey successor_predecessor;
+    NetAddress na_successor_predecessor;
+    if(stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor))
+      {
+        if(successor_predecessor.between(getIdKey(), getSuccessorS()))
+          {
+            addOrFindToLocationTable(successor_predecessor, na_successor_predecessor);
+            setSuccessor(successor_predecessor, na_successor_predecessor);
+            update_successor_list_head();
+          }
+      }
+    if (dht_configuration::_dht_config->_routing)
+      {
+        stabilize_notify();
+      }
+    else
+      {
+        stabilize_notify(successor_predecessor, na_successor_predecessor);
+      }
+  }
+
+  bool DHTVirtualNode::stabilize_successor_predecessor_loop(DHTKey& successor_predecessor, NetAddress& na_successor_predecessor)
+  {
+    std::set<DHTKey> deads;
+    while(_successors._succs.begin() != _successors._succs.end())
+      {
+        const DHTKey* successor = *(getFirstSuccessor());
+        if(stabilize_successor_predecessor(*successor, successor_predecessor, na_successor_predecessor) == DHT_ERR_OK)
+          return deads.find(successor_predecessor) == deads.end();
+        deads.insert(*successor);
+        Location* successor_loc = findLocation(*successor);
+        if(successor_loc)
+          removeLocation(successor_loc); // removes from _successors._succs as a side effect
+        else
+          _successors._succs.pop_front();
+      }
+    // TODO: the application must catch this exception and try to rejoin using a well known entry point in the ring
+    throw dht_exception(DHT_ERR_RETRY, "exhausted successor list while running stabilize");
+  }
+
+  dht_err DHTVirtualNode::stabilize_successor_predecessor(const DHTKey& successor, DHTKey& predecessor, NetAddress& na_predecessor)
+  {
+    int retries = 6;
+    dht_err status = DHT_ERR_OK;
+    Location *succ_loc = findLocation(successor);
+
+    while(retries-- > 0)
+      {
+        RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+                           predecessor, na_predecessor, status);
+        if(status != DHT_ERR_COM_TIMEOUT)
+          return status;
+      }
+    return status;
+  }
+
+  void DHTVirtualNode::stabilize_notify()
+  {
+    Location* succ_loc = findLocation(getSuccessorS());
+    dht_err status;
+
+    RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+               getIdKey(),getNetAddress(),
+               status);
+  }
+
+  void DHTVirtualNode::stabilize_notify(const DHTKey& successor_predecessor, const NetAddress& na_successor_predecessor)
+  {
+    /**
+     * XXX: in non routing mode, there is no notify callback call. This allows the node
+     * to remain a connected spectator: successor and predecessors of other nodes remain unchanged.
+     */
+    Location *successor_predecessor_loc = addOrFindToLocationTable(successor_predecessor, na_successor_predecessor);
+    DHTKey vpred = getPredecessorS();
+    if (vpred.count() && (vpred == getIdKey()))
+      {
+        throw dht_exception(DHT_ERR_UNKNOWN, "this should not happen. It does when self-bootstrapping in non routing mode. a hopeless situation.");
+      }
+    else if (!vpred.count() || successor_predecessor_loc->getDHTKey() != vpred)
+      setPredecessor(successor_predecessor, na_successor_predecessor);
   }
 
 } /* end of namespace. */

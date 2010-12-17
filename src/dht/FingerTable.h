@@ -94,12 +94,6 @@ namespace dht
                                   int& status);
 
       /**
-       * \brief verifies our successor is the right one,
-       * and notify it about us. This function does RPC calls.
-       */
-      int stabilize() throw (dht_exception);
-
-      /**
        * \brief refresh a random table entry.
        */
       int fix_finger() throw (dht_exception);
@@ -109,7 +103,7 @@ namespace dht
        */
       virtual void stabilize_fast() throw (dht_exception)
       {
-        stabilize();
+        _vnode->stabilize();
       };
       virtual void stabilize_slow() throw (dht_exception)
       {
