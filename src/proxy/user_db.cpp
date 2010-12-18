@@ -668,7 +668,7 @@ namespace sp
       }
     else if (format == "xml")
       {
-        output << "<querys>" << std::endl;
+        output << "<queries>" << std::endl;
       }
     else
       {
@@ -714,19 +714,22 @@ namespace sp
                     if (format == "text")
                       {
                         output << "============================================" << std::endl;
-                        dbr->text_export_record(str, output);
+                        output << "key: " << key << std::endl;
+			dbr->text_export_record(str, output);
                       }
                     else if (format == "json")
                       {
                         if (!first) output << " , " << std::endl;
                         output << " { " << std::endl;
+			output << "\"key\": \"" << key << "\",";
                         dbr->json_export_record(str, output);
                         output << " } " << std::endl;
                       }
                     else if (format == "xml")
                       {
                         output << " <query> " << std::endl;
-                        dbr->xml_export_record(str, output);
+                        output << " <key>" << key << "</key>\n";
+			dbr->xml_export_record(str, output);
                         output << " </query> " << std::endl;
                       }
                     delete dbr;
