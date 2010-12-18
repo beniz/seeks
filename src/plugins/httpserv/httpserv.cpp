@@ -597,9 +597,7 @@ namespace seeks_plugins
     return parameters;
   }
 
-  /* auto-registration */
-
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration */
   extern "C"
   {
     plugin* maker()
@@ -607,22 +605,5 @@ namespace seeks_plugins
       return new httpserv;
     }
   }
-
-#else
-  plugin* makerhp()
-  {
-    return new httpserv;
-  }
-  class proxy_autorh
-  {
-    public:
-      proxy_autorh()
-      {
-        plugin_manager::_factory["httpserv"] = makerhp; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autorh _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

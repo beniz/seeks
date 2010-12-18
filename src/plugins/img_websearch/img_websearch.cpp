@@ -431,8 +431,7 @@ namespace seeks_plugins
     return param_exports;
   }
 
-  /* auto-registration. */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration. */
   extern "C"
   {
     plugin* maker()
@@ -440,22 +439,5 @@ namespace seeks_plugins
       return new img_websearch;
     }
   }
-
-#else
-  plugin* makeriw()
-  {
-    return new img_websearch;
-  }
-  class proxy_autoiw
-  {
-    public:
-      proxy_autoiw()
-      {
-        plugin_manager::_factory["image-websearch"] = makeriw;
-      }
-  };
-
-  proxy_autoiw _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

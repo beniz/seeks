@@ -939,8 +939,7 @@ namespace seeks_plugins
     return err;
   }
 
-  /* auto-registration */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration */
   extern "C"
   {
     plugin* maker()
@@ -948,22 +947,5 @@ namespace seeks_plugins
       return new websearch;
     }
   }
-
-#else
-  plugin* maker()
-  {
-    return new websearch;
-  }
-  class proxy_autor
-  {
-    public:
-      proxy_autor()
-      {
-        plugin_manager::_factory["websearch-hp"] = maker; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor _p; // one instance, instanciated when dl-opening.
-#endif
-
+  
 } /* end of namespace. */

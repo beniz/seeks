@@ -115,6 +115,7 @@ namespace seeks_plugins
     if (!seeks_proxy::_user_db || !seeks_proxy::_user_db->_opened)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
+	return;
       }
     else if (seeks_proxy::_config->_user_db_startup_check)
       {
@@ -285,7 +286,6 @@ namespace seeks_plugins
   }
 
   /* auto-registration */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
   extern "C"
   {
     plugin* maker()
@@ -293,22 +293,5 @@ namespace seeks_plugins
       return new uri_capture;
     }
   }
-#else
-  plugin* makeruc()
-  {
-    return new uri_capture;
-  }
-
-  class proxy_autor_capture
-  {
-    public:
-      proxy_autor_capture()
-      {
-        plugin_manager::_factory["uri-capture"] = makeruc; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor_capture _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

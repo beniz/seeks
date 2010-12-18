@@ -134,17 +134,18 @@ namespace seeks_plugins
     if (!seeks_proxy::_user_db || !seeks_proxy::_user_db->_opened)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for query capture plugin to work with it");
+	return;
       }
     else if (seeks_proxy::_config->_user_db_startup_check)
       {
 	// preventive sweep of records.
 	static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
-
-        // get number of captured URI already in user_db.
-        uint64_t nr = seeks_proxy::_user_db->number_records(_name);
-
-        errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
       }
+    
+    // get number of captured queries already in user_db.
+    uint64_t nr = seeks_proxy::_user_db->number_records(_name);
+    
+    errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
   }
 
   void query_capture::stop()
@@ -497,7 +498,7 @@ namespace seeks_plugins
     return cquery;
   }
 
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration. */
   extern "C"
   {
     plugin* maker()
@@ -505,22 +506,5 @@ namespace seeks_plugins
       return new query_capture;
     }
   }
-#else
-  plugin* makerqc()
-  {
-    return new query_capture;
-  }
-
-  class proxy_autor_qcapture
-  {
-    public:
-      proxy_autor_qcapture()
-      {
-        plugin_manager::_factory["query-capture"] = makerqc; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor_qcapture _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

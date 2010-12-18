@@ -100,8 +100,8 @@ namespace seeks_plugins
     simple_re sre; // estimator.
     sre.recommend_urls(query,qc,snippets);
   }
-  
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+
+  /* plugin registration. */
   extern "C"
   {
     plugin* maker()
@@ -109,21 +109,5 @@ namespace seeks_plugins
       return new cf;
     }
   }
-#else
-  plugin* makercf()
-  {
-    return new cf;
-  }
-  class proxy_autor_cf
-  {
-    public:
-      proxy_autor_cf()
-      {
-        plugin_manager::_factory["cf"] = makercf; // beware: default plugin shell with no name.
-      }
-  };
-  proxy_autor_cf _p; // one instance, instanciated when dl-opening.
-#endif
-
 
 } /* end of namespace. */

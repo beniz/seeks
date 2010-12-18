@@ -38,7 +38,7 @@ namespace seeks_plugins
       
       virtual void recommend_urls(const std::string &query,
 				  std::vector<search_snippet*> &snippets) {};
-
+      
       static void fetch_user_db_record(const std::string &query,
 				       std::vector<db_record*> &records);
       
@@ -62,7 +62,7 @@ namespace seeks_plugins
       virtual void recommend_urls(const std::string &query,
 				  const query_context *qc,
 				  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
-
+      
       float estimate_rank(search_snippet *s, const int &ns,
                           const query_data *qd,
                           const float &total_hits,

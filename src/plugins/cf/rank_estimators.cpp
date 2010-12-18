@@ -351,7 +351,7 @@ namespace seeks_plugins
       }
     dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
     
-    // XXX: code below is too aggressive and pushes other results to quickly
+    // XXX: code below is too aggressive and pushes other results too quickly
     //      below all the personalized results.
     /*if (!dbr)
       prior *= cf_configuration::_config->_domain_name_weight / (log(furi + 1.0) + 1.0);
