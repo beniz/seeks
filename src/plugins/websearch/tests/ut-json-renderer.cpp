@@ -294,14 +294,14 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
 
   // suggestion
-  context._suggestions.push_back("SUGGESTION1");
-  context._suggestions.push_back("SUGGESTION2");
+  context._suggestions.insert(std::pair<double,std::string>(2.0,"SUGGESTION1"));
+  context._suggestions.insert(std::pair<double,std::string>(1.0,"SUGGESTION2"));
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
   EXPECT_NE(std::string::npos, result.find("suggestion"));
   EXPECT_NE(std::string::npos, result.find("SUGGESTION1"));
-  EXPECT_EQ(std::string::npos, result.find("SUGGESTION2"));
+  EXPECT_NE(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
   context._engines = std::bitset<NSEs>(SE_YAHOO);
