@@ -96,7 +96,7 @@ namespace dht
       /**
        * \brief refresh a random table entry.
        */
-      int fix_finger() throw (dht_exception);
+      void fix_finger() throw (dht_exception);
 
       /**
        * virtual functions, from Stabilizable.

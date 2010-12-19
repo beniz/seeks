@@ -138,7 +138,7 @@ namespace dht
 #endif
   }
 
-  int FingerTable::fix_finger() throw (dht_exception)
+  void FingerTable::fix_finger() throw (dht_exception)
   {
     // TODO: seed.
     unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
