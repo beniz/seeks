@@ -140,54 +140,16 @@ namespace dht
 
   int FingerTable::fix_finger() throw (dht_exception)
   {
-    mutex_lock(&_stable_mutex);
-    _stable_pass2 = _stable_pass1;
-    _stable_pass1 = true; // below we check whether this is true.
-    mutex_unlock(&_stable_mutex);
-
     // TODO: seed.
     unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
-
-#ifdef DEBUG
-    //debug
-    std::cerr << "[Debug]:FingerTable::fix_finger: " << rindex << std::endl;
-    //debug
-
-    //debug
-    assert(rindex > 0);
-    assert(rindex < KEYNBITS);
-    //debug
-#endif
 
     /**
      * find_successor call.
      */
     DHTKey dkres;
     NetAddress na;
-    dht_err status = DHT_ERR_OK;
-
-    //debug
-    //std::cerr << "[Debug]:finger nodekey: _starts[" << rindex << "]: " << _starts[rindex] << std::endl;
-    //debug
-
-    status = _vnode->find_successor(_starts[rindex], dkres, na);
-    if (status != DHT_ERR_OK)
-      {
-#ifdef DEBUG
-        //debug
-        std::cerr << "[Debug]:fix_finger: error finding successor.\n";
-        //debug
-#endif
-
-        errlog::log_error(LOG_LEVEL_DHT, "Error finding successor when fixing finger.");
-        return status;
-      }
-
-#ifdef DEBUG
-    //debug
-    assert(dkres.count()>0);
-    //debug
-#endif
+    if(_vnode->find_successor(_starts[rindex], dkres, na) != DHT_ERR_OK)
+      return;
 
     /**
      * lookup result, add it to the location table if needed.
@@ -196,19 +158,9 @@ namespace dht
     Location *curr_loc = _locs[rindex];
     if (curr_loc && rloc != curr_loc)
       {
-        mutex_lock(&_stable_mutex);
-        _stable_pass1 = false;
-        mutex_unlock(&_stable_mutex);
-
         // remove location if it not used in other lists.
         if (!_vnode->_successors.has_key(curr_loc->getDHTKey()))
           _vnode->removeLocation(curr_loc);
-      }
-    else if (!curr_loc)
-      {
-        mutex_lock(&_stable_mutex);
-        _stable_pass1 = false;
-        mutex_unlock(&_stable_mutex);
       }
 
     _locs[rindex] = rloc;
@@ -218,17 +170,8 @@ namespace dht
       {
         // reestimate the estimated number of nodes.
         _vnode->estimate_nodes();
-        AAAA
       }
 #endif
-
-#ifdef DEBUG
-    //debug
-    print(std::cout);
-    //debug
-#endif
-
-    return 0;
   }
 
   bool FingerTable::has_key(const int &index, Location *loc) const
