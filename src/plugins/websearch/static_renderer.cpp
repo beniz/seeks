@@ -176,10 +176,12 @@ namespace seeks_plugins
 	  }
 	std::string query_clean = se_handler::no_command_query(qc->_query);
 	char *html_enc_query = encode::html_encode(query_clean.c_str());
+	char *url_enc_query = encode::url_encode(query_clean.c_str());
 	cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
-	  + qc->_url_enc_query +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
+	  + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
 	  + std::string(html_enc_query) + "</a>";
 	free(html_enc_query);
+	free(url_enc_query);
 	++sit;
 	++k;
 	if (k > websearch::_wconfig->_num_reco_queries)

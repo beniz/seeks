@@ -478,6 +478,17 @@ namespace seeks_plugins
 	
 	++hit;
       }
+
+    // destroy query data.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2;
+    hit2 = qdata.begin();
+    while (hit2!=qdata.end())
+      {
+        query_data *qd = (*hit2).second;
+        chit = hit2;
+	++hit2;
+	delete qd;
+      }
   }
 
 } /* end of namespace. */
