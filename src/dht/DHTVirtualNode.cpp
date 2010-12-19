@@ -258,10 +258,6 @@ namespace dht
         return dht_status;
       }
 
-    /**
-     * RPC call to get pred's successor.
-     * we check among local virtual nodes first.
-     */
     int status = 0;
     RPC_getSuccessor(dk_pred, na_pred,
                      dkres, na, status);
