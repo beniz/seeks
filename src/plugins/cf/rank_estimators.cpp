@@ -74,7 +74,6 @@ namespace seeks_plugins
   {
     static std::string qc_str = "query-capture";
     
-    
     str_chain strc_query(query_capture_element::no_command_query(query),0,true);
     strc_query = strc_query.rank_alpha();
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
@@ -216,10 +215,9 @@ namespace seeks_plugins
     while (vit!=snippets.end())
       {
         std::string url = (*vit)->_url;
-        std::transform(url.begin(),url.end(),url.begin(),tolower);
-        std::string host, path;
-        urlmatch::parse_url_host_and_path(url,host,path);
-        host = urlmatch::strip_url(host);
+        	
+	std::string host, path;
+	query_capture::process_url(url,host,path);
 
         i = 0;
         posteriors[j] = 0.0;
@@ -384,7 +382,7 @@ namespace seeks_plugins
 				 const query_context *qc,
 				 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
   {
-        // fetch records from user DB.
+    // fetch records from user DB.
     std::vector<db_record*> records;
     rank_estimator::fetch_user_db_record(query,records);
 
@@ -414,7 +412,6 @@ namespace seeks_plugins
     float q_vurl_hits[qdata.size()];
     while (hit!=qdata.end())
       {
-	//std::string rquery = (*hit).second->_query;
 	int vhits = (*hit).second->vurls_total_hits();
 	q_vurl_hits[i++] = vhits;
 	if (vhits > 0)
@@ -478,7 +475,7 @@ namespace seeks_plugins
 	
 	++hit;
       }
-
+    
     // destroy query data.
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2;
     hit2 = qdata.begin();
@@ -486,8 +483,74 @@ namespace seeks_plugins
       {
         query_data *qd = (*hit2).second;
         chit = hit2;
-	++hit2;
-	delete qd;
+        ++hit2;
+        delete qd;
+      }
+  }
+
+  void simple_re::thumb_down_url(const std::string &query,
+				 const query_context *qc,
+				 const std::string &url)
+  {
+    static std::string qc_string = "query-capture";
+
+    // fetch records from user DB.
+    std::vector<db_record*> records;
+    rank_estimator::fetch_user_db_record(query,records);
+    
+    // extract queries.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    rank_estimator::extract_queries(query,qc,records,qdata);
+    
+    // destroy records.
+    std::vector<db_record*>::iterator rit = records.begin();
+    while (rit!=records.end())
+      {
+        db_record *dbr = (*rit);
+        rit = records.erase(rit);
+        delete dbr;
+      }
+
+    // preprocess url.
+    
+
+    //TODO: locate url in query halo.
+    hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+      = qdata.begin();
+    while(hit!=qdata.end())
+      {
+	query_data *qd = (*hit).second;
+	if (!qd->_visited_urls)
+	  {
+	    ++hit;
+	    continue;
+	  }
+
+	if ((vit = qd->_visited_urls->find(url.c_str()))!=qd->_visited_urls->end())
+	  {
+	    //TODO: update url & domain count.
+	    vurl_data *vd = (*vit).second;
+	    /*query_capture_element::store_url(,qd->_query,url,host,
+	      qd->_radius,qc_string);*/
+	    
+	    //TODO: write back in db.
+	    
+	  }
+      }
+
+    //TODO: locate url in captured uris.
+    
+    
+    // destroy query data.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
+    hit = qdata.begin();
+    while (hit!=qdata.end())
+      {
+        query_data *qd = (*hit).second;
+        chit = hit;
+        ++hit;
+        delete qd;
       }
   }
 
