@@ -2,9 +2,10 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
+ * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
  * Copyright (C) 2010  Emmanuel Benazera, juban@free.fr
  *
-  * This program is free software: you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
@@ -68,10 +69,10 @@ class TransportTest : public Transport
         }
     }
 
-  virtual void validate_sender_na(NetAddress& sender_na, const std::string& addr)
-  {
-    // relax sender verification for to allow for simulations
-  }
+    virtual void validate_sender_na(NetAddress& sender_na, const std::string& addr)
+    {
+      // relax sender verification for to allow for simulations
+    }
 
 };
 
@@ -279,13 +280,13 @@ TEST_F(DHTVirtualNodeTest, stabilize)
   DHTKey key4 = DHTKey::from_rstring(dkey4);
   DHTVirtualNode* vnode4 = new_vnode(key4);
 
-  // 
+  //
   //   key1    key2    key3    key4
   // before
   //             --------------->    A
   //     <-------------- <-------    B
   //                     ------->    C
-  //         
+  //
   // after
   //             -------> ------>    D
   //             <------- <------    E
@@ -300,7 +301,7 @@ TEST_F(DHTVirtualNodeTest, stabilize)
   vnode3->setSuccessor(key4, NetAddress());   // C
   vnode3->update_successor_list_head();
   EXPECT_EQ(key4, vnode3->getSuccessorS());
-  
+
   vnode2->stabilize();
 
   EXPECT_EQ(key3, vnode2->getSuccessorS());   // D
@@ -317,7 +318,7 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_throw)
   DHTKey successor_predecessor;
   NetAddress na_successor_predecessor;
 
-  // the successor list is empty, 
+  // the successor list is empty,
   bool caught = false;
   try
     {
@@ -362,11 +363,11 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_give_up)
   //   key4
   // when the function reaches key3, it times out and skips to the next entry
   // when it gets to key4, the corresponding virtual node answers that its predecessor is key3
-  // since key3 is known to be dead (the function remembers the key of dead nodes), 
+  // since key3 is known to be dead (the function remembers the key of dead nodes),
   // the function gives up and returns false
   // key4 will eventually (at a later point in time) notice that key3 is
   // defunct and another call to the function will provide the caller with an better predecessor.
-  // 
+  //
   DHTKey key4 = DHTKey::from_rstring(dkey4);
   DHTVirtualNode* vnode4 = new_vnode(key4);
   DHTKey key3 = DHTKey::from_rstring(dkey3); // note that there is *no* vnode3, this yields to timeout
@@ -392,7 +393,7 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_fallback)
   //   key4
   // when the function reaches key3, it times out and skips to the next entry
   // key4 returns its predecessor : key2
-  // 
+  //
   DHTKey key4 = DHTKey::from_rstring(dkey4);
   DHTVirtualNode* vnode4 = new_vnode(key4);
   DHTKey key3 = DHTKey::from_rstring(dkey3); // note that there is *no* vnode3, this yields to timeout

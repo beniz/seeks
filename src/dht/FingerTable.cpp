@@ -140,16 +140,18 @@ namespace dht
 
   void FingerTable::fix_finger() throw (dht_exception)
   {
-    // TODO: seed.
-    unsigned long int rindex = Random::genUniformUnsInt32(1, KEYNBITS-1);
+    fix_finger(Random::genUniformUnsInt32(1, KEYNBITS-1));
+  }
 
+  bool FingerTable::fix_finger(unsigned long int rindex)
+  {
     /**
      * find_successor call.
      */
     DHTKey dkres;
     NetAddress na;
     if(_vnode->find_successor(_starts[rindex], dkres, na) != DHT_ERR_OK)
-      return;
+      return false;
 
     /**
      * lookup result, add it to the location table if needed.
@@ -172,6 +174,7 @@ namespace dht
         _vnode->estimate_nodes();
       }
 #endif
+    return true;
   }
 
   bool FingerTable::has_key(const int &index, Location *loc) const

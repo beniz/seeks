@@ -20,9 +20,10 @@
 #
 #automake file for seeks dht tests
 
-check_PROGRAMS=ut_dhtkey ut_dhtvirtualnode # ut_dht_bootstrap
+check_PROGRAMS=ut_dhtkey ut_dhtvirtualnode ut_fingertable # ut_dht_bootstrap
 ut_dhtkey_SOURCES=ut-dhtkey.cpp
 ut_dhtvirtualnode_SOURCES=ut-dhtvirtualnode.cpp
+ut_fingertable_SOURCES=ut-fingertable.cpp
 #ut_dht_bootstrap_SOURCES=ut-dht-bootstrap.cpp
 
 TESTS = $(check_PROGRAMS)

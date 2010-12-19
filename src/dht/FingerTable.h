@@ -97,6 +97,7 @@ namespace dht
        * \brief refresh a random table entry.
        */
       void fix_finger() throw (dht_exception);
+      bool fix_finger(unsigned long int rindex);
 
       /**
        * virtual functions, from Stabilizable.
@@ -113,7 +114,6 @@ namespace dht
 
       void print(std::ostream &out) const;
 
-    private:
       /**
        * virtual node to which this table refers.
        */
@@ -131,7 +131,6 @@ namespace dht
        */
       DHTKey _starts[KEYNBITS];
 
-    public:
       /**
        * \brief finger table: each location _locs[i] is the peer with key
        * that is the closest known successor to _starts[i].
