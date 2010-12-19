@@ -443,10 +443,11 @@ namespace seeks_plugins
 	    vurl_data *vd = (*vit).second;
 	    if (vd->_url[vd->_url.length()-1] == '/')
 	      {
-		vd->_url = vd->_url.substr(0,vd->_url.length()-1);  // fix url.
+		std::string url = vd->_url.substr(0,vd->_url.length()-1);  // fix url.
 		hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
 		++vit;
 		qd->_visited_urls->erase(vit2);
+		vd->_url = url;
 		to_insert.push_back(vd);
 		fixed_urls++;
 	      }
