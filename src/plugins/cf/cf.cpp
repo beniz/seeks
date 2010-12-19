@@ -101,6 +101,13 @@ namespace seeks_plugins
     sre.recommend_urls(query,qc,snippets);
   }
 
+  void cf::thumb_down_url(const std::string &query,
+                          const query_context *qc,
+                          const std::string &url)
+  {
+    //TODO.
+  }
+  
   /* plugin registration. */
   extern "C"
   {

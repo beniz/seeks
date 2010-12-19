@@ -50,6 +50,10 @@ namespace seeks_plugins
 				const query_context *qc,
 				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
       
+      void thumb_down_url(const std::string &query,
+                          const query_context *qc,
+                          const std::string &url);
+
     public:
       static plugin *_uc_plugin;
   };
