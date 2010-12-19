@@ -42,9 +42,7 @@ namespace seeks_plugins
     str_chain strc_rquery = str_chain(rquery,0,true);
     strc_rquery = strc_rquery.rank_alpha();
     std::string ra_rquery = strc_rquery.print_str();
-    if (strc_query.print_str() == ra_rquery)
-      return false;
-    
+        
     // intersect queries.
     std::vector<std::string> inter;
     for (size_t i=0;i<strc_query.size();i++)
