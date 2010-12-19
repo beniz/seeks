@@ -77,6 +77,13 @@ class FingerTableTest : public testing::Test
         }
     }
 
+    DHTVirtualNode* bootstrap(DHTVirtualNode* vnode)
+    {
+      vnode->setSuccessor(vnode->getIdKey(), vnode->getNetAddress());
+      vnode->_connected = true;
+      return vnode;
+    }
+
     DHTVirtualNode* new_vnode(DHTKey key = DHTKey::randomKey())
     {
       DHTVirtualNode* vnode = new DHTVirtualNode(&_transport, key);
@@ -107,40 +114,37 @@ TEST_F(FingerTableTest, constructor)
 
 TEST_F(FingerTableTest, fix_finger)
 {
-  DHTKey key1;
-  DHTVirtualNode* vnode1 = new_vnode(key1);
-  connect(vnode1, vnode1, vnode1);
-  DHTKey key2 = vnode1->getFingerTable()->_starts[KEYNBITS-1].successor(2);
-  DHTVirtualNode* vnode2 = new_vnode(key2);
-  connect(vnode1, vnode2, vnode1);
+  DHTKey key1(1);
+  DHTVirtualNode* vnode1 = bootstrap(new_vnode(key1));
+  DHTKey key3 = vnode1->getFingerTable()->_starts[KEYNBITS-1].successor(2);
+  DHTVirtualNode* vnode3 = new_vnode(key3);
+  connect(vnode1, vnode3, vnode1);
 
   // last slot of the finger table is set
   EXPECT_EQ((Location*)NULL, vnode1->getFingerTable()->_locs[KEYNBITS-1]);
-  EXPECT_NE((Location*)NULL, vnode1->getLocationTable()->findLocation(key2));
+  EXPECT_NE((Location*)NULL, vnode1->getLocationTable()->findLocation(key3));
   EXPECT_EQ((Location*)NULL, vnode1->getFingerTable()->_locs[KEYNBITS-2]);
 
   vnode1->getFingerTable()->fix_finger(KEYNBITS-1);
 
   Location* location = vnode1->getFingerTable()->_locs[KEYNBITS-1];
   EXPECT_NE((Location*)NULL, location);
-  EXPECT_EQ(location, vnode1->getLocationTable()->findLocation(key2));
-  EXPECT_EQ(key2, location->getDHTKey());
+  EXPECT_EQ(location, vnode1->getLocationTable()->findLocation(key3));
+  EXPECT_EQ(key3, location->getDHTKey());
   EXPECT_EQ((Location*)NULL, vnode1->getFingerTable()->_locs[KEYNBITS-2]);
 
   // last slot of the finger table is replaced
-  DHTKey key3 = vnode1->getFingerTable()->_starts[KEYNBITS-1];
-  DHTVirtualNode* vnode3 = new_vnode(key3);
-  connect(vnode2, vnode3, vnode1);
-
-  EXPECT_EQ((Location*)NULL, vnode1->getLocationTable()->findLocation(key3));
+  DHTKey key2 = vnode1->getFingerTable()->_starts[KEYNBITS-1].successor(1);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+  connect(vnode1, vnode2, vnode3);
 
   vnode1->getFingerTable()->fix_finger(KEYNBITS-1);
 
-  EXPECT_NE((Location*)NULL, vnode1->getLocationTable()->findLocation(key3));
+  EXPECT_NE((Location*)NULL, vnode1->getLocationTable()->findLocation(key2));
   location = vnode1->getFingerTable()->_locs[KEYNBITS-1];
   EXPECT_NE((Location*)NULL, location);
-  EXPECT_EQ(location, vnode1->getLocationTable()->findLocation(key3));
-  EXPECT_EQ(key3, location->getDHTKey());
+  EXPECT_EQ(location, vnode1->getLocationTable()->findLocation(key2));
+  EXPECT_EQ(key2, location->getDHTKey());
 }
 
 int main(int argc, char **argv)
