@@ -75,6 +75,12 @@ namespace seeks_plugins
 
       // store_query called from websearch plugin.
       void store_queries(const std::string &query) const;
+      
+      static void process_url(std::string &url, std::string &host);
+
+      static void process_url(std::string &url, std::string &host, std::string &path);
+
+      static void process_get(std::string &get);
 
       static query_capture_configuration *_config;
   };

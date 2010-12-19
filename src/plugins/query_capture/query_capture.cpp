@@ -217,19 +217,40 @@ namespace seeks_plugins
       }
 
     // capture queries and URL / HOST.
-    // XXX: could threaded and detached.
+    // XXX: could be threaded and detached.
     char *queryp = encode::url_decode(q);
     std::string query = queryp;
     query = query_capture_element::no_command_query(query);
     free(queryp);
-    std::string url = urlp;
+    
     std::string host,path;
-    urlmatch::parse_url_host_and_path(url,host,path);
-    host = urlmatch::strip_url(host);
-    std::transform(url.begin(),url.end(),url.begin(),tolower);
-    std::transform(host.begin(),host.end(),host.begin(),tolower);
+    std::string url = std::string(urlp);
+    query_capture::process_url(url,host,path);
+        
     query_capture::store_queries(query,url,host);
     return SP_ERR_OK;
+  }
+
+  void query_capture::process_url(std::string &url, std::string &host)
+  {
+    if (url[url.length()-1]=='/') // remove trailing '/'.
+      url = url.substr(0,url.length()-1);
+    std::transform(url.begin(),url.end(),url.begin(),tolower);
+    std::transform(host.begin(),host.end(),host.begin(),tolower);
+  }
+  
+  void query_capture::process_url(std::string &url, std::string &host, std::string &path)
+  {
+    urlmatch::parse_url_host_and_path(url,host,path);
+    host = urlmatch::strip_url(host);
+    query_capture::process_url(url,host);
+  }
+
+  void query_capture::process_get(std::string &get)
+  {
+    size_t p = miscutil::replace_in_string(get," HTTP/1.1","");
+    if (p == 0)
+      miscutil::replace_in_string(get," HTTP/1.0","");
   }
 
   sp::db_record* query_capture::create_db_record()
@@ -325,17 +346,12 @@ namespace seeks_plugins
         std::string query_str = query_capture_element::no_command_query(query);
 
         //std::cerr << "detected query: " << query_str << std::endl;
-
-        host = urlmatch::strip_url(host);
-        p = miscutil::replace_in_string(get," HTTP/1.1","");
-        if (p == 0)
-          miscutil::replace_in_string(get," HTTP/1.0","");
+	
+	query_capture::process_get(get);
+	host = urlmatch::strip_url(host);
         std::string url = host + get;
-        if (url[url.length()-1]=='/') // remove trailing '/'.
-          url = url.substr(0,url.length()-1);
-        std::transform(url.begin(),url.end(),url.begin(),tolower);
-        std::transform(host.begin(),host.end(),host.begin(),tolower);
-
+	query_capture::process_url(url,host);
+	
         // store queries and URL / HOST.
         query_capture_element::store_queries(query_str,url,host,_parent->get_name());
 
