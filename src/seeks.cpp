@@ -573,6 +573,12 @@ int main(int argc, const char *argv[])
       user_db_fix::fix_issue_263();
       seeks_proxy::_user_db->open_db();
     }
+  if (db_version < 0.4)
+    {
+      seeks_proxy::_user_db->close_db();
+      user_db_fix::fix_issue_281();
+      seeks_proxy::_user_db->open_db();
+    }
   if (db_version != user_db::_db_version)
     {
       seeks_proxy::_user_db->set_version(user_db::_db_version);

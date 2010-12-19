@@ -37,6 +37,11 @@ namespace sp
        * \brief fix bad chomped queries in records stored by 'query_capture' plugin.
        */
       static int fix_issue_263();
+
+      /**
+       * \brief fix trailing '/' in query captured records' URLs.
+       */
+      static int fix_issue_281();
   };
 
 } /* end of namespace. */

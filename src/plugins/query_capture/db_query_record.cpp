@@ -119,7 +119,7 @@ namespace seeks_plugins
         if ((fhit=_visited_urls->find((*hit).first))!=_visited_urls->end())
           {
             (*fhit).second->merge((*hit).second);
-          }
+	  }
         else
           {
             vurl_data *vd = new vurl_data((*hit).second);
@@ -418,6 +418,54 @@ namespace seeks_plugins
 	return 1;
       }
     else return 0;
+  }
+
+  int db_query_record::fix_issue_281(uint32_t &fixed_urls)
+  {
+    int fixed_queries = 0;
+    std::vector<vurl_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+      = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+	query_data *qd = (*hit).second;
+	
+	if (!qd->_visited_urls)
+	  {
+	    ++hit;
+	    continue;
+	  }
+	
+	hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit
+	  = qd->_visited_urls->begin();
+	while(vit!=qd->_visited_urls->end())
+	  {
+	    vurl_data *vd = (*vit).second;
+	    if (vd->_url[vd->_url.length()-1] == '/')
+	      {
+		vd->_url = vd->_url.substr(0,vd->_url.length()-1);  // fix url.
+		hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+		++vit;
+		qd->_visited_urls->erase(vit2);
+		to_insert.push_back(vd);
+		fixed_urls++;
+	      }
+	    else ++vit;
+	  }
+	
+	size_t tis = to_insert.size();
+	if (tis > 0)
+	  {
+	    for (size_t i=0;i<tis;i++)
+	      qd->_visited_urls->insert(std::pair<const char*,vurl_data*>(to_insert.at(i)->_url.c_str(),
+									  to_insert.at(i)));
+	    fixed_queries++;
+	    to_insert.clear();
+	  }
+	
+	++hit;
+      }
+    return fixed_queries;
   }
 
 } /* end of namespace. */
