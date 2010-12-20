@@ -344,7 +344,7 @@ namespace dht
             while(lit!=lt->_hlt.end())
               {
                 Location *loc = (*lit).second;
-                if (loc->getDHTKey()!=(*hit).second->getIdKey())
+                if (*loc!=(*hit).second->getIdKey())
                   {
                     bootstrap_nodelist.push_back(loc->getNetAddress());
                     dead_locs.push_back(loc);

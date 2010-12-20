@@ -197,7 +197,7 @@ namespace dht
               {
                 // RPC-based ping.
                 int status = DHT_ERR_OK;
-                bool dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
+                bool dead = _vnode->is_dead(*loc,loc->getNetAddress(),status);
                 if (dead)
                   _vnode->removeLocation(loc);
               }
@@ -252,7 +252,7 @@ namespace dht
                       }
                     else
                       {
-                        dead = _vnode->is_dead(loc->getDHTKey(),loc->getNetAddress(),status);
+                        dead = _vnode->is_dead(*loc,loc->getNetAddress(),status);
                         if (dead)
                           {
                             _vnode->removeLocation(loc);
@@ -307,20 +307,20 @@ namespace dht
 
                 //debug
                 assert(loc!=NULL);
-                assert(loc->getDHTKey().count()>0);
-                assert(loc->getDHTKeyRef() == (*kit));
+                assert(loc->count()>0);
+                assert(static_cast<DHTKey>(*loc) == (*kit));
                 //debug
 
                 // add it to the list, before sit.
                 prev_succ_key = (*sit);
-                _vnode->_successors._succs.insert(sit,&loc->getDHTKeyRef());
+                _vnode->_successors._succs.insert(sit,loc);
                 mutex_lock(&_stable_mutex);
                 _stable_pass1 = false;
                 mutex_unlock(&_stable_mutex);
 
 #ifdef DEBUG
                 //debug
-                std::cerr << "added to successor list: " << loc->getDHTKeyRef() << std::endl;
+                std::cerr << "added to successor list: " << loc << std::endl;
                 //debug
 #endif
 
@@ -432,19 +432,19 @@ namespace dht
 
 #ifdef DEBUG
         //debug
-        std::cerr << "[Debug]: in succlist findclosestpredecessor: " << loc->getDHTKey() << std::endl;
+        std::cerr << "[Debug]: in succlist findclosestpredecessor: " << loc << std::endl;
         std::cerr << "? in [vnode key=" << _vnode->getIdKey() << ", nodekey=" << nodeKey << std::endl;
         //debug
 #endif
 
-        if (loc->getDHTKey().between(_vnode->getIdKey(),nodeKey))
+        if (loc->between(_vnode->getIdKey(),nodeKey))
           {
-            dkres = loc->getDHTKey();
+            dkres = *loc;
             na = loc->getNetAddress();
             if (sit2 != _succs.end())
               {
                 Location *loc2 = _vnode->findLocation(*(*sit2));
-                dkres_succ = loc2->getDHTKey();
+                dkres_succ = *loc2;
                 dkres_succ_na = loc2->getNetAddress();
               }
             return;

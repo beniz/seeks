@@ -1,8 +1,9 @@
-/**
+/* -*- mode: c++ -*-
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,30 +27,17 @@
 
 namespace dht
 {
-  class Location
+  class Location : public DHTKey
   {
     public:
       Location();
 
       Location(const DHTKey& key, const NetAddress& na);
 
+      Location(const DHTKey& dk) : DHTKey(dk) {}
+
       ~Location();
 
-      /**
-       * accessors.
-       */
-      DHTKey getDHTKey() const
-      {
-        return _key;
-      }
-      DHTKey& getDHTKeyRef()
-      {
-        return _key;
-      };
-      void setDHTKey(const DHTKey &dk)
-      {
-        _key = dk;
-      }
       NetAddress getNetAddress() const
       {
         return _na;
@@ -75,7 +63,6 @@ namespace dht
       bool operator!=(const Location &loc) const;
 
     private:
-      DHTKey _key;  /**< location key id. */
       NetAddress _na; /**< location address. */
       uint32_t _last_check_time; /**< last time this node has responded. */
   };

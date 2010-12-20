@@ -142,7 +142,7 @@ int exec_command(std::vector<std::string> &tokens,
           return 1;
         }
       output = "host node to " + tokens.at(1) + " is "
-               + node->getDHTKey().to_rstring() + " at " + node->getNetAddress().toString();
+               + node->to_rstring() + " at " + node->getNetAddress().toString();
       return 0;
     }
   else if (command == "subscribe" || command == "subscribe_sg")
@@ -188,7 +188,7 @@ int exec_command(std::vector<std::string> &tokens,
           return 1;
         }
       output = "host node to " + tokens.at(1) + " is "
-               + node->getDHTKey().to_rstring() + " at " + node->getNetAddress().toString();
+               + node->to_rstring() + " at " + node->getNetAddress().toString();
       if (peers.empty())
         output += "\nno peers";
       else

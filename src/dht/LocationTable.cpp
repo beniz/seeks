@@ -75,7 +75,7 @@ namespace dht
   void LocationTable::addToLocationTable(Location *&loc)
   {
     hash_map<const DHTKey*,Location*,hash<const DHTKey*>,eqdhtkey>::iterator hit;
-    if ((hit=_hlt.find(&loc->getDHTKeyRef()))!=_hlt.end())
+    if ((hit=_hlt.find(loc))!=_hlt.end())
       {
         if (loc)
           delete loc;
@@ -83,7 +83,7 @@ namespace dht
         return;
       }
     mutex_lock(&_lt_mutex);
-    _hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
+    _hlt.insert(std::pair<const DHTKey*,Location*>(loc,loc));
     mutex_unlock(&_lt_mutex);
   }
 
@@ -111,7 +111,7 @@ namespace dht
     else
       {
         Location* loc = new Location(dk, na);
-        _hlt.insert(std::pair<const DHTKey*,Location*>(&loc->getDHTKeyRef(),loc));
+        _hlt.insert(std::pair<const DHTKey*,Location*>(loc,loc));
         return loc;
       }
   }
@@ -120,7 +120,7 @@ namespace dht
   {
     mutex_lock(&_lt_mutex);
     hash_map<const DHTKey*, Location*, hash<const DHTKey*>, eqdhtkey>::iterator hit;
-    if ((hit = _hlt.find(&loc->getDHTKeyRef())) != _hlt.end())
+    if ((hit = _hlt.find(loc)) != _hlt.end())
       {
         Location *loc = (*hit).second;
         _hlt.erase(hit);
@@ -128,7 +128,7 @@ namespace dht
       }
     else
       {
-        errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->getDHTKey().to_rstring().c_str());
+        errlog::log_error(LOG_LEVEL_DHT, "removeLocation: can't find location to remove with key %s", loc->to_rstring().c_str());
       }
     mutex_unlock(&_lt_mutex);
   }
@@ -159,7 +159,7 @@ namespace dht
             continue;
           }
 
-        DHTKey lkey = loc->getDHTKey();
+        DHTKey lkey = *loc;
         DHTKey diff = lkey - dk;
 
         if (diff.count() == 0)
@@ -179,7 +179,7 @@ namespace dht
     assert(succ_loc!=NULL);
     //debug
 
-    dkres = succ_loc->getDHTKey();
+    dkres = *succ_loc;
   }
 
   bool LocationTable::has_only_virtual_nodes(DHTNode *pnode) const
@@ -188,7 +188,7 @@ namespace dht
     hit = _hlt.begin();
     while(hit!=_hlt.end())
       {
-        DHTKey lkey = (*hit).second->getDHTKey();
+        DHTKey lkey = *((*hit).second);
         if (!pnode->_transport->findVNode(lkey))
           return false;
         ++hit;
@@ -204,7 +204,7 @@ namespace dht
     while(hit!=_hlt.end())
       {
         Location *loc = (*hit).second;
-        out << loc->getDHTKey() << " -- ";
+        out << *loc << " -- ";
         loc->getNetAddress().print(out);
         out << std::endl;
         ++hit;

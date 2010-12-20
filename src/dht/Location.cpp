@@ -29,7 +29,7 @@ namespace dht
   }
 
   Location::Location(const DHTKey& key, const NetAddress& na)
-    : _key(key), _na(na)
+    : DHTKey(key), _na(na)
   {
   }
 
@@ -57,18 +57,12 @@ namespace dht
 
   bool Location::operator==(const Location &loc) const
   {
-    if (_key == loc.getDHTKey()
-        && _na == loc.getNetAddress())  // XXX: do not test on _last_check_time.
-      return true;
-    return false;
+    return DHTKey::operator==(loc) && _na == loc.getNetAddress();
   }
 
   bool Location::operator!=(const Location &loc) const
   {
-    if (_key != loc.getDHTKey()
-        || _na != loc.getNetAddress())
-      return true;
-    return false;
+    return DHTKey::operator!=(loc) || _na != loc.getNetAddress();
   }
 
 } /* end of namespace. */

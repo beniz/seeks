@@ -58,8 +58,7 @@ namespace dht
           {
             Location *loc = (*lit).second;
             l1::vnodeid *vid = loctable->add_locations();
-            DHTKey lvkey = loc->getDHTKey();
-            dkser = DHTKey::serialize(lvkey);
+            dkser = DHTKey::serialize(*loc);
             std::string vdkser_str(dkser.begin(),dkser.end());
             dkser.clear();
             l1::dht_key *ldkey = vid->mutable_key();
@@ -121,7 +120,7 @@ namespace dht
             //debug
 
             if (vkey == lvkey)
-              vnode_ids.push_back(&loc->getDHTKeyRef());
+              vnode_ids.push_back(loc);
           }
         vnode_ltables.push_back(lt);
       }

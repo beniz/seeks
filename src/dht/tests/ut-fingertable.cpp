@@ -130,7 +130,7 @@ TEST_F(FingerTableTest, fix_finger)
   Location* location = vnode1->getFingerTable()->_locs[KEYNBITS-1];
   EXPECT_NE((Location*)NULL, location);
   EXPECT_EQ(location, vnode1->getLocationTable()->findLocation(key3));
-  EXPECT_EQ(key3, location->getDHTKey());
+  EXPECT_EQ(key3, *location);
   EXPECT_EQ((Location*)NULL, vnode1->getFingerTable()->_locs[KEYNBITS-2]);
 
   // last slot of the finger table is replaced
@@ -144,7 +144,7 @@ TEST_F(FingerTableTest, fix_finger)
   location = vnode1->getFingerTable()->_locs[KEYNBITS-1];
   EXPECT_NE((Location*)NULL, location);
   EXPECT_EQ(location, vnode1->getLocationTable()->findLocation(key2));
-  EXPECT_EQ(key2, location->getDHTKey());
+  EXPECT_EQ(key2, *location);
 }
 
 int main(int argc, char **argv)

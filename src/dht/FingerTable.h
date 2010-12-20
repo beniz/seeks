@@ -1,4 +1,4 @@
-/**
+/** -*- mode: c++ -*-
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *

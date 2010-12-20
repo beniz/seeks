@@ -146,7 +146,7 @@ namespace dht
         // TODO: slow down the time between two pings by looking at a location 'alive' flag.
         Location *pred_loc = findLocation(pred);
         int status = 0;
-        bool dead = is_dead(pred_loc->getDHTKey(),pred_loc->getNetAddress(),status);
+        bool dead = is_dead(*pred_loc,pred_loc->getNetAddress(),status);
         if (dead)
           reset_pred = true;
         else if (senderKey.between(pred, _idkey))
@@ -181,7 +181,7 @@ namespace dht
             replication_trickle_forward(old_pred_loc->getDHTKey(),start_replication_radius);
 #endif
             // remove old_pred_loc from location table.
-            if (!_successors.has_key(old_pred_loc->getDHTKey())) // XXX: prevents rare case in which our predecessor is also our successor (two-nodes ring).
+            if (!_successors.has_key(*old_pred_loc)) // XXX: prevents rare case in which our predecessor is also our successor (two-nodes ring).
               removeLocation(old_pred_loc);
           }
       }
@@ -305,17 +305,17 @@ namespace dht
 
     Location succloc(succ,NetAddress()); // warning: at this point the address is not needed.
     RouteIterator rit;
-    rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
+    rit._hops.push_back(new Location(rloc,rloc.getNetAddress()));
 
     short nhops = 0;
     // while(!nodekey in ]rloc,succloc])
-    while(!nodeKey.between(rloc.getDHTKey(), succloc.getDHTKey())
-          && nodeKey != succloc.getDHTKey()) // equality: host node is the node with the same key as the looked up key.
+    while(!nodeKey.between(rloc, succloc)
+          && nodeKey != succloc) // equality: host node is the node with the same key as the looked up key.
       {
 #ifdef DEBUG
         //debug
         std::cerr << "[Debug]:find_predecessor: passed between test: nodekey "
-                  << nodeKey << " not between " << rloc.getDHTKey() << " and " << succloc.getDHTKey() << std::endl;
+                  << nodeKey << " not between " << rloc << " and " << succloc << std::endl;
         //debug
 #endif
 
@@ -336,7 +336,7 @@ namespace dht
          * RPC calls.
          */
         int status = -1;
-        const DHTKey recipientKey = rloc.getDHTKey();
+        const DHTKey recipientKey = rloc;
         const NetAddress recipient = rloc.getNetAddress();
         DHTKey succ_key = DHTKey();
         NetAddress succ_na = NetAddress();
@@ -372,7 +372,7 @@ namespace dht
 
                     Location *past_loc = (*rtit);
 
-                    RPC_findClosestPredecessor(past_loc->getDHTKey(),
+                    RPC_findClosestPredecessor(*past_loc,
                                                past_loc->getNetAddress(),
                                                recipientKey,dkres,na,
                                                succ_key,succ_na,status);
@@ -427,13 +427,13 @@ namespace dht
 
         //debug
         assert(dkres.count()>0);
-        assert(dkres != rloc.getDHTKey());
+        assert(dkres != rloc);
         //debug
 #endif
 
-        rloc.setDHTKey(dkres);
+        rloc = dkres;
         rloc.setNetAddress(na);
-        rit._hops.push_back(new Location(rloc.getDHTKey(),rloc.getNetAddress()));
+        rit._hops.push_back(new Location(rloc,rloc.getNetAddress()));
 
         if (succ_key.count() > 0
             && status == DHT_ERR_OK)
@@ -468,7 +468,7 @@ namespace dht
 
         assert(succ_key.count()>0);
 
-        succloc.setDHTKey(succ_key);
+        succloc = succ_key;
         succloc.setNetAddress(succ_na);
 
         nhops++;
@@ -514,14 +514,14 @@ namespace dht
         int status = DHT_ERR_OK;
         Location *succ_loc = findLocation(succ);
         Location *pred_loc = findLocation(pred);
-        RPC_notify(succ_loc->getDHTKey(),
+        RPC_notify(*succ_loc,
                    succ_loc->getNetAddress(),
-                   pred_loc->getDHTKey(),
+                   *pred_loc,
                    pred_loc->getNetAddress(),
                    status);
         if (status != DHT_ERR_OK)
           errlog::log_error(LOG_LEVEL_ERROR,"Failed to alert successor %s while leaving",
-                            succ_loc->getDHTKey().to_rstring().c_str());
+                            succ_loc->to_rstring().c_str());
         err = status;
       }
 
@@ -596,7 +596,7 @@ namespace dht
              */
             addToLocationTable(dk, na, loc);
           }
-        setSuccessor(loc->getDHTKey());
+        setSuccessor(*loc);
 
         /**
          * takes the first spot of the finger table.
@@ -648,7 +648,7 @@ namespace dht
                          */
             addToLocationTable(dk, na, loc);
           }
-        setPredecessor(loc->getDHTKey());
+        setPredecessor(*loc);
         loc->update(na);
       }
   }
@@ -672,9 +672,9 @@ namespace dht
   void DHTVirtualNode::removeLocation(Location *loc)
   {
     _fgt->removeLocation(loc);
-    _successors.removeKey(loc->getDHTKey());
+    _successors.removeKey(*loc);
     mutex_lock(&_pred_mutex);
-    if (_predecessor && *_predecessor == loc->getDHTKey())
+    if (_predecessor && *_predecessor == *loc)
       _predecessor = NULL; // beware.
     mutex_unlock(&_pred_mutex);
     _lt->removeLocation(loc);
@@ -704,8 +704,8 @@ namespace dht
   {
     DHTKey succ = getSuccessorS();
     if (!_fgt->has_key(-1,loc)
-        && !isPredecessorEqual(loc->getDHTKey())
-        && (!succ.count() || succ != loc->getDHTKey()))
+        && !isPredecessorEqual(*loc)
+        && (!succ.count() || succ != *loc))
       return true;
     return false;
   }
@@ -1609,7 +1609,7 @@ namespace dht
 
     while(retries-- > 0)
       {
-        RPC_getPredecessor(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+        RPC_getPredecessor(*succ_loc, succ_loc->getNetAddress(),
                            predecessor, na_predecessor, status);
         if(status != DHT_ERR_COM_TIMEOUT)
           return status;
@@ -1622,7 +1622,7 @@ namespace dht
     Location* succ_loc = findLocation(getSuccessorS());
     dht_err status;
 
-    RPC_notify(succ_loc->getDHTKey(), succ_loc->getNetAddress(),
+    RPC_notify(*succ_loc, succ_loc->getNetAddress(),
                getIdKey(),getNetAddress(),
                status);
   }
@@ -1639,7 +1639,7 @@ namespace dht
       {
         throw dht_exception(DHT_ERR_UNKNOWN, "this should not happen. It does when self-bootstrapping in non routing mode. a hopeless situation.");
       }
-    else if (!vpred.count() || successor_predecessor_loc->getDHTKey() != vpred)
+    else if (!vpred.count() || *successor_predecessor_loc != vpred)
       setPredecessor(successor_predecessor, na_successor_predecessor);
   }
 

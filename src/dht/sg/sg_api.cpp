@@ -47,7 +47,7 @@ namespace dht
     DHTKey senderKey;
     NetAddress senderAddress;
     int status = DHT_ERR_OK;
-    static_cast<SGVirtualNode*>(vnode)->RPC_subscribe(node.getDHTKey(),
+    static_cast<SGVirtualNode*>(vnode)->RPC_subscribe(node,
         node.getNetAddress(),
         senderKey,senderAddress, // empty
         sg_key,peers,status);
@@ -64,7 +64,7 @@ namespace dht
     DHTKey senderKey = vnode->getIdKey();
     NetAddress senderAddress = sgnode._l1_na;
     int status = DHT_ERR_OK;
-    static_cast<SGVirtualNode*>(vnode)->RPC_subscribe(node.getDHTKey(),
+    static_cast<SGVirtualNode*>(vnode)->RPC_subscribe(node,
         node.getNetAddress(),
         senderKey,senderAddress,
         sg_key,peers,status);

@@ -73,9 +73,9 @@ namespace dht
         if (!loc)
           continue;
 
-        if (loc->getDHTKey().between(getVNodeIdKey(), nodeKey))
+        if ((*loc).between(getVNodeIdKey(), nodeKey))
           {
-            dkres = loc->getDHTKey();
+            dkres = *loc;
 
 #ifdef DEBUG
             //debug
@@ -161,7 +161,7 @@ namespace dht
     if (curr_loc && rloc != curr_loc)
       {
         // remove location if it not used in other lists.
-        if (!_vnode->_successors.has_key(curr_loc->getDHTKey()))
+        if (!_vnode->_successors.has_key(*curr_loc))
           _vnode->removeLocation(curr_loc);
       }
 
