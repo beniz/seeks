@@ -36,12 +36,17 @@ namespace dht
 
       Location(const DHTKey& dk) : DHTKey(dk) {}
 
+      Location(unsigned long val) : DHTKey(val) {}
+
+      Location(const Location& location) : DHTKey(location), _na(location._na) {}
+
       ~Location();
 
       NetAddress getNetAddress() const
       {
         return _na;
       }
+
       void setNetAddress(const NetAddress& na)
       {
         _na = na;
@@ -52,9 +57,6 @@ namespace dht
        * @param na net address.
        */
       void update(const NetAddress& na);
-#if 0
-      void update_check_time();
-#endif
 
       /**
        * operators.
@@ -64,7 +66,6 @@ namespace dht
 
     private:
       NetAddress _na; /**< location address. */
-      uint32_t _last_check_time; /**< last time this node has responded. */
   };
 
 } /* end of namespace */

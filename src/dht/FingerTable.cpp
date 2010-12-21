@@ -216,10 +216,10 @@ namespace dht
     if (vpred.count())
       out << "predecessor: " << vpred << std::endl;
     out << "successor list (" << _vnode->_successors.size() << "): ";
-    std::list<const DHTKey*>::const_iterator lit = _vnode->_successors._succs.begin();
-    while(lit!=_vnode->_successors._succs.end())
+    std::list<Location>::const_iterator lit = _vnode->_successors.begin();
+    while(lit!=_vnode->_successors.end())
       {
-        out << *(*lit) << std::endl;
+        out << *lit << std::endl;
         ++lit;
       }
     /* for (int i=0;i<KEYNBITS;i++)

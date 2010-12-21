@@ -37,7 +37,7 @@ using sp::errlog;
 namespace dht
 {
   DHTVirtualNode::DHTVirtualNode(Transport* transport)
-    : _lt(NULL),_transport(transport),_successor(NULL),_predecessor(NULL),
+    : _lt(NULL),_transport(transport),_predecessor(NULL),
       _successors(this),_fgt(NULL),_nnodes(0),_nnvnodes(0),_connected(false)
   {
     /**
@@ -58,7 +58,7 @@ namespace dht
   }
 
   DHTVirtualNode::DHTVirtualNode(Transport *transport, const DHTKey &idkey)
-    : _lt(NULL), _transport(transport),_successor(NULL),_predecessor(NULL),
+    : _lt(NULL), _transport(transport),_predecessor(NULL),
       _successors(this),_fgt(NULL),_nnodes(0),_nnvnodes(0),_connected(false)
   {
     /**
@@ -75,12 +75,6 @@ namespace dht
 
   DHTVirtualNode::~DHTVirtualNode()
   {
-    mutex_lock(&_succ_mutex);
-    if (_successor)
-      delete _successor;
-    _successor = NULL;
-    mutex_unlock(&_succ_mutex);
-
     mutex_lock(&_pred_mutex);
     if (_predecessor)
       delete _predecessor;
@@ -229,7 +223,6 @@ namespace dht
     _connected = true;
 
     setSuccessor(dkres,na);
-    update_successor_list_head();
   }
 
   dht_err DHTVirtualNode::find_successor(const DHTKey& nodeKey,
@@ -550,9 +543,7 @@ namespace dht
 #endif
 
     mutex_lock(&_succ_mutex);
-    if (_successor)
-      delete _successor;
-    _successor = new DHTKey(dk);
+    _successors.getSuccessor() = dk;
     mutex_unlock(&_succ_mutex);
   }
 
@@ -710,13 +701,6 @@ namespace dht
     return false;
   }
 
-  void DHTVirtualNode::update_successor_list_head()
-  {
-    mutex_lock(&_succ_mutex);
-    _successors.set_direct_successor(_successor);
-    mutex_unlock(&_succ_mutex);
-  }
-
   bool DHTVirtualNode::isSuccStable() const
   {
     return _successors.isStable();
@@ -818,17 +802,9 @@ namespace dht
   DHTKey DHTVirtualNode::getSuccessorS()
   {
     mutex_lock(&_succ_mutex);
-    if (_successor)
-      {
-        DHTKey res = *_successor;
-        mutex_unlock(&_succ_mutex);
-        return res;
-      }
-    else
-      {
-        mutex_unlock(&_succ_mutex);
-        return DHTKey();
-      }
+    DHTKey successor =  _successors.getSuccessor();
+    mutex_unlock(&_succ_mutex);
+    return successor;
   }
 
 #define hash_get_successor                 3682586751ul    /* "get-successor" */
@@ -1110,10 +1086,10 @@ namespace dht
     /**
      * return successor list.
      */
-    std::list<const DHTKey*>::const_iterator sit = vnode->_successors._succs.begin();
-    while(sit!=vnode->_successors._succs.end())
+    std::list<Location>::const_iterator sit = vnode->_successors.begin();
+    while(sit!=vnode->_successors.end())
       {
-        dkres_list.push_back(*(*sit));
+        dkres_list.push_back(*sit);
         ++sit;
       }
 
@@ -1561,6 +1537,8 @@ namespace dht
 
   void DHTVirtualNode::stabilize() throw (dht_exception)
   {
+    if(getSuccessorS().count() == 0)
+      throw dht_exception(DHT_ERR_RETRY, "the successor is not set yet");
     DHTKey successor_predecessor;
     NetAddress na_successor_predecessor;
     if(stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor))
@@ -1569,7 +1547,6 @@ namespace dht
           {
             addOrFindToLocationTable(successor_predecessor, na_successor_predecessor);
             setSuccessor(successor_predecessor, na_successor_predecessor);
-            update_successor_list_head();
           }
       }
     if (dht_configuration::_dht_config->_routing)
@@ -1585,17 +1562,17 @@ namespace dht
   bool DHTVirtualNode::stabilize_successor_predecessor_loop(DHTKey& successor_predecessor, NetAddress& na_successor_predecessor)
   {
     std::set<DHTKey> deads;
-    while(_successors._succs.begin() != _successors._succs.end())
+    while(_successors.begin() != _successors.end())
       {
-        const DHTKey* successor = *(getFirstSuccessor());
-        if(stabilize_successor_predecessor(*successor, successor_predecessor, na_successor_predecessor) == DHT_ERR_OK)
+        const DHTKey successor = *(getFirstSuccessor());
+        if(stabilize_successor_predecessor(successor, successor_predecessor, na_successor_predecessor) == DHT_ERR_OK)
           return deads.find(successor_predecessor) == deads.end();
-        deads.insert(*successor);
-        Location* successor_loc = findLocation(*successor);
+        deads.insert(successor);
+        Location* successor_loc = findLocation(successor);
         if(successor_loc)
           removeLocation(successor_loc); // removes from _successors._succs as a side effect
         else
-          _successors._succs.pop_front();
+          _successors.pop_front();
       }
     // TODO: the application must catch this exception and try to rejoin using a well known entry point in the ring
     throw dht_exception(DHT_ERR_RETRY, "exhausted successor list while running stabilize");

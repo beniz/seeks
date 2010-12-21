@@ -134,10 +134,6 @@ namespace dht
       {
         return _transport;
       }
-      DHTKey *getSuccessorPtr() const
-      {
-        return _successor;
-      }
       DHTKey getSuccessorS();
       void setSuccessor(const DHTKey &dk);
       void setSuccessor(const DHTKey& dk, const NetAddress& na);
@@ -160,11 +156,11 @@ namespace dht
       {
         return _fgt;
       }
-      std::list<const DHTKey*>::const_iterator getFirstSuccessor() const
+      std::list<Location>::const_iterator getFirstSuccessor() const
       {
         return _successors.begin();
       };
-      std::list<const DHTKey*>::const_iterator endSuccessor() const
+      std::list<Location>::const_iterator endSuccessor() const
       {
         return _successors.end();
       };
@@ -179,9 +175,6 @@ namespace dht
       Location* addOrFindToLocationTable(const DHTKey& key, const NetAddress& na);
       bool isPredecessorEqual(const DHTKey &key);
       bool not_used_location(Location *loc);
-
-      /* update of successor list. */
-      void update_successor_list_head();
 
 #if 0 // not sure what is the purpose 
       /**
@@ -378,11 +371,6 @@ namespace dht
       DHTKey _idkey;
 
       Transport* _transport;
-
-      /**
-       * closest known successor on the circle.
-       */
-      DHTKey* _successor;
 
       /**
        * closest known predecessor on the circle.

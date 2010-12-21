@@ -60,10 +60,6 @@ namespace dht
       {
         return _vnode->getNetAddress();
       }
-      DHTKey* getVNodeSuccessorPtr() const
-      {
-        return _vnode->getSuccessorPtr();
-      }
       DHTKey getVNodeSuccessorS() const
       {
         return _vnode->getSuccessorS();

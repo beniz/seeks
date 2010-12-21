@@ -32,6 +32,8 @@
 using namespace dht;
 using sp::errlog;
 
+#include "ut-utils.h"
+
 // dkey1 < dkey2 < ... < dkey9
 const std::string dkey1 = "10000bf4851cb0b569eee7023b79db6aecfc7bed";
 const std::string dkey2 = "20000bf4851cb0b569eee7023b79db6aecfc7bed";
@@ -43,103 +45,7 @@ const std::string dkey7 = "70000bf4851cb0b569eee7023b79db6aecfc7bed";
 const std::string dkey8 = "80000bf4851cb0b569eee7023b79db6aecfc7bed";
 const std::string dkey9 = "90000bf4851cb0b569eee7023b79db6aecfc7bed";
 
-#define PORT 1234
-
-class TransportTest : public Transport
-{
-  public:
-
-    TransportTest() : Transport(NetAddress("self", PORT)) {}
-
-    virtual void do_rpc_call(const NetAddress &server_na,
-                             const DHTKey &recipientKey,
-                             const std::string &msg,
-                             const bool &need_response,
-                             std::string &response)
-    {
-      DHTVirtualNode* vnode = findVNode(recipientKey);
-
-      if(vnode)
-        {
-          serve_response(msg,"<self>",response);
-        }
-      else
-        {
-          throw dht_exception(DHT_ERR_COM_TIMEOUT, "test server timeout");
-        }
-    }
-
-    virtual void validate_sender_na(NetAddress& sender_na, const std::string& addr)
-    {
-      // relax sender verification for to allow for simulations
-    }
-
-};
-
-class DHTVirtualNodeTest : public testing::Test
-{
-  protected:
-    DHTVirtualNodeTest()
-      : _transport()
-    {
-    }
-
-    virtual ~DHTVirtualNodeTest()
-    {
-    }
-
-    virtual void SetUp()
-    {
-      // init logging module.
-      errlog::init_log_module();
-      errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT | LOG_LEVEL_INFO);
-
-      // craft a default configuration.
-      dht_configuration::_dht_config = new dht_configuration("");
-    }
-
-    virtual void TearDown()
-    {
-      if (dht_configuration::_dht_config)
-        delete dht_configuration::_dht_config;
-
-      hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
-      = _transport._vnodes.begin();
-      while(hit!=_transport._vnodes.end())
-        {
-          delete (*hit).second;
-          ++hit;
-        }
-    }
-
-    DHTVirtualNode* new_vnode(DHTKey key = DHTKey::randomKey())
-    {
-      DHTVirtualNode* vnode = new DHTVirtualNode(&_transport, key);
-      _transport._vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(vnode->getIdKey()),
-                                vnode));
-      return vnode;
-    }
-
-    DHTVirtualNode* bootstrap(DHTVirtualNode* vnode)
-    {
-      vnode->setSuccessor(vnode->getIdKey(), vnode->getNetAddress());
-      vnode->_connected = true;
-      return vnode;
-    }
-
-    void connect(DHTVirtualNode* first, DHTVirtualNode* second, DHTVirtualNode* third)
-    {
-      first->setSuccessor(second->getIdKey(), second->getNetAddress());
-      second->setPredecessor(first->getIdKey());
-
-      second->setSuccessor(third->getIdKey(), third->getNetAddress());
-      third->setPredecessor(second->getIdKey());
-
-      second->_connected = true;
-    }
-
-    TransportTest _transport;
-};
+typedef DHTTest DHTVirtualNodeTest;
 
 TEST_F(DHTVirtualNodeTest, init_vnode)
 {
@@ -157,7 +63,7 @@ TEST_F(DHTVirtualNodeTest, join)
   int status = DHT_ERR_UNKNOWN;
   ASSERT_FALSE(joining->_connected);
   ASSERT_EQ((Location*)NULL, joining->findLocation(vnode->getIdKey()));
-  EXPECT_TRUE(joining->_successors.empty());
+  EXPECT_EQ(1, joining->_successors.size());
 
   // try to join a node that timesout
   joining->join(DHTKey(), NetAddress(), joining->getIdKey(), status);
@@ -173,8 +79,8 @@ TEST_F(DHTVirtualNodeTest, join)
   ASSERT_NE((Location*)NULL, location);
   EXPECT_FALSE(joining->_successors.empty());
   EXPECT_EQ(location->getNetAddress(), vnode->getNetAddress());
-  EXPECT_EQ(*joining->getSuccessorPtr(), vnode->getIdKey());
-  EXPECT_EQ(*vnode->getSuccessorPtr(), vnode->getIdKey());
+  EXPECT_EQ(joining->getSuccessorS(), vnode->getIdKey());
+  EXPECT_EQ(vnode->getSuccessorS(), vnode->getIdKey());
 }
 
 TEST_F(DHTVirtualNodeTest, notify)
@@ -272,7 +178,6 @@ TEST_F(DHTVirtualNodeTest, find_predecessor)
 TEST_F(DHTVirtualNodeTest, stabilize)
 {
   DHTKey key1 = DHTKey::from_rstring(dkey1);
-  DHTVirtualNode* vnode1 = new_vnode(key1);
   DHTKey key2 = DHTKey::from_rstring(dkey2);
   DHTVirtualNode* vnode2 = new_vnode(key2);
   DHTKey key3 = DHTKey::from_rstring(dkey3);
@@ -292,14 +197,12 @@ TEST_F(DHTVirtualNodeTest, stabilize)
   //             <------- <------    E
   //
   vnode2->setSuccessor(key4, NetAddress());   // A
-  vnode2->update_successor_list_head();
   EXPECT_EQ(key4, vnode2->getSuccessorS());
   vnode4->setPredecessor(key3, NetAddress()); // B
   EXPECT_EQ(key3, vnode4->getPredecessorS());
   vnode3->setPredecessor(key1, NetAddress()); // B
   EXPECT_EQ(key1, vnode3->getPredecessorS());
   vnode3->setSuccessor(key4, NetAddress());   // C
-  vnode3->update_successor_list_head();
   EXPECT_EQ(key4, vnode3->getSuccessorS());
 
   vnode2->stabilize();
@@ -313,7 +216,7 @@ TEST_F(DHTVirtualNodeTest, stabilize)
 TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_throw)
 {
   DHTKey key2 = DHTKey::from_rstring(dkey2);
-  DHTVirtualNode* vnode2 = new_vnode(key2);
+  DHTVirtualNode* vnode2 = bootstrap(new_vnode(key2));
 
   DHTKey successor_predecessor;
   NetAddress na_successor_predecessor;
@@ -328,6 +231,27 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_throw)
     {
       caught = true;
       EXPECT_EQ(DHT_ERR_RETRY, e.code());
+      EXPECT_NE(std::string::npos, e.what().find("exhausted successor"));
+    }
+  EXPECT_TRUE(caught);
+}
+
+TEST_F(DHTVirtualNodeTest, stabilize_successor_not_set)
+{
+  DHTKey key2 = DHTKey::from_rstring(dkey2);
+  DHTVirtualNode* vnode2 = new_vnode(key2);
+
+  // the successor list is empty,
+  bool caught = false;
+  try
+    {
+      vnode2->stabilize();
+    }
+  catch(dht_exception& e)
+    {
+      caught = true;
+      EXPECT_EQ(DHT_ERR_RETRY, e.code());
+      EXPECT_NE(std::string::npos, e.what().find("successor is not set"));
     }
   EXPECT_TRUE(caught);
 }
@@ -344,7 +268,6 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_found)
   DHTKey key4 = DHTKey::from_rstring(dkey4);
   DHTVirtualNode* vnode4 = new_vnode(key4);
   vnode2->setSuccessor(key4, NetAddress());
-  vnode2->update_successor_list_head();
   vnode4->setPredecessor(key2, NetAddress());
   EXPECT_TRUE(vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor));
 }
@@ -372,8 +295,7 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_give_up)
   DHTVirtualNode* vnode4 = new_vnode(key4);
   DHTKey key3 = DHTKey::from_rstring(dkey3); // note that there is *no* vnode3, this yields to timeout
   vnode2->setSuccessor(key4, NetAddress());
-  vnode2->update_successor_list_head();
-  vnode2->_successors._succs.push_front(&key3);
+  vnode2->_successors.push_front(key3);
   vnode2->addOrFindToLocationTable(key3, NetAddress());
   vnode4->setPredecessor(key3, NetAddress());
   EXPECT_FALSE(vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor));
@@ -398,8 +320,7 @@ TEST_F(DHTVirtualNodeTest, stabilize_successor_predecessor_loop_fallback)
   DHTVirtualNode* vnode4 = new_vnode(key4);
   DHTKey key3 = DHTKey::from_rstring(dkey3); // note that there is *no* vnode3, this yields to timeout
   vnode2->setSuccessor(key4, NetAddress());
-  vnode2->update_successor_list_head();
-  vnode2->_successors._succs.push_front(&key3);
+  vnode2->_successors.push_front(key3);
   vnode2->addOrFindToLocationTable(key3, NetAddress());
   vnode4->setPredecessor(key2, NetAddress());
   EXPECT_TRUE(vnode2->stabilize_successor_predecessor_loop(successor_predecessor, na_successor_predecessor));

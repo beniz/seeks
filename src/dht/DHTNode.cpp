@@ -433,8 +433,6 @@ namespace dht
 
         vnode->_connected = true;
 
-        vnode->update_successor_list_head(); // sets successor in successor list.
-
 #ifdef DEBUG
         //debug
         std::cerr << "predecessor: " << vnode->getPredecessorS() << std::endl;
@@ -449,7 +447,7 @@ namespace dht
             if (j >= nv)
               j = 0;
             vnode->addOrFindToLocationTable(*vnode_keys_ord.at(j),_l1_na);
-            vnode->_successors._succs.push_back(vnode_keys_ord.at(j));
+            vnode->_successors.push_back(*vnode_keys_ord.at(j));
             c++;
             j++;
           }
@@ -457,8 +455,8 @@ namespace dht
 #ifdef DEBUG
         //debug
         std::cerr << "successor list (" << vnode->_successors.size() << "): ";
-        std::list<const DHTKey*>::const_iterator lit = vnode->_successors._succs.begin();
-        while(lit!=vnode->_successors._succs.end())
+        std::list<const DHTKey*>::const_iterator lit = vnode->_successors.begin();
+        while(lit!=vnode->_successors.end())
           {
             std::cerr << *(*lit) << std::endl;
             ++lit;

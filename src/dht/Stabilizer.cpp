@@ -336,7 +336,6 @@ namespace dht
         timespec tsp, tsnow;
         clock_gettime(CLOCK_REALTIME,&tsnow);
         tsp.tv_sec = tsnow.tv_sec + dht_configuration::_dht_config->_rejoin_timeout; // XXX: we leave nanoseconds to 0.
-        bool output = false;
         callback<int>::ref fscb= wrap(this, &Stabilizer::rejoin, vnode);
         insert(tsp, fscb);
         return 0;

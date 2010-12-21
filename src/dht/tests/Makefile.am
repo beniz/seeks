@@ -20,11 +20,15 @@
 #
 #automake file for seeks dht tests
 
-check_PROGRAMS=ut_dhtkey ut_dhtvirtualnode ut_fingertable # ut_dht_bootstrap
+check_PROGRAMS=ut_dhtkey ut_dhtvirtualnode ut_fingertable ut_successorlist ut_location # ut_dht_bootstrap
 ut_dhtkey_SOURCES=ut-dhtkey.cpp
 ut_dhtvirtualnode_SOURCES=ut-dhtvirtualnode.cpp
 ut_fingertable_SOURCES=ut-fingertable.cpp
+ut_successorlist_SOURCES=ut-successorlist.cpp
+ut_location_SOURCES=ut-location.cpp
 #ut_dht_bootstrap_SOURCES=ut-dht-bootstrap.cpp
+
+EXTRA_DIST = ut-utils.h
 
 TESTS = $(check_PROGRAMS)
 

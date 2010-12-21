@@ -40,7 +40,7 @@ namespace dht
    *        The first element of the list is the successor itself, that is replicated
    *        in the DHTVirtualNode class.
    */
-  class SuccList : public Stabilizable
+  class SuccList : public Stabilizable, public std::list<Location>
   {
     public:
       /**
@@ -53,38 +53,28 @@ namespace dht
        */
       ~SuccList();
 
-      /**
-       * \brief clears the list of successors.
-       */
-      void clear();
-
-      std::list<const DHTKey*>::const_iterator begin() const
+      Location& getSuccessor()
       {
-        return _succs.begin();
-      };
+        return front();
+      }
 
-      std::list<const DHTKey*>::const_iterator end() const
+      const Location& getSuccessor() const
       {
-        return _succs.end();
-      };
+        return front();
+      }
 
-      void pop_front();
-
-      void set_direct_successor(const DHTKey *succ_key);
-
-      bool empty() const
+      void setSuccessor(const Location& successor)
       {
-        return _succs.empty();
-      };
+        front() = successor;
+      }
 
-      size_t size() const
-      {
-        return _succs.size();
-      };
+      void update_successors();
 
-      void update_successors() throw (dht_exception);
+      void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list);
 
-      void merge_succ_list(std::list<DHTKey> &dkres_list, std::list<NetAddress> &na_list) throw (dht_exception);
+      void merge_list(std::list<Location>& other);
+
+      void check();
 
       bool has_key(const DHTKey &key) const;
 
@@ -98,28 +88,25 @@ namespace dht
       /**
        * virtual functions, from Stabilizable.
        */
-      virtual void stabilize_fast() throw (dht_exception) {};
+      virtual void stabilize_fast() {};
 
-      virtual void stabilize_slow() throw (dht_exception)
+      virtual void stabilize_slow()
       {
         update_successors();
       };
 
-      virtual bool isStable() const;
+      virtual bool isStable() const
+      {
+        return _stable;
+      }
 
     public:
-      std::list<const DHTKey*> _succs;
-
       DHTVirtualNode *_vnode;
 
       static short _max_list_size;
 
     private:
-      /**
-       * List stability is maintained over two passes.
-       */
-      bool _stable_pass1;
-      bool _stable_pass2;
+      bool _stable;
       sp_mutex_t _stable_mutex; // mutex around stable indicator variables.
   };
 

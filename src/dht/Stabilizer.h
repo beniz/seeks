@@ -48,9 +48,9 @@ namespace dht
 
       virtual ~Stabilizable() {};
 
-      virtual void stabilize_fast() throw (dht_exception) {};
+      virtual void stabilize_fast() {};
 
-      virtual void stabilize_slow() throw (dht_exception) {};
+      virtual void stabilize_slow() {};
 
       virtual bool isStable() const
       {

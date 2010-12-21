@@ -3,6 +3,7 @@
  * a collaborative websearch overlay network.
  *
  * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -180,8 +181,8 @@ TEST(DHTKeyTest, ripemd160)
 TEST(DHTKeyTest, less)
 {
   std::less<DHTKey> f;
-  ASSERT_FALSE(f(DHTKey(2),DHTKey(3)));
-  ASSERT_TRUE(f(DHTKey(3),DHTKey(2)));
+  ASSERT_TRUE(f(DHTKey(2),DHTKey(3)));
+  ASSERT_FALSE(f(DHTKey(3),DHTKey(2)));
   ASSERT_FALSE(f(DHTKey(3),DHTKey(3)));
 }
 
@@ -209,5 +210,5 @@ TEST(DHTKeyTest, less)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  RUN_ALL_TESTS();
+  return RUN_ALL_TESTS();
 }

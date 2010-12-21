@@ -2,8 +2,7 @@
  * This is the p2p messaging component of the Seeks project,
  * a collaborative websearch overlay network.
  *
- * Copyright (C) 2006, 2010  Emmanuel Benazera, juban@free.fr
- * Copyright (C) 2010  Loic Dachary <loic@dachary.org>
+ * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,41 +18,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
+#include <gtest/gtest.h>
+
 #include "Location.h"
+#include <functional>
 
-#include <sys/time.h>
+#include <queue>
+#include <vector>
+#include <functional>
 
-namespace dht
+using namespace dht;
+
+TEST(LocationTest, less)
 {
-  Location::Location()
-  {
-  }
+  std::less<Location> f;
+  ASSERT_TRUE(f(Location(2),Location(3)));
+  ASSERT_FALSE(f(Location(3),Location(2)));
+  ASSERT_FALSE(f(Location(3),Location(3)));
+}
 
-  Location::Location(const DHTKey& key, const NetAddress& na)
-    : DHTKey(key), _na(na)
-  {
-  }
-
-  Location::~Location()
-  {
-  }
-
-  void Location::update(const NetAddress& na)
-  {
-    if (_na.operator!=(na))
-      {
-        _na = na;
-      }
-  }
-
-  bool Location::operator==(const Location &loc) const
-  {
-    return DHTKey::operator==(loc) && _na == loc.getNetAddress();
-  }
-
-  bool Location::operator!=(const Location &loc) const
-  {
-    return DHTKey::operator!=(loc) || _na != loc.getNetAddress();
-  }
-
-} /* end of namespace. */
+int main(int argc, char **argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

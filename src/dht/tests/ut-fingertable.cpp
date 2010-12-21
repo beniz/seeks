@@ -32,79 +32,9 @@
 using namespace dht;
 using sp::errlog;
 
-// dkey0 < dkey2 < ... < dkey8
-const std::string dkey0 = "0000000000000000000000000000000000000000";
-const std::string dkey1 = "1000000000000000000000000000000000000000";
-const std::string dkey2 = "2000000000000000000000000000000000000000";
-const std::string dkey4 = "4000000000000000000000000000000000000000";
-const std::string dkey8 = "8000000000000000000000000000000000000000";
+#include "ut-utils.h"
 
-#define PORT 1234
-
-class FingerTableTest : public testing::Test
-{
-  protected:
-    FingerTableTest()
-      : _transport(NetAddress("self", PORT))
-    {
-    }
-
-    virtual ~FingerTableTest()
-    {
-    }
-
-    virtual void SetUp()
-    {
-      // init logging module.
-      errlog::init_log_module();
-      errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_DHT | LOG_LEVEL_INFO);
-
-      // craft a default configuration.
-      dht_configuration::_dht_config = new dht_configuration("");
-    }
-
-    virtual void TearDown()
-    {
-      if (dht_configuration::_dht_config)
-        delete dht_configuration::_dht_config;
-
-      hash_map<const DHTKey*,DHTVirtualNode*,hash<const DHTKey*>,eqdhtkey>::iterator hit
-      = _transport._vnodes.begin();
-      while(hit!=_transport._vnodes.end())
-        {
-          delete (*hit).second;
-          ++hit;
-        }
-    }
-
-    DHTVirtualNode* bootstrap(DHTVirtualNode* vnode)
-    {
-      vnode->setSuccessor(vnode->getIdKey(), vnode->getNetAddress());
-      vnode->_connected = true;
-      return vnode;
-    }
-
-    DHTVirtualNode* new_vnode(DHTKey key = DHTKey::randomKey())
-    {
-      DHTVirtualNode* vnode = new DHTVirtualNode(&_transport, key);
-      _transport._vnodes.insert(std::pair<const DHTKey*,DHTVirtualNode*>(new DHTKey(vnode->getIdKey()),
-                                vnode));
-      return vnode;
-    }
-
-    void connect(DHTVirtualNode* first, DHTVirtualNode* second, DHTVirtualNode* third)
-    {
-      first->setSuccessor(second->getIdKey(), second->getNetAddress());
-      second->setPredecessor(first->getIdKey());
-
-      second->setSuccessor(third->getIdKey(), third->getNetAddress());
-      third->setPredecessor(second->getIdKey());
-
-      second->_connected = true;
-    }
-
-    Transport _transport;
-};
+typedef DHTTest FingerTableTest;
 
 TEST_F(FingerTableTest, constructor)
 {
