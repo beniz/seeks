@@ -291,6 +291,10 @@ namespace seeks_plugins
 				 const float &total_hits)
   {
     float posterior = 0.0;
+
+    std::cerr << "ns: " << ns << std::endl;
+    std::cerr << "domain weight: " << cf_configuration::_config->_domain_name_weight << std::endl;
+    std::cerr << "total hits: " << total_hits << std::endl;
     
     if (!vd_url)
       //posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
@@ -305,6 +309,7 @@ namespace seeks_plugins
 	    s->_meta_rank++;
 	  }
       }
+    std::cerr << "posterior1: " << posterior << std::endl;
 
     // host.
     if (!vd_host || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
@@ -319,7 +324,7 @@ namespace seeks_plugins
         if (s)
 	  s->_personalized = true;
       }
-    //std::cerr << "posterior: " << posterior << std::endl;
+    std::cerr << "posterior: " << posterior << std::endl;
 
     return posterior;
   }
@@ -386,13 +391,13 @@ namespace seeks_plugins
     std::vector<db_record*> records;
     rank_estimator::fetch_user_db_record(query,records);
 
-    //std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
+    //std::cerr << "[recommend_urls]: number of fetched records: " << records.size() << std::endl;
 
     // extract queries.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     rank_estimator::extract_queries(query,qc,records,qdata);
 
-    //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
+    //std::cerr << "[recommend_urls]: number of extracted queries: " << qdata.size() << std::endl;
 
     // destroy records.
     std::vector<db_record*>::iterator rit = records.begin();
@@ -404,7 +409,7 @@ namespace seeks_plugins
       }
     
     // gather normalizing values.
-    int nvurls = 0;
+    int nvurls = 1.0;
     int i = 0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
@@ -470,9 +475,8 @@ namespace seeks_plugins
 	      }
 	    
 	    ++vit;
-	    ++i;
 	  }
-	
+	++i;
 	++hit;
       }
     
