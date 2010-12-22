@@ -291,10 +291,6 @@ namespace seeks_plugins
 				 const float &total_hits)
   {
     float posterior = 0.0;
-
-    std::cerr << "ns: " << ns << std::endl;
-    std::cerr << "domain weight: " << cf_configuration::_config->_domain_name_weight << std::endl;
-    std::cerr << "total hits: " << total_hits << std::endl;
     
     if (!vd_url)
       //posterior =  1.0 / (log(static_cast<float>(ns) + 1.0) + 1.0); // XXX: may replace ns with a less discriminative value.
@@ -309,8 +305,7 @@ namespace seeks_plugins
 	    s->_meta_rank++;
 	  }
       }
-    std::cerr << "posterior1: " << posterior << std::endl;
-
+    
     // host.
     if (!vd_host || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
 	|| s->_doc_type == IMAGE)  // empty or type with not enough competition on domains.
@@ -324,7 +319,7 @@ namespace seeks_plugins
         if (s)
 	  s->_personalized = true;
       }
-    std::cerr << "posterior: " << posterior << std::endl;
+    //std::cerr << "posterior: " << posterior << std::endl;
 
     return posterior;
   }
