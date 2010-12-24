@@ -213,12 +213,14 @@ namespace seeks_plugins
     char *title_enc = encode::html_encode(_title.c_str());
     std::string title = std::string(title_enc);
     free(title_enc);
+    miscutil::replace_in_string(title,"\\","\\\\");
     miscutil::replace_in_string(title,"\"","\\\"");
     json_str += "\"title\":\"" + title + "\",";
     std::string url = _url;
     miscutil::replace_in_string(url,"\"","\\\"");
     json_str += "\"url\":\"" + url + "\",";
     std::string summary = _summary;
+    miscutil::replace_in_string(summary,"\\","\\\\");
     miscutil::replace_in_string(summary,"\"","\\\"");
     json_str += "\"summary\":\"" + summary + "\",";
     json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
@@ -544,11 +546,15 @@ namespace seeks_plugins
       {
         const char *engines = miscutil::lookup(parameters,"engines");
         html_content += "<a class=\"search_cache\" href=\"";
-        html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
-                        + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
-        if (engines)
-          html_content += std::string(engines);
-        html_content += " \"> ";
+        if (!_personalized)
+	  {
+	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
+	    + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
+	    if (engines)
+	      html_content += std::string(engines);
+	  }
+        else html_content += url;
+	html_content += " \"> ";
         switch (_doc_type)
           {
           case UNKNOWN:
@@ -590,10 +596,12 @@ namespace seeks_plugins
           case WIKI:
             html_content += "Wiki";
             break;
+	  case REJECTED:
+	    break;
           }
         html_content += "</a>";
       }
-
+    
     html_content += "</div></li>\n";
 
     /* std::cout << "html_content:\n";
