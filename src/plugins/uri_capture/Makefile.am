@@ -32,3 +32,4 @@ nobase_dist_uricaptureplugindata_DATA=uri-patterns
 EXTRA_DIST = \
 	$(protoc_inputs)
 
+SUBDIRS = . tests
