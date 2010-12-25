@@ -5,14 +5,17 @@ LDADD=
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += \
+	-I$(top_builddir)/src/plugins/uri_capture \
 	-I$(top_builddir)/src/plugins/query_capture \
 	-I$(top_builddir)/src/plugins/cf
 
 AM_LDFLAGS += \
+	-L$(top_builddir)/src/plugins/uri_capture \
 	-L$(top_builddir)/src/plugins/query_capture \
 	-L$(top_builddir)/src/plugins/cf
 
 LDADD += \
+        -luricaptureplugin \
 	-lquerycaptureplugin \
 	-lcfplugin
 endif
