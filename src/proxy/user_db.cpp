@@ -50,7 +50,7 @@ namespace sp
   /*- user_db -*/
   std::string user_db::_db_name = "seeks_user.db"; // default.
   std::string user_db::_db_version_key = "db-version";
-  float user_db::_db_version = 0.3;
+  float user_db::_db_version = 0.4;
 
   user_db::user_db()
     :_opened(false)
@@ -340,6 +340,7 @@ namespace sp
       {
         // merge records and serialize.
         int err_m = edbr->merge_with(dbr); // virtual call.
+	
         edbr->update_creation_time(); // set creation time to the time of this update.
         if (err_m < 0)
           {
@@ -402,8 +403,14 @@ namespace sp
     if (!tchdbout2(_hdb,rkey.c_str()))
       {
         int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",tchdberrmsg(ecode));
-        return -1;
+        
+	// we do not catch the no record error.
+	if (ecode != TCENOREC)
+	  {
+	    errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",tchdberrmsg(ecode));
+	    return -1;
+	  }
+	return 1;
       }
     errlog::log_error(LOG_LEVEL_INFO,"removed record %s from user db",rkey.c_str());
     return 1;
