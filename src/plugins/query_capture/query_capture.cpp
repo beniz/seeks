@@ -88,8 +88,6 @@ namespace seeks_plugins
   }
 
   /*- query_capture -*/
-  query_capture_configuration* query_capture::_config = NULL;
-
   query_capture::query_capture()
       :plugin()
   {
@@ -110,9 +108,9 @@ namespace seeks_plugins
       }
 #endif
 
-    if (query_capture::_config == NULL)
-      query_capture::_config = new query_capture_configuration(_config_filename);
-    _configuration = query_capture::_config;
+    if (query_capture_configuration::_config == NULL)
+      query_capture_configuration::_config = new query_capture_configuration(_config_filename);
+    _configuration = query_capture_configuration::_config;
 
     // cgi dispatchers.
     _cgi_dispatchers.reserve(1);
@@ -126,6 +124,7 @@ namespace seeks_plugins
 
   query_capture::~query_capture()
   {
+    query_capture_configuration::_config = NULL; // configuration is deleted in parent class.
   }
 
   void query_capture::start()
@@ -431,6 +430,24 @@ namespace seeks_plugins
     if (!host.empty() && host != url)
       {
         db_query_record dbqr(plugin_name,query,radius,host);
+        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+      }
+  }
+
+  void query_capture_element::remove_url(const DHTKey &key, const std::string &query,
+					 const std::string &url, const std::string &host,
+					 const short &url_hits, const uint32_t &radius,
+					 const std::string &plugin_name)
+  {
+    std::string key_str = key.to_rstring();
+    if (!url.empty())
+      {
+        db_query_record dbqr(plugin_name,query,radius,url,1,-url_hits);
+        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+      }
+    if (!host.empty() && host != url)
+      {
+        db_query_record dbqr(plugin_name,query,radius,host,1,-url_hits);
         seeks_proxy::_user_db->add_dbr(key_str,dbqr);
       }
   }

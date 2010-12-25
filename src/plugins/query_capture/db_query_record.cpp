@@ -38,22 +38,26 @@ namespace seeks_plugins
   /*- query_data -*/
   query_data::query_data(const std::string &query,
                          const short &radius)
-    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL)
+    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL),
+     _record_key(NULL)
   {
   }
 
   query_data::query_data(const std::string &query,
                          const short &radius,
-                         const std::string &url)
-    :_query(query),_radius(radius),_hits(1)
+                         const std::string &url,
+			 const short &hits,
+			 const short &url_hits)
+    :_query(query),_radius(radius),_hits(hits),_record_key(NULL)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
-    vurl_data *vd = new vurl_data(url);
+    vurl_data *vd = new vurl_data(url,url_hits);
     add_vurl(vd);
   }
 
   query_data::query_data(const query_data *qd)
-    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL)
+    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL),
+     _record_key(NULL)
   {
     if (qd->_visited_urls)
       {
@@ -87,6 +91,8 @@ namespace seeks_plugins
         delete _visited_urls;
         _visited_urls = NULL;
       }
+    if (_record_key)
+      delete _record_key;
   }
 
   void query_data::create_visited_urls()
@@ -98,6 +104,10 @@ namespace seeks_plugins
 
   void query_data::merge(const query_data *qd)
   {
+    // XXX: query hits are not updated.
+    // this would require a special flag so that merging URLs
+    // does not impact on query hits.
+
     if (qd->_query != _query)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"trying to merge query record data for different queries");
@@ -119,6 +129,10 @@ namespace seeks_plugins
         if ((fhit=_visited_urls->find((*hit).first))!=_visited_urls->end())
           {
             (*fhit).second->merge((*hit).second);
+	    
+	    // remove URL if all hits have been cancelled.
+	    if ((*fhit).second->_hits == 0)
+	      _visited_urls->erase(fhit);
 	  }
         else
           {
@@ -180,10 +194,12 @@ namespace seeks_plugins
   db_query_record::db_query_record(const std::string &plugin_name,
                                    const std::string &query,
                                    const short &radius,
-                                   const std::string &url)
+                                   const std::string &url,
+				   const short &hits,
+				   const short &url_hits)
     :db_record(plugin_name)
   {
-    query_data *qd = new query_data(query,radius,url);
+    query_data *qd = new query_data(query,radius,url,hits,url_hits);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 

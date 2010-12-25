@@ -81,8 +81,6 @@ namespace seeks_plugins
       static void process_url(std::string &url, std::string &host, std::string &path);
 
       static void process_get(std::string &get);
-
-      static query_capture_configuration *_config;
   };
 
   class query_capture_element : public interceptor_plugin
@@ -111,6 +109,11 @@ namespace seeks_plugins
                             const uint32_t &radius,
                             const std::string &plugin_name);
 
+      static void remove_url(const DHTKey &key, const std::string &query,
+			     const std::string &url, const std::string &host,
+			     const short &url_hits, const uint32_t &radius,
+			     const std::string &plugin_name);
+      
       static void get_useful_headers(const std::list<const char*> &headers,
                                      std::string &host, std::string &referer,
                                      std::string &get, std::string &base_url);
