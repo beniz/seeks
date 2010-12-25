@@ -122,8 +122,8 @@ namespace sp
 	if (dlib == NULL)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "%s", dlerror());
-            //exit(-1);
-          }
+	    continue;
+	  }
 
         plugin_manager::_dl_list.insert(plugin_manager::_dl_list.end(),dlib); // add lib handle to the list.
 	
@@ -161,6 +161,10 @@ namespace sp
         ++vit;
       }
     plugin_manager::_plugins.clear();
+    plugin_manager::_ref_interceptor_plugins.clear();
+    plugin_manager::_ref_action_plugins.clear();
+    plugin_manager::_ref_filter_plugins.clear();
+    plugin_manager::_factory.clear();
 
     // close all the opened dynamic libs.
     std::list<void*>::iterator lit = plugin_manager::_dl_list.begin();
@@ -169,6 +173,7 @@ namespace sp
         dlclose((*lit));
         ++lit;
       }
+    plugin_manager::_dl_list.clear();
 
     return 1;
   }
