@@ -142,6 +142,7 @@ namespace sp
           }
       }
     else unlink(cudb._name.c_str()); // erase temporary db.
+    return err;
   }
 
   int user_db_fix::fix_issue_263()
