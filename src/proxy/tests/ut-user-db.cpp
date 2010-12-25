@@ -52,7 +52,6 @@ TEST(UserdbTest, all_fct)
 
   unlink(dbfile.c_str());
 
-  seeks_proxy::_configfile = "config";
   seeks_proxy::_configfile = basedir + "/config";
 
   seeks_proxy::initialize_mutexes();
