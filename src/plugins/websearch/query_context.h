@@ -176,6 +176,14 @@ namespace seeks_plugins
       bool detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       /**
+       * \brief detects query language in all cases and returns it.
+       * @param has_query_lang whether the language is within the query.
+       * @return query language.
+       */
+      static std::string detect_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+				     client_state *csp, bool &has_query_lang);
+      
+      /**
        * \brief detect query language, using http headers.
        */
       static std::string detect_query_lang_http(const std::list<const char*> &http_headers);

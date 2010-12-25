@@ -574,6 +574,33 @@ namespace seeks_plugins
     return "en-US"; // beware, returning hardcoded default (since config value is most likely "auto").
   }
 
+  std::string query_context::detect_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+					 client_state *csp, bool &has_query_lang)
+  {
+    std::string qlang;
+    has_query_lang = false;
+    if (query_context::has_lang(parameters,qlang))
+      {
+      }
+    else if (!(has_query_lang = query_context::has_query_lang(parameters,qlang)))
+      {
+        if (websearch::_wconfig->_lang == "auto")
+          {
+            std::string auto_lang_reg = query_context::detect_query_lang_http(csp->_headers);
+            try
+              {
+                qlang = auto_lang_reg.substr(0,2);
+              }
+            catch (std::exception &e)
+              {
+                qlang = "";
+              }
+          }
+        else qlang = websearch::_wconfig->_lang; // falling back onto default search language.
+      }
+    return qlang;
+  }
+
   void query_context::grab_useful_headers(const std::list<const char*> &http_headers)
   {
     std::list<const char*>::const_iterator sit = http_headers.begin();
