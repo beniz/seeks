@@ -546,7 +546,7 @@ namespace seeks_plugins
     if (_doc_type != REJECTED)
       {
         html_content += "<a class=\"search_cache\" href=\"";
-        if (!_personalized)
+        if (!prs)
 	  {
 	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
 	    + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
