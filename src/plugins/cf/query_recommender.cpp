@@ -69,17 +69,29 @@ namespace seeks_plugins
   }
 
   void query_recommender::recommend_queries(const std::string &query,
-					    const query_context *qc,
+					    const std::string &lang,
 					    std::multimap<double,std::string,std::less<double> > &related_queries)
   {
     // fetch records from user db.
-    std::vector<db_record*> records;
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
     rank_estimator::fetch_user_db_record(query,records);
     
     // aggregate related queries.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,qc,records,qdata);
+    rank_estimator::extract_queries(query,lang,records,qdata);
   
+    // destroy records.
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
+    while (rit!=records.end())
+      {
+        db_record *dbr = (*rit).second;
+	crit = rit;
+        ++rit;
+        delete dbr;
+	delete (*crit).first;
+      }
+
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);

@@ -6,7 +6,7 @@ seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
-	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir}/plugins/cf -I${srcdir}/dht \
+	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir]/plugins/uri_capture -I${srcdir}/plugins/cf -I${srcdir}/dht \
 	    `pkg-config opencv --cflags` 
 if HAVE_PROTOBUF
 if HAVE_TC
@@ -14,7 +14,7 @@ AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 endif
 endif
 AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch \
-	    -Lplugins/query_capture -Ldht/ 
+	    -Lplugins/query_capture -Lplugins/uri_capture -Ldht/ 
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_LDFLAGS += -Lplugins/cf `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
@@ -27,7 +27,7 @@ endif
 LDADD=-lseekswebsearchplugin 
 if HAVE_PROTOBUF
 if HAVE_TC
-LDADD += -lquerycaptureplugin -lcfplugin
+LDADD += -lquerycaptureplugin -luricaptureplugin -lcfplugin
 endif
 endif
 if HAVE_HTTPSERV_PLUGIN

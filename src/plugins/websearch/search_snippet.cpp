@@ -542,9 +542,9 @@ namespace seeks_plugins
       }
 
     // snippet type rendering
+    const char *engines = miscutil::lookup(parameters,"engines");
     if (_doc_type != REJECTED)
       {
-        const char *engines = miscutil::lookup(parameters,"engines");
         html_content += "<a class=\"search_cache\" href=\"";
         if (!_personalized)
 	  {
@@ -553,7 +553,7 @@ namespace seeks_plugins
 	    if (engines)
 	      html_content += std::string(engines);
 	  }
-        else html_content += url;
+        else html_content += _url;
 	html_content += " \"> ";
         switch (_doc_type)
           {
@@ -601,7 +601,17 @@ namespace seeks_plugins
           }
         html_content += "</a>";
       }
-    
+
+    // snippet thumb down rendering
+    if (_personalized)
+      {
+	html_content += "<a class=\"search_cache\" href=\"" + base_url_str + "/tbd?q="
+	  + _qc->_url_enc_query + "&amp;url=" + _url + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
+	if (engines)
+	  html_content += std::string(engines);
+	html_content += "\">Cancel</a>";
+      }
+
     html_content += "</div></li>\n";
 
     /* std::cout << "html_content:\n";

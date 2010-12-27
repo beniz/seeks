@@ -18,3 +18,4 @@ libcfplugin_la_SOURCES=cf.cpp rank_estimators.cpp query_recommender.cpp cf_confi
 cfpluginconfigdir = $(sysconfdir)/seeks
 dist_cfpluginconfig_DATA=cf-config
 
+SUBDIRS=. tests

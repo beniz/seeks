@@ -17,19 +17,18 @@
  */
 
 #include "cf.h"
+#include "websearch.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
 #include "query_recommender.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 #include "plugin_manager.h"
+#include "cgi.h"
+#include "miscutil.h"
 
 #include <sys/stat.h>
 #include <iostream>
-
-using sp::seeks_proxy;
-using sp::proxy_configuration;
-using sp::plugin_manager;
 
 namespace seeks_plugins
 {
@@ -60,10 +59,17 @@ namespace seeks_plugins
     if (cf_configuration::_config == NULL)
       cf_configuration::_config = new cf_configuration(_config_filename);
     _configuration = cf_configuration::_config;
+
+    // cgi dispatchers.
+    _cgi_dispatchers.reserve(1);
+    cgi_dispatcher *cgid_tbd
+      = new cgi_dispatcher("tbd",&cf::cgi_tbd,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_tbd);
   }
 
   cf::~cf()
   {
+    cf_configuration::_config = NULL; // configuration is deleted in parent class.
   }
 
   void cf::start()
@@ -78,34 +84,59 @@ namespace seeks_plugins
   {
   }
 
+  sp_err cf::cgi_tbd(client_state *csp,
+		     http_response *rsp,
+		     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    if (!parameters->empty())
+      {
+	const char *urlp = miscutil::lookup(parameters,"url");
+	if (!urlp)
+	  return cgi::cgi_error_bad_param(csp,rsp);
+	const char *queryp = miscutil::lookup(parameters,"q");
+	if (!queryp)
+	  return cgi::cgi_error_bad_param(csp,rsp);
+	
+	std::string url = std::string(urlp);
+	std::string query = std::string(queryp);
+	bool has_query_lang = false;
+	std::string lang = query_context::detect_lang(parameters,csp,has_query_lang);
+	cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
+	sp_err serr = websearch::cgi_websearch_search(csp,rsp,parameters);
+	return serr;
+      }
+    else return cgi::cgi_error_bad_param(csp,rsp);
+  }
+
   void cf::estimate_ranks(const std::string &query,
-			  const query_context *qc,
+			  const std::string &lang,
                           std::vector<search_snippet*> &snippets)
   {
     simple_re sre; // estimator.
-    sre.estimate_ranks(query,qc,snippets);
+    sre.estimate_ranks(query,lang,snippets);
   }
   
   void cf::get_related_queries(const std::string &query,
-			       const query_context *qc,
+			       const std::string &lang,
 			       std::multimap<double,std::string,std::less<double> > &related_queries)
   {
-    query_recommender::recommend_queries(query,qc,related_queries);
+    query_recommender::recommend_queries(query,lang,related_queries);
   }
 
   void cf::get_recommended_urls(const std::string &query,
-				const query_context *qc,
+				const std::string &lang,
 				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
   {
     simple_re sre; // estimator.
-    sre.recommend_urls(query,qc,snippets);
+    sre.recommend_urls(query,lang,snippets);
   }
 
   void cf::thumb_down_url(const std::string &query,
-                          const query_context *qc,
+                          const std::string &lang,
                           const std::string &url)
   {
-    //TODO.
+    simple_re sre; // estimator.
+    sre.thumb_down_url(query,lang,url);
   }
   
   /* plugin registration. */

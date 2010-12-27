@@ -734,9 +734,14 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        (*vit)->_personalized = false;
-        (*vit)->_meta_rank = (*vit)->_engine.count();
-	(*vit)->bing_yahoo_us_merge();
+	if ((*vit)->_personalized)
+	  {
+	    (*vit)->_personalized = false;
+	    if ((*vit)->_engine.to_ulong()&SE_SEEKS)
+	      (*vit)->_engine ^= SE_SEEKS;
+	    (*vit)->_meta_rank = (*vit)->_engine.count();
+	    (*vit)->bing_yahoo_us_merge();
+	  }
 	++vit;
       }
   }

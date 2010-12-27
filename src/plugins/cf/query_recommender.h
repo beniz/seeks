@@ -41,7 +41,7 @@ namespace seeks_plugins
 			     stopwordlist *swl);
     
     static void recommend_queries(const std::string &query,
-				  const query_context *qc,
+				  const std::string &lang,
 				  std::multimap<double,std::string,std::less<double> > &related_queries);
     
     static void merge_recommended_queries(std::multimap<double,std::string,std::less<double> > &related_queries,

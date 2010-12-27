@@ -33,22 +33,23 @@ namespace seeks_plugins
       virtual ~rank_estimator() {};
 
       virtual void estimate_ranks(const std::string &query,
-                                  const query_context *qc,
+                                  const std::string &lang,
 				  std::vector<search_snippet*> &snippets) {};
       
       virtual void recommend_urls(const std::string &query,
+				  const std::string &lang,
 				  std::vector<search_snippet*> &snippets) {};
       
       virtual void thumb_down_url(const std::string &query,
-                                  const query_context *qc,
+                                  const std::string &lang,
                                   const std::string &url) {};
 
       static void fetch_user_db_record(const std::string &query,
-				       std::vector<db_record*> &records);
+				       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &record);
       
       static void extract_queries(const std::string &query,
-				  const query_context *qc,
-				  const std::vector<db_record*> &records,
+				  const std::string &lang,
+				  const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &record,
                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
   };
 
@@ -60,29 +61,34 @@ namespace seeks_plugins
       virtual ~simple_re();
       
       virtual void estimate_ranks(const std::string &query,
-                                  const query_context *qc,
+                                  const std::string &lang,
  				  std::vector<search_snippet*> &snippets);
 
       virtual void recommend_urls(const std::string &query,
-				  const query_context *qc,
+				  const std::string &lang,
 				  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
       
       virtual void thumb_down_url(const std::string &query,
-				  const query_context *qc,
+				  const std::string &lang,
                                   const std::string &url);
 
-      float estimate_rank(search_snippet *s, const int &ns,
+      float estimate_rank(search_snippet *s, 
+			  const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+			  const int &ns,
                           const query_data *qd,
                           const float &total_hits,
                           const std::string &surl,
                           const std::string &host);
 
-      float estimate_rank(search_snippet *s, const int &ns,
+      float estimate_rank(search_snippet *s, 
+			  const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+			  const int &ns,
                           const vurl_data *vd_url,
 			  const vurl_data *vd_host,
                           const float &total_hits);
       
       float estimate_prior(search_snippet *s,
+			   const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
 			   const std::string &surl,
                            const std::string &host,
                            const uint64_t &nuri);
