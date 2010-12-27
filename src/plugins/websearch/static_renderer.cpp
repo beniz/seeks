@@ -155,7 +155,8 @@ namespace seeks_plugins
     else miscutil::add_map_entry(exports,"$xxreco",1,strdup(""),0);
   }
 
-  void static_renderer::render_cached_queries(hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+  void static_renderer::render_cached_queries(const std::string &query,
+					      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					      const std::string &cgi_base)
   {
     const char *base_url = miscutil::lookup(exports,"base-url");
@@ -175,15 +176,19 @@ namespace seeks_plugins
 	    continue;
 	  }
 	std::string query_clean = se_handler::no_command_query(qc->_query);
-	char *html_enc_query = encode::html_encode(query_clean.c_str());
-	char *url_enc_query = encode::url_encode(query_clean.c_str());
-	cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
-	  + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
-	  + std::string(html_enc_query) + "</a>";
-	free(html_enc_query);
-	free(url_enc_query);
+	
+	if (query_clean != query)
+	  {
+	    char *html_enc_query = encode::html_encode(query_clean.c_str());
+	    char *url_enc_query = encode::url_encode(query_clean.c_str());
+	    cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
+	      + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
+	      + std::string(html_enc_query) + "</a>";
+	    free(html_enc_query);
+	    free(url_enc_query);
+	    ++k;
+	  }
 	++sit;
-	++k;
 	if (k > websearch::_wconfig->_num_reco_queries)
 	  break;
       }
@@ -796,7 +801,7 @@ namespace seeks_plugins
     static_renderer::render_recommendations(qc,exports,cgi_base);
 
     // queries in cache.
-    static_renderer::render_cached_queries(exports,cgi_base);
+    static_renderer::render_cached_queries(query_clean,exports,cgi_base);
     
     // language.
     static_renderer::render_lang(qc,exports);
@@ -878,7 +883,7 @@ namespace seeks_plugins
     static_renderer::render_recommendations(qc,exports,cgi_base);
     
     // queries in cache.
-    static_renderer::render_cached_queries(exports,cgi_base);
+    static_renderer::render_cached_queries(query_clean,exports,cgi_base);
     
     // language.
     static_renderer::render_lang(qc,exports);
