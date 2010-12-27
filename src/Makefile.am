@@ -6,7 +6,7 @@ seeks_SOURCES=seeks.cpp
 
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
-	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir]/plugins/uri_capture -I${srcdir}/plugins/cf -I${srcdir}/dht \
+	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir}/plugins/uri_capture -I${srcdir}/plugins/cf -I${srcdir}/dht \
 	    `pkg-config opencv --cflags` 
 if HAVE_PROTOBUF
 if HAVE_TC
