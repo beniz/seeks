@@ -504,10 +504,12 @@ namespace seeks_plugins
               {
                 try
                   {
-                    lang_reg = lang_head.substr(pos+1,5);
+                    lang = lang_head.substr(pos+1,2);
+		    lang_reg = lang_head.substr(pos+1,5);
                   }
                 catch (std::exception &e)
                   {
+		    lang = "en";
                     lang_reg = "en-US"; // default.
                   }
                 errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
