@@ -304,11 +304,15 @@ namespace seeks_plugins
       {
 	// detection from HTTP headers.
 	query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "lang",1,qlang.c_str(),1);
       }
     else // use local settings.
       {
 	qlang = websearch::_wconfig->_lang;
 	qlang_reg = query_context::lang_forced_region(qlang);
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "lang",1,qlang.c_str(),1);
       }
 
     // setup the language region.
