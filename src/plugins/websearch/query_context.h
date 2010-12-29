@@ -102,11 +102,9 @@ namespace seeks_plugins
 
       /**
        * \brief query hashing, based on mrf in lsh.
-       * grabs query from parameters, stores it into query and hashes it.
-       * the 32 bit hash is returned.
+       *        The 32 bit hash is returned.
        */
-      static uint32_t hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                             std::string &query, std::string &url_enc_query);
+      static uint32_t hash_query_for_context(const std::string &query_key);
 
       /**
        * \brief synchronizes qc's parameters with parameters.
@@ -162,31 +160,23 @@ namespace seeks_plugins
       /**
        * \brief detects whether a query contain a language command and
        *        fills up the language parameter.
-       * @param parameters hash table of parameters.
+       * @param query the query as specified through the API.
        * @param qlang string into which the detected language indicator is stored.
        * @return true if it does, false otherwise.
        */
-      static bool has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                 std::string &qlang);
-
-      /**
-       * \brief detect query language from the query special keywords, :en, :fr, ...
-       * @return true if the language could be detected that way, false otherwise.
-       */
-      bool detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-
-      /**
-       * \brief detects query language in all cases and returns it.
-       * @param has_query_lang whether the language is within the query.
-       * @return query language.
-       */
-      static std::string detect_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-				     client_state *csp, bool &has_query_lang);
+      static bool has_query_lang(const std::string &query, std::string &qlang);
       
       /**
        * \brief detect query language, using http headers.
        */
-      static std::string detect_query_lang_http(const std::list<const char*> &http_headers);
+      static void detect_query_lang_http(const std::list<const char*> &http_headers,
+					 std::string &lang, std::string &lang_reg);
+
+      /**
+       * \brief assemble a query of the form ":lg query" where lg is the language.
+       *        Used as a unique key for the query context.
+       */
+      static std::string assemble_query(const std::string &query, const std::string &lang);
 
       /**
        * \brief grab useful HTTP headers from the client.
@@ -234,10 +224,13 @@ namespace seeks_plugins
       void update_recommended_urls();
 
     public:
-      std::string _query;
+      std::string _query; /**< clean query, no commands in it. */
+      std::string _query_key; /**< query of the form ":lg query", used as a key for context retrieval. */
       std::string _url_enc_query;
-      uint32_t _query_hash;
-      uint32_t _page_expansion; // expansion as fetched pages from the search engines.
+      uint32_t _query_hash; /**< hashed query_key. */
+
+      /* expansion. */
+      uint32_t _page_expansion; /**< expansion as fetched pages from the search engines. */
 
       /* cache. */
       std::vector<search_snippet*> _cached_snippets;
@@ -254,7 +247,7 @@ namespace seeks_plugins
 
       /* suggested queries. */
       std::multimap<double,std::string,std::less<double> > _suggestions;
-
+      
       /* recomended urls from user profile(s). */
       hash_map<uint32_t,search_snippet*,id_hash_uint> _recommended_snippets;
       
@@ -274,10 +267,7 @@ namespace seeks_plugins
 
       /* other HTTP headers, useful when interrogating search engines. */
       std::list<const char*> _useful_http_headers;
-
-      /* in-query command. */
-      std::string _in_query_command;
-
+      
       /* query tokenizing and hashing delimiters. */
       static std::string _query_delims;
 

@@ -64,11 +64,9 @@ namespace seeks_plugins
   }
 
   void static_renderer::render_clean_query(const std::string &html_encoded_query,
-      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-      std::string &query_clean)
+					   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
   {
-    query_clean = se_handler::no_command_query(html_encoded_query);
-    miscutil::add_map_entry(exports,"$qclean",1,query_clean.c_str(),1);
+    miscutil::add_map_entry(exports,"$qclean",1,html_encoded_query.c_str(),1);
   }
 
   void static_renderer::render_suggestions(const query_context *qc,
@@ -96,9 +94,9 @@ namespace seeks_plugins
 	    std::string sugg_url_enc_str = std::string(sugg_url_enc);
 	    free(sugg_url_enc);
 	    suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "q=";
-	    if (!qc->_in_query_command.empty())
-	      suggestion_str += qc->_in_query_command + " ";
-	    suggestion_str += sugg_url_enc_str + "&amp;expansion=1&amp;action=expand&amp;ui=stat";
+	    suggestion_str += sugg_url_enc_str + "&amp;";
+	    suggestion_str += "lang=" + qc->_auto_lang + "&amp;";
+	    suggestion_str += "expansion=1&amp;action=expand&amp;ui=stat";
 	    suggestion_str += "\">";
 	    suggestion_str += sugg_html_enc_str;
 	    suggestion_str += "</a>";
@@ -175,12 +173,11 @@ namespace seeks_plugins
 	    ++sit;
 	    continue;
 	  }
-	std::string query_clean = se_handler::no_command_query(qc->_query);
 	
-	if (query_clean != query)
+	if (qc->_query != query)
 	  {
-	    char *html_enc_query = encode::html_encode(query_clean.c_str());
-	    char *url_enc_query = encode::url_encode(query_clean.c_str());
+	    char *html_enc_query = encode::html_encode(qc->_query.c_str());
+	    char *url_enc_query = encode::url_encode(qc->_query.c_str());
 	    cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
 	      + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
 	      + std::string(html_enc_query) + "</a>";
@@ -786,9 +783,7 @@ namespace seeks_plugins
                                   url_encoded_query);
 
     // clean query.
-    std::string query_clean;
-    static_renderer::render_clean_query(html_encoded_query,
-                                        exports,query_clean);
+    static_renderer::render_clean_query(html_encoded_query,exports);
 
     // current page.
     int current_page = -1;
@@ -801,7 +796,7 @@ namespace seeks_plugins
     static_renderer::render_recommendations(qc,exports,cgi_base);
 
     // queries in cache.
-    static_renderer::render_cached_queries(query_clean,exports,cgi_base);
+    static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
     
     // language.
     static_renderer::render_lang(qc,exports);
@@ -820,7 +815,7 @@ namespace seeks_plugins
 
     // search snippets.
     bool not_end = false;
-    static_renderer::render_snippets(query_clean,current_page,snippets,parameters,exports,not_end);
+    static_renderer::render_snippets(html_encoded_query,current_page,snippets,parameters,exports,not_end);
 
     // expand button.
     std::string expansion;
@@ -868,9 +863,7 @@ namespace seeks_plugins
                                   url_encoded_query);
 
     // clean query.
-    std::string query_clean;
-    static_renderer::render_clean_query(html_encoded_query,
-                                        exports,query_clean);
+    static_renderer::render_clean_query(html_encoded_query,exports);
 
     // current page.
     int current_page = -1;
@@ -883,7 +876,7 @@ namespace seeks_plugins
     static_renderer::render_recommendations(qc,exports,cgi_base);
     
     // queries in cache.
-    static_renderer::render_cached_queries(query_clean,exports,cgi_base);
+    static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
     
     // language.
     static_renderer::render_lang(qc,exports);
@@ -893,9 +886,10 @@ namespace seeks_plugins
     static_renderer::render_engines(parameters,exports,engines);
 
     // search snippets.
-    static_renderer::render_clustered_snippets(query_clean,url_encoded_query,current_page,
-        clusters,K,qc,parameters,
-        exports);
+    static_renderer::render_clustered_snippets(html_encoded_query,
+					       url_encoded_query,current_page,
+					       clusters,K,qc,parameters,
+					       exports);
 
     // expand button.
     std::string expansion;

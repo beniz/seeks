@@ -100,7 +100,11 @@ namespace seeks_plugins
 	std::string url = std::string(urlp);
 	std::string query = std::string(queryp);
 	bool has_query_lang = false;
-	std::string lang = query_context::detect_lang(parameters,csp,has_query_lang);
+	const char *lang = miscutil::lookup(parameters,"lang");
+	if (!lang)
+	  {
+	    //TODO: this should not happen.
+	  }
 	cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
 	sp_err serr = websearch::cgi_websearch_search(csp,rsp,parameters);
 	return serr;

@@ -19,7 +19,6 @@
 
 #include "json_renderer.h"
 #include "cgisimple.h"
-#include "encode.h"
 #include "miscutil.h"
 #include "cgi.h"
 #include "json_renderer_private.h"
@@ -32,7 +31,6 @@
 using sp::cgisimple;
 using sp::miscutil;
 using sp::cgi;
-using sp::encode;
 using sp::proxy_configuration;
 using sp::seeks_proxy;
 using namespace json_renderer_private;
@@ -186,7 +184,7 @@ sp_err json_renderer::render_node_options(client_state *csp,
     return "";
   }
 
-  std::string json_renderer::render_cached_queries()
+  std::string json_renderer::render_cached_queries(const std::string &query)
   {
     std::list<std::string> suggs;
     std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
@@ -198,7 +196,8 @@ sp_err json_renderer::render_node_options(client_state *csp,
             ++sit;
             continue;
           }
-	suggs.push_back("\"" + query_clean(qc->_query) + "\"");
+	if (qc->_query != query)
+	  suggs.push_back("\"" + qc->_query + "\"");
 	++sit;
       }
     if (!suggs.empty())
@@ -362,7 +361,7 @@ sp_err json_renderer::render_node_options(client_state *csp,
       }
     int current_page = atoi(current_page_str);
 
-    std::string query = query_clean(miscutil::lookup(parameters,"q"));
+    std::string query = qc->_query;
 
     // search snippets.
     std::string json_snippets;
@@ -396,7 +395,7 @@ sp_err json_renderer::render_node_options(client_state *csp,
                                                       const query_context *qc,
                                                       const double &qtime)
   {
-    std::string query = query_clean(miscutil::lookup(parameters,"q"));
+    std::string query = qc->_query;
 
     // search clustered snippets.
     std::string json_snippets;
@@ -417,13 +416,13 @@ using namespace seeks_plugins;
 
 namespace json_renderer_private
 {
-  std::string query_clean(const std::string& q)
+  /*std::string query_clean(const std::string& q)
   {
     char *html_encoded_query_str = encode::html_encode(q.c_str());
     std::string html_encoded_query = std::string(html_encoded_query_str);
     free(html_encoded_query_str);
     return se_handler::no_command_query(html_encoded_query);
-  }
+    }*/
 
   std::string jsonp(const std::string& input, const char* callback)
   {
@@ -450,12 +449,11 @@ namespace json_renderer_private
   {
     /*- query info. -*/
     // query.
-    std::string qclean = query_clean(miscutil::lookup(parameters,"q"));
-    results.push_back("\"query\":\"" + qclean + "\"");
+    results.push_back("\"query\":\"" + qc->_query + "\"");
 
     // language.
     results.push_back("\"lang\":\"" + qc->_auto_lang + "\"");
-
+  
     // personalization.
     const char *prs = miscutil::lookup(parameters,"prs");
     if (!prs || (miscutil::strcmpic(prs,"on")!=0 && miscutil::strcmpic(prs,"off")!=0))
@@ -471,12 +469,12 @@ namespace json_renderer_private
       results.push_back(related_queries);
     
     // related URLs.
-    std::string reco = json_renderer::render_recommendations(qclean,qc);
+    std::string reco = json_renderer::render_recommendations(qc->_query,qc);
     if (!reco.empty())
       results.push_back(reco);
     
     // queries in cache.
-    std::string cached_queries = json_renderer::render_cached_queries();
+    std::string cached_queries = json_renderer::render_cached_queries(qc->_query);
     if (!cached_queries.empty())
     results.push_back(cached_queries);
 

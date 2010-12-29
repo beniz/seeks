@@ -124,7 +124,7 @@ namespace seeks_plugins
             // return 400 error.
             return cgi::cgi_error_bad_param(csp,rsp);
           }
-        else se_handler::preprocess_parameters(parameters); // preprocess the query...
+        else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters (query + language).
 
 	// check on requested User Interface.
 	const char *ui = miscutil::lookup(parameters,"ui");
@@ -164,7 +164,7 @@ namespace seeks_plugins
 
     if (!parameters->empty())
       {
-        img_query_context *qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,csp,_active_img_qcontexts));
+        img_query_context *qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,_active_img_qcontexts));
 
         if (!qc)
           {
@@ -172,7 +172,7 @@ namespace seeks_plugins
             sp_err err = img_websearch::perform_img_websearch(csp,rsp,parameters,false);
             if (err != SP_ERR_OK)
               return err;
-            qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,csp,_active_img_qcontexts));
+            qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,_active_img_qcontexts));
             if (!qc)
               return SP_ERR_MEMORY;
           }
@@ -265,7 +265,7 @@ namespace seeks_plugins
     clock_t start_time = times(&st_cpu);
 
     // lookup a cached context for the incoming query.
-    query_context *vqc = websearch::lookup_qc(parameters,csp,_active_img_qcontexts);
+    query_context *vqc = websearch::lookup_qc(parameters,_active_img_qcontexts);
     img_query_context *qc = NULL;
     if (vqc)
       qc = dynamic_cast<img_query_context*>(vqc);

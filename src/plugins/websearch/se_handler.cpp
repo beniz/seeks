@@ -74,7 +74,7 @@ namespace seeks_plugins
 
     // query.
     int p = 31;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_ggle.replace(p,6,qenc_str);
@@ -121,7 +121,7 @@ namespace seeks_plugins
 
     // query.
     int p = 29;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_bing.replace(p,6,qenc_str);
@@ -170,7 +170,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 
     // query (don't move it, depends on domain name, which is language dependent).
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_yahoo,"%query",qenc_str);
@@ -197,7 +197,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_exa,"%query",qenc_str);
@@ -240,7 +240,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_twit,"%query",qenc_str);
@@ -278,7 +278,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(std::string(query).c_str());
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_dent,"%query",qenc_str);
@@ -316,7 +316,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_yt,"%query",qenc_str);
@@ -354,7 +354,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_blekko,"%query",qenc_str);
@@ -389,7 +389,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_yau,"%query",qenc_str);
@@ -436,7 +436,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_dm,"%query",qenc_str);
@@ -520,61 +520,7 @@ namespace seeks_plugins
         curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1); // cache forever.
       }
   }
-
-  /*-- preprocessing queries. */
-  void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
-  {
-    // query.
-    const char *q = "q";
-    const char *query = miscutil::lookup(parameters,q);
-    char *dec_query = encode::url_decode(query);
-    std::string query_str = std::string(dec_query);
-    free(dec_query);
-
-    // known query.
-    const char *query_known = miscutil::lookup(parameters,"qknown");
-
-    // if the current query is the same as before, let's apply the current language to it
-    // (i.e. the in-query language command, if any).
-    if (query_known)
-      {
-        char *dec_qknown = encode::url_decode(query_known);
-        std::string query_known_str = std::string(dec_qknown);
-        free(dec_qknown);
-
-        if (query_known_str != query_str)
-          {
-            // look for in-query commands.
-            std::string no_command_query = se_handler::no_command_query(query_known_str);
-            if (no_command_query == query_str)
-              {
-                query_str = query_known_str; // replace query with query + in-query command.
-                miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
-                miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                        q,1,query_str.c_str(),1);
-              }
-          }
-      }
-  }
-
-  std::string se_handler::no_command_query(const std::string &oquery)
-  {
-    std::string cquery = oquery;
-    // remove any command from the query.
-    if (cquery[0] == ':')
-      {
-        try
-          {
-            cquery = cquery.substr(4);
-          }
-        catch (std::exception &e)
-          {
-            // do nothing.
-          }
-      }
-    return cquery;
-  }
-
+  
   /*-- queries to the search engines. */
   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                          int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled)

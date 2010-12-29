@@ -177,15 +177,15 @@ TEST(JsonRendererTest, render_json_results)
   s2.set_url("URL2");
   snippets[1] = &s2;
   parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
-  parameters.insert(std::pair<const char*,const char*>("q", "<QUERY>"));
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
+  context._query = "<QUERY>";
 
   // select page 1
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
@@ -219,14 +219,14 @@ TEST(JsonRendererTest, render_clustered_json_results)
   clusters[0].add_point(s1._id, NULL);
   clusters[0]._label = "CLUSTER1";
 
-  parameters.insert(std::pair<const char*,const char*>("q", "<QUERY>"));
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
-
+  context._query = "<QUERY>";
+  
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(clusters, 1, NULL, rsp, &parameters, &context, qtime));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
   //std::cerr << rsp->_body << std::endl;
@@ -239,12 +239,6 @@ TEST(JsonRendererTest, response)
   response(&rsp, "JSON");
   EXPECT_EQ(rsp._content_length, strlen(rsp._body));
   EXPECT_STREQ("JSON", rsp._body);
-}
-
-TEST(JsonRendererTest, query_clean)
-{
-  std::string q(":CMD<QUERY>");
-  EXPECT_EQ("&lt;QUERY&gt;", query_clean(q));
 }
 
 TEST(JsonRendererTest, jsonp)
@@ -263,8 +257,8 @@ TEST(JsonRendererTest, collect_json_results)
   query_context context;
   double qtime = 1234;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
-
-  parameters.insert(std::pair<const char*,const char*>("q", ":CMD<QUERY>"));
+  
+  context._query = "<QUERY>";
   context._auto_lang = "LANG";
 
   // select page 1
@@ -274,7 +268,7 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("\"date\""));
   EXPECT_NE(std::string::npos, result.find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
-  EXPECT_NE(std::string::npos, result.find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, result.find("\"<QUERY>\""));
   EXPECT_EQ(std::string::npos, result.find("\"CMD\""));
   EXPECT_EQ(std::string::npos, result.find("\"suggestion\""));
   EXPECT_EQ(std::string::npos, result.find("\"engines\""));

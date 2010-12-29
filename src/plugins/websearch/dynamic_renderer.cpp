@@ -93,9 +93,7 @@ namespace seeks_plugins
                                   url_encoded_query);
 
     // clean query.
-    std::string query_clean;
-    static_renderer::render_clean_query(html_encoded_query,
-                                        exports,query_clean);
+    static_renderer::render_clean_query(html_encoded_query,exports);
 
     // results per page.
     dynamic_renderer::render_rpp(parameters,exports);

@@ -37,7 +37,7 @@ namespace seeks_plugins
       static std::string render_recommendations(const std::string &query_clean,
 						const query_context *qc);
       
-      static std::string render_cached_queries();
+      static std::string render_cached_queries(const std::string &query);
 
       static std::string render_img_engines(const query_context *qc);
 
