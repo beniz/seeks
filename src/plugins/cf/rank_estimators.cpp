@@ -344,12 +344,16 @@ namespace seeks_plugins
   {
     float posterior = 0.0;
     bool filtered = false;
-    hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit;
-    if (!vd_url || vd_url->_hits < 0
-	|| (filter && (hit=filter->find(vd_url->_url.c_str()))!=filter->end()))
-      filtered = true;
-
-    if (filtered)
+    
+    if (vd_url && filter)
+      {
+	hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
+	  = filter->find(vd_url->_url.c_str());
+	if (hit!=filter->end())
+	  filtered = true;
+      }
+  
+    if (!vd_url || vd_url->_hits < 0 || filtered)
       posterior = 1.0 / (log(total_hits + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
     else
       {
@@ -365,7 +369,7 @@ namespace seeks_plugins
     // host.
     if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
         || s->_doc_type == IMAGE // empty or type with not enough competition on domains.
-	|| (filter && (hit!=filter->end() || filter->find(vd_host->_url.c_str())!=filter->end()))) // filter domain out if url was filtered out.
+	|| (filter && (filtered || filter->find(vd_host->_url.c_str())!=filter->end()))) // filter domain out if url was filtered out.
       filtered = true;
     else filtered = false;
     if (filtered)
@@ -394,11 +398,16 @@ namespace seeks_plugins
     bool filtered = false;
     float prior = 0.0;
     float furi = static_cast<float>(nuri);
-    hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit;
+    
+    if (filter)
+      {
+	hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
+	  = filter->find(surl.c_str());
+	if (hit!=filter->end())
+	  filtered = true;
+      }
     db_record *dbr = seeks_proxy::_user_db->find_dbr(surl,uc_str);
-    if (!dbr || (filter && (hit=filter->find(surl.c_str()))!=filter->end()))
-      filtered = true;
-    if (filtered)
+    if (!dbr || filtered)
       prior = 1.0 / (log(furi + 1.0) + 1.0);
     else
       {
@@ -432,7 +441,7 @@ namespace seeks_plugins
     // the meta rank of the snippet is incremented. This allows search engine
     // results to compete with the personalized results.
     // filter out domain if url was filtered out.
-    if (dbr && (!filter || (hit==filter->end() && filter->find(host.c_str())==filter->end())))
+    if (dbr && (!filter || (!filtered && filter->find(host.c_str())==filter->end())))
       {
 	if (s)
 	  {
