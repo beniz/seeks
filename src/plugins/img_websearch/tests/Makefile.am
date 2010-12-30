@@ -18,7 +18,7 @@ AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I${srcdir}/../../websearch \
 	     -I${srcdir}/../../../dht 
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_CPPFLAGS += -I${srcdir}/../../query_capture -I${srcdir}/../../cf \
+AM_CPPFLAGS += -I${srcdir}/../../query_capture -I${srcdir}/../../cf -I${srcdir}/../../uri_capture \
              `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../../../proxy
 endif
 endif
@@ -28,7 +28,8 @@ endif
 AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websearch -L../../../dht 
 if HAVE_PROTOBUF
 if HAVE_TC
-AM_LDFLAGS += -L../../query_capture -L../../cf `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+AM_LDFLAGS += -L../../query_capture -L../../uri_capture -L../../cf \
+	      `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
 endif
 endif
 if HAVE_OPENCV2
@@ -37,7 +38,7 @@ endif
 LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin 
 if HAVE_PROTOBUF
 if HAVE_TC
-LDADD += -lquerycaptureplugin -lseeksuserdb -lcfplugin 
+LDADD += -lquerycaptureplugin -luricaptureplugin -lseeksuserdb -lcfplugin 
 endif
 endif
 LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz
