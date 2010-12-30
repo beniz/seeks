@@ -31,7 +31,7 @@ protoc_outputs=db_record_msg.pb.h db_record_msg.pb.cc
 $(protoc_outputs): $(protoc_inputs)
 	protoc -I$(srcdir) --cpp_out=. $<
 
-dist_libseeksuserdb_la_SOURCES=db_record.cpp user_db.cpp
+dist_libseeksuserdb_la_SOURCES=db_record.cpp db_obj.cpp user_db.cpp
 nodist_libseeksuserdb_la_SOURCES=$(protoc_outputs)
 dist_libseeksuserdb_la_SOURCES+=protobuf_export_format/json_format.cc \
                                 protobuf_export_format/xml_format.cc \
@@ -86,6 +86,7 @@ noinst_HEADERS = \
 	protobuf_export_format/json_format.h \
 	protobuf_export_format/xml_format.h \
 	protobuf_export_format/strutil.h \
+	db_obj.h \
 	user_db.h \
 	user_db_fix.h
 
