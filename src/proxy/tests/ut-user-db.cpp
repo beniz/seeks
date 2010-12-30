@@ -105,7 +105,6 @@ TEST(UserdbTest, all_fct)
   std::ofstream output (filename.c_str());
   db->export_db(output, "json");
   output.close();
-
   struct stat filestatus;
   stat(filename.c_str(), &filestatus );
   ASSERT_TRUE(filestatus.st_size > 0);

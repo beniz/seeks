@@ -1,6 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Loic Dachary <loic@dacary.org>
+ * Copyright (C) 2010 Loic Dachary <loic@dachary.org>,
+ *               2010 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

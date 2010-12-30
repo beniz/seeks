@@ -531,13 +531,24 @@ fi
 # check on tokyo cabinet.
 PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
 if test	$tokyocabinet = true ; then
-   AC_DEFINE(TC,1,"Tokyocabinet available")
+   AC_DEFINE(TC,1,"Tokyo Cabinet available")
 fi
 AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)
+
+# check on tokyo tyrant.
+PKG_CHECK_MODULES([tokyotyrant],[tokyotyrant],tokyotyrant=true,tokyotyrant=false)
+if test	$tokyotyrant = true ; then
+   AC_DEFINE(TT,1,"Tokyo Tyrant available")
+fi
+AM_CONDITIONAL(HAVE_TT,test x$tokyotyrant = xtrue)
+
+# deactivate personalization if no support for db.
 if test $tokyocabinet = false ; then
-   AC_SUBST(uricapture,false)
-   AC_SUBST(querycapture,false)
-   AC_SUBST(cf,false)
+   if test $tokyotyrant = false ; then
+      AC_SUBST(uricapture,false)
+      AC_SUBST(querycapture,false)
+      AC_SUBST(cf,false)
+   fi
 fi
 
 # connection keep alive
@@ -746,6 +757,7 @@ AC_MSG_NOTICE([Configured to build seeks:
  libevent:		  ${le_found}
  protobuf:                ${protobuf}
  tokyocabinet: 		  ${tokyocabinet}
+ tokyotyrant:		  ${tokyotyrant}
 
  Testing:
  gtest                    ${with_gtest}

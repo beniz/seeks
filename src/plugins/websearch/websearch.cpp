@@ -304,6 +304,8 @@ namespace seeks_plugins
       {
 	// detection from HTTP headers.
 	query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
+	assert(!qlang.empty());
+	assert(!qlang_reg.empty());
 	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
       }

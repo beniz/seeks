@@ -373,6 +373,8 @@ activated-plugin cf
 #      Unset. This means the db is located in $HOME/.seeks/seeks_user.db 
 #      as default location.
 #
+#user-db-file /home/beniz/.seeks/seeks_user_seeksfr.db
+#user-db-file /home/beniz/.seeks/seeks_user.db.bak2
 # user-db-file /path/to/file.db
 #
 #  2.10. user-db-startup-check

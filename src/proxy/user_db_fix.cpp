@@ -24,9 +24,8 @@
 using seeks_plugins::db_query_record;
 
 #include "errlog.h"
+#include "db_obj.h"
 
-#include <tcutil.h>
-#include <tchdb.h> // tokyo cabinet.
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -71,11 +70,11 @@ namespace sp
     void *rkey = NULL;
     void *value = NULL;
     int rkey_size;
-    tchdbiterinit(udb._hdb);
-    while ((rkey = tchdbiternext(udb._hdb,&rkey_size)) != NULL)
+    udb._hdb->dbiterinit();
+    while ((rkey = udb._hdb->dbiternext(&rkey_size)) != NULL)
       {
         int value_size;
-        value = tchdbget(udb._hdb, rkey, rkey_size, &value_size);
+        value = udb._hdb->dbget(rkey, rkey_size, &value_size);
         if (value)
           {
             std::string str = std::string((char*)value,value_size);
@@ -162,11 +161,11 @@ namespace sp
     void *rkey = NULL;
     int rkey_size;
     std::vector<std::string> to_remove;
-    tchdbiterinit(udb._hdb);
-    while ((rkey = tchdbiternext(udb._hdb,&rkey_size)) != NULL)
+    udb._hdb->dbiterinit();
+    while ((rkey = udb._hdb->dbiternext(&rkey_size)) != NULL)
       {
         int value_size;
-        void *value = tchdbget(udb._hdb, rkey, rkey_size, &value_size);
+        void *value = udb._hdb->dbget(rkey, rkey_size, &value_size);
         if (value)
           {
 	    std::string str = std::string((char*)value,value_size);
@@ -244,11 +243,11 @@ namespace sp
     void *rkey = NULL;
     int rkey_size;
     std::vector<std::string> to_remove;
-    tchdbiterinit(udb._hdb);
-    while ((rkey = tchdbiternext(udb._hdb,&rkey_size)) != NULL)
+    udb._hdb->dbiterinit();
+    while ((rkey = udb._hdb->dbiternext(&rkey_size)) != NULL)
       {
         int value_size;
-        void *value = tchdbget(udb._hdb, rkey, rkey_size, &value_size);
+        void *value = udb._hdb->dbget(rkey, rkey_size, &value_size);
         if (value)
           {
 	    std::string str = std::string((char*)value,value_size);
