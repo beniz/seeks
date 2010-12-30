@@ -10,7 +10,7 @@ endif
 lib_LTLIBRARIES += libseeksproxy.la libseeksplugins.la
 
 libseeksproxy_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
-	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
+	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh `pkg-config --cflags tokyocabinet`
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
@@ -18,7 +18,7 @@ libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         configuration_spec.cpp proxy_configuration.cpp iso639.cpp
 
 libseeksplugins_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
-	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
+	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh `pkg-config --cflags tokyocabinet`
 libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp 
