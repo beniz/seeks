@@ -25,10 +25,13 @@
 #include "proxy_configuration.h"
 #include "plugin_manager.h"
 #include "cgi.h"
+#include "encode.h"
 #include "miscutil.h"
 
 #include <sys/stat.h>
 #include <iostream>
+
+using sp::encode;
 
 namespace seeks_plugins
 {
@@ -97,7 +100,9 @@ namespace seeks_plugins
 	if (!queryp)
 	  return cgi::cgi_error_bad_param(csp,rsp);
 	
-	std::string url = std::string(urlp);
+	char *dec_urlp = encode::url_decode(urlp);
+	std::string url = std::string(dec_urlp);
+	free(dec_urlp);
 	std::string query = std::string(queryp);
 	bool has_query_lang = false;
 	const char *lang = miscutil::lookup(parameters,"lang");

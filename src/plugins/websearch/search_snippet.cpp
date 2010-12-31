@@ -305,15 +305,16 @@ namespace seeks_plugins
       }
 
     std::string url = _url;
-
+    char *url_encp = encode::url_encode(url.c_str());
+    std::string url_enc = std::string(url_encp);
+    free(url_encp);
+    
 #if defined(PROTOBUF) && defined(TC)
     if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
         && query_capture_configuration::_config
         && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
-        char *url_enc = encode::url_encode(url.c_str());
-        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + std::string(url_enc);
-        free(url_enc);
+        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + url_enc;
       }
 #endif
 
@@ -606,7 +607,7 @@ namespace seeks_plugins
     if (_personalized)
       {
 	html_content += "<a class=\"search_cache\" href=\"" + base_url_str + "/tbd?q="
-	  + _qc->_url_enc_query + "&amp;url=" + _url + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
+	  + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
 	if (engines)
 	  html_content += std::string(engines);
 	html_content += "&amp;lang=" + _qc->_auto_lang;
