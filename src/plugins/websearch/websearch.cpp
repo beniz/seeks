@@ -268,7 +268,7 @@ namespace seeks_plugins
   {
     // decode query (URL encoded).
     const char *query = miscutil::lookup(parameters,"q");
-    char *dec_query = encode::url_decode(query);
+    char *dec_query = encode::url_decode_but_not_plus(query);
     std::string query_str = std::string(dec_query);
     free(dec_query);
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
