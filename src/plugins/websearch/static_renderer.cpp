@@ -670,27 +670,7 @@ namespace seeks_plugins
 
     // we need to inject a remote base location for remote web access.
     // the injected header, if it exists is Seeks-Remote-Location
-    std::string base_url = "";
-    std::list<const char*>::const_iterator sit = csp->_headers.begin();
-    while (sit!=csp->_headers.end())
-      {
-        if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
-          {
-            base_url = (*sit);
-            size_t pos = base_url.find_first_of(" ");
-            try
-              {
-                base_url = base_url.substr(pos+1);
-              }
-            catch (std::exception &e)
-              {
-                base_url = "";
-                break;
-              }
-            break;
-          }
-        ++sit;
-      }
+    std::string base_url = query_context::detect_base_url_http(csp->_headers);
     miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
 
     if (!websearch::_wconfig->_js) // no javascript required

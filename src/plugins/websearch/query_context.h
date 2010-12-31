@@ -167,11 +167,16 @@ namespace seeks_plugins
       static bool has_query_lang(const std::string &query, std::string &qlang);
       
       /**
-       * \brief detect query language, using http headers.
+       * \brief detects query language, using http headers.
        */
       static void detect_query_lang_http(const std::list<const char*> &http_headers,
 					 std::string &lang, std::string &lang_reg);
 
+      /**
+       * \brief detects base url from http headers.
+       */
+      static std::string detect_base_url_http(const std::list<const char*> &headers);
+      
       /**
        * \brief assemble a query of the form ":lg query" where lg is the language.
        *        Used as a unique key for the query context.

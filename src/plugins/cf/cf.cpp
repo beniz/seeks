@@ -111,8 +111,15 @@ namespace seeks_plugins
 	    //TODO: this should not happen.
 	  }
 	cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
-	sp_err serr = websearch::cgi_websearch_search(csp,rsp,parameters);
-	return serr;
+		
+	// redirect to current query url.
+	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
+	std::string base_url = query_context::detect_base_url_http(csp->_headers);
+	std::string rurl = base_url + "/search?"
+	  + cgi::build_url_from_parameters(parameters);
+	cgi::cgi_redirect(rsp,rurl.c_str());
+		
+	return SP_ERR_OK;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
   }

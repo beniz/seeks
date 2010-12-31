@@ -617,6 +617,19 @@ namespace sp
     return cgi_params;
   }
 
+  std::string cgi::build_url_from_parameters(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    std::list<std::string> params;
+    hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
+      = parameters->begin();
+    while(hit!=parameters->end())
+      {
+	params.push_back(std::string((*hit).first) + "=" + std::string((*hit).second));
+	++hit;
+      }
+    return miscutil::join_string_list("&",params);
+  }
+
   /*********************************************************************
    *
    * Function    :  get_char_param

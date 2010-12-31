@@ -536,6 +536,32 @@ namespace seeks_plugins
     lang = "en";
   }
   
+  std::string query_context::detect_base_url_http(const std::list<const char*> &headers)
+  {
+    std::string base_url;
+    std::list<const char*>::const_iterator sit = headers.begin();
+    while (sit!=headers.end())
+      {
+	if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
+          {
+            base_url = (*sit);
+            size_t pos = base_url.find_first_of(" ");
+            try
+              {
+                base_url = base_url.substr(pos+1);
+              }
+            catch (std::exception &e)
+              {
+                base_url = "";
+		break;
+              }
+            break;
+          }
+        ++sit;
+      }
+    return base_url;
+  }
+
   std::string query_context::assemble_query(const std::string &query,
 					    const std::string &lang)
   {
