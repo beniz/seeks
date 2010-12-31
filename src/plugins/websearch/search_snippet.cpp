@@ -606,12 +606,12 @@ namespace seeks_plugins
     // snippet thumb down rendering
     if (_personalized)
       {
-	html_content += "<a class=\"search_cache\" href=\"" + base_url_str + "/tbd?q="
-	  + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
+	html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
+	  + _qc->_url_enc_query + "&url=" + url_enc + "&action=expand&expansion=xxexp&ui=stat&engines=";
 	if (engines)
 	  html_content += std::string(engines);
-	html_content += "&amp;lang=" + _qc->_auto_lang;
-	html_content += "\">Cancel</a>";
+	html_content += "&lang=" + _qc->_auto_lang;
+	html_content += "\">&nbsp;</a>";
       }
 
     html_content += "</div></li>\n";
