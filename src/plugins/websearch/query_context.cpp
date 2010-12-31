@@ -525,7 +525,7 @@ namespace seeks_plugins
                   {
                     lang = "en"; // default.
                   }
-                std::string lang_reg = query_context::lang_forced_region(lang);
+                lang_reg = query_context::lang_forced_region(lang);
                 errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
 		return;
 	      }
