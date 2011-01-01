@@ -42,6 +42,9 @@ namespace seeks_plugins
 			    http_response *rsp,
 			    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
       
+      static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+			std::string &url, std::string &query, std::string &lang);
+
       void estimate_ranks(const std::string &query,
                           const std::string &lang,
 			  std::vector<search_snippet*> &snippets);

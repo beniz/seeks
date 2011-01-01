@@ -93,35 +93,46 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
-	const char *urlp = miscutil::lookup(parameters,"url");
-	if (!urlp)
-	  return cgi::cgi_error_bad_param(csp,rsp);
-	const char *queryp = miscutil::lookup(parameters,"q");
-	if (!queryp)
-	  return cgi::cgi_error_bad_param(csp,rsp);
-	
-	char *dec_urlp = encode::url_decode(urlp);
-	std::string url = std::string(dec_urlp);
-	free(dec_urlp);
-	std::string query = std::string(queryp);
-	bool has_query_lang = false;
-	const char *lang = miscutil::lookup(parameters,"lang");
-	if (!lang)
-	  {
-	    //TODO: this should not happen.
-	  }
-	cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
-		
+	std::string url,query,lang;
+	sp_err err = cf::tbd(parameters,url,query,lang);
+	if (err == SP_ERR_CGI_PARAMS)
+	  return err;
+
 	// redirect to current query url.
 	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
 	std::string base_url = query_context::detect_base_url_http(csp->_headers);
 	std::string rurl = base_url + "/search?"
 	  + cgi::build_url_from_parameters(parameters);
 	cgi::cgi_redirect(rsp,rurl.c_str());
-		
+	
 	return SP_ERR_OK;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
+  }
+
+  sp_err cf::tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+		 std::string &url, std::string &query, std::string &lang)
+  {
+    const char *urlp = miscutil::lookup(parameters,"url");
+    if (!urlp)
+      return SP_ERR_CGI_PARAMS;
+    const char *queryp = miscutil::lookup(parameters,"q");
+    if (!queryp)
+      return SP_ERR_CGI_PARAMS;
+    
+    char *dec_urlp = encode::url_decode(urlp);
+    url = std::string(dec_urlp);
+    free(dec_urlp);
+    query = std::string(queryp);
+    const char *langp = miscutil::lookup(parameters,"lang");
+    if (!langp)
+      {
+	//TODO: this should not happen.
+	return SP_ERR_CGI_PARAMS;
+      }
+    lang = std::string(langp);
+    cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
+    return SP_ERR_OK;
   }
 
   void cf::estimate_ranks(const std::string &query,
