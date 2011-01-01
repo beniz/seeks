@@ -364,7 +364,7 @@ namespace seeks_plugins
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
-                          + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng&lang"
+                          + "/search?q=@query@&page=1&expansion=1&action=expand&engines=seeng&lang"
                           + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
     if (_engine.to_ulong()&SE_GOOGLE)
       {
@@ -372,7 +372,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
         miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
         miscutil::replace_in_string(ggle_se_icon,"seeng","google");
-        html_content += ggle_se_icon;
+	miscutil::replace_in_string(ggle_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += ggle_se_icon;
       }
     if (_engine.to_ulong()&SE_BING)
       {
@@ -380,7 +381,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
         miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
         miscutil::replace_in_string(bing_se_icon,"seeng","bing");
-        html_content += bing_se_icon;
+	miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += bing_se_icon;
       }
     if (_engine.to_ulong()&SE_BLEKKO)
       {
@@ -388,7 +390,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(blekko_se_icon,"icon","search_engine_blekko");
         miscutil::replace_in_string(blekko_se_icon,"setitle","blekko!");
         miscutil::replace_in_string(blekko_se_icon,"seeng","blekko");
-        html_content += blekko_se_icon;
+	miscutil::replace_in_string(blekko_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += blekko_se_icon;
       }
     if (_engine.to_ulong()&SE_YAUBA)
       {
@@ -396,7 +399,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yauba_se_icon,"icon","search_engine_yauba");
         miscutil::replace_in_string(yauba_se_icon,"setitle","yauba!");
         miscutil::replace_in_string(yauba_se_icon,"seeng","yauba");
-        html_content += yauba_se_icon;
+	miscutil::replace_in_string(yauba_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yauba_se_icon;
       }
     if (_engine.to_ulong()&SE_YAHOO)
       {
@@ -404,7 +408,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
         miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
         miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
-        html_content += yahoo_se_icon;
+	miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yahoo_se_icon;
       }
     if (_engine.to_ulong()&SE_EXALEAD)
       {
@@ -412,6 +417,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
         miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
         miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
+	miscutil::replace_in_string(exalead_se_icon,"@query@",_qc->_url_enc_query);
         html_content += exalead_se_icon;
       }
     if (_engine.to_ulong()&SE_TWITTER)
@@ -420,7 +426,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(twitter_se_icon,"icon","search_engine_twitter");
         miscutil::replace_in_string(twitter_se_icon,"setitle","Twitter");
         miscutil::replace_in_string(twitter_se_icon,"seeng","twitter");
-        html_content += twitter_se_icon;
+	miscutil::replace_in_string(twitter_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += twitter_se_icon;
       }
     if (_engine.to_ulong()&SE_DAILYMOTION)
       {
@@ -428,7 +435,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"icon","search_engine_dailymotion");
         miscutil::replace_in_string(yt_se_icon,"setitle","Dailymotion");
         miscutil::replace_in_string(yt_se_icon,"seeng","Dailymotion");
-        html_content += yt_se_icon;
+	miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yt_se_icon;
       }
     if (_engine.to_ulong()&SE_YOUTUBE)
       {
@@ -436,7 +444,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"icon","search_engine_youtube");
         miscutil::replace_in_string(yt_se_icon,"setitle","Youtube");
         miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
-        html_content += yt_se_icon;
+	miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yt_se_icon;
       }
     if (_engine.to_ulong()&SE_SEEKS)
       {
@@ -444,6 +453,7 @@ namespace seeks_plugins
 	miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
 	miscutil::replace_in_string(sk_se_icon,"setitle","Seeks");
 	miscutil::replace_in_string(sk_se_icon,"seeng","seeks");
+	miscutil::replace_in_string(sk_se_icon,"@query@",_qc->_url_enc_query);
 	html_content += sk_se_icon;
       }
 
