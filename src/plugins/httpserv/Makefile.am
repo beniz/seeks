@@ -11,7 +11,7 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 
 if HAVE_TC
 if HAVE_PROTOBUF
-AM_CPPFLAGS+=-I${srcdir}/../query_capture `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+AM_CPPFLAGS+=-I${srcdir}/../query_capture -I${srcdir}/../cf `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
 endif
 endif
 
