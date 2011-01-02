@@ -44,17 +44,7 @@ namespace seeks_plugins
     std::string ra_rquery = strc_rquery.print_str();
         
     // intersect queries.
-    std::vector<std::string> inter;
-    for (size_t i=0;i<strc_query.size();i++)
-      {
-	for (size_t j=0;j<strc_rquery.size();j++)
-	  {
-	    if (strc_query.at(i) == strc_rquery.at(j))
-	      {
-		inter.push_back(strc_rquery.at(j));
-	      }
-	  }
-      }
+    str_chain inter = strc_query.intersect(strc_rquery);
     
     // reject stopwords.
     bool reject = true;
