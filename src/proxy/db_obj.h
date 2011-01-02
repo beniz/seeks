@@ -123,36 +123,36 @@ namespace sp
     
     virtual ~db_obj_remote();
     
-    virtual int dbecode() const = 0;
+    virtual int dbecode() const;
     
-    virtual const char* dberrmsg(int ecode) const = 0;
+    virtual const char* dberrmsg(int ecode) const;
 
-    virtual bool dbsetmutex() = 0;
+    virtual bool dbsetmutex() { return false; }
     
-    virtual bool dbopen(const char *loc, int c) = 0;
+    virtual bool dbopen(const char *loc, int c);
 
-    virtual bool dbclose() = 0;
+    virtual bool dbclose();
 
     virtual bool dbput(const void *kbuf, int ksiz,
-		       const void *vbuf, int vsiz) = 0;
+		       const void *vbuf, int vsiz);
     
-    virtual void* dbget(const void *kbuf, int ksiz, int *sp) = 0;
+    virtual void* dbget(const void *kbuf, int ksiz, int *sp);
   
-    virtual bool dbiterinit() = 0;
+    virtual bool dbiterinit();
     
-    virtual void* dbiternext(int *sp) = 0;
+    virtual void* dbiternext(int *sp);
     
-    virtual bool dbout2(const char *kstr) = 0;
+    virtual bool dbout2(const char *kstr);
     
-    virtual bool dbvanish() = 0;
+    virtual bool dbvanish();
 
-    virtual uint64_t dbfsiz() const = 0;
+    virtual uint64_t dbfsiz() const;
     
-    virtual uint64_t dbrnum() const = 0;
+    virtual uint64_t dbrnum() const;
 
-    /*bool dbtune(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts);
+    /* bool dbtune(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts);
 
-      bool dboptimize(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts); */
+       bool dboptimize(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts); */
 
     TCRDB *_hdb; /**< Tokyo Tyrant remote db. */
   };

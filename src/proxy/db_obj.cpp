@@ -120,8 +120,76 @@ namespace sp
   db_obj_remote::db_obj_remote()
     :db_obj()
   {
-    
+    _hdb = tcrdbnew();
   }
+
+  db_obj_remote::~db_obj_remote()
+  {
+    tcrdbdel(_hdb);
+  }
+
+  int db_obj_remote::dbecode() const
+  {
+    return tcrdbecode(_hdb);
+  }
+
+  const char* db_obj_remote::dberrmsg(int ecode) const
+  {
+    return tcrdberrmsg(ecode);
+  }
+
+  bool db_obj_remote::dbopen(const char *loc, int c)
+  {
+    return tcrdbopen(_hdb,loc,c);
+  }
+
+  bool db_obj_remote::dbclose()
+  {
+    return tcrdbclose(_hdb);
+  }
+
+  bool db_obj_remote::dbput(const void *kbuf, int ksiz,
+			    const void *vbuf, int vsiz)
+  {
+    return tcrdbput(_hdb,kbuf,ksiz,vbuf,vsiz);
+  }
+
+  void* db_obj_remote::dbget(const void *kbuf, int ksiz, int *sp)
+  {
+    return tcrdbget(_hdb,kbuf,ksiz,sp);
+  }
+
+  bool db_obj_remote::dbiterinit()
+  {
+    return tcrdbiterinit(_hdb);
+  }
+
+  void* db_obj_remote::dbiternext(int *sp)
+  {
+    return tcrdbiternext(_hdb,sp);
+  }
+
+  bool db_obj_remote::dbout2(const char *kstr)
+  {
+    return tcrdbout2(_hdb,kstr);
+  }
+
+  bool db_obj_remote::dbvanish()
+  {
+    return tcrdbvanish(_hdb);
+  }
+
+  uint64_t db_obj_remote::dbfsiz() const
+  {
+    return tcrdbsize(_hdb);
+  }
+
+  uint64_t db_obj_remote::dbrnum() const
+  {
+    return tcrdbrnum(_hdb);
+  }
+
+  //TODO: dbtune & dboptimize.
 
 #endif
 
