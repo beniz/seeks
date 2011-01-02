@@ -7,11 +7,18 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy -I${srcdir}/../websearch \
 	    -I${srcdir}/../../dht 
 if HAVE_PROTOBUF
+AM_CPPFLAGS += -I${srcdir}/../query_capture -I../../proxy \
+	       `pkg-config --cflags protobuf`
+
 if HAVE_TC
-AM_CPPFLAGS += -I${srcdir}/../query_capture \
-	       `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I../../proxy
+AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`
+endif
+
+if HAVE_TT
+AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
 endif
 endif
+
 if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif

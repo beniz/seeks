@@ -9,16 +9,30 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir}/plugins/uri_capture -I${srcdir}/plugins/cf -I${srcdir}/dht \
 	    `pkg-config opencv --cflags` 
 if HAVE_PROTOBUF
+AM_CPPFLAGS += -Iproxy/ `pkg-config --cflags protobuf`
+
 if HAVE_TC
-AM_CPPFLAGS += `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -Iproxy/
+AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`
 endif
+
+if HAVE_TT
+AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
+endif
+
 endif
 AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ -Lplugins/websearch \
 	    -Lplugins/query_capture -Lplugins/uri_capture -Ldht/ 
 if HAVE_PROTOBUF
+AM_LDFLAGS += -Lplugins/cf `pkg-config --libs protobuf` 
+
 if HAVE_TC
-AM_LDFLAGS += -Lplugins/cf `pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+AM_LDFLAGS += `pkg-config --libs tokyocabinet`
 endif
+
+if HAVE_TT
+AM_LDFLAGS += `pkg-config --libs tokyotyrant`
+endif
+
 endif
 
 if USE_PERL

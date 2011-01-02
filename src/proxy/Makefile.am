@@ -6,11 +6,17 @@ if HAVE_TC
 if HAVE_PROTOBUF
 lib_LTLIBRARIES += libseeksuserdb.la libseeksuserdbfix.la
 endif
+else !HAVE_TC
+if HAVE_TT
+if HAVE_PROTOBUF
+lib_LTLIBRARIES += libseeksuserdb.la libseeksuserdbfix.la
+endif
+endif
 endif
 lib_LTLIBRARIES += libseeksproxy.la libseeksplugins.la
 
 libseeksproxy_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
-	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh `pkg-config --cflags tokyocabinet`
+	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
@@ -18,12 +24,11 @@ libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         configuration_spec.cpp proxy_configuration.cpp iso639.cpp
 
 libseeksplugins_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
-	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh `pkg-config --cflags tokyocabinet`
+	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
 libseeksplugins_la_SOURCES=plugin_manager.cpp plugin.cpp plugin_element.cpp \
                            interceptor_plugin.cpp filter_plugin.cpp pcrs_std_filter.cpp \
                            curl_mget.cpp 
 
-if HAVE_TC
 if HAVE_PROTOBUF
 protoc_inputs=db_record_msg.proto
 protoc_outputs=db_record_msg.pb.h db_record_msg.pb.cc
@@ -37,15 +42,27 @@ dist_libseeksuserdb_la_SOURCES+=protobuf_export_format/json_format.cc \
                                 protobuf_export_format/xml_format.cc \
                                 protobuf_export_format/strutil.cc
 
-libseeksuserdb_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
+libseeksuserdb_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe -I.\
                            -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
-	                   `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I.
+	                   `pkg-config --cflags protobuf`
 
 libseeksuserdbfix_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
                               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh -I${srcdir}/../plugins/query_capture \
-	                      -I${srcdir}/../dht `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` -I.
+	                      -I${srcdir}/../dht `pkg-config --cflags protobuf`
 dist_libseeksuserdbfix_la_SOURCES=user_db_fix.cpp
 
+if HAVE_TC
+libseeksproxy_la_CXXFLAGS+=`pkg-config --cflags tokyocabinet`
+libseeksplugins_la_CXXFLAGS+=`pkg-config --cflags tokyocabinet`
+libseeksuserdb_la_CXXFLAGS+=`pkg-config --cflags tokyocabinet`
+libseeksuserdbfix_la_CXXFLAGS+=`pkg-config --cflags tokyocabinet`
+endif
+
+if HAVE_TT
+libseeksproxy_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
+libseeksplugins_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
+libseeksuserdb_la_CXXFLAGS+=`pkg-config --cflags tokytyrant`
+libseeksuserdbfix_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
 endif
 endif
 
