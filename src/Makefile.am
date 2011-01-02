@@ -29,7 +29,7 @@ AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir}/plugins/websearch `pkg-config opencv --cflags`
 	    -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy 
 if HAVE_DHT
-AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc -I${srcdir}/dht/sg 
+AM_CPPFLAGS += -I${srcdir}/dht -I${srcdir}/dht/protob -I${srcdir}/dht/rpc -I${srcdir}/dht/sg `pkg-config --cflags tokyocabinet` `pkg-config --libs protobuf`
 endif
 AM_CPPFLAGS += @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -DSEEKS_LOCALSTATEDIR='"$(localstatedir)/seeks"'

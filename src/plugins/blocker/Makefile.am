@@ -8,7 +8,7 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 if HAVE_DHT
 AM_CPPFLAGS += -I${srcdir}/../../dht -I${srcdir}/../../dht/rpc -I${srcdir}/../../dht/rpc/protob -I${srcdir}/../../dht/protob \
-	       -I${srcdir}/../../dht/sg/ -I${srcdir}/../../dht/sg/rpc -I${srcdir}/../../dht/sg/protob
+	       -I${srcdir}/../../dht/sg/ -I${srcdir}/../../dht/sg/rpc -I${srcdir}/../../dht/sg/protob `pkg-config --cflags tokyocabinet`
 endif
 ACLOCAL_AMFLAGS=-I m4
 

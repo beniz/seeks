@@ -6,7 +6,7 @@ websearchplugindatadir = $(datadir)/seeks/plugins/websearch
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy
 if HAVE_DHT
-AM_CPPFLAGS += -I${srcdir}/../../dht -I${srcdir}/../../dht/rpc -I${srcdir}/../../dht/rpc/protob -I${srcdir}/../../dht/protob -I${srcdir}/../../dht/sg 
+AM_CPPFLAGS += -I${srcdir}/../../dht -I${srcdir}/../../dht/rpc -I${srcdir}/../../dht/rpc/protob -I${srcdir}/../../dht/protob -I${srcdir}/../../dht/sg `pkg-config --cflags tokyocabinet`
 endif
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la

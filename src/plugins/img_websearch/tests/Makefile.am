@@ -20,7 +20,8 @@ if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
 if HAVE_DHT
- AM_CPPFLAGS += -I${srcdir}/../../../dht -I${srcdir}/../../../dht/rpc -I${srcdir}/../../../dht/protob -I${srcdir}/../../../dht/sg
+ AM_CPPFLAGS += -I${srcdir}/../../../dht -I${srcdir}/../../../dht/rpc -I${srcdir}/../../../dht/protob -I${srcdir}/../../../dht/sg \
+	        `pkg-config --cflags tokyocabinet`
  AM_LDFLAGS += -L../../../dht -L../../../dht/rpc -L../../../dht/protob -L../../../dht/sg `pkg-config --libs protobuf` \
                `pkg-config --libs tokyocabinet`
 endif

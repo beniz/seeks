@@ -5,7 +5,7 @@ lib_LTLIBRARIES=libseeksproxy.la libseeksplugins.la
 AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
 if HAVE_DHT
-AM_CPPFLAGS += -I${srcdir}/../dht -I${srcdir}/../dht/rpc -I${srcdir}/../dht/protob -I../dht/protob  -I${srcdir}/../dht/sg/rpc -I${srcdir}/../dht/sg/protob -I../dht/sg/protob -I${srcdir}/../dht/sg
+AM_CPPFLAGS += -I${srcdir}/../dht -I${srcdir}/../dht/rpc -I${srcdir}/../dht/protob -I../dht/protob  -I${srcdir}/../dht/sg/rpc -I${srcdir}/../dht/sg/protob -I../dht/sg/protob -I${srcdir}/../dht/sg `pkg-config --cflags tokyocabinet`
 endif
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
