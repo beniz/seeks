@@ -30,6 +30,14 @@ TEST(MrfTest, str_chain)
   str_chain s("seeks project",0,true);
   str_chain rs = s.rank_alpha();
   EXPECT_EQ("project seeks",rs.print_str());
+
+  str_chain s2("seeks search",0,true);
+  str_chain si = s2.intersect(s);
+  EXPECT_EQ(1,si.size());
+  EXPECT_EQ("seeks",si.at(0));
+
+  si = s.intersect(s2);
+  EXPECT_EQ(1,si.size());
 }
 
 int main(int argc, char **argv)
