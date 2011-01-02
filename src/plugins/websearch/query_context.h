@@ -284,6 +284,12 @@ namespace seeks_plugins
 
       /* whether this context is registered or not. */
       bool _registered;
+  
+      /* default language. */
+      static std::string _default_alang;
+
+      /* default language region. */
+      static std::string _default_alang_reg;
   };
 
 } /* end of namespace. */

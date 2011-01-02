@@ -44,7 +44,9 @@ using lsh::mrf;
 namespace seeks_plugins
 {
   std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
-
+  std::string query_context::_default_alang = "en";
+  std::string query_context::_default_alang_reg = "en-US";
+  
   query_context::query_context()
       :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
       _registered(false)
@@ -66,8 +68,8 @@ namespace seeks_plugins
     const char *q = miscutil::lookup(parameters,"q");
     if (!q)
       {
-	//TODO: this should not happen.
-	std::cerr << "no q!\n";
+	// this should not happen.
+	q = "";
       }
     _query = q;
 
@@ -81,12 +83,14 @@ namespace seeks_plugins
     const char *alang = miscutil::lookup(parameters,"lang");
     if (!alang)
       {
-	//TODO: this should not happen...
+	// this should not happen.
+	alang = query_context::_default_alang.c_str();
       }
     const char *alang_reg = miscutil::lookup(parameters,"lreg");
     if (!alang_reg)
       {
-	//TODO: this should not happen...
+	// this should not happen.
+	alang_reg = query_context::_default_alang_reg.c_str();
       }
     _auto_lang = alang;
     _auto_lang_reg = alang_reg;
@@ -509,8 +513,8 @@ namespace seeks_plugins
                   }
                 catch (std::exception &e)
                   {
-		    lang = "en";
-                    lang_reg = "en-US"; // default.
+		    lang = query_context::_default_alang;
+                    lang_reg = query_context::_default_alang_reg; // default.
                   }
                 errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
                 return;
@@ -523,7 +527,7 @@ namespace seeks_plugins
                   }
                 catch (std::exception &e)
                   {
-                    lang = "en"; // default.
+                    lang = query_context::_default_alang; // default.
                   }
                 lang_reg = query_context::lang_forced_region(lang);
                 errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
@@ -532,8 +536,8 @@ namespace seeks_plugins
           }
         ++sit;
       }
-    lang_reg = "en-US"; // beware, returning hardcoded default (since config value is most likely "auto").
-    lang = "en";
+    lang_reg = query_context::_default_alang_reg; // beware, returning hardcoded default (since config value is most likely "auto").
+    lang = query_context::_default_alang;
   }
   
   std::string query_context::detect_base_url_http(const std::list<const char*> &headers)
@@ -609,7 +613,7 @@ namespace seeks_plugins
     // appear in the future. As for now, this is a simple scheme for a simple need.
     // Unsupported languages default to american english, that's how the world is right
     // now...
-    std::string region_lang = "en-US"; // default.
+    std::string region_lang = query_context::_default_alang_reg; // default.
     if (auto_lang == "en")
       {
       }
@@ -681,8 +685,8 @@ namespace seeks_plugins
       std::string &region_lang)
   {
     region_lang = query_context::lang_forced_region(auto_lang);
-    if (region_lang == "en-US") // in case we are on the default language.
-      auto_lang = "en";
+    if (region_lang == query_context::_default_alang_reg) // in case we are on the default language.
+      auto_lang = query_context::_default_alang;
   }
 
   void query_context::fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
