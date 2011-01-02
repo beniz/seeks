@@ -45,12 +45,14 @@ namespace seeks_plugins
                                   const std::string &url) {};
 
       static void fetch_user_db_record(const std::string &query,
-				       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &record);
+				       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
       
       static void extract_queries(const std::string &query,
 				  const std::string &lang,
-				  const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &record,
+				  const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+  
+      static void destroy_records(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
   };
 
   class simple_re : public rank_estimator

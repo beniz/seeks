@@ -80,14 +80,16 @@ namespace seeks_plugins
     strc_query = strc_query.rank_alpha();
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
     
-    // iterate records and gather queries and data.
+    /*
+     * Iterate records and gather queries and data.
+     */
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit;
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::const_iterator vit = records.begin();
     while (vit!=records.end())
       {
-        db_query_record *dbqr = static_cast<db_query_record*>((*vit).second);
-        hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit
-        = dbqr->_related_queries.begin();
+	db_query_record *dbqr = static_cast<db_query_record*>((*vit).second);
+	hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit 
+	  = dbqr->_related_queries.begin();
         while (qit!=dbqr->_related_queries.end())
           {
             query_data *qd = (*qit).second;
@@ -99,14 +101,18 @@ namespace seeks_plugins
 	    
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
-                if (qd->_radius == 0) // contains the data.
+		if (qd->_radius == 0) // contains the data.
 		  {
 		    query_data *nqd = new query_data(qd);
+		    str_chain strc_rquery(qd->_query,0,true);
+		    nqd->_radius = std::max(strc_rquery.size(),strc_query.size()) 
+		      - strc_query.intersect_size(strc_rquery);
 		    nqd->_record_key = new DHTKey(*(*vit).first); // mark data with record key.
 		    qdata.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),
 								    nqd));
+		    break;
 		  }
-                else
+		else
                   {
                     // data are in lower radius records.
                     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -138,7 +144,9 @@ namespace seeks_plugins
                             && (*qit2).second->_query == qd->_query)
                           {
                             query_data *dbqrc = new query_data((*qit2).second);
-			    dbqrc->_radius = qd->_radius; // update radius relatively to original query.
+			    str_chain strc_rquery(qd->_query,0,true);
+			    dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size()) 
+			      - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
 			    dbqrc->_record_key = new DHTKey((*features.begin()).second); // mark the data with the record key.
 			    qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
                                          dbqrc));
@@ -152,6 +160,20 @@ namespace seeks_plugins
             ++qit;
           }
         ++vit;
+      }
+  }
+
+  void rank_estimator::destroy_records(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records)
+  {
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
+    while (rit!=records.end())
+      {
+        db_record *dbr = (*rit).second;
+        crit = rit;
+        ++rit;
+        delete dbr;
+        delete (*crit).first;
       }
   }
 
@@ -182,17 +204,8 @@ namespace seeks_plugins
     //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
 
     // destroy records.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
-    while (rit!=records.end())
-      {
-        db_record *dbr = (*rit).second;
-	crit = rit;
-        ++rit;
-        delete dbr;
-	delete (*crit).first;
-      }
-
+    rank_estimator::destroy_records(records);
+    
     // gather normalizing values.
     int i = 0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
@@ -471,16 +484,7 @@ namespace seeks_plugins
     //std::cerr << "[recommend_urls]: number of extracted queries: " << qdata.size() << std::endl;
 
     // destroy records.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
-    while (rit!=records.end())
-      {
-        db_record *dbr = (*rit).second;
-	crit = rit;
-        ++rit;
-        delete dbr;
-	delete (*crit).first;
-      }
+    rank_estimator::destroy_records(records);
     
     // gather normalizing values.
     int nvurls = 1.0;
@@ -580,17 +584,8 @@ namespace seeks_plugins
     rank_estimator::extract_queries(query,lang,records,qdata);
     
     // destroy records.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
-    while (rit!=records.end())
-      {
-        db_record *dbr = (*rit).second;
-	crit = rit;
-        ++rit;
-        delete dbr;
-	delete (*crit).first;
-      }
-
+    rank_estimator::destroy_records(records);
+    
     // preprocess url.
     std::string host, path;
     std::string purl = url;
@@ -611,11 +606,12 @@ namespace seeks_plugins
 	  {
 	    // update url & domain count.
 	    vurl_data *vd = (*vit).second;
+	    short hits = vd->_hits > 0 ? vd->_hits : 1;    
 	    
 	    if (rkey)
 	      {
 		query_capture_element::remove_url(*rkey,query_clean,purl,host,
-						  vd->_hits,qd->_radius,
+						  hits,qd->_radius,
 						  qc_string);
 	      }
 	  }

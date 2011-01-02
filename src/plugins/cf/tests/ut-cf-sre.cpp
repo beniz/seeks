@@ -38,10 +38,11 @@ using namespace lsh;
 const std::string dbfile = "seeks_test.db";
 const std::string basedir = "../../../";
 
-static std::string queries[2] =
+static std::string queries[3] =
   {
     "seeks",
-    "seeks project"
+    "seeks project",
+    "seeks project search"
   };
 
 static std::string uris[3] =
@@ -116,6 +117,33 @@ protected:
   query_capture_element *qcelt;
 };
 
+TEST_F(SRETest,fetch_user_db_record)
+{
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record(queries[1],records);
+  ASSERT_EQ(3,records.size());
+  rank_estimator::destroy_records(records);
+}
+
+TEST_F(SRETest,extract_queries)
+{
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record(queries[2],records);
+
+  hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+  rank_estimator::extract_queries(queries[2],"en",records,qdata);
+  ASSERT_EQ(2,qdata.size());
+  hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
+    = qdata.begin();
+  ASSERT_EQ(queries[1],(*hit).second->_query);
+  ASSERT_EQ(1,(*hit).second->_radius);
+  ++hit;
+  ASSERT_EQ(queries[0],(*hit).second->_query);
+  ASSERT_EQ(2,(*hit).second->_radius);
+
+  rank_estimator::destroy_records(records);
+}
+
 //TODO: test estimate ranks.
 
 TEST_F(SRETest,recommend_urls)
@@ -167,6 +195,24 @@ TEST_F(SRETest,thumb_down_url)
   ASSERT_TRUE((*hit).second->_visited_urls==NULL);
   delete dbqr;
 
+  hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit;
+  for (int i=0;i<2;i++)
+    {
+      sre.thumb_down_url(queries[0],lang,url1);
+      dbr = seeks_proxy::_user_db->find_dbr(key_str,"query-capture");
+      ASSERT_TRUE(dbr!=NULL);
+      dbqr = dynamic_cast<db_query_record*>(dbr);
+      ASSERT_TRUE(dbqr!=NULL);
+      hit = dbqr->_related_queries.find(queries[0].c_str());
+      ASSERT_TRUE((*hit).second->_visited_urls!=NULL);
+      ASSERT_EQ(2,(*hit).second->_visited_urls->size());
+      vit = (*hit).second->_visited_urls->begin();
+      ASSERT_EQ(-(i+1),(*vit).second->_hits);
+      ++vit;
+      ASSERT_EQ(-(i+1),(*vit).second->_hits);
+      delete dbqr;
+    }
+  
   std::string url2 = uris[2];
   query_capture::process_url(url2,host,path);
   sre.thumb_down_url(queries[0],lang,url2);
@@ -176,14 +222,15 @@ TEST_F(SRETest,thumb_down_url)
   ASSERT_TRUE(dbqr!=NULL);
   hit = dbqr->_related_queries.find(queries[0].c_str());
   ASSERT_TRUE((*hit).second->_visited_urls!=NULL);
-  ASSERT_EQ(2,(*hit).second->_visited_urls->size());
-  hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit 
-    = (*hit).second->_visited_urls->begin();
-  ASSERT_EQ(-1,(*vit).second->_hits);
+  ASSERT_EQ(3,(*hit).second->_visited_urls->size());
+  vit = (*hit).second->_visited_urls->begin();
+  ASSERT_EQ(-2,(*vit).second->_hits); // documentation
   ++vit;
-  ASSERT_EQ(-1,(*vit).second->_hits);
+  ASSERT_EQ(-1,(*vit).second->_hits); // download
+  ++vit;
+  ASSERT_EQ(-3,(*vit).second->_hits); // domain.
   delete dbqr;
-}
+  }
 
 int main(int argc, char **argv)
 {
