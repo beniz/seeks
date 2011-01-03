@@ -186,7 +186,7 @@ TEST_F(SRETest,query_distance)
 
 TEST(SREAPITest,query_halo_weight)
 {
-  float tw1 = 2.0 / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
+  float tw1 = log(3.0) / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
   float w1 = simple_re::query_halo_weight(queries[1],queries[2],1); // seeks project vs. seeks project search.
   ASSERT_EQ(tw1,w1);
   float w2 = simple_re::query_halo_weight(queries[0],queries[2],1); // seeks vs. seeks project search.
@@ -203,7 +203,7 @@ TEST_F(SRETest,recommend_urls)
   sre.recommend_urls(queries[0],lang,snippets);
   ASSERT_EQ(2,snippets.size());
   
-  float url1_score = (log(2.0)+1.0) / (log(3.0)+5.0) 
+  float url1_score = log(2)*(log(2.0)+1.0) / (log(3.0)+5.0) 
     * cf_configuration::_config->_domain_name_weight / (log(3.0)+5.0);
   float url2_score = url1_score / (log(9)+1); // weighting down with query radius.
 

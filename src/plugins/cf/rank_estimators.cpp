@@ -738,7 +738,7 @@ namespace seeks_plugins
   {
     str_chain s1(q1,0,true);
     str_chain s2(q2,0,true);
-    return (std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
+    return log(1.0 + std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
   }
 
 } /* end of namespace. */
