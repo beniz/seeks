@@ -349,7 +349,7 @@ namespace seeks_plugins
         html_content += "\"></a><div>";
       }
 
-    if (prs && _personalized)
+    if (prs && _personalized && !(_engine.to_ulong()&SE_SEEKS))
       {
         html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
       }
