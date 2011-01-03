@@ -141,11 +141,12 @@ namespace lsh
   str_chain::str_chain(const std::string &str,
 		       const int &radius,
 		       const bool &tokenize)
+    :_radius(radius),_skip(false)
   {
     if (tokenize)
       {
 	std::vector<std::string> tokens;
-	mrf::tokenize(str,tokens,mrf::_default_delims);
+	mrf::tokenize(str,tokens,mrf::_default_delims); // Beware: default tokenization would alter "<skip>" word.
 	std::vector<std::string>::const_iterator vit
 	  = tokens.begin();
 	while(vit!=tokens.end())
@@ -168,6 +169,33 @@ namespace lsh
     _chain.push_back(str);
     if (str == "<skip>")
       _skip = true;
+  }
+
+  void str_chain::remove_token(const size_t &i)
+  {
+    if (i>=_chain.size())
+      return;
+    std::vector<std::string>::iterator vit = _chain.begin()+i;
+    if ((*vit) == "<skip>")
+      _skip = false;
+    _chain.erase(vit);
+    if (!_skip)
+      check_skip();
+  }
+  
+  void str_chain::check_skip()
+  {
+    std::vector<std::string>::iterator vit = _chain.begin();
+    while(vit!=_chain.end())
+      {
+	if ((*vit) == "<skip>")
+	  {
+	    _skip = true;
+	    return;
+	  }
+	++vit;
+      }
+    _skip = false;
   }
 
   str_chain str_chain::rank_alpha() const

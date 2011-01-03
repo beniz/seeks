@@ -91,6 +91,9 @@ namespace lsh
       ~str_chain() {};
 
       void add_token(const std::string &str);
+      void remove_token(const size_t &i);
+      void check_skip();
+
       void incr_radius()
       {
         _radius += 1;

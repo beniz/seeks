@@ -28,6 +28,7 @@ using namespace lsh;
 TEST(MrfTest, str_chain)
 {
   str_chain s("seeks project",0,true);
+  EXPECT_FALSE(s.has_skip());
   str_chain rs = s.rank_alpha();
   EXPECT_EQ("project seeks",rs.print_str());
 
@@ -38,6 +39,17 @@ TEST(MrfTest, str_chain)
 
   si = s.intersect(s2);
   EXPECT_EQ(1,si.size());
+  
+  s2.remove_token(2);
+  EXPECT_EQ("seeks search",s2.print_str());
+  s2.remove_token(1);
+  EXPECT_EQ("seeks",s2.print_str());
+  str_chain s3("seeks search",0,true);
+  s3.add_token("<skip>");
+  EXPECT_TRUE(s3.has_skip());
+  s3.remove_token(2);
+  EXPECT_EQ("seeks search",s3.print_str());
+  EXPECT_FALSE(s3.has_skip());
 }
 
 int main(int argc, char **argv)
