@@ -972,12 +972,14 @@ namespace seeks_plugins
     bool has_lang = query_context::has_lang(parameters,qlang);
     if (!has_lang)
       {
-	//TODO: should not happen, parameters should have been preprocessed.
+	// should not happen, parameters should have been preprocessed.
+	qlang = query_context::_default_alang.c_str();
       }
     const char *q = miscutil::lookup(parameters,"q");
     if (!q)
       {
-	//TODO: should never happen.
+	// should never happen.
+	q = "";
       }
     std::string query_key = query_context::assemble_query(q,qlang);
     uint32_t query_hash = query_context::hash_query_for_context(query_key);
