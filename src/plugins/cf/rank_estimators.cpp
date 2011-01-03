@@ -191,6 +191,9 @@ namespace seeks_plugins
                                  const std::string &lang,
 				 std::vector<search_snippet*> &snippets)
   {
+    // get stop word list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+
     // fetch records from user DB.
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
     rank_estimator::fetch_user_db_record(query,records);
@@ -278,7 +281,9 @@ namespace seeks_plugins
             float qpost = estimate_rank((*vit),filter.empty() ? NULL:&filter,ns,(*hit).second,
 					q_vurl_hits[i++],url,host);
 	    //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
-            qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
+            //qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
+	    qpost *= simple_re::query_halo_weight(query,(*hit).second->_query,(*hit).second->_radius,swl);
+	    //qpost *= 1.0/(log(simple_re::query_distance(query,(*hit).second->_query,swl) + 1.0) + 1.0);
 	    posteriors[j] += qpost; // boosting over similar queries.
 
             //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
@@ -471,6 +476,9 @@ namespace seeks_plugins
 				 const std::string &lang,
 				 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
   {
+    // get stop word list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+
     // fetch records from user DB.
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
     rank_estimator::fetch_user_db_record(query,records);
@@ -518,6 +526,8 @@ namespace seeks_plugins
 	    continue;
 	  }
 
+	float halo_weight = simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
+	
 	// rank all URLs for this query.
 	int i = 0;
 	hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator sit;
@@ -534,8 +544,9 @@ namespace seeks_plugins
 		posterior = estimate_rank(NULL,NULL,nvurls,vd,NULL,q_vurl_hits[i]); // Note: no filter yet.
 		
 		// level them down according to query radius. 
-		posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.
-		
+		//posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.
+		posterior *= halo_weight;
+
 		// update or create snippet.
 		std::string surl = urlmatch::strip_url(vd->_url);
 		uint32_t sid = mrf::mrf_single_feature(surl,""); //TODO: generic id generator.
@@ -661,6 +672,73 @@ namespace seeks_plugins
         ++hit;
         delete qd;
       }
+  }
+  
+  uint32_t simple_re::damerau_levenshtein_distance(const std::string &s1, const std::string &s2,
+						   const uint32_t &c)
+  {
+    const uint32_t len1 = s1.size(), len2 = s2.size();
+    uint32_t inf = len1 + len2;
+    uint32_t H[len1+2][len2+2];
+    H[0][0] = inf;
+    for(uint32_t i = 0; i<=len1; ++i) {H[i+1][1] = i; H[i+1][0] = inf;}
+    for(uint32_t j = 0; j<=len2; ++j) {H[1][j+1] = j; H[0][j+1] = inf;}            
+    uint32_t DA[c];
+    for(uint32_t d = 0; d<c; ++d) DA[d]=0;
+    for(uint32_t i = 1; i<=len1; ++i)
+      {
+        uint32_t DB = 0;
+        for(uint32_t j = 1; j<=len2; ++j)
+	  {
+	    uint32_t i1 = DA[(unsigned char)s2[j-1]];
+	    uint32_t j1 = DB;
+	    uint32_t d = ((s1[i-1]==s2[j-1])?0:1);
+	    if(d==0) DB = j;
+            H[i+1][j+1] = std::min(std::min(H[i][j]+d, H[i+1][j] + 1), 
+				   std::min(H[i][j+1]+1, 
+					    H[i1][j1] + (i-i1-1) + 1 + (j-j1-1)));
+	  }
+        DA[(unsigned char)s1[i-1]] = i;
+      }
+    return H[len1+1][len2+1];
+  }
+
+  uint32_t simple_re::query_distance(const std::string &s1, const std::string &s2,
+				     const stopwordlist *swl)
+  {
+    str_chain sc1(s1,0,true);
+    str_chain sc2(s2,0,true);
+
+    return simple_re::query_distance(sc1,sc2,swl);
+  }
+  
+  uint32_t simple_re::query_distance(str_chain &sc1, str_chain &sc2,
+				     const stopwordlist *swl)
+  {
+    // prune strings with stop word list if any.
+    if (swl)
+      {
+	for (size_t i=0;i<sc1.size();i++)
+	  if (swl->has_word(sc1.at(i)))
+	    sc1.remove_token(i);
+	for (size_t i=0;i<sc2.size();i++)
+	  if (swl->has_word(sc2.at(i)))
+	    sc2.remove_token(i);
+      }
+
+    sc1 = sc1.rank_alpha();
+    sc2 = sc2.rank_alpha();
+    std::string rs1 = sc1.print_str();
+    std::string rs2 = sc2.print_str();
+    return damerau_levenshtein_distance(rs1,rs2);
+  }
+
+  float simple_re::query_halo_weight(const std::string &q1, const std::string &q2,
+				     const uint32_t &q2_radius, const stopwordlist *swl)
+  {
+    str_chain s1(q1,0,true);
+    str_chain s2(q2,0,true);
+    return (std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
   }
 
 } /* end of namespace. */

@@ -62,6 +62,9 @@ namespace seeks_plugins
 					    const std::string &lang,
 					    std::multimap<double,std::string,std::less<double> > &related_queries)
   {
+    // get stop word list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+    
     // fetch records from user db.
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
     rank_estimator::fetch_user_db_record(query,records);
@@ -103,9 +106,10 @@ namespace seeks_plugins
 	    //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
 	    short radius = (*hit).second->_radius;
 	    double hits = (*hit).second->_hits;
+	    double score = 1.0 / simple_re::query_halo_weight(query,rquery,radius,swl) * 1.0 / hits; // max weight is best.
 	    if ((uit = update.find(rquery.c_str()))!=update.end())
-	      (*uit).second *= radius/hits;
-	    else update.insert(std::pair<const char*,double>(strdup(rquery.c_str()),radius/hits));
+	      (*uit).second *= score;
+	    else update.insert(std::pair<const char*,double>(strdup(rquery.c_str()),score));
 	  }
 	
 	++hit;

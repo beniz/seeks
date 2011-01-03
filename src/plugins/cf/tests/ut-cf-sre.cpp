@@ -144,6 +144,55 @@ TEST_F(SRETest,extract_queries)
   rank_estimator::destroy_records(records);
 }
 
+TEST(SREAPITest,damerau_levenshtein_distance)
+{
+  std::string s1 = "ca";
+  std::string s2 = "abc";
+  uint32_t dist = simple_re::damerau_levenshtein_distance(s1,s2,256);
+  ASSERT_EQ(2,dist);
+  dist = simple_re::damerau_levenshtein_distance("seeks","seesk",256);
+  ASSERT_EQ(1,dist);
+  dist = simple_re::damerau_levenshtein_distance("seeks","seek",256);
+  ASSERT_EQ(1,dist);
+  dist = simple_re::damerau_levenshtein_distance("seks","seeks",256);
+  ASSERT_EQ(1,dist);
+  dist = simple_re::damerau_levenshtein_distance("seke","seeks",256);
+  ASSERT_EQ(2,dist);
+  dist = simple_re::damerau_levenshtein_distance("seeks","project",256);
+  ASSERT_EQ(6,dist);
+  dist = simple_re::damerau_levenshtein_distance("seeks","seeks",256);
+  ASSERT_EQ(0,dist);
+  dist = simple_re::damerau_levenshtein_distance("données","donnât",256);
+  ASSERT_EQ(3,dist);
+}
+
+TEST_F(SRETest,query_distance)
+{
+  uint32_t dist = simple_re::query_distance(queries[0],queries[0]);
+  ASSERT_EQ(0,dist);
+  dist = simple_re::query_distance(queries[0],queries[1]);
+  ASSERT_EQ(8,dist);
+  dist = simple_re::query_distance(queries[0],queries[2]);
+  ASSERT_EQ(15,dist);
+  dist = simple_re::query_distance(queries[1],queries[2]);
+  ASSERT_EQ(7,dist);
+
+  std::string s1 = "the seeks project";
+  stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist("en");
+  ASSERT_TRUE(swl!=NULL);
+  dist = simple_re::query_distance(queries[1],s1,swl);
+  ASSERT_EQ(0,dist);
+}
+
+TEST(SREAPITest,query_halo_weight)
+{
+  float tw1 = 2.0 / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
+  float w1 = simple_re::query_halo_weight(queries[1],queries[2],1); // seeks project vs. seeks project search.
+  ASSERT_EQ(tw1,w1);
+  float w2 = simple_re::query_halo_weight(queries[0],queries[2],1); // seeks vs. seeks project search.
+  ASSERT_TRUE(w2<w1);
+}
+
 //TODO: test estimate ranks.
 
 TEST_F(SRETest,recommend_urls)
@@ -156,7 +205,7 @@ TEST_F(SRETest,recommend_urls)
   
   float url1_score = (log(2.0)+1.0) / (log(3.0)+5.0) 
     * cf_configuration::_config->_domain_name_weight / (log(3.0)+5.0);
-  float url2_score = url1_score / (log(2)+1); // weighting down with query radius.
+  float url2_score = url1_score / (log(9)+1); // weighting down with query radius.
 
   std::string url1 = uris[1];
   std::string host,path;

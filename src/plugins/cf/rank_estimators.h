@@ -21,6 +21,11 @@
 
 #include "search_snippet.h"
 #include "db_query_record.h"
+#include "stopwordlist.h"
+#include "mrf.h"
+
+using lsh::stopwordlist;
+using lsh::str_chain;
 
 namespace seeks_plugins
 {
@@ -94,6 +99,18 @@ namespace seeks_plugins
 			   const std::string &surl,
                            const std::string &host,
                            const uint64_t &nuri);
+  
+      static uint32_t damerau_levenshtein_distance(const std::string &s1, const std::string &s2,
+						   const uint32_t &c=256);
+  
+      static uint32_t query_distance(const std::string &s1, const std::string &s2,
+				     const stopwordlist *swl=NULL);
+
+      static uint32_t query_distance(str_chain &sc1, str_chain &sc2,
+				     const stopwordlist *swl=NULL);
+
+      static float query_halo_weight(const std::string &q1, const std::string &q2,
+				     const uint32_t &q2_radius, const stopwordlist *swl=NULL);
   };
 
 } /* end of namespace. */
