@@ -30,6 +30,7 @@
 #include "dht_err.h"
 
 #include <list>
+#include <iostream>
 
 namespace dht
 {
@@ -55,7 +56,9 @@ namespace dht
 
       Location& getSuccessor()
       {
-        return front();
+	if (!empty())
+	  return front();
+	else Location(); // beware.
       }
 
       const Location& getSuccessor() const

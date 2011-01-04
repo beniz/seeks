@@ -543,7 +543,9 @@ namespace dht
 #endif
 
     mutex_lock(&_succ_mutex);
-    _successors.getSuccessor() = dk;
+    if (!_successors.empty())
+      _successors.getSuccessor() = dk;
+    else _successors.push_back(dk);
     mutex_unlock(&_succ_mutex);
   }
 
