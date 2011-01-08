@@ -644,6 +644,8 @@ namespace seeks_plugins
       case DAILYMOTION:
         _dailym.query_to_se(parameters,url,qc);
         break;
+      case SEEKS:
+	break;
       }
   }
 
@@ -859,6 +861,8 @@ namespace seeks_plugins
       case DAILYMOTION:
         sep = new se_parser_dailymotion();
         break;
+      case SEEKS:
+	break;
       }
 
     return sep;
