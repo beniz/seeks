@@ -373,11 +373,33 @@ activated-plugin cf
 #      Unset. This means the db is located in $HOME/.seeks/seeks_user.db 
 #      as default location.
 #
-#user-db-file /home/beniz/.seeks/seeks_user_seeksfr.db
-#user-db-file /home/beniz/.seeks/seeks_user.db.bak2
 # user-db-file /path/to/file.db
 #
-#  2.10. user-db-startup-check
+#  2.10. user-db-address
+#  =====================
+#
+# Specifies:
+#
+#    Seeks provides the ability to connect to a remote database to store
+#    data and reuse them (e.g. for web search personalization).
+#
+# Type of value:
+#
+#      [IP-Address]:Port
+#
+# Default value:
+#
+#      Unset
+#
+# Effect if unset:
+#
+#      Does use a local database.
+#
+# Example:
+#
+#      user-db-address 127.0.0.1:9000
+#
+#  2.11. user-db-startup-check
 #  ===========================
 #
 # Specifies:
@@ -394,10 +416,10 @@ activated-plugin cf
 #
 #    1
 #
-# user-db-startup-check 1
+user-db-startup-check 1
 #
 #
-#  2.11. url-source-code
+#  2.12. url-source-code
 #  ======================
 #
 # Specifies:
@@ -409,6 +431,7 @@ activated-plugin cf
 #    http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree
 #
 # url-source-code url/to/source_code
+#
 #
 #  3. DEBUGGING
 #  =============

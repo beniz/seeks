@@ -17,6 +17,7 @@
  */
 
 #include "db_obj.h"
+#include "miscutil.h"
 #include <iostream>
 
 namespace sp
@@ -25,6 +26,8 @@ namespace sp
 #if defined(TC)
 
   /*- db_obj_local -*/
+  std::string db_obj_local::_db_name = "seeks_user.db"; // default.
+  
   db_obj_local::db_obj_local()
     :db_obj()
   {
@@ -51,9 +54,9 @@ namespace sp
     return tchdbsetmutex(_hdb);
   }
   
-  bool db_obj_local::dbopen(const char *loc, int c)
+  bool db_obj_local::dbopen(int c)
   {
-    return tchdbopen(_hdb,loc,c);
+    return tchdbopen(_hdb,_name.c_str(),c);
   }
 
   bool db_obj_local::dbclose()
@@ -117,8 +120,9 @@ namespace sp
 #if defined(TT)
 
   /*- db_obj_remote -*/
-  db_obj_remote::db_obj_remote()
-    :db_obj()
+  db_obj_remote::db_obj_remote(const std::string &host,
+			       const int &port)
+    :db_obj(),_host(host),_port(port)
   {
     _hdb = tcrdbnew();
   }
@@ -138,9 +142,10 @@ namespace sp
     return tcrdberrmsg(ecode);
   }
 
-  bool db_obj_remote::dbopen(const char *loc, int c)
+  bool db_obj_remote::dbopen(int c)
   {
-    return tcrdbopen(_hdb,loc,c);
+    // c is ignored
+    return tcrdbopen(_hdb,_host.c_str(),_port);
   }
 
   bool db_obj_remote::dbclose()
@@ -190,6 +195,11 @@ namespace sp
   }
 
   //TODO: dbtune & dboptimize.
+
+  std::string db_obj_remote::get_name() const
+  {
+    return _host + ":" + miscutil::to_string(_port);
+  }
 
 #endif
 

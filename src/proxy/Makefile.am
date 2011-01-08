@@ -61,7 +61,7 @@ endif
 if HAVE_TT
 libseeksproxy_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
 libseeksplugins_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
-libseeksuserdb_la_CXXFLAGS+=`pkg-config --cflags tokytyrant`
+libseeksuserdb_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
 libseeksuserdbfix_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
 endif
 endif

@@ -55,7 +55,7 @@ namespace sp
       /**
        * \brief db constructor, called by system.
        */
-      user_db();
+      user_db(const bool &local=true);
 
       /**
        * \brief db constructor, for opening a existing db by its name.
@@ -99,6 +99,18 @@ namespace sp
        * @return db version, 0.0 if an error occurred.
        */
       float get_version();
+
+      /**
+       * \brief whether the db is remote or not.
+       * @return true if it is a remote db.
+       */
+      bool is_remote() const;
+
+      /**
+       * \brief whether the db is currently open for operations or not.
+       * @return true if it is open.
+       */
+      bool is_open() const;
 
       /**
        * \brief generates a unique key for the record, from a given key and the plugin name.
@@ -226,14 +238,11 @@ namespace sp
       int sweep_db();
 
     public:
-      //TCHDB *_hdb; /**< Tokyo Cabinet hashtable db. */
       db_obj *_hdb; /**< local or remote Tokyo Cabinet hashtable db. */
       bool _opened; /**< whether the db is opened. */
-      std::string _name; /**< db path and filename. */
       std::vector<user_db_sweepable*> _db_sweepers;
 
       static std::string _db_name; /**< db file name. */
-
       static std::string _db_version_key; /**< db version record key. */
       static float _db_version; /**< db record structure version. */
 

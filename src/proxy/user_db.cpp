@@ -48,63 +48,79 @@ namespace sp
   }
 
   /*- user_db -*/
-  std::string user_db::_db_name = "seeks_user.db"; // default.
   std::string user_db::_db_version_key = "db-version";
   float user_db::_db_version = 0.4;
 
-  user_db::user_db()
+  user_db::user_db(const bool &local)
     :_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
 
     // create the db.
-    _hdb = new db_obj_local();
+#if defined(TT)
+    if (local)
+#endif
+      _hdb = new db_obj_local();
+#if defined(TT)
+    else _hdb = new db_obj_remote(seeks_proxy::_config->_user_db_haddr,
+				  seeks_proxy::_config->_user_db_hport);
+#endif   
     _hdb->dbsetmutex();
     static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
 
     // db location.
-    if (seeks_proxy::_config->_user_db_file.empty())
+    if (local && seeks_proxy::_config->_user_db_file.empty())
       {
+	db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
         uid_t user_id = getuid(); // get user for the calling process.
         struct passwd *pw = getpwuid(user_id);
         if (pw)
           {
+	    std::string name;
             const char *pw_dir = pw->pw_dir;
             if (pw_dir)
               {
-                _name = std::string(pw_dir) + "/.seeks/";
-                int err = mkdir(_name.c_str(),0730); // create .seeks repository in case it does not exist.
+                name = std::string(pw_dir) + "/.seeks/";
+                int err = mkdir(name.c_str(),0730); // create .seeks repository in case it does not exist.
                 if (err != 0 && errno != EEXIST) // all but file exist errors.
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Creating repository %s failed: %s",
-                                      _name.c_str(),strerror(errno));
-                    _name = "";
+                                      name.c_str(),strerror(errno));
+                    name = "";
                   }
-                else _name += user_db::_db_name;
-              }
+                else name += db_obj_local::_db_name;
+		dol->set_name(name);
+	      }
           }
-        if (_name.empty())
+        if (dol->get_name().empty())
           {
             // try datadir, beware, we may not have permission to write.
             if (seeks_proxy::_datadir.empty())
-              _name = user_db::_db_name; // write it down locally.
-            else _name = seeks_proxy::_datadir + user_db::_db_name;
+              dol->set_name(db_obj_local::_db_name); // write it down locally.
+            else dol->set_name(seeks_proxy::_datadir + db_obj_local::_db_name);
           }
       }
-    else  // custom db file.
+    else if (local) // custom db file.
       {
-        _name = seeks_proxy::_config->_user_db_file;
+	db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
+        dol->set_name(seeks_proxy::_config->_user_db_file);
+      }
+    else // remote db.
+      {
+	
       }
   }
 
   user_db::user_db(const std::string &dbname)
-    :_opened(false),_name(dbname)
+    :_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
 
     _hdb = new db_obj_local();
+    db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
+    dol->set_name(dbname);
   }
 
   user_db::~user_db()
@@ -126,12 +142,12 @@ namespace sp
 
     // try to get write access, if not, fall back to read-only access, with a warning.
     //if (!tchdbopen(static_cast<db_obj_local*>(_hdb)->_hdb,_name.c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
-    if (!_hdb->dbopen(_name.c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
+    if (!_hdb->dbopen(HDBOWRITER | HDBOCREAT | HDBONOLCK))
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db db open error: %s",_hdb->dberrmsg(ecode));
         errlog::log_error(LOG_LEVEL_INFO, "trying to open user_db in read-only mode");
-        if (!_hdb->dbopen(_name.c_str(), HDBOREADER | HDBOCREAT | HDBONOLCK))
+        if (!_hdb->dbopen(HDBOREADER | HDBOCREAT | HDBONOLCK)) // Beware, no effect if db is remote, as ths is set by the server.
           {
             int ecode = _hdb->dbecode();
             errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",_hdb->dberrmsg(ecode));
@@ -141,7 +157,7 @@ namespace sp
       }
     uint64_t rn = number_records();
     errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
-                      _name.c_str(),rn);
+                      _hdb->get_name().c_str(),rn);
     _opened = true;
     return 0;
   }
@@ -154,7 +170,7 @@ namespace sp
         return 0;
       }
 
-    if (!_hdb->dbopen(_name.c_str(), HDBOREADER | HDBOCREAT | HDBONOLCK))
+    if (!_hdb->dbopen(HDBOREADER | HDBOCREAT | HDBONOLCK)) // Beware: no effect is the db is remote as this is set by the server.
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",_hdb->dberrmsg(ecode));
@@ -163,7 +179,7 @@ namespace sp
       }
     uint64_t rn = number_records();
     errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
-                      _name.c_str(),rn);
+                      _hdb->get_name().c_str(),rn);
     _opened = true;
     return 0;
   }
@@ -172,14 +188,14 @@ namespace sp
   {
     if (!_opened)
       {
-        errlog::log_error(LOG_LEVEL_INFO,"user_db %s already closed", _name.c_str());
+        errlog::log_error(LOG_LEVEL_INFO,"user_db %s already closed", _hdb->get_name().c_str());
         return 0;
       }
 
     if (!_hdb->dbclose())
       {
         int ecode = _hdb->dbecode();
-        errlog::log_error(LOG_LEVEL_ERROR,"user db %s close error: %s", _name.c_str(),
+        errlog::log_error(LOG_LEVEL_ERROR,"user db %s close error: %s", _hdb->get_name().c_str(),
                           _hdb->dberrmsg(ecode));
         return ecode;
       }
@@ -230,6 +246,21 @@ namespace sp
       }
     float v = *((float*)value);
     return v;
+  }
+
+  bool user_db::is_remote() const
+  {
+#if defined(TT)
+    db_obj_remote *dbojr = dynamic_cast<db_obj_remote*>(_hdb);
+    if (dbojr)
+      return true;
+#endif
+    return false;
+  }
+
+  bool user_db::is_open() const
+  {
+    return _opened;
   }
 
   std::string user_db::generate_rkey(const std::string &key,
@@ -440,7 +471,7 @@ namespace sp
         errlog::log_error(LOG_LEVEL_ERROR,"user db clearing error: %s",_hdb->dberrmsg(ecode));
         return ecode;
       }
-    errlog::log_error(LOG_LEVEL_INFO,"cleared all records in db %s",_name.c_str());
+    errlog::log_error(LOG_LEVEL_INFO,"cleared all records in db %s",_hdb->get_name().c_str());
     return 0;
   }
 

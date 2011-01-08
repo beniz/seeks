@@ -134,13 +134,13 @@ namespace sp
     // replace current user db with the new (fixed) one.
     if (replace)
       {
-        unlink(udb._name.c_str()); // erase current db.
-        if (rename(cudb._name.c_str(),udb._name.c_str()) < 0)
+        unlink(udb._hdb->get_name().c_str()); // erase current db.
+        if (rename(cudb._hdb->get_name().c_str(),udb._hdb->get_name().c_str()) < 0)
           {
             errlog::log_error(LOG_LEVEL_ERROR,"failed renaming fixed user db");
           }
       }
-    else unlink(cudb._name.c_str()); // erase temporary db.
+    else unlink(cudb._hdb->get_name().c_str()); // erase temporary db.
     return err;
   }
 

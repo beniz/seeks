@@ -533,10 +533,25 @@ int main(int argc, const char *argv[])
   // loads iso639 table.
   iso639::initialize();
 
-#if defined(PROTOBUF) && defined(TC)
+#if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // start user db before plugins so they can work with it.
-  seeks_proxy::_user_db = new user_db();
-  seeks_proxy::_user_db->open_db();
+  if (seeks_proxy::_config->_user_db_haddr != NULL)
+    seeks_proxy::_user_db = new user_db(false);
+  else seeks_proxy::_user_db = new user_db(true);
+  if (seeks_proxy::_user_db->open_db())
+    {
+      // error opening the db.
+      // check whether this is a remote db. If it is, try the local
+      // db instead.
+      if (seeks_proxy::_user_db->is_remote())
+	{
+	  
+	  errlog::log_error(LOG_LEVEL_INFO,"Trying the local user db instead of the remote db");
+	  delete seeks_proxy::_user_db;
+	  seeks_proxy::_user_db = new user_db(true);
+	  seeks_proxy::_user_db->open_db();
+	}
+    }
   seeks_proxy::_user_db->optimize_db();
 #endif
 
@@ -557,7 +572,7 @@ int main(int argc, const char *argv[])
     }
   plugin_manager::instanciate_plugins();
 
-#if defined(PROTOBUF) && defined(TC)
+#if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // fix broken user DB by detecting and rewriting it.
   float db_version = seeks_proxy::_user_db->get_version();
   errlog::log_error(LOG_LEVEL_INFO, "db version: %g", db_version);

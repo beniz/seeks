@@ -22,8 +22,8 @@
 #include "config.h"
 
 #if defined(TC)
-  #include <tcutil.h>
-  #include <tchdb.h>
+#include <tcutil.h>
+#include <tchdb.h>
 #endif
 
 #if defined(TT)
@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#include <string>
 
 namespace sp
 {
@@ -50,7 +52,7 @@ namespace sp
 
     virtual bool dbsetmutex() = 0;
     
-    virtual bool dbopen(const char *loc, int c) = 0;
+    virtual bool dbopen(int c=0) = 0;
 
     virtual bool dbclose() = 0;
 
@@ -70,7 +72,9 @@ namespace sp
     virtual uint64_t dbfsiz() const = 0;
     
     virtual uint64_t dbrnum() const = 0;
-  };
+    
+    virtual std::string get_name() const = 0;
+};
 
 #if defined(TC)  
   class db_obj_local : public db_obj
@@ -86,7 +90,7 @@ namespace sp
 
     virtual bool dbsetmutex();
     
-    virtual bool dbopen(const char *loc, int c);
+    virtual bool dbopen(int c=0);
 
     virtual bool dbclose();
 
@@ -111,7 +115,15 @@ namespace sp
 	
     bool dboptimize(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts);
     
+    void set_name(const std::string name) { _name = name; }
+    
+    virtual std::string get_name() const { return _name; }
+    
     TCHDB *_hdb; /**< Tokyo Cabinet hashtable db. */
+    
+    std::string _name; /**< db file name. */
+    
+    static std::string _db_name; /**< db default name. */
   };
 #endif
 
@@ -119,7 +131,8 @@ namespace sp
   class db_obj_remote : public db_obj
   {
   public:
-    db_obj_remote();
+    db_obj_remote(const std::string &host,
+		  const int &port);
     
     virtual ~db_obj_remote();
     
@@ -129,7 +142,7 @@ namespace sp
 
     virtual bool dbsetmutex() { return false; }
     
-    virtual bool dbopen(const char *loc, int c);
+    virtual bool dbopen(int c=0);
 
     virtual bool dbclose();
 
@@ -154,7 +167,14 @@ namespace sp
 
        bool dboptimize(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts); */
 
+    void set_host(const std::string &host) { _host = host; }
+    
+    virtual std::string get_name() const;
+
     TCRDB *_hdb; /**< Tokyo Tyrant remote db. */
+  
+    std::string _host; // db host.
+    int _port; // db port.
   };
 #endif
 
