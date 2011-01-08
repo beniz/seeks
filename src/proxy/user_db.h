@@ -92,13 +92,13 @@ namespace sp
        * @param v version to be set.
        * @return 0 if no error, -1 otherwise.
        */
-      int set_version(const float &v);
+      int set_version(const double &v);
 
       /**
        * \brief gets db version.
        * @return db version, 0.0 if an error occurred.
        */
-      float get_version();
+      double get_version();
 
       /**
        * \brief whether the db is remote or not.
@@ -244,7 +244,7 @@ namespace sp
 
       static std::string _db_name; /**< db file name. */
       static std::string _db_version_key; /**< db version record key. */
-      static float _db_version; /**< db record structure version. */
+      static double _db_version; /**< db record structure version. */
 
     private:
       sp_mutex_t _db_mutex; /**< mutex around db operations. */

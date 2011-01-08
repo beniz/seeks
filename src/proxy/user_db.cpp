@@ -29,11 +29,12 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include <assert.h>
 
 #include <vector>
-//#include <iostream>
-//#include <fstream>
+#include <iostream>
+#include <sstream>
 
 namespace sp
 {
@@ -49,7 +50,7 @@ namespace sp
 
   /*- user_db -*/
   std::string user_db::_db_version_key = "db-version";
-  float user_db::_db_version = 0.4;
+  double user_db::_db_version = 0.4;
 
   user_db::user_db(const bool &local)
     :_opened(false)
@@ -220,11 +221,11 @@ namespace sp
     return 0;
   }
 
-  int user_db::set_version(const float &v)
+  int user_db::set_version(const double &v)
   {
     mutex_lock(&_db_mutex);
     const char *keyc = user_db::_db_version_key.c_str();
-    if (!_hdb->dbput(keyc,strlen(keyc),&v,sizeof(float)))
+    if (!_hdb->dbput(keyc,strlen(keyc),&v,sizeof(double)))
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
@@ -235,7 +236,7 @@ namespace sp
     return 0;
   }
 
-  float user_db::get_version()
+  double user_db::get_version()
   {
     const char *keyc = user_db::_db_version_key.c_str();
     int value_size;
@@ -244,7 +245,7 @@ namespace sp
       {
         return 0.0;
       }
-    float v = *((float*)value);
+    double v = *((double*)value);
     return v;
   }
 

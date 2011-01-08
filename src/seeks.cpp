@@ -574,21 +574,21 @@ int main(int argc, const char *argv[])
 
 #if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // fix broken user DB by detecting and rewriting it.
-  float db_version = seeks_proxy::_user_db->get_version();
+  double db_version = seeks_proxy::_user_db->get_version();
   errlog::log_error(LOG_LEVEL_INFO, "db version: %g", db_version);
-  if (db_version == 0.0 && sizeof(unsigned long) == 8)
+  if (miscutil::compare_d(0.0,db_version,1e-3) && sizeof(unsigned long) == 8)
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_169();
       seeks_proxy::_user_db->open_db();
     }
-  if (db_version < 0.3)
+  if (miscutil::compare_d(0.3,db_version,1e-3))
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_263();
       seeks_proxy::_user_db->open_db();
     }
-  if (db_version < 0.4)
+  if (miscutil::compare_d(0.4,db_version,1e-3))
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_281();

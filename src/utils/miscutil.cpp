@@ -1,6 +1,6 @@
 /**
  * Copyright   :  Modified by Emmanuel Benazera for the Seeks Project,
- *                2009.
+ *                2009, 2010, 2011
  *
  *                Written by and Copyright (C) 2001-2009 the SourceForge
  *                Privoxy team. http://www.privoxy.org/
@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <math.h>
 
 #include <algorithm>
 #include <iostream>
@@ -1093,6 +1094,14 @@ namespace sp
         // Find next "non-delimiter"
         pos = str.find_first_of(delim, lastPos);
       }
+  }
+
+  /* arithmetics. */
+  
+  bool miscutil::compare_d(const double &a, const double &b,
+			   const double &epsilon)
+  {
+    return fabs(a-b) < epsilon;
   }
 
 // Paul Hsieh's super fast hash function.
