@@ -582,19 +582,19 @@ int main(int argc, const char *argv[])
       user_db_fix::fix_issue_169();
       seeks_proxy::_user_db->open_db();
     }
-  if (miscutil::compare_d(0.3,db_version,1e-3))
+  if (db_version < 0.3 && !miscutil::compare_d(0.3,db_version,1e-3))
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_263();
       seeks_proxy::_user_db->open_db();
     }
-  if (miscutil::compare_d(0.4,db_version,1e-3))
+  if (db_version < 0.3 && !miscutil::compare_d(0.4,db_version,1e-3))
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_281();
       seeks_proxy::_user_db->open_db();
     }
-  if (db_version != user_db::_db_version)
+  if (!miscutil::compare_d(db_version,user_db::_db_version,1e-3))
     {
       seeks_proxy::_user_db->set_version(user_db::_db_version);
       errlog::log_error(LOG_LEVEL_INFO, "user db version updated to %g",
