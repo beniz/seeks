@@ -29,6 +29,7 @@
 #include "proxy_configuration.h"
 #include "lsh_configuration.h"
 #include "qprocess.h"
+#include "urlmatch.h"
 #include "errlog.h"
 
 using namespace seeks_plugins;
@@ -272,12 +273,23 @@ TEST_F(SRETest,thumb_down_url)
   hit = dbqr->_related_queries.find(queries[0].c_str());
   ASSERT_TRUE((*hit).second->_visited_urls!=NULL);
   ASSERT_EQ(3,(*hit).second->_visited_urls->size());
-  vit = (*hit).second->_visited_urls->begin();
+  std::string purl = uris[0];
+  query_capture::process_url(purl,host,path);
+  purl = urlmatch::strip_url(purl);
+  std::cerr << purl << std::endl;
+  vit = (*hit).second->_visited_urls->find(purl.c_str());
+  ASSERT_TRUE(vit!=(*hit).second->_visited_urls->end());
+  ASSERT_EQ(-3,(*vit).second->_hits); // domain
+  purl = uris[1];
+  query_capture::process_url(purl,host,path);
+  vit = (*hit).second->_visited_urls->find(purl.c_str());
+  ASSERT_TRUE(vit!=(*hit).second->_visited_urls->end());
   ASSERT_EQ(-2,(*vit).second->_hits); // documentation
-  ++vit;
+  purl = uris[2];
+  query_capture::process_url(purl,host,path);
+  vit = (*hit).second->_visited_urls->find(purl.c_str());
+  ASSERT_TRUE(vit!=(*hit).second->_visited_urls->end());
   ASSERT_EQ(-1,(*vit).second->_hits); // download
-  ++vit;
-  ASSERT_EQ(-3,(*vit).second->_hits); // domain.
   delete dbqr;
   }
 
