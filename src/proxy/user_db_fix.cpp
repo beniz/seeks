@@ -57,7 +57,8 @@ namespace sp
         errlog::log_error(LOG_LEVEL_ERROR,"Could not open the user db for fixing it");
         return -1;
       }
-    user_db cudb("seeks_user.db.tmp"); // new db to be filled up.
+    std::string temp_db_name = "seeks_user.db.tmp";
+    user_db cudb(temp_db_name); // new db to be filled up.
     err = cudb.open_db();
     if (err != 0)
       {

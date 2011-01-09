@@ -120,6 +120,8 @@ namespace sp
     mutex_init(&_db_mutex);
 
     _hdb = new db_obj_local();
+    _hdb->dbsetmutex();
+    static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
     db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
     dol->set_name(dbname);
   }
@@ -142,7 +144,7 @@ namespace sp
       }
 
     // try to get write access, if not, fall back to read-only access, with a warning.
-    //if (!tchdbopen(static_cast<db_obj_local*>(_hdb)->_hdb,_name.c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
+    //if (!tchdbopen(static_cast<db_obj_local*>(_hdb)->_hdb,_hdb->get_name().c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
     if (!_hdb->dbopen(HDBOWRITER | HDBOCREAT | HDBONOLCK))
       {
         int ecode = _hdb->dbecode();
