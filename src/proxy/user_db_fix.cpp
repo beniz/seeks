@@ -64,6 +64,7 @@ namespace sp
         // handle error.
         errlog::log_error(LOG_LEVEL_ERROR,"Could not create the temporary db for fixing the user db");
         udb.close_db();
+	return -1;
       }
 
     /* traverse records */
