@@ -21,6 +21,7 @@
 
 #include "stl_hash.h"
 #include "db_record.h"
+#include "DHTKey.h"
 
 #include "user_db.h" // for fixing issue 169. Will disappear afterwards.
 using sp::user_db;
@@ -28,6 +29,7 @@ using sp::user_db;
 #include <vector>
 
 using sp::db_record;
+using dht::DHTKey;
 
 namespace seeks_plugins
 {
@@ -67,7 +69,9 @@ namespace seeks_plugins
 
       query_data(const std::string &query,
                  const short &radius,
-                 const std::string &url);
+                 const std::string &url,
+		 const short &hits=1,
+		 const short &url_hits=1);
 
       query_data(const query_data *qd);
 
@@ -87,8 +91,9 @@ namespace seeks_plugins
       short _radius;
       short _hits;
       hash_map<const char*,vurl_data*,hash<const char*>,eqstr> *_visited_urls;
+      DHTKey *_record_key; /**< optional record key, not stored on db. */
   };
-
+  
   class db_query_record : public db_record
   {
     public:
@@ -102,7 +107,9 @@ namespace seeks_plugins
       db_query_record(const std::string &plugin_name,
                       const std::string &query,
                       const short &radius,
-                      const std::string &url);
+                      const std::string &url,
+		      const short &hits=1,
+		      const short &url_hits=1);
 
       db_query_record(const db_query_record &dbr);
 
@@ -123,6 +130,8 @@ namespace seeks_plugins
       int fix_issue_169(user_db &cudb);
 
       int fix_issue_263();
+
+      int fix_issue_281(uint32_t &fixed_urls);
 
     public:
       hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;

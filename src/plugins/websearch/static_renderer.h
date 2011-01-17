@@ -34,8 +34,7 @@ namespace seeks_plugins
                                std::string &url_encoded_query);
 
       static void render_clean_query(const std::string &html_encoded_query,
-                                     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-                                     std::string &query_clean);
+                                     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 
       static void render_suggestions(const query_context *qc,
                                      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
@@ -45,7 +44,8 @@ namespace seeks_plugins
 					 hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					 const std::string &cgi_base="/search?");
       
-      static void render_cached_queries(hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+      static void render_cached_queries(const std::string &query,
+					hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
 					const std::string &cgi_base="/search?");
 
       static void render_lang(const query_context *qc,

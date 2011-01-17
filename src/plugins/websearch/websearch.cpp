@@ -134,6 +134,7 @@ namespace seeks_plugins
 
   websearch::~websearch()
   {
+    websearch::_wconfig = NULL; // configuration is destroyed in parent class.
   }
 
   void websearch::start()
@@ -243,6 +244,109 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
+  /*-- preprocessing queries. */
+  std::string websearch::no_command_query(const std::string &oquery)
+  {
+    std::string cquery = oquery;
+    // remove any command from the query.
+    if (cquery[0] == ':')
+      {
+        try
+          {
+            cquery = cquery.substr(4);
+          }
+        catch (std::exception &e)
+          {
+            // do nothing.
+          }
+      }
+    return cquery;
+  }
+
+  void websearch::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					client_state *csp)
+  {
+    // decode query (URL encoded).
+    const char *query = miscutil::lookup(parameters,"q");
+    char *dec_query = encode::url_decode_but_not_plus(query);
+    std::string query_str = std::string(dec_query);
+    free(dec_query);
+    miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+			    "q",1,query_str.c_str(),1);
+
+    // detect and process query language.
+    // - check for in-query language command.
+    // - check for language parameter, if not, fill it up.
+    std::string qlang,qlang_reg;
+    bool has_query_lang = query_context::has_query_lang(query_str,qlang);
+    if (has_query_lang)
+      {
+	// replace query parameter to remove language command
+	// and fill up the lang parameter instead.
+	query_str = websearch::no_command_query(query_str);
+	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+				"q",1,query_str.c_str(),1);
+	const char *lang = miscutil::lookup(parameters,"lang");
+	if (lang)
+	  miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"lang");
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "lang",1,qlang.c_str(),1);
+	qlang_reg = query_context::lang_forced_region(qlang);
+      }
+    else if (query_context::has_lang(parameters,qlang))
+      {
+	// language is specified, detect the region.
+	qlang_reg = query_context::lang_forced_region(qlang);
+      }
+    else if (websearch::_wconfig->_lang == "auto") // no language was specified, we study HTTP headers.
+      {
+	// detection from HTTP headers.
+	query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
+	assert(!qlang.empty());
+	assert(!qlang_reg.empty());
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "lang",1,qlang.c_str(),1);
+      }
+    else // use local settings.
+      {
+	qlang = websearch::_wconfig->_lang;
+	qlang_reg = query_context::lang_forced_region(qlang);
+	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "lang",1,qlang.c_str(),1);
+      }
+
+    // setup the language region.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+			    "lreg",1,qlang_reg.c_str(),1);
+    
+    // known query.
+    //const char *query_known = miscutil::lookup(parameters,"qknown");
+
+    // if the current query is the same as before, let's apply the current language to it
+    // (i.e. the in-query language command, if any).
+    /*if (query_known)
+      {
+        char *dec_qknown = encode::url_decode(query_known);
+        std::string query_known_str = std::string(dec_qknown);
+        free(dec_qknown);
+
+        if (query_known_str != query_str)
+          {
+            // look for in-query commands.
+            std::string no_command_query = se_handler::no_command_query(query_known_str);
+            if (no_command_query == query_str)
+              {
+                query_str = query_known_str; // replace query with query + in-query command.
+                miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
+                miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                        q,1,query_str.c_str(),1);
+              }
+          }
+	  }*/
+  }
+  
   sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
@@ -254,7 +358,7 @@ namespace seeks_plugins
             // return 400 error.
             return cgi::cgi_error_bad_param(csp,rsp);
           }
-        else se_handler::preprocess_parameters(parameters); // preprocess the query...
+        else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
 
         // check on requested User Interface:
         // - 'dyn' for dynamic interface: detach a thread for performing the requested
@@ -305,7 +409,7 @@ namespace seeks_plugins
         if (!url)
           return cgi::cgi_error_bad_param(csp,rsp);
 
-        query_context *qc = websearch::lookup_qc(parameters,csp);
+        query_context *qc = websearch::lookup_qc(parameters);
 
         if (!qc)
           {
@@ -353,7 +457,7 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
-        query_context *qc = websearch::lookup_qc(parameters,csp);
+        query_context *qc = websearch::lookup_qc(parameters);
 
         if (!qc)
           {
@@ -361,7 +465,7 @@ namespace seeks_plugins
             sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
             if (err != SP_ERR_OK)
               return err;
-            qc = websearch::lookup_qc(parameters,csp);
+            qc = websearch::lookup_qc(parameters);
             if (!qc)
               qc = new query_context(parameters,csp->_headers); // empty context.
           }
@@ -390,13 +494,13 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
-        query_context *qc = websearch::lookup_qc(parameters,csp);
+        query_context *qc = websearch::lookup_qc(parameters);
 
         if (!qc)
           {
             // no cache, (re)do the websearch first.
             sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            qc = websearch::lookup_qc(parameters,csp);
+            qc = websearch::lookup_qc(parameters);
             if (err != SP_ERR_OK)
               return err;
           }
@@ -440,14 +544,14 @@ namespace seeks_plugins
         struct tms en_cpu;
         clock_t start_time = times(&st_cpu);
 
-        query_context *qc = websearch::lookup_qc(parameters,csp);
+        query_context *qc = websearch::lookup_qc(parameters);
         if (!qc)
           {
             // no cache, (re)do the websearch first.
             sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
             if (err != SP_ERR_OK)
               return err;
-            qc = websearch::lookup_qc(parameters,csp);
+            qc = websearch::lookup_qc(parameters);
             if (!qc)
               qc = new query_context(parameters,csp->_headers); // empty context.
           }
@@ -501,7 +605,7 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
-        query_context *qc = websearch::lookup_qc(parameters,csp);
+        query_context *qc = websearch::lookup_qc(parameters);
 
         if (!qc)
           {
@@ -509,7 +613,7 @@ namespace seeks_plugins
             sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
             if (err != SP_ERR_OK)
               return err;
-            qc = websearch::lookup_qc(parameters,csp);
+            qc = websearch::lookup_qc(parameters);
             if (!qc)
               return SP_ERR_MEMORY;
           }
@@ -563,7 +667,7 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
-        query_context *qc = websearch::lookup_qc(parameters,csp);
+        query_context *qc = websearch::lookup_qc(parameters);
 
         // time measure, returned.
         struct tms st_cpu;
@@ -574,7 +678,7 @@ namespace seeks_plugins
           {
             // no cache, (re)do the websearch first.
             sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            qc = websearch::lookup_qc(parameters,csp);
+            qc = websearch::lookup_qc(parameters);
             if (err != SP_ERR_OK)
               return err;
           }
@@ -719,7 +823,7 @@ namespace seeks_plugins
     // lookup a cached context for the incoming query.
     // Mutex allows multiple simultaneous calls to catch the same context object.
     mutex_lock(&websearch::_context_mutex);
-    query_context *qc = websearch::lookup_qc(parameters,csp);
+    query_context *qc = websearch::lookup_qc(parameters);
     bool exists_qc = qc ? true : false;
     if (!qc)
       {
@@ -793,7 +897,7 @@ namespace seeks_plugins
 	sort_rank::get_recommended_urls(qc);
 #endif
       }
-
+    
     if (expanded)
       qc->_compute_tfidf_features = true;
 
@@ -835,6 +939,13 @@ namespace seeks_plugins
           }
       }
     
+    if (strcasecmp(pers,"on") == 0)
+      {
+#if defined(PROTOBUF) && defined(TC)
+	qc->reset_snippets_personalization_flags();
+#endif
+      }
+
     // unlock or destroy the query context.
     qc->_lock = false;
     mutex_unlock(&qc->_qc_mutex);
@@ -848,42 +959,31 @@ namespace seeks_plugins
     return err;
   }
 
-  query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                      client_state *csp)
+  query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    return websearch::lookup_qc(parameters,csp,websearch::_active_qcontexts);
+    return websearch::lookup_qc(parameters,websearch::_active_qcontexts);
   }
 
   query_context* websearch::lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                      client_state *csp, hash_map<uint32_t,query_context*,id_hash_uint> &active_qcontexts)
+                                      hash_map<uint32_t,query_context*,id_hash_uint> &active_qcontexts)
   {
+    // assemble query key to potential query context.
     std::string qlang;
-    bool has_query_lang = false;
-    if (query_context::has_lang(parameters,qlang))
+    bool has_lang = query_context::has_lang(parameters,qlang);
+    if (!has_lang)
       {
+	// should not happen, parameters should have been preprocessed.
+	qlang = query_context::_default_alang.c_str();
       }
-    else if (!(has_query_lang = query_context::has_query_lang(parameters,qlang)))
+    const char *q = miscutil::lookup(parameters,"q");
+    if (!q)
       {
-        if (websearch::_wconfig->_lang == "auto")
-          {
-            std::string auto_lang_reg = query_context::detect_query_lang_http(csp->_headers);
-            try
-              {
-                qlang = auto_lang_reg.substr(0,2);
-              }
-            catch (std::exception &e)
-              {
-                qlang = "";
-              }
-          }
-        else qlang = websearch::_wconfig->_lang; // falling back onto default search language.
+	// should never happen.
+	q = "";
       }
-
-    std::string query;
-    if (!has_query_lang && !qlang.empty())
-      query = ":" + qlang + " ";
-    std::string url_enc_query;
-    uint32_t query_hash = query_context::hash_query_for_context(parameters,query,url_enc_query);
+    std::string query_key = query_context::assemble_query(q,qlang);
+    uint32_t query_hash = query_context::hash_query_for_context(query_key);
+    
     hash_map<uint32_t,query_context*,id_hash_uint >::iterator hit;
     if ((hit = active_qcontexts.find(query_hash))!=active_qcontexts.end())
       {
@@ -932,8 +1032,7 @@ namespace seeks_plugins
     return err;
   }
 
-  /* auto-registration */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration */
   extern "C"
   {
     plugin* maker()
@@ -941,22 +1040,5 @@ namespace seeks_plugins
       return new websearch;
     }
   }
-
-#else
-  plugin* maker()
-  {
-    return new websearch;
-  }
-  class proxy_autor
-  {
-    public:
-      proxy_autor()
-      {
-        plugin_manager::_factory["websearch-hp"] = maker; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor _p; // one instance, instanciated when dl-opening.
-#endif
-
+  
 } /* end of namespace. */

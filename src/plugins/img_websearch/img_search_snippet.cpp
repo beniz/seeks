@@ -106,7 +106,7 @@ namespace seeks_plugins
       }
 #endif
 
-    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
+    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=@query@&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
     std::string html_content = "<li class=\"search_snippet search_snippet_img\">";
 
     html_content += "<h3><a href=\"";
@@ -124,7 +124,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
         miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
         miscutil::replace_in_string(ggle_se_icon,"seeng","google");
-        html_content += ggle_se_icon;
+	miscutil::replace_in_string(ggle_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += ggle_se_icon;
       }
     if (_img_engine.to_ulong()&SE_BING_IMG)
       {
@@ -132,7 +133,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
         miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
         miscutil::replace_in_string(bing_se_icon,"seeng","bing");
-        html_content += bing_se_icon;
+	miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += bing_se_icon;
       }
     if (_img_engine.to_ulong()&SE_FLICKR)
       {
@@ -140,7 +142,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(flickr_se_icon,"icon","search_engine_flickr");
         miscutil::replace_in_string(flickr_se_icon,"setitle","Flickr");
         miscutil::replace_in_string(flickr_se_icon,"seeng","flickr");
-        html_content += flickr_se_icon;
+	miscutil::replace_in_string(flickr_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += flickr_se_icon;
       }
     if (_img_engine.to_ulong()&SE_WCOMMONS)
       {
@@ -148,6 +151,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(wcommons_se_icon,"icon","search_engine_wcommons");
         miscutil::replace_in_string(wcommons_se_icon,"setitle","Wikimedia Commons");
         miscutil::replace_in_string(wcommons_se_icon,"seeng","wcommons");
+	miscutil::replace_in_string(wcommons_se_icon,"@query@",_qc->_url_enc_query);
         html_content += wcommons_se_icon;
       }
     if (_img_engine.to_ulong()&SE_YAHOO_IMG)
@@ -156,7 +160,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
         miscutil::replace_in_string(yahoo_se_icon,"setitle","yahoo");
         miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
-        html_content += yahoo_se_icon;
+	miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yahoo_se_icon;
       }
 
     // XXX: personalization icon kind of look ugly with image snippets...

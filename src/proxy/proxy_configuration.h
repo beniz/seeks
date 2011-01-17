@@ -159,6 +159,12 @@ namespace sp
 
       /*  user db file. */
       std::string _user_db_file;
+
+      /* user remote db address. */
+      char *_user_db_haddr;
+      
+      /* user db remote port. */
+      int _user_db_hport;
       
       /* user db startup check. */
       bool _user_db_startup_check;

@@ -117,17 +117,16 @@ namespace sp
         if (ws) *ws = '\0';
 
         sprintf(name, "%s", in_buf); // append './' to lib name.
-        dlib = dlopen(name, RTLD_NOW);  // NOW imposes resolving all symbols
-        // required for auto-registration.
-        if (dlib == NULL)
+        dlib = dlopen(name, RTLD_NOW);  // imposes resolving all symbols
+	
+	if (dlib == NULL)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "%s", dlerror());
-            //exit(-1);
-          }
+	    continue;
+	  }
 
         plugin_manager::_dl_list.insert(plugin_manager::_dl_list.end(),dlib); // add lib handle to the list.
-
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+	
         maker_ptr *pl_fct = (maker_ptr*)dlsym(dlib,"maker");
         if (!pl_fct)
           continue;
@@ -135,7 +134,6 @@ namespace sp
         plugin *pl = (*pl_fct)();
         if (pl)
           plugin_manager::_factory[pl->get_name()] = pl_fct;
-#endif
       }
 
     pclose(dl);
@@ -163,6 +161,10 @@ namespace sp
         ++vit;
       }
     plugin_manager::_plugins.clear();
+    plugin_manager::_ref_interceptor_plugins.clear();
+    plugin_manager::_ref_action_plugins.clear();
+    plugin_manager::_ref_filter_plugins.clear();
+    plugin_manager::_factory.clear();
 
     // close all the opened dynamic libs.
     std::list<void*>::iterator lit = plugin_manager::_dl_list.begin();
@@ -171,6 +173,7 @@ namespace sp
         dlclose((*lit));
         ++lit;
       }
+    plugin_manager::_dl_list.clear();
 
     return 1;
   }

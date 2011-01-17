@@ -31,9 +31,13 @@ $referer = $_SERVER['HTTP_REFERER'];
 $qc_redir = array();
 preg_match('/qc_redir/', $url, $qc_redir);
 
+$tbd = array(); 
+preg_match('/tbd/', $url, $tbd);
+
 $curl = curl_init();
 curl_setopt($curl, CURLOPT_URL, $url);
-if ($qc_redir[0] == "qc_redir")
+if ($qc_redir[0] == "qc_redir"
+ || $tbd[0] == "tbd")
 {
  curl_setopt($curl, CURLOPT_HEADER, true);
 }
@@ -48,6 +52,7 @@ curl_close($curl);
 header('Content-Type: '.$result_info['content_type']);
 
 if ($qc_redir[0] == "qc_redir")
+    || $tbd[0] == "tbd")
 {
  $status_code = array();
  preg_match('/\d\d\d/', $result, $status_code);

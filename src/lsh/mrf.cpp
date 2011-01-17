@@ -126,6 +126,11 @@ namespace lsh
   };
 
   /*-- str_chain --*/
+  str_chain::str_chain()
+    :_radius(0),_skip(false)
+  {
+  }
+
   str_chain::str_chain(const std::string &str,
                        const int &radius)
       :_radius(radius),_skip(false)
@@ -136,11 +141,12 @@ namespace lsh
   str_chain::str_chain(const std::string &str,
 		       const int &radius,
 		       const bool &tokenize)
+    :_radius(radius),_skip(false)
   {
     if (tokenize)
       {
 	std::vector<std::string> tokens;
-	mrf::tokenize(str,tokens,mrf::_default_delims);
+	mrf::tokenize(str,tokens,mrf::_default_delims); // Beware: default tokenization would alter "<skip>" word.
 	std::vector<std::string>::const_iterator vit
 	  = tokens.begin();
 	while(vit!=tokens.end())
@@ -165,23 +171,60 @@ namespace lsh
       _skip = true;
   }
 
+  void str_chain::remove_token(const size_t &i)
+  {
+    if (i>=_chain.size())
+      return;
+    std::vector<std::string>::iterator vit = _chain.begin()+i;
+    if ((*vit) == "<skip>")
+      _skip = false;
+    _chain.erase(vit);
+    if (!_skip)
+      check_skip();
+  }
+  
+  void str_chain::check_skip()
+  {
+    std::vector<std::string>::iterator vit = _chain.begin();
+    while(vit!=_chain.end())
+      {
+	if ((*vit) == "<skip>")
+	  {
+	    _skip = true;
+	    return;
+	  }
+	++vit;
+      }
+    _skip = false;
+  }
+
   str_chain str_chain::rank_alpha() const
   {
     str_chain cchain = *this;
-
-#ifdef DEBUG
-    /* std::cout << "cchain: ";
-     cchain.print(std::cout); */
-#endif
-
     std::sort(cchain.get_chain_noconst().begin(),cchain.get_chain_noconst().end());
-
-#ifdef DEBUG
-    /* std::cout << "sorted chain: ";
-     cchain.print(std::cout); */
-#endif
-
     return cchain;
+  }
+
+  str_chain str_chain::intersect(const str_chain &stc) const
+  {
+    str_chain inter;
+    for (size_t i=0;i<size();i++)
+      {
+	for (size_t j=0;j<stc.size();j++)
+          {
+            if (at(i) == stc.at(j))
+              {
+                inter.add_token(stc.at(j));
+              }
+          }
+      }
+    return inter;
+  }
+  
+  uint32_t str_chain::intersect_size(const str_chain &stc) const
+  {
+    str_chain inter = intersect(stc);
+    return inter.size();
   }
 
   std::string str_chain::print_str() const

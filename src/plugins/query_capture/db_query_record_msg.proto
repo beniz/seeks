@@ -5,7 +5,7 @@ import "db_record_msg.proto";
 message visited_url
 {
  required string url = 1;
- required uint32 hits = 2; /* url hits for this query. */
+ required int32 hits = 2; /* url hits for this query. */
 }
 
 message visited_urls

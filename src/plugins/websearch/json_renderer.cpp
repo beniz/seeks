@@ -19,7 +19,6 @@
 
 #include "json_renderer.h"
 #include "cgisimple.h"
-#include "encode.h"
 #include "miscutil.h"
 #include "cgi.h"
 #include "json_renderer_private.h"
@@ -27,12 +26,13 @@
 #include "img_query_context.h"
 #endif
 #include "proxy_configuration.h"
+#include "seeks_proxy.h" // for sweepables.
 
 using sp::cgisimple;
 using sp::miscutil;
 using sp::cgi;
-using sp::encode;
 using sp::proxy_configuration;
+using sp::seeks_proxy;
 using namespace json_renderer_private;
 
 namespace seeks_plugins
@@ -90,6 +90,12 @@ namespace seeks_plugins
           json_str_eng += ",";
         json_str_eng += "\"youtube\"";
       }
+    if (engines.to_ulong()&SE_SEEKS)
+      {
+	if (!json_str_eng.empty())
+	  json_str_eng += ",";
+	json_str_eng += "\"seeks\"";
+      }
     return json_str_eng;
   }
 
@@ -138,6 +144,66 @@ sp_err json_renderer::render_node_options(client_state *csp,
 
   return SP_ERR_OK;
 }
+
+  std::string json_renderer::render_related_queries(const query_context *qc)
+  {
+    if (!qc->_suggestions.empty())
+      {
+	std::list<std::string> suggs;
+	std::multimap<double,std::string,std::less<double> >::const_iterator mit
+          = qc->_suggestions.begin();
+	while(mit!=qc->_suggestions.end())
+          {
+            suggs.push_back("\"" + (*mit).second + "\"");
+            ++mit;
+          }
+        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]";
+      }
+    return "";
+  }
+
+  std::string json_renderer::render_recommendations(const std::string &query_clean,
+						    const query_context *qc)
+  {
+    if (!qc->_recommended_snippets.empty())
+      {
+	std::list<std::string> suggs;
+	
+	std::vector<std::string> query_words;
+	miscutil::tokenize(query_clean,query_words," ");
+	
+	hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
+	  = qc->_recommended_snippets.begin();
+	while(hit!=qc->_recommended_snippets.end())
+          {
+	    suggs.push_back((*hit).second->to_json(false,query_words));
+	    ++hit;
+	  }
+	return "\"recommendations\":[" + miscutil::join_string_list(",",suggs) + "]";
+      }
+    return "";
+  }
+
+  std::string json_renderer::render_cached_queries(const std::string &query)
+  {
+    std::list<std::string> suggs;
+    std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
+    while(sit!=seeks_proxy::_memory_dust.end())
+      {
+	query_context *qc = dynamic_cast<query_context*>((*sit));
+	if (!qc)
+          {
+            ++sit;
+            continue;
+          }
+	if (qc->_query != query)
+	  suggs.push_back("\"" + qc->_query + "\"");
+	++sit;
+      }
+    if (!suggs.empty())
+      return "\"queries\":[" + miscutil::join_string_list(",",suggs) + "]";
+    else return "";
+  }
 
   std::string json_renderer::render_img_engines(const query_context *qc)
   {
@@ -295,7 +361,7 @@ sp_err json_renderer::render_node_options(client_state *csp,
       }
     int current_page = atoi(current_page_str);
 
-    std::string query = query_clean(miscutil::lookup(parameters,"q"));
+    std::string query = qc->_query;
 
     // search snippets.
     std::string json_snippets;
@@ -329,7 +395,7 @@ sp_err json_renderer::render_node_options(client_state *csp,
                                                       const query_context *qc,
                                                       const double &qtime)
   {
-    std::string query = query_clean(miscutil::lookup(parameters,"q"));
+    std::string query = qc->_query;
 
     // search clustered snippets.
     std::string json_snippets;
@@ -350,13 +416,13 @@ using namespace seeks_plugins;
 
 namespace json_renderer_private
 {
-  std::string query_clean(const std::string& q)
+  /*std::string query_clean(const std::string& q)
   {
     char *html_encoded_query_str = encode::html_encode(q.c_str());
     std::string html_encoded_query = std::string(html_encoded_query_str);
     free(html_encoded_query_str);
     return se_handler::no_command_query(html_encoded_query);
-  }
+    }*/
 
   std::string jsonp(const std::string& input, const char* callback)
   {
@@ -383,11 +449,11 @@ namespace json_renderer_private
   {
     /*- query info. -*/
     // query.
-    results.push_back("\"query\":\"" + query_clean(miscutil::lookup(parameters,"q")) + "\"");
+    results.push_back("\"query\":\"" + qc->_query + "\"");
 
     // language.
     results.push_back("\"lang\":\"" + qc->_auto_lang + "\"");
-
+  
     // personalization.
     const char *prs = miscutil::lookup(parameters,"prs");
     if (!prs || (miscutil::strcmpic(prs,"on")!=0 && miscutil::strcmpic(prs,"off")!=0))
@@ -397,20 +463,21 @@ namespace json_renderer_private
     // expansion.
     results.push_back("\"expansion\":\"" + miscutil::to_string(qc->_page_expansion) + "\"");
 
-    // suggestion.
-    if (!qc->_suggestions.empty())
-      {
-	std::list<std::string> suggs;
-	std::multimap<double,std::string,std::less<double> >::const_iterator mit
-	  = qc->_suggestions.begin();
-	while(mit!=qc->_suggestions.end())
-	  {
-	    suggs.push_back("\"" + (*mit).second + "\"");
-	    ++mit;
-	  }
-	results.push_back("\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]");
-      }
+    // related queries.
+    std::string related_queries = json_renderer::render_related_queries(qc);
+    if (!related_queries.empty())
+      results.push_back(related_queries);
     
+    // related URLs.
+    std::string reco = json_renderer::render_recommendations(qc->_query,qc);
+    if (!reco.empty())
+      results.push_back(reco);
+    
+    // queries in cache.
+    std::string cached_queries = json_renderer::render_cached_queries(qc->_query);
+    if (!cached_queries.empty())
+    results.push_back(cached_queries);
+
     // engines.
     if (qc->_engines.to_ulong() > 0)
       {

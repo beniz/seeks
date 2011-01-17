@@ -10,12 +10,17 @@ if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_CPPFLAGS += -I${srcdir}/../img_websearch
 endif
 if HAVE_PROTOBUF
+AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf -I../../proxy \
+               `pkg-config --cflags protobuf`
 if HAVE_TC
-AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf \
-               `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
-		-I../../proxy
+AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`
+endif
+
+if HAVE_TT
+AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
 endif
 endif
+
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
@@ -78,6 +83,7 @@ nobase_dist_websearchplugindata_DATA= \
 			  public/images/search_engines/youtube_12x12.png \
                           public/images/search_engines/dailymotion_12x12.png \
 			  public/images/search_engines/yauba_12x12.png \
+		          public/images/search_engines/seeks_12x12.png \
 			  public/themes/original/css/seeks_hp_search.css \
 	                  public/themes/original/images/home_32x30.png \
                           public/themes/original/images/search_cluster_on.png \

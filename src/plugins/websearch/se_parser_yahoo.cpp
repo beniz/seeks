@@ -94,7 +94,8 @@ namespace seeks_plugins
               {
                 std::string url_str = std::string(a_link);
                 size_t pos = 0;
-                if ((pos = url_str.find("rds.yahoo.com"))!=std::string::npos)
+                if ((pos = url_str.find("rds.yahoo.com"))!=std::string::npos
+		    || (pos = url_str.find("search.yahoo.com"))!=std::string::npos)
                   if ((pos = url_str.find("/**",pos))!=std::string::npos)
                     {
                       try

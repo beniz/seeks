@@ -297,7 +297,7 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,snippets);
+    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,qc->_auto_lang,snippets);
     std::stable_sort(snippets.begin(),snippets.end(),
                      search_snippet::max_seeks_rank);
   }
@@ -306,14 +306,15 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc,qc->_suggestions);
+    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,qc->_suggestions);
   }
 
   void sort_rank::get_recommended_urls(query_context *qc)
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_recommended_snippets);
+    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_auto_lang,
+								  qc->_recommended_snippets);
     qc->update_recommended_urls();
   }
 #endif

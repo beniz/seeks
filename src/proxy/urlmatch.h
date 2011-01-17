@@ -61,9 +61,10 @@ namespace sp
                                    int require_protocol);
       static void parse_url_host_and_path(const std::string &url,
                                           std::string &host, std::string &path);
+      static void parse_ip_host_port(char *haddr, int &hport); // replaces haddr with host.
 
       /**
-       * \brief strips http, https & www from a URL.
+       * \brief strips http, https & www and trailing '/' from a URL.
        */
       static std::string strip_url(const std::string &url);
 

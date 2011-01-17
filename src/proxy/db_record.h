@@ -101,7 +101,16 @@ namespace sp
       {
         return 0;
       };
-
+      
+      /**
+       * \brief free to fill function for generic access and operation over
+       *        the db records.
+       */
+      virtual int do_smthg(void *data) 
+      {
+	return 0;
+      };
+      
       /**
        * prints the record out.
        */

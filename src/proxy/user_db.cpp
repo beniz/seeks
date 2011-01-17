@@ -29,11 +29,12 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include <assert.h>
 
 #include <vector>
 #include <iostream>
-#include <fstream>
+#include <sstream>
 
 namespace sp
 {
@@ -48,63 +49,81 @@ namespace sp
   }
 
   /*- user_db -*/
-  std::string user_db::_db_name = "seeks_user.db"; // default.
   std::string user_db::_db_version_key = "db-version";
-  float user_db::_db_version = 0.3;
+  double user_db::_db_version = 0.4;
 
-  user_db::user_db()
+  user_db::user_db(const bool &local)
     :_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
 
     // create the db.
-    _hdb = tchdbnew();
-    tchdbsetmutex(_hdb);
-    tchdbtune(_hdb,0,-1,-1,HDBTDEFLATE);
+#if defined(TT)
+    if (local)
+#endif
+      _hdb = new db_obj_local();
+#if defined(TT)
+    else _hdb = new db_obj_remote(seeks_proxy::_config->_user_db_haddr,
+				  seeks_proxy::_config->_user_db_hport);
+#endif   
+    _hdb->dbsetmutex();
+    static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
 
     // db location.
-    if (seeks_proxy::_config->_user_db_file.empty())
+    if (local && seeks_proxy::_config->_user_db_file.empty())
       {
+	db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
         uid_t user_id = getuid(); // get user for the calling process.
         struct passwd *pw = getpwuid(user_id);
         if (pw)
           {
+	    std::string name;
             const char *pw_dir = pw->pw_dir;
             if (pw_dir)
               {
-                _name = std::string(pw_dir) + "/.seeks/";
-                int err = mkdir(_name.c_str(),0730); // create .seeks repository in case it does not exist.
+                name = std::string(pw_dir) + "/.seeks/";
+                int err = mkdir(name.c_str(),0730); // create .seeks repository in case it does not exist.
                 if (err != 0 && errno != EEXIST) // all but file exist errors.
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Creating repository %s failed: %s",
-                                      _name.c_str(),strerror(errno));
-                    _name = "";
+                                      name.c_str(),strerror(errno));
+                    name = "";
                   }
-                else _name += user_db::_db_name;
-              }
+                else name += db_obj_local::_db_name;
+		dol->set_name(name);
+	      }
           }
-        if (_name.empty())
+        if (dol->get_name().empty())
           {
             // try datadir, beware, we may not have permission to write.
             if (seeks_proxy::_datadir.empty())
-              _name = user_db::_db_name; // write it down locally.
-            else _name = seeks_proxy::_datadir + user_db::_db_name;
+              dol->set_name(db_obj_local::_db_name); // write it down locally.
+            else dol->set_name(seeks_proxy::_datadir + db_obj_local::_db_name);
           }
       }
-    else  // custom db file.
+    else if (local) // custom db file.
       {
-        _name = seeks_proxy::_config->_user_db_file;
+	db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
+        dol->set_name(seeks_proxy::_config->_user_db_file);
+      }
+    else // remote db.
+      {
+	
       }
   }
 
   user_db::user_db(const std::string &dbname)
-    :_opened(false),_name(dbname)
+    :_opened(false)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
 
-    _hdb = tchdbnew();
+    _hdb = new db_obj_local();
+    _hdb->dbsetmutex();
+    static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
+    db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
+    dol->set_name(dbname);
   }
 
   user_db::~user_db()
@@ -113,7 +132,7 @@ namespace sp
     close_db();
 
     // delete db object.
-    tchdbdel(_hdb);
+    delete _hdb;
   }
 
   int user_db::open_db()
@@ -125,22 +144,23 @@ namespace sp
       }
 
     // try to get write access, if not, fall back to read-only access, with a warning.
-    if (!tchdbopen(_hdb, _name.c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
+    //if (!tchdbopen(static_cast<db_obj_local*>(_hdb)->_hdb,_hdb->get_name().c_str(), HDBOWRITER | HDBOCREAT | HDBONOLCK))
+    if (!_hdb->dbopen(HDBOWRITER | HDBOCREAT | HDBONOLCK))
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db db open error: %s",tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db db open error: %s",_hdb->dberrmsg(ecode));
         errlog::log_error(LOG_LEVEL_INFO, "trying to open user_db in read-only mode");
-        if (!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT | HDBONOLCK))
+        if (!_hdb->dbopen(HDBOREADER | HDBOCREAT | HDBONOLCK)) // Beware, no effect if db is remote, as ths is set by the server.
           {
-            int ecode = tchdbecode(_hdb);
-            errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",tchdberrmsg(ecode));
+            int ecode = _hdb->dbecode();
+            errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",_hdb->dberrmsg(ecode));
             _opened = false;
             return ecode;
           }
       }
     uint64_t rn = number_records();
     errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
-                      _name.c_str(),rn);
+                      _hdb->get_name().c_str(),rn);
     _opened = true;
     return 0;
   }
@@ -153,16 +173,16 @@ namespace sp
         return 0;
       }
 
-    if (!tchdbopen(_hdb, _name.c_str(), HDBOREADER | HDBOCREAT | HDBONOLCK))
+    if (!_hdb->dbopen(HDBOREADER | HDBOCREAT | HDBONOLCK)) // Beware: no effect is the db is remote as this is set by the server.
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",_hdb->dberrmsg(ecode));
         _opened = false;
         return ecode;
       }
     uint64_t rn = number_records();
     errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
-                      _name.c_str(),rn);
+                      _hdb->get_name().c_str(),rn);
     _opened = true;
     return 0;
   }
@@ -171,15 +191,15 @@ namespace sp
   {
     if (!_opened)
       {
-        errlog::log_error(LOG_LEVEL_INFO,"user_db %s already closed", _name.c_str());
+        errlog::log_error(LOG_LEVEL_INFO,"user_db %s already closed", _hdb->get_name().c_str());
         return 0;
       }
 
-    if (!tchdbclose(_hdb))
+    if (!_hdb->dbclose())
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db %s close error: %s", _name.c_str(),
-                          tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db %s close error: %s", _hdb->get_name().c_str(),
+                          _hdb->dberrmsg(ecode));
         return ecode;
       }
     _opened = false;
@@ -188,24 +208,29 @@ namespace sp
 
   int user_db::optimize_db()
   {
-    if (!tchdboptimize(_hdb,0,-1,-1,HDBTDEFLATE))
+    db_obj_local *ldb = dynamic_cast<db_obj_local*>(_hdb);
+    if (ldb && !ldb->dboptimize(0,-1,-1,HDBTDEFLATE))
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",_hdb->dberrmsg(ecode));
         return ecode;
+      }
+    else
+      {
+	//TODO: db_obj_remote.
       }
     errlog::log_error(LOG_LEVEL_INFO,"user db optimized");
     return 0;
   }
 
-  int user_db::set_version(const float &v)
+  int user_db::set_version(const double &v)
   {
     mutex_lock(&_db_mutex);
     const char *keyc = user_db::_db_version_key.c_str();
-    if (!tchdbput(_hdb,keyc,strlen(keyc),&v,sizeof(float)))
+    if (!_hdb->dbput(keyc,strlen(keyc),&v,sizeof(double)))
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
         mutex_unlock(&_db_mutex);
         return -1;
       }
@@ -213,17 +238,32 @@ namespace sp
     return 0;
   }
 
-  float user_db::get_version()
+  double user_db::get_version()
   {
     const char *keyc = user_db::_db_version_key.c_str();
     int value_size;
-    void *value = tchdbget(_hdb,keyc,strlen(keyc),&value_size);
+    void *value = _hdb->dbget(keyc,strlen(keyc),&value_size);
     if (!value)
       {
         return 0.0;
       }
-    float v = *((float*)value);
+    double v = *((double*)value);
     return v;
+  }
+
+  bool user_db::is_remote() const
+  {
+#if defined(TT)
+    db_obj_remote *dbojr = dynamic_cast<db_obj_remote*>(_hdb);
+    if (dbojr)
+      return true;
+#endif
+    return false;
+  }
+
+  bool user_db::is_open() const
+  {
+    return _opened;
   }
 
   std::string user_db::generate_rkey(const std::string &key,
@@ -259,8 +299,8 @@ namespace sp
     void *rkey = NULL;
     int rkey_size;
     std::vector<std::string> to_remove;
-    tchdbiterinit(_hdb);
-    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+    _hdb->dbiterinit();
+    while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
       {
         std::string rkey_str = std::string((const char*)rkey,rkey_size);
         if ((!plugin_name.empty() && rkey_str.find(plugin_name) == std::string::npos)
@@ -289,7 +329,7 @@ namespace sp
     char keyc[lrkey];
     for (size_t i=0; i<lrkey; i++)
       keyc[i] = rkey[i];
-    void *value = tchdbget(_hdb, keyc, sizeof(keyc), &value_size);
+    void *value = _hdb->dbget(keyc, sizeof(keyc), &value_size);
     if (value)
       {
         // deserialize.
@@ -340,6 +380,7 @@ namespace sp
       {
         // merge records and serialize.
         int err_m = edbr->merge_with(dbr); // virtual call.
+	
         edbr->update_creation_time(); // set creation time to the time of this update.
         if (err_m < 0)
           {
@@ -386,10 +427,10 @@ namespace sp
     char valc[lstr];
     for (size_t i=0; i<lstr; i++)
       valc[i] = str[i];
-    if (!tchdbput(_hdb,keyc,sizeof(keyc),valc,sizeof(valc))) // erase if record already exists. XXX: study async call.
+    if (!_hdb->dbput(keyc,sizeof(keyc),valc,sizeof(valc))) // erase if record already exists. XXX: study async call.
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
         mutex_unlock(&_db_mutex);
         return -1;
       }
@@ -399,11 +440,17 @@ namespace sp
 
   int user_db::remove_dbr(const std::string &rkey)
   {
-    if (!tchdbout2(_hdb,rkey.c_str()))
+    if (!_hdb->dbout2(rkey.c_str()))
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",tchdberrmsg(ecode));
-        return -1;
+        int ecode = _hdb->dbecode();
+        
+	// we do not catch the no record error.
+	if (ecode != TCENOREC)
+	  {
+	    errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",_hdb->dberrmsg(ecode));
+	    return -1;
+	  }
+	return 1;
       }
     errlog::log_error(LOG_LEVEL_INFO,"removed record %s from user db",rkey.c_str());
     return 1;
@@ -421,13 +468,13 @@ namespace sp
 
   int user_db::clear_db()
   {
-    if (!tchdbvanish(_hdb))
+    if (!_hdb->dbvanish())
       {
-        int ecode = tchdbecode(_hdb);
-        errlog::log_error(LOG_LEVEL_ERROR,"user db clearing error: %s",tchdberrmsg(ecode));
+        int ecode = _hdb->dbecode();
+        errlog::log_error(LOG_LEVEL_ERROR,"user db clearing error: %s",_hdb->dberrmsg(ecode));
         return ecode;
       }
-    errlog::log_error(LOG_LEVEL_INFO,"cleared all records in db %s",_name.c_str());
+    errlog::log_error(LOG_LEVEL_INFO,"cleared all records in db %s",_hdb->get_name().c_str());
     return 0;
   }
 
@@ -436,11 +483,11 @@ namespace sp
     void *rkey = NULL;
     int rkey_size;
     std::vector<std::string> to_remove;
-    tchdbiterinit(_hdb);
-    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+    _hdb->dbiterinit();
+    while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
       {
         int value_size;
-        void *value = tchdbget(_hdb, rkey, rkey_size, &value_size);
+        void *value = _hdb->dbget(rkey, rkey_size, &value_size);
         if (value)
           {
             std::string str = std::string((char*)value,value_size);
@@ -495,11 +542,11 @@ namespace sp
     void *rkey = NULL;
     int rkey_size;
     std::vector<std::string> to_remove;
-    tchdbiterinit(_hdb);
-    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+    _hdb->dbiterinit();
+    while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
       {
         int value_size;
-        void *value = tchdbget(_hdb, rkey, rkey_size, &value_size);
+        void *value = _hdb->dbget(rkey, rkey_size, &value_size);
         if (value)
           {
             std::string str = std::string((char*)value,value_size);
@@ -551,14 +598,75 @@ namespace sp
     return err;
   }
 
+  int user_db::do_smthg_db(const std::string &plugin_name,
+			   void *data)
+  {
+    void *rkey = NULL;
+    int rkey_size;
+    std::vector<std::string> to_remove;
+    _hdb->dbiterinit();
+    while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
+      {
+        int value_size;
+        void *value = _hdb->dbget(rkey, rkey_size, &value_size);
+        if (value)
+          {
+            std::string str = std::string((char*)value,value_size);
+            free(value);
+            std::string key, cplugin_name;
+            std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   cplugin_name,key) != 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
+              }
+            else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                db_record *dbr = NULL;
+                if (!pl)
+                  {
+                    // handle error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Could not find plugin %s for pruning user db record",
+                                      plugin_name.c_str());
+                    dbr = new db_record();
+                  }
+                else
+                  {
+                    dbr = pl->create_db_record();
+                  }
+
+                if (dbr->deserialize(str) != 0)
+                  {
+                    // deserialization error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing record %s",rkey_str.c_str());
+                  }
+                else if (dbr->_plugin_name == plugin_name)
+                  dbr->do_smthg(data);
+		delete dbr;
+              }
+          }
+        free(rkey);
+      }
+    int err = 0;
+    size_t trs = to_remove.size();
+    for (size_t i=0; i<trs; i++)
+      err += remove_dbr(to_remove.at(i));
+    errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db belonging to plugin %s",
+                      trs,plugin_name.c_str());
+    return err;
+  }
+
   uint64_t user_db::disk_size() const
   {
-    return tchdbfsiz(_hdb);
+    return _hdb->dbfsiz();
   }
 
   uint64_t user_db::number_records() const
   {
-    return tchdbrnum(_hdb);
+    return _hdb->dbrnum();
   }
 
   uint64_t user_db::number_records(const std::string &plugin_name) const
@@ -566,8 +674,8 @@ namespace sp
     uint64_t n = 0;
     void *rkey = NULL;
     int rkey_size;
-    tchdbiterinit(_hdb);
-    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+    _hdb->dbiterinit();
+    while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
       {
         std::string rec_pn,rec_key;
         std::string rkey_str = std::string((char*)rkey,rkey_size);
@@ -607,7 +715,7 @@ namespace sp
       }
     else if (format == "xml")
       {
-        output << "<querys>" << std::endl;
+        output << "<queries>" << std::endl;
       }
     else
       {
@@ -620,11 +728,11 @@ namespace sp
     void *rkey = NULL;
     void *value = NULL;
     int rkey_size;
-    tchdbiterinit(_hdb);
-    while ((rkey = tchdbiternext(_hdb,&rkey_size)) != NULL)
+    _hdb->dbiterinit();
+    while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
       {
         int value_size;
-        value = tchdbget(_hdb, rkey, rkey_size, &value_size);
+        value = _hdb->dbget(rkey, rkey_size, &value_size);
         if (value)
           {
             std::string str = std::string((char*)value,value_size);
@@ -653,19 +761,22 @@ namespace sp
                     if (format == "text")
                       {
                         output << "============================================" << std::endl;
-                        dbr->text_export_record(str, output);
+                        output << "key: " << key << std::endl;
+			dbr->text_export_record(str, output);
                       }
                     else if (format == "json")
                       {
                         if (!first) output << " , " << std::endl;
                         output << " { " << std::endl;
+			output << "\"key\": \"" << key << "\",";
                         dbr->json_export_record(str, output);
                         output << " } " << std::endl;
                       }
                     else if (format == "xml")
                       {
                         output << " <query> " << std::endl;
-                        dbr->xml_export_record(str, output);
+                        output << " <key>" << key << "</key>\n";
+			dbr->xml_export_record(str, output);
                         output << " </query> " << std::endl;
                       }
                     delete dbr;

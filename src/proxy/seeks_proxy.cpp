@@ -2259,6 +2259,25 @@ reading_done:
     csp->_flags &= ~CSP_FLAG_ACTIVE;
   }
 
+  void seeks_proxy::gracious_exit()
+  {
+#if defined(unix)
+    if (seeks_proxy::_pidfile)
+      {
+	unlink(seeks_proxy::_pidfile);
+      }
+#endif /* unix */
+#if defined(PROTOBUF) && defined(TC)
+    /* closing the user database. */
+    if (seeks_proxy::_user_db)
+      {
+	seeks_proxy::_user_db->optimize_db();
+	seeks_proxy::_user_db->close_db();
+      }
+#endif
+
+  }
+
 #if !defined(_WIN32)
   /*********************************************************************
    *
@@ -2282,20 +2301,7 @@ reading_done:
       case SIGTERM:
       case SIGINT:
         errlog::log_error(LOG_LEVEL_INFO, "exiting by signal %d .. bye", the_signal);
-# if defined(unix)
-        if (seeks_proxy::_pidfile)
-          {
-            unlink(seeks_proxy::_pidfile);
-          }
-# endif /* unix */
-#if defined(PROTOBUF) && defined(TC)
-        /* closing the user database. */
-        if (seeks_proxy::_user_db)
-          {
-            seeks_proxy::_user_db->optimize_db();
-            seeks_proxy::_user_db->close_db();
-          }
-#endif
+	seeks_proxy::gracious_exit();
         exit(the_signal);
         break;
 

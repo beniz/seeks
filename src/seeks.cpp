@@ -533,10 +533,25 @@ int main(int argc, const char *argv[])
   // loads iso639 table.
   iso639::initialize();
 
-#if defined(PROTOBUF) && defined(TC)
+#if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // start user db before plugins so they can work with it.
-  seeks_proxy::_user_db = new user_db();
-  seeks_proxy::_user_db->open_db();
+  if (seeks_proxy::_config->_user_db_haddr != NULL)
+    seeks_proxy::_user_db = new user_db(false);
+  else seeks_proxy::_user_db = new user_db(true);
+  if (seeks_proxy::_user_db->open_db())
+    {
+      // error opening the db.
+      // check whether this is a remote db. If it is, try the local
+      // db instead.
+      if (seeks_proxy::_user_db->is_remote())
+	{
+	  
+	  errlog::log_error(LOG_LEVEL_INFO,"Trying the local user db instead of the remote db");
+	  delete seeks_proxy::_user_db;
+	  seeks_proxy::_user_db = new user_db(true);
+	  seeks_proxy::_user_db->open_db();
+	}
+    }
   seeks_proxy::_user_db->optimize_db();
 #endif
 
@@ -557,23 +572,29 @@ int main(int argc, const char *argv[])
     }
   plugin_manager::instanciate_plugins();
 
-#if defined(PROTOBUF) && defined(TC)
+#if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // fix broken user DB by detecting and rewriting it.
-  float db_version = seeks_proxy::_user_db->get_version();
+  double db_version = seeks_proxy::_user_db->get_version();
   errlog::log_error(LOG_LEVEL_INFO, "db version: %g", db_version);
-  if (db_version == 0.0 && sizeof(unsigned long) == 8)
+  if (miscutil::compare_d(0.0,db_version,1e-3) && sizeof(unsigned long) == 8)
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_169();
       seeks_proxy::_user_db->open_db();
     }
-  if (db_version < 0.3)
+  if (db_version < 0.3 && !miscutil::compare_d(0.3,db_version,1e-3))
     {
       seeks_proxy::_user_db->close_db();
       user_db_fix::fix_issue_263();
       seeks_proxy::_user_db->open_db();
     }
-  if (db_version != user_db::_db_version)
+  if (db_version < 0.3 && !miscutil::compare_d(0.4,db_version,1e-3))
+    {
+      seeks_proxy::_user_db->close_db();
+      user_db_fix::fix_issue_281();
+      seeks_proxy::_user_db->open_db();
+    }
+  if (!miscutil::compare_d(db_version,user_db::_db_version,1e-3))
     {
       seeks_proxy::_user_db->set_version(user_db::_db_version);
       errlog::log_error(LOG_LEVEL_INFO, "user db version updated to %g",

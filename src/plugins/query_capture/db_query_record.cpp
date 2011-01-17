@@ -38,22 +38,26 @@ namespace seeks_plugins
   /*- query_data -*/
   query_data::query_data(const std::string &query,
                          const short &radius)
-    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL)
+    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL),
+     _record_key(NULL)
   {
   }
 
   query_data::query_data(const std::string &query,
                          const short &radius,
-                         const std::string &url)
-    :_query(query),_radius(radius),_hits(1)
+                         const std::string &url,
+			 const short &hits,
+			 const short &url_hits)
+    :_query(query),_radius(radius),_hits(hits),_record_key(NULL)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
-    vurl_data *vd = new vurl_data(url);
+    vurl_data *vd = new vurl_data(url,url_hits);
     add_vurl(vd);
   }
 
   query_data::query_data(const query_data *qd)
-    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL)
+    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL),
+     _record_key(NULL)
   {
     if (qd->_visited_urls)
       {
@@ -87,6 +91,8 @@ namespace seeks_plugins
         delete _visited_urls;
         _visited_urls = NULL;
       }
+    if (_record_key)
+      delete _record_key;
   }
 
   void query_data::create_visited_urls()
@@ -98,6 +104,10 @@ namespace seeks_plugins
 
   void query_data::merge(const query_data *qd)
   {
+    // XXX: query hits are not updated.
+    // this would require a special flag so that merging URLs
+    // does not impact on query hits.
+
     if (qd->_query != _query)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"trying to merge query record data for different queries");
@@ -119,7 +129,11 @@ namespace seeks_plugins
         if ((fhit=_visited_urls->find((*hit).first))!=_visited_urls->end())
           {
             (*fhit).second->merge((*hit).second);
-          }
+	    
+	    // remove URL if all hits have been cancelled.
+	    if ((*fhit).second->_hits == 0)
+	      _visited_urls->erase(fhit);
+	  }
         else
           {
             vurl_data *vd = new vurl_data((*hit).second);
@@ -180,10 +194,12 @@ namespace seeks_plugins
   db_query_record::db_query_record(const std::string &plugin_name,
                                    const std::string &query,
                                    const short &radius,
-                                   const std::string &url)
+                                   const std::string &url,
+				   const short &hits,
+				   const short &url_hits)
     :db_record(plugin_name)
   {
-    query_data *qd = new query_data(query,radius,url);
+    query_data *qd = new query_data(query,radius,url,hits,url_hits);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
@@ -418,6 +434,55 @@ namespace seeks_plugins
 	return 1;
       }
     else return 0;
+  }
+
+  int db_query_record::fix_issue_281(uint32_t &fixed_urls)
+  {
+    int fixed_queries = 0;
+    std::vector<vurl_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+      = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+	query_data *qd = (*hit).second;
+	
+	if (!qd->_visited_urls)
+	  {
+	    ++hit;
+	    continue;
+	  }
+	
+	hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit
+	  = qd->_visited_urls->begin();
+	while(vit!=qd->_visited_urls->end())
+	  {
+	    vurl_data *vd = (*vit).second;
+	    if (vd->_url[vd->_url.length()-1] == '/')
+	      {
+		std::string url = vd->_url.substr(0,vd->_url.length()-1);  // fix url.
+		hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+		++vit;
+		qd->_visited_urls->erase(vit2);
+		vd->_url = url;
+		to_insert.push_back(vd);
+		fixed_urls++;
+	      }
+	    else ++vit;
+	  }
+	
+	size_t tis = to_insert.size();
+	if (tis > 0)
+	  {
+	    for (size_t i=0;i<tis;i++)
+	      qd->_visited_urls->insert(std::pair<const char*,vurl_data*>(to_insert.at(i)->_url.c_str(),
+									  to_insert.at(i)));
+	    fixed_queries++;
+	    to_insert.clear();
+	  }
+	
+	++hit;
+      }
+    return fixed_queries;
   }
 
 } /* end of namespace. */

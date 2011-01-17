@@ -1,6 +1,6 @@
 /* main result widget stuff. */
 snippetTxtTemplate =
-    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{summary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
+    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
 enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
 
 snippetImgTemplate =
@@ -17,11 +17,19 @@ persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact
 
 failureTemplate = '';
 
-var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
+var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"), 
+recoDiv = Y.one("#search_reco"), cacheDiv = Y.one("#search_cache"),
 pagesDiv = Y.one("#search_page_current"), pagesDivTop = Y.one("#search_page_current_top"), 
 persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
 persSpan = Y.one("#tab-pers-flag"), pagePrev = Y.one("#search_page_prev"),
 pageNext = Y.one("#search_page_next"), pagePrevTop = Y.one("#search_page_prev_top"), pageNextTop = Y.one("#search_page_next_top");
+
+function regexpEscape(text) {
+    return text.replace(/[(){}/\|!:=?*+^$]/g, function(value) {
+	return '\\' + value;
+    }
+  );
+}
     
 function render_snippet(snippet,pi,query_words)
 {
@@ -60,17 +68,19 @@ function render_snippet(snippet,pi,query_words)
     snippet.enc_query = enc_query;
 
     // render summary.
+    snippet.hsummary = snippet.summary;
     for (var i=0;i<query_words.length;i++)
     {
-	var regx = new RegExp(query_words[i],"gi");
-	snippet.summary = snippet.summary.replace(regx,"<b>" + query_words[i] + "</b>");
+	var qw = regexpEscape(query_words[i]);
+	var regx = new RegExp(qw,"gi");
+	snippet.hsummary = snippet.hsummary.replace(regx,query_words[i].bold());
     }
     if ('words' in snippet)
     {
 	for (var i=0;i<snippet.words.length;i++)
 	{
 	    var regx = new RegExp(snippet.words[i],"gi");
-	    snippet.summary = snippet.summary.replace(regx,"<span class=\"highlight\">" + snippet.words[i] + "</span>");
+	    snippet.hsummary = snippet.hsummary.replace(regx,"<span class=\"highlight\" onclick=\"new_search('" + query + " " + snippet.words[i] + "');\">" + snippet.words[i] + "</span>");
 	}
     }
     
@@ -149,6 +159,48 @@ function render_cluster(cluster,label,chtml,pi)
     }
     chtml += '</ol><div class="clear"></div></div>';
     return chtml;
+}
+
+function render_query_suggestions(pi)
+{
+    var sugg_str = '';
+    if (pi.suggestions != '')
+    {
+	sugg_str += 'Related queries:';
+	for (var i=0;i<pi.suggestions.length;i++)
+	{
+	    sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.suggestions[i] + '\'));">' + pi.suggestions[i] + '</a>';
+	}
+    }
+    suggDiv.setContent(sugg_str);
+}
+
+function render_url_recommendations(pi)
+{
+    var sugg_str = '';
+    if (pi.recommendations != '')
+    {
+	sugg_str += 'Related results:';
+	for (var i=0;i<pi.recommendations.length;i++)
+	{
+	    sugg_str += '<br><a href="' + pi.recommendations[i].url + '">' + pi.recommendations[i].url + '</a>';
+	}
+    }
+    recoDiv.setContent(sugg_str);
+}
+
+function render_cached_queries(pi)
+{
+    var sugg_str = '';
+    if (pi.queries != '')
+    {
+	sugg_str += 'Recent queries:';
+	for (var i=0;i<pi.queries.length;i++)
+	{
+	    sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.queries[i] + '\'));">' + pi.queries[i] + '</a>';
+	}
+    }
+    cacheDiv.setContent(sugg_str);
 }
 
 function render()
@@ -242,6 +294,12 @@ function render()
     // render language.
     langInput.set('value',lang);
 
-    // query suggestion.
-    suggDiv.setContent(pi.suggestion);
+    // query suggestions.
+    render_query_suggestions(pi);
+
+    // URLs recommendations.
+    render_url_recommendations(pi);
+
+    // cached queries.
+    render_cached_queries(pi);
 }

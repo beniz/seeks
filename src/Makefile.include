@@ -5,30 +5,45 @@ LDADD=
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += \
+	-I$(top_builddir)/src/plugins/uri_capture \
 	-I$(top_builddir)/src/plugins/query_capture \
 	-I$(top_builddir)/src/plugins/cf
 
 AM_LDFLAGS += \
+	-L$(top_builddir)/src/plugins/uri_capture \
 	-L$(top_builddir)/src/plugins/query_capture \
 	-L$(top_builddir)/src/plugins/cf
 
 LDADD += \
+        -luricaptureplugin \
 	-lquerycaptureplugin \
 	-lcfplugin
 endif
 endif
 
 if HAVE_PROTOBUF
-if HAVE_TC
 AM_CPPFLAGS += \
-	`pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+	`pkg-config --cflags protobuf`
 
 AM_LDFLAGS += \
-	`pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+	`pkg-config --libs protobuf`
+
+if HAVE_TC
+AM_CPPFLAGS += \
+	`pkg-config --cflags tokyocabinet`
+AM_LDFLAGS += \
+        `pkg-config --libs tokyocabinet`
+endif
+
+if HAVE_TT
+AM_CPPFLAGS += \
+        `pkg-config --cflags tokyotyrant`
+AM_LDFLAGS += \
+      	   `pkg-config --libs tokyotyrant`
+endif
 
 LDADD += \
 	-lseeksuserdb
-endif
 endif
 
 AM_CPPFLAGS += \

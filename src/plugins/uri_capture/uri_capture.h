@@ -74,6 +74,8 @@ namespace seeks_plugins
 
       void store_uri(const std::string &uri, const std::string &host) const;
 
+      void remove_uri(const std::string &uri, const std::string &host);
+      
       static std::string prepare_uri(const std::string &uri);
 
       void get_useful_headers(const std::list<const char*> &headers,

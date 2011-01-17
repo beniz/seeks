@@ -52,7 +52,7 @@ namespace seeks_plugins
 
     // query.
     int p = 36;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_bing.replace(p,6,qenc_str);
@@ -89,7 +89,7 @@ namespace seeks_plugins
 
     // query.
     int p = 31;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_ggle.replace(p,6,qenc_str);
@@ -136,7 +136,7 @@ namespace seeks_plugins
 
     // query.
     int p = 32;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_fl.replace(p,6,qenc_str);
@@ -172,7 +172,7 @@ namespace seeks_plugins
 
     // query.
     int p = 56;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_ya.replace(p,6,qenc_str);
@@ -208,7 +208,7 @@ namespace seeks_plugins
 
     // query.
     //int p = 71;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     //q_wcom.replace(p,6,qenc_str);

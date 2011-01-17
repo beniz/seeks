@@ -36,12 +36,12 @@ namespace seeks_plugins
   class query_recommender
   {
   public:
-    static bool select_and_rewrite_query(const str_chain &strc_query,
-					 std::string &rquery,
-					 stopwordlist *swl);
+    static bool select_query(const str_chain &strc_query,
+			     const std::string &query,
+			     stopwordlist *swl);
     
     static void recommend_queries(const std::string &query,
-				  const query_context *qc,
+				  const std::string &lang,
 				  std::multimap<double,std::string,std::less<double> > &related_queries);
     
     static void merge_recommended_queries(std::multimap<double,std::string,std::less<double> > &related_queries,

@@ -26,7 +26,7 @@ namespace json_renderer_private
                               const seeks_plugins::query_context *qc,
                               const double &qtime, const bool &img=false);
 
-  std::string query_clean(const std::string& q);
+  //std::string query_clean(const std::string& q);
   std::string jsonp(const std::string& input, const char* callback);
   void response(http_response *rsp, const std::string& json_str);
 }

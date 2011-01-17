@@ -19,15 +19,11 @@
 #ifndef USER_DB_H
 #define USER_DB_H
 
+//#include "config.h"
 #include "mutexes.h"
 #include "db_record.h"
 #include "sweeper.h"
-
-#include <tcutil.h>
-#include <tchdb.h> // tokyo cabinet.
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include "db_obj.h"
 
 #include <vector>
 #include <ostream>
@@ -59,7 +55,7 @@ namespace sp
       /**
        * \brief db constructor, called by system.
        */
-      user_db();
+      user_db(const bool &local=true);
 
       /**
        * \brief db constructor, for opening a existing db by its name.
@@ -96,13 +92,25 @@ namespace sp
        * @param v version to be set.
        * @return 0 if no error, -1 otherwise.
        */
-      int set_version(const float &v);
+      int set_version(const double &v);
 
       /**
        * \brief gets db version.
        * @return db version, 0.0 if an error occurred.
        */
-      float get_version();
+      double get_version();
+
+      /**
+       * \brief whether the db is remote or not.
+       * @return true if it is a remote db.
+       */
+      bool is_remote() const;
+
+      /**
+       * \brief whether the db is currently open for operations or not.
+       * @return true if it is open.
+       */
+      bool is_open() const;
 
       /**
        * \brief generates a unique key for the record, from a given key and the plugin name.
@@ -182,6 +190,13 @@ namespace sp
                    const time_t date = 0);
 
       /**
+       * \brief applies a virtual function do_smthg over data for every
+       *        record matching plugin plugin_name.
+       */
+      int do_smthg_db(const std::string &plugin_name,
+		      void *data);
+
+      /**
        * \brief returns db size on disk.
        */
       uint64_t disk_size() const;
@@ -223,15 +238,13 @@ namespace sp
       int sweep_db();
 
     public:
-      TCHDB *_hdb; /**< Tokyo Cabinet hashtable db. */
+      db_obj *_hdb; /**< local or remote Tokyo Cabinet hashtable db. */
       bool _opened; /**< whether the db is opened. */
-      std::string _name; /**< db path and filename. */
       std::vector<user_db_sweepable*> _db_sweepers;
 
       static std::string _db_name; /**< db file name. */
-
       static std::string _db_version_key; /**< db version record key. */
-      static float _db_version; /**< db record structure version. */
+      static double _db_version; /**< db record structure version. */
 
     private:
       sp_mutex_t _db_mutex; /**< mutex around db operations. */

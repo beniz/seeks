@@ -126,12 +126,16 @@ namespace seeks_plugins
                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                       bool render=true);
 
-      static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                      client_state *csp);
+      static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                      client_state *csp, hash_map<uint32_t,query_context*,id_hash_uint> &active_contexts);
+                                      hash_map<uint32_t,query_context*,id_hash_uint> &active_contexts);
+      
+      static std::string no_command_query(const std::string &oquery);
 
+      static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					client_state *csp);
+      
       /* error handling. */
       static sp_err failed_ses_connect(client_state *csp, http_response *rsp);
 

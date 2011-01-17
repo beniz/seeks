@@ -88,8 +88,6 @@ namespace seeks_plugins
   }
 
   /*- query_capture -*/
-  query_capture_configuration* query_capture::_config = NULL;
-
   query_capture::query_capture()
       :plugin()
   {
@@ -110,9 +108,9 @@ namespace seeks_plugins
       }
 #endif
 
-    if (query_capture::_config == NULL)
-      query_capture::_config = new query_capture_configuration(_config_filename);
-    _configuration = query_capture::_config;
+    if (query_capture_configuration::_config == NULL)
+      query_capture_configuration::_config = new query_capture_configuration(_config_filename);
+    _configuration = query_capture_configuration::_config;
 
     // cgi dispatchers.
     _cgi_dispatchers.reserve(1);
@@ -126,6 +124,7 @@ namespace seeks_plugins
 
   query_capture::~query_capture()
   {
+    query_capture_configuration::_config = NULL; // configuration is deleted in parent class.
   }
 
   void query_capture::start()
@@ -134,17 +133,18 @@ namespace seeks_plugins
     if (!seeks_proxy::_user_db || !seeks_proxy::_user_db->_opened)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for query capture plugin to work with it");
+	return;
       }
     else if (seeks_proxy::_config->_user_db_startup_check)
       {
 	// preventive sweep of records.
 	static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
-
-        // get number of captured URI already in user_db.
-        uint64_t nr = seeks_proxy::_user_db->number_records(_name);
-
-        errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
       }
+    
+    // get number of captured queries already in user_db.
+    uint64_t nr = seeks_proxy::_user_db->number_records(_name);
+    
+    errlog::log_error(LOG_LEVEL_INFO,"query_capture plugin: %u records",nr);
   }
 
   void query_capture::stop()
@@ -216,19 +216,40 @@ namespace seeks_plugins
       }
 
     // capture queries and URL / HOST.
-    // XXX: could threaded and detached.
+    // XXX: could be threaded and detached.
     char *queryp = encode::url_decode(q);
     std::string query = queryp;
     query = query_capture_element::no_command_query(query);
     free(queryp);
-    std::string url = urlp;
+    
     std::string host,path;
-    urlmatch::parse_url_host_and_path(url,host,path);
-    host = urlmatch::strip_url(host);
-    std::transform(url.begin(),url.end(),url.begin(),tolower);
-    std::transform(host.begin(),host.end(),host.begin(),tolower);
+    std::string url = std::string(urlp);
+    query_capture::process_url(url,host,path);
+        
     query_capture::store_queries(query,url,host);
     return SP_ERR_OK;
+  }
+
+  void query_capture::process_url(std::string &url, std::string &host)
+  {
+    if (url[url.length()-1]=='/') // remove trailing '/'.
+      url = url.substr(0,url.length()-1);
+    std::transform(url.begin(),url.end(),url.begin(),tolower);
+    std::transform(host.begin(),host.end(),host.begin(),tolower);
+  }
+  
+  void query_capture::process_url(std::string &url, std::string &host, std::string &path)
+  {
+    urlmatch::parse_url_host_and_path(url,host,path);
+    host = urlmatch::strip_url(host);
+    query_capture::process_url(url,host);
+  }
+
+  void query_capture::process_get(std::string &get)
+  {
+    size_t p = miscutil::replace_in_string(get," HTTP/1.1","");
+    if (p == 0)
+      miscutil::replace_in_string(get," HTTP/1.0","");
   }
 
   sp::db_record* query_capture::create_db_record()
@@ -324,17 +345,12 @@ namespace seeks_plugins
         std::string query_str = query_capture_element::no_command_query(query);
 
         //std::cerr << "detected query: " << query_str << std::endl;
-
-        host = urlmatch::strip_url(host);
-        p = miscutil::replace_in_string(get," HTTP/1.1","");
-        if (p == 0)
-          miscutil::replace_in_string(get," HTTP/1.0","");
+	
+	query_capture::process_get(get);
+	host = urlmatch::strip_url(host);
         std::string url = host + get;
-        if (url[url.length()-1]=='/') // remove trailing '/'.
-          url = url.substr(0,url.length()-1);
-        std::transform(url.begin(),url.end(),url.begin(),tolower);
-        std::transform(host.begin(),host.end(),host.begin(),tolower);
-
+	query_capture::process_url(url,host);
+	
         // store queries and URL / HOST.
         query_capture_element::store_queries(query_str,url,host,_parent->get_name());
 
@@ -418,6 +434,24 @@ namespace seeks_plugins
       }
   }
 
+  void query_capture_element::remove_url(const DHTKey &key, const std::string &query,
+					 const std::string &url, const std::string &host,
+					 const short &url_hits, const uint32_t &radius,
+					 const std::string &plugin_name)
+  {
+    std::string key_str = key.to_rstring();
+    if (!url.empty())
+      {
+        db_query_record dbqr(plugin_name,query,radius,url,1,-url_hits);
+        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+      }
+    if (!host.empty() && host != url)
+      {
+        db_query_record dbqr(plugin_name,query,radius,host,1,-url_hits);
+        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+      }
+  }
+
   void query_capture_element::get_useful_headers(const std::list<const char*> &headers,
       std::string &host, std::string &referer,
       std::string &get, std::string &base_url)
@@ -497,7 +531,7 @@ namespace seeks_plugins
     return cquery;
   }
 
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration. */
   extern "C"
   {
     plugin* maker()
@@ -505,22 +539,5 @@ namespace seeks_plugins
       return new query_capture;
     }
   }
-#else
-  plugin* makerqc()
-  {
-    return new query_capture;
-  }
-
-  class proxy_autor_qcapture
-  {
-    public:
-      proxy_autor_qcapture()
-      {
-        plugin_manager::_factory["query-capture"] = makerqc; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor_qcapture _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

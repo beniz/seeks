@@ -37,6 +37,7 @@
 
 #include "mrf.h"
 
+#include <ctype.h>
 #include <iostream>
 
 using sp::miscutil;
@@ -137,8 +138,17 @@ namespace seeks_plugins
               if (query_words.at(j) == (*bit).second)
                 add = false;
             if (add)
-              words.push_back((*bit).second);
-            i++;
+	      {
+		for (size_t k=0;k<(*bit).second.length();k++) // alphabetical characters only.
+		  if (!isalpha((*bit).second[k]))
+		    {
+		      add = false;
+		      break;
+		    }
+		if (add)
+		  words.push_back((*bit).second);
+		i++;
+	      }
             if (i>=max_highlights)
               break;
           }
@@ -167,7 +177,7 @@ namespace seeks_plugins
             char *wenc = encode::url_encode(words.at(i).c_str());
             std::string rword = " " + words.at(i) + " ";
             std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query
-                                   + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand&ui=stat\">" + rword + "</a></span>";
+                                   + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand&lang=" + _qc->_auto_lang + "&ui=stat\">" + rword + "</a></span>";
             free(wenc);
             miscutil::ci_replace_in_string(str,rword,bold_str);
           }
@@ -203,12 +213,14 @@ namespace seeks_plugins
     char *title_enc = encode::html_encode(_title.c_str());
     std::string title = std::string(title_enc);
     free(title_enc);
+    miscutil::replace_in_string(title,"\\","\\\\");
     miscutil::replace_in_string(title,"\"","\\\"");
     json_str += "\"title\":\"" + title + "\",";
     std::string url = _url;
     miscutil::replace_in_string(url,"\"","\\\"");
     json_str += "\"url\":\"" + url + "\",";
     std::string summary = _summary;
+    miscutil::replace_in_string(summary,"\\","\\\\");
     miscutil::replace_in_string(summary,"\"","\\\"");
     json_str += "\"summary\":\"" + summary + "\",";
     json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
@@ -293,15 +305,16 @@ namespace seeks_plugins
       }
 
     std::string url = _url;
-
+    char *url_encp = encode::url_encode(url.c_str());
+    std::string url_enc = std::string(url_encp);
+    free(url_encp);
+    
 #if defined(PROTOBUF) && defined(TC)
     if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
         && query_capture_configuration::_config
         && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
-        char *url_enc = encode::url_encode(url.c_str());
-        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + std::string(url_enc);
-        free(url_enc);
+        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + url_enc;
       }
 #endif
 
@@ -336,7 +349,7 @@ namespace seeks_plugins
         html_content += "\"></a><div>";
       }
 
-    if (prs && _personalized)
+    if (prs && _personalized && !(_engine.to_ulong()&SE_SEEKS))
       {
         html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
       }
@@ -351,7 +364,7 @@ namespace seeks_plugins
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
-                          + "/search?q=" + _qc->_url_enc_query + "&page=1&expansion=1&action=expand&engines=seeng&lang"
+                          + "/search?q=@query@&page=1&expansion=1&action=expand&engines=seeng&lang"
                           + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
     if (_engine.to_ulong()&SE_GOOGLE)
       {
@@ -359,7 +372,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
         miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
         miscutil::replace_in_string(ggle_se_icon,"seeng","google");
-        html_content += ggle_se_icon;
+	miscutil::replace_in_string(ggle_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += ggle_se_icon;
       }
     if (_engine.to_ulong()&SE_BING)
       {
@@ -367,7 +381,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
         miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
         miscutil::replace_in_string(bing_se_icon,"seeng","bing");
-        html_content += bing_se_icon;
+	miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += bing_se_icon;
       }
     if (_engine.to_ulong()&SE_BLEKKO)
       {
@@ -375,7 +390,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(blekko_se_icon,"icon","search_engine_blekko");
         miscutil::replace_in_string(blekko_se_icon,"setitle","blekko!");
         miscutil::replace_in_string(blekko_se_icon,"seeng","blekko");
-        html_content += blekko_se_icon;
+	miscutil::replace_in_string(blekko_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += blekko_se_icon;
       }
     if (_engine.to_ulong()&SE_YAUBA)
       {
@@ -383,7 +399,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yauba_se_icon,"icon","search_engine_yauba");
         miscutil::replace_in_string(yauba_se_icon,"setitle","yauba!");
         miscutil::replace_in_string(yauba_se_icon,"seeng","yauba");
-        html_content += yauba_se_icon;
+	miscutil::replace_in_string(yauba_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yauba_se_icon;
       }
     if (_engine.to_ulong()&SE_YAHOO)
       {
@@ -391,7 +408,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
         miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
         miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
-        html_content += yahoo_se_icon;
+	miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yahoo_se_icon;
       }
     if (_engine.to_ulong()&SE_EXALEAD)
       {
@@ -399,6 +417,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
         miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
         miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
+	miscutil::replace_in_string(exalead_se_icon,"@query@",_qc->_url_enc_query);
         html_content += exalead_se_icon;
       }
     if (_engine.to_ulong()&SE_TWITTER)
@@ -407,7 +426,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(twitter_se_icon,"icon","search_engine_twitter");
         miscutil::replace_in_string(twitter_se_icon,"setitle","Twitter");
         miscutil::replace_in_string(twitter_se_icon,"seeng","twitter");
-        html_content += twitter_se_icon;
+	miscutil::replace_in_string(twitter_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += twitter_se_icon;
       }
     if (_engine.to_ulong()&SE_DAILYMOTION)
       {
@@ -415,7 +435,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"icon","search_engine_dailymotion");
         miscutil::replace_in_string(yt_se_icon,"setitle","Dailymotion");
         miscutil::replace_in_string(yt_se_icon,"seeng","Dailymotion");
-        html_content += yt_se_icon;
+	miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yt_se_icon;
       }
     if (_engine.to_ulong()&SE_YOUTUBE)
       {
@@ -423,7 +444,8 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"icon","search_engine_youtube");
         miscutil::replace_in_string(yt_se_icon,"setitle","Youtube");
         miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
-        html_content += yt_se_icon;
+	miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
+	html_content += yt_se_icon;
       }
     if (_engine.to_ulong()&SE_SEEKS)
       {
@@ -431,6 +453,7 @@ namespace seeks_plugins
 	miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
 	miscutil::replace_in_string(sk_se_icon,"setitle","Seeks");
 	miscutil::replace_in_string(sk_se_icon,"seeng","seeks");
+	miscutil::replace_in_string(sk_se_icon,"@query@",_qc->_url_enc_query);
 	html_content += sk_se_icon;
       }
 
@@ -530,15 +553,19 @@ namespace seeks_plugins
       }
 
     // snippet type rendering
+    const char *engines = miscutil::lookup(parameters,"engines");
     if (_doc_type != REJECTED)
       {
-        const char *engines = miscutil::lookup(parameters,"engines");
         html_content += "<a class=\"search_cache\" href=\"";
-        html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
-                        + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
-        if (engines)
-          html_content += std::string(engines);
-        html_content += " \"> ";
+        if (!prs)
+	  {
+	    html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
+	    + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
+	    if (engines)
+	      html_content += std::string(engines);
+	  }
+        else html_content += _url;
+	html_content += " \"> ";
         switch (_doc_type)
           {
           case UNKNOWN:
@@ -580,8 +607,21 @@ namespace seeks_plugins
           case WIKI:
             html_content += "Wiki";
             break;
+	  case REJECTED:
+	    break;
           }
         html_content += "</a>";
+      }
+
+    // snippet thumb down rendering
+    if (_personalized)
+      {
+	html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
+	  + _qc->_url_enc_query + "&url=" + url_enc + "&action=expand&expansion=xxexp&ui=stat&engines=";
+	if (engines)
+	  html_content += std::string(engines);
+	html_content += "&lang=" + _qc->_auto_lang;
+	html_content += "\">&nbsp;</a>";
       }
 
     html_content += "</div></li>\n";
@@ -958,14 +998,19 @@ namespace seeks_plugins
     else
       {
         s1->_meta_rank = s1->_engine.count();
-
-        // XXX: hack, on English queries, Bing & Yahoo are the same engine,
-        // therefore the rank must be tweaked accordingly in this special case.
-        if (s1->_qc->_auto_lang == "en"
-            && (s1->_engine.to_ulong()&SE_YAHOO)
-            && (s1->_engine.to_ulong()&SE_BING))
-          s1->_meta_rank--;
+	
+	s1->bing_yahoo_us_merge();
       }
+  }
+
+  void search_snippet::bing_yahoo_us_merge()
+  {
+    // XXX: hack, on English queries, Bing & Yahoo are the same engine,
+    // therefore the rank must be tweaked accordingly in this special case.
+    if (_qc->_auto_lang == "en"
+	&& (_engine.to_ulong()&SE_YAHOO)
+	&& (_engine.to_ulong()&SE_BING))
+      _meta_rank--;
   }
 
   std::string search_snippet::get_doc_type_str() const

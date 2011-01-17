@@ -22,7 +22,7 @@
 #include "plugin.h"
 #include "search_snippet.h"
 
-using sp::plugin;
+using namespace sp;
 
 namespace seeks_plugins
 {
@@ -38,15 +38,28 @@ namespace seeks_plugins
 
       virtual void stop();
 
+      static sp_err cgi_tbd(client_state *csp,
+			    http_response *rsp,
+			    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      
+      static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+			std::string &url, std::string &query, std::string &lang);
+
       void estimate_ranks(const std::string &query,
-                          std::vector<search_snippet*> &snippets);
+                          const std::string &lang,
+			  std::vector<search_snippet*> &snippets);
       
       void get_related_queries(const std::string &query,
-			       const query_context *qc,
+			       const std::string &lang,
 			       std::multimap<double,std::string,std::less<double> > &related_queries);
       
       void get_recommended_urls(const std::string &query,
+				const std::string &lang,
 				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
+      
+      static void thumb_down_url(const std::string &query,
+				 const std::string &lang,
+				 const std::string &url);
       
     public:
       static plugin *_uc_plugin;

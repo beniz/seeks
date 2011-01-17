@@ -77,6 +77,8 @@ namespace lsh
   class str_chain
   {
     public:
+    str_chain();
+
       str_chain(const std::string &str,
                 const int &radius);
       
@@ -89,6 +91,9 @@ namespace lsh
       ~str_chain() {};
 
       void add_token(const std::string &str);
+      void remove_token(const size_t &i);
+      void check_skip();
+
       void incr_radius()
       {
         _radius += 1;
@@ -126,6 +131,8 @@ namespace lsh
         _skip = true;
       }
       str_chain rank_alpha() const;
+      str_chain intersect(const str_chain &stc) const;
+      uint32_t intersect_size(const str_chain &stc) const;
       std::string print_str() const;
       std::ostream& print(std::ostream &output) const;
 

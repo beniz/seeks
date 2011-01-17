@@ -33,6 +33,9 @@
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <assert.h>
+#include <ctype.h>
+
+#include <algorithm>
 
 using namespace sp;
 
@@ -121,7 +124,7 @@ namespace seeks_plugins
             // return 400 error.
             return cgi::cgi_error_bad_param(csp,rsp);
           }
-        else se_handler::preprocess_parameters(parameters); // preprocess the query...
+        else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters (query + language).
 
 	// check on requested User Interface.
 	const char *ui = miscutil::lookup(parameters,"ui");
@@ -161,7 +164,7 @@ namespace seeks_plugins
 
     if (!parameters->empty())
       {
-        img_query_context *qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,csp,_active_img_qcontexts));
+        img_query_context *qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,_active_img_qcontexts));
 
         if (!qc)
           {
@@ -169,7 +172,7 @@ namespace seeks_plugins
             sp_err err = img_websearch::perform_img_websearch(csp,rsp,parameters,false);
             if (err != SP_ERR_OK)
               return err;
-            qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,csp,_active_img_qcontexts));
+            qc = dynamic_cast<img_query_context*>(websearch::lookup_qc(parameters,_active_img_qcontexts));
             if (!qc)
               return SP_ERR_MEMORY;
           }
@@ -262,7 +265,7 @@ namespace seeks_plugins
     clock_t start_time = times(&st_cpu);
 
     // lookup a cached context for the incoming query.
-    query_context *vqc = websearch::lookup_qc(parameters,csp,_active_img_qcontexts);
+    query_context *vqc = websearch::lookup_qc(parameters,_active_img_qcontexts);
     img_query_context *qc = NULL;
     if (vqc)
       qc = dynamic_cast<img_query_context*>(vqc);
@@ -327,6 +330,8 @@ namespace seeks_plugins
       {
 #if defined(PROTOBUF) && defined(TC)
         sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
+	sort_rank::get_related_queries(qc);
+	sort_rank::get_recommended_urls(qc);
 #endif
       }
 
@@ -426,8 +431,7 @@ namespace seeks_plugins
     return param_exports;
   }
 
-  /* auto-registration. */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration. */
   extern "C"
   {
     plugin* maker()
@@ -435,22 +439,5 @@ namespace seeks_plugins
       return new img_websearch;
     }
   }
-
-#else
-  plugin* makeriw()
-  {
-    return new img_websearch;
-  }
-  class proxy_autoiw
-  {
-    public:
-      proxy_autoiw()
-      {
-        plugin_manager::_factory["image-websearch"] = makeriw;
-      }
-  };
-
-  proxy_autoiw _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

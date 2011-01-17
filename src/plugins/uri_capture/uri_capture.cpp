@@ -74,7 +74,7 @@ namespace seeks_plugins
     struct timeval tv_now;
     gettimeofday(&tv_now,NULL);
     time_t sweep_date = tv_now.tv_sec - uc_configuration::_config->_retention;
-    seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
+    return seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
   }
 
   /*- uri_capture -*/
@@ -107,6 +107,7 @@ namespace seeks_plugins
 
   uri_capture::~uri_capture()
   {
+    uc_configuration::_config = NULL; // configuration is deleted in parent class.
   }
 
   void uri_capture::start()
@@ -115,17 +116,18 @@ namespace seeks_plugins
     if (!seeks_proxy::_user_db || !seeks_proxy::_user_db->_opened)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"user db is not opened for URI capture plugin to work with it");
+	return;
       }
     else if (seeks_proxy::_config->_user_db_startup_check)
       {
         // preventive sweep of records.
 	static_cast<uri_capture_element*>(_interceptor_plugin)->_uds.sweep_records();
-
-        // get number of captured URI already in user_db.
-        _nr = seeks_proxy::_user_db->number_records(_name);
-
-        errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
       }
+    
+    // get number of captured URI already in user_db.
+    _nr = seeks_proxy::_user_db->number_records(_name);
+    
+    errlog::log_error(LOG_LEVEL_INFO,"uri_capture plugin: %u records",_nr);
   }
 
   void uri_capture::stop()
@@ -139,7 +141,7 @@ namespace seeks_plugins
 
   int uri_capture::remove_all_uri_records()
   {
-    seeks_proxy::_user_db->prune_db(_name);
+    return seeks_proxy::_user_db->prune_db(_name);
   }
 
   /*- uri_capture_element -*/
@@ -233,13 +235,53 @@ namespace seeks_plugins
     db_uri_record dbur(_parent->get_name());
     if (!uri.empty())
       {
-        seeks_proxy::_user_db->add_dbr(uri,dbur);
-        static_cast<uri_capture*>(_parent)->_nr++;
+	db_record *dbr = seeks_proxy::_user_db->find_dbr(uri,_parent->get_name());
+	if (!dbr)
+	  static_cast<uri_capture*>(_parent)->_nr++;
+        else delete dbr;
+	seeks_proxy::_user_db->add_dbr(uri,dbur);
       }
     if (!host.empty() && uri != host)
       {
-        seeks_proxy::_user_db->add_dbr(host,dbur);
-        static_cast<uri_capture*>(_parent)->_nr++;
+	db_record *dbr = seeks_proxy::_user_db->find_dbr(host,_parent->get_name());
+	if (!dbr)
+	  static_cast<uri_capture*>(_parent)->_nr++;
+        else delete dbr;
+	seeks_proxy::_user_db->add_dbr(host,dbur);
+      }
+  }
+
+  void uri_capture_element::remove_uri(const std::string &uri, const std::string &host)
+  {
+    int uri_hits = 1;
+    if (!uri.empty())
+      {
+	db_record *dbr = seeks_proxy::_user_db->find_dbr(uri,_parent->get_name());
+	if (dbr)
+	  {
+	    uri_hits = static_cast<db_uri_record*>(dbr)->_hits;
+	    delete dbr;
+	    seeks_proxy::_user_db->remove_dbr(uri,_parent->get_name());
+	    static_cast<uri_capture*>(_parent)->_nr--;
+	  }
+      }
+    if (!host.empty() && uri != host)
+      {
+	db_record *dbr = seeks_proxy::_user_db->find_dbr(host,_parent->get_name());
+	if (dbr)
+	  {
+	    if (static_cast<db_uri_record*>(dbr)->_hits - uri_hits <= 0)
+	      {
+		seeks_proxy::_user_db->remove_dbr(host,_parent->get_name());
+		static_cast<uri_capture*>(_parent)->_nr--;
+	      }
+	    else
+	      {
+		db_uri_record dbur(_parent->get_name(),-uri_hits);
+		seeks_proxy::_user_db->add_dbr(host,dbur);
+	      }
+	    delete dbr;
+	  }
       }
   }
 
@@ -285,7 +327,6 @@ namespace seeks_plugins
   }
 
   /* auto-registration */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
   extern "C"
   {
     plugin* maker()
@@ -293,22 +334,5 @@ namespace seeks_plugins
       return new uri_capture;
     }
   }
-#else
-  plugin* makeruc()
-  {
-    return new uri_capture;
-  }
-
-  class proxy_autor_capture
-  {
-    public:
-      proxy_autor_capture()
-      {
-        plugin_manager::_factory["uri-capture"] = makeruc; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor_capture _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

@@ -38,6 +38,12 @@ namespace seeks_plugins
   {
   }
 
+  db_uri_record::db_uri_record(const std::string &plugin_name,
+			       const int &hits)
+    :db_record(plugin_name),_hits(hits)
+  {
+  }
+
   db_uri_record::db_uri_record()
     :db_record(),_hits(0)
   {
@@ -71,11 +77,14 @@ namespace seeks_plugins
     return 0;
   }
 
-  int db_uri_record::merge_with(const db_uri_record &dbr)
+  int db_uri_record::merge_with(const db_record &dbr)
   {
     if (dbr._plugin_name != _plugin_name)
-      return -2;
-    _hits += dbr._hits;
+      {
+	return -2;
+      }
+    const db_uri_record &dburi = static_cast<const db_uri_record&>(dbr);
+    _hits += dburi._hits;
     return 0;
   }
 
