@@ -62,7 +62,7 @@ namespace seeks_plugins
   sp_mutex_t websearch::_context_mutex;
 
   websearch::websearch()
-      : plugin()
+    : plugin()
   {
     _name = "websearch";
     _version_major = "0";
@@ -114,9 +114,9 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);
-    
+
     cgi_dispatcher *cgid_wb_node_info
-      = new cgi_dispatcher("info", &websearch::cgi_websearch_node_info, NULL, TRUE);
+    = new cgi_dispatcher("info", &websearch::cgi_websearch_node_info, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_node_info);
 
     // interceptor plugins.
@@ -231,7 +231,7 @@ namespace seeks_plugins
     csp->_content_type = CT_XML;
     sp_err err = cgi::template_fill_for_cgi(csp,seeks_opensearch_xml_str.c_str(),
                                             (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
-                                             : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+                                                : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
                                             exports,rsp);
 
     if (err != SP_ERR_OK)
@@ -264,7 +264,7 @@ namespace seeks_plugins
   }
 
   void websearch::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					client_state *csp)
+                                        client_state *csp)
   {
     // decode query (URL encoded).
     const char *query = miscutil::lookup(parameters,"q");
@@ -273,7 +273,7 @@ namespace seeks_plugins
     free(dec_query);
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-			    "q",1,query_str.c_str(),1);
+                            "q",1,query_str.c_str(),1);
 
     // detect and process query language.
     // - check for in-query language command.
@@ -282,45 +282,56 @@ namespace seeks_plugins
     bool has_query_lang = query_context::has_query_lang(query_str,qlang);
     if (has_query_lang)
       {
-	// replace query parameter to remove language command
-	// and fill up the lang parameter instead.
-	query_str = websearch::no_command_query(query_str);
-	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
-	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-				"q",1,query_str.c_str(),1);
-	const char *lang = miscutil::lookup(parameters,"lang");
-	if (lang)
-	  miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"lang");
-	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+        // replace query parameter to remove language command
+        // and fill up the lang parameter instead.
+        query_str = websearch::no_command_query(query_str);
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "q",1,query_str.c_str(),1);
+        const char *lang = miscutil::lookup(parameters,"lang");
+        if (lang)
+          miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"lang");
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
-	qlang_reg = query_context::lang_forced_region(qlang);
+        qlang_reg = query_context::lang_forced_region(qlang);
       }
     else if (query_context::has_lang(parameters,qlang))
       {
-	// language is specified, detect the region.
-	qlang_reg = query_context::lang_forced_region(qlang);
+        // language is specified, detect the region.
+        qlang_reg = query_context::lang_forced_region(qlang);
       }
     else if (websearch::_wconfig->_lang == "auto") // no language was specified, we study HTTP headers.
       {
-	// detection from HTTP headers.
-	query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
-	assert(!qlang.empty());
-	assert(!qlang_reg.empty());
-	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+        // detection from HTTP headers.
+        query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
+        assert(!qlang.empty());
+        assert(!qlang_reg.empty());
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
       }
     else // use local settings.
       {
-	qlang = websearch::_wconfig->_lang;
-	qlang_reg = query_context::lang_forced_region(qlang);
-	miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+        qlang = websearch::_wconfig->_lang;
+        qlang_reg = query_context::lang_forced_region(qlang);
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
       }
 
     // setup the language region.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-			    "lreg",1,qlang_reg.c_str(),1);
-    
+                            "lreg",1,qlang_reg.c_str(),1);
+
+    // set action to expand and expansion to 1 if q is specified but not action
+    const char *action = miscutil::lookup(parameters, "action");
+    if (!action)
+      {
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "action",1,"expand",1);
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "expansion",1,"1",1);
+      }
+
+
     // known query.
     //const char *query_known = miscutil::lookup(parameters,"qknown");
 
@@ -344,9 +355,9 @@ namespace seeks_plugins
                                         q,1,query_str.c_str(),1);
               }
           }
-	  }*/
+    }*/
   }
-  
+
   sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
@@ -756,7 +767,7 @@ namespace seeks_plugins
   }
 
   sp_err websearch::cgi_websearch_node_info(client_state *csp, http_response *rsp,
-					    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     const char *output = miscutil::lookup(parameters,"output");
     sp_err err = SP_ERR_OK;
@@ -893,11 +904,11 @@ namespace seeks_plugins
       {
 #if defined(PROTOBUF) && defined(TC)
         sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
-	sort_rank::get_related_queries(qc);
-	sort_rank::get_recommended_urls(qc);
+        sort_rank::get_related_queries(qc);
+        sort_rank::get_recommended_urls(qc);
 #endif
       }
-    
+
     if (expanded)
       qc->_compute_tfidf_features = true;
 
@@ -928,21 +939,21 @@ namespace seeks_plugins
         else if (ui_str == "dyn" && output_str == "html")
           {
             // XXX: the template is filled up and returned earlier.
-	    // dynamic UI uses JSON calls to fill up results.
-	  }
+            // dynamic UI uses JSON calls to fill up results.
+          }
         else if (output_str == "json")
           {
-	    csp->_content_type = CT_JSON;
+            csp->_content_type = CT_JSON;
             err = json_renderer::render_json_results(qc->_cached_snippets,
                   csp,rsp,parameters,qc,
                   qtime);
           }
       }
-    
+
     if (strcasecmp(pers,"on") == 0)
       {
 #if defined(PROTOBUF) && defined(TC)
-	qc->reset_snippets_personalization_flags();
+        qc->reset_snippets_personalization_flags();
 #endif
       }
 
@@ -972,18 +983,18 @@ namespace seeks_plugins
     bool has_lang = query_context::has_lang(parameters,qlang);
     if (!has_lang)
       {
-	// should not happen, parameters should have been preprocessed.
-	qlang = query_context::_default_alang.c_str();
+        // should not happen, parameters should have been preprocessed.
+        qlang = query_context::_default_alang.c_str();
       }
     const char *q = miscutil::lookup(parameters,"q");
     if (!q)
       {
-	// should never happen.
-	q = "";
+        // should never happen.
+        q = "";
       }
     std::string query_key = query_context::assemble_query(q,qlang);
     uint32_t query_hash = query_context::hash_query_for_context(query_key);
-    
+
     hash_map<uint32_t,query_context*,id_hash_uint >::iterator hit;
     if ((hit = active_qcontexts.find(query_hash))!=active_qcontexts.end())
       {
@@ -1040,5 +1051,5 @@ namespace seeks_plugins
       return new websearch;
     }
   }
-  
+
 } /* end of namespace. */
