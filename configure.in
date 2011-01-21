@@ -348,6 +348,24 @@ else
    AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
 fi
 
+#==========================================================================
+# Finding icu
+#==========================================================================
+# First, check for the icu-config tool
+AC_PATH_PROGS(ICU_CONFIG, icu-config, no)
+if test x$ICU_CONFIG = no; then
+   AM_CONDITIONAL(HAVE_ICU,false)
+else
+   AC_DEFINE(FEATURE_ICU,1,"ICU library is there")
+   AM_CONDITIONAL(HAVE_ICU,true)
+fi
+
+ICU_LDADD=`$ICU_CONFIG --ldflags`
+AC_SUBST(ICU_LDADD)
+
+ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+AC_SUBST(ICU_CFLAGS)
+
 #====================================================
 # This check is incomplete. For mingw32 zlib is found
 # by configure, but not necessarily by the compiler.
@@ -758,6 +776,7 @@ AC_MSG_NOTICE([Configured to build seeks:
  protobuf:                ${protobuf}
  tokyocabinet: 		  ${tokyocabinet}
  tokyotyrant:		  ${tokyotyrant}
+ icu:                     ${ICU_CONFIG}
 
  Testing:
  gtest                    ${with_gtest}
