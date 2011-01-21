@@ -271,9 +271,19 @@ namespace seeks_plugins
     char *dec_query = encode::url_decode_but_not_plus(query);
     std::string query_str = std::string(dec_query);
     free(dec_query);
+    
+    // query charset check.
+    query_str = query_context::charset_check_and_conversion(query_str,csp->_headers);
+    if (query_str.empty())
+      {
+	errlog::log_error(LOG_LEVEL_ERROR, "Bad charset on query %s",query);
+      }
+
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
-    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                            "q",1,query_str.c_str(),1);
+    
+    if (!query_str.empty())
+      miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+			      "q",1,query_str.c_str(),1);
 
     // detect and process query language.
     // - check for in-query language command.
@@ -370,6 +380,14 @@ namespace seeks_plugins
             return cgi::cgi_error_bad_param(csp,rsp);
           }
         else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+
+	// recheck on query, if not there, it means it has no valid charset.
+	query = miscutil::lookup(parameters,"q");
+	if (!query)
+	  {
+	    // return 400 error (should be a 406 maybe).
+            return cgi::cgi_error_bad_param(csp,rsp);
+	  }
 
         // check on requested User Interface:
         // - 'dyn' for dynamic interface: detach a thread for performing the requested

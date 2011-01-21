@@ -1,7 +1,8 @@
 check_PROGRAMS = 
 
-check_PROGRAMS += ut_json_renderer
+check_PROGRAMS += ut_json_renderer ut_qc
 ut_json_renderer_SOURCES = ut-json-renderer.cpp
+ut_qc_SOURCES = ut-qc.cpp
 
 TESTS = $(check_PROGRAMS)
 

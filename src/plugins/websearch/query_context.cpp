@@ -28,6 +28,7 @@
 #include "se_handler.h"
 #include "iso639.h"
 #include "encode.h"
+#include "charset_conv.h"
 
 #include <sys/time.h>
 #include <algorithm>
@@ -602,6 +603,69 @@ namespace seeks_plugins
         // XXX: other useful headers should be detected and stored here.
         ++sit;
       }
+  }
+
+  std::string query_context::charset_check_and_conversion(const std::string &q,
+							  const std::list<const char*> &http_headers)
+  {
+    // check whether it's UTF8 (because we have to anyways...).
+    char *conv_query = iconv_convert("UTF-8","UTF-8",q.c_str());
+    if (conv_query)
+      {
+	free(conv_query);
+	return q;
+      }
+    
+    // if it is not, check the HTTP header for charset info.
+    std::vector<std::string> head_charsets;
+    std::list<const char*>::const_iterator lit = http_headers.begin();
+    while(lit!=http_headers.end())
+      {
+	if (miscutil::strncmpic((*lit),"accept-charset:",15) == 0)
+	  {
+	    std::string value = std::string((*lit)).substr(16);
+	    std::vector<std::string> tokens;
+	    mrf::tokenize(value,tokens,",;");
+	    for (size_t i=0;i<tokens.size();i++)
+	      {
+		size_t pos = 0;
+		if ((pos = tokens.at(i).find("q="))==std::string::npos)
+		  if (tokens.at(i)!="*")
+		    head_charsets.push_back(tokens.at(i));
+	      }
+	  }
+	++lit;
+      }
+    for (size_t i=0;i<head_charsets.size();i++)
+      {
+	char *conv_query = iconv_convert(head_charsets.at(i).c_str(),"UTF-8",q.c_str());
+	if (conv_query)
+	  {
+	    std::string convq = std::string(conv_query);
+	    free(conv_query);
+	    return convq;
+	  }
+      }
+      
+#ifdef FEATURE_ICU
+    // if no header, if we have ICU, then try to detect and convert.
+    int32_t c = 0;
+    const char *cs = icu_detection_best_match(q.c_str(),q.size(),&c);
+    if (cs && c > 60)
+      {
+	int32_t clen = 0;
+	char *target = icu_conversion(cs,"UTF-8",q.c_str(),&clen);
+	if (target)
+	  {
+	    std::string convq = std::string(target,clen);
+	    free(target);
+	    return convq;
+	  }
+      }
+#endif
+    
+    // otherwise reject.
+    return "";
   }
 
   std::string query_context::lang_forced_region(const std::string &auto_lang)
