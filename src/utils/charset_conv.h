@@ -22,7 +22,6 @@
 
 #ifdef FEATURE_ICU
 #include "unicode/utypes.h"
-#include "unicode/localpointer.h"
 #include "unicode/uenum.h"
 #include "unicode/ucsdet.h"
 #include "unicode/ucnv.h"
