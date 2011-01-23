@@ -492,7 +492,8 @@ namespace seeks_plugins
   /**
    * we dump non UTF8 queries, and try to fix non UTF8 URLs.
    */
-  int db_query_record::fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries)
+  int db_query_record::fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries, 
+				     uint32_t &removed_urls)
   {
     int dumped_queries = 0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
@@ -524,7 +525,8 @@ namespace seeks_plugins
 	    while(vit!=qd->_visited_urls->end())
 	      {
 		vurl_data *vd = (*vit).second;
-		char *conv_url = iconv_convert("UTF-8","UTF-8",vd->_url.c_str());
+		std::string vurl = vd->_url;
+		char *conv_url = iconv_convert("UTF-8","UTF-8",vurl.c_str());
 		if (!conv_url)
 		  {
 #ifdef FEATURE_ICU
@@ -541,10 +543,7 @@ namespace seeks_plugins
 			
 			if (target)
 			  {
-			    hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
-			    ++vit;
-			    qd->_visited_urls->erase(vit2);
-			    vd->_url = std::string(target,clen);
+			    vurl = std::string(target,clen);
 			    //std::cerr << "icu converted url: " << vd->_url << std::flush << std::endl;
 			    free(target);
 			    to_insert_u.push_back(vd);
@@ -554,17 +553,26 @@ namespace seeks_plugins
 #else
 		    // try some blind conversions with iconv.
 		    conv_url = iconv_convert("ISO_8859-1","UTF-8",vd->_url.c_str());
-		    if (conv_query)
+		    if (conv_url)
 		      {
-			hash_map<const char*,vurldata*,hash<const char*>,eqstr>::iterator vit2 = vit;
-			++vit;
-			qd->_visited_urls->erase(vit2);
-			vd->_url= std::string(conv_url);
+			vurl= std::string(conv_url);
 			//std::cerr << "iconv converted url: " << qd->_query << std::endl;
 			to_insert_u.push_back(vd);
 			fixed_urls++;
+			free(conv_url);
 		      }
 #endif
+		    // erase URL.
+		    hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+		    ++vit;
+		    qd->_visited_urls->erase(vit2);
+		    if (vd->_url != vurl)
+		      vd->_url = vurl;
+		    else
+		      {
+			removed_urls++;
+			delete vd;
+		      }
 		  }
 		else 
 		  {

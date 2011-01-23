@@ -362,6 +362,7 @@ namespace sp
 
     // traverse records.
     uint32_t furls = 0;
+    uint32_t rurls = 0;
     size_t frec = 0;
     size_t fque = 0;
     size_t ffque = 0;
@@ -414,12 +415,14 @@ namespace sp
 		  {
 		    uint32_t fu = 0;
 		    uint32_t fq = 0;
-		    int f = static_cast<db_query_record*>(dbr)->fix_issue_154(fu,fq);
+		    uint32_t ru = 0;
+		    int f = static_cast<db_query_record*>(dbr)->fix_issue_154(fu,fq,ru);
 		    
 		    if (f != 0 || fu != 0)
 		      {
 			ffque += fq;
 			furls += fu;
+			rurls += ru;
 			fque += f;
 			frec++;
 			udb.remove_dbr(rkey_str);
@@ -434,8 +437,8 @@ namespace sp
       }
 
     udb.close_db();
-    errlog::log_error(LOG_LEVEL_INFO,"Fix 154: fixed %u records in user db, dumped %u queries, fixed %u urls in %u queries",
-		      frec,fque,furls,ffque);
+    errlog::log_error(LOG_LEVEL_INFO,"Fix 154: fixed %u records in user db, dumped %u queries, dumped %u urls, fixed %u urls in %u queries",
+		      frec,fque,furls,rurls,ffque);
     return err;
   }
 
