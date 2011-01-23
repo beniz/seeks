@@ -353,18 +353,22 @@ fi
 #==========================================================================
 # First, check for the icu-config tool
 AC_PATH_PROGS(ICU_CONFIG, icu-config, no)
-if test x$ICU_CONFIG = no; then
+if test x$ICU_CONFIG = xno; then
    AM_CONDITIONAL(HAVE_ICU,false)
 else
    AC_DEFINE(FEATURE_ICU,1,"ICU library is there")
    AM_CONDITIONAL(HAVE_ICU,true)
+   ICU_LDADD=`$ICU_CONFIG --ldflags`
+   AC_SUBST(ICU_LDADD)
+   ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+   AC_SUBST(ICU_CFLAGS)
 fi
 
-ICU_LDADD=`$ICU_CONFIG --ldflags`
-AC_SUBST(ICU_LDADD)
+#ICU_LDADD=`$ICU_CONFIG --ldflags`
+#AC_SUBST(ICU_LDADD)
 
-ICU_CFLAGS=`$ICU_CONFIG --cppflags`
-AC_SUBST(ICU_CFLAGS)
+#ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+#AC_SUBST(ICU_CFLAGS)
 
 #====================================================
 # This check is incomplete. For mingw32 zlib is found
