@@ -133,6 +133,8 @@ namespace seeks_plugins
 
       int fix_issue_281(uint32_t &fixed_urls);
 
+      int fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries);
+
     public:
       hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;
   };

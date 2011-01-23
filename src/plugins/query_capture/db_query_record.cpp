@@ -16,9 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
 #include "db_query_record.h"
 #include "db_query_record_msg.pb.h"
 #include "miscutil.h"
+#include "charset_conv.h"
 #include "errlog.h"
 
 #include "DHTKey.h" // for fixing issue 169.
@@ -29,6 +31,8 @@ using lsh::qprocess;
 #include <algorithm>
 #include <iterator>
 #include <iostream>
+
+#include <iconv.h>
 
 using sp::errlog;
 using sp::miscutil;
@@ -333,11 +337,11 @@ namespace seeks_plugins
         sp::db::related_query *rq = rqueries->mutable_rquery(i);
         short radius = rq->radius();
         std::string query = rq->query();
-        query_data *rd = new query_data(query,radius);
+	query_data *rd = new query_data(query,radius);
         rd->_hits = rq->query_hits();
         sp::db::visited_urls *rq_vurls = rq->mutable_vurls();
         int nvurls = rq_vurls->vurl_size();
-        if (nvurls > 0)
+	if (nvurls > 0)
           rd->create_visited_urls();
         for (int j=0; j<nvurls; j++)
           {
@@ -483,6 +487,107 @@ namespace seeks_plugins
 	++hit;
       }
     return fixed_queries;
+  }
+
+  /**
+   * we dump non UTF8 queries, and try to fix non UTF8 URLs.
+   */
+  int db_query_record::fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries)
+  {
+    int dumped_queries = 0;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+      = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+	query_data *qd = (*hit).second;
+	char *conv_query = iconv_convert("UTF-8","UTF-8",qd->_query.c_str());
+	
+	bool dumped_q = false;
+	if (!conv_query)
+	  {
+	    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;                               
+	    ++hit;                                                                                                        
+	    _related_queries.erase(hit2);
+	    delete qd;
+	    qd = NULL;
+	    dumped_q = true;
+	    dumped_queries++;
+	  }
+	else free(conv_query);
+	      
+	// check on URLs.
+	if (qd && qd->_visited_urls)
+	  {
+	    std::vector<vurl_data*>to_insert_u;
+	    hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit
+	      = qd->_visited_urls->begin();
+	    while(vit!=qd->_visited_urls->end())
+	      {
+		vurl_data *vd = (*vit).second;
+		char *conv_url = iconv_convert("UTF-8","UTF-8",vd->_url.c_str());
+		if (!conv_url)
+		  {
+#ifdef FEATURE_ICU
+		    // detect url charset.
+		    int32_t c = 0;
+		    const char *cs = icu_detection_best_match(qd->_query.c_str(),qd->_query.size(),&c);
+		    if (cs)
+		      {
+			//std::cerr << " detected url charset: " << cs << " with confidence: " << c << std::flush << std::endl;
+			
+			// if not UTF-8, convert it.
+			int32_t clen = 0;
+			char *target = icu_conversion(cs,"UTF8",vd->_url.c_str(),&clen);
+			
+			if (target)
+			  {
+			    hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+			    ++vit;
+			    qd->_visited_urls->erase(vit2);
+			    vd->_url = std::string(target,clen);
+			    //std::cerr << "icu converted url: " << vd->_url << std::flush << std::endl;
+			    free(target);
+			    to_insert_u.push_back(vd);
+			    fixed_urls++;
+			  }
+		      }
+#else
+		    // try some blind conversions with iconv.
+		    conv_url = iconv_convert("ISO_8859-1","UTF-8",vd->_url.c_str());
+		    if (conv_query)
+		      {
+			hash_map<const char*,vurldata*,hash<const char*>,eqstr>::iterator vit2 = vit;
+			++vit;
+			qd->_visited_urls->erase(vit2);
+			vd->_url= std::string(conv_url);
+			//std::cerr << "iconv converted url: " << qd->_query << std::endl;
+			to_insert_u.push_back(vd);
+			fixed_urls++;
+		      }
+#endif
+		  }
+		else 
+		  {
+		    free(conv_url);
+		    ++vit;
+		  }
+	      } // end while visited_urls.
+	    
+	    if (!to_insert_u.empty() && !dumped_q)
+	      fixed_queries++;
+	    for (size_t i=0;i<to_insert_u.size();i++)
+	      {
+		qd->_visited_urls->insert(std::pair<const char*,vurl_data*>(to_insert_u.at(i)->_url.c_str(),
+									    to_insert_u.at(i)));
+	      }	  
+	  }
+	
+	if (!dumped_q)
+	  ++hit;
+
+      } // end iterate related_queries.
+    
+    return dumped_queries;
   }
 
 } /* end of namespace. */

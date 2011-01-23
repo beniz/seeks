@@ -42,6 +42,11 @@ namespace sp
        * \brief fix trailing '/' in query captured records' URLs.
        */
       static int fix_issue_281();
+
+      /**
+       * \brief fix for non UTF-8 encoded queries.
+       */
+      static int fix_issue_154();
   };
 
 } /* end of namespace. */

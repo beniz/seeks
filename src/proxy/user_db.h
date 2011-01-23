@@ -242,7 +242,6 @@ namespace sp
       bool _opened; /**< whether the db is opened. */
       std::vector<user_db_sweepable*> _db_sweepers;
 
-      static std::string _db_name; /**< db file name. */
       static std::string _db_version_key; /**< db version record key. */
       static double _db_version; /**< db record structure version. */
 
