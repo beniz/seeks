@@ -47,10 +47,10 @@ namespace seeks_plugins
   std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
   std::string query_context::_default_alang = "en";
   std::string query_context::_default_alang_reg = "en-US";
-  
+
   query_context::query_context()
-      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
-      _registered(false)
+    :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+     _registered(false)
   {
     mutex_init(&_qc_mutex);
   }
@@ -58,7 +58,7 @@ namespace seeks_plugins
   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                const std::list<const char*> &http_headers)
     :sweepable(),_page_expansion(0),_blekko(false),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
-      _registered(false)
+     _registered(false)
   {
     mutex_init(&_qc_mutex);
 
@@ -69,8 +69,8 @@ namespace seeks_plugins
     const char *q = miscutil::lookup(parameters,"q");
     if (!q)
       {
-	// this should not happen.
-	q = "";
+        // this should not happen.
+        q = "";
       }
     _query = q;
 
@@ -84,18 +84,18 @@ namespace seeks_plugins
     const char *alang = miscutil::lookup(parameters,"lang");
     if (!alang)
       {
-	// this should not happen.
-	alang = query_context::_default_alang.c_str();
+        // this should not happen.
+        alang = query_context::_default_alang.c_str();
       }
     const char *alang_reg = miscutil::lookup(parameters,"lreg");
     if (!alang_reg)
       {
-	// this should not happen.
-	alang_reg = query_context::_default_alang_reg.c_str();
+        // this should not happen.
+        alang_reg = query_context::_default_alang_reg.c_str();
       }
     _auto_lang = alang;
     _auto_lang_reg = alang_reg;
-    
+
     // query hashing, with the language included.
     _query_key = query_context::assemble_query(_query,_auto_lang);
     _query_hash = query_context::hash_query_for_context(_query_key);
@@ -104,7 +104,7 @@ namespace seeks_plugins
     char *url_enc_query_str = encode::url_encode(_query.c_str());
     _url_enc_query = url_enc_query_str;
     free(url_enc_query_str);
-    
+
     // lookup requested engines, if any.
     query_context::fillup_engines(parameters,_engines);
 
@@ -130,18 +130,18 @@ namespace seeks_plugins
       }
 
     std::for_each(_cached_snippets.begin(),_cached_snippets.end(),
-		  delete_object());
-    
+                  delete_object());
+
     hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator idhit1, idhit2;
     idhit1 = _recommended_snippets.begin();
     while(idhit1!=_recommended_snippets.end())
       {
-	idhit2 = idhit1;
-	++idhit1;
-	delete (*idhit2).second;
-	_recommended_snippets.erase(idhit2);
+        idhit2 = idhit1;
+        ++idhit1;
+        delete (*idhit2).second;
+        _recommended_snippets.erase(idhit2);
       }
-    
+
     // clears the LSH hashtable.
     if (_ulsh_ham)
       delete _ulsh_ham;
@@ -492,10 +492,10 @@ namespace seeks_plugins
         return false;
       }
   }
-  
+
   // static.
   void query_context::detect_query_lang_http(const std::list<const char*> &http_headers,
-					     std::string &lang, std::string &lang_reg)
+      std::string &lang, std::string &lang_reg)
   {
     std::list<const char*>::const_iterator sit = http_headers.begin();
     while (sit!=http_headers.end())
@@ -510,11 +510,11 @@ namespace seeks_plugins
                 try
                   {
                     lang = lang_head.substr(pos+1,2);
-		    lang_reg = lang_head.substr(pos+1,5);
+                    lang_reg = lang_head.substr(pos+1,5);
                   }
                 catch (std::exception &e)
                   {
-		    lang = query_context::_default_alang;
+                    lang = query_context::_default_alang;
                     lang_reg = query_context::_default_alang_reg; // default.
                   }
                 errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
@@ -532,22 +532,23 @@ namespace seeks_plugins
                   }
                 lang_reg = query_context::lang_forced_region(lang);
                 errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
-		return;
-	      }
+                return;
+              }
           }
         ++sit;
       }
     lang_reg = query_context::_default_alang_reg; // beware, returning hardcoded default (since config value is most likely "auto").
     lang = query_context::_default_alang;
   }
-  
+
   std::string query_context::detect_base_url_http(const std::list<const char*> &headers)
   {
+    // first we try to get base_url from a custom header
     std::string base_url;
     std::list<const char*>::const_iterator sit = headers.begin();
     while (sit!=headers.end())
       {
-	if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
+        if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
           {
             base_url = (*sit);
             size_t pos = base_url.find_first_of(" ");
@@ -558,25 +559,53 @@ namespace seeks_plugins
             catch (std::exception &e)
               {
                 base_url = "";
-		break;
+                break;
               }
             break;
           }
         ++sit;
       }
+    if (miscutil::strcmpic(base_url.c_str(), "") == 0)
+      {
+
+        // if no custom header, we build base_url from the generic Host header
+        std::list<const char*>::const_iterator sit = headers.begin();
+
+        while (sit!=headers.end())
+          {
+            if (miscutil::strncmpic((*sit),"Host:",4) == 0)
+              {
+                base_url = (*sit);
+                size_t pos = base_url.find_first_of(" ");
+                try
+                  {
+                    base_url = base_url.substr(pos+1);
+                  }
+                catch (std::exception &e)
+                  {
+                    base_url = "";
+                    break;
+                  }
+                break;
+              }
+            ++sit;
+          }
+
+        base_url = "http://" + base_url;
+      }
     return base_url;
   }
 
   std::string query_context::assemble_query(const std::string &query,
-					    const std::string &lang)
+      const std::string &lang)
   {
     if (!lang.empty())
       {
-	return ":" + lang + " " + query;
+        return ":" + lang + " " + query;
       }
     else return query;
   }
-  
+
   void query_context::grab_useful_headers(const std::list<const char*> &http_headers)
   {
     std::list<const char*>::const_iterator sit = http_headers.begin();
@@ -606,64 +635,64 @@ namespace seeks_plugins
   }
 
   std::string query_context::charset_check_and_conversion(const std::string &q,
-							  const std::list<const char*> &http_headers)
+      const std::list<const char*> &http_headers)
   {
     // check whether it's UTF8 (because we have to anyways...).
     char *conv_query = iconv_convert("UTF-8","UTF-8",q.c_str());
     if (conv_query)
       {
-	free(conv_query);
-	return q;
+        free(conv_query);
+        return q;
       }
-    
+
     // if it is not, check the HTTP header for charset info.
     std::vector<std::string> head_charsets;
     std::list<const char*>::const_iterator lit = http_headers.begin();
     while(lit!=http_headers.end())
       {
-	if (miscutil::strncmpic((*lit),"accept-charset:",15) == 0)
-	  {
-	    std::string value = std::string((*lit)).substr(16);
-	    std::vector<std::string> tokens;
-	    mrf::tokenize(value,tokens,",;");
-	    for (size_t i=0;i<tokens.size();i++)
-	      {
-		size_t pos = 0;
-		if ((pos = tokens.at(i).find("q="))==std::string::npos)
-		  if (tokens.at(i)!="*")
-		    head_charsets.push_back(tokens.at(i));
-	      }
-	  }
-	++lit;
+        if (miscutil::strncmpic((*lit),"accept-charset:",15) == 0)
+          {
+            std::string value = std::string((*lit)).substr(16);
+            std::vector<std::string> tokens;
+            mrf::tokenize(value,tokens,",;");
+            for (size_t i=0; i<tokens.size(); i++)
+              {
+                size_t pos = 0;
+                if ((pos = tokens.at(i).find("q="))==std::string::npos)
+                  if (tokens.at(i)!="*")
+                    head_charsets.push_back(tokens.at(i));
+              }
+          }
+        ++lit;
       }
-    for (size_t i=0;i<head_charsets.size();i++)
+    for (size_t i=0; i<head_charsets.size(); i++)
       {
-	char *conv_query = iconv_convert(head_charsets.at(i).c_str(),"UTF-8",q.c_str());
-	if (conv_query)
-	  {
-	    std::string convq = std::string(conv_query);
-	    free(conv_query);
-	    return convq;
-	  }
+        char *conv_query = iconv_convert(head_charsets.at(i).c_str(),"UTF-8",q.c_str());
+        if (conv_query)
+          {
+            std::string convq = std::string(conv_query);
+            free(conv_query);
+            return convq;
+          }
       }
-      
+
 #ifdef FEATURE_ICU
     // if no header, if we have ICU, then try to detect and convert.
     int32_t c = 0;
     const char *cs = icu_detection_best_match(q.c_str(),q.size(),&c);
     if (cs && c > 60)
       {
-	int32_t clen = 0;
-	char *target = icu_conversion(cs,"UTF-8",q.c_str(),&clen);
-	if (target)
-	  {
-	    std::string convq = std::string(target,clen);
-	    free(target);
-	    return convq;
-	  }
+        int32_t clen = 0;
+        char *target = icu_conversion(cs,"UTF-8",q.c_str(),&clen);
+        if (target)
+          {
+            std::string convq = std::string(target,clen);
+            free(target);
+            return convq;
+          }
       }
 #endif
-    
+
     // otherwise reject.
     return "";
   }
@@ -773,32 +802,32 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-	if ((*vit)->_personalized)
-	  {
-	    (*vit)->_personalized = false;
-	    if ((*vit)->_engine.to_ulong()&SE_SEEKS)
-	      (*vit)->_engine ^= SE_SEEKS;
-	    (*vit)->_meta_rank = (*vit)->_engine.count();
-	    (*vit)->bing_yahoo_us_merge();
-	  }
-	++vit;
+        if ((*vit)->_personalized)
+          {
+            (*vit)->_personalized = false;
+            if ((*vit)->_engine.to_ulong()&SE_SEEKS)
+              (*vit)->_engine ^= SE_SEEKS;
+            (*vit)->_meta_rank = (*vit)->_engine.count();
+            (*vit)->bing_yahoo_us_merge();
+          }
+        ++vit;
       }
   }
-  
+
   void query_context::update_recommended_urls()
   {
     hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit, hit2, cit;
     hit = _recommended_snippets.begin();
     while(hit!=_recommended_snippets.end())
       {
-	if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
-	  {
-	    hit2 = hit;
-	    ++hit;
-	    delete (*hit2).second;
-	    _recommended_snippets.erase(hit2);
-	  }
-	else ++hit;
+        if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
+          {
+            hit2 = hit;
+            ++hit;
+            delete (*hit2).second;
+            _recommended_snippets.erase(hit2);
+          }
+        else ++hit;
       }
   }
 
