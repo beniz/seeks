@@ -248,6 +248,7 @@ namespace sp
         return 0.0;
       }
     double v = *((double*)value);
+    free(value);
     return v;
   }
 
