@@ -100,6 +100,7 @@ namespace sp
   proxy_configuration::proxy_configuration(const std::string &filename)
       :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
       _templdir(NULL),_logdir(NULL),_plugindir(NULL),_datadir(NULL),
+       _activated_plugins(10),
       _admin_address(NULL),_proxy_info_url(NULL),_usermanual(NULL),
       _hostname(NULL),
       _haddr(NULL),_hport(0),_buffer_limit(0),
@@ -134,6 +135,17 @@ namespace sp
     freez(_admin_address);
     freez(_proxy_info_url);
     freez(_usermanual);
+    
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit,hit2;
+    hit = _activated_plugins.begin();
+    while(hit!=_activated_plugins.end())
+      {
+        hit2 = hit;
+        ++hit;
+        const char *key = (*hit2).first;
+        _activated_plugins.erase(hit2);
+        free_const(key);
+      }
   }
 
   // virtual functions.
@@ -155,7 +167,7 @@ namespace sp
     _feature_flags            &= ~RUNTIME_FEATURE_SPLIT_LARGE_FORMS;
     _feature_flags            &= ~RUNTIME_FEATURE_ACCEPT_INTERCEPTED_REQUESTS;
 
-    _activated_plugins.insert(std::pair<const char*,bool>("websearch",true)); // websearch plugin activated by default.
+    _activated_plugins.insert(std::pair<const char*,bool>(strdup("websearch"),true)); // websearch plugin activated by default.
 
     _automatic_proxy_disable = true;
     _user_db_file = ""; // default is $HOME/.seeks/seeks_user.db active when _user_db_file is unset.
