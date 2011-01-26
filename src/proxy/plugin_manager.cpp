@@ -133,7 +133,10 @@ namespace sp
 
         plugin *pl = (*pl_fct)();
         if (pl)
-          plugin_manager::_factory[pl->get_name()] = pl_fct;
+          {
+            plugin_manager::_factory[pl->get_name()] = pl_fct;
+            plugin_manager::register_plugin(pl);
+          }
       }
 
     pclose(dl);
@@ -180,28 +183,6 @@ namespace sp
 
   int plugin_manager::instanciate_plugins()
   {
-    std::map<std::string,maker_ptr*,std::less<std::string> >::const_iterator mit
-    = plugin_manager::_factory.begin();
-    while (mit!=plugin_manager::_factory.end())
-      {
-        plugin *p = (*mit).second(); // call to a maker function.
-
-        // register the plugin object and its functions, if activated.
-        if (seeks_proxy::_config->is_plugin_activated(p->get_name_cstr()))
-          {
-            plugin_manager::register_plugin(p);
-
-            // register the plugin elements.
-            if (p->_interceptor_plugin)
-              plugin_manager::_ref_interceptor_plugins.push_back(p->_interceptor_plugin);
-            if (p->_action_plugin)
-              plugin_manager::_ref_action_plugins.push_back(p->_action_plugin);
-            if (p->_filter_plugin)
-              plugin_manager::_ref_filter_plugins.push_back(p->_filter_plugin);
-          }
-        ++mit;
-      }
-
     // start registered plugins.
     std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
@@ -243,6 +224,14 @@ namespace sp
 
         ++vit;
       }
+
+    // register the plugin elements.
+    if (p->_interceptor_plugin)
+      plugin_manager::_ref_interceptor_plugins.push_back(p->_interceptor_plugin);
+    if (p->_action_plugin)
+      plugin_manager::_ref_action_plugins.push_back(p->_action_plugin);
+    if (p->_filter_plugin)
+      plugin_manager::_ref_filter_plugins.push_back(p->_filter_plugin);
   }
 
   cgi_dispatcher* plugin_manager::find_plugin_cgi_dispatcher(const char *path)
