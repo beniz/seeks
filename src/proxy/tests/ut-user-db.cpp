@@ -100,6 +100,7 @@ TEST(UserdbTest, all_fct)
   db_record *dbr = db->find_dbr(uris[0],plugin_name);
   dbr->print(oss);
   ASSERT_TRUE(oss.rdbuf()->str() != "");
+  delete dbr;
 
   // export records
   std::string filename = "ut-export-test-db.json";
@@ -132,10 +133,14 @@ TEST(UserdbTest, all_fct)
   ASSERT_TRUE(miscutil::compare_d(0.41,version,1e-3));
 
   // end of tests.
+  plugin_manager::close_all_plugins();
+  
   db->clear_db();
   db->close_db();
   unlink(dbfile.c_str());
   delete db;
+
+  delete seeks_proxy::_config;
 }
 
 int main(int argc, char **argv)
