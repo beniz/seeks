@@ -32,6 +32,7 @@
 #include "content_handler.h"
 #include "oskmeans.h"
 #include "mrf.h"
+#include "charset_conv.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h" // dependent plugin.
@@ -273,7 +274,7 @@ namespace seeks_plugins
     free(dec_query);
     
     // query charset check.
-    query_str = query_context::charset_check_and_conversion(query_str,csp->_headers);
+    query_str = charset_conv::charset_check_and_conversion(query_str,csp->_headers);
     if (query_str.empty())
       {
 	errlog::log_error(LOG_LEVEL_ERROR, "Bad charset on query %s",query);

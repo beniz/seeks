@@ -187,14 +187,7 @@ namespace seeks_plugins
        * \brief grab useful HTTP headers from the client.
        */
       void grab_useful_headers(const std::list<const char*> &http_headers);
-
-      /**
-       * \brief check the charset is UTF8, and tries to convert the query to it if it isn't.
-       * @return converted query or empty string if incorrect charset.
-       */
-      static std::string charset_check_and_conversion(const std::string &q,
-						      const std::list<const char*> &http_headers);
-
+      
       /**
        * \brief conversion to forced region, from language.
        */

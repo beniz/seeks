@@ -29,6 +29,7 @@
 #include "cgisimple.h"
 #include "qprocess.h"
 #include "miscutil.h"
+#include "charset_conv.h"
 #include "errlog.h"
 
 #include <algorithm>
@@ -48,6 +49,7 @@ using sp::cgi;
 using sp::cgisimple;
 using lsh::qprocess;
 using sp::miscutil;
+using sp::charset_conv;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -262,14 +264,30 @@ namespace seeks_plugins
     return seeks_proxy::_user_db->prune_db(_name);
   }
 
-  void query_capture::store_queries(const std::string &query,
+void query_capture::store_queries(const std::string &query,
                                     const std::string &url, const std::string &host)
   {
+    // check charset encoding.
+    std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
+    if (queryc.empty())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
+                          query.c_str());
+        return;
+      }
     query_capture_element::store_queries(query,url,host,"query-capture");
   }
 
   void query_capture::store_queries(const std::string &query) const
   {
+    // check charset encoding.
+    std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
+    if (queryc.empty())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
+                          query.c_str());
+        return;
+      }
     query_capture_element::store_queries(query,get_name());
   }
   
@@ -345,7 +363,17 @@ namespace seeks_plugins
         std::string query_str = query_capture_element::no_command_query(query);
 
         //std::cerr << "detected query: " << query_str << std::endl;
-	
+        
+        // check charset encoding.
+        std::string query_strc = charset_conv::charset_check_and_conversion(query_str,csp->_headers);
+        if (query_strc.empty())
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
+                              query_str.c_str());
+            delete parameters;
+            return NULL;
+          }
+        
 	query_capture::process_get(get);
 	host = urlmatch::strip_url(host);
         std::string url = host + get;

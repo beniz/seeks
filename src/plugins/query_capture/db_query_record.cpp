@@ -36,6 +36,7 @@ using lsh::qprocess;
 
 using sp::errlog;
 using sp::miscutil;
+using sp::charset_conv;
 
 namespace seeks_plugins
 {
@@ -501,7 +502,7 @@ namespace seeks_plugins
     while (hit!=_related_queries.end())
       {
 	query_data *qd = (*hit).second;
-	char *conv_query = iconv_convert("UTF-8","UTF-8",qd->_query.c_str());
+	char *conv_query = charset_conv::iconv_convert("UTF-8","UTF-8",qd->_query.c_str());
 	
 	bool dumped_q = false;
 	if (!conv_query)
@@ -526,20 +527,20 @@ namespace seeks_plugins
 	      {
 		vurl_data *vd = (*vit).second;
 		std::string vurl = vd->_url;
-		char *conv_url = iconv_convert("UTF-8","UTF-8",vurl.c_str());
+		char *conv_url = charset_conv::iconv_convert("UTF-8","UTF-8",vurl.c_str());
 		if (!conv_url)
 		  {
 #ifdef FEATURE_ICU
 		    // detect url charset.
 		    int32_t c = 0;
-		    const char *cs = icu_detection_best_match(qd->_query.c_str(),qd->_query.size(),&c);
+		    const char *cs = charset_conv::icu_detection_best_match(qd->_query.c_str(),qd->_query.size(),&c);
 		    if (cs)
 		      {
 			//std::cerr << " detected url charset: " << cs << " with confidence: " << c << std::flush << std::endl;
 			
 			// if not UTF-8, convert it.
 			int32_t clen = 0;
-			char *target = icu_conversion(cs,"UTF8",vd->_url.c_str(),&clen);
+			char *target = charset_conv::icu_conversion(cs,"UTF8",vd->_url.c_str(),&clen);
 			
 			if (target)
 			  {
@@ -552,7 +553,7 @@ namespace seeks_plugins
 		      }
 #else
 		    // try some blind conversions with iconv.
-		    conv_url = iconv_convert("ISO_8859-1","UTF-8",vd->_url.c_str());
+		    conv_url = charset_conv::iconv_convert("ISO_8859-1","UTF-8",vd->_url.c_str());
 		    if (conv_url)
 		      {
 			vurl= std::string(conv_url);

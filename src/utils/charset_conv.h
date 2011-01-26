@@ -27,47 +27,62 @@
 #include "unicode/ucnv.h"
 #endif
 
+#include "miscutil.h"
+#include "mrf.h"
+
 #include <iostream>
 
-char* iconv_convert (const char *from_charset, const char *to_charset, const char *input)
+using lsh::mrf;
+
+#ifndef CHARSET_CONV_H
+#define CHARSET_CONV_H
+
+namespace sp
 {
-  size_t inleft, outleft, converted = 0;
-  char *output, *outbuf;
-  const char *inbuf;
-  size_t outlen;
-  iconv_t cd;
 
-  if ((cd = iconv_open (to_charset, from_charset)) == (iconv_t) -1)
-    return NULL;
-
-  inleft = strlen (input);
-  inbuf = input;
-
-  /* we'll start off allocating an output buffer which is the same size
-   * as our input buffer. */
-  outlen = 2*inleft+1;
-
-  /* we allocate 4 bytes more than what we need for nul-termination... */
-  if (!(output = (char*)malloc (outlen + 4))) {
-    iconv_close (cd);
-    return NULL;
-  }
-
-  errno = 0;
-  outbuf = output + converted;
-  outleft = outlen - converted;
+class charset_conv
+{
+ public:
   
-  converted = iconv (cd, (char **) &inbuf, &inleft, &outbuf, &outleft);
-  if (converted != (size_t) -1 || errno == EINVAL) 
-    {
-      /*
+  static char* iconv_convert (const char *from_charset, const char *to_charset, const char *input)
+  {
+    size_t inleft, outleft, converted = 0;
+    char *output, *outbuf;
+    const char *inbuf;
+    size_t outlen;
+    iconv_t cd;
+    
+    if ((cd = iconv_open (to_charset, from_charset)) == (iconv_t) -1)
+      return NULL;
+    
+    inleft = strlen (input);
+    inbuf = input;
+    
+    /* we'll start off allocating an output buffer which is the same size
+   * as our input buffer. */
+    outlen = 2*inleft+1;
+    
+    /* we allocate 4 bytes more than what we need for nul-termination... */
+    if (!(output = (char*)malloc (outlen + 4))) {
+      iconv_close (cd);
+      return NULL;
+    }
+
+    errno = 0;
+    outbuf = output + converted;
+    outleft = outlen - converted;
+    
+    converted = iconv (cd, (char **) &inbuf, &inleft, &outbuf, &outleft);
+    if (converted != (size_t) -1 || errno == EINVAL) 
+      {
+        /*
        * EINVAL  An  incomplete  multibyte sequence has been encoun­-
        *         tered in the input.
        *
        * We'll just truncate it and ignore it.
        */
-    }
-  else if (errno != E2BIG) 
+      }
+    else if (errno != E2BIG) 
     {
       /*
        * EILSEQ An invalid multibyte sequence has been  encountered
@@ -107,8 +122,8 @@ char* iconv_convert (const char *from_charset, const char *to_charset, const cha
 
 #ifdef FEATURE_ICU
 
-// detection.
-const char* icu_detection_best_match(const char *input, const size_t &input_size,
+  // detection.
+static const char* icu_detection_best_match(const char *input, const size_t &input_size,
 				     int32_t *confidence)
 {
   UErrorCode uec;
@@ -130,7 +145,7 @@ const char* icu_detection_best_match(const char *input, const size_t &input_size
 }
 
 // conversion.
-char* icu_conversion(const char *from_cset, const char *to_cset,
+static char* icu_conversion(const char *from_cset, const char *to_cset,
 		     const char *input, int32_t *clen)
 {
   int32_t targetSize = 2048;
@@ -144,5 +159,75 @@ char* icu_conversion(const char *from_cset, const char *to_cset,
     }
   return target;
 }
+
+#endif
+
+static std::string charset_check_and_conversion(const std::string &q,
+                                         const std::list<const char*> &http_headers)
+{
+  // check whether it's UTF8 (because we have to anyways...).
+  char *conv_query = iconv_convert("UTF-8","UTF-8",q.c_str());
+  if (conv_query)
+      {
+        free(conv_query);
+        return q;
+      }
+  
+  // if it is not, check the HTTP header for charset info.
+  std::vector<std::string> head_charsets;
+  std::list<const char*>::const_iterator lit = http_headers.begin();
+  while(lit!=http_headers.end())
+    {
+      if (miscutil::strncmpic((*lit),"accept-charset:",15) == 0)
+        {
+          std::string value = std::string((*lit)).substr(16);
+          std::vector<std::string> tokens;
+          mrf::tokenize(value,tokens,",;");
+          for (size_t i=0; i<tokens.size(); i++)
+            {
+              size_t pos = 0;
+              if ((pos = tokens.at(i).find("q="))==std::string::npos)
+                if (tokens.at(i)!="*")
+                  head_charsets.push_back(tokens.at(i));
+            }
+        }
+      ++lit;
+      }
+  for (size_t i=0; i<head_charsets.size(); i++)
+    {
+      char *conv_query = iconv_convert(head_charsets.at(i).c_str(),"UTF-8",q.c_str());
+      if (conv_query)
+        {
+          std::string convq = std::string(conv_query);
+          free(conv_query);
+          return convq;
+        }
+      }
+  
+#ifdef FEATURE_ICU
+  // if no header, if we have ICU, then try to detect and convert.
+    int32_t c = 0;
+    const char *cs = icu_detection_best_match(q.c_str(),q.size(),&c);
+    std::cerr << "detected charset: " << cs << std::endl;
+    if (cs && c > 60)
+      {
+        int32_t clen = 0;
+        char *target = icu_conversion(cs,"UTF-8",q.c_str(),&clen);
+        if (target)
+          {
+            std::string convq = std::string(target,clen);
+            free(target);
+            return convq;
+          }
+      }
+#endif
+    
+    // otherwise reject.
+    return "";
+  }
+
+};
+
+} /* end of namespace. */
 
 #endif

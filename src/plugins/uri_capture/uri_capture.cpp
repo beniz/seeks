@@ -25,6 +25,7 @@
 #include "proxy_dts.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+#include "charset_conv.h"
 #include "errlog.h"
 
 #include <sys/time.h>
@@ -39,6 +40,7 @@ using sp::user_db;
 using sp::db_record;
 using sp::urlmatch;
 using sp::miscutil;
+using sp::charset_conv;
 using sp::errlog;
 
 namespace seeks_plugins
@@ -219,6 +221,31 @@ namespace seeks_plugins
       {
         if (get != "/")
           uri = host + get;
+      }
+
+    // check charset encoding.
+    if (store)
+      {
+        if (!uri.empty())
+          {
+            std::string uric = charset_conv::charset_check_and_conversion(uri,csp->_headers);
+            if (uric.empty())
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for URI %s",
+                                  uri.c_str());
+                store = false;
+              }
+          }
+        else if (!host.empty())
+          {
+            std::string hostc = charset_conv::charset_check_and_conversion(host,csp->_headers);
+            if (hostc.empty())
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for host %s",
+                                  host.c_str());
+                store = false;
+              }
+          }
       }
 
     if (store)
