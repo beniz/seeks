@@ -565,7 +565,7 @@ namespace seeks_plugins
           }
         ++sit;
       }
-    if (miscutil::strcmpic(base_url.c_str(), "") == 0)
+    if (base_url.empty())
       {
 
         // if no custom header, we build base_url from the generic Host header
@@ -573,7 +573,7 @@ namespace seeks_plugins
 
         while (sit!=headers.end())
           {
-            if (miscutil::strncmpic((*sit),"Host:",4) == 0)
+            if (miscutil::strncmpic((*sit),"Host:",5) == 0)
               {
                 base_url = (*sit);
                 size_t pos = base_url.find_first_of(" ");
@@ -591,7 +591,7 @@ namespace seeks_plugins
             ++sit;
           }
 
-        base_url = "http://" + base_url;
+        base_url = "http://" + base_url; // XXX: once the HTTP server plugins SSL, we should detect https.
       }
     return base_url;
   }
