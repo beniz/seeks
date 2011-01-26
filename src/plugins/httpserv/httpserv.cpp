@@ -48,7 +48,7 @@ namespace seeks_plugins
 
   httpserv::httpserv(const std::string &address,
                      const u_short &port)
-      : plugin(),_address(address),_port(port)
+    : plugin(),_address(address),_port(port)
   {
     /* initializing and starting server. */
     _evbase = event_base_new();
@@ -63,7 +63,7 @@ namespace seeks_plugins
   }
 
   httpserv::httpserv()
-      : plugin()
+    : plugin()
   {
     _name = "httpserv";
     _version_major = "0";
@@ -210,6 +210,10 @@ namespace seeks_plugins
     http_response rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
 
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_hp(&csp,&rsp,&parameters);
     if (serr != SP_ERR_OK)
@@ -233,6 +237,10 @@ namespace seeks_plugins
     http_response rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
 
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_search_hp_css(&csp,&rsp,&parameters);
     if (serr != SP_ERR_OK)
@@ -252,6 +260,9 @@ namespace seeks_plugins
     csp._config = seeks_proxy::_config;
     http_response rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_search_css(&csp,&rsp,&parameters);
@@ -273,6 +284,10 @@ namespace seeks_plugins
     http_response rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
 
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_opensearch_xml(&csp,&rsp,&parameters);
     if (serr != SP_ERR_OK)
@@ -293,6 +308,10 @@ namespace seeks_plugins
     http_response rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
     = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
     /* return requested file. */
     std::string uri_str = std::string(r->uri);
@@ -379,6 +398,11 @@ namespace seeks_plugins
     const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
     if (rheader)
       miscutil::enlist_unique_header(&csp._headers,"accept-language",strdup(rheader));
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
     /* rheader = evhttp_find_header(r->input_headers, "host");
     if (rheader)
       miscutil::enlist_unique_header(&csp._headers,"Seeks-Remote-Location",strdup(rheader)); */
@@ -449,6 +473,10 @@ namespace seeks_plugins
     const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
     if (rheader)
       miscutil::enlist_unique_header(&csp._headers,"accept-language",strdup(rheader));
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
     /* perform websearch. */
     sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
@@ -609,11 +637,14 @@ namespace seeks_plugins
     const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
     if (baseurl)
       miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",strdup(referer));
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(referer));
 
     // call for capture callback.
-    std::string url,query,lang;    
+    std::string url,query,lang;
     sp_err err = cf::tbd(parameters,url,query,lang);
-    
+
     // error catching.
     if (err == SP_ERR_CGI_PARAMS)
       {
@@ -648,7 +679,7 @@ namespace seeks_plugins
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
     std::string base_url = query_context::detect_base_url_http(csp._headers);
     std::string rurl = base_url + "/search?"
-      + cgi::build_url_from_parameters(parameters);
+                       + cgi::build_url_from_parameters(parameters);
     httpserv::reply_with_redirect_302(r,rurl.c_str());
     miscutil::free_map(parameters);
 
