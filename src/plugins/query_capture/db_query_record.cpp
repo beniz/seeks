@@ -87,8 +87,8 @@ namespace seeks_plugins
         = _visited_urls->begin();
         while (hit!=_visited_urls->end())
           {
-            vurl_data *vd = (*hit).second;
             dhit = hit;
+            vurl_data *vd = (*dhit).second;
             ++hit;
             _visited_urls->erase(dhit);
             delete vd;
@@ -137,8 +137,12 @@ namespace seeks_plugins
 	    
 	    // remove URL if all hits have been cancelled.
 	    if ((*fhit).second->_hits == 0)
-	      _visited_urls->erase(fhit);
-	  }
+	      {
+                vurl_data *vd = (*fhit).second;
+                _visited_urls->erase(fhit);
+                delete vd;
+              }
+          }
         else
           {
             vurl_data *vd = new vurl_data((*hit).second);
