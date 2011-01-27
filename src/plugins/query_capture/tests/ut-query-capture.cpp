@@ -131,6 +131,7 @@ TEST_F(QCTest,store_queries)
   ASSERT_EQ(0,(*hit).second->_radius);
   ASSERT_EQ(1,(*hit).second->_hits);
   ASSERT_TRUE((*hit).second->_visited_urls==NULL);
+  delete dbqr;
 }
 
 TEST_F(QCTest,store_queries_url)
