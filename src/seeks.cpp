@@ -232,12 +232,12 @@ int main(int argc, const char *argv[])
       /* force directory source */
       if (seeks_proxy::_datadir.empty())
         {
-          seeks_proxy::_datadir = strdup(cwd);
+          seeks_proxy::_datadir = std::string(cwd);
           seeks_proxy::_datadir += "/";
         }
       if (plugin_manager::_plugin_repository.empty())
         {
-          plugin_manager::_plugin_repository = strdup(cwd);
+          plugin_manager::_plugin_repository = std::string(cwd);
           plugin_manager::_plugin_repository += "/plugins/";
         }
       seeks_proxy::_lshconfigfile = "lsh/lsh-config";
@@ -252,7 +252,8 @@ int main(int argc, const char *argv[])
 
       /* XXX: why + 5? */
       abs_file_size = strlen(cwd) + seeks_proxy::_configfile.length() + 5;
-      seeks_proxy::_basedir = strdup(cwd);
+      if (!seeks_proxy::_basedir)
+	seeks_proxy::_basedir = strdup(cwd);
 
       if (NULL == seeks_proxy::_basedir ||
           NULL == (abs_file = (char*) zalloc(abs_file_size)))
@@ -265,6 +266,7 @@ int main(int argc, const char *argv[])
       strlcat(abs_file, "/", abs_file_size );
       strlcat(abs_file, seeks_proxy::_configfile.c_str(), abs_file_size);
       seeks_proxy::_configfile = std::string(abs_file);
+      freez(abs_file);
     }
   if (*seeks_proxy::_lshconfigfile.c_str() != '/' )
     {
@@ -273,7 +275,8 @@ int main(int argc, const char *argv[])
       size_t abs_file_size;
 
       abs_file_size = strlen(cwd) + seeks_proxy::_lshconfigfile.length() + 9;
-      seeks_proxy::_basedir = strdup(cwd);
+      if (!seeks_proxy::_basedir)
+	seeks_proxy::_basedir = strdup(cwd);
 
       if (NULL == seeks_proxy::_basedir ||
           NULL == (abs_file = (char*) zalloc(abs_file_size)))
@@ -286,11 +289,11 @@ int main(int argc, const char *argv[])
       strlcat(abs_file, "/", abs_file_size );
       strlcat(abs_file, seeks_proxy::_lshconfigfile.c_str(), abs_file_size);
       seeks_proxy::_lshconfigfile = std::string(abs_file);
+      freez(abs_file);
     }
 
 #endif /* defined unix */
 
-  //seeks_proxy::_files._next = NULL;
   seeks_proxy::_clients._next = NULL;
 
 #if defined(_WIN32)

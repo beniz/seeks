@@ -136,6 +136,7 @@ namespace seeks_plugins
   websearch::~websearch()
   {
     websearch::_wconfig = NULL; // configuration is destroyed in parent class.
+    search_snippet::destroy_patterns();
   }
 
   void websearch::start()

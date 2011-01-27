@@ -28,7 +28,9 @@ namespace sp
     public:
 
       static void initialize();
-
+      
+      static void cleanup();
+      
       static bool has_code(const char *c);
 
       static hash_map<const char*,bool,hash<const char*>,eqstr> _codes;

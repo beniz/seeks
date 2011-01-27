@@ -50,6 +50,7 @@
 #include "filter_plugin.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
+#include "iso639.h"
 
 namespace sp
 {
@@ -2261,21 +2262,30 @@ reading_done:
 
   void seeks_proxy::gracious_exit()
   {
+    plugin_manager::close_all_plugins();
+
+    iso639::cleanup();
+    
+#if defined(PROTOBUF) && defined(TC)
+    /* closing the user database. */
+    if (seeks_proxy::_user_db)
+      {
+	seeks_proxy::_user_db->optimize_db();
+	delete seeks_proxy::_user_db; // also closes the db.
+      }
+#endif
+    if (seeks_proxy::_config)
+      delete seeks_proxy::_config;
+    if (seeks_proxy::_lsh_config)
+      delete seeks_proxy::_lsh_config;
+    free_const(seeks_proxy::_basedir);
+        
 #if defined(unix)
     if (seeks_proxy::_pidfile)
       {
 	unlink(seeks_proxy::_pidfile);
       }
 #endif /* unix */
-#if defined(PROTOBUF) && defined(TC)
-    /* closing the user database. */
-    if (seeks_proxy::_user_db)
-      {
-	seeks_proxy::_user_db->optimize_db();
-	seeks_proxy::_user_db->close_db();
-      }
-#endif
-
   }
 
 #if !defined(_WIN32)

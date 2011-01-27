@@ -171,6 +171,9 @@ namespace seeks_plugins
       // load tagging patterns from files.
       static sp_err load_patterns();
 
+      // destroy loaded patterns.
+      static void destroy_patterns();
+      
       // match url against tags.
       static bool match_tag(const std::string &url,
                             const std::vector<url_spec*> &patterns);

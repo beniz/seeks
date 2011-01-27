@@ -901,6 +901,16 @@ namespace seeks_plugins
     return err;
   }
 
+  void search_snippet::destroy_patterns()
+  {
+    std::for_each(_pdf_pos_patterns.begin(),_pdf_pos_patterns.end(),delete_object());
+    std::for_each(_file_doc_pos_patterns.begin(),_file_doc_pos_patterns.end(),delete_object());
+    std::for_each(_audio_pos_patterns.begin(),_audio_pos_patterns.end(),delete_object());
+    std::for_each(_video_pos_patterns.begin(),_video_pos_patterns.end(),delete_object());
+    std::for_each(_forum_pos_patterns.begin(),_forum_pos_patterns.end(),delete_object());
+    std::for_each(_reject_pos_patterns.begin(),_reject_pos_patterns.end(),delete_object());
+  }
+
   bool search_snippet::match_tag(const std::string &url,
                                  const std::vector<url_spec*> &patterns)
   {
