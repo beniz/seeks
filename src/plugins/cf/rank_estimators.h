@@ -58,6 +58,8 @@ namespace seeks_plugins
                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
   
       static void destroy_records(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
+  
+      static void destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
   };
 
   class simple_re : public rank_estimator

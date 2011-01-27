@@ -93,6 +93,7 @@ namespace seeks_plugins
         while (qit!=dbqr->_related_queries.end())
           {
             query_data *qd = (*qit).second;
+	    
 	    if (!query_recommender::select_query(strc_query,qd->_query,swl))
 	      {
 		++qit;
@@ -174,6 +175,19 @@ namespace seeks_plugins
         ++rit;
         delete dbr;
         delete (*crit).first;
+      }
+  }
+
+  void rank_estimator::destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
+  {
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit,hit2;
+    hit = qdata.begin();
+    while (hit!=qdata.end())
+      {
+        query_data *qd = (*hit).second;
+        hit2 = hit;
+        ++hit;
+        delete qd;
       }
   }
 
@@ -325,16 +339,7 @@ namespace seeks_plugins
       }
 
     // destroy query data.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2;
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
-    hit2 = qdata.begin();
-    while (hit2!=qdata.end())
-      {
-        query_data *qd = (*hit2).second;
-        chit = hit2;
-        ++hit2;
-        delete qd;
-      }
+    rank_estimator::destroy_query_data(qdata);
   }
 
   float simple_re::estimate_rank(search_snippet *s, 
@@ -569,15 +574,7 @@ namespace seeks_plugins
       }
     
     // destroy query data.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2;
-    hit2 = qdata.begin();
-    while (hit2!=qdata.end())
-      {
-        query_data *qd = (*hit2).second;
-        chit = hit2;
-        ++hit2;
-        delete qd;
-      }
+    rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::thumb_down_url(const std::string &query,
@@ -642,15 +639,7 @@ namespace seeks_plugins
 			  purl.c_str(),query_clean.c_str());
 	
 	// destroy query data.
-	hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
-	hit = qdata.begin();
-	while (hit!=qdata.end())
-	  {
-	    query_data *qd = (*hit).second;
-	    chit = hit;
-	    ++hit;
-	    delete qd;
-	  }
+	rank_estimator::destroy_query_data(qdata);
 	return;
       }	 
         
@@ -663,15 +652,7 @@ namespace seeks_plugins
       }
 
     // destroy query data.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
-    hit = qdata.begin();
-    while (hit!=qdata.end())
-      {
-        query_data *qd = (*hit).second;
-        chit = hit;
-        ++hit;
-        delete qd;
-      }
+    rank_estimator::destroy_query_data(qdata);
   }
   
   uint32_t simple_re::damerau_levenshtein_distance(const std::string &s1, const std::string &s2,

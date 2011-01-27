@@ -19,6 +19,8 @@
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
+#include <iconv.h>
+
 #include "cf.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
@@ -107,7 +109,7 @@ protected:
   
   virtual void TearDown()
   {
-    plugin_manager::close_all_plugins(); // XXX: beware, not very clean.
+    plugin_manager::close_all_plugins();
     delete seeks_proxy::_user_db;
     delete seeks_proxy::_lsh_config;
     delete seeks_proxy::_config;
@@ -130,6 +132,7 @@ TEST_F(SRETest,extract_queries)
 {
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
   rank_estimator::fetch_user_db_record(queries[2],records);
+  ASSERT_EQ(3,records.size());
 
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
   rank_estimator::extract_queries(queries[2],"en",records,qdata);
@@ -143,6 +146,7 @@ TEST_F(SRETest,extract_queries)
   ASSERT_EQ(2,(*hit).second->_radius);
 
   rank_estimator::destroy_records(records);
+  rank_estimator::destroy_query_data(qdata);
 }
 
 TEST(SREAPITest,damerau_levenshtein_distance)
@@ -220,6 +224,13 @@ TEST_F(SRETest,recommend_urls)
   query_capture::process_url(url2,host,path);
   ASSERT_EQ(url2,(*hit).second->_url);
   ASSERT_EQ(url2_score,(*hit).second->_seeks_rank);
+
+  hit = snippets.begin();
+  while(hit!=snippets.end())
+    {
+      delete (*hit).second;
+      ++hit;
+    }
 }
 
 TEST_F(SRETest,thumb_down_url)
@@ -292,6 +303,21 @@ TEST_F(SRETest,thumb_down_url)
   ASSERT_EQ(-1,(*vit).second->_hits); // download
   delete dbqr;
   }
+
+TEST_F(SRETest, utf8)
+{
+  std::string q = "\xe6\x97\xa5\xd1\x88\xfa";
+  
+  std::string url = uris[1];
+  std::string host, path;
+  query_capture::process_url(url,host,path);
+  qcelt->store_queries(q,url,host,"query-capture");
+  
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record(q,records);
+  ASSERT_EQ(1,records.size());
+  rank_estimator::destroy_records(records);
+}
 
 int main(int argc, char **argv)
 {
