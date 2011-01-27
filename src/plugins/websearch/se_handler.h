@@ -200,7 +200,8 @@ namespace seeks_plugins
     public:
       /*-- initialization --*/
       static void init_handlers(const int &num);
-      
+      static void cleanup_handlers();
+
       /*-- querying the search engines. --*/
       static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                         int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled);

@@ -148,6 +148,11 @@ namespace seeks_plugins
     _cf_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str());
   }
 
+  void websearch::stop()
+  {
+    se_handler::cleanup_handlers();
+  }
+
   // CGI calls.
   sp_err websearch::cgi_websearch_hp(client_state *csp,
                                      http_response *rsp,

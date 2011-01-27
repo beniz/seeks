@@ -580,7 +580,8 @@ namespace sp
     /* Clean up and return */
     if (cgi::cgi_error_memory() != rsp)
       {
-        rsp->reset();
+        //rsp->reset();
+	delete rsp;
       }
 
     return;
@@ -2263,7 +2264,7 @@ reading_done:
   void seeks_proxy::gracious_exit()
   {
     plugin_manager::close_all_plugins();
-
+    sweeper::sweep_all();
     iso639::cleanup();
     
 #if defined(PROTOBUF) && defined(TC)

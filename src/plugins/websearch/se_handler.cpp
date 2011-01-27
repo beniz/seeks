@@ -502,12 +502,7 @@ namespace seeks_plugins
     mutex_init(&_curl_mutex);
     if (!_curl_handlers.empty())
       {
-        std::vector<CURL*>::iterator vit = _curl_handlers.begin();
-        while (vit!=_curl_handlers.end())
-          {
-            curl_easy_cleanup((*vit));
-            vit = _curl_handlers.erase(vit);
-          }
+	se_handler::cleanup_handlers();
       }
     _curl_handlers.reserve(num);
     for (int i=0; i<num; i++)
@@ -521,6 +516,16 @@ namespace seeks_plugins
       }
   }
   
+  void se_handler::cleanup_handlers()
+  {
+    std::vector<CURL*>::iterator vit = _curl_handlers.begin();
+    while (vit!=_curl_handlers.end())
+      {
+	curl_easy_cleanup((*vit));
+	vit = _curl_handlers.erase(vit);
+      }
+  }
+
   /*-- queries to the search engines. */
   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                          int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled)

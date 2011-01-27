@@ -68,7 +68,7 @@ namespace seeks_plugins
       ~websearch();
 
       virtual void start();
-      virtual void stop() {};
+      virtual void stop();
 
       /* cgi calls. */
       static sp_err cgi_websearch_hp(client_state *csp,

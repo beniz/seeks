@@ -21,6 +21,7 @@
 #include "mem_utils.h"
 #include "seeks_proxy.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #include <iostream>
 
@@ -161,6 +162,58 @@ namespace sp
 #endif
 
     return active_threads;
+  }
+
+  unsigned int sweeper::sweep_all_memory_dust()
+  {
+    unsigned int nm = seeks_proxy::_memory_dust.size();
+    std::vector<sweepable*>::iterator vit = seeks_proxy::_memory_dust.begin();
+    while (vit!=seeks_proxy::_memory_dust.end())
+      {
+	sweepable *spable = (*vit);
+	delete spable;
+	vit = seeks_proxy::_memory_dust.erase(vit);
+      }
+    errlog::log_error(LOG_LEVEL_INFO, "sweep_all: destroyed %u elements",nm);
+    return nm;
+  }
+
+  unsigned int sweeper::sweep_all_csps()
+  {
+    client_state *csp, *last_active;
+    unsigned int active_threads = 0;
+
+    last_active = &seeks_proxy::_clients;
+    csp = seeks_proxy::_clients._next;
+
+    while (NULL != csp)
+      {
+	active_threads++;
+	
+	/*
+	 * This client is not active. Free its resources.
+	 */
+	//TODO: should go into client_state destructor.
+	{
+	  last_active->_next = csp->_next;
+	  freez(csp->_ip_addr_str);
+	  freez(csp->_iob._buf);
+	  
+	  if (csp->_action._flags & ACTION_FORWARD_OVERRIDE &&
+	      NULL != csp->_fwd)
+	    {
+	      delete csp->_fwd;
+	    }	  
+            delete csp;
+            csp = last_active->_next;
+          }
+      }
+    return active_threads;
+  }
+
+  unsigned int sweeper::sweep_all()
+  {
+    return sweeper::sweep_all_csps() + sweeper::sweep_all_memory_dust();
   }
 
 } /* end of namespace. */

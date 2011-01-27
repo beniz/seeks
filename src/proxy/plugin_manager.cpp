@@ -160,6 +160,7 @@ namespace sp
     std::vector<plugin*>::iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
       {
+	(*vit)->stop();
         delete *vit;
         ++vit;
       }

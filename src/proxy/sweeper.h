@@ -45,7 +45,13 @@ namespace sp
       static void unregister_sweepable(sweepable *spable);
 
       static unsigned int sweep();
+
+      static unsigned int sweep_all_memory_dust();
   
+      static unsigned int sweep_all_csps();
+
+      static unsigned int sweep_all();
+      
       static sp_mutex_t _mem_dust_mutex;
   };
 
