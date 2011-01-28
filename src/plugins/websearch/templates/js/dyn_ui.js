@@ -246,6 +246,29 @@ this.new_search = function(nquery)
     render();
 }
 
+this.tbd = function(nquery,tbd_url)
+{
+    var pi;
+    if (ti.txt == 1)
+        pi = pi_txt;
+    else if (ti.img == 1)
+        pi = pi_img;
+    else if (ti.vid == 1)
+        pi = pi_vid;
+    else if (ti.twe == 1)
+        pi = pi_twe;
+    
+    var lang = langInput.get('value');
+    var url = '@base-url@/tbd?' + Y.QueryString.stringify({"q":nquery,"url":encodeURIComponent(tbd_url),"lang":lang,"action":"expand","ui":"dyn","output":"json"}) + "&engines=" + pi.engines + "&callback={callback}";
+    for (id in hashSnippets)
+        delete hashSnippets[id];
+    pi_txt.reset();
+    pi_img.reset();
+    pi_vid.reset();
+    pi_twe.reset();
+    refresh(url);
+}
+
 // Click the search button to send the JSONP request	
 Y.one("#search_form").on("submit", function (e) {
     var nquery = queryInput.get('value');

@@ -1,21 +1,23 @@
 /* main result widget stuff. */
 snippetTxtTemplate =
-    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
-enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
+    '<li class="search_snippet">{headHTML}<a href="{redir_url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
+enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a>{tbd}</div></li>';
 
 snippetTxtTemplateNocache =
-    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
-enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
+    '<li class="search_snippet">{headHTML}<a href="{redir_url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
+enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a>{tbd}</div></li>';
 
 snippetImgTemplate =
-    '<li class="search_snippet search_snippet_img"><h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
+    '<li class="search_snippet search_snippet_img"><h3><a href="{redir_url}"><img src="{cached}"></a><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
 
 snippetVidTemplate =
-    '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div><cite>{date}</cite></div></li>';
+    '<li class="search_snippet search_snippet_vid"><a href="{redir_url}"><img class="video_profile" src="{cached}"></a>{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div><cite>{date}</cite></div></li>';
 
 snippetTweetTemplate =
-    '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}\
+    '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{redir_url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}\
 &engines=twitter,identica">Similar</a></div></li>';
+
+persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
 
 failureTemplate = '';
 
@@ -61,9 +63,10 @@ function render_snippet(snippet,pi,query_words)
     }
 
     // render url capture.
+    snippet.redir_url = snippet.url;
     if (pi.prs == "on")
     {
-        snippet.url = "@base-url@/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
+        snippet.redir_url = "@base-url@/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
     }
 
     // render engines. 
@@ -97,6 +100,13 @@ function render_snippet(snippet,pi,query_words)
 	    var regx = new RegExp(snippet.words[i],"gi");
 	    snippet.hsummary = snippet.hsummary.replace(regx,"<span class=\"highlight\" onclick=\"new_search('" + query + " " + snippet.words[i] + "');\">" + snippet.words[i] + "</span>");
 	}
+    }
+
+    // render thumb down.
+    snippet.tbd = '';
+    if (snippet.personalized == "yes")
+    {
+	snippet.tbd = "<a class=\"search_tbd\" title=\"reject personalized result\" onclick=\"tbd('" + query + "','" + snippet.url + "');\">&nbsp;</a>";
     }
     
     var shtml = '';
@@ -306,6 +316,10 @@ function render()
     expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
     expansionLnk.setContent(pi.expansion);
     
+    // personalization button.
+    var persHTMLf = Y.substitute(persTemplateFlag, pi);
+    persSpan.setContent(persHTMLf);
+
     // render language.
     langInput.set('value',lang);
 

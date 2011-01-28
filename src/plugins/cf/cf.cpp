@@ -27,11 +27,13 @@
 #include "cgi.h"
 #include "encode.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #include <sys/stat.h>
 #include <iostream>
 
 using sp::encode;
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -39,7 +41,7 @@ namespace seeks_plugins
   plugin* cf::_uc_plugin = NULL;
 
   cf::cf()
-      :plugin()
+    :plugin()
   {
     _name = "cf";
     _version_major = "0";
@@ -66,7 +68,7 @@ namespace seeks_plugins
     // cgi dispatchers.
     _cgi_dispatchers.reserve(1);
     cgi_dispatcher *cgid_tbd
-      = new cgi_dispatcher("tbd",&cf::cgi_tbd,NULL,TRUE);
+    = new cgi_dispatcher("tbd",&cf::cgi_tbd,NULL,TRUE);
     _cgi_dispatchers.push_back(cgid_tbd);
   }
 
@@ -88,30 +90,40 @@ namespace seeks_plugins
   }
 
   sp_err cf::cgi_tbd(client_state *csp,
-		     http_response *rsp,
-		     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+                     http_response *rsp,
+                     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     if (!parameters->empty())
       {
-	std::string url,query,lang;
-	sp_err err = cf::tbd(parameters,url,query,lang);
-	if (err == SP_ERR_CGI_PARAMS)
-	  return err;
+        std::string url,query,lang;
+        sp_err err = cf::tbd(parameters,url,query,lang);
+        if (err == SP_ERR_CGI_PARAMS)
+          {
+            errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
+            return err;
+          }
 
-	// redirect to current query url.
-	miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-	std::string base_url = query_context::detect_base_url_http(csp->_headers);
-	std::string rurl = base_url + "/search?"
-	  + cgi::build_url_from_parameters(parameters);
-	cgi::cgi_redirect(rsp,rurl.c_str());
-	
-	return SP_ERR_OK;
+        // redirect to current query url.
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
+        std::string base_url = query_context::detect_base_url_http(csp->_headers);
+
+        const char *output = miscutil::lookup(parameters,"output");
+        std::string output_str = output ? std::string(output) : "html";
+        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        if (output_str == "json")
+          return websearch::cgi_websearch_search(csp,rsp,parameters);
+
+        std::string rurl = base_url + "/search?"
+                           + cgi::build_url_from_parameters(parameters);
+        cgi::cgi_redirect(rsp,rurl.c_str());
+
+        return SP_ERR_OK;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
   }
 
   sp_err cf::tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-		 std::string &url, std::string &query, std::string &lang)
+                 std::string &url, std::string &query, std::string &lang)
   {
     const char *urlp = miscutil::lookup(parameters,"url");
     if (!urlp)
@@ -119,7 +131,7 @@ namespace seeks_plugins
     const char *queryp = miscutil::lookup(parameters,"q");
     if (!queryp)
       return SP_ERR_CGI_PARAMS;
-    
+
     char *dec_urlp = encode::url_decode(urlp);
     url = std::string(dec_urlp);
     free(dec_urlp);
@@ -127,8 +139,8 @@ namespace seeks_plugins
     const char *langp = miscutil::lookup(parameters,"lang");
     if (!langp)
       {
-	//TODO: this should not happen.
-	return SP_ERR_CGI_PARAMS;
+        //TODO: this should not happen.
+        return SP_ERR_CGI_PARAMS;
       }
     lang = std::string(langp);
     cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
@@ -136,23 +148,23 @@ namespace seeks_plugins
   }
 
   void cf::estimate_ranks(const std::string &query,
-			  const std::string &lang,
+                          const std::string &lang,
                           std::vector<search_snippet*> &snippets)
   {
     simple_re sre; // estimator.
     sre.estimate_ranks(query,lang,snippets);
   }
-  
+
   void cf::get_related_queries(const std::string &query,
-			       const std::string &lang,
-			       std::multimap<double,std::string,std::less<double> > &related_queries)
+                               const std::string &lang,
+                               std::multimap<double,std::string,std::less<double> > &related_queries)
   {
     query_recommender::recommend_queries(query,lang,related_queries);
   }
 
   void cf::get_recommended_urls(const std::string &query,
-				const std::string &lang,
-				hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
+                                const std::string &lang,
+                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
   {
     simple_re sre; // estimator.
     sre.recommend_urls(query,lang,snippets);
@@ -165,7 +177,7 @@ namespace seeks_plugins
     simple_re sre; // estimator.
     sre.thumb_down_url(query,lang,url);
   }
-  
+
   /* plugin registration. */
   extern "C"
   {
