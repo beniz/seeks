@@ -278,19 +278,19 @@ namespace seeks_plugins
     char *dec_query = encode::url_decode_but_not_plus(query);
     std::string query_str = std::string(dec_query);
     free(dec_query);
-    
+
     // query charset check.
     query_str = charset_conv::charset_check_and_conversion(query_str,csp->_headers);
     if (query_str.empty())
       {
-	errlog::log_error(LOG_LEVEL_ERROR, "Bad charset on query %s",query);
+        errlog::log_error(LOG_LEVEL_ERROR, "Bad charset on query %s",query);
       }
 
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
-    
+
     if (!query_str.empty())
       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-			      "q",1,query_str.c_str(),1);
+                              "q",1,query_str.c_str(),1);
 
     // detect and process query language.
     // - check for in-query language command.
@@ -339,7 +339,7 @@ namespace seeks_plugins
                             "lreg",1,qlang_reg.c_str(),1);
 
     // set action to expand and expansion to 1 if q is specified but not action
-    const char *action = miscutil::lookup(parameters, "action");
+    const char *action = miscutil::lookup(parameters,"action");
     if (!action)
       {
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
@@ -348,6 +348,13 @@ namespace seeks_plugins
                                 "expansion",1,"1",1);
       }
 
+    // set expansion to 1 if missing while action is expand.
+    const char *expansion = miscutil::lookup(parameters,"expansion");
+    if (!expansion && action && miscutil::strcmpic(action,"expand")==0)
+      {
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                "expansion",1,"1",1);
+      }
 
     // known query.
     //const char *query_known = miscutil::lookup(parameters,"qknown");
@@ -388,13 +395,13 @@ namespace seeks_plugins
           }
         else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
 
-	// recheck on query, if not there, it means it has no valid charset.
-	query = miscutil::lookup(parameters,"q");
-	if (!query)
-	  {
-	    // return 400 error (should be a 406 maybe).
+        // recheck on query, if not there, it means it has no valid charset.
+        query = miscutil::lookup(parameters,"q");
+        if (!query)
+          {
+            // return 400 error (should be a 406 maybe).
             return cgi::cgi_error_bad_param(csp,rsp);
-	  }
+          }
 
         // check on requested User Interface:
         // - 'dyn' for dynamic interface: detach a thread for performing the requested
@@ -878,14 +885,15 @@ namespace seeks_plugins
         websearch::_wconfig->load_config(); // reload config if file has changed.
         if (strcmp(action,"expand") == 0)
           {
-            const char *expansion = miscutil::lookup(parameters,"expansion");
-            if (!expansion)
-              return cgi::cgi_error_bad_param(csp,rsp);
-
             expanded = true;
             mutex_lock(&qc->_qc_mutex);
             qc->_lock = true;
-            qc->generate(csp,rsp,parameters,expanded);
+            sp_err gerr = qc->generate(csp,rsp,parameters,expanded);
+            if (gerr == SP_ERR_CGI_PARAMS)
+              {
+                qc->_lock = false;
+                return cgi::cgi_error_bad_param(csp,rsp);
+              }
             qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
           }
@@ -906,7 +914,12 @@ namespace seeks_plugins
         expanded = true;
         mutex_lock(&qc->_qc_mutex);
         qc->_lock = true;
-        qc->generate(csp,rsp,parameters,expanded);
+        sp_err gerr = qc->generate(csp,rsp,parameters,expanded);
+        if (gerr == SP_ERR_CGI_PARAMS)
+          {
+            qc->_lock = false;
+            return cgi::cgi_error_bad_param(csp,rsp);
+          }
         qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
 

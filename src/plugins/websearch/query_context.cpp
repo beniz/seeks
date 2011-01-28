@@ -255,7 +255,16 @@ namespace seeks_plugins
   {
     expanded = false;
     const char *expansion = miscutil::lookup(parameters,"expansion");
-    int horizon = atoi(expansion);
+    if (!expansion)
+      {
+        return SP_ERR_CGI_PARAMS;
+      }
+    char* endptr;
+    int horizon = strtol(expansion, &endptr, 0);
+    if (*endptr)
+      {
+        return SP_ERR_CGI_PARAMS;
+      }
 
     if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
       horizon = websearch::_wconfig->_max_expansions;
