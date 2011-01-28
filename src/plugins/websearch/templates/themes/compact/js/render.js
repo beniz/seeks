@@ -17,8 +17,6 @@ snippetTweetTemplate =
     '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}\
 &engines=twitter,identica">Similar</a></div></li>';
 
-persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
-
 failureTemplate = '';
 
 var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"), 
@@ -40,7 +38,20 @@ function render_snippet(snippet,pi,query_words)
     var snippet_html = '';
 
     // personalization & title head.
+    star = "off";
     if (snippet.personalized == 'yes')
+    {
+	star = "on";
+	for (j=0,le=snippet.engines.length; j < le; ++j)
+	{
+	    if (snippet.engines[j] == "seeks")
+	    {
+		star = "off";
+		break;
+	    }
+	}
+    }
+    if (star == "on")
     {
         snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
     }
@@ -294,11 +305,7 @@ function render()
     // expansion image.
     expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
     expansionLnk.setContent(pi.expansion);
-
-    // personalization.
-    var persHTMLf = Y.substitute(persTemplateFlag, pi);
-    persSpan.setContent(persHTMLf);
-
+    
     // render language.
     langInput.set('value',lang);
 
