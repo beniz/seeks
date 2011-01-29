@@ -5,9 +5,9 @@ LDADD=
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += \
-	-I$(top_builddir)/src/plugins/uri_capture \
-	-I$(top_builddir)/src/plugins/query_capture \
-	-I$(top_builddir)/src/plugins/cf
+	-I$(top_srcdir)/src/plugins/uri_capture \
+	-I$(top_srcdir)/src/plugins/query_capture \
+	-I$(top_srcdir)/src/plugins/cf
 
 AM_LDFLAGS += \
 	-L$(top_builddir)/src/plugins/uri_capture \
@@ -54,7 +54,7 @@ AM_CPPFLAGS += \
 	     -I${top_srcdir}/src/lsh \
 	     -I${top_srcdir}/src/proxy \
 	     -I${top_srcdir}/src/utils \
-	     -I$(top_builddir)/src/plugins/websearch \
+	     -I$(top_srcdir)/src/plugins/websearch \
 	     @PCRE_CFLAGS@ \
 	     @XML2_CFLAGS@ \
 	     @ICU_CFLAGS@ \
