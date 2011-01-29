@@ -581,7 +581,7 @@ namespace sp
     if (cgi::cgi_error_memory() != rsp)
       {
         //rsp->reset();
-	delete rsp;
+        delete rsp;
       }
 
     return;
@@ -1125,6 +1125,7 @@ namespace sp
              * An error response has already been send
              * and we're done here.
              */
+            miscutil::list_remove_all(headers);
             return SP_ERR_PARSE;
           }
       }
@@ -1157,6 +1158,9 @@ namespace sp
 
     /* Append the previously read headers */
     miscutil::list_append_list_unique(&csp->_headers, headers);
+
+    /* clean up headers. */
+    miscutil::list_remove_all(headers);
 
     return SP_ERR_OK;
   }
@@ -2266,13 +2270,13 @@ reading_done:
     plugin_manager::close_all_plugins();
     sweeper::sweep_all();
     iso639::cleanup();
-    
+
 #if defined(PROTOBUF) && defined(TC)
     /* closing the user database. */
     if (seeks_proxy::_user_db)
       {
-	seeks_proxy::_user_db->optimize_db();
-	delete seeks_proxy::_user_db; // also closes the db.
+        seeks_proxy::_user_db->optimize_db();
+        delete seeks_proxy::_user_db; // also closes the db.
       }
 #endif
     if (seeks_proxy::_config)
@@ -2280,11 +2284,11 @@ reading_done:
     if (seeks_proxy::_lsh_config)
       delete seeks_proxy::_lsh_config;
     free_const(seeks_proxy::_basedir);
-        
+
 #if defined(unix)
     if (seeks_proxy::_pidfile)
       {
-	unlink(seeks_proxy::_pidfile);
+        unlink(seeks_proxy::_pidfile);
       }
 #endif /* unix */
   }
@@ -2312,7 +2316,7 @@ reading_done:
       case SIGTERM:
       case SIGINT:
         errlog::log_error(LOG_LEVEL_INFO, "exiting by signal %d .. bye", the_signal);
-	seeks_proxy::gracious_exit();
+        seeks_proxy::gracious_exit();
         exit(the_signal);
         break;
 
@@ -2411,7 +2415,7 @@ reading_done:
     mutex_init(&seeks_proxy::_rand_mutex);
 #endif /* ndef HAVE_RANDOM */
 #endif /* def MUTEX_LOCKS_AVAILABLE */
-  
+
     // initialize sweeper's mutex.
     mutex_init(&sweeper::_mem_dust_mutex);
   }
