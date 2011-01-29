@@ -30,8 +30,8 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   se_parser_yahoo::se_parser_yahoo()
-      :_start_results(false),_begin_results(false),_title_flag(false),
-      _summary_flag(false)
+    :_start_results(false),_begin_results(false),_title_flag(false),
+     _summary_flag(false)
   {
 
   }
@@ -65,15 +65,17 @@ namespace seeks_plugins
                 post_process_snippet(pc->_current_snippet);
                 if (pc->_current_snippet)
                   {
-                    pc->_snippets->push_back(pc->_current_snippet);
+                    //pc->_snippets->push_back(pc->_current_snippet);
                     pc->_current_snippet = NULL;
                   }
+                else pc->_snippets->pop_back();
               }
 
             // create new snippet.
             search_snippet *sp = new search_snippet(_count++);
             sp->_engine |= std::bitset<NSEs>(SE_YAHOO);
             pc->_current_snippet = sp;
+            pc->_snippets->push_back(pc->_current_snippet);
           }
       }
     else if (_start_results && strcasecmp(tag,"ol") == 0)
@@ -95,7 +97,7 @@ namespace seeks_plugins
                 std::string url_str = std::string(a_link);
                 size_t pos = 0;
                 if ((pos = url_str.find("rds.yahoo.com"))!=std::string::npos
-		    || (pos = url_str.find("search.yahoo.com"))!=std::string::npos)
+                    || (pos = url_str.find("search.yahoo.com"))!=std::string::npos)
                   if ((pos = url_str.find("/**",pos))!=std::string::npos)
                     {
                       try
