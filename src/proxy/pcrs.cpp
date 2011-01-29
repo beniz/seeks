@@ -752,11 +752,11 @@ plainchar:
                          char **result, size_t *result_length)
   {
     int offsets[3 * PCRS_MAX_SUBMATCHES],
-    offset,
-    i, k,
-    matches_found,
-    submatches,
-    max_matches = PCRS_MAX_MATCH_INIT;
+        offset,
+        i, k,
+        matches_found,
+        submatches,
+        max_matches = PCRS_MAX_MATCH_INIT;
     size_t newsize;
     pcrs_match *matches, *dummy;
     char *result_offset;
@@ -825,6 +825,7 @@ plainchar:
                 return(PCRS_ERR_NOMEM);
               }
             std::copy(matches,matches+old_max_matches,dummy);
+            delete[] matches;
             matches = dummy;
           }
 
