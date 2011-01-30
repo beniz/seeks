@@ -291,13 +291,13 @@ namespace seeks_plugins
           {
             // included, nothing more to be done.
             // blekko check, called once per query.
-            if (_blekko)
+            /*if (_blekko)
               {
                 std::bitset<NSEs> tblekko = _engines;
                 tblekko |= std::bitset<NSEs>(SE_BLEKKO);
                 if (_engines == tblekko)
                   _engines ^= std::bitset<NSEs>(SE_BLEKKO);
-              }
+            		  }*/
           }
         else // test intersection.
           {
