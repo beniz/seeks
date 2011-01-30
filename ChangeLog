@@ -1,3 +1,33 @@
+* DiAngelo-0.3.2-SOLO-stable
+
+- Added active rejection of personalized results. This allows a negative
+  user feedback that is taken into account in ranking and recommendation.
+
+- Added automated recommendation of queries, URLs (more results to a query).
+  Uses an improved query-to-query weighted distance.
+
+- Added support for remote user database with Tokyo Tyrant.
+
+- Several bug fixes, from language detection to missing results from search
+  engine parsers.
+
+- Fixes to image search.
+
+- Added detection / handling of non-UTF-8 strings for queries and URIs.
+  (includes optional support for libICU).
+
+- non-UTF-8 user db entry fix runs once at first startup of this new release.
+
+- Fixed service of opensearch.xml
+
+- Fixed minor leaks.
+
+- Cleaner destruction of objects at node shutdown.
+
+- Fixed encoding with Blekko parser.
+
+- More unit tests.
+
 * DiAngelo-0.3.1-SOLO-stable
 
 - Added new 'compact' theme as the default search interface. Thanks
