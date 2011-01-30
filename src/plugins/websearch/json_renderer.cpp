@@ -39,64 +39,50 @@ namespace seeks_plugins
 {
   std::string json_renderer::render_engines(const std::bitset<NSEs> &engines)
   {
-    std::string json_str_eng = "";
+    std::list<std::string> engs;
     if (engines.to_ulong()&SE_GOOGLE)
-      json_str_eng += "\"google\"";
+      engs.push_back("\"google\"");
     if (engines.to_ulong()&SE_BING)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"bing\"";
+        engs.push_back("\"bing\"");
       }
     if (engines.to_ulong()&SE_YAUBA)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"yauba\"";
+        engs.push_back("\"yauba\"");
       }
     if (engines.to_ulong()&SE_YAHOO)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"yahoo\"";
+        engs.push_back("\"yahoo\"");
       }
     if (engines.to_ulong()&SE_EXALEAD)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"exalead\"";
+        engs.push_back("\"exalead\"");
       }
     if (engines.to_ulong()&SE_TWITTER)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"twitter\"";
+        engs.push_back("\"twitter\"");
       }
     if (engines.to_ulong()&SE_IDENTICA)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"identica\"";
+        engs.push_back("\"identica\"");
       }
     if (engines.to_ulong()&SE_DAILYMOTION)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"dailymotion\"";
+        engs.push_back("\"dailymotion\"");
       }
     if (engines.to_ulong()&SE_YOUTUBE)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"youtube\"";
+        engs.push_back("\"youtube\"");
       }
     if (engines.to_ulong()&SE_SEEKS)
       {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"seeks\"";
+        engs.push_back("\"seeks\"");
       }
-    return json_str_eng;
+    if (engines.to_ulong()&SE_BLEKKO)
+      {
+        engs.push_back("\"blekko\"");
+      }
+    return miscutil::join_string_list(",",engs);
   }
 
   sp_err json_renderer::render_node_options(client_state *csp,
