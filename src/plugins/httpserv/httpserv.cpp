@@ -638,8 +638,9 @@ namespace seeks_plugins
       miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
     // call for capture callback.
-    std::string url,query,lang;
-    sp_err err = cf::tbd(parameters,url,query,lang);
+    /*std::string url,query,lang;
+      sp_err err = cf::tbd(parameters,url,query,lang);*/
+    sp_err err = cf::cgi_tbd(&csp,&rsp,parameters);
 
     // error catching.
     if (err == SP_ERR_CGI_PARAMS)
@@ -672,12 +673,31 @@ namespace seeks_plugins
       }
 
     // redirect to current query url.
-    miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
+    /*miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
     std::string base_url = query_context::detect_base_url_http(&csp);
     std::string rurl = base_url + "/search?"
                        + cgi::build_url_from_parameters(parameters);
-    httpserv::reply_with_redirect_302(r,rurl.c_str());
+           httpserv::reply_with_redirect_302(r,rurl.c_str());*/
+
     miscutil::free_map(parameters);
+
+    /* fillup response. */
+    std::string ct; // content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body); // XXX: beware of length.
+    httpserv::reply_with_body(r,200,"OK",content,ct);
 
     /* run the sweeper, for timed out elements. */
     sweeper::sweep();

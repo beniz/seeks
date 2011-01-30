@@ -110,14 +110,7 @@ namespace seeks_plugins
         const char *output = miscutil::lookup(parameters,"output");
         std::string output_str = output ? std::string(output) : "html";
         std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-        if (output_str == "json")
-          return websearch::cgi_websearch_search(csp,rsp,parameters);
-
-        std::string rurl = base_url + "/search?"
-                           + cgi::build_url_from_parameters(parameters);
-        cgi::cgi_redirect(rsp,rurl.c_str());
-
-        return SP_ERR_OK;
+        return websearch::cgi_websearch_search(csp,rsp,parameters);
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
   }
