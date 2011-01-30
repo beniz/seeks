@@ -434,6 +434,7 @@ namespace sp
     miscutil::replace_in_string(cs,"&quot;","\"");
     miscutil::replace_in_string(cs,"&lt;","<");
     miscutil::replace_in_string(cs,"&gt;",">");
+    miscutil::replace_in_string(cs,"&#39;","\'"); // XML special.
     return cs;
   }
 
