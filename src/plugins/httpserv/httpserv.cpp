@@ -639,7 +639,7 @@ namespace seeks_plugins
       miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",strdup(referer));
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
-      miscutil::enlist_unique_header(&csp._headers,"host",strdup(referer));
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
     // call for capture callback.
     std::string url,query,lang;
