@@ -165,18 +165,18 @@ namespace seeks_plugins
        * @return true if it does, false otherwise.
        */
       static bool has_query_lang(const std::string &query, std::string &qlang);
-      
+
       /**
        * \brief detects query language, using http headers.
        */
       static void detect_query_lang_http(const std::list<const char*> &http_headers,
-					 std::string &lang, std::string &lang_reg);
+                                         std::string &lang, std::string &lang_reg);
 
       /**
        * \brief detects base url from http headers.
        */
-      static std::string detect_base_url_http(const std::list<const char*> &headers);
-      
+      static std::string detect_base_url_http(client_state *scp);
+
       /**
        * \brief assemble a query of the form ":lg query" where lg is the language.
        *        Used as a unique key for the query context.
@@ -187,7 +187,7 @@ namespace seeks_plugins
        * \brief grab useful HTTP headers from the client.
        */
       void grab_useful_headers(const std::list<const char*> &http_headers);
-      
+
       /**
        * \brief conversion to forced region, from language.
        */
@@ -252,10 +252,10 @@ namespace seeks_plugins
 
       /* suggested queries. */
       std::multimap<double,std::string,std::less<double> > _suggestions;
-      
+
       /* recomended urls from user profile(s). */
       hash_map<uint32_t,search_snippet*,id_hash_uint> _recommended_snippets;
-      
+
       /* LSH subsystem for regrouping textual elements. */
       LSHSystemHamming *_lsh_ham;
       LSHUniformHashTableHamming *_ulsh_ham;
@@ -272,7 +272,7 @@ namespace seeks_plugins
 
       /* other HTTP headers, useful when interrogating search engines. */
       std::list<const char*> _useful_http_headers;
-      
+
       /* query tokenizing and hashing delimiters. */
       static std::string _query_delims;
 
@@ -284,7 +284,7 @@ namespace seeks_plugins
 
       /* whether this context is registered or not. */
       bool _registered;
-  
+
       /* default language. */
       static std::string _default_alang;
 

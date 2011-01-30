@@ -403,10 +403,6 @@ namespace seeks_plugins
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
-    /* rheader = evhttp_find_header(r->input_headers, "host");
-    if (rheader)
-      miscutil::enlist_unique_header(&csp._headers,"Seeks-Remote-Location",strdup(rheader)); */
-
     /* perform websearch. */
     sp_err serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
@@ -677,7 +673,7 @@ namespace seeks_plugins
 
     // redirect to current query url.
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-    std::string base_url = query_context::detect_base_url_http(csp._headers);
+    std::string base_url = query_context::detect_base_url_http(&csp);
     std::string rurl = base_url + "/search?"
                        + cgi::build_url_from_parameters(parameters);
     httpserv::reply_with_redirect_302(r,rurl.c_str());

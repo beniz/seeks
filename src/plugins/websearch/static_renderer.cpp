@@ -64,7 +64,7 @@ namespace seeks_plugins
   }
 
   void static_renderer::render_clean_query(const std::string &html_encoded_query,
-					   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
+      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports)
   {
     miscutil::add_map_entry(exports,"$qclean",1,html_encoded_query.c_str(),1);
   }
@@ -80,114 +80,114 @@ namespace seeks_plugins
         if (base_url)
           base_url_str = std::string(base_url);
         std::string suggestion_str = "Related queries:";
-	        
-	int k = 0;
-	std::multimap<double,std::string,std::less<double> >::const_iterator mit
-	  = qc->_suggestions.begin();
-	while(mit!=qc->_suggestions.end())
-	  {
-	    std::string suggested_q_str = (*mit).second;
-	    char *sugg_html_enc = encode::html_encode(suggested_q_str.c_str());
-	    std::string sugg_html_enc_str = std::string(sugg_html_enc);
-	    free(sugg_html_enc);
-	    char *sugg_url_enc = encode::url_encode(suggested_q_str.c_str());
-	    std::string sugg_url_enc_str = std::string(sugg_url_enc);
-	    free(sugg_url_enc);
-	    suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "q=";
-	    suggestion_str += sugg_url_enc_str + "&amp;";
-	    suggestion_str += "lang=" + qc->_auto_lang + "&amp;";
-	    suggestion_str += "expansion=1&amp;action=expand&amp;ui=stat";
-	    suggestion_str += "\">";
-	    suggestion_str += sugg_html_enc_str;
-	    suggestion_str += "</a>";
-	    ++mit;
-	    ++k;
-	    if (k > websearch::_wconfig->_num_reco_queries)
-	      break;
-	  }
+
+        int k = 0;
+        std::multimap<double,std::string,std::less<double> >::const_iterator mit
+        = qc->_suggestions.begin();
+        while(mit!=qc->_suggestions.end())
+          {
+            std::string suggested_q_str = (*mit).second;
+            char *sugg_html_enc = encode::html_encode(suggested_q_str.c_str());
+            std::string sugg_html_enc_str = std::string(sugg_html_enc);
+            free(sugg_html_enc);
+            char *sugg_url_enc = encode::url_encode(suggested_q_str.c_str());
+            std::string sugg_url_enc_str = std::string(sugg_url_enc);
+            free(sugg_url_enc);
+            suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "q=";
+            suggestion_str += sugg_url_enc_str + "&amp;";
+            suggestion_str += "lang=" + qc->_auto_lang + "&amp;";
+            suggestion_str += "expansion=1&amp;action=expand&amp;ui=stat";
+            suggestion_str += "\">";
+            suggestion_str += sugg_html_enc_str;
+            suggestion_str += "</a>";
+            ++mit;
+            ++k;
+            if (k > websearch::_wconfig->_num_reco_queries)
+              break;
+          }
         miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
       }
     else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
   }
 
   void static_renderer::render_recommendations(const query_context *qc,
-					       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-					       const std::string &cgi_base)
+      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+      const std::string &cgi_base)
   {
     if (!qc->_recommended_snippets.empty())
       {
-	const char *base_url = miscutil::lookup(exports,"base-url");
-	std::string base_url_str = "";
-	if (base_url)
+        const char *base_url = miscutil::lookup(exports,"base-url");
+        std::string base_url_str = "";
+        if (base_url)
           base_url_str = std::string(base_url);
-	std::string reco_str = "Related results:";
-	
-	std::vector<search_snippet*> sorted_reco;
-	hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
-          = qc->_recommended_snippets.begin();
-	while(hit!=qc->_recommended_snippets.end())
-	  {
-	    sorted_reco.push_back((*hit).second);
-	    ++hit;
-	  }
-	std::sort(sorted_reco.begin(),sorted_reco.end(),search_snippet::max_seeks_rank);
-	  
-	int k=0;
-	std::vector<search_snippet*>::const_iterator vit = sorted_reco.begin();
-	while(vit!=sorted_reco.end())
-	  {
-	    search_snippet *rs = (*vit);
-	    char *url_enc = encode::url_encode(rs->_url.c_str());
-	    char *url_html_enc = encode::html_encode(rs->_url.c_str());
-	    reco_str += "<br><a href=\"" + base_url_str + "/qc_redir?q=" + qc->_url_enc_query + "&url="
-	      + std::string(url_enc) + "\">" + std::string(url_html_enc) + "</a>";
-	    free(url_enc);
-	    free(url_html_enc);
-	    ++vit;
-	    ++k;
-	    if (k > websearch::_wconfig->_num_reco_queries)
+        std::string reco_str = "Related results:";
+
+        std::vector<search_snippet*> sorted_reco;
+        hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
+        = qc->_recommended_snippets.begin();
+        while(hit!=qc->_recommended_snippets.end())
+          {
+            sorted_reco.push_back((*hit).second);
+            ++hit;
+          }
+        std::sort(sorted_reco.begin(),sorted_reco.end(),search_snippet::max_seeks_rank);
+
+        int k=0;
+        std::vector<search_snippet*>::const_iterator vit = sorted_reco.begin();
+        while(vit!=sorted_reco.end())
+          {
+            search_snippet *rs = (*vit);
+            char *url_enc = encode::url_encode(rs->_url.c_str());
+            char *url_html_enc = encode::html_encode(rs->_url.c_str());
+            reco_str += "<br><a href=\"" + base_url_str + "/qc_redir?q=" + qc->_url_enc_query + "&url="
+                        + std::string(url_enc) + "\">" + std::string(url_html_enc) + "</a>";
+            free(url_enc);
+            free(url_html_enc);
+            ++vit;
+            ++k;
+            if (k > websearch::_wconfig->_num_reco_queries)
               break;
-	  }
-	miscutil::add_map_entry(exports,"$xxreco",1,reco_str.c_str(),1);
+          }
+        miscutil::add_map_entry(exports,"$xxreco",1,reco_str.c_str(),1);
       }
     else miscutil::add_map_entry(exports,"$xxreco",1,strdup(""),0);
   }
 
   void static_renderer::render_cached_queries(const std::string &query,
-					      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-					      const std::string &cgi_base)
+      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
+      const std::string &cgi_base)
   {
     const char *base_url = miscutil::lookup(exports,"base-url");
     std::string base_url_str = "";
     if (base_url)
       base_url_str = std::string(base_url);
     std::string cqueries_str;
-    
+
     int k = 0;
     std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
     while(sit!=seeks_proxy::_memory_dust.end())
       {
-	query_context *qc = dynamic_cast<query_context*>((*sit));
-	if (!qc)
-	  {
-	    ++sit;
-	    continue;
-	  }
-	
-	if (qc->_query != query)
-	  {
-	    char *html_enc_query = encode::html_encode(qc->_query.c_str());
-	    char *url_enc_query = encode::url_encode(qc->_query.c_str());
-	    cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
-	      + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
-	      + std::string(html_enc_query) + "</a>";
-	    free(html_enc_query);
-	    free(url_enc_query);
-	    ++k;
-	  }
-	++sit;
-	if (k > websearch::_wconfig->_num_reco_queries)
-	  break;
+        query_context *qc = dynamic_cast<query_context*>((*sit));
+        if (!qc)
+          {
+            ++sit;
+            continue;
+          }
+
+        if (qc->_query != query)
+          {
+            char *html_enc_query = encode::html_encode(qc->_query.c_str());
+            char *url_enc_query = encode::url_encode(qc->_query.c_str());
+            cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
+                            + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
+                            + std::string(html_enc_query) + "</a>";
+            free(html_enc_query);
+            free(url_enc_query);
+            ++k;
+          }
+        ++sit;
+        if (k > websearch::_wconfig->_num_reco_queries)
+          break;
       }
     if (!cqueries_str.empty())
       cqueries_str = "Recent queries:" + cqueries_str;
@@ -670,7 +670,7 @@ namespace seeks_plugins
 
     // we need to inject a remote base location for remote web access.
     // the injected header, if it exists is Seeks-Remote-Location
-    std::string base_url = query_context::detect_base_url_http(csp->_headers);
+    std::string base_url = query_context::detect_base_url_http(csp);
     miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
 
     if (!websearch::_wconfig->_js) // no javascript required
@@ -729,7 +729,7 @@ namespace seeks_plugins
 
     sp_err err = cgi::template_fill_for_cgi(csp,hp_tmpl_name.c_str(),
                                             (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
-                                             : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+                                                : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
                                             exports,rsp);
 
     return err;
@@ -777,7 +777,7 @@ namespace seeks_plugins
 
     // queries in cache.
     static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
-    
+
     // language.
     static_renderer::render_lang(qc,exports);
 
@@ -817,7 +817,7 @@ namespace seeks_plugins
     // rendering.
     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),
                                             (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
-                                             : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+                                                : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
                                             exports,rsp);
 
     return err;
@@ -827,8 +827,8 @@ namespace seeks_plugins
       const short &K,
       client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-							      const query_context *qc,
-							      const std::string &cgi_base)
+      const query_context *qc,
+      const std::string &cgi_base)
   {
     std::string result_tmpl_name = "websearch/templates/themes/"
                                    + websearch::_wconfig->_ui_theme + "/seeks_result_template.html"; // XXX: for using this along with the image plugin, we would need to externalize the the theme choice.
@@ -854,10 +854,10 @@ namespace seeks_plugins
 
     // recommended URLs.
     static_renderer::render_recommendations(qc,exports,cgi_base);
-    
+
     // queries in cache.
     static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
-    
+
     // language.
     static_renderer::render_lang(qc,exports);
 
@@ -867,9 +867,9 @@ namespace seeks_plugins
 
     // search snippets.
     static_renderer::render_clustered_snippets(html_encoded_query,
-					       url_encoded_query,current_page,
-					       clusters,K,qc,parameters,
-					       exports);
+        url_encoded_query,current_page,
+        clusters,K,qc,parameters,
+        exports);
 
     // expand button.
     std::string expansion;
@@ -889,7 +889,7 @@ namespace seeks_plugins
     // rendering.
     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),
                                             (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
-                                             : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+                                                : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
                                             exports,rsp);
 
     return err;

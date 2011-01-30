@@ -550,8 +550,10 @@ namespace seeks_plugins
     lang = query_context::_default_alang;
   }
 
-  std::string query_context::detect_base_url_http(const std::list<const char*> &headers)
+  std::string query_context::detect_base_url_http(client_state *csp)
   {
+    std::list<const char*> headers = csp->_headers;
+
     // first we try to get base_url from a custom header
     std::string base_url;
     std::list<const char*>::const_iterator sit = headers.begin();
@@ -576,10 +578,8 @@ namespace seeks_plugins
       }
     if (base_url.empty())
       {
-
         // if no custom header, we build base_url from the generic Host header
         std::list<const char*>::const_iterator sit = headers.begin();
-
         while (sit!=headers.end())
           {
             if (miscutil::strncmpic((*sit),"Host:",5) == 0)
@@ -593,14 +593,13 @@ namespace seeks_plugins
                 catch (std::exception &e)
                   {
                     base_url = "";
-                    break;
+                    return base_url;
                   }
                 break;
               }
             ++sit;
           }
-
-        base_url = "http://" + base_url; // XXX: once the HTTP server plugins SSL, we should detect https.
+        base_url = csp->_http._ssl ? "https://" : "http://" + base_url;
       }
     return base_url;
   }

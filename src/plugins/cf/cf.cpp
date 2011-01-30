@@ -105,7 +105,7 @@ namespace seeks_plugins
 
         // redirect to current query url.
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-        std::string base_url = query_context::detect_base_url_http(csp->_headers);
+        std::string base_url = query_context::detect_base_url_http(csp);
 
         const char *output = miscutil::lookup(parameters,"output");
         std::string output_str = output ? std::string(output) : "html";
