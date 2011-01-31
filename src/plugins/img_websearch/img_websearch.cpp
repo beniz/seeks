@@ -46,7 +46,7 @@ namespace seeks_plugins
   = hash_map<uint32_t,query_context*,id_hash_uint>();
 
   img_websearch::img_websearch()
-      : plugin()
+    : plugin()
   {
     _name = "img_websearch";
     _version_major = "0";
@@ -126,18 +126,18 @@ namespace seeks_plugins
           }
         else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters (query + language).
 
-	// check on requested User Interface.
-	const char *ui = miscutil::lookup(parameters,"ui");
-	std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
-	const char *output = miscutil::lookup(parameters,"output");
-	std::string output_str = output ? std::string(output) : "html";
-	std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-	std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        // check on requested User Interface.
+        const char *ui = miscutil::lookup(parameters,"ui");
+        std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
+        const char *output = miscutil::lookup(parameters,"output");
+        std::string output_str = output ? std::string(output) : "html";
+        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
         if (ui_str == "dyn" && output_str == "html")
           {
-	    sp_err err = dynamic_renderer::render_result_page(csp,rsp,parameters);
-	    return err;
-	  }
+            sp_err err = dynamic_renderer::render_result_page(csp,rsp,parameters);
+            return err;
+          }
 
         // perform websearch or other requested action.
         const char *action = miscutil::lookup(parameters,"action");
@@ -151,6 +151,9 @@ namespace seeks_plugins
         else if (strcmp(action,"similarity") == 0)
           err = img_websearch::cgi_img_websearch_similarity(csp,rsp,parameters);
 #endif
+
+        errlog::log_error(LOG_LEVEL_INFO,"img query: %s",cgi::build_url_from_parameters(parameters).c_str());
+
         return err;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
@@ -194,12 +197,12 @@ namespace seeks_plugins
           }
 
         const char *ui = miscutil::lookup(parameters,"ui");
-	std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
+        std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
         const char *output = miscutil::lookup(parameters,"output");
-	std::string output_str = output ? std::string(output) : "html";
-	std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-	std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-	sp_err err = SP_ERR_OK;
+        std::string output_str = output ? std::string(output) : "html";
+        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        sp_err err = SP_ERR_OK;
         if (ui_str == "stat" && output_str == "html")
           {
             // sets the number of images per page, if not already set.
@@ -219,7 +222,7 @@ namespace seeks_plugins
             if (param_exports)
               delete param_exports;
           }
-	else if (ui_str == "dyn" && output_str == "html")
+        else if (ui_str == "dyn" && output_str == "html")
           {
             // XXX: the template is filled up and returned earlier.
             // dynamic UI uses JSON calls to fill up results.
@@ -330,8 +333,8 @@ namespace seeks_plugins
       {
 #if defined(PROTOBUF) && defined(TC)
         sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
-	sort_rank::get_related_queries(qc);
-	sort_rank::get_recommended_urls(qc);
+        sort_rank::get_related_queries(qc);
+        sort_rank::get_recommended_urls(qc);
 #endif
       }
 
@@ -354,14 +357,14 @@ namespace seeks_plugins
         mutex_unlock(&qc->_qc_mutex);
         return SP_ERR_OK;
       }
-    
+
     const char *ui = miscutil::lookup(parameters,"ui");
     std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
     const char *output = miscutil::lookup(parameters,"output");
     std::string output_str = output ? std::string(output) : "html";
     std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
     std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-    
+
     sp_err err = SP_ERR_OK;
     if (ui_str == "stat" && output_str == "html")
       {
@@ -384,8 +387,8 @@ namespace seeks_plugins
       }
     else if (ui_str == "dyn" && output_str == "html")
       {
-	// XXX: the template is filled up and returned earlier.                                                                        
-	// dynamic UI uses JSON calls to fill up results.                                                                              
+        // XXX: the template is filled up and returned earlier.
+        // dynamic UI uses JSON calls to fill up results.
       }
     else if (output_str == "json")
       {
