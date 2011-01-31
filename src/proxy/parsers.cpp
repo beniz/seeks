@@ -2590,17 +2590,6 @@ namespace sp
     int parameter_conditional_block;
     int parameter_conditional_forge;
 
-#ifdef FEATURE_FORCE_LOAD
-    /*
-     * Since the referrer can include the prefix even
-     * if the request itself is non-forced, we must
-     * clean it unconditionally.
-     *
-     * XXX: strclean is too broad
-     */
-    parsers::strclean(*header, FORCE_PREFIX);
-#endif /* def FEATURE_FORCE_LOAD */
-
     if ((csp->_action._flags & ACTION_HIDE_REFERER) == 0)
       {
         /* Nothing left to do */
@@ -3824,46 +3813,6 @@ namespace sp
 
     return SP_ERR_OK;
   }
-
-
-#ifdef FEATURE_FORCE_LOAD
-  /*********************************************************************
-   *
-   * Function    :  strclean
-   *
-   * Description :  In-Situ-Eliminate all occurances of substring in
-   *                string
-   *
-   * Parameters  :
-   *          1  :  string = string to clean
-   *          2  :  substring = substring to eliminate
-   *
-   * Returns     :  Number of eliminations
-   *
-   *********************************************************************/
-  int parsers::strclean(char *string, const char *substring)
-  {
-    int hits = 0;
-    size_t len;
-    char *pos, *p;
-
-    len = strlen(substring);
-
-    while ((pos = strstr(string, substring)) != NULL)
-      {
-        p = pos + len;
-        do
-          {
-            *(p - len) = *p;
-          }
-        while (*p++ != '\0');
-
-        hits++;
-      }
-
-    return(hits);
-  }
-#endif /* def FEATURE_FORCE_LOAD */
 
 
   /*********************************************************************

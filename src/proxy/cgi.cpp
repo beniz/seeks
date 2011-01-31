@@ -621,11 +621,11 @@ namespace sp
   {
     std::list<std::string> params;
     hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
-      = parameters->begin();
+    = parameters->begin();
     while(hit!=parameters->end())
       {
-	params.push_back(std::string((*hit).first) + "=" + std::string((*hit).second));
-	++hit;
+        params.push_back(std::string((*hit).first) + "=" + std::string((*hit).second));
+        ++hit;
       }
     return miscutil::join_string_list("&",params);
   }
@@ -837,16 +837,9 @@ namespace sp
         return cgi::cgi_error_memory();
       }
 
-#ifdef FEATURE_FORCE_LOAD
-    if (csp->_flags & CSP_FLAG_FORCED)
-      {
-        path = strdup(FORCE_PREFIX);
-      }
-    else
-#endif /* def FEATURE_FORCE_LOAD */
-      {
-        path = strdup("");
-      }
+    {
+      path = strdup("");
+    }
 
     err = miscutil::string_append(&path, csp->_http._path);
 
@@ -1379,11 +1372,12 @@ namespace sp
   void cgi::get_http_time(int time_offset, char *buf, size_t buffer_size)
   {
     static const char day_names[7][4] =
-      { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
     static const char month_names[12][4] =
-      { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      };
+    {
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
 
     struct tm *t;
     time_t current_time;
@@ -1759,7 +1753,7 @@ namespace sp
     if (file_buffer == NULL)
       {
         errlog::log_error(LOG_LEVEL_ERROR, "Not enough free memory to buffer %s.", full_path_str.c_str());
-	return SP_ERR_MEMORY;
+        return SP_ERR_MEMORY;
       }
 
     /* Open template file */
@@ -1767,10 +1761,10 @@ namespace sp
       {
         if (!recursive)
           errlog::log_error(LOG_LEVEL_ERROR, "Cannot open template file %s: %E", full_path_str.c_str());
-	freez(file_buffer);
+        freez(file_buffer);
         return SP_ERR_FILE;
       }
-    
+
     /*
      * Read the file, ignoring comments, and honoring #include
      * statements, unless we're already called recursively.
@@ -2032,7 +2026,7 @@ namespace sp
     assert(templatename);
     assert(exports);
     assert(rsp);
-    
+
     err = cgi::template_load(csp, &rsp->_body, templatename, templatedir, 0);
     if (err == SP_ERR_FILE)
       {
@@ -2199,9 +2193,9 @@ namespace sp
     if (!csp->_config->_url_source_code.empty())
       {
         if (!err) err = miscutil::add_map_entry(exports, "url-source-code", 1,
-                                                encode::html_encode(csp->_config->_url_source_code.c_str()), 0);
+                                                  encode::html_encode(csp->_config->_url_source_code.c_str()), 0);
       }
-    
+
     if (err)
       {
         miscutil::free_map(exports);

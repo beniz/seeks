@@ -503,11 +503,6 @@ namespace sp
       case LOG_LEVEL_RE_FILTER:
         log_level_string = "Re-Filter";
         break;
-#ifdef FEATURE_FORCE_LOAD
-      case LOG_LEVEL_FORCE:
-        log_level_string = "Force";
-        break;
-#endif /* def FEATURE_FORCE_LOAD */
       case LOG_LEVEL_REDIRECTS:
         log_level_string = "Redirect";
         break;

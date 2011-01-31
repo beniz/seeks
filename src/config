@@ -470,7 +470,7 @@ user-db-startup-check 1
 #        debug         4 # show I/O status
 #        debug         8 # show header parsing
 #        debug        16 # log all data written to the network into the logfile
-#        debug        32 # debug force feature
+#        debug        32 # generic debug stream
 #        debug        64 # debug regular expression filters
 #        debug       128 # debug redirects
 #        debug       256 # debug GIF de-animation

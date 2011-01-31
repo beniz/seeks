@@ -45,9 +45,7 @@
 #define LOG_LEVEL_IO         0x0004
 #define LOG_LEVEL_HEADER     0x0008
 #define LOG_LEVEL_LOG        0x0010
-#ifdef FEATURE_FORCE_LOAD
-#define LOG_LEVEL_FORCE      0x0020
-#endif /* def FEATURE_FORCE_LOAD */
+#define LOG_LEVEL_DEBUG      0x0020
 #define LOG_LEVEL_RE_FILTER  0x0040
 #define LOG_LEVEL_REDIRECTS  0x0080
 #define LOG_LEVEL_PARSER     0x0100

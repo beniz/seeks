@@ -1024,27 +1024,6 @@ namespace sp
         return SP_ERR_PARSE;
       }
 
-#ifdef FEATURE_FORCE_LOAD
-    /*
-     * If this request contains the FORCE_PREFIX and blocks
-     * aren't enforced, get rid of it and set the force flag.
-     */
-    if (strstr(req, FORCE_PREFIX))
-      {
-        if (csp->_config->_feature_flags & RUNTIME_FEATURE_ENFORCE_BLOCKS)
-          {
-            errlog::log_error(LOG_LEVEL_FORCE,
-                              "Ignored force prefix in request: \"%s\".", req);
-          }
-        else
-          {
-            parsers::strclean(req, FORCE_PREFIX);
-            errlog::log_error(LOG_LEVEL_FORCE, "Enforcing request: \"%s\".", req);
-            csp->_flags |= CSP_FLAG_FORCED;
-          }
-      }
-#endif /* def FEATURE_FORCE_LOAD */
-
     err = urlmatch::parse_http_request(req, http);
     freez(req);
 

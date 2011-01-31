@@ -136,7 +136,7 @@ namespace sp
   {
     public:
       http_request()
-          : _cmd(NULL),_ocmd(NULL),_gpc(NULL),_url(NULL),
+        : _cmd(NULL),_ocmd(NULL),_gpc(NULL),_url(NULL),
           _ver(NULL),_status(0),_host(NULL),_port(0),
           _path(NULL),_hostport(NULL),_ssl(0),_host_ip_addr_str(NULL)
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
@@ -222,13 +222,13 @@ namespace sp
     public:
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
       url_spec()
-          : _spec(NULL),_dbuffer(NULL),_dvec(NULL),
+        : _spec(NULL),_dbuffer(NULL),_dvec(NULL),
           _dcount(0),_unanchored(0),_port_list(NULL),
           _preg(NULL),_tag_regex(NULL)
       {};
 #else
       url_spec()
-          : _spec(NULL),_host_regex(NULL),_port_list(NULL),
+        : _spec(NULL),_host_regex(NULL),_port_list(NULL),
           _preg(NULL),_tag_regex(NULL)
       {};
 #endif
@@ -283,7 +283,7 @@ namespace sp
   {
     public:
       iob()
-          :_buf(NULL),_cur(NULL),_eod(NULL),_size(0)
+        :_buf(NULL),_cur(NULL),_eod(NULL),_size(0)
       {};
 
       ~iob() {};  // beware of memory leaks...
@@ -473,7 +473,7 @@ namespace sp
   {
     public:
       current_action_spec()
-          :_flags(ACTION_MOST_COMPATIBLE),_string(),_multi()
+        :_flags(ACTION_MOST_COMPATIBLE),_string(),_multi()
       {};
 
       ~current_action_spec();
@@ -503,8 +503,8 @@ namespace sp
   {
     public:
       action_spec()
-          :_mask(0),_add(0),_string(),_multi_remove(),
-          _multi_remove_all(),_multi_add()
+        :_mask(0),_add(0),_string(),_multi_remove(),
+         _multi_remove_all(),_multi_add()
       {};
 
       action_spec(const action_spec *src);
@@ -543,7 +543,7 @@ namespace sp
   {
     public:
       url_actions()
-          :_action(NULL),_next(NULL)
+        :_action(NULL),_next(NULL)
       {};
 
       ~url_actions()
@@ -569,9 +569,9 @@ namespace sp
   {
     public:
       reusable_connection()
-          :_host(NULL),_port(0),_forwarder_type(0),
-          _gateway_host(NULL),_gateway_port(0),
-          _forward_host(NULL),_forward_port(0)
+        :_host(NULL),_port(0),_forwarder_type(0),
+         _gateway_host(NULL),_gateway_port(0),
+         _forward_host(NULL),_forward_port(0)
       {};
 
       ~reusable_connection() {}; // TODO.
@@ -883,7 +883,7 @@ namespace sp
     public:
       cgi_dispatcher(const char *name, handler_func_ptr handler,
                      const char * description, int harmless)
-          :_name(name),_handler(handler),_description(description),_harmless(harmless)
+        :_name(name),_handler(handler),_description(description),_harmless(harmless)
       {};
 
       ~cgi_dispatcher() {}; // TODO.
@@ -910,8 +910,8 @@ namespace sp
   {
     public:
       file_list()
-          :_f(NULL),_unloader(NULL),_active(0),
-          _lastmodified(0),_filename(NULL),_next(NULL)
+        :_f(NULL),_unloader(NULL),_active(0),
+         _lastmodified(0),_filename(NULL),_next(NULL)
       {};
 
       ~file_list() {};
@@ -971,9 +971,9 @@ namespace sp
   {
     public:
       forward_spec()
-          :_url(),_type(0),_gateway_host(NULL),
-          _gateway_port(0),_forward_host(NULL),_forward_port(0),
-          _next(NULL)
+        :_url(),_type(0),_gateway_host(NULL),
+         _gateway_port(0),_forward_host(NULL),_forward_port(0),
+         _next(NULL)
       {};
 
       ~forward_spec();
@@ -1019,8 +1019,8 @@ namespace sp
   {
     public:
       re_filterfile_spec()
-          :_name(NULL),_description(NULL),_joblist(NULL),
-          _type(0),_dynamic(0),_next(NULL)
+        :_name(NULL),_description(NULL),_joblist(NULL),
+         _type(0),_dynamic(0),_next(NULL)
       {};
 
       ~re_filterfile_spec();
@@ -1071,7 +1071,7 @@ namespace sp
     public:
       // constructor.
       access_control_list()
-          :_next(NULL)
+        :_next(NULL)
       {};
 
       ~access_control_list() {};
@@ -1094,11 +1094,6 @@ namespace sp
 
   /** Calculates the number of elements in an array, using sizeof. */
 #define SZ(X)  (sizeof(X) / sizeof(*X))
-
-#ifdef FEATURE_FORCE_LOAD
-  /** The force load URL prefix. */
-#define FORCE_PREFIX "/SEEKS-PROXY-FORCE"
-#endif /* def FEATURE_FORCE_LOAD */
 
 #ifdef FEATURE_NO_GIFS
   /** The MIME type for images ("image/png" or "image/gif"). */
