@@ -850,6 +850,8 @@ namespace seeks_plugins
       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
     else return cgi::cgi_error_bad_param(csp,rsp);
 
+    errlog::log_error(LOG_LEVEL_INFO,"query: %s",cgi::build_url_from_parameters(parameters).c_str());
+
     return err;
   }
 
