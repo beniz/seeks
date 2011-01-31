@@ -526,7 +526,7 @@ namespace seeks_plugins
                     lang = query_context::_default_alang;
                     lang_reg = query_context::_default_alang_reg; // default.
                   }
-                errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
+                errlog::log_error(LOG_LEVEL_DEBUG,"Query language detection: %s",lang_reg.c_str());
                 return;
               }
             else if (pos != std::string::npos && pos+3<=lang_head.length())
@@ -540,7 +540,7 @@ namespace seeks_plugins
                     lang = query_context::_default_alang; // default.
                   }
                 lang_reg = query_context::lang_forced_region(lang);
-                errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
+                errlog::log_error(LOG_LEVEL_DEBUG,"Forced query language region at detection: %s",lang_reg.c_str());
                 return;
               }
           }
