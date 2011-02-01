@@ -114,6 +114,8 @@ TEST(JsonRendererTest, render_snippets)
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
   EXPECT_EQ(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
+
+  delete websearch::_wconfig;
 }
 
 TEST(JsonRendererTest, render_clustered_snippets)
@@ -155,6 +157,8 @@ TEST(JsonRendererTest, render_clustered_snippets)
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
   EXPECT_EQ(std::string::npos, json_str.find(clusters[2]._label));
+
+  delete websearch::_wconfig;
 }
 
 TEST(JsonRendererTest, render_json_results)
@@ -177,15 +181,15 @@ TEST(JsonRendererTest, render_json_results)
   s2.set_url("URL2");
   snippets[1] = &s2;
   parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
-  parameters.insert(std::pair<const char*,const char*>("q", "<QUERY>"));
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
+  context._query = "<QUERY>";
 
   // select page 1
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
@@ -198,6 +202,8 @@ TEST(JsonRendererTest, render_json_results)
   EXPECT_EQ(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
+
+  delete websearch::_wconfig;
 }
 
 TEST(JsonRendererTest, render_clustered_json_results)
@@ -219,18 +225,20 @@ TEST(JsonRendererTest, render_clustered_json_results)
   clusters[0].add_point(s1._id, NULL);
   clusters[0]._label = "CLUSTER1";
 
-  parameters.insert(std::pair<const char*,const char*>("q", "<QUERY>"));
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
+  context._query = "<QUERY>";
 
   rsp = new http_response();
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(clusters, 1, NULL, rsp, &parameters, &context, qtime));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
   //std::cerr << rsp->_body << std::endl;
   delete rsp;
+
+  delete websearch::_wconfig;
 }
 
 TEST(JsonRendererTest, response)
@@ -239,12 +247,6 @@ TEST(JsonRendererTest, response)
   response(&rsp, "JSON");
   EXPECT_EQ(rsp._content_length, strlen(rsp._body));
   EXPECT_STREQ("JSON", rsp._body);
-}
-
-TEST(JsonRendererTest, query_clean)
-{
-  std::string q(":CMD<QUERY>");
-  EXPECT_EQ("&lt;QUERY&gt;", query_clean(q));
 }
 
 TEST(JsonRendererTest, jsonp)
@@ -264,7 +266,7 @@ TEST(JsonRendererTest, collect_json_results)
   double qtime = 1234;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
-  parameters.insert(std::pair<const char*,const char*>("q", ":CMD<QUERY>"));
+  context._query = "<QUERY>";
   context._auto_lang = "LANG";
 
   // select page 1
@@ -274,7 +276,7 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("\"date\""));
   EXPECT_NE(std::string::npos, result.find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
-  EXPECT_NE(std::string::npos, result.find("\"&lt;QUERY&gt;\""));
+  EXPECT_NE(std::string::npos, result.find("\"<QUERY>\""));
   EXPECT_EQ(std::string::npos, result.find("\"CMD\""));
   EXPECT_EQ(std::string::npos, result.find("\"suggestion\""));
   EXPECT_EQ(std::string::npos, result.find("\"engines\""));
@@ -294,14 +296,14 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
 
   // suggestion
-  context._suggestions.push_back("SUGGESTION1");
-  context._suggestions.push_back("SUGGESTION2");
+  context._suggestions.insert(std::pair<double,std::string>(2.0,"SUGGESTION1"));
+  context._suggestions.insert(std::pair<double,std::string>(1.0,"SUGGESTION2"));
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
   EXPECT_NE(std::string::npos, result.find("suggestion"));
   EXPECT_NE(std::string::npos, result.find("SUGGESTION1"));
-  EXPECT_EQ(std::string::npos, result.find("SUGGESTION2"));
+  EXPECT_NE(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
   context._engines = std::bitset<NSEs>(SE_YAHOO);
@@ -309,6 +311,8 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
   EXPECT_NE(std::string::npos, result.find("\"yahoo\""));
+
+  delete websearch::_wconfig;
 }
 
 TEST(JsonRendererTest, render_node_options)
@@ -316,7 +320,7 @@ TEST(JsonRendererTest, render_node_options)
   // init logging module.
   /* errlog::init_log_module();
   errlog::set_debug_level(LOG_LEVEL_ERROR | LOG_LEVEL_ERROR | LOG_LEVEL_INFO); */
-  
+
   websearch::_wconfig = new websearch_configuration("../websearch-config");
   client_state *csp = new client_state();
   csp->_config = new proxy_configuration("../../../config");
@@ -332,11 +336,14 @@ TEST(JsonRendererTest, render_node_options)
   EXPECT_NE(std::string::npos, json_opts.find("\"code-status\""));
   EXPECT_EQ(std::string::npos, json_opts.find("\"admin-address\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"url-source-code\""));
-  
+
   EXPECT_NE(std::string::npos, json_opts.find("\"thumbs\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"content-analysis\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"clustering\""));
+  delete csp->_config;
   delete csp;
+
+  delete websearch::_wconfig;
 }
 
 int main(int argc, char **argv)

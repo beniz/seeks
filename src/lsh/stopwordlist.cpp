@@ -23,6 +23,7 @@
 #include "errlog.h"
 #include "seeks_proxy.h" // for basedir.
 #include "miscutil.h" // for strndup
+#include "mem_utils.h"
 
 #include <iostream>
 #include <fstream>
@@ -34,18 +35,21 @@ using sp::seeks_proxy;
 namespace lsh
 {
   stopwordlist::stopwordlist(const std::string &filename)
-      :_swlistfile(filename),_loaded(false)
+    :_swlistfile(filename),_loaded(false)
   {
   }
 
   stopwordlist::~stopwordlist()
   {
-    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit
-    = _swlist.begin();
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit, hit2;
+    hit = _swlist.begin();
     while (hit!=_swlist.end())
       {
-        delete (*hit).first;
+        hit2 = hit;
         ++hit;
+        const char *key = (*hit2).first;
+        _swlist.erase(hit2);
+        free_const(key);
       }
   }
 
@@ -66,11 +70,10 @@ namespace lsh
         if (strlen(word) > 0)
           _swlist.insert(std::pair<const char*,bool>(strndup(word,strlen(word)-1),true));
       }
+    infile.close();
 
     errlog::log_error(LOG_LEVEL_INFO,"Loaded stop word list %s, %d words",fullfname.c_str(),
                       _swlist.size());
-
-    infile.close();
 
     _loaded = true;
 

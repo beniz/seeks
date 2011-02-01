@@ -1,34 +1,59 @@
 /* main result widget stuff. */
 snippetTxtTemplate =
-    '<li class="search_snippet">{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div>{summary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
-enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a></div></li>';
+    '<li class="search_snippet">{headHTML}<a href="{redir_url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{cached}">Cached</a><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
+enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a>{tbd}</div></li>';
+
+snippetTxtTemplateNocache =
+    '<li class="search_snippet">{headHTML}<a href="{redir_url}">{title}</a>{enginesHTML}</h3><div>{hsummary}</div><div><cite>{cite}</cite><a class="search_cache" href="{archive}">Archive</a><a class="search_cache" href="/search?q={\
+enc_query}&amp;page=1&amp;expansion=1&amp;action=similarity&amp;id={id}&amp;engines=">Similar</a>{tbd}</div></li>';
 
 snippetImgTemplate =
-    '<li class="search_snippet search_snippet_img"><h3><a href="{url}"><img src="{cached}"></a><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
+    '<li class="search_snippet search_snippet_img"><h3><a href="{redir_url}"><img src="{cached}"></a><div>{title}{enginesHTML}</div></h3><cite>{cite}</cite><br><a class="search_cache" href="{cached}">Cached</a></li>';
 
 snippetVidTemplate =
-    '<li class="search_snippet search_snippet_vid"><a href="{url}"><img class="video_profile" src="{cached}"></a>{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div><cite>{date}</cite></div></li>';
+    '<li class="search_snippet search_snippet_vid"><a href="{redir_url}"><img class="video_profile" src="{cached}"></a>{headHTML}<a href="{url}">{title}</a>{enginesHTML}</h3><div><cite>{date}</cite></div></li>';
 
 snippetTweetTemplate =
-    '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}\
+    '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{redir_url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}\
 &engines=twitter,identica">Similar</a></div></li>';
 
 persTemplateFlag = '<img src="@base-url@/plugins/websearch/public/themes/compact/images/perso_star_ico_{prs}.png" style="border: 0;"/>';
 
 failureTemplate = '';
 
-var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"),
+var outputDiv = Y.one("#main"), expansionLnk = Y.one("#expansion"), suggDiv = Y.one("#search_sugg"), 
+recoDiv = Y.one("#search_reco"), cacheDiv = Y.one("#search_cache"),
 pagesDiv = Y.one("#search_page_current"), pagesDivTop = Y.one("#search_page_current_top"), 
 persHref = Y.one("#tab-pers"),langInput = Y.one("#tab-language"),
 persSpan = Y.one("#tab-pers-flag"), pagePrev = Y.one("#search_page_prev"),
 pageNext = Y.one("#search_page_next"), pagePrevTop = Y.one("#search_page_prev_top"), pageNextTop = Y.one("#search_page_next_top");
+
+function regexpEscape(text) {
+    return text.replace(/[(){}/\|!:=?*+^$]/g, function(value) {
+	return '\\' + value;
+    }
+  );
+}
     
-function render_snippet(snippet,pi)
+function render_snippet(snippet,pi,query_words)
 {
     var snippet_html = '';
 
     // personalization & title head.
+    star = "off";
     if (snippet.personalized == 'yes')
+    {
+	star = "on";
+	for (j=0,le=snippet.engines.length; j < le; ++j)
+	{
+	    if (snippet.engines[j] == "seeks")
+	    {
+		star = "off";
+		break;
+	    }
+	}
+    }
+    if (star == "on")
     {
         snippet.headHTML = '<h3 class=\"personalized_result personalized\" title=\"personalized result\">';
     }
@@ -38,9 +63,10 @@ function render_snippet(snippet,pi)
     }
 
     // render url capture.
+    snippet.redir_url = snippet.url;
     if (pi.prs == "on")
     {
-        snippet.url = "@base-url@/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
+        snippet.redir_url = "@base-url@/qc_redir?q=" + enc_query + "&url=" + encodeURIComponent(snippet.url);
     }
 
     // render engines. 
@@ -59,9 +85,37 @@ function render_snippet(snippet,pi)
     // encoded query.
     snippet.enc_query = enc_query;
 
+    // render summary.
+    snippet.hsummary = snippet.summary;
+    for (var i=0;i<query_words.length;i++)
+    {
+	var qw = regexpEscape(query_words[i]);
+	var regx = new RegExp(qw,"gi");
+	snippet.hsummary = snippet.hsummary.replace(regx,query_words[i].bold());
+    }
+    if ('words' in snippet)
+    {
+	for (var i=0;i<snippet.words.length;i++)
+	{
+	    var regx = new RegExp(snippet.words[i],"gi");
+	    snippet.hsummary = snippet.hsummary.replace(regx,"<span class=\"highlight\" onclick=\"new_search('" + query + " " + snippet.words[i] + "');\">" + snippet.words[i] + "</span>");
+	}
+    }
+
+    // render thumb down.
+    snippet.tbd = '';
+    if (snippet.personalized == "yes")
+    {
+	snippet.tbd = "<a class=\"search_tbd\" title=\"reject personalized result\" onclick=\"tbd('" + query + "','" + snippet.url + "');\">&nbsp;</a>";
+    }
+    
     var shtml = '';
     if (ti.txt == 1)
-        shtml = Y.substitute(snippetTxtTemplate, snippet);
+    {
+	if ('cached' in snippet)
+            shtml = Y.substitute(snippetTxtTemplate, snippet);
+	else shtml = Y.substitute(snippetTxtTemplateNocache,snippet);
+    }
     else if (ti.img == 1)
         shtml = Y.substitute(snippetImgTemplate, snippet);
     else if (ti.vid == 1)
@@ -80,6 +134,8 @@ function render_snippets(rsnippets,pi)
 	rsnippets.sort(sort_score);
     else rsnippets.sort(sort_meta);
 
+    var query_words = query.split(" ");
+    
     var k = 0;
     for (id in rsnippets)
     {
@@ -91,7 +147,7 @@ function render_snippets(rsnippets,pi)
         else if (k > pi.cpage * pi.rpp)
 	    break;
 
-        snippets_html += render_snippet(snippet,pi);
+        snippets_html += render_snippet(snippet,pi,query_words);
     }
     return snippets_html + '</ol></div>';
     return snippets_html + '</ol></div>';
@@ -122,15 +178,58 @@ function render_cluster(cluster,label,chtml,pi)
     var l = cluster.length;
     if (l == 0)
         return chtml;
+    var query_words = query.split(" ");
     chtml += '<div class="cluster"><h2>' + label + ' <font size="2"> (' + l + ')</font></h2><br><ol>';
     for (i=0;i<l;++i)
     {
         var s = cluster[i];
-        var shtml = render_snippet(s,pi);
+        var shtml = render_snippet(s,pi,query_words);
         chtml += shtml;
     }
     chtml += '</ol><div class="clear"></div></div>';
     return chtml;
+}
+
+function render_query_suggestions(pi)
+{
+    var sugg_str = '';
+    if (pi.suggestions != '')
+    {
+	sugg_str += 'Related queries:';
+	for (var i=0;i<pi.suggestions.length;i++)
+	{
+	    sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.suggestions[i] + '\'));">' + pi.suggestions[i] + '</a>';
+	}
+    }
+    suggDiv.setContent(sugg_str);
+}
+
+function render_url_recommendations(pi)
+{
+    var sugg_str = '';
+    if (pi.recommendations != '')
+    {
+	sugg_str += 'Related results:';
+	for (var i=0;i<pi.recommendations.length;i++)
+	{
+	    sugg_str += '<br><a href="' + pi.recommendations[i].url + '">' + pi.recommendations[i].url + '</a>';
+	}
+    }
+    recoDiv.setContent(sugg_str);
+}
+
+function render_cached_queries(pi)
+{
+    var sugg_str = '';
+    if (pi.queries != '')
+    {
+	sugg_str += 'Recent queries:';
+	for (var i=0;i<pi.queries.length;i++)
+	{
+	    sugg_str += '<br><a href="javascript:void(new_search(\'' + pi.queries[i] + '\'));">' + pi.queries[i] + '</a>';
+	}
+    }
+    cacheDiv.setContent(sugg_str);
 }
 
 function render()
@@ -216,14 +315,20 @@ function render()
     // expansion image.
     expansionLnk.setAttribute('class',"expansion_" + String(pi.expansion));
     expansionLnk.setContent(pi.expansion);
-
-    // personalization.
+    
+    // personalization button.
     var persHTMLf = Y.substitute(persTemplateFlag, pi);
     persSpan.setContent(persHTMLf);
 
     // render language.
     langInput.set('value',lang);
 
-    // query suggestion.
-    suggDiv.setContent(pi.suggestion);
+    // query suggestions.
+    render_query_suggestions(pi);
+
+    // URLs recommendations.
+    render_url_recommendations(pi);
+
+    // cached queries.
+    render_cached_queries(pi);
 }

@@ -58,6 +58,8 @@ namespace sp
 
       static hash_map<const char*,const char*,hash<const char*>,eqstr>* parse_cgi_parameters(char *argstring);
 
+      static std::string build_url_from_parameters(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static cgi_dispatcher _cgi_dispatchers[];
 
       static cgi_dispatcher _cgi_file_server; /* cgi for file service ('public' repository). */

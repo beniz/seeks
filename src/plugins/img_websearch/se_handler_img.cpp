@@ -36,7 +36,7 @@ namespace seeks_plugins
 {
   std::string se_bing_img::_safe_search_cookie = "SRCHHPGUSR=\"NEWWND=0&ADLT=OFF&NRSLT=10&NRSPH=2&SRCHLANG=\"";
   se_bing_img::se_bing_img()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -52,7 +52,7 @@ namespace seeks_plugins
 
     // query.
     int p = 36;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_bing.replace(p,6,qenc_str);
@@ -67,13 +67,13 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_bing,"%lang",qc->_auto_lang_reg);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying bing: %s", q_bing.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying bing: %s", q_bing.c_str());
 
     url = q_bing;
   }
 
   se_ggle_img::se_ggle_img()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -89,7 +89,7 @@ namespace seeks_plugins
 
     // query.
     int p = 31;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_ggle.replace(p,6,qenc_str);
@@ -114,13 +114,13 @@ namespace seeks_plugins
     else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying ggle: %s", q_ggle.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying ggle: %s", q_ggle.c_str());
 
     url = q_ggle;
   }
 
   se_flickr::se_flickr()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -136,7 +136,7 @@ namespace seeks_plugins
 
     // query.
     int p = 32;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_fl.replace(p,6,qenc_str);
@@ -149,14 +149,14 @@ namespace seeks_plugins
     // XXX: could try to limit the number of results.
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying flickr: %s", q_fl.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying flickr: %s", q_fl.c_str());
 
     url = q_fl;
   }
 
   std::string se_yahoo_img::_safe_search_cookie = "sB=vm=p\\&v=1";
   se_yahoo_img::se_yahoo_img()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -172,7 +172,7 @@ namespace seeks_plugins
 
     // query.
     int p = 56;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_ya.replace(p,6,qenc_str);
@@ -187,7 +187,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_ya,"%lang",qc->_auto_lang);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_ya.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying yahoo: %s", q_ya.c_str());
 
     url = q_ya;
   }
@@ -208,7 +208,7 @@ namespace seeks_plugins
 
     // query.
     //int p = 71;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     //q_wcom.replace(p,6,qenc_str);
@@ -226,7 +226,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_wcom,"%num",num_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying wikimedia commons: %s", q_wcom.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying wikimedia commons: %s", q_wcom.c_str());
 
     url = q_wcom;
   }

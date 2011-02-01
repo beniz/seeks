@@ -1,20 +1,21 @@
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@.free.fr
+# Copyright (C) 2006, 2009, 2010 Emmanuel Benazera, juban@free.fr
+#                                                                                                                                
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the                                                             
+# License, or (at your option) any later version.
 #
-# Permission is hereby granted to distribute this software for
-# non-commercial research purposes, provided that this copyright
-# notice is included with any such distribution.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
-# EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
-# SOFTWARE IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU
-# ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
-#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT(Seeks, 0.3.1, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.3.2, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -28,8 +29,8 @@ AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
 AC_DEFINE(SEEKS_VERSION_MINOR,"3","")
-AC_DEFINE(SEEKS_VERSION_POINT,"1","")
-AC_DEFINE(SEEKS_VERSION,"0.3.1","")
+AC_DEFINE(SEEKS_VERSION_POINT,"2","")
+AC_DEFINE(SEEKS_VERSION,"0.3.2","")
 AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
 
 # Checks for programs.
@@ -347,6 +348,28 @@ else
    AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
 fi
 
+#==========================================================================
+# Finding icu
+#==========================================================================
+# First, check for the icu-config tool
+AC_PATH_PROGS(ICU_CONFIG, icu-config, no)
+if test x$ICU_CONFIG = xno; then
+   AM_CONDITIONAL(HAVE_ICU,false)
+else
+   AC_DEFINE(FEATURE_ICU,1,"ICU library is there")
+   AM_CONDITIONAL(HAVE_ICU,true)
+   ICU_LDADD=`$ICU_CONFIG --ldflags`
+   AC_SUBST(ICU_LDADD)
+   ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+   AC_SUBST(ICU_CFLAGS)
+fi
+
+#ICU_LDADD=`$ICU_CONFIG --ldflags`
+#AC_SUBST(ICU_LDADD)
+
+#ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+#AC_SUBST(ICU_CFLAGS)
+
 #====================================================
 # This check is incomplete. For mingw32 zlib is found
 # by configure, but not necessarily by the compiler.
@@ -530,13 +553,24 @@ fi
 # check on tokyo cabinet.
 PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
 if test	$tokyocabinet = true ; then
-   AC_DEFINE(TC,1,"Tokyocabinet available")
+   AC_DEFINE(TC,1,"Tokyo Cabinet available")
 fi
 AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)
+
+# check on tokyo tyrant.
+PKG_CHECK_MODULES([tokyotyrant],[tokyotyrant],tokyotyrant=true,tokyotyrant=false)
+if test	$tokyotyrant = true ; then
+   AC_DEFINE(TT,1,"Tokyo Tyrant available")
+fi
+AM_CONDITIONAL(HAVE_TT,test x$tokyotyrant = xtrue)
+
+# deactivate personalization if no support for db.
 if test $tokyocabinet = false ; then
-   AC_SUBST(uricapture,false)
-   AC_SUBST(querycapture,false)
-   AC_SUBST(cf,false)
+   if test $tokyotyrant = false ; then
+      AC_SUBST(uricapture,false)
+      AC_SUBST(querycapture,false)
+      AC_SUBST(cf,false)
+   fi
 fi
 
 # connection keep alive
@@ -565,7 +599,6 @@ AC_DEFINE(STATIC_PCRS,1,"using internal pcrs")
 AC_DEFINE(FEATURE_STATISTICS,1,"Enables statistics function")
 AC_DEFINE(FEATURE_FAST_REDIRECTS,1,"Supports fast redirects")
 AC_DEFINE(FEATURE_ACL,1,"Allows the user of an ACL to control access to the proxy by IP address")
-# AC_DEFINE(FEATURE_FORCE_LOAD,1,"Bypass filtering for 1 page only")
 AC_DEFINE(FEATURE_TOGGLE,1,"Allow Seeks proxy to be disabled")
 
 # Code testing coverage with lcov
@@ -722,8 +755,11 @@ src/plugins/img_websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \
 src/plugins/blocker/Makefile \
 src/plugins/uri_capture/Makefile \
+src/plugins/uri_capture/tests/Makefile \
 src/plugins/query_capture/Makefile \
+src/plugins/query_capture/tests/Makefile \
 src/plugins/cf/Makefile \
+src/plugins/cf/tests/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)
 
@@ -742,6 +778,8 @@ AC_MSG_NOTICE([Configured to build seeks:
  libevent:		  ${le_found}
  protobuf:                ${protobuf}
  tokyocabinet: 		  ${tokyocabinet}
+ tokyotyrant:		  ${tokyotyrant}
+ icu:                     ${ICU_CONFIG}
 
  Testing:
  gtest                    ${with_gtest}

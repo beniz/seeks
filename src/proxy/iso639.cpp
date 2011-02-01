@@ -17,6 +17,7 @@
  */
 
 #include "iso639.h"
+#include "mem_utils.h"
 
 #include <string.h>
 #include <string>
@@ -43,6 +44,20 @@ namespace sp
 
     for (int i=0; i<191; i++)
       iso639::_codes.insert(std::pair<const char*,bool>(strdup(str_codes[i].c_str()),true)); // not freed...
+  }
+
+  void iso639::cleanup()
+  {
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit,hit2;
+    hit = _codes.begin();
+    while(hit!=_codes.end())
+      {
+        hit2 = hit;
+        const char *key = (*hit2).first;
+        ++hit;
+        _codes.erase(hit2);
+        free_const(key);
+      }
   }
 
   bool iso639::has_code(const char *c)

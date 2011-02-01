@@ -28,10 +28,17 @@ namespace seeks_plugins
   {
     public:
       static std::string render_engines(const std::bitset<NSEs> &engines);
-      
+
       static sp_err render_node_options(client_state *csp,
                                         std::list<std::string> &opts);
-                               
+
+      static std::string render_related_queries(const query_context *qc);
+
+      static std::string render_recommendations(const std::string &query_clean,
+          const query_context *qc);
+
+      static std::string render_cached_queries(const std::string &query);
+
       static std::string render_img_engines(const query_context *qc);
 
       static sp_err render_snippets(const std::string &query_clean,
@@ -39,7 +46,7 @@ namespace seeks_plugins
                                     const std::vector<search_snippet*> &snippets,
                                     std::string &json_str,
                                     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
-      
+
       static sp_err render_clustered_snippets(const std::string &query_clean,
                                               cluster *clusters, const short &K,
                                               const query_context *qc,
@@ -49,7 +56,7 @@ namespace seeks_plugins
       static sp_err render_json_node_options(client_state *csp,
                                              http_response *rsp,
                                              const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
-      
+
       static sp_err render_json_results(const std::vector<search_snippet*> &snippets,
                                         client_state *csp, http_response *rsp,
                                         const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
@@ -58,11 +65,11 @@ namespace seeks_plugins
                                         const bool &img=false);
 
       static sp_err render_clustered_json_results(cluster *clusters,
-                                                  const short &K,
-                                                  client_state *csp, http_response *rsp,
-                                                  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                                  const query_context *qc,
-                                                  const double &qtime);
+          const short &K,
+          client_state *csp, http_response *rsp,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+          const query_context *qc,
+          const double &qtime);
   };
 } /* end of namespace. */
 

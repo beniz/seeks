@@ -19,7 +19,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "mem_utils.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
@@ -233,12 +232,12 @@ int main(int argc, const char *argv[])
       /* force directory source */
       if (seeks_proxy::_datadir.empty())
         {
-          seeks_proxy::_datadir = strdup(cwd);
+          seeks_proxy::_datadir = std::string(cwd);
           seeks_proxy::_datadir += "/";
         }
       if (plugin_manager::_plugin_repository.empty())
         {
-          plugin_manager::_plugin_repository = strdup(cwd);
+          plugin_manager::_plugin_repository = std::string(cwd);
           plugin_manager::_plugin_repository += "/plugins/";
         }
       seeks_proxy::_lshconfigfile = "lsh/lsh-config";
@@ -253,7 +252,8 @@ int main(int argc, const char *argv[])
 
       /* XXX: why + 5? */
       abs_file_size = strlen(cwd) + seeks_proxy::_configfile.length() + 5;
-      seeks_proxy::_basedir = strdup(cwd);
+      if (!seeks_proxy::_basedir)
+        seeks_proxy::_basedir = strdup(cwd);
 
       if (NULL == seeks_proxy::_basedir ||
           NULL == (abs_file = (char*) zalloc(abs_file_size)))
@@ -266,6 +266,7 @@ int main(int argc, const char *argv[])
       strlcat(abs_file, "/", abs_file_size );
       strlcat(abs_file, seeks_proxy::_configfile.c_str(), abs_file_size);
       seeks_proxy::_configfile = std::string(abs_file);
+      freez(abs_file);
     }
   if (*seeks_proxy::_lshconfigfile.c_str() != '/' )
     {
@@ -274,7 +275,8 @@ int main(int argc, const char *argv[])
       size_t abs_file_size;
 
       abs_file_size = strlen(cwd) + seeks_proxy::_lshconfigfile.length() + 9;
-      seeks_proxy::_basedir = strdup(cwd);
+      if (!seeks_proxy::_basedir)
+        seeks_proxy::_basedir = strdup(cwd);
 
       if (NULL == seeks_proxy::_basedir ||
           NULL == (abs_file = (char*) zalloc(abs_file_size)))
@@ -287,11 +289,11 @@ int main(int argc, const char *argv[])
       strlcat(abs_file, "/", abs_file_size );
       strlcat(abs_file, seeks_proxy::_lshconfigfile.c_str(), abs_file_size);
       seeks_proxy::_lshconfigfile = std::string(abs_file);
+      freez(abs_file);
     }
 
 #endif /* defined unix */
 
-  //seeks_proxy::_files._next = NULL;
   seeks_proxy::_clients._next = NULL;
 
 #if defined(_WIN32)
@@ -534,10 +536,25 @@ int main(int argc, const char *argv[])
   // loads iso639 table.
   iso639::initialize();
 
-#if defined(PROTOBUF) && defined(TC)
+#if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // start user db before plugins so they can work with it.
-  seeks_proxy::_user_db = new user_db();
-  seeks_proxy::_user_db->open_db();
+  if (seeks_proxy::_config->_user_db_haddr != NULL)
+    seeks_proxy::_user_db = new user_db(false);
+  else seeks_proxy::_user_db = new user_db(true);
+  if (seeks_proxy::_user_db->open_db())
+    {
+      // error opening the db.
+      // check whether this is a remote db. If it is, try the local
+      // db instead.
+      if (seeks_proxy::_user_db->is_remote())
+        {
+
+          errlog::log_error(LOG_LEVEL_INFO,"Trying the local user db instead of the remote db");
+          delete seeks_proxy::_user_db;
+          seeks_proxy::_user_db = new user_db(true);
+          seeks_proxy::_user_db->open_db();
+        }
+    }
   seeks_proxy::_user_db->optimize_db();
 #endif
 
@@ -558,17 +575,45 @@ int main(int argc, const char *argv[])
     }
   plugin_manager::instanciate_plugins();
 
-#if defined(PROTOBUF) && defined(TC)
+#if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // fix broken user DB by detecting and rewriting it.
-  float db_version = seeks_proxy::_user_db->get_version();
+  double db_version = seeks_proxy::_user_db->get_version();
   errlog::log_error(LOG_LEVEL_INFO, "db version: %g", db_version);
-  if (db_version == 0.0 && sizeof(unsigned long) == 8)
+
+  int ferr = 0;
+  if (miscutil::compare_d(0.0,db_version,1e-3) && sizeof(unsigned long) == 8)
+    {
+      if (!seeks_proxy::_user_db->is_remote())
+        {
+          seeks_proxy::_user_db->close_db();
+          ferr = user_db_fix::fix_issue_169();
+          seeks_proxy::_user_db->open_db();
+        }
+      else errlog::log_error(LOG_LEVEL_ERROR, "cannot apply fix 169 to remote database, skipping");
+    }
+  if (db_version < 0.3 && !miscutil::compare_d(0.3,db_version,1e-3))
     {
       seeks_proxy::_user_db->close_db();
-      user_db_fix::fix_issue_169();
+      ferr = user_db_fix::fix_issue_263();
       seeks_proxy::_user_db->open_db();
     }
-  if (db_version != user_db::_db_version)
+  if (db_version < 0.4 && !miscutil::compare_d(0.4,db_version,1e-3))
+    {
+      seeks_proxy::_user_db->close_db();
+      ferr = user_db_fix::fix_issue_281();
+      seeks_proxy::_user_db->open_db();
+    }
+  if (db_version < 0.5 && !miscutil::compare_d(0.5,db_version,1e-3))
+    {
+      if (!seeks_proxy::_user_db->is_remote())
+        {
+          seeks_proxy::_user_db->close_db();
+          ferr = user_db_fix::fix_issue_154();
+          seeks_proxy::_user_db->open_db();
+        }
+      else errlog::log_error(LOG_LEVEL_ERROR, "cannot apply fix 154 to remote database, skipping");
+    }
+  if (ferr == 0 && !miscutil::compare_d(db_version,user_db::_db_version,1e-3))
     {
       seeks_proxy::_user_db->set_version(user_db::_db_version);
       errlog::log_error(LOG_LEVEL_INFO, "user db version updated to %g",

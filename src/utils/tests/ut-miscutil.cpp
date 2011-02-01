@@ -1,6 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Loic Dachary <loic@dacary.org>
+ * Copyright (C) 2010 Loic Dachary <loic@dachary.org>,
+ *               2010 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,6 +30,14 @@ TEST(MiscutilTest, join_string_list)
   EXPECT_EQ("a", sp::miscutil::join_string_list(",", l));
   l.push_back("b");
   EXPECT_EQ("a,b", sp::miscutil::join_string_list(",", l));
+}
+
+TEST(MiscutilTest, chomp_cpp)
+{
+  std::string s(" seeks ");
+  EXPECT_EQ("seeks",sp::miscutil::chomp_cpp(s));
+  s = "  seeks project  ";
+  EXPECT_EQ("seeks project",sp::miscutil::chomp_cpp(s));
 }
 
 int main(int argc, char **argv)

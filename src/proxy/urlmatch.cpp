@@ -394,6 +394,43 @@ namespace sp
       }
   }
 
+  void urlmatch::parse_ip_host_port(char *haddr, int &hport)
+  {
+    char *p = NULL;
+    if ( NULL != haddr )
+      {
+        if ((*haddr == '[')
+            && (NULL != (p = strchr(haddr, ']')))
+            && (p[1] == ':')
+            && (0 < (hport = atoi(p + 2))))
+          {
+            *p = '\0';
+            memmove((void *)haddr, haddr + 1,
+                    (size_t)(p - haddr));
+          }
+        else if (NULL != (p = strchr(haddr, ':'))
+                 && (0 < (hport = atoi(p + 1))))
+          {
+            *p = '\0';
+          }
+        else
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "invalid port spec %s", haddr);
+            haddr = NULL;
+            hport = 0;
+            return; // should never get here.
+          }
+        if (haddr == '\0')
+          {
+            /*
+             * Only the port specified. We stored it in hport
+             * and don't need its text representation anymore.
+             */
+            free(haddr);
+          }
+      }
+  }
+
   std::string urlmatch::strip_url(const std::string &url)
   {
     std::string surl = url;
@@ -403,6 +440,8 @@ namespace sp
       surl = surl.substr(8);
     if (miscutil::strncmpic(surl.c_str(),"www.",4)==0)
       surl = surl.substr(4);
+    if (surl[surl.length()-1]=='/') // remove trailing '/'.
+      surl = surl.substr(0,surl.length()-1);
     return surl;
   }
 

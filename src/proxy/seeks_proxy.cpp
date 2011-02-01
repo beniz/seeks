@@ -50,6 +50,7 @@
 #include "filter_plugin.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
+#include "iso639.h"
 
 namespace sp
 {
@@ -579,7 +580,8 @@ namespace sp
     /* Clean up and return */
     if (cgi::cgi_error_memory() != rsp)
       {
-        rsp->reset();
+        //rsp->reset();
+        delete rsp;
       }
 
     return;
@@ -1022,27 +1024,6 @@ namespace sp
         return SP_ERR_PARSE;
       }
 
-#ifdef FEATURE_FORCE_LOAD
-    /*
-     * If this request contains the FORCE_PREFIX and blocks
-     * aren't enforced, get rid of it and set the force flag.
-     */
-    if (strstr(req, FORCE_PREFIX))
-      {
-        if (csp->_config->_feature_flags & RUNTIME_FEATURE_ENFORCE_BLOCKS)
-          {
-            errlog::log_error(LOG_LEVEL_FORCE,
-                              "Ignored force prefix in request: \"%s\".", req);
-          }
-        else
-          {
-            parsers::strclean(req, FORCE_PREFIX);
-            errlog::log_error(LOG_LEVEL_FORCE, "Enforcing request: \"%s\".", req);
-            csp->_flags |= CSP_FLAG_FORCED;
-          }
-      }
-#endif /* def FEATURE_FORCE_LOAD */
-
     err = urlmatch::parse_http_request(req, http);
     freez(req);
 
@@ -1123,6 +1104,7 @@ namespace sp
              * An error response has already been send
              * and we're done here.
              */
+            miscutil::list_remove_all(headers);
             return SP_ERR_PARSE;
           }
       }
@@ -1155,6 +1137,9 @@ namespace sp
 
     /* Append the previously read headers */
     miscutil::list_append_list_unique(&csp->_headers, headers);
+
+    /* clean up headers. */
+    miscutil::list_remove_all(headers);
 
     return SP_ERR_OK;
   }
@@ -2259,6 +2244,34 @@ reading_done:
     csp->_flags &= ~CSP_FLAG_ACTIVE;
   }
 
+  void seeks_proxy::gracious_exit()
+  {
+    plugin_manager::close_all_plugins();
+    sweeper::sweep_all();
+    iso639::cleanup();
+
+#if defined(PROTOBUF) && defined(TC)
+    /* closing the user database. */
+    if (seeks_proxy::_user_db)
+      {
+        seeks_proxy::_user_db->optimize_db();
+        delete seeks_proxy::_user_db; // also closes the db.
+      }
+#endif
+    if (seeks_proxy::_config)
+      delete seeks_proxy::_config;
+    if (seeks_proxy::_lsh_config)
+      delete seeks_proxy::_lsh_config;
+    free_const(seeks_proxy::_basedir);
+
+#if defined(unix)
+    if (seeks_proxy::_pidfile)
+      {
+        unlink(seeks_proxy::_pidfile);
+      }
+#endif /* unix */
+  }
+
 #if !defined(_WIN32)
   /*********************************************************************
    *
@@ -2282,20 +2295,7 @@ reading_done:
       case SIGTERM:
       case SIGINT:
         errlog::log_error(LOG_LEVEL_INFO, "exiting by signal %d .. bye", the_signal);
-# if defined(unix)
-        if (seeks_proxy::_pidfile)
-          {
-            unlink(seeks_proxy::_pidfile);
-          }
-# endif /* unix */
-#if defined(PROTOBUF) && defined(TC)
-        /* closing the user database. */
-        if (seeks_proxy::_user_db)
-          {
-            seeks_proxy::_user_db->optimize_db();
-            seeks_proxy::_user_db->close_db();
-          }
-#endif
+        seeks_proxy::gracious_exit();
         exit(the_signal);
         break;
 
@@ -2394,7 +2394,7 @@ reading_done:
     mutex_init(&seeks_proxy::_rand_mutex);
 #endif /* ndef HAVE_RANDOM */
 #endif /* def MUTEX_LOCKS_AVAILABLE */
-  
+
     // initialize sweeper's mutex.
     mutex_init(&sweeper::_mem_dust_mutex);
   }

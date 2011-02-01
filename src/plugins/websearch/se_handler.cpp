@@ -48,7 +48,7 @@ namespace seeks_plugins
 {
   /*- search_engine & derivatives. -*/
   search_engine::search_engine()
-      :_description(""),_anonymous(false),_param_translation(NULL)
+    :_description(""),_anonymous(false),_param_translation(NULL)
   {
   }
 
@@ -57,7 +57,7 @@ namespace seeks_plugins
   }
 
   se_ggle::se_ggle()
-      : search_engine()
+    : search_engine()
   {
 
   }
@@ -74,7 +74,7 @@ namespace seeks_plugins
 
     // query.
     int p = 31;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_ggle.replace(p,6,qenc_str);
@@ -99,13 +99,13 @@ namespace seeks_plugins
     else miscutil::replace_in_string(q_ggle,"%lang",websearch::_wconfig->_lang);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying ggle: %s", q_ggle.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying ggle: %s", q_ggle.c_str());
 
     url = q_ggle;
   }
 
   se_bing::se_bing()
-      : search_engine()
+    : search_engine()
   {
   }
 
@@ -121,7 +121,7 @@ namespace seeks_plugins
 
     // query.
     int p = 29;
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     q_bing.replace(p,6,qenc_str);
@@ -139,13 +139,13 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_bing,"%lang",qc->_auto_lang_reg);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying bing: %s", q_bing.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying bing: %s", q_bing.c_str());
 
     url = q_bing;
   }
 
   se_yahoo::se_yahoo()
-      : search_engine()
+    : search_engine()
   {
   }
 
@@ -170,19 +170,19 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 
     // query (don't move it, depends on domain name, which is language dependent).
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_yahoo,"%query",qenc_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying yahoo: %s", q_yahoo.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying yahoo: %s", q_yahoo.c_str());
 
     url = q_yahoo;
   }
 
   se_exalead::se_exalead()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -197,7 +197,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_exa,"%query",qenc_str);
@@ -219,13 +219,13 @@ namespace seeks_plugins
     else miscutil::replace_in_string(q_exa,"%lang",websearch::_wconfig->_lang);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying exalead: %s", q_exa.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying exalead: %s", q_exa.c_str());
 
     url = q_exa;
   }
 
   se_twitter::se_twitter()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -240,7 +240,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_twit,"%query",qenc_str);
@@ -257,13 +257,13 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_twit,"%num",num_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying twitter: %s", q_twit.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying twitter: %s", q_twit.c_str());
 
     url = q_twit;
   }
 
   se_identica::se_identica()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -278,7 +278,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(std::string(query).c_str());
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_dent,"%query",qenc_str);
@@ -295,13 +295,13 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_dent,"%num",num_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying identi.ca: %s", q_dent.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying identi.ca: %s", q_dent.c_str());
 
     url = q_dent;
   }
 
   se_youtube::se_youtube()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -316,7 +316,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_yt,"%query",qenc_str);
@@ -333,13 +333,13 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_yt,"%num",num_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying youtube: %s", q_yt.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying youtube: %s", q_yt.c_str());
 
     url = q_yt;
   }
 
   se_blekko::se_blekko()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -354,7 +354,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_blekko,"%query",qenc_str);
@@ -366,13 +366,13 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_blekko,"%start",pp_str); */
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying blekko: %s", q_blekko.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying blekko: %s", q_blekko.c_str());
 
     url = q_blekko;
   }
 
   se_yauba::se_yauba()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -389,7 +389,7 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_yau,"%query",qenc_str);
@@ -415,13 +415,13 @@ namespace seeks_plugins
     else miscutil::replace_in_string(q_yau,"%lang",qlang);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying yauba: %s", q_yau.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying yauba: %s", q_yau.c_str());
 
     url = q_yau;
   }
 
   se_dailymotion::se_dailymotion()
-      :search_engine()
+    :search_engine()
   {
   }
 
@@ -430,13 +430,13 @@ namespace seeks_plugins
   }
 
   void se_dailymotion::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                   std::string &url, const query_context *qc)
+  std::string &url, const query_context *qc)
   {
     std::string q_dm = se_handler::_se_strings[DAILYMOTION];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(se_handler::no_command_query(std::string(query)).c_str());
+    char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
     miscutil::replace_in_string(q_dm,"%query",qenc_str);
@@ -448,7 +448,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_dm,"%start",pp_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_INFO, "Querying dailymotion: %s", q_dm.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying dailymotion: %s", q_dm.c_str());
 
     url = q_dm;
   }
@@ -470,6 +470,8 @@ namespace seeks_plugins
     "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
     // identica: http://identi.ca/api/search.atom?q=paris&rpp=20&page=1
     "http://identi.ca/api/search.atom?q=%query&page=%start&rpp=%num",
+    // seeks.
+    "",
     // twitter: http://search.twitter.com/search.atom?q=seeksproject
     "http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num",
     // yahoo: search.yahoo.com/search?p=markov+chain&vl=lang_fr
@@ -500,12 +502,7 @@ namespace seeks_plugins
     mutex_init(&_curl_mutex);
     if (!_curl_handlers.empty())
       {
-        std::vector<CURL*>::iterator vit = _curl_handlers.begin();
-        while (vit!=_curl_handlers.end())
-          {
-            curl_easy_cleanup((*vit));
-            vit = _curl_handlers.erase(vit);
-          }
+        se_handler::cleanup_handlers();
       }
     _curl_handlers.reserve(num);
     for (int i=0; i<num; i++)
@@ -519,58 +516,14 @@ namespace seeks_plugins
       }
   }
 
-  /*-- preprocessing queries. */
-  void se_handler::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  void se_handler::cleanup_handlers()
   {
-    // query.
-    const char *q = "q";
-    const char *query = miscutil::lookup(parameters,q);
-    char *dec_query = encode::url_decode(query);
-    std::string query_str = std::string(dec_query);
-    free(dec_query);
-
-    // known query.
-    const char *query_known = miscutil::lookup(parameters,"qknown");
-
-    // if the current query is the same as before, let's apply the current language to it
-    // (i.e. the in-query language command, if any).
-    if (query_known)
+    std::vector<CURL*>::iterator vit = _curl_handlers.begin();
+    while (vit!=_curl_handlers.end())
       {
-        char *dec_qknown = encode::url_decode(query_known);
-        std::string query_known_str = std::string(dec_qknown);
-        free(dec_qknown);
-
-        if (query_known_str != query_str)
-          {
-            // look for in-query commands.
-            std::string no_command_query = se_handler::no_command_query(query_known_str);
-            if (no_command_query == query_str)
-              {
-                query_str = query_known_str; // replace query with query + in-query command.
-                miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),q);
-                miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                        q,1,query_str.c_str(),1);
-              }
-          }
+        curl_easy_cleanup((*vit));
+        vit = _curl_handlers.erase(vit);
       }
-  }
-
-  std::string se_handler::no_command_query(const std::string &oquery)
-  {
-    std::string cquery = oquery;
-    // remove any command from the query.
-    if (cquery[0] == ':')
-      {
-        try
-          {
-            cquery = cquery.substr(4);
-          }
-        catch (std::exception &e)
-          {
-            // do nothing.
-          }
-      }
-    return cquery;
   }
 
   /*-- queries to the search engines. */
@@ -695,6 +648,8 @@ namespace seeks_plugins
         break;
       case DAILYMOTION:
         _dailym.query_to_se(parameters,url,qc);
+        break;
+      case SEEKS:
         break;
       }
   }
@@ -867,9 +822,11 @@ namespace seeks_plugins
       {
         // get more stuff from the parser.
         se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
-        // XXX: suggestions (later on, we expect to do improve this with shared queries).
+
+        // XXX: suggestions (max weight is given to engines' suggestions,
+        //                   this may change in the future).
         if (!se_p_ggle->_suggestion.empty())
-          args._qr->_suggestions.push_back(se_p_ggle->_suggestion);
+          args._qr->_suggestions.insert(std::pair<double,std::string>(1.0,se_p_ggle->_suggestion));
       }
     delete se;
   }
@@ -908,6 +865,8 @@ namespace seeks_plugins
         break;
       case DAILYMOTION:
         sep = new se_parser_dailymotion();
+        break;
+      case SEEKS:
         break;
       }
 

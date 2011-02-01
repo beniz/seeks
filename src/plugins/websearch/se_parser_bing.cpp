@@ -27,11 +27,11 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   std::string se_parser_bing::_bing_stupid[2] =
-    { "Document title", "Titre du document / Document title" };
+  { "Document title", "Titre du document / Document title" };
 
   se_parser_bing::se_parser_bing()
-      :se_parser(),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
-      _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
+    :se_parser(),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
+    _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
   {
   }
 
@@ -40,8 +40,8 @@ namespace seeks_plugins
   }
 
   void se_parser_bing::start_element(parser_context *pc,
-                                     const xmlChar *name,
-                                     const xmlChar **attributes)
+  const xmlChar *name,
+  const xmlChar **attributes)
   {
     const char *tag = (const char*)name;
 
@@ -62,15 +62,16 @@ namespace seeks_plugins
             if (pc->_current_snippet)
               {
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-                    || pc->_current_snippet->_url.empty()
-                    || pc->_current_snippet->_summary.empty()
-                    || pc->_current_snippet->_cite.empty())
+                || pc->_current_snippet->_url.empty()
+                || pc->_current_snippet->_summary.empty()
+                || pc->_current_snippet->_cite.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
                     _count--;
+                    pc->_snippets->pop_back();
                   }
-                else pc->_snippets->push_back(pc->_current_snippet);
+                //else pc->_snippets->push_back(pc->_current_snippet);
               }
 
             // create new snippet.
@@ -78,6 +79,7 @@ namespace seeks_plugins
             _count++;
             sp->_engine |= std::bitset<NSEs>(SE_BING);
             pc->_current_snippet = sp;
+            pc->_snippets->push_back(pc->_current_snippet);
 
             _cached_flag = false; // in case previous snippet did not close the cached flag.
           }
@@ -112,22 +114,22 @@ namespace seeks_plugins
   }
 
   void se_parser_bing::characters(parser_context *pc,
-                                  const xmlChar *chars,
-                                  int length)
+  const xmlChar *chars,
+  int length)
   {
     handle_characters(pc, chars, length);
   }
 
   void se_parser_bing::cdata(parser_context *pc,
-                             const xmlChar *chars,
-                             int length)
+  const xmlChar *chars,
+  int length)
   {
     handle_characters(pc, chars, length);
   }
 
   void se_parser_bing::handle_characters(parser_context *pc,
-                                         const xmlChar *chars,
-                                         int length)
+  const xmlChar *chars,
+  int length)
   {
     if (_p_flag)
       {
@@ -159,7 +161,7 @@ namespace seeks_plugins
   }
 
   void se_parser_bing::end_element(parser_context *pc,
-                                   const xmlChar *name)
+  const xmlChar *name)
   {
     const char *tag = (const char*) name;
 

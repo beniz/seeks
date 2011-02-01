@@ -92,8 +92,8 @@ namespace seeks_plugins
 
         if (sp->_new)
           {
-            if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL
-                && c_sp->_doc_type == sp->_doc_type)
+            if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
+              //&& c_sp->_doc_type == sp->_doc_type)
               {
                 // merging snippets.
                 search_snippet::merge_snippets(c_sp,sp);
@@ -293,14 +293,29 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
-      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets)
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,snippets);
+    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,qc->_auto_lang,snippets);
     std::stable_sort(snippets.begin(),snippets.end(),
                      search_snippet::max_seeks_rank);
+  }
+
+  void sort_rank::get_related_queries(query_context *qc)
+  {
+    if (!websearch::_cf_plugin)
+      return;
+    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,qc->_suggestions);
+  }
+
+  void sort_rank::get_recommended_urls(query_context *qc)
+  {
+    if (!websearch::_cf_plugin)
+      return;
+    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_auto_lang,
+        qc->_recommended_snippets);
+    qc->update_recommended_urls();
   }
 #endif
 

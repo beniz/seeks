@@ -36,4 +36,13 @@ void freez(void *p);
 void* zalloc(size_t size);
 #endif
 
+struct delete_object
+{
+  template<typename T>
+  void operator()(const T* ptr) const
+  {
+    delete ptr;
+  }
+};
+
 #endif

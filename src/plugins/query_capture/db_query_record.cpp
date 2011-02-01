@@ -16,8 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
 #include "db_query_record.h"
 #include "db_query_record_msg.pb.h"
+#include "miscutil.h"
+#include "charset_conv.h"
 #include "errlog.h"
 
 #include "DHTKey.h" // for fixing issue 169.
@@ -29,29 +32,37 @@ using lsh::qprocess;
 #include <iterator>
 #include <iostream>
 
+#include <iconv.h>
+
 using sp::errlog;
+using sp::miscutil;
+using sp::charset_conv;
 
 namespace seeks_plugins
 {
   /*- query_data -*/
   query_data::query_data(const std::string &query,
                          const short &radius)
-    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL)
+    :_query(query),_radius(radius),_hits(1),_visited_urls(NULL),
+     _record_key(NULL)
   {
   }
 
   query_data::query_data(const std::string &query,
                          const short &radius,
-                         const std::string &url)
-    :_query(query),_radius(radius),_hits(1)
+                         const std::string &url,
+                         const short &hits,
+                         const short &url_hits)
+    :_query(query),_radius(radius),_hits(hits),_record_key(NULL)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
-    vurl_data *vd = new vurl_data(url);
+    vurl_data *vd = new vurl_data(url,url_hits);
     add_vurl(vd);
   }
 
   query_data::query_data(const query_data *qd)
-    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL)
+    :_query(qd->_query),_radius(qd->_radius),_hits(qd->_hits),_visited_urls(NULL),
+     _record_key(NULL)
   {
     if (qd->_visited_urls)
       {
@@ -76,8 +87,8 @@ namespace seeks_plugins
         = _visited_urls->begin();
         while (hit!=_visited_urls->end())
           {
-            vurl_data *vd = (*hit).second;
             dhit = hit;
+            vurl_data *vd = (*dhit).second;
             ++hit;
             _visited_urls->erase(dhit);
             delete vd;
@@ -85,6 +96,8 @@ namespace seeks_plugins
         delete _visited_urls;
         _visited_urls = NULL;
       }
+    if (_record_key)
+      delete _record_key;
   }
 
   void query_data::create_visited_urls()
@@ -96,13 +109,17 @@ namespace seeks_plugins
 
   void query_data::merge(const query_data *qd)
   {
+    // XXX: query hits are not updated.
+    // this would require a special flag so that merging URLs
+    // does not impact on query hits.
+
     if (qd->_query != _query)
       {
         errlog::log_error(LOG_LEVEL_ERROR,"trying to merge query record data for different queries");
         return;
       }
 
-    assert(qd->_radius == _radius);
+    //assert(qd->_radius == _radius);
 
     if (!qd->_visited_urls)
       return;
@@ -117,6 +134,14 @@ namespace seeks_plugins
         if ((fhit=_visited_urls->find((*hit).first))!=_visited_urls->end())
           {
             (*fhit).second->merge((*hit).second);
+
+            // remove URL if all hits have been cancelled.
+            if ((*fhit).second->_hits == 0)
+              {
+                vurl_data *vd = (*fhit).second;
+                _visited_urls->erase(fhit);
+                delete vd;
+              }
           }
         else
           {
@@ -178,10 +203,12 @@ namespace seeks_plugins
   db_query_record::db_query_record(const std::string &plugin_name,
                                    const std::string &query,
                                    const short &radius,
-                                   const std::string &url)
+                                   const std::string &url,
+                                   const short &hits,
+                                   const short &url_hits)
     :db_record(plugin_name)
   {
-    query_data *qd = new query_data(query,radius,url);
+    query_data *qd = new query_data(query,radius,url,hits,url_hits);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
@@ -384,6 +411,196 @@ namespace seeks_plugins
       }
 
     return 0;
+  }
+
+  int db_query_record::fix_issue_263()
+  {
+    std::vector<query_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+        std::string query = qd->_query;
+        std::string fixed_query = miscutil::chomp_cpp(query);
+        if (fixed_query != qd->_query)
+          {
+            //std::cerr << "fix 263: " << qd->_query << " -- " << fixed_query << std::endl;
+            hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
+            ++hit;
+            _related_queries.erase(hit2);
+            qd->_query = fixed_query;
+            to_insert.push_back(qd);
+          }
+        else ++hit;
+      }
+    size_t tis = to_insert.size();
+    if (tis > 0)
+      {
+        for (size_t i=0; i<tis; i++)
+          _related_queries.insert(std::pair<const char*,query_data*>(to_insert.at(i)->_query.c_str(),
+                                  to_insert.at(i)));
+        return 1;
+      }
+    else return 0;
+  }
+
+  int db_query_record::fix_issue_281(uint32_t &fixed_urls)
+  {
+    int fixed_queries = 0;
+    std::vector<vurl_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+
+        if (!qd->_visited_urls)
+          {
+            ++hit;
+            continue;
+          }
+
+        hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit
+        = qd->_visited_urls->begin();
+        while(vit!=qd->_visited_urls->end())
+          {
+            vurl_data *vd = (*vit).second;
+            if (vd->_url[vd->_url.length()-1] == '/')
+              {
+                std::string url = vd->_url.substr(0,vd->_url.length()-1);  // fix url.
+                hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+                ++vit;
+                qd->_visited_urls->erase(vit2);
+                vd->_url = url;
+                to_insert.push_back(vd);
+                fixed_urls++;
+              }
+            else ++vit;
+          }
+
+        size_t tis = to_insert.size();
+        if (tis > 0)
+          {
+            for (size_t i=0; i<tis; i++)
+              qd->_visited_urls->insert(std::pair<const char*,vurl_data*>(to_insert.at(i)->_url.c_str(),
+                                        to_insert.at(i)));
+            fixed_queries++;
+            to_insert.clear();
+          }
+
+        ++hit;
+      }
+    return fixed_queries;
+  }
+
+  /**
+   * we dump non UTF8 queries, and try to fix non UTF8 URLs.
+   */
+  int db_query_record::fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries,
+                                     uint32_t &removed_urls)
+  {
+    int dumped_queries = 0;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+        char *conv_query = charset_conv::iconv_convert("UTF-8","UTF-8",qd->_query.c_str());
+
+        bool dumped_q = false;
+        if (!conv_query)
+          {
+            hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
+            ++hit;
+            _related_queries.erase(hit2);
+            delete qd;
+            qd = NULL;
+            dumped_q = true;
+            dumped_queries++;
+          }
+        else free(conv_query);
+
+        // check on URLs.
+        if (qd && qd->_visited_urls)
+          {
+            std::vector<vurl_data*>to_insert_u;
+            hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit
+            = qd->_visited_urls->begin();
+            while(vit!=qd->_visited_urls->end())
+              {
+                vurl_data *vd = (*vit).second;
+                std::string vurl = vd->_url;
+                char *conv_url = charset_conv::iconv_convert("UTF-8","UTF-8",vurl.c_str());
+                if (!conv_url)
+                  {
+#ifdef FEATURE_ICU
+                    // detect url charset.
+                    int32_t c = 0;
+                    const char *cs = charset_conv::icu_detection_best_match(qd->_query.c_str(),qd->_query.size(),&c);
+                    if (cs)
+                      {
+                        //std::cerr << " detected url charset: " << cs << " with confidence: " << c << std::flush << std::endl;
+
+                        // if not UTF-8, convert it.
+                        int32_t clen = 0;
+                        char *target = charset_conv::icu_conversion(cs,"UTF8",vd->_url.c_str(),&clen);
+
+                        if (target)
+                          {
+                            vurl = std::string(target,clen);
+                            //std::cerr << "icu converted url: " << vd->_url << std::flush << std::endl;
+                            free(target);
+                            to_insert_u.push_back(vd);
+                            fixed_urls++;
+                          }
+                      }
+#else
+                    // try some blind conversions with iconv.
+                    conv_url = charset_conv::iconv_convert("ISO_8859-1","UTF-8",vd->_url.c_str());
+                    if (conv_url)
+                      {
+                        vurl= std::string(conv_url);
+                        //std::cerr << "iconv converted url: " << qd->_query << std::endl;
+                        to_insert_u.push_back(vd);
+                        fixed_urls++;
+                        free(conv_url);
+                      }
+#endif
+                    // erase URL.
+                    hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+                    ++vit;
+                    qd->_visited_urls->erase(vit2);
+                    if (vd->_url != vurl)
+                      vd->_url = vurl;
+                    else
+                      {
+                        removed_urls++;
+                        delete vd;
+                      }
+                  }
+                else
+                  {
+                    free(conv_url);
+                    ++vit;
+                  }
+              } // end while visited_urls.
+
+            if (!to_insert_u.empty() && !dumped_q)
+              fixed_queries++;
+            for (size_t i=0; i<to_insert_u.size(); i++)
+              {
+                qd->_visited_urls->insert(std::pair<const char*,vurl_data*>(to_insert_u.at(i)->_url.c_str(),
+                                          to_insert_u.at(i)));
+              }
+          }
+
+        if (!dumped_q)
+          ++hit;
+
+      } // end iterate related_queries.
+
+    return dumped_queries;
   }
 
 } /* end of namespace. */

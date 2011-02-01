@@ -116,7 +116,6 @@ namespace seeks_plugins
       void set_title(const std::string &title);
 
       void set_url(const std::string &url);
-      void set_url(const char *url);
       void set_url_no_decode(const std::string &url);
 
       void set_cite(const std::string &cite);
@@ -172,15 +171,19 @@ namespace seeks_plugins
       // load tagging patterns from files.
       static sp_err load_patterns();
 
+      // destroy loaded patterns.
+      static void destroy_patterns();
+
       // match url against tags.
       static bool match_tag(const std::string &url,
                             const std::vector<url_spec*> &patterns);
 
-      // delete snippets.
-      static void delete_snippets(std::vector<search_snippet*> &snippets);
-
       // merging of snippets (merge s2 into s2, according to certain rules).
       static void merge_snippets(search_snippet *s1, const search_snippet *s2);
+
+      // hack for correcting meta rank after Bing and Yahoo merged their results in
+      // the US.
+      void bing_yahoo_us_merge();
 
       // get doc type in a string form.
       std::string get_doc_type_str() const;

@@ -80,6 +80,7 @@ namespace seeks_plugins
       static void seeks_img_search_css(struct evhttp_request *r, void *arg);
 #endif
       static void qc_redir(struct evhttp_request *r, void *arg);
+      static void tbd(struct evhttp_request *r, void *arg);
       static void unknown_path(struct evhttp_request *r, void *arg);
 
       /* utils. */

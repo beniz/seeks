@@ -17,7 +17,7 @@ body {
 }
 .right_panel {
 	margin-top: 10px;
-	width: 180px;
+	width: 280px;
 }
 
 #search_bar {
@@ -192,6 +192,10 @@ body {
 	background-image: url(base-url/plugins/websearch/public/images/search_engines/blekko.png);
 }
 
+#search_results .search_snippet .search_engine_seeks {
+    background-image: url(base-url/plugins/websearch/public/images/search_engines/seeks_12x12.png);
+}
+
 #search_results .search_snippet .personalized {
         background-image: url(base-url/plugins/websearch/public/themes/compact/images/perso_star.png);
 }
@@ -199,11 +203,17 @@ body {
 #search_results .search_snippet_img {
 	width: 172px;
 	height: 220px;
-	/*overflow: hidden;*/
+	max-height: 220px;
+	overflow: hidden;
 	float: left;
 	display: inline;
 	text-align: center;
 	clear: none !important;
+}
+
+.search_snippet_img img {
+       max-width: 150px;
+       max-height: 210px;
 }
 
 /* css3 image zooming */
@@ -225,7 +235,7 @@ body {
 	
 	/*margin-bottom: 70px;*/ /*to move the text while the image grows*/
 /*	border: 6px solid grey;
-} */
+}*/
 
 
 #search_results .search_snippet_vid {
@@ -253,6 +263,11 @@ body {
 	margin-left: 3px;
 }
 
+#search_results .search_tbd {
+    color: gray;
+    margin-left: 3px;
+}
+
 #search_results .search_similarity {
         color: olive;
 	margin-left: 3px;
@@ -265,6 +280,11 @@ body {
 #search_results .highlight a {
         color: #6666FF;
 	text-decoration: none;
+}
+
+#search_results .highlight:hover {
+        cursor: pointer;
+	color: red;
 }
 
 #search_results h3 {
@@ -380,14 +400,46 @@ body {
 	/*position: absolute;
 	left: 25px;
 	top: 53px;
-	max-width: 220px;*/
+	max-width: 220px; */
 	
 	font-size: 90%;
 }
 
 #search_sugg a {
-	font-weight: bold;
+    	font-weight: normal;
 	text-decoration: none;
+}
+
+#search_reco {
+        font-size: 90%;
+}
+
+#search_reco a {
+        font-weight: normal;
+        text-decoration: none;
+}
+
+#search_cache {
+        font-size: 90%;
+}       
+ 
+#search_cache a {
+        font-weight: normal;
+        text-decoration: none;
+}
+
+#search_results .search_tbd {
+    padding: 0px 25px;
+    margin-left: 5px;
+    padding-bottom: 1px;
+    background-image: url(base-url/plugins/websearch/public/images/seeks_croix_light_10x10.png);
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+#query_suggestion {
+    font-weight: normal;
+    text-decoration: none;
 }
 
 #search_icons {

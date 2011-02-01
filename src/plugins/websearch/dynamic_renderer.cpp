@@ -93,9 +93,7 @@ namespace seeks_plugins
                                   url_encoded_query);
 
     // clean query.
-    std::string query_clean;
-    static_renderer::render_clean_query(html_encoded_query,
-                                        exports,query_clean);
+    static_renderer::render_clean_query(html_encoded_query,exports);
 
     // results per page.
     dynamic_renderer::render_rpp(parameters,exports);
@@ -109,7 +107,7 @@ namespace seeks_plugins
     // rendering.
     sp_err err = cgi::template_fill_for_cgi(csp,result_tmpl_name.c_str(),
                                             (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository.c_str()
-                                             : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
+                                                : std::string(seeks_proxy::_datadir + "plugins/").c_str()),
                                             exports,rsp);
 
     return err;

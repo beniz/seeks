@@ -34,6 +34,9 @@ namespace seeks_plugins
 
       db_uri_record(const std::string &plugin_name);
 
+      db_uri_record(const std::string &plugin_name,
+                    const int &hits);
+
       db_uri_record();
 
       virtual ~db_uri_record();
@@ -42,7 +45,7 @@ namespace seeks_plugins
 
       virtual int deserialize(const std::string &msg);
 
-      virtual int merge_with(const db_uri_record &dbr);
+      virtual int merge_with(const db_record &dbr);
 
       void create_uri_record(sp::db::record &r) const;
 

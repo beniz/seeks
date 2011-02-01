@@ -44,7 +44,7 @@ namespace seeks_plugins
 {
   /*- blocker. -*/
   blocker::blocker()
-      : plugin()
+    : plugin()
   {
     _name = "blocker";
 
@@ -76,10 +76,10 @@ namespace seeks_plugins
 	 ";
 
   blocker_element::blocker_element(plugin *parent)
-      :  interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
-                             + blocker_element::_bp_filename).c_str()
-                             : std::string(seeks_proxy::_datadir + "/plugins/" + blocker_element::_bp_filename).c_str()),
-                            parent)
+    :  interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
+                           + blocker_element::_bp_filename).c_str()
+                           : std::string(seeks_proxy::_datadir + "/plugins/" + blocker_element::_bp_filename).c_str()),
+                          parent)
   {
   }
 
@@ -146,8 +146,7 @@ namespace seeks_plugins
     return cgi::finish_http_response(csp, rsp);
   }
 
-  /* auto-registration */
-#if defined(ON_OPENBSD) || defined(ON_OSX)
+  /* plugin registration */
   extern "C"
   {
     plugin* maker()
@@ -155,21 +154,5 @@ namespace seeks_plugins
       return new blocker;
     }
   }
-#else
-  plugin* makerb()
-  {
-    return new blocker;
-  }
-  class proxy_autor_blocker
-  {
-    public:
-      proxy_autor_blocker()
-      {
-        plugin_manager::_factory["blocker"] = makerb; // beware: default plugin shell with no name.
-      }
-  };
-
-  proxy_autor_blocker _p; // one instance, instanciated when dl-opening.
-#endif
 
 } /* end of namespace. */

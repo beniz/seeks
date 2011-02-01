@@ -68,10 +68,6 @@ namespace sp
       static sp_err get_destination_from_headers(const std::list<const char*> *headers,
           http_request *http);
 
-#ifdef FEATURE_FORCE_LOAD
-      static int strclean(char *string, const char *substring);
-#endif /* def FEATURE_FORCE_LOAD */
-
     private:
       static char *get_header_line(iob *iob);
       static sp_err scan_headers(client_state *csp);
@@ -153,7 +149,7 @@ namespace sp
     public:
       parsers_list(const char *str, const size_t &len,
                    parser_func_ptr parser)//sp_err (*parser_func_ptr)(client_state*, char **) parser)
-          :_str(str),_len(len),_parser(parser)
+        :_str(str),_len(len),_parser(parser)
       {};
 
       ~parsers_list() {};  // beware of memory leaks...

@@ -21,6 +21,11 @@
 
 #include "search_snippet.h"
 #include "db_query_record.h"
+#include "stopwordlist.h"
+#include "mrf.h"
+
+using lsh::stopwordlist;
+using lsh::str_chain;
 
 namespace seeks_plugins
 {
@@ -33,10 +38,28 @@ namespace seeks_plugins
       virtual ~rank_estimator() {};
 
       virtual void estimate_ranks(const std::string &query,
+                                  const std::string &lang,
                                   std::vector<search_snippet*> &snippets) {};
 
-      void fetch_user_db_record(const std::string &query,
-                                std::vector<db_record*> &records);
+      virtual void recommend_urls(const std::string &query,
+                                  const std::string &lang,
+                                  std::vector<search_snippet*> &snippets) {};
+
+      virtual void thumb_down_url(const std::string &query,
+                                  const std::string &lang,
+                                  const std::string &url) {};
+
+      static void fetch_user_db_record(const std::string &query,
+                                       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
+
+      static void extract_queries(const std::string &query,
+                                  const std::string &lang,
+                                  const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
+                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+
+      static void destroy_records(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
+
+      static void destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
   };
 
   class simple_re : public rank_estimator
@@ -46,22 +69,50 @@ namespace seeks_plugins
 
       virtual ~simple_re();
 
-      void extract_queries(const std::vector<db_record*> &records,
-                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
-
       virtual void estimate_ranks(const std::string &query,
+                                  const std::string &lang,
                                   std::vector<search_snippet*> &snippets);
 
-      float estimate_rank(search_snippet *s, const int &ns,
+      virtual void recommend_urls(const std::string &query,
+                                  const std::string &lang,
+                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
+
+      virtual void thumb_down_url(const std::string &query,
+                                  const std::string &lang,
+                                  const std::string &url);
+
+      float estimate_rank(search_snippet *s,
+                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                          const int &ns,
                           const query_data *qd,
                           const float &total_hits,
                           const std::string &surl,
-                          const std::string &host, const std::string &path);
+                          const std::string &host);
 
-      float estimate_prior(const std::string &surl,
+      float estimate_rank(search_snippet *s,
+                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                          const int &ns,
+                          const vurl_data *vd_url,
+                          const vurl_data *vd_host,
+                          const float &total_hits);
+
+      float estimate_prior(search_snippet *s,
+                           const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                           const std::string &surl,
                            const std::string &host,
-                           const uint64_t &nuri,
-                           bool &personalized);
+                           const uint64_t &nuri);
+
+      static uint32_t damerau_levenshtein_distance(const std::string &s1, const std::string &s2,
+          const uint32_t &c=256);
+
+      static uint32_t query_distance(const std::string &s1, const std::string &s2,
+                                     const stopwordlist *swl=NULL);
+
+      static uint32_t query_distance(str_chain &sc1, str_chain &sc2,
+                                     const stopwordlist *swl=NULL);
+
+      static float query_halo_weight(const std::string &q1, const std::string &q2,
+                                     const uint32_t &q2_radius, const stopwordlist *swl=NULL);
   };
 
 } /* end of namespace. */

@@ -51,6 +51,7 @@ namespace seeks_plugins
     EXALEAD,
     GOOGLE,
     IDENTICA,
+    SEEKS,
     TWITTER,
     YAHOO,
     YAUBA,
@@ -77,7 +78,7 @@ namespace seeks_plugins
   struct ps_thread_arg
   {
     ps_thread_arg()
-        :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
+      :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
     {
     };
 
@@ -199,11 +200,7 @@ namespace seeks_plugins
     public:
       /*-- initialization --*/
       static void init_handlers(const int &num);
-
-      /*-- query preprocessing --*/
-      static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
-
-      static std::string no_command_query(const std::string &oquery);
+      static void cleanup_handlers();
 
       /*-- querying the search engines. --*/
       static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

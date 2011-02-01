@@ -118,6 +118,8 @@ namespace sp
         return ss.str();
       };
 
+      static std::string chomp_cpp(const std::string &s);
+
       /**
        * \brief replaces pattern in str with repl.
        * returns a positive value if changes were made to the argument string.
@@ -136,6 +138,10 @@ namespace sp
 
       static size_t ci_replace_in_string(std::string &str, const std::string &pattern,
                                          const std::string &repl);
+
+      /* arithmetics. */
+      static bool compare_d(const double &a, const double &b,
+                            const double &precision);
 
       /* others. */
       static uint32_t hash_string(const char *data, uint32_t len);

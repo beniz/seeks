@@ -25,6 +25,7 @@
 #include "errlog.h"
 #include "plugin_manager.h"
 #include "urlmatch.h"
+#include "miscutil.h"
 #include "plugin.h"
 
 #include <iostream>
@@ -52,7 +53,6 @@ TEST(UserdbTest, all_fct)
 
   unlink(dbfile.c_str());
 
-  seeks_proxy::_configfile = "config";
   seeks_proxy::_configfile = basedir + "/config";
 
   seeks_proxy::initialize_mutexes();
@@ -100,13 +100,13 @@ TEST(UserdbTest, all_fct)
   db_record *dbr = db->find_dbr(uris[0],plugin_name);
   dbr->print(oss);
   ASSERT_TRUE(oss.rdbuf()->str() != "");
+  delete dbr;
 
   // export records
   std::string filename = "ut-export-test-db.json";
   std::ofstream output (filename.c_str());
   db->export_db(output, "json");
   output.close();
-
   struct stat filestatus;
   stat(filename.c_str(), &filestatus );
   ASSERT_TRUE(filestatus.st_size > 0);
@@ -125,12 +125,22 @@ TEST(UserdbTest, all_fct)
   nr = db->number_records();
   ASSERT_EQ(0,nr);
 
+  // test version.
+  float version = db->get_version();
+  ASSERT_EQ(0,version);
+  db->set_version(0.41);
+  version = db->get_version();
+  ASSERT_TRUE(miscutil::compare_d(0.41,version,1e-3));
+
   // end of tests.
+  plugin_manager::close_all_plugins();
 
   db->clear_db();
   db->close_db();
   unlink(dbfile.c_str());
   delete db;
+
+  delete seeks_proxy::_config;
 }
 
 int main(int argc, char **argv)

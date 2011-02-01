@@ -52,7 +52,6 @@ namespace lsh
 
     // turn them into DHTKey.
     size_t nfeatures = char_features.size();
-    //features.reserve(features.size() + nfeatures);
     for (size_t i=0; i<nfeatures; i++)
       {
         byte *hashcode = (byte*)char_features.at(i)._feat;
@@ -80,7 +79,7 @@ namespace lsh
             std::vector<std::string> tokens;
             std::string q = queries.at(i);
             miscutil::tokenize(q,tokens,mrf::_default_delims);
-            if (tokens.size() > 14) // empirically determine number 14, to not exceed to around 200 hashes or so in normal operations.
+            if (tokens.size() > 14) // empirically determined number 14, to not exceed to around 200 hashes or so in normal operations.
               c_max_radius = 0;
           }
 

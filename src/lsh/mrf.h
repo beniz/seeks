@@ -42,7 +42,7 @@ namespace lsh
   {
     public:
       f160r(char *feat, const int &radius)
-          :_feat(feat),_radius(radius)
+        :_feat(feat),_radius(radius)
       {};
       ~f160r() {};
 
@@ -77,13 +77,23 @@ namespace lsh
   class str_chain
   {
     public:
+      str_chain();
+
       str_chain(const std::string &str,
                 const int &radius);
 
+      str_chain(const std::string &str,
+                const int &radius,
+                const bool &tokenize);
+
       str_chain(const str_chain &sc);
+
       ~str_chain() {};
 
       void add_token(const std::string &str);
+      void remove_token(const size_t &i);
+      void check_skip();
+
       void incr_radius()
       {
         _radius += 1;
@@ -121,6 +131,9 @@ namespace lsh
         _skip = true;
       }
       str_chain rank_alpha() const;
+      str_chain intersect(const str_chain &stc) const;
+      uint32_t intersect_size(const str_chain &stc) const;
+      std::string print_str() const;
       std::ostream& print(std::ostream &output) const;
 
     private:
@@ -280,7 +293,6 @@ namespace lsh
                     // second generated chain: add a 'skip' token.
                     str_chain chain2 = chain;
                     chain2.add_token("<skip>");
-                    chain2.set_skip();
 
                     nchains.push(chain1);
                     nchains.push(chain2);

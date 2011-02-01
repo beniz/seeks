@@ -22,6 +22,7 @@
 #include "errlog.h"
 #include "seeks_proxy.h" // for mutexes.
 #include "mrf.h"
+#include "mem_utils.h"
 
 #include <iostream>
 
@@ -51,7 +52,7 @@ namespace lsh
   lsh_configuration* lsh_configuration::_config = NULL;
 
   lsh_configuration::lsh_configuration(const std::string &filename)
-      :configuration_spec(filename)
+    :configuration_spec(filename)
   {
     lsh_configuration::_config = this;
     mutex_init(&_load_swl_mutex);
@@ -60,6 +61,18 @@ namespace lsh
 
   lsh_configuration::~lsh_configuration()
   {
+    hash_map<const char*,stopwordlist*,hash<const char*>,eqstr>::iterator hit, hit2;
+    hit = _swlists.begin();
+    while(hit!=_swlists.end())
+      {
+        hit2 = hit;
+        ++hit;
+        stopwordlist *swl = (*hit2).second;
+        const char *key = (*hit2).first;
+        _swlists.erase(hit2);
+        delete swl;
+        free_const(key);
+      }
   }
 
   void lsh_configuration::set_default_config()

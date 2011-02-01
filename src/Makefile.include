@@ -5,30 +5,45 @@ LDADD=
 if HAVE_PROTOBUF
 if HAVE_TC
 AM_CPPFLAGS += \
-	-I$(top_builddir)/src/plugins/query_capture \
-	-I$(top_builddir)/src/plugins/cf
+	-I$(top_srcdir)/src/plugins/uri_capture \
+	-I$(top_srcdir)/src/plugins/query_capture \
+	-I$(top_srcdir)/src/plugins/cf
 
 AM_LDFLAGS += \
+	-L$(top_builddir)/src/plugins/uri_capture \
 	-L$(top_builddir)/src/plugins/query_capture \
 	-L$(top_builddir)/src/plugins/cf
 
 LDADD += \
+        -luricaptureplugin \
 	-lquerycaptureplugin \
 	-lcfplugin
 endif
 endif
 
 if HAVE_PROTOBUF
-if HAVE_TC
 AM_CPPFLAGS += \
-	`pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet`
+	`pkg-config --cflags protobuf`
 
 AM_LDFLAGS += \
-	`pkg-config --libs protobuf` `pkg-config --libs tokyocabinet`
+	`pkg-config --libs protobuf`
+
+if HAVE_TC
+AM_CPPFLAGS += \
+	`pkg-config --cflags tokyocabinet`
+AM_LDFLAGS += \
+        `pkg-config --libs tokyocabinet`
+endif
+
+if HAVE_TT
+AM_CPPFLAGS += \
+        `pkg-config --cflags tokyotyrant`
+AM_LDFLAGS += \
+      	   `pkg-config --libs tokyotyrant`
+endif
 
 LDADD += \
 	-lseeksuserdb
-endif
 endif
 
 AM_CPPFLAGS += \
@@ -39,9 +54,10 @@ AM_CPPFLAGS += \
 	     -I${top_srcdir}/src/lsh \
 	     -I${top_srcdir}/src/proxy \
 	     -I${top_srcdir}/src/utils \
-	     -I$(top_builddir)/src/plugins/websearch \
+	     -I$(top_srcdir)/src/plugins/websearch \
 	     @PCRE_CFLAGS@ \
 	     @XML2_CFLAGS@ \
+	     @ICU_CFLAGS@ \
 	     $(GTEST_CPPFLAGS)
 
 AM_LDFLAGS += \
@@ -60,7 +76,7 @@ LDADD += \
 	-lseeksplugins \
 	-lseeksutils \
 	-lseekswebsearchplugin \
-	-lrmd160 @XML2_LDADD@ @CURL_LDADD@ -lpthread -lpcreposix -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
+	-lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ -lpthread -lpcreposix -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
 
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`

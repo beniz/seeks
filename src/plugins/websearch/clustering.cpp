@@ -38,7 +38,7 @@ namespace seeks_plugins
 
   /*- cluster. -*/
   cluster::cluster()
-      :_rank(0.0)
+    :_rank(0.0)
   {
   }
 
@@ -98,11 +98,11 @@ namespace seeks_plugins
       }
     f_totals.clear();
 
-    // we need query words and the english stopword list for rejecting labels.
+    // we need query words and a stopword list for rejecting labels.
     std::vector<std::string> words;
     miscutil::tokenize(qc->_query,words," ");
     size_t nwords = words.size();
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist("en");
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
 
     // turn features into word labels.
     int k=0;
@@ -170,14 +170,14 @@ namespace seeks_plugins
 
   /*- clustering. -*/
   clustering::clustering()
-      :_qc(NULL),_K(0),_clusters(NULL),_cluster_labels(NULL)
+    :_qc(NULL),_K(0),_clusters(NULL),_cluster_labels(NULL)
   {
   }
 
   clustering::clustering(query_context *qc,
                          const std::vector<search_snippet*> &snippets,
                          const short &K)
-      :_qc(qc),_K(K),_snippets(snippets)
+    :_qc(qc),_K(K),_snippets(snippets)
   {
     _clusters = new cluster[_K];
     _cluster_labels = new std::vector<std::string>[_K];

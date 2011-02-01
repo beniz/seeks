@@ -1269,14 +1269,6 @@ namespace sp
     if (!err) err = cgi::map_conditional(exports, "FEATURE_FAST_REDIRECTS", 0);
 #endif /* ndef FEATURE_FAST_REDIRECTS */
 
-    /*#ifdef FEATURE_FORCE_LOAD
-       if (!err) err = cgi::map_conditional(exports, "FEATURE_FORCE_LOAD", 1);
-       if (!err) err = miscutil::add_map_entry(exports, "FORCE_PREFIX", 1, FORCE_PREFIX, 1);
-    #else*/ /* ifndef FEATURE_FORCE_LOAD */
-    /*   if (!err) err = cgi::map_conditional(exports, "FEATURE_FORCE_LOAD", 0);
-       if (!err) err = miscutil::add_map_entry(exports, "FORCE_PREFIX", 1, "(none - disabled)", 1);
-    #endif*/ /* ndef FEATURE_FORCE_LOAD */
-
 #ifdef FEATURE_GRACEFUL_TERMINATION
     if (!err) err = cgi::map_conditional(exports, "FEATURE_GRACEFUL_TERMINATION", 1);
 #else /* ifndef FEATURE_GRACEFUL_TERMINATION */

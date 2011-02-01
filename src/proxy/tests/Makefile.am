@@ -4,11 +4,12 @@ noinst_PROGRAMS=test_curl_mget shash
 if HAVE_PROTOBUF
 if HAVE_TC
 noinst_PROGRAMS += user_db_print user_db_clear user_db_remove user_db_find_key user_db_export
-check_PROGRAMS = ut_user_db
+check_PROGRAMS = ut_user_db ut_urlmatch
 endif
 endif
 test_curl_mget_SOURCES=test-curl-mget.cpp
 shash_SOURCES=shash.cpp
+ut_urlmatch_SOURCES=ut-urlmatch.cpp
 if HAVE_PROTOBUF
 if HAVE_TC
 user_db_print_SOURCES=user-db-print.cpp
@@ -21,3 +22,5 @@ endif
 endif
 
 include $(top_srcdir)/src/Makefile.include
+
+AM_CPPFLAGS += -I../

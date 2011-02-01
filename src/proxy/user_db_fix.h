@@ -32,6 +32,21 @@ namespace sp
        *      existing user DB can be considered safely converted.
        */
       static int fix_issue_169();
+
+      /**
+       * \brief fix bad chomped queries in records stored by 'query_capture' plugin.
+       */
+      static int fix_issue_263();
+
+      /**
+       * \brief fix trailing '/' in query captured records' URLs.
+       */
+      static int fix_issue_281();
+
+      /**
+       * \brief fix for non UTF-8 encoded queries.
+       */
+      static int fix_issue_154();
   };
 
 } /* end of namespace. */

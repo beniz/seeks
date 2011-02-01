@@ -93,23 +93,28 @@ namespace sp
 #define hash_show_on_task_bar              4011152997ul /* "show-on-task-bar" */
 #define hash_auto_proxy_disable             312503207ul /* "automatic-proxy-disable" */
 #define hash_user_db_file                  2401853593ul /* "user-db-file" */
+#define hash_user_db_address               1000875927ul /* "user-db-address" */
+#define hash_user_db_check                 4124671137ul /* "user-db-startup-check" */
 #define hash_url_source_code               1714992061ul /* "url-source-code" */
 
   proxy_configuration::proxy_configuration(const std::string &filename)
-      :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
-      _templdir(NULL),_logdir(NULL),_plugindir(NULL),_datadir(NULL),
-      _admin_address(NULL),_proxy_info_url(NULL),_usermanual(NULL),
-      _hostname(NULL),
-      _haddr(NULL),_hport(0),_buffer_limit(0),
-      _forward(NULL),_forwarded_connect_retries(0),_max_client_connections(0),_socket_timeout(0)
+    :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
+     _templdir(NULL),_logdir(NULL),_plugindir(NULL),_datadir(NULL),
+     _activated_plugins(10),
+     _admin_address(NULL),_proxy_info_url(NULL),_usermanual(NULL),
+     _hostname(NULL),
+     _haddr(NULL),_hport(0),_buffer_limit(0),
+     _forward(NULL),_forwarded_connect_retries(0),_max_client_connections(0),_socket_timeout(0)
 #ifdef FEATURE_CONNECTION_KEEP_ALIVE
-      ,_keep_alive_timeout(0)
+     ,_keep_alive_timeout(0)
 #endif
-      ,_need_bind(0),
+     ,_need_bind(0),
 #ifdef FEATURE_ACL
-      _acl(NULL),
+     _acl(NULL),
 #endif
-      _automatic_proxy_disable(true)
+     _automatic_proxy_disable(true),
+     _user_db_haddr(NULL),
+     _user_db_startup_check(true)
   {
     load_config();
   }
@@ -125,10 +130,22 @@ namespace sp
     free_const(_logfile);
     free_const(_plugindir);
     free_const(_datadir);
+    free_const(_user_db_haddr);
 
     freez(_admin_address);
     freez(_proxy_info_url);
     freez(_usermanual);
+
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit,hit2;
+    hit = _activated_plugins.begin();
+    while(hit!=_activated_plugins.end())
+      {
+        hit2 = hit;
+        ++hit;
+        const char *key = (*hit2).first;
+        _activated_plugins.erase(hit2);
+        free_const(key);
+      }
   }
 
   // virtual functions.
@@ -150,10 +167,13 @@ namespace sp
     _feature_flags            &= ~RUNTIME_FEATURE_SPLIT_LARGE_FORMS;
     _feature_flags            &= ~RUNTIME_FEATURE_ACCEPT_INTERCEPTED_REQUESTS;
 
-    _activated_plugins.insert(std::pair<const char*,bool>("websearch",true)); // websearch plugin activated by default.
+    _activated_plugins.insert(std::pair<const char*,bool>(strdup("websearch"),true)); // websearch plugin activated by default.
 
     _automatic_proxy_disable = true;
     _user_db_file = ""; // default is $HOME/.seeks/seeks_user.db active when _user_db_file is unset.
+    _user_db_haddr = NULL;
+    _user_db_hport = 0;
+    _user_db_startup_check = true;
     _url_source_code = "http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree";
   }
 
@@ -825,12 +845,39 @@ namespace sp
          *************************************************************************/
       case hash_auto_proxy_disable:
         _automatic_proxy_disable = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to disable proxy automatically at startup when HTTP server plugin is activated");
         break;
 
+        /*************************************************************************
+               * user-db-file path to a db
+               *************************************************************************/
       case hash_user_db_file:
         _user_db_file = std::string(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "The user database file used by Seek's plugins to store information (personalization, ...)");
         break;
 
+        /*************************************************************************
+               * user-db-address [ip][:port]
+               *************************************************************************/
+      case hash_user_db_address:
+        free_const(_user_db_haddr);
+        _user_db_haddr = strdup(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "The IP address and TCP port on which a remote Tokyo Tyrant server is listening");
+        break;
+
+        /*************************************************************************
+               * user-db-startup-ckeck 0 or 1
+               *************************************************************************/
+      case hash_user_db_check:
+        _user_db_startup_check = static_cast<bool>(atoi(arg));
+        break;
+
+        /*************************************************************************
+               * url-source-code URL to source code repository
+               *************************************************************************/
       case hash_url_source_code:
         _url_source_code = std::string(arg);
         break;
@@ -1015,36 +1062,14 @@ namespace sp
         _haddr = strdup( HADDR_DEFAULT );
       }
 
-    char *p = NULL;
     if ( NULL != _haddr )
       {
-        if ((*_haddr == '[')
-            && (NULL != (p = strchr(_haddr, ']')))
-            && (p[1] == ':')
-            && (0 < (_hport = atoi(p + 2))))
-          {
-            *p = '\0';
-            memmove((void *)_haddr, _haddr + 1,
-                    (size_t)(p - _haddr));
-          }
-        else if (NULL != (p = strchr(_haddr, ':'))
-                 && (0 < (_hport = atoi(p + 1))))
-          {
-            *p = '\0';
-          }
-        else
-          {
-            errlog::log_error(LOG_LEVEL_FATAL, "invalid bind port spec %s", _haddr);
-            /* Never get here - LOG_LEVEL_FATAL causes program exit */
-          }
-        if (_haddr == '\0')
-          {
-            /*
-             * Only the port specified. We stored it in _hport
-             * and don't need its text representation anymore.
-             */
-            free_const(_haddr);
-          }
+        urlmatch::parse_ip_host_port(_haddr,_hport);
+      }
+
+    if ( NULL != _user_db_haddr )
+      {
+        urlmatch::parse_ip_host_port(_user_db_haddr,_user_db_hport);
       }
 
     _need_bind = 1;

@@ -28,8 +28,10 @@
 #include "se_handler.h"
 #include "iso639.h"
 #include "encode.h"
+#include "charset_conv.h"
 
 #include <sys/time.h>
+#include <algorithm>
 #include <iostream>
 
 using sp::sweeper;
@@ -43,63 +45,65 @@ using lsh::mrf;
 namespace seeks_plugins
 {
   std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
+  std::string query_context::_default_alang = "en";
+  std::string query_context::_default_alang_reg = "en-US";
 
   query_context::query_context()
-      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
-      _registered(false)
+    :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+     _registered(false)
   {
     mutex_init(&_qc_mutex);
   }
 
   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                const std::list<const char*> &http_headers)
-      :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_blekko(false),_compute_tfidf_features(true),
-      _registered(false)
+    :sweepable(),_page_expansion(0),_blekko(false),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+     _registered(false)
   {
     mutex_init(&_qc_mutex);
 
     // reload config if file has changed.
     websearch::_wconfig->load_config();
 
+    // set query.
+    const char *q = miscutil::lookup(parameters,"q");
+    if (!q)
+      {
+        // this should not happen.
+        q = "";
+      }
+    _query = q;
+
+    // set timestamp.
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
     _creation_time = _last_time_of_use = tv_now.tv_sec;
-
     grab_useful_headers(http_headers);
 
     // sets auto_lang & auto_lang_reg.
-    bool has_in_query_lang = false;
-    if (has_lang(parameters,_auto_lang))
+    const char *alang = miscutil::lookup(parameters,"lang");
+    if (!alang)
       {
+        // this should not happen.
+        alang = query_context::_default_alang.c_str();
       }
-    else if ((has_in_query_lang = detect_query_lang(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters))))
+    const char *alang_reg = miscutil::lookup(parameters,"lreg");
+    if (!alang_reg)
       {
-        query_context::in_query_command_forced_region(_auto_lang,_auto_lang_reg);
+        // this should not happen.
+        alang_reg = query_context::_default_alang_reg.c_str();
       }
-    else if (websearch::_wconfig->_lang == "auto")
-      {
-        _auto_lang_reg = query_context::detect_query_lang_http(http_headers);
-        try
-          {
-            _auto_lang = _auto_lang_reg.substr(0,2);
-          }
-        catch (std::exception &e)
-          {
-            _auto_lang = "";
-          }
-      }
-    else
-      {
-        _auto_lang = websearch::_wconfig->_lang; // fall back is default search language.
-        _auto_lang_reg = query_context::lang_forced_region(websearch::_wconfig->_lang);
-      }
+    _auto_lang = alang;
+    _auto_lang_reg = alang_reg;
 
     // query hashing, with the language included.
-    std::string q_to_hash;
-    if (!has_in_query_lang && !_auto_lang.empty())
-      q_to_hash = ":" + _auto_lang + " ";
-    _query_hash = query_context::hash_query_for_context(parameters,q_to_hash,_url_enc_query);
-    _query = q_to_hash;
+    _query_key = query_context::assemble_query(_query,_auto_lang);
+    _query_hash = query_context::hash_query_for_context(_query_key);
+
+    // encoded query.
+    char *url_enc_query_str = encode::url_encode(_query.c_str());
+    _url_enc_query = url_enc_query_str;
+    free(url_enc_query_str);
 
     // lookup requested engines, if any.
     query_context::fillup_engines(parameters,_engines);
@@ -125,7 +129,18 @@ namespace seeks_plugins
         free_const(k);
       }
 
-    search_snippet::delete_snippets(_cached_snippets);
+    std::for_each(_cached_snippets.begin(),_cached_snippets.end(),
+                  delete_object());
+
+    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator idhit1, idhit2;
+    idhit1 = _recommended_snippets.begin();
+    while(idhit1!=_recommended_snippets.end())
+      {
+        idhit2 = idhit1;
+        ++idhit1;
+        delete (*idhit2).second;
+        _recommended_snippets.erase(idhit2);
+      }
 
     // clears the LSH hashtable.
     if (_ulsh_ham)
@@ -151,17 +166,22 @@ namespace seeks_plugins
     return sorted_query;
   }
 
-  uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+  uint32_t query_context::hash_query_for_context(const std::string &query_key)
+  {
+    std::string sorted_query = query_context::sort_query(query_key);
+    return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
+  }
+
+  /*uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
       std::string &query, std::string &url_enc_query)
   {
     query += std::string(miscutil::lookup(parameters,"q"));
-    //miscutil::replace_in_string(query,"\"",""); // prune out quotes.
     char *url_enc_query_str = encode::url_encode(query.c_str());
     url_enc_query = std::string(url_enc_query_str);
     free(url_enc_query_str);
     std::string sorted_query = query_context::sort_query(query);
     return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
-  }
+    }*/
 
   void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
@@ -235,7 +255,16 @@ namespace seeks_plugins
   {
     expanded = false;
     const char *expansion = miscutil::lookup(parameters,"expansion");
-    int horizon = atoi(expansion);
+    if (!expansion)
+      {
+        return SP_ERR_CGI_PARAMS;
+      }
+    char* endptr;
+    int horizon = strtol(expansion, &endptr, 0);
+    if (*endptr)
+      {
+        return SP_ERR_CGI_PARAMS;
+      }
 
     if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
       horizon = websearch::_wconfig->_max_expansions;
@@ -262,13 +291,13 @@ namespace seeks_plugins
           {
             // included, nothing more to be done.
             // blekko check, called once per query.
-            if (_blekko)
+            /*if (_blekko)
               {
                 std::bitset<NSEs> tblekko = _engines;
                 tblekko |= std::bitset<NSEs>(SE_BLEKKO);
                 if (_engines == tblekko)
                   _engines ^= std::bitset<NSEs>(SE_BLEKKO);
-              }
+            		  }*/
           }
         else // test intersection.
           {
@@ -443,10 +472,9 @@ namespace seeks_plugins
     else return false;
   }
 
-  bool query_context::has_query_lang(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+  bool query_context::has_query_lang(const std::string &query,
                                      std::string &qlang)
   {
-    std::string query = std::string(miscutil::lookup(parameters,"q"));
     if (query.empty() || query[0] != ':') // XXX: could chomp the query.
       {
         qlang = "";
@@ -474,50 +502,9 @@ namespace seeks_plugins
       }
   }
 
-  bool query_context::detect_query_lang(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-  {
-    std::string qlang;
-    std::string query = std::string(miscutil::lookup(parameters,"q"));
-
-    // check whether the language was specified through the API.
-    const char *alang = miscutil::lookup(parameters,"lang");
-    if (alang)
-      {
-        qlang = alang;
-        _in_query_command = ":" + qlang + " ";
-      }
-    else // check whether it is within the query string.
-      {
-        if (query.empty() || query[0] != ':')
-          return false;
-        try
-          {
-            qlang = query.substr(1,2); // : + 2 characters for the language.
-            _in_query_command += query.substr(0,3);
-          }
-        catch (std::exception &e)
-          {
-            qlang = "";
-            _in_query_command = "";
-          }
-      }
-
-    // check whether the language is known ! -> XXX: language table...
-    if (iso639::has_code(qlang.c_str()))
-      {
-        _auto_lang = qlang;
-        errlog::log_error(LOG_LEVEL_INFO,"In-query language command detection: %s",_auto_lang.c_str());
-        return true;
-      }
-    else
-      {
-        errlog::log_error(LOG_LEVEL_INFO,"language code not found: %s",qlang.c_str());
-        return false;
-      }
-  }
-
   // static.
-  std::string query_context::detect_query_lang_http(const std::list<const char*> &http_headers)
+  void query_context::detect_query_lang_http(const std::list<const char*> &http_headers,
+      std::string &lang, std::string &lang_reg)
   {
     std::list<const char*>::const_iterator sit = http_headers.begin();
     while (sit!=http_headers.end())
@@ -529,37 +516,102 @@ namespace seeks_plugins
             size_t pos = lang_head.find_first_of(" ");
             if (pos != std::string::npos && pos+6<=lang_head.length() && lang_head[pos+3] == '-')
               {
-                std::string lang_reg;
                 try
                   {
+                    lang = lang_head.substr(pos+1,2);
                     lang_reg = lang_head.substr(pos+1,5);
                   }
                 catch (std::exception &e)
                   {
-                    lang_reg = "en-US"; // default.
+                    lang = query_context::_default_alang;
+                    lang_reg = query_context::_default_alang_reg; // default.
                   }
-                errlog::log_error(LOG_LEVEL_INFO,"Query language detection: %s",lang_reg.c_str());
-                return lang_reg;
+                errlog::log_error(LOG_LEVEL_DEBUG,"Query language detection: %s",lang_reg.c_str());
+                return;
               }
             else if (pos != std::string::npos && pos+3<=lang_head.length())
               {
-                std::string lang;
                 try
                   {
                     lang = lang_head.substr(pos+1,2);
                   }
                 catch (std::exception &e)
                   {
-                    lang = "en"; // default.
+                    lang = query_context::_default_alang; // default.
                   }
-                std::string lang_reg = query_context::lang_forced_region(lang);
-                errlog::log_error(LOG_LEVEL_INFO,"Forced query language region at detection: %s",lang_reg.c_str());
-                return lang_reg;
+                lang_reg = query_context::lang_forced_region(lang);
+                errlog::log_error(LOG_LEVEL_DEBUG,"Forced query language region at detection: %s",lang_reg.c_str());
+                return;
               }
           }
         ++sit;
       }
-    return "en-US"; // beware, returning hardcoded default (since config value is most likely "auto").
+    lang_reg = query_context::_default_alang_reg; // beware, returning hardcoded default (since config value is most likely "auto").
+    lang = query_context::_default_alang;
+  }
+
+  std::string query_context::detect_base_url_http(client_state *csp)
+  {
+    std::list<const char*> headers = csp->_headers;
+
+    // first we try to get base_url from a custom header
+    std::string base_url;
+    std::list<const char*>::const_iterator sit = headers.begin();
+    while (sit!=headers.end())
+      {
+        if (miscutil::strncmpic((*sit),"Seeks-Remote-Location:",22) == 0)
+          {
+            base_url = (*sit);
+            size_t pos = base_url.find_first_of(" ");
+            try
+              {
+                base_url = base_url.substr(pos+1);
+              }
+            catch (std::exception &e)
+              {
+                base_url = "";
+                break;
+              }
+            break;
+          }
+        ++sit;
+      }
+    if (base_url.empty())
+      {
+        // if no custom header, we build base_url from the generic Host header
+        std::list<const char*>::const_iterator sit = headers.begin();
+        while (sit!=headers.end())
+          {
+            if (miscutil::strncmpic((*sit),"Host:",5) == 0)
+              {
+                base_url = (*sit);
+                size_t pos = base_url.find_first_of(" ");
+                try
+                  {
+                    base_url = base_url.substr(pos+1);
+                  }
+                catch (std::exception &e)
+                  {
+                    base_url = "";
+                    return base_url;
+                  }
+                break;
+              }
+            ++sit;
+          }
+        base_url = csp->_http._ssl ? "https://" : "http://" + base_url;
+      }
+    return base_url;
+  }
+
+  std::string query_context::assemble_query(const std::string &query,
+      const std::string &lang)
+  {
+    if (!lang.empty())
+      {
+        return ":" + lang + " " + query;
+      }
+    else return query;
   }
 
   void query_context::grab_useful_headers(const std::list<const char*> &http_headers)
@@ -599,7 +651,7 @@ namespace seeks_plugins
     // appear in the future. As for now, this is a simple scheme for a simple need.
     // Unsupported languages default to american english, that's how the world is right
     // now...
-    std::string region_lang = "en-US"; // default.
+    std::string region_lang = query_context::_default_alang_reg; // default.
     if (auto_lang == "en")
       {
       }
@@ -671,8 +723,8 @@ namespace seeks_plugins
       std::string &region_lang)
   {
     region_lang = query_context::lang_forced_region(auto_lang);
-    if (region_lang == "en-US") // in case we are on the default language.
-      auto_lang = "en";
+    if (region_lang == query_context::_default_alang_reg) // in case we are on the default language.
+      auto_lang = query_context::_default_alang;
   }
 
   void query_context::fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -695,8 +747,32 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        (*vit)->_personalized = false;
+        if ((*vit)->_personalized)
+          {
+            (*vit)->_personalized = false;
+            if ((*vit)->_engine.to_ulong()&SE_SEEKS)
+              (*vit)->_engine ^= SE_SEEKS;
+            (*vit)->_meta_rank = (*vit)->_engine.count();
+            (*vit)->bing_yahoo_us_merge();
+          }
         ++vit;
+      }
+  }
+
+  void query_context::update_recommended_urls()
+  {
+    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit, hit2, cit;
+    hit = _recommended_snippets.begin();
+    while(hit!=_recommended_snippets.end())
+      {
+        if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
+          {
+            hit2 = hit;
+            ++hit;
+            delete (*hit2).second;
+            _recommended_snippets.erase(hit2);
+          }
+        else ++hit;
       }
   }
 

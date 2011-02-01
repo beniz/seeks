@@ -44,7 +44,7 @@ namespace seeks_plugins
     wo_thread_arg(client_state *csp, http_response *rsp,
                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                   bool render=true)
-        :_csp(csp),_rsp(rsp),_render(render)
+      :_csp(csp),_rsp(rsp),_render(render)
     {
       _parameters = miscutil::copy_map(parameters);
     };
@@ -68,7 +68,7 @@ namespace seeks_plugins
       ~websearch();
 
       virtual void start();
-      virtual void stop() {};
+      virtual void stop();
 
       /* cgi calls. */
       static sp_err cgi_websearch_hp(client_state *csp,
@@ -111,7 +111,7 @@ namespace seeks_plugins
                                              const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
       static sp_err cgi_websearch_node_info(client_state *csp, http_response *rsp,
-					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+                                            const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
       /* websearch. */
       static void perform_action_threaded(wo_thread_arg *args);
@@ -126,11 +126,15 @@ namespace seeks_plugins
                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                       bool render=true);
 
-      static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                      client_state *csp);
+      static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                      client_state *csp, hash_map<uint32_t,query_context*,id_hash_uint> &active_contexts);
+                                      hash_map<uint32_t,query_context*,id_hash_uint> &active_contexts);
+
+      static std::string no_command_query(const std::string &oquery);
+
+      static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                        client_state *csp);
 
       /* error handling. */
       static sp_err failed_ses_connect(client_state *csp, http_response *rsp);

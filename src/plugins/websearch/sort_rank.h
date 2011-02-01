@@ -44,8 +44,9 @@ namespace seeks_plugins
       static void group_by_types(query_context *qc, cluster *&clusters, short &K);
 
 #if defined(PROTOBUF) && defined(TC)
-      static void personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
-                                             const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+      static void personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets);
+      static void get_related_queries(query_context *qc);
+      static void get_recommended_urls(query_context *qc);
 #endif
   };
 

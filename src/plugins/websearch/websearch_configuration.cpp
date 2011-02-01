@@ -48,9 +48,10 @@ namespace seeks_plugins
 #define hash_result_message          129100406ul /* "result-message" */
 #define hash_dyn_ui                 3475528514ul /* "dynamic-ui" */
 #define hash_ui_theme                860616402ul /* "ui-theme" */
+#define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
-      :configuration_spec(filename)
+    :configuration_spec(filename)
   {
     _se_enabled = std::bitset<NSEs>(0);
     load_config();
@@ -83,6 +84,7 @@ namespace seeks_plugins
     _result_message = ""; // empty message.
     _dyn_ui = false; // default is static user interface.
     _ui_theme = "compact";
+    _num_reco_queries = 20;
   }
 
   void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -244,6 +246,12 @@ namespace seeks_plugins
         _ui_theme = std::string(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "User Interface selected theme");
+        break;
+
+      case hash_num_reco_queries:
+        _num_reco_queries = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Max number of recommended queries");
         break;
 
       default:
