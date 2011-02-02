@@ -239,7 +239,7 @@ namespace seeks_plugins
     // flickr: www.flickr.com/search/?q=markov+chain&z=e
     "http://www.flickr.com/search/?q=%query&page=%start",
     // ggle: www.google.com/images?q=markov+chain&hl=en&safe=off&prmd=mi&source=lnms&tbs=isch:1&sa=X&oi=mode_link&ct=mode
-    "http://www.google.com/images?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding",
+    "http://www.google.com/images?q=%query&gbv=1&start=%start&hl=%lang&ie=%encoding&oe=%encoding",
     // wcommons: commons.wikimedia.org/w/index.php?title=Special:Search&limit=20&offset=20&search=markov+chain
     "http://commons.wikimedia.org/w/index.php?search=%query&limit=%num&offset=%start",
     // images.search.yahoo.com/search/images?ei=UTF-8&p=lapin&js=0&lang=fr&b=21
@@ -343,12 +343,7 @@ namespace seeks_plugins
     std::list<const char*>::const_iterator sit = qc->_useful_http_headers.begin();
     while (sit!=qc->_useful_http_headers.end())
       {
-        if (se == GOOGLE_IMG
-            && miscutil::strncmpic((*sit),"user-agent:",11) == 0)
-          {
-            // XXX: ggle seems to render queries based on the user agent.
-          }
-        else lheaders->push_back(strdup((*sit)));
+        lheaders->push_back(strdup((*sit)));
         ++sit;
       }
 

@@ -20,16 +20,18 @@
 #include "img_search_snippet.h"
 #include "img_websearch_configuration.h"
 #include "miscutil.h"
+#include "encode.h"
 
 #include <iostream>
 
 using sp::miscutil;
+using sp::encode;
 
 namespace seeks_plugins
 {
 
   se_parser_ggle_img::se_parser_ggle_img()
-      :se_parser(),_results_flag(false)
+    :se_parser(),_results_flag(false)
   {
   }
 
@@ -43,33 +45,20 @@ namespace seeks_plugins
   {
     const char *tag = (const char*)name;
 
-    if (strcasecmp(tag,"div") == 0)
+    if (strcasecmp(tag,"ol") == 0)
       {
-        const char *a_style = se_parser::get_attribute((const char**)attributes,"style");
-        if (a_style && strcasecmp(a_style,"display:none") == 0)
-          {
-            _results_flag = true;
-          }
+        _results_flag = true;
       }
-    else if (_results_flag && strcasecmp(tag,"img") == 0)
+    else if (_results_flag && strcasecmp(tag,"td") == 0)
       {
-        if (pc->_current_snippet)
-          {
-            if (pc->_current_snippet->_url.empty())
-              {
-                delete pc->_current_snippet;
-                pc->_current_snippet = NULL;
-                _count--;
-              }
-            else pc->_snippets->push_back(pc->_current_snippet);
-          }
-
         // create new snippet.
         img_search_snippet *sp = new img_search_snippet(_count+1);
         _count++;
         sp->_img_engine |= std::bitset<IMG_NSEs>(SE_GOOGLE_IMG);
         pc->_current_snippet = sp;
-
+      }
+    else if (_results_flag && strcasecmp(tag,"img") == 0)
+      {
         // set url and cached link.
         const char *a_src = se_parser::get_attribute((const char**)attributes,"src");
         if (a_src)
@@ -89,7 +78,10 @@ namespace seeks_plugins
                 miscutil::replace_in_string(url,"_"," ");
                 miscutil::replace_in_string(url,"-"," ");
                 miscutil::replace_in_string(url,".jpg",""); // TODO: other extensions.
-                pc->_current_snippet->_title = url;
+                char *dec_url = encode::url_decode(url.c_str());
+                char *enc_url = encode::html_encode_and_free_original(dec_url);
+                pc->_current_snippet->_title = enc_url;
+                free(enc_url);
               }
           }
       }
@@ -123,9 +115,22 @@ namespace seeks_plugins
     if (!_results_flag)
       return;
 
-    if (strcasecmp(tag,"div") == 0)
+    if (strcasecmp(tag,"ol") == 0)
       {
         _results_flag = false;
+      }
+    else if (strcasecmp(tag,"td") == 0)
+      {
+        if (pc->_current_snippet)
+          {
+            if (pc->_current_snippet->_url.empty())
+              {
+                delete pc->_current_snippet;
+                pc->_current_snippet = NULL;
+                _count--;
+              }
+            else pc->_snippets->push_back(pc->_current_snippet);
+          }
       }
   }
 

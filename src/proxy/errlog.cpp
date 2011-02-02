@@ -475,7 +475,7 @@ namespace sp
   const char* errlog::get_log_level_string(int loglevel)
   {
     const char *log_level_string = NULL;
-    assert(0 < loglevel);
+    //assert(0 < loglevel);
 
     switch (loglevel)
       {
@@ -493,6 +493,9 @@ namespace sp
         break;
       case LOG_LEVEL_LOG:
         log_level_string = "Writing";
+        break;
+      case LOG_LEVEL_DEBUG:
+        log_level_string = "Debug";
         break;
       case LOG_LEVEL_HEADER:
         log_level_string = "Header";
@@ -520,7 +523,7 @@ namespace sp
         break;
       }
 
-    assert(NULL != log_level_string);
+    //assert(NULL != log_level_string);
 
     return log_level_string;
   }
