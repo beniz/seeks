@@ -205,16 +205,30 @@ namespace lsh
     return cchain;
   }
 
+  bool myfunction (std::string i, std::string j)
+  {
+    return (i==j);
+  }
+
   str_chain str_chain::intersect(const str_chain &stc) const
   {
+    str_chain cc1 = *this;
+    str_chain cc2 = stc;
+    cc1.rank_alpha();
+    cc2.rank_alpha();
+    std::vector<std::string>::iterator it = std::unique(cc1._chain.begin(),cc1._chain.end(),myfunction);
+    cc1._chain.resize(it-cc1._chain.begin());
+    it = std::unique(cc2._chain.begin(),cc2._chain.end());
+    cc2._chain.resize(it-cc2._chain.begin());
     str_chain inter;
-    for (size_t i=0; i<size(); i++)
+    for (size_t i=0; i<cc1.size(); i++)
       {
-        for (size_t j=0; j<stc.size(); j++)
+        for (size_t j=0; j<cc2.size(); j++)
           {
-            if (at(i) == stc.at(j))
+            if (cc1.at(i) == cc2.at(j))
               {
-                inter.add_token(stc.at(j));
+                inter.add_token(cc2.at(j));
+                break;
               }
           }
       }
