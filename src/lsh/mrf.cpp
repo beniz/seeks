@@ -133,34 +133,34 @@ namespace lsh
 
   str_chain::str_chain(const std::string &str,
                        const int &radius)
-      :_radius(radius),_skip(false)
+    :_radius(radius),_skip(false)
   {
     add_token(str);
   }
-  
+
   str_chain::str_chain(const std::string &str,
-		       const int &radius,
-		       const bool &tokenize)
+                       const int &radius,
+                       const bool &tokenize)
     :_radius(radius),_skip(false)
   {
     if (tokenize)
       {
-	std::vector<std::string> tokens;
-	mrf::tokenize(str,tokens,mrf::_default_delims); // Beware: default tokenization would alter "<skip>" word.
-	std::vector<std::string>::const_iterator vit
-	  = tokens.begin();
-	while(vit!=tokens.end())
-	  {
-	    add_token((*vit));
-	    ++vit;
-	  }
+        std::vector<std::string> tokens;
+        mrf::tokenize(str,tokens,mrf::_default_delims); // Beware: default tokenization would alter "<skip>" word.
+        std::vector<std::string>::const_iterator vit
+        = tokens.begin();
+        while(vit!=tokens.end())
+          {
+            add_token((*vit));
+            ++vit;
+          }
       }
     else add_token(str);
   }
 
   str_chain::str_chain(const str_chain &sc)
-      :_chain(sc.get_chain()),_radius(sc.get_radius()),
-      _skip(sc.has_skip())
+    :_chain(sc.get_chain()),_radius(sc.get_radius()),
+     _skip(sc.has_skip())
   {
   }
 
@@ -182,18 +182,18 @@ namespace lsh
     if (!_skip)
       check_skip();
   }
-  
+
   void str_chain::check_skip()
   {
     std::vector<std::string>::iterator vit = _chain.begin();
     while(vit!=_chain.end())
       {
-	if ((*vit) == "<skip>")
-	  {
-	    _skip = true;
-	    return;
-	  }
-	++vit;
+        if ((*vit) == "<skip>")
+          {
+            _skip = true;
+            return;
+          }
+        ++vit;
       }
     _skip = false;
   }
@@ -205,22 +205,36 @@ namespace lsh
     return cchain;
   }
 
+  bool myfunction (std::string i, std::string j)
+  {
+    return (i==j);
+  }
+
   str_chain str_chain::intersect(const str_chain &stc) const
   {
+    str_chain cc1 = *this;
+    str_chain cc2 = stc;
+    cc1.rank_alpha();
+    cc2.rank_alpha();
+    std::vector<std::string>::iterator it = std::unique(cc1._chain.begin(),cc1._chain.end(),myfunction);
+    cc1._chain.resize(it-cc1._chain.begin());
+    it = std::unique(cc2._chain.begin(),cc2._chain.end());
+    cc2._chain.resize(it-cc2._chain.begin());
     str_chain inter;
-    for (size_t i=0;i<size();i++)
+    for (size_t i=0; i<cc1.size(); i++)
       {
-	for (size_t j=0;j<stc.size();j++)
+        for (size_t j=0; j<cc2.size(); j++)
           {
-            if (at(i) == stc.at(j))
+            if (cc1.at(i) == cc2.at(j))
               {
-                inter.add_token(stc.at(j));
+                inter.add_token(cc2.at(j));
+                break;
               }
           }
       }
     return inter;
   }
-  
+
   uint32_t str_chain::intersect_size(const str_chain &stc) const
   {
     str_chain inter = intersect(stc);
@@ -231,11 +245,11 @@ namespace lsh
   {
     std::string res;
     int l = _chain.size();
-    for (int i=0;i<l;i++)
+    for (int i=0; i<l; i++)
       {
-	res += _chain.at(i);
-	if (i < l-1)
-	  res += " ";
+        res += _chain.at(i);
+        if (i < l-1)
+          res += " ";
       }
     return res;
   }
@@ -574,7 +588,7 @@ namespace lsh
                 // second generated chain: add a 'skip' token.
                 str_chain chain2 = chain;
                 chain2.add_token("<skip>");
-                
+
                 nchains.push(chain1);
                 nchains.push(chain2);
               }

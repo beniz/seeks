@@ -39,7 +39,12 @@ TEST(MrfTest, str_chain)
 
   si = s.intersect(s2);
   EXPECT_EQ(1,si.size());
-  
+
+  str_chain cs1("10 10 ub",0,true);
+  str_chain cs2("ub 10",0,true);
+  si = cs1.intersect(cs2);
+  EXPECT_EQ(2,si.size());
+
   s2.remove_token(2);
   EXPECT_EQ("seeks search",s2.print_str());
   s2.remove_token(1);
