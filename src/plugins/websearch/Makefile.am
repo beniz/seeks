@@ -72,6 +72,7 @@ nobase_dist_websearchplugindata_DATA= \
 			  templates/themes/compact/css/seeks_hp_search.css \
                           templates/themes/compact/css/seeks_search.css \
 	                  templates/themes/compact/js/render.js \
+			  public/images/seeks_croix_light_10x10.png \
 			  public/images/search_engines/yahoo.svg \
 			  public/images/search_engines/bing.svg \
 			  public/images/search_engines/exalead.svg \
