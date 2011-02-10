@@ -345,7 +345,8 @@ namespace seeks_plugins
 
     if (!vd_url || vd_url->_hits < 0 || filtered)
       {
-        posterior = 1.0 / (log(total_hits + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
+        float num = (vd_url && vd_url->_hits < 0) ? vd_url->_hits : 1.0;
+        posterior = num / (log(total_hits + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
         if (filtered && !s)
           {
             posterior = 0.0; // if no snippet support, filtered out. XXX: this may change in the long term.
@@ -538,7 +539,7 @@ namespace seeks_plugins
                     std::string surl = urlmatch::strip_url(vd->_url);
                     uint32_t sid = mrf::mrf_single_feature(surl,""); //TODO: generic id generator.
                     if ((sit = snippets.find(sid))!=snippets.end())
-                      (*sit).second->_seeks_rank = posterior; // update.
+                      (*sit).second->_seeks_rank += posterior; // update.
                     else
                       {
                         search_snippet *sp = new search_snippet();
