@@ -64,7 +64,9 @@ namespace seeks_plugins
         std::string key_str = (*hit).second.to_rstring();
         db_record *dbr = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
         if (dbr)
-          records.insert(std::pair<const DHTKey*,db_record*>(new DHTKey((*hit).second),dbr));
+          {
+            records.insert(std::pair<const DHTKey*,db_record*>(new DHTKey((*hit).second),dbr));
+          }
         ++hit;
       }
   }
@@ -109,9 +111,7 @@ namespace seeks_plugins
                     nqd->_radius = std::max(strc_rquery.size(),strc_query.size())
                                    - strc_query.intersect_size(strc_rquery);
                     nqd->_record_key = new DHTKey(*(*vit).first); // mark data with record key.
-                    qdata.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),
-                                 nqd));
-                    break;
+                    qdata.insert(std::pair<const char*,query_data*>(nqd->_query.c_str(),nqd));
                   }
                 else
                   {
@@ -132,6 +132,8 @@ namespace seeks_plugins
                     db_record *dbr_data = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
                     if (!dbr_data) // this should never happen.
                       {
+                        errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
+                                          key_str.c_str());
                         ++qit;
                         continue;
                       }
