@@ -82,7 +82,7 @@ namespace seeks_plugins
                                   const std::string &url);
 
       float estimate_rank(search_snippet *s,
-                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                          const std::map<std::string,bool> *filter,
                           const int &ns,
                           const query_data *qd,
                           const float &total_hits,
@@ -90,14 +90,14 @@ namespace seeks_plugins
                           const std::string &host);
 
       float estimate_rank(search_snippet *s,
-                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                          const std::map<std::string,bool> *filter,
                           const int &ns,
                           const vurl_data *vd_url,
                           const vurl_data *vd_host,
                           const float &total_hits);
 
       float estimate_prior(search_snippet *s,
-                           const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                           const std::map<std::string,bool> *filter,
                            const std::string &surl,
                            const std::string &host,
                            const uint64_t &nuri);
@@ -115,9 +115,7 @@ namespace seeks_plugins
                                      const uint32_t &q2_radius, const stopwordlist *swl=NULL);
 
       static void build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                  hash_map<const char*,const char*,hash<const char*>,eqstr> &filter);
-
-      static void destroy_filter(hash_map<const char*,const char*,hash<const char*>,eqstr> &filter);
+                                  std::map<std::string,bool> &filter);
   };
 
 } /* end of namespace. */

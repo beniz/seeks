@@ -249,7 +249,7 @@ namespace seeks_plugins
       nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
 
     // build up the filter.
-    hash_map<const char*,const char*,hash<const char*>,eqstr> filter;
+    std::map<std::string,bool> filter;
     simple_re::build_up_filter(qdata,filter);
 
     // estimate each URL's rank.
@@ -306,15 +306,12 @@ namespace seeks_plugins
           }
       }
 
-    // destroy filter.
-    simple_re::destroy_filter(filter);
-
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
   }
 
   float simple_re::estimate_rank(search_snippet *s,
-                                 const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                                 const std::map<std::string,bool> *filter,
                                  const int &ns,
                                  const query_data *qd,
                                  const float &total_hits,
@@ -330,7 +327,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_rank(search_snippet *s,
-                                 const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                                 const std::map<std::string,bool> *filter,
                                  const int &ns,
                                  const vurl_data *vd_url,
                                  const vurl_data *vd_host,
@@ -341,8 +338,7 @@ namespace seeks_plugins
 
     if (vd_url && filter)
       {
-        hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
-        = filter->find(vd_url->_url.c_str());
+        std::map<std::string,bool>::const_iterator hit = filter->find(vd_url->_url.c_str());
         if (hit!=filter->end())
           filtered = true;
       }
@@ -393,7 +389,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_prior(search_snippet *s,
-                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *filter,
+                                  const std::map<std::string,bool> *filter,
                                   const std::string &surl,
                                   const std::string &host,
                                   const uint64_t &nuri)
@@ -405,8 +401,7 @@ namespace seeks_plugins
 
     if (filter)
       {
-        hash_map<const char*,const char*,hash<const char*>,eqstr>::const_iterator hit
-        = filter->find(surl.c_str());
+        std::map<std::string,bool>::const_iterator hit = filter->find(surl.c_str());
         if (hit!=filter->end())
           filtered = true;
       }
@@ -502,7 +497,7 @@ namespace seeks_plugins
       nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
 
     // build up the filter.
-    hash_map<const char*,const char*,hash<const char*>,eqstr> filter;
+    std::map<std::string,bool> filter;
     simple_re::build_up_filter(qdata,filter);
 
     // look for URLs to recommend.
@@ -560,9 +555,6 @@ namespace seeks_plugins
         ++i;
         ++hit;
       }
-
-    // destroy filter.
-    simple_re::destroy_filter(filter);
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
@@ -722,7 +714,7 @@ namespace seeks_plugins
   }
 
   void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                  hash_map<const char*,const char*,hash<const char*>,eqstr> &filter)
+                                  std::map<std::string,bool> &filter)
   {
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit = qdata.begin();
     while(hit!=qdata.end())
@@ -739,8 +731,7 @@ namespace seeks_plugins
                     vurl_data *vd = (*vit).second;
                     if (vd->_hits < 0)
                       {
-                        const char *furl = strdup(vd->_url.c_str());
-                        filter.insert(std::pair<const char*,const char*>(furl,furl));
+                        filter.insert(std::pair<std::string,bool>(vd->_url,true));
                       }
                     ++vit;
                   }
@@ -748,18 +739,6 @@ namespace seeks_plugins
             break;
           }
         ++hit;
-      }
-  }
-
-  void simple_re::destroy_filter(hash_map<const char*,const char*,hash<const char*>,eqstr> &filter)
-  {
-    hash_map<const char*,const char*,hash<const char*>,eqstr>::iterator fit, fit2;
-    fit = filter.begin();
-    while(fit!=filter.end())
-      {
-        fit2 = fit;
-        ++fit;
-        free((char*)(*fit2).second);
       }
   }
 
