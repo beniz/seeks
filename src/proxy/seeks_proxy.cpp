@@ -2254,7 +2254,8 @@ reading_done:
     /* closing the user database. */
     if (seeks_proxy::_user_db)
       {
-        seeks_proxy::_user_db->optimize_db();
+        if (seeks_proxy::_config->_user_db_optimize)
+          seeks_proxy::_user_db->optimize_db();
         delete seeks_proxy::_user_db; // also closes the db.
       }
 #endif

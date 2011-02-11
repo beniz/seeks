@@ -555,7 +555,8 @@ int main(int argc, const char *argv[])
           seeks_proxy::_user_db->open_db();
         }
     }
-  seeks_proxy::_user_db->optimize_db();
+  if (seeks_proxy::_config->_user_db_optimize)
+    seeks_proxy::_user_db->optimize_db();
 #endif
 
   // loads plugins.
