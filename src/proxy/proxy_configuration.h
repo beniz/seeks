@@ -169,6 +169,9 @@ namespace sp
       /* user db startup check. */
       bool _user_db_startup_check;
 
+      /* user db optimization. */
+      bool _user_db_optimize;
+
       /* pointer to source code. */
       std::string _url_source_code;
   };

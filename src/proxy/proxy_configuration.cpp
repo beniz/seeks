@@ -95,6 +95,7 @@ namespace sp
 #define hash_user_db_file                  2401853593ul /* "user-db-file" */
 #define hash_user_db_address               1000875927ul /* "user-db-address" */
 #define hash_user_db_check                 4124671137ul /* "user-db-startup-check" */
+#define hash_user_db_optimize              2686859753ul /* "user-db-optimize" */
 #define hash_url_source_code               1714992061ul /* "url-source-code" */
 
   proxy_configuration::proxy_configuration(const std::string &filename)
@@ -114,7 +115,8 @@ namespace sp
 #endif
      _automatic_proxy_disable(true),
      _user_db_haddr(NULL),
-     _user_db_startup_check(true)
+     _user_db_startup_check(true),
+     _user_db_optimize(true)
   {
     load_config();
   }
@@ -174,6 +176,7 @@ namespace sp
     _user_db_haddr = NULL;
     _user_db_hport = 0;
     _user_db_startup_check = true;
+    _user_db_optimize = true;
     _url_source_code = "http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree";
   }
 
@@ -873,6 +876,13 @@ namespace sp
                *************************************************************************/
       case hash_user_db_check:
         _user_db_startup_check = static_cast<bool>(atoi(arg));
+        break;
+
+        /*************************************************************************
+         * user-db-optimize 0 or 1
+         *************************************************************************/
+      case hash_user_db_optimize:
+        _user_db_optimize = static_cast<bool>(atoi(arg));
         break;
 
         /*************************************************************************

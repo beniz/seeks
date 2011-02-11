@@ -416,10 +416,32 @@ activated-plugin cf
 #
 #    1
 #
-user-db-startup-check 1
+# user-db-startup-check 1
 #
 #
-#  2.12. url-source-code
+#
+#  2.12. user-db-optimize
+#  ======================
+#
+# Specifies:
+#
+#    Whether to optimize the user db at startup and shutdown. Optimization can
+#    take a long time on very large databases and thus be detrimental in certain
+#    cases. Typically, optimization makes rebooting nodes with large user database
+#    a potentially several minutes long operation.
+#
+# Type of value:
+#
+#  0 or 1
+#
+# Default value: 
+#
+#    1
+#
+# user-db-optimize 1
+#
+#
+#  2.13. url-source-code
 #  ======================
 #
 # Specifies:
