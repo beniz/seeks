@@ -198,8 +198,6 @@ TEST(SREAPITest,query_halo_weight)
   ASSERT_TRUE(w2<w1);
 }
 
-//TODO: test estimate ranks.
-
 TEST_F(SRETest,recommend_urls)
 {
   static std::string lang = "en";
@@ -302,6 +300,30 @@ TEST_F(SRETest,thumb_down_url)
   ASSERT_TRUE(vit!=(*hit).second->_visited_urls->end());
   ASSERT_EQ(-1,(*vit).second->_hits); // download
   delete dbqr;
+}
+
+//TODO: test estimate ranks.
+TEST_F(SRETest,estimate_ranks)
+{
+  static std::string lang = "en";
+  simple_re sre;
+  sre.thumb_down_url(queries[0],lang,uris[2]); // thumb down download.
+
+  std::vector<search_snippet*> snippets;
+  snippets.reserve(3);
+  search_snippet s0;
+  s0.set_url(uris[0]);
+  search_snippet s1;
+  s1.set_url(uris[1]);
+  search_snippet s2;
+  s2.set_url(uris[2]);
+  snippets.push_back(&s0);
+  snippets.push_back(&s1);
+  snippets.push_back(&s2);
+  sre.estimate_ranks(queries[1],lang,snippets);
+  ASSERT_EQ(3,snippets.size());
+  ASSERT_TRUE(s2._seeks_rank > s1._seeks_rank);
+  ASSERT_TRUE(s1._seeks_rank > s0._seeks_rank);
 }
 
 TEST_F(SRETest, utf8)
