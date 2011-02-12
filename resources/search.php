@@ -52,7 +52,6 @@ curl_close($curl);
 header('Content-Type: '.$result_info['content_type']);
 
 if ($qc_redir[0] == "qc_redir")
-    || $tbd[0] == "tbd")
 {
  $status_code = array();
  preg_match('/\d\d\d/', $result, $status_code);
