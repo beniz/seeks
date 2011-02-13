@@ -49,7 +49,7 @@ namespace seeks_plugins
   std::string query_context::_default_alang_reg = "en-US";
 
   query_context::query_context()
-    :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+    :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_compute_tfidf_features(true),
      _registered(false)
   {
     mutex_init(&_qc_mutex);
@@ -57,7 +57,7 @@ namespace seeks_plugins
 
   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                const std::list<const char*> &http_headers)
-    :sweepable(),_page_expansion(0),_blekko(false),_lsh_ham(NULL),_ulsh_ham(NULL),_lock(false),_compute_tfidf_features(true),
+    :sweepable(),_page_expansion(0),_blekko(false),_lsh_ham(NULL),_ulsh_ham(NULL),_compute_tfidf_features(true),
      _registered(false)
   {
     mutex_init(&_qc_mutex);
@@ -193,10 +193,6 @@ namespace seeks_plugins
 
   bool query_context::sweep_me()
   {
-    // don't delete if locked.
-    if (_lock)
-      return false;
-
     // check last_time_of_use + delay against current time.
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);

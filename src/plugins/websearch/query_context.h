@@ -260,9 +260,6 @@ namespace seeks_plugins
       LSHSystemHamming *_lsh_ham;
       LSHUniformHashTableHamming *_ulsh_ham;
 
-      /* locking. */
-      bool _lock;
-
       /* tfidf feature computation flag. */
       bool _compute_tfidf_features;
 

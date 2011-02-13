@@ -30,13 +30,13 @@ namespace seeks_plugins
 {
 
   img_query_context::img_query_context()
-      : query_context(),_safesearch(true)
+    : query_context(),_safesearch(true)
   {
   }
 
   img_query_context::img_query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                        const std::list<const char*> &http_headers)
-      : query_context(parameters,http_headers),_exp_safesearch_on(0),_exp_safesearch_off(0)
+    : query_context(parameters,http_headers),_exp_safesearch_on(0),_exp_safesearch_off(0)
   {
     img_websearch::_iwconfig->load_config(); // reload config if file has changed.
     img_query_context::fillup_img_engines(parameters,_img_engines);
@@ -50,10 +50,6 @@ namespace seeks_plugins
 
   bool img_query_context::sweep_me()
   {
-    // don't delete if locked.
-    if (_lock)
-      return false;
-
     // check last_time_of_use + delay against current time.
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);

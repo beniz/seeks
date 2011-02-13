@@ -184,14 +184,12 @@ namespace seeks_plugins
           return cgi::cgi_error_bad_param(csp,rsp);
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
         img_search_snippet *ref_sp = NULL;
 
         img_sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets,parameters);
 
         if (!ref_sp)
           {
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
             return cgisimple::cgi_error_404(csp,rsp,parameters);
           }
@@ -232,8 +230,6 @@ namespace seeks_plugins
             csp->_content_type = CT_JSON;
             err = json_renderer::render_json_results(qc->_cached_snippets,
                   csp,rsp,parameters,qc,0.0,true);
-            qc->_lock = false;
-            mutex_unlock(&qc->_qc_mutex);
           }
 
         // reset scores.
@@ -244,7 +240,6 @@ namespace seeks_plugins
             ++vit;
           }
         ref_sp->set_similarity_link(parameters); // reset sim_link.
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
         return err;
       }
@@ -288,9 +283,7 @@ namespace seeks_plugins
             expanded = true;
 
             mutex_lock(&qc->_qc_mutex);
-            qc->_lock = true;
             qc->generate(csp,rsp,parameters,expanded);
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
           }
         else if (strcmp(action,"page") == 0)
@@ -315,15 +308,12 @@ namespace seeks_plugins
         qc = new img_query_context(parameters,csp->_headers);
         qc->register_qc();
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
         qc->generate(csp,rsp,parameters,expanded);
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
       }
 
     // sort and rank search snippets.
     mutex_lock(&qc->_qc_mutex);
-    qc->_lock = true;
     img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets);
 
     const char *pers = miscutil::lookup(parameters,"prs");
@@ -338,13 +328,7 @@ namespace seeks_plugins
 #endif
       }
 
-    qc->_lock = false;
-    mutex_unlock(&qc->_qc_mutex);
-
     // rendering.
-    mutex_lock(&qc->_qc_mutex);
-    qc->_lock = true;
-
     // time measured before rendering, since we need to write it down.
     clock_t end_time = times(&en_cpu);
     double qtime = (end_time-start_time)/websearch::_cl_sec;
@@ -353,7 +337,6 @@ namespace seeks_plugins
 
     if (!render)
       {
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
         return SP_ERR_OK;
       }
@@ -399,7 +382,6 @@ namespace seeks_plugins
       }
 
     // unlock or destroy the query context.
-    qc->_lock = false;
     mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
       {

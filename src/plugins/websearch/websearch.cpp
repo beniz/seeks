@@ -462,8 +462,6 @@ namespace seeks_plugins
           }
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
-
         search_snippet *sp = NULL;
         if ((sp = qc->get_cached_snippet(url))!=NULL
             && (sp->_cached_content!=NULL))
@@ -473,7 +471,6 @@ namespace seeks_plugins
             rsp->_body = strdup(sp->_cached_content->c_str());
             rsp->_is_static = 1;
 
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
 
             return SP_ERR_OK;
@@ -483,7 +480,6 @@ namespace seeks_plugins
             // redirect to the url.
             cgi::cgi_redirect(rsp,url);
 
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
 
             return SP_ERR_OK;
@@ -514,12 +510,10 @@ namespace seeks_plugins
           }
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
 
         // render result page.
         sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,0); // 0: urls.
 
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
         if (qc->empty())
           {
@@ -549,7 +543,6 @@ namespace seeks_plugins
           }
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
 
         // render result page.
         const char *ui = miscutil::lookup(parameters,"ui");
@@ -569,7 +562,6 @@ namespace seeks_plugins
                   csp,rsp,parameters,qc,0.0);
           }
 
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
 
         return err;
@@ -603,7 +595,6 @@ namespace seeks_plugins
         short K = 0;
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
 
         // regroup search snippets by types.
         sort_rank::group_by_types(qc,clusters,K);
@@ -630,7 +621,6 @@ namespace seeks_plugins
         if (clusters)
           delete[] clusters;
 
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
         if (qc->empty())
           {
@@ -665,13 +655,11 @@ namespace seeks_plugins
           return cgi::cgi_error_bad_param(csp,rsp);
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
         search_snippet *ref_sp = NULL;
         sort_rank::score_and_sort_by_similarity(qc,id,parameters,ref_sp,qc->_cached_snippets);
 
         if (!ref_sp)
           {
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
             return cgisimple::cgi_error_404(csp,rsp,parameters);
           }
@@ -697,7 +685,6 @@ namespace seeks_plugins
           }
 
         ref_sp->set_similarity_link(parameters); // reset sim_link.
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
 
         return err;
@@ -729,7 +716,6 @@ namespace seeks_plugins
           }
 
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
 
         bool content_analysis = websearch::_wconfig->_content_analysis;
         const char *ca = miscutil::lookup(parameters,"content_analysis");
@@ -753,7 +739,6 @@ namespace seeks_plugins
                       csp,rsp,parameters,qc,
                       0.0);
               }
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
           }
 
@@ -792,7 +777,6 @@ namespace seeks_plugins
             ++vit;
           }
 
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
 
         return err;
@@ -891,14 +875,12 @@ namespace seeks_plugins
           {
             expanded = true;
             mutex_lock(&qc->_qc_mutex);
-            qc->_lock = true;
             sp_err gerr = qc->generate(csp,rsp,parameters,expanded);
             if (gerr == SP_ERR_CGI_PARAMS)
               {
-                qc->_lock = false;
+                mutex_unlock(&qc->_qc_mutex);
                 return cgi::cgi_error_bad_param(csp,rsp);
               }
-            qc->_lock = false;
             mutex_unlock(&qc->_qc_mutex);
           }
         else if (miscutil::strcmpic(action,"page") == 0)
@@ -917,14 +899,12 @@ namespace seeks_plugins
         // to generate snippets first.
         expanded = true;
         mutex_lock(&qc->_qc_mutex);
-        qc->_lock = true;
         sp_err gerr = qc->generate(csp,rsp,parameters,expanded);
         if (gerr == SP_ERR_CGI_PARAMS)
           {
-            qc->_lock = false;
+            mutex_unlock(&qc->_qc_mutex);
             return cgi::cgi_error_bad_param(csp,rsp);
           }
-        qc->_lock = false;
         mutex_unlock(&qc->_qc_mutex);
 
 #if defined(PROTOBUF) && defined(TC)
@@ -936,7 +916,6 @@ namespace seeks_plugins
 
     // sort and rank search snippets.
     mutex_lock(&qc->_qc_mutex);
-    qc->_lock = true;
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
                                             parameters);
     const char *pers = miscutil::lookup(parameters,"prs");
@@ -1000,7 +979,6 @@ namespace seeks_plugins
       }
 
     // unlock or destroy the query context.
-    qc->_lock = false;
     mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
       {
