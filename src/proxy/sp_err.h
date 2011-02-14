@@ -24,6 +24,10 @@
  * A standard error code.  This should be SP_ERR_OK or one of the SP_ERR_xxx
  * series of errors.
  */
+
+#ifndef SP_ERR_H
+#define SP_ERR_H
+
 typedef int sp_err;
 
 #define SP_ERR_OK         0 /**< Success, no error                        */
@@ -34,3 +38,5 @@ typedef int sp_err;
 #define SP_ERR_MODIFIED   5 /**< File has been modified outside of the
 CGI actions editor.                      */
 #define SP_ERR_COMPRESS   6 /**< Error on decompression                   */
+
+#endif
