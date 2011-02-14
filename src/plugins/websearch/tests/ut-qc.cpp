@@ -20,49 +20,162 @@
 
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
-#include "query_context.h"
-#include "charset_conv.h"
 
-#include "seeks_proxy.h"
-#include "proxy_configuration.h"
-//#include "errlog.h"
+#include "query_context.h"
+#include "websearch.h"
+#include "websearch_configuration.h"
+#include "errlog.h"
 
 using namespace seeks_plugins;
+using sp::errlog;
 
-TEST(QCStaticTest,charset_check_and_conversion)
+class QCTest : public testing::Test
 {
-  std::list<const char*> http_headers;
-  std::string q = "seeks";
-  std::string convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ(q,convq);
+  protected:
+    virtual void SetUp()
+    {
+      errlog::init_log_module();
+      errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO | LOG_LEVEL_DEBUG);
+      websearch::_wconfig = new websearch_configuration("");
+      websearch::_wconfig->_se_connect_timeout = 1;
+      websearch::_wconfig->_se_transfer_timeout = 1;
+    }
 
-  q = "\xe6\x97\xa5\xd1\x88\xfa"; // valid.
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ(q,convq);
+    virtual void TearDown()
+    {
+      delete websearch::_wconfig;
+    }
+};
 
-  q = "a\x80\xe0\xa0\xc0\xaf\xed\xa0\x80z"; // invalid.
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ("",convq);
+TEST_F(QCTest,expand_no_engine_fail)
+{
+  query_context qc;
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  std::bitset<NSEs> engines;
+  int code = SP_ERR_OK;
+  try
+    {
+      qc.expand(&csp,&rsp,&parameters,0,1,engines);
+    }
+  catch (sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(WB_ERR_NO_ENGINE,code);
+}
 
-  q = "tu pourrais me g\xe9n\xe9rer une phrase plus longue comme \xe7a en latin1 stp";
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_NE("",convq);
-  q = convq;
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ(q,convq);
+TEST_F(QCTest,expand_no_engine_output_fail)
+{
+  query_context qc;
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  miscutil::add_map_entry(&parameters,"q",1,"test",1);
+  miscutil::add_map_entry(&parameters,"expansion",1,"",1);
+  std::bitset<NSEs> engines;
+  engines.set(0);
+  int code = SP_ERR_OK;
+  try
+    {
+      qc.expand(&csp,&rsp,&parameters,0,1,engines);
+    }
+  catch (sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(WB_ERR_NO_ENGINE_OUTPUT,code);
+}
 
-  q = "\xe0\xe9";
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ("",convq);
+TEST_F(QCTest,generate_expansion_param_fail)
+{
+  query_context qc;
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  bool expanded = false;
+  int code = SP_ERR_OK;
+  try
+    {
+      qc.generate(&csp,&rsp,&parameters,expanded);
+    }
+  catch (sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(SP_ERR_CGI_PARAMS,code);
+}
 
-  http_headers.push_back("Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ("àé",convq);
+TEST_F(QCTest,generate_wrong_expansion_fail)
+{
+  query_context qc;
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"test",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"bla",1);
+  bool expanded = false;
+  int code = SP_ERR_OK;
+  try
+    {
+      qc.generate(&csp,&rsp,parameters,expanded);
+    }
+  catch (sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(SP_ERR_CGI_PARAMS,code);
+  miscutil::free_map(parameters);
+}
 
-  http_headers.clear();
-  http_headers.push_back("Accept-Charset: utf-8,ISO-8859-1;q=0.7,*;q=0.7");
-  convq = query_context::charset_check_and_conversion(q,http_headers);
-  ASSERT_EQ("àé",convq);
+TEST_F(QCTest,generate_no_engine_fail)
+{
+  query_context qc;
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"test",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"1",1);
+  miscutil::add_map_entry(parameters,"engines",1,"",1);
+  bool expanded = false;
+  int code = SP_ERR_OK;
+  try
+    {
+      qc.generate(&csp,&rsp,parameters,expanded);
+    }
+  catch (sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(WB_ERR_NO_ENGINE,code);
+  miscutil::free_map(parameters);
+}
+
+TEST_F(QCTest,generate_no_engine_output_fail)
+{
+  query_context qc;
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"test",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"1",1);
+  miscutil::add_map_entry(parameters,"engines",1,"bing",1);
+  bool expanded = false;
+  int code = SP_ERR_OK;
+  try
+    {
+      qc.generate(&csp,&rsp,parameters,expanded);
+    }
+  catch (sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(WB_ERR_NO_ENGINE_OUTPUT,code);
+  miscutil::free_map(parameters);
 }
 
 int main(int argc, char **argv)

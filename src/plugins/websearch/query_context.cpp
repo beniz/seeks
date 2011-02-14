@@ -172,17 +172,6 @@ namespace seeks_plugins
     return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
   }
 
-  /*uint32_t query_context::hash_query_for_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-      std::string &query, std::string &url_enc_query)
-  {
-    query += std::string(miscutil::lookup(parameters,"q"));
-    char *url_enc_query_str = encode::url_encode(query.c_str());
-    url_enc_query = std::string(url_enc_query_str);
-    free(url_enc_query_str);
-    std::string sorted_query = query_context::sort_query(query);
-    return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
-    }*/
-
   void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     // reset expansion parameter.
@@ -244,23 +233,25 @@ namespace seeks_plugins
       }
   }
 
-  sp_err query_context::generate(client_state *csp,
-                                 http_response *rsp,
-                                 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                 bool &expanded)
+  void query_context::generate(client_state *csp,
+                               http_response *rsp,
+                               const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                               bool &expanded) throw (sp_exception)
   {
     expanded = false;
     const char *expansion = miscutil::lookup(parameters,"expansion");
     if (!expansion)
       {
-        return SP_ERR_CGI_PARAMS;
+        throw sp_exception(SP_ERR_CGI_PARAMS,"no expansion given in call parameters");
       }
     char* endptr;
     int horizon = strtol(expansion, &endptr, 0);
     if (*endptr)
       {
-        return SP_ERR_CGI_PARAMS;
+        throw sp_exception(SP_ERR_CGI_PARAMS,std::string("wrong expansion value ") + std::string(expansion));
       }
+    if (horizon == 0)
+      horizon = 1;
 
     if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
       horizon = websearch::_wconfig->_max_expansions;
@@ -314,7 +305,16 @@ namespace seeks_plugins
               }
 
             // catch up expansion with the newly activated engines.
-            expand(csp,rsp,parameters,0,_page_expansion,bint);
+            try
+              {
+                expand(csp,rsp,parameters,0,_page_expansion,bint);
+              }
+            catch (sp_exception &e)
+              {
+                expanded = false;
+                throw e;
+              }
+
             expanded = true;
             _engines |= bint;
           }
@@ -324,29 +324,35 @@ namespace seeks_plugins
           {
             // reset expansion parameter.
             query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-            return SP_ERR_OK;
+            return;
           }
       }
 
     // perform requested expansion.
-    if (!cache_check)
-      expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
-    else if (strcasecmp(cache_check,"no") == 0)
-      expand(csp,rsp,parameters,0,horizon,_engines);
+    try
+      {
+        if (!cache_check)
+          expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
+        else if (strcasecmp(cache_check,"no") == 0)
+          expand(csp,rsp,parameters,0,horizon,_engines);
+      }
+    catch (sp_exception &e)
+      {
+        expanded = false;
+        throw e;
+      }
+
     expanded = true;
 
     // update horizon.
     _page_expansion = horizon;
-
-    // error.
-    return SP_ERR_OK;
   }
 
-  sp_err query_context::expand(client_state *csp,
-                               http_response *rsp,
-                               const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                               const int &page_start, const int &page_end,
-                               const std::bitset<NSEs> &se_enabled)
+  void query_context::expand(client_state *csp,
+                             http_response *rsp,
+                             const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                             const int &page_start, const int &page_end,
+                             const std::bitset<NSEs> &se_enabled) throw (sp_exception)
   {
     for (int i=page_start; i<page_end; i++) // catches up with requested horizon.
       {
@@ -358,17 +364,28 @@ namespace seeks_plugins
 
         // query SEs.
         int nresults = 0;
-        std::string **outputs = se_handler::query_to_ses(parameters,nresults,this,se_enabled);
+        std::string **outputs = NULL;
+        try
+          {
+            outputs = se_handler::query_to_ses(parameters,nresults,this,se_enabled);
+          }
+        catch (sp_exception &e)
+          {
+            throw e; // no engine found or connection error.
+          }
+
         std::bitset<NSEs> tblekko = se_enabled;
         tblekko |= std::bitset<NSEs>(SE_BLEKKO);
         if (se_enabled == tblekko)
           _blekko = true; // call once.
 
         // test for failed connection to the SEs comes here.
-        if (!outputs)
+        /*if (!outputs)
           {
-            return websearch::failed_ses_connect(csp,rsp);
-          }
+        	    //TODO: catch exception instead.
+            websearch::failed_ses_connect(csp,rsp);
+        	    return;
+        	    }*/
 
         // parse the output and create result search snippets.
         int rank_offset = (i > 0) ? i * websearch::_wconfig->_Nr : 0;
@@ -379,9 +396,6 @@ namespace seeks_plugins
             delete outputs[j];
         delete[] outputs;
       }
-
-    // error.
-    return SP_ERR_OK;
   }
 
   void query_context::add_to_unordered_cache(search_snippet *sr)

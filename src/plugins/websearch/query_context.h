@@ -19,6 +19,8 @@
 #ifndef QUERY_CONTEXT_H
 #define QUERY_CONTEXT_H
 
+#include "wb_err.h"
+#include "sp_exception.h"
 #include "sweeper.h"
 #include "proxy_dts.h"
 #include "search_snippet.h"
@@ -30,7 +32,6 @@
 #include <time.h>
 
 using sp::sweepable;
-using sp::sp_err;
 using sp::client_state;
 using sp::http_response;
 using lsh::LSHSystemHamming;
@@ -61,19 +62,19 @@ namespace seeks_plugins
        * \brief generates search result snippets, either from querying the
        * search engines, or by looking up the current query context's cache.
        */
-      virtual sp_err generate(client_state *csp,
-                              http_response *rsp,
-                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                              bool &expanded);
+      virtual void generate(client_state *csp,
+                            http_response *rsp,
+                            const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                            bool &expanded) throw (sp_exception);
 
       /**
        * \brief perform expansion.
        */
-      sp_err expand(client_state *csp,
-                    http_response *rsp,
-                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                    const int &page_start, const int &page_end,
-                    const std::bitset<NSEs> &se_enabled);
+      void expand(client_state *csp,
+                  http_response *rsp,
+                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                  const int &page_start, const int &page_end,
+                  const std::bitset<NSEs> &se_enabled) throw (sp_exception);
 
       /**
        * virtual call to evaluate the sweeping condition.
