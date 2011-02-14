@@ -19,6 +19,7 @@
 #include "query_capture.h"
 #include "query_capture_configuration.h"
 #include "db_query_record.h"
+#include "sp_err.h"
 #include "seeks_proxy.h" // for user_db.
 #include "proxy_configuration.h"
 #include "user_db.h"
@@ -39,7 +40,6 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
-using sp::sp_err;
 using sp::seeks_proxy;
 using sp::user_db;
 using sp::db_record;
