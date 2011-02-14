@@ -21,6 +21,7 @@
 
 #include "search_snippet.h"
 #include "mutexes.h"
+#include "sp_exception.h"
 #include <libxml/HTMLparser.h>
 
 namespace seeks_plugins
@@ -42,10 +43,10 @@ namespace seeks_plugins
       virtual ~se_parser();
 
       void parse_output_xml(char *output, std::vector<search_snippet*> *snippets,
-                            const int &count_offset);
+                            const int &count_offset) throw (sp_exception);
 
       void parse_output(char *output, std::vector<search_snippet*> *snippets,
-                        const int &count_offset);
+                        const int &count_offset) throw (sp_exception);
 
       // handlers.
       virtual void start_element(parser_context *pc,

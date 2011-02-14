@@ -17,6 +17,7 @@
  */
 
 #include "se_parser.h"
+#include "wb_err.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -66,7 +67,7 @@ namespace seeks_plugins
   sp_mutex_t se_parser::_se_parser_mutex;
 
   se_parser::se_parser()
-      :_count(0)
+    :_count(0)
   {
   }
 
@@ -75,7 +76,7 @@ namespace seeks_plugins
   }
 
   void se_parser::parse_output_xml(char *output, std::vector<search_snippet*> *snippets,
-                                   const int &count_offset)
+                                   const int &count_offset) throw (sp_exception)
   {
     _count = count_offset;
 
@@ -123,53 +124,69 @@ namespace seeks_plugins
 
     mutex_lock(&se_parser::_se_parser_mutex);
 
+    int status = 0;
     try
       {
         ctxt = xmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "");
         xmlCtxtUseOptions(ctxt,XML_PARSE_NOERROR);
 
-        int status = xmlParseChunk(ctxt,output,strlen(output),0);
-        if (status != 0) // an error occurred.
-          {
-            xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
-            if (xep)
-              {
-                std::string err_msg = std::string(xep->message);
-                miscutil::replace_in_string(err_msg,"\n","");
-                errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
-                                  err_msg.c_str());
-                // check on error level.
-                if (xep->level == 3) // fatal or recoverable error.
-                  {
-                    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 fatal error.");
-                  }
-                // XXX: too verbose, and confusing to users.
-                else if (xep->level == 2)
-                  {
-                    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 recoverable error");
-                  }
-              }
-          }
+        status = xmlParseChunk(ctxt,output,strlen(output),0);
       }
     catch (std::exception e)
       {
         errlog::log_error(LOG_LEVEL_PARSER,"Error %s in xml/html parsing of search results.",
                           e.what());
+        throw sp_exception(WB_ERR_PARSE,e.what());
       }
     catch (...) // catch everything else to avoid crashes.
       {
-
+        std::string msg = "Unknown error in xml/html parsing of search results";
+        errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+        throw sp_exception(WB_ERR_PARSE,msg);
       }
 
-    if (ctxt)
-      xmlFreeParserCtxt(ctxt);
-
-    mutex_unlock(&se_parser::_se_parser_mutex);
+    if (status == 0)
+      {
+        if (ctxt)
+          xmlFreeParserCtxt(ctxt);
+        mutex_unlock(&se_parser::_se_parser_mutex);
+      }
+    else // an error occurred.
+      {
+        xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
+        if (xep)
+          {
+            std::string err_msg = std::string(xep->message);
+            miscutil::replace_in_string(err_msg,"\n","");
+            errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
+                              err_msg.c_str());
+            // check on error level.
+            if (xep->level == 3) // fatal or recoverable error.
+              {
+                std::string msg = "libxml2 fatal error";
+                errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+                if (ctxt)
+                  xmlFreeParserCtxt(ctxt);
+                mutex_unlock(&se_parser::_se_parser_mutex);
+                throw sp_exception(WB_ERR_PARSE,msg);
+              }
+            // XXX: too verbose, and confusing to users.
+            else if (xep->level == 2)
+              {
+                std::string msg = "libxml2 recoverable error";
+                errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+                if (ctxt)
+                  xmlFreeParserCtxt(ctxt);
+                mutex_unlock(&se_parser::_se_parser_mutex);
+                throw sp_exception(WB_ERR_PARSE,msg);
+              }
+          }
+      }
   }
 
   void se_parser::parse_output(char *output,
                                std::vector<search_snippet*> *snippets,
-                               const int &count_offset)
+                               const int &count_offset) throw (sp_exception)
   {
     _count = count_offset;
 
@@ -217,48 +234,66 @@ namespace seeks_plugins
 
     mutex_lock(&se_parser::_se_parser_mutex);
 
+    int status = 0;
     try
       {
         ctxt = htmlCreatePushParserCtxt(&saxHandler, &pc, "", 0, "",
                                         XML_CHAR_ENCODING_UTF8); // encoding here.
         htmlCtxtUseOptions(ctxt,HTML_PARSE_NOERROR);
 
-        int status = htmlParseChunk(ctxt,output,strlen(output),0);
-        if (status != 0) // an error occurred.
-          {
-            xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
-            if (xep)
-              {
-                std::string err_msg = std::string(xep->message);
-                miscutil::replace_in_string(err_msg,"\n","");
-                errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
-                                  err_msg.c_str());
-                // check on error level.
-                if (xep->level == 3) // fatal or recoverable error.
-                  {
-                    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 fatal error.");
-                  }
-                // XXX: too verbose, and confusing to users.
-                else if (xep->level == 2)
-                  {
-                    errlog::log_error(LOG_LEVEL_PARSER,"libxml2 recoverable error");
-                  }
-              }
-          }
+        status = htmlParseChunk(ctxt,output,strlen(output),0);
       }
     catch (std::exception e)
       {
         errlog::log_error(LOG_LEVEL_PARSER,"Error %s in xml/html parsing of search results.",
                           e.what());
+        throw sp_exception(WB_ERR_PARSE,e.what());
       }
     catch (...) // catch everything else to avoid crashes.
       {
+        std::string msg = "Unknown error in xml/html parsing of search results";
+        errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+        throw sp_exception(WB_ERR_PARSE,msg);
       }
 
-    if (ctxt)
-      htmlFreeParserCtxt(ctxt);
+    if (status == 0)
+      {
+        if (ctxt)
+          xmlFreeParserCtxt(ctxt);
+        mutex_unlock(&se_parser::_se_parser_mutex);
+      }
+    else // an error occurred.
+      {
+        xmlErrorPtr xep = xmlCtxtGetLastError(ctxt);
+        if (xep)
+          {
+            std::string err_msg = std::string(xep->message);
+            miscutil::replace_in_string(err_msg,"\n","");
+            errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
+                              err_msg.c_str());
+            // check on error level.
+            if (xep->level == 3) // fatal or recoverable error.
+              {
+                std::string msg = "libxml2 fatal error";
+                errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+                if (ctxt)
+                  xmlFreeParserCtxt(ctxt);
+                mutex_unlock(&se_parser::_se_parser_mutex);
+                throw sp_exception(WB_ERR_PARSE,msg);
+              }
+            // XXX: too verbose, and confusing to users.
+            else if (xep->level == 2)
+              {
+                std::string msg = "libxml2 recoverable error";
+                errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+                if (ctxt)
+                  xmlFreeParserCtxt(ctxt);
+                mutex_unlock(&se_parser::_se_parser_mutex);
+                throw sp_exception(WB_ERR_PARSE,msg);
+              }
+          }
+      }
 
-    mutex_unlock(&se_parser::_se_parser_mutex);
   }
 
   // static.
