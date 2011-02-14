@@ -528,7 +528,7 @@ namespace seeks_plugins
 
   /*-- queries to the search engines. */
   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                         int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled)
+                                         int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled) throw (sp_exception)
   {
     std::vector<std::string> urls;
     urls.reserve(NSEs);
@@ -551,7 +551,8 @@ namespace seeks_plugins
     if (urls.empty())
       {
         nresults = 0;
-        return NULL; // beware.
+        //return NULL; // beware.
+        throw sp_exception(WB_ERR_NO_ENGINE,"no engine enabled to forward query to");
       }
     else nresults = urls.size();
 
@@ -596,6 +597,7 @@ namespace seeks_plugins
       {
         delete[] outputs;
         outputs = NULL;
+        throw sp_exception(WB_ERR_NO_ENGINE_OUTPUT,"no output from any search engine");
       }
 
     delete[] cmg._outputs;
@@ -708,11 +710,11 @@ namespace seeks_plugins
   }
 
   /*-- parsing. --*/
-  sp_err se_handler::parse_ses_output(std::string **outputs, const int &nresults,
-                                      std::vector<search_snippet*> &snippets,
-                                      const int &count_offset,
-                                      query_context *qr,
-                                      const std::bitset<NSEs> &se_enabled)
+  void se_handler::parse_ses_output(std::string **outputs, const int &nresults,
+                                    std::vector<search_snippet*> &snippets,
+                                    const int &count_offset,
+                                    query_context *qr,
+                                    const std::bitset<NSEs> &se_enabled)
   {
     // use multiple threads unless told otherwise.
     int j = 0;
@@ -769,8 +771,9 @@ namespace seeks_plugins
           {
             if (parser_args[i])
               {
-                std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
-                          std::back_inserter(snippets));
+                if (parser_args[i]->_err == SP_ERR_OK)
+                  std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
+                            std::back_inserter(snippets));
                 parser_args[i]->_snippets->clear();
                 delete parser_args[i]->_snippets;
                 delete parser_args[i];
@@ -797,17 +800,25 @@ namespace seeks_plugins
               }
           }
       }
-
-    return SP_ERR_OK;
   }
 
-  void se_handler::parse_output(const ps_thread_arg &args)
+  void se_handler::parse_output(ps_thread_arg &args)
   {
     se_parser *se = se_handler::create_se_parser((SE)args._se);
 
-    if ((SE)args._se == YOUTUBE || (SE)args._se == DAILYMOTION)
-      se->parse_output_xml(args._output,args._snippets,args._offset);
-    else se->parse_output(args._output,args._snippets,args._offset);
+    try
+      {
+        if ((SE)args._se == YOUTUBE || (SE)args._se == DAILYMOTION)
+          se->parse_output_xml(args._output,args._snippets,args._offset);
+        else se->parse_output(args._output,args._snippets,args._offset);
+      }
+    catch (sp_exception &e)
+      {
+        delete se;
+        args._err = e.code();
+        errlog::log_error(LOG_LEVEL_ERROR,e.what().c_str());
+        return;
+      }
 
     // link the snippets to the query context
     // and post-process them.

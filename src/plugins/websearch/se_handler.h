@@ -19,7 +19,8 @@
 #ifndef SE_HANDLER_H
 #define SE_HANDLER_H
 
-#include "proxy_dts.h" // sp_err 
+#include "wb_err.h"
+#include "sp_exception.h"
 #include "seeks_proxy.h"
 
 #include <string>
@@ -28,10 +29,6 @@
 #include <stdint.h>
 
 #include <curl/curl.h>
-
-using sp::sp_err;
-
-typedef pthread_mutex_t sp_mutex_t;
 
 namespace seeks_plugins
 {
@@ -78,7 +75,7 @@ namespace seeks_plugins
   struct ps_thread_arg
   {
     ps_thread_arg()
-      :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL)
+      :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL),_err(SP_ERR_OK)
     {
     };
 
@@ -93,6 +90,7 @@ namespace seeks_plugins
     std::vector<search_snippet*> *_snippets; // websearch result snippets.
     int _offset; // offset to snippets rank (when asking page x, with x > 1).
     query_context *_qr; // pointer to the current query context.
+    sp_err _err; // error code.
   };
 
   class se_ggle : public search_engine
@@ -204,7 +202,7 @@ namespace seeks_plugins
 
       /*-- querying the search engines. --*/
       static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                        int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled);
+                                        int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled) throw (sp_exception);
 
       static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                               const SE &se, std::string &url, const query_context *qc,
@@ -215,12 +213,12 @@ namespace seeks_plugins
       /*-- parsing --*/
       static se_parser* create_se_parser(const SE &se);
 
-      static sp_err parse_ses_output(std::string **outputs, const int &nresults,
-                                     std::vector<search_snippet*> &snippets,
-                                     const int &count_offset,
-                                     query_context *qr, const std::bitset<NSEs> &se_enabled);
+      static void parse_ses_output(std::string **outputs, const int &nresults,
+                                   std::vector<search_snippet*> &snippets,
+                                   const int &count_offset,
+                                   query_context *qr, const std::bitset<NSEs> &se_enabled);
 
-      static void parse_output(const ps_thread_arg &args);
+      static void parse_output(ps_thread_arg &args);
 
       /*-- variables. --*/
     public:
