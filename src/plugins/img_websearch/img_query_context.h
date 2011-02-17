@@ -41,16 +41,16 @@ namespace seeks_plugins
 
       virtual ~img_query_context();
 
-      virtual sp_err generate(client_state *csp,
-                              http_response *rsp,
-                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                              bool &expanded);
+      virtual void generate(client_state *csp,
+                            http_response *rsp,
+                            const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                            bool &expanded) throw (sp_exception);
 
-      sp_err expand_img(client_state *csp,
-                        http_response *rsp,
-                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                        const int &page_start, const int &page_end,
-                        const std::bitset<IMG_NSEs> &se_enabled);
+      void expand_img(client_state *csp,
+                      http_response *rsp,
+                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                      const int &page_start, const int &page_end,
+                      const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception);
 
       static void fillup_img_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                      std::bitset<IMG_NSEs> &engines);

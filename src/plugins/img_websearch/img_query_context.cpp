@@ -90,14 +90,26 @@ namespace seeks_plugins
       }
   }
 
-  sp_err img_query_context::generate(client_state *csp,
-                                     http_response *rsp,
-                                     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                     bool &expanded)
+  void img_query_context::generate(client_state *csp,
+                                   http_response *rsp,
+                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                                   bool &expanded) throw (sp_exception)
   {
     expanded = false;
     const char *expansion = miscutil::lookup(parameters,"expansion");
-    int horizon = atoi(expansion);
+    if (!expansion)
+      {
+        throw sp_exception(SP_ERR_CGI_PARAMS,"no expansion given to img search parameters");
+      }
+
+    char *endptr;
+    int horizon = strtol(expansion, &endptr, 0);
+    if (*endptr)
+      {
+        throw sp_exception(SP_ERR_CGI_PARAMS,std::string("wrong expansion value ") + std::string(expansion));
+      }
+    if (horizon == 0)
+      horizon = 1;
 
     if (horizon > websearch::_wconfig->_max_expansions) // max expansion protection.
       horizon = websearch::_wconfig->_max_expansions;
@@ -134,8 +146,17 @@ namespace seeks_plugins
                   bint.set(b);
               }
 
-            // catch up expansion with the newly activated engines.
-            expand_img(csp,rsp,parameters,0,_page_expansion,bint);
+            try
+              {
+                // catch up expansion with the newly activated engines.
+                expand_img(csp,rsp,parameters,0,_page_expansion,bint);
+              }
+            catch (sp_exception &e)
+              {
+                expanded = false;
+                throw e;
+              }
+
             expanded = true;
             _img_engines |= bint;
           }
@@ -179,28 +200,37 @@ namespace seeks_plugins
           {
             // reset expansion parameter.
             query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-            return SP_ERR_OK;
+            return;// SP_ERR_OK;
           }
       }
 
     // perform requested expansion.
-    if (!cache_check)
-      expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
-    else if (strcasecmp(cache_check,"no") == 0)
-      expand_img(csp,rsp,parameters,0,horizon,_img_engines);
+    try
+      {
+        if (!cache_check)
+          expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
+        else if (strcasecmp(cache_check,"no") == 0)
+          expand_img(csp,rsp,parameters,0,horizon,_img_engines);
+      }
+    catch (sp_exception &e)
+      {
+        expanded = false;
+        throw e;
+      }
+
     expanded = true;
 
     // update horizon.
     _page_expansion = horizon;
 
-    return SP_ERR_OK;
+    return;
   }
 
-  sp_err img_query_context::expand_img(client_state *csp,
-                                       http_response *rsp,
-                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                       const int &page_start, const int &page_end,
-                                       const std::bitset<IMG_NSEs> &se_enabled)
+  void img_query_context::expand_img(client_state *csp,
+                                     http_response *rsp,
+                                     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                                     const int &page_start, const int &page_end,
+                                     const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception)
   {
     for (int i=page_start; i<page_end; i++) // catches up with requested horizon.
       {
@@ -212,13 +242,22 @@ namespace seeks_plugins
 
         // query SEs.
         int nresults = 0;
-        std::string **outputs = se_handler_img::query_to_ses(parameters,nresults,this,se_enabled);
+        std::string **outputs = NULL;
+
+        try
+          {
+            outputs = se_handler_img::query_to_ses(parameters,nresults,this,se_enabled);
+          }
+        catch (sp_exception &e)
+          {
+            throw e; // no engine found or connection error.
+          }
 
         // test for failed connection to the SEs comes here.
-        if (!outputs)
+        /*if (!outputs)
           {
             return websearch::failed_ses_connect(csp,rsp);
-          }
+        	    }*/
 
         // parse the output and create result search snippets.
         int rank_offset = (i > 0) ? i * img_websearch_configuration::_img_wconfig->_Nr : 0;
@@ -229,7 +268,7 @@ namespace seeks_plugins
             delete outputs[j];
         delete[] outputs;
       }
-    return SP_ERR_OK;
+    return;
   }
 
   void img_query_context::fillup_img_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,

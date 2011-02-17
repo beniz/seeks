@@ -110,7 +110,7 @@ namespace seeks_plugins
                                      const int &count_offset,
                                      query_context *qr, const std::bitset<IMG_NSEs> &se_enabled);
 
-      static void parse_output(const ps_thread_arg &args);
+      static void parse_output(ps_thread_arg &args);
 
       /*-- variables. --*/
     public:

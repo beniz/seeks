@@ -468,13 +468,24 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  void se_handler_img::parse_output(const ps_thread_arg &args)
+  void se_handler_img::parse_output(ps_thread_arg &args)
   {
     se_parser *se = se_handler_img::create_se_parser((IMG_SE)args._se,
                     static_cast<img_query_context*>(args._qr)->_safesearch);
-    if ((IMG_SE)args._se == BING_IMG)
-      se->parse_output_xml(args._output,args._snippets,args._offset);
-    else se->parse_output(args._output,args._snippets,args._offset);
+
+    try
+      {
+        if ((IMG_SE)args._se == BING_IMG)
+          se->parse_output_xml(args._output,args._snippets,args._offset);
+        else se->parse_output(args._output,args._snippets,args._offset);
+      }
+    catch (sp_exception &e)
+      {
+        delete se;
+        args._err = e.code();
+        errlog::log_error(LOG_LEVEL_ERROR,e.what().c_str());
+        return;
+      }
 
     // link the snippets to the query context
     // and post-process them.
