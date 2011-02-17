@@ -36,7 +36,7 @@ namespace seeks_plugins
   class search_snippet;
   class query_context;
 
-#define NSEs 11  // number of supported search engines.
+#define NSEs 12  // number of supported search engines.
 
 #ifndef ENUM_SE
 #define ENUM_SE
@@ -45,6 +45,7 @@ namespace seeks_plugins
     BING,
     BLEKKO,
     DAILYMOTION,
+    DUMMY,
     EXALEAD,
     GOOGLE,
     IDENTICA,

@@ -464,6 +464,8 @@ namespace seeks_plugins
     "http://blekko.com/ws/%query/rss?ps=100",
     // http://www.dailymotion.com/rss/relevance/search/thé+vert/1
     "http://www.dailymotion.com/rss/relevance/search/%query/%start",
+    // dummy engine, for testing purposes.
+    "http://dummy.dum",
     // "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start"
     "http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start",
     // ggle: http://www.google.com/search?q=help&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a
@@ -653,6 +655,8 @@ namespace seeks_plugins
         break;
       case SEEKS:
         break;
+      case DUMMY:
+        break;
       }
   }
 
@@ -705,6 +709,10 @@ namespace seeks_plugins
         else if (se == "dailymotion")
           {
             se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
+          }
+        else if (se == "dummy")
+          {
+            se_enabled |= std::bitset<NSEs>(SE_DUMMY);
           }
       }
   }
@@ -878,6 +886,8 @@ namespace seeks_plugins
         sep = new se_parser_dailymotion();
         break;
       case SEEKS:
+        break;
+      case DUMMY:
         break;
       }
 

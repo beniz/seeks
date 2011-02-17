@@ -17,7 +17,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  **/
 
-
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
@@ -75,7 +74,7 @@ TEST_F(QCTest,expand_no_engine_output_fail)
   miscutil::add_map_entry(&parameters,"q",1,"test",1);
   miscutil::add_map_entry(&parameters,"expansion",1,"",1);
   std::bitset<NSEs> engines;
-  engines.set(0);
+  engines.set(3);
   int code = SP_ERR_OK;
   try
     {
@@ -163,7 +162,7 @@ TEST_F(QCTest,generate_no_engine_output_fail)
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"q",1,"test",1);
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
-  miscutil::add_map_entry(parameters,"engines",1,"bing",1);
+  miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
   bool expanded = false;
   int code = SP_ERR_OK;
   try
