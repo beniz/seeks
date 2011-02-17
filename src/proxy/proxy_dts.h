@@ -75,10 +75,10 @@ typedef int sp_socket;
 
 #endif /* undef _WIN32 */
 
+#include "sp_err.h"
+
 namespace sp
 {
-
-#include "sp_err.h"
 
   /**
    * Use for statically allocated buffers if you have no other choice.
