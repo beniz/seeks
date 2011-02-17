@@ -23,13 +23,9 @@
 
 #define WB_ERR_SE_CONNECT        1001 /**< connection error to all search engines. */
 #define WB_ERR_QUERY_ENCODING    1002 /**< query encoding error. */
-#define WB_ERR_PARAM_LANG        1003 /**< langage parameter error. */
-#define WB_ERR_EXPANSION_LIMIT   1004 /**< oversized expansion. */
-#define WB_ERR_PARAM_ACTION      1005 /**< unknown requested action. */
-#define WB_ERR_PARAM_OUTPUT      1006 /**< unknown output format. */
-#define WB_ERR_NEIGHBORS_TYPE    1007 /**< unknown rendering neighbors type. */
-#define WB_ERR_NO_ENGINE         1008 /**< no activated search engine. */
-#define WB_ERR_NO_ENGINE_OUTPUT  1009 /**< no output from search engines. */
-#define WB_ERR_PARSE             1010 /**< parsing error. */
+#define WB_ERR_NO_ENGINE         1003 /**< no activated search engine. */
+#define WB_ERR_NO_ENGINE_OUTPUT  1004 /**< no output from search engines. */
+#define WB_ERR_PARSE             1005 /**< parsing error. */
+#define WB_ERR_THREAD            1006 /**< thread creation error. */
 
 #endif
