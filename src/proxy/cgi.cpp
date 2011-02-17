@@ -541,9 +541,9 @@ namespace sp
 
     if (err && (err != SP_ERR_MEMORY))
       {
-        /* Unexpected error! Shouldn't get here */
+        /* Unexpected error or external (plugin) error. */
         errlog::log_error(LOG_LEVEL_ERROR,
-                          "Unexpected CGI error %d in top-level handler.  Please file a bug report!", err);
+                          "Unexpected CGI error %d in top-level handler", err);
         err = cgi::cgi_error_unknown(csp, rsp, err);
       }
 
