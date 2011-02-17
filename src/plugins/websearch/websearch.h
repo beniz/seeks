@@ -21,6 +21,7 @@
 
 #define NO_PERL // we do not use Perl.
 
+#include "wb_err.h"
 #include "plugin.h"
 #include "search_snippet.h"
 #include "query_context.h"
@@ -32,7 +33,6 @@
 
 using sp::client_state;
 using sp::http_response;
-using sp::sp_err;
 using sp::plugin;
 using sp::miscutil;
 

@@ -875,11 +875,28 @@ namespace seeks_plugins
           {
             expanded = true;
             mutex_lock(&qc->_qc_mutex);
-            sp_err gerr = qc->generate(csp,rsp,parameters,expanded);
-            if (gerr == SP_ERR_CGI_PARAMS)
+            try
               {
-                mutex_unlock(&qc->_qc_mutex);
-                return cgi::cgi_error_bad_param(csp,rsp);
+                qc->generate(csp,rsp,parameters,expanded);
+              }
+            catch (sp_exception &e)
+              {
+                int code = e.code();
+                switch(code)
+                  {
+                  case SP_ERR_CGI_PARAMS:
+                  case WB_ERR_NO_ENGINE:
+                    mutex_unlock(&qc->_qc_mutex);
+                    break;
+                  case WB_ERR_NO_ENGINE_OUTPUT:
+                    mutex_unlock(&qc->_qc_mutex);
+                    websearch::failed_ses_connect(csp,rsp);
+                    code = WB_ERR_SE_CONNECT;
+                    break;
+                  default:
+                    break;
+                  }
+                return code;
               }
             mutex_unlock(&qc->_qc_mutex);
           }
@@ -899,11 +916,28 @@ namespace seeks_plugins
         // to generate snippets first.
         expanded = true;
         mutex_lock(&qc->_qc_mutex);
-        sp_err gerr = qc->generate(csp,rsp,parameters,expanded);
-        if (gerr == SP_ERR_CGI_PARAMS)
+        try
           {
-            mutex_unlock(&qc->_qc_mutex);
-            return cgi::cgi_error_bad_param(csp,rsp);
+            qc->generate(csp,rsp,parameters,expanded);
+          }
+        catch (sp_exception &e)
+          {
+            int code = e.code();
+            switch(code)
+              {
+              case SP_ERR_CGI_PARAMS:
+              case WB_ERR_NO_ENGINE:
+                mutex_unlock(&qc->_qc_mutex);
+                break;
+              case WB_ERR_NO_ENGINE_OUTPUT:
+                mutex_unlock(&qc->_qc_mutex);
+                websearch::failed_ses_connect(csp,rsp);
+                code = WB_ERR_SE_CONNECT;
+                break;
+              default:
+                break;
+              }
+            return code;
           }
         mutex_unlock(&qc->_qc_mutex);
 
