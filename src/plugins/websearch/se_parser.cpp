@@ -174,11 +174,11 @@ namespace seeks_plugins
             else if (xep->level == 2)
               {
                 std::string msg = "libxml2 recoverable error";
-                errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+                errlog::log_error(LOG_LEVEL_DEBUG,msg.c_str());
                 if (ctxt)
                   xmlFreeParserCtxt(ctxt);
                 mutex_unlock(&se_parser::_se_parser_mutex);
-                throw sp_exception(WB_ERR_PARSE,msg);
+                //throw sp_exception(WB_ERR_PARSE,msg);
               }
           }
       }
@@ -285,11 +285,11 @@ namespace seeks_plugins
             else if (xep->level == 2)
               {
                 std::string msg = "libxml2 recoverable error";
-                errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+                errlog::log_error(LOG_LEVEL_DEBUG,msg.c_str());
                 if (ctxt)
                   xmlFreeParserCtxt(ctxt);
                 mutex_unlock(&se_parser::_se_parser_mutex);
-                throw sp_exception(WB_ERR_PARSE,msg);
+                //throw sp_exception(WB_ERR_PARSE,msg);
               }
           }
       }
