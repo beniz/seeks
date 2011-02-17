@@ -67,7 +67,7 @@ namespace seeks_plugins
     _Nr = 10;
     _thumbs = false;
     _se_enabled.set();
-    _se_enabled.reset(3); // all engines but dummy is default.
+    _se_enabled.flip(3); // all engines but dummy is default.
     _query_context_delay = 300; // in seconds, 5 minutes.
     _js = false; // default is no javascript, this may change later on.
     _content_analysis = false;
@@ -107,7 +107,7 @@ namespace seeks_plugins
         break;
 
       case hash_se :
-        if (_se_enabled.count() == NSEs) // all bits set is default, so now reset to 0.
+        if (_se_enabled.count() == NSEs-1) // all bits set - dummy is default, so now reset to 0.
           _se_enabled.reset();
 
         if (strcasecmp(arg,"google") == 0)
