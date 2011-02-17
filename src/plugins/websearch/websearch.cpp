@@ -271,7 +271,7 @@ namespace seeks_plugins
   }
 
   void websearch::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                        client_state *csp)
+                                        client_state *csp) throw (sp_exception)
   {
     // decode query (URL encoded).
     const char *query = miscutil::lookup(parameters,"q");
@@ -283,7 +283,9 @@ namespace seeks_plugins
     query_str = charset_conv::charset_check_and_conversion(query_str,csp->_headers);
     if (query_str.empty())
       {
-        errlog::log_error(LOG_LEVEL_ERROR, "Bad charset on query %s",query);
+        std::string msg = "Bad charset on query " + std::string(query);
+        errlog::log_error(LOG_LEVEL_ERROR, msg.c_str());
+        throw sp_exception(WB_ERR_QUERY_ENCODING,msg);
       }
 
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
@@ -391,16 +393,18 @@ namespace seeks_plugins
         if (!query || strlen(query) == 0)
           {
             // return 400 error.
-            return cgi::cgi_error_bad_param(csp,rsp);
+            return SP_ERR_CGI_PARAMS;
           }
-        else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
-
-        // recheck on query, if not there, it means it has no valid charset.
-        query = miscutil::lookup(parameters,"q");
-        if (!query)
+        else
           {
-            // return 400 error (should be a 406 maybe).
-            return cgi::cgi_error_bad_param(csp,rsp);
+            try
+              {
+                websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+              }
+            catch(sp_exception &e)
+              {
+                return e.code();
+              }
           }
 
         // check on requested User Interface:
@@ -429,9 +433,10 @@ namespace seeks_plugins
             if (perr != 0)
               {
                 errlog::log_error(LOG_LEVEL_ERROR,"Error creating websearch action thread.");
+                return WB_ERR_THREAD;
               }
 
-            return err;
+            return SP_ERR_OK;
           }
 
         // perform websearch or other requested action.
@@ -439,7 +444,7 @@ namespace seeks_plugins
       }
     else
       {
-        return cgi::cgi_error_bad_param(csp,rsp);
+        return SP_ERR_CGI_PARAMS;
       }
   }
 
@@ -450,7 +455,7 @@ namespace seeks_plugins
       {
         const char *url = miscutil::lookup(parameters,"url"); // grab the url.
         if (!url)
-          return cgi::cgi_error_bad_param(csp,rsp);
+          return SP_ERR_CGI_PARAMS;
 
         query_context *qc = websearch::lookup_qc(parameters);
 
@@ -487,7 +492,7 @@ namespace seeks_plugins
       }
     else
       {
-        return cgi::cgi_error_bad_param(csp,rsp);
+        return SP_ERR_CGI_PARAMS;
       }
   }
 
@@ -523,7 +528,7 @@ namespace seeks_plugins
 
         return err;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err websearch::cgi_websearch_neighbors_title(client_state *csp, http_response *rsp,
@@ -566,7 +571,7 @@ namespace seeks_plugins
 
         return err;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err websearch::cgi_websearch_clustered_types(client_state *csp, http_response *rsp,
@@ -630,7 +635,7 @@ namespace seeks_plugins
 
         return err;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err websearch::cgi_websearch_similarity(client_state *csp, http_response *rsp,
@@ -652,7 +657,7 @@ namespace seeks_plugins
           }
         const char *id = miscutil::lookup(parameters,"id");
         if (!id)
-          return cgi::cgi_error_bad_param(csp,rsp);
+          return SP_ERR_CGI_PARAMS;
 
         mutex_lock(&qc->_qc_mutex);
         search_snippet *ref_sp = NULL;
@@ -689,7 +694,7 @@ namespace seeks_plugins
 
         return err;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err websearch::cgi_websearch_clusterize(client_state *csp, http_response *rsp,
@@ -781,7 +786,7 @@ namespace seeks_plugins
 
         return err;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err websearch::cgi_websearch_node_info(client_state *csp, http_response *rsp,
@@ -807,7 +812,7 @@ namespace seeks_plugins
   {
     const char *action = miscutil::lookup(parameters,"action");
     if (!action)
-      return cgi::cgi_error_bad_param(csp,rsp);
+      return SP_ERR_CGI_PARAMS;
 
     /**
      * Action can be of type:
@@ -834,7 +839,7 @@ namespace seeks_plugins
       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
     else if (miscutil::strcmpic(action,"types") == 0)
       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
 
     errlog::log_error(LOG_LEVEL_INFO,"query: %s",cgi::build_url_from_parameters(parameters).c_str());
 
@@ -904,7 +909,7 @@ namespace seeks_plugins
           {
             const char *page = miscutil::lookup(parameters,"page");
             if (!page)
-              return cgi::cgi_error_bad_param(csp,rsp);
+              return SP_ERR_CGI_PARAMS;
 
             // XXX: update other parameters, as needed, qc vs parameters.
             qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));

@@ -134,7 +134,7 @@ namespace seeks_plugins
       static std::string no_command_query(const std::string &oquery);
 
       static void preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                        client_state *csp);
+                                        client_state *csp) throw (sp_exception);
 
       /* error handling. */
       static sp_err failed_ses_connect(client_state *csp, http_response *rsp);

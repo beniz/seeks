@@ -20,6 +20,7 @@
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
+#include "wb_err.h"
 #include "websearch.h"
 #include "websearch_configuration.h"
 #include "proxy_configuration.h"
@@ -172,6 +173,82 @@ TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
+  miscutil::free_map(parameters);
+}
+
+TEST_F(WBTest,preprocess_parameters_ok)
+{
+  client_state csp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"test",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"1",1);
+  miscutil::add_map_entry(parameters,"action",1,"expand",1);
+  int code = SP_ERR_OK;
+  try
+    {
+      websearch::preprocess_parameters(parameters,&csp);
+    }
+  catch(sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(SP_ERR_OK,code);
+  miscutil::free_map(parameters);
+}
+
+TEST_F(WBTest,preprocess_parameters_bad_charset)
+{
+  client_state csp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"a\x80\xe0\xa0\xc0\xaf\xed\xa0\x80z",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"1",1);
+  miscutil::add_map_entry(parameters,"action",1,"expand",1);
+  int code = SP_ERR_OK;
+  try
+    {
+      websearch::preprocess_parameters(parameters,&csp);
+    }
+  catch(sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(WB_ERR_QUERY_ENCODING,code);
+  miscutil::free_map(parameters);
+}
+
+TEST_F(WBTest,cgi_websearch_search_no_param)
+{
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = websearch::cgi_websearch_search(&csp,&rsp,&parameters);
+  ASSERT_EQ(SP_ERR_CGI_PARAMS,err);
+}
+
+TEST_F(WBTest,cgi_websearch_search_bad_param)
+{
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"action",1,"expand",1);
+  sp_err err = websearch::cgi_websearch_search(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_CGI_PARAMS,err);
+  miscutil::free_map(parameters);
+}
+
+TEST_F(WBTest,cgi_websearch_search_bad_charset)
+{
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"action",1,"expand",1);
+  miscutil::add_map_entry(parameters,"q",1,"a\x80\xe0\xa0\xc0\xaf\xed\xa0\x80z",1);
+  sp_err err = websearch::cgi_websearch_search(&csp,&rsp,parameters);
+  ASSERT_EQ(WB_ERR_QUERY_ENCODING,err);
   miscutil::free_map(parameters);
 }
 
