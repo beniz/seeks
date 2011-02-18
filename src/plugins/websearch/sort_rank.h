@@ -39,7 +39,7 @@ namespace seeks_plugins
       static void score_and_sort_by_similarity(query_context *qc, const char *id_str,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
           search_snippet *&ref_sp,
-          std::vector<search_snippet*> &sorted_snippets);
+          std::vector<search_snippet*> &sorted_snippets) throw (sp_exception);
 
       static void group_by_types(query_context *qc, cluster *&clusters, short &K);
 

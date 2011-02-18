@@ -449,19 +449,21 @@ namespace seeks_plugins
   void content_handler::feature_based_similarity_scoring(query_context *qc,
       const size_t &nsps,
       search_snippet **sps,
-      search_snippet *ref_sp)
+      search_snippet *ref_sp) throw (sp_exception)
   {
     if (!ref_sp)
       {
-        //std::cerr << "no ref_sp!\n";
-        return; // we should never reach here.
+        std::string msg = "No reference snippet for similarity computation";
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(WB_ERR_NO_REF_SIM,msg);
       }
     // reference features.
     hash_map<uint32_t,float,id_hash_uint> *ref_features = ref_sp->_features_tfidf;
     if (!ref_features) // sometimes the content wasn't fetched, and features are not there.
       {
-        ::std::cerr << "no ref features!\n";
-        return;
+        std::string msg = "No reference snippet features to compute similarity from";
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(WB_ERR_NO_REF_SIM,msg);
       }
 
     // compute scores.

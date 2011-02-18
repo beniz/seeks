@@ -34,7 +34,7 @@ namespace seeks_plugins
   struct html_txt_thread_arg
   {
     html_txt_thread_arg()
-        :_output(NULL),_qc(NULL)
+      :_output(NULL),_qc(NULL)
     {
     };
 
@@ -51,7 +51,7 @@ namespace seeks_plugins
   {
     feature_thread_arg(std::string *txt_content,
                        std::vector<uint32_t> *vf)
-        :_txt_content(txt_content),_vf(vf)
+      :_txt_content(txt_content),_vf(vf)
     {
     };
 
@@ -71,7 +71,7 @@ namespace seeks_plugins
   {
     feature_tfidf_thread_arg(std::string *txt_content,
                              hash_map<uint32_t,float,id_hash_uint> *vf)
-        :_txt_content(txt_content),_vf(vf),_bow(NULL)
+      :_txt_content(txt_content),_vf(vf),_bow(NULL)
     {
     };
 
@@ -79,7 +79,7 @@ namespace seeks_plugins
                              hash_map<uint32_t,float,id_hash_uint> *vf,
                              hash_map<uint32_t,std::string,id_hash_uint> *bow,
                              const std::string &lang)
-        :_txt_content(txt_content),_vf(vf),_bow(bow),_lang(lang)
+      :_txt_content(txt_content),_vf(vf),_bow(bow),_lang(lang)
     {
     };
 
@@ -127,10 +127,7 @@ namespace seeks_plugins
       static void feature_based_similarity_scoring(query_context *qc,
           const size_t &nsps,
           search_snippet **sps,
-          search_snippet *ref_sp);
-
-      /* static void feature_based_scoring(query_context *qc,
-      				  const hash_map<const char*,std::vector<uint32_t>*,hash<const char*>,eqstr> &features); */
+          search_snippet *ref_sp) throw (sp_exception);
 
       static bool has_same_content(query_context *qc,
                                    search_snippet *sp1, search_snippet *sp2,

@@ -661,12 +661,17 @@ namespace seeks_plugins
 
         mutex_lock(&qc->_qc_mutex);
         search_snippet *ref_sp = NULL;
-        sort_rank::score_and_sort_by_similarity(qc,id,parameters,ref_sp,qc->_cached_snippets);
 
-        if (!ref_sp)
+        try
+          {
+            sort_rank::score_and_sort_by_similarity(qc,id,parameters,ref_sp,qc->_cached_snippets);
+          }
+        catch (sp_exception &e)
           {
             mutex_unlock(&qc->_qc_mutex);
-            return cgisimple::cgi_error_404(csp,rsp,parameters);
+            if (e.code() == WB_ERR_NO_REF_SIM)
+              return cgisimple::cgi_error_404(csp,rsp,parameters);
+            else return e.code();
           }
 
         const char *output = miscutil::lookup(parameters,"output");

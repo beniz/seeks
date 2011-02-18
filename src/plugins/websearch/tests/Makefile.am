@@ -1,11 +1,12 @@
 check_PROGRAMS = 
 
-check_PROGRAMS += ut_json_renderer ut_parser ut_se_handler ut_qc ut_websearch
+check_PROGRAMS += ut_json_renderer ut_parser ut_se_handler ut_qc ut_websearch ut_content_handler
 ut_json_renderer_SOURCES = ut-json-renderer.cpp
 ut_parser_SOURCES = ut-parser.cpp
 ut_se_handler_SOURCES = ut-se-handler.cpp
 ut_qc_SOURCES = ut-qc.cpp
 ut_websearch_SOURCES = ut-websearch.cpp
+ut_content_handler_SOURCES = ut-content-handler.cpp
 
 TESTS = $(check_PROGRAMS)
 

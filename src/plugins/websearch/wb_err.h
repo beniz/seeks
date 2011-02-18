@@ -27,5 +27,6 @@
 #define WB_ERR_NO_ENGINE_OUTPUT  1004 /**< no output from search engines. */
 #define WB_ERR_PARSE             1005 /**< parsing error. */
 #define WB_ERR_THREAD            1006 /**< thread creation error. */
+#define WB_ERR_NO_REF_SIM        1007 /**< no reference features for similarity analysis. */
 
 #endif
