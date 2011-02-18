@@ -84,7 +84,7 @@ TEST_F(ParserTest, parser_output_normal)
     }
 }
 
-TEST_F(ParserTest, parser_output_fail)
+TEST_F(ParserTest, parser_output_recoverable_error_ignore)
 {
   std::string page = "<li></ut>";
   se_parser sep;
@@ -98,7 +98,7 @@ TEST_F(ParserTest, parser_output_fail)
     {
       code = e.code();
     }
-  ASSERT_EQ(WB_ERR_PARSE,code);
+  ASSERT_EQ(SP_ERR_OK,code);
 }
 
 int main(int argc, char **argv)
