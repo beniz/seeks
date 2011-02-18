@@ -409,15 +409,36 @@ namespace seeks_plugins
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
+    int code = 200;
+    std::string status = "OK";
     if (serr != SP_ERR_OK)
       {
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,500,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-
-        return;
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS
+            || serr == WB_ERR_NO_ENGINE
+            || serr == WB_ERR_QUERY_ENCODING)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else if (serr == WB_ERR_SE_CONNECT)
+          {
+            rsp._body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
+t.dtd\"><html><head><title>408 - Seeks fail connection to background search engines </title></head><body></body></html>");
+            code = 408;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
       }
 
     /* fill up response. */
@@ -436,7 +457,10 @@ namespace seeks_plugins
     std::string content;
     if (rsp._body)
       content = std::string(rsp._body); // XXX: beware of length.
-    httpserv::reply_with_body(r,200,"OK",content,ct);
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
