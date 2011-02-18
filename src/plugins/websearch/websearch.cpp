@@ -420,7 +420,7 @@ namespace seeks_plugins
         std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
         if (ui_str == "dyn" && output_str == "html")
           {
-            sp_err err = dynamic_renderer::render_result_page(csp,rsp,parameters);
+            dynamic_renderer::render_result_page(csp,rsp,parameters);
 
             // detach thread for operations.
             pthread_t wo_thread;
@@ -670,7 +670,7 @@ namespace seeks_plugins
           {
             mutex_unlock(&qc->_qc_mutex);
             if (e.code() == WB_ERR_NO_REF_SIM)
-              return cgisimple::cgi_error_404(csp,rsp,parameters);
+              return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
             else return e.code();
           }
 
@@ -901,7 +901,7 @@ namespace seeks_plugins
                   case WB_ERR_NO_ENGINE_OUTPUT:
                     mutex_unlock(&qc->_qc_mutex);
                     websearch::failed_ses_connect(csp,rsp);
-                    code = WB_ERR_SE_CONNECT;
+                    code = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
                     break;
                   default:
                     break;
@@ -1030,7 +1030,6 @@ namespace seeks_plugins
         delete qc;
       }
 
-    // XXX: catch errors.
     return err;
   }
 
