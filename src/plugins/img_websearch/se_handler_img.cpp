@@ -254,7 +254,7 @@ namespace seeks_plugins
 
   /*-- queries to the image search engines. --*/
   std::string** se_handler_img::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-      int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled)
+      int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception)
   {
     std::vector<std::string> urls;
     urls.reserve(IMG_NSEs);
@@ -284,7 +284,7 @@ namespace seeks_plugins
     if (urls.empty())
       {
         nresults = 0;
-        return NULL; // beware.
+        throw sp_exception(WB_ERR_NO_ENGINE,"no engine enabled to forward query to");
       }
     else nresults = urls.size();
 
@@ -321,11 +321,12 @@ namespace seeks_plugins
             delete headers.at(i);
           }
       }
-    //
+
     if (!have_outputs)
       {
         delete[] outputs;
         outputs = NULL;
+        throw sp_exception(WB_ERR_NO_ENGINE_OUTPUT,"no output from any search engine");
       }
 
     delete[] cmg._outputs;
