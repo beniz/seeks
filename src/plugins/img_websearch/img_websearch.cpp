@@ -124,7 +124,17 @@ namespace seeks_plugins
             // return 400 error.
             return cgi::cgi_error_bad_param(csp,rsp);
           }
-        else websearch::preprocess_parameters(parameters,csp); // preprocess the parameters (query + language).
+        else
+          {
+            try
+              {
+                websearch::preprocess_parameters(parameters,csp); // preprocess the parameters (query + language).
+              }
+            catch (sp_exception &e)
+              {
+                return e.code();
+              }
+          }
 
         // check on requested User Interface.
         const char *ui = miscutil::lookup(parameters,"ui");
@@ -186,12 +196,16 @@ namespace seeks_plugins
         mutex_lock(&qc->_qc_mutex);
         img_search_snippet *ref_sp = NULL;
 
-        img_sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets,parameters);
-
-        if (!ref_sp)
+        try
+          {
+            img_sort_rank::score_and_sort_by_similarity(qc,id,ref_sp,qc->_cached_snippets,parameters);
+          }
+        catch (sp_exception &e)
           {
             mutex_unlock(&qc->_qc_mutex);
-            return cgisimple::cgi_error_404(csp,rsp,parameters);
+            if (e.code() == WB_ERR_NO_REF_SIM)
+              return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
+            else return e.code();
           }
 
         const char *ui = miscutil::lookup(parameters,"ui");
@@ -283,7 +297,29 @@ namespace seeks_plugins
             expanded = true;
 
             mutex_lock(&qc->_qc_mutex);
-            qc->generate(csp,rsp,parameters,expanded);
+            try
+              {
+                qc->generate(csp,rsp,parameters,expanded);
+              }
+            catch (sp_exception &e)
+              {
+                int code = e.code();
+                switch(code)
+                  {
+                  case SP_ERR_CGI_PARAMS:
+                  case WB_ERR_NO_ENGINE:
+                    mutex_unlock(&qc->_qc_mutex);
+                    break;
+                  case WB_ERR_NO_ENGINE_OUTPUT:
+                    mutex_unlock(&qc->_qc_mutex);
+                    websearch::failed_ses_connect(csp,rsp);
+                    code = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
+                    break;
+                  default:
+                    break;
+                  }
+                return code;
+              }
             mutex_unlock(&qc->_qc_mutex);
           }
         else if (strcmp(action,"page") == 0)
@@ -308,7 +344,29 @@ namespace seeks_plugins
         qc = new img_query_context(parameters,csp->_headers);
         qc->register_qc();
         mutex_lock(&qc->_qc_mutex);
-        qc->generate(csp,rsp,parameters,expanded);
+        try
+          {
+            qc->generate(csp,rsp,parameters,expanded);
+          }
+        catch (sp_exception &e)
+          {
+            int code = e.code();
+            switch(code)
+              {
+              case SP_ERR_CGI_PARAMS:
+              case WB_ERR_NO_ENGINE:
+                mutex_unlock(&qc->_qc_mutex);
+                break;
+              case WB_ERR_NO_ENGINE_OUTPUT:
+                mutex_unlock(&qc->_qc_mutex);
+                websearch::failed_ses_connect(csp,rsp);
+                code = WB_ERR_SE_CONNECT;
+                break;
+              default:
+                break;
+              }
+            return code;
+          }
         mutex_unlock(&qc->_qc_mutex);
       }
 

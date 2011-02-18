@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "wb_err.h"
 #include "img_content_handler.h"
 #include "content_handler.h"
 #include "errlog.h"
@@ -85,18 +86,20 @@ namespace seeks_plugins
   void img_content_handler::feature_based_similarity_scoring(img_query_context *qc,
       const size_t &nsps,
       search_snippet **sps,
-      search_snippet *ref_sp)
+      search_snippet *ref_sp) throw (sp_exception)
   {
     if (!ref_sp)
       {
-        errlog::log_error(LOG_LEVEL_ERROR,"Failed getting referer image: cannot compute image similarity");
-        return;
+        std::string msg = "Failed getting referer image: cannot compute image similarity";
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(WB_ERR_NO_REF_SIM,msg);
       }
     img_search_snippet *ref_isp = static_cast<img_search_snippet*>(ref_sp);
     if (!ref_isp->_surf_descriptors)
       {
-        errlog::log_error(LOG_LEVEL_ERROR,"Failed getting referer image descriptors: cannot compute image similarity");
-        return;
+        std::string msg = "Failed getting referer image descriptors: cannot compute image similarity";
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(WB_ERR_NO_REF_SIM,msg);
       }
 
     // compute scores.

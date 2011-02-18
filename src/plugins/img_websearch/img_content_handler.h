@@ -40,7 +40,7 @@ namespace seeks_plugins
       static void feature_based_similarity_scoring(img_query_context *qc,
           const size_t &nsps,
           search_snippet **sps,
-          search_snippet *ref_sp);
+          search_snippet *ref_sp) throw (sp_exception);
   };
 
 } /* end of namespace. */

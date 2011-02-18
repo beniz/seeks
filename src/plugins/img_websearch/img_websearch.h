@@ -26,7 +26,6 @@
 
 using sp::client_state;
 using sp::http_response;
-using sp::sp_err;
 using sp::plugin;
 
 namespace seeks_plugins

@@ -139,7 +139,7 @@ namespace seeks_plugins
   void img_sort_rank::score_and_sort_by_similarity(img_query_context *qc, const char *id_str,
       img_search_snippet *&ref_sp,
       std::vector<search_snippet*> &sorted_snippets,
-      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters) throw (sp_exception)
   {
     uint32_t id = (uint32_t)strtod(id_str,NULL);
 
@@ -153,8 +153,15 @@ namespace seeks_plugins
     img_content_handler::fetch_all_img_snippets_and_features(qc);
 
     // run similarity analysis and compute scores.
-    img_content_handler::feature_based_similarity_scoring(qc,sorted_snippets.size(),
-        &sorted_snippets.at(0),ref_sp);
+    try
+      {
+        img_content_handler::feature_based_similarity_scoring(qc,sorted_snippets.size(),
+            &sorted_snippets.at(0),ref_sp);
+      }
+    catch (sp_exception &e)
+      {
+        throw e;
+      }
 
     // sort snippets according to computed scores.
     std::sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
