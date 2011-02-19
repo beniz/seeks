@@ -421,7 +421,7 @@ namespace seeks_plugins
       }
 
     /* fill up response. */
-    std::string ct; // content-type.
+    std::string ct = "text/html"; // default content-type.
     std::list<const char*>::const_iterator lit = rsp._headers.begin();
     while (lit!=rsp._headers.end())
       {
