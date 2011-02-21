@@ -133,6 +133,7 @@ namespace seeks_plugins
     evhttp_set_cb(_srv,"/seeks_hp_search.css",&httpserv::seeks_hp_css,NULL);
     evhttp_set_cb(_srv,"/seeks_search.css",&httpserv::seeks_search_css,NULL);
     evhttp_set_cb(_srv,"/opensearch.xml",&httpserv::opensearch_xml,NULL);
+    evhttp_set_cb(_srv,"/info",&httpserv::node_info,NULL);
 #if defined(PROTOBUF) && defined(TC)
     evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL);
     evhttp_set_cb(_srv,"/tbd",&httpserv::tbd,NULL);
@@ -300,6 +301,30 @@ namespace seeks_plugins
     /* fill up response. */
     std::string content = std::string(rsp._body);
     httpserv::reply_with_body(r,200,"OK",content,"application/opensearchdescription+xml");
+  }
+
+  void httpserv::node_info(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
+    /* return requested information. */
+    sp_err serr = websearch::cgi_websearch_node_info(&csp,&rsp,&parameters);
+    if (serr != SP_ERR_OK)
+      {
+        httpserv::reply_with_empty_body(r,500,"ERROR");
+        return;
+      }
+
+    /* fill up response. */
+    std::string content = std::string(rsp._body);
+    httpserv::reply_with_body(r,200,"OK",content,"application/json"); // this call is JSON only.
   }
 
   void httpserv::file_service(struct evhttp_request *r, void *arg)
