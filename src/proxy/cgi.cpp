@@ -542,7 +542,7 @@ namespace sp
       {
         /* internal plugin error. */
         errlog::log_error(LOG_LEVEL_ERROR,
-                          "Error %d in plugin %s caught in top-level handler",
+                          "%d in plugin %s caught in top-level handler",
                           err, d->_plugin_name.c_str());
         err = cgi::cgi_error_plugin(csp, rsp, err, d->_plugin_name);
       }

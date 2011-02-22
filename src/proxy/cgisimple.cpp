@@ -450,7 +450,7 @@ namespace sp
       http_response *rsp,
       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    static const char error_favicon_data[] =
+    /*static const char error_favicon_data[] =
       "\000\000\001\000\001\000\020\020\002\000\000\000\000\000\260"
       "\000\000\000\026\000\000\000\050\000\000\000\020\000\000\000"
       "\040\000\000\000\001\000\001\000\000\000\000\000\100\000\000"
@@ -485,7 +485,10 @@ namespace sp
 
     rsp->_is_static = 1;
 
-    return SP_ERR_OK;
+    return SP_ERR_OK; */
+
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"file",1,"images/seek_icon_16x16_transparent.png",1);
+    return cgisimple::cgi_file_server(csp,rsp,parameters);
   }
 
 
