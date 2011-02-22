@@ -347,7 +347,7 @@ namespace sp
       write(fdn,&buf,nbytes);
     close(fdo);
     close(fdn);
-    errlog::log_error(LOG_LEVEL_INFO,"user db %s successfull backup in %s",
+    errlog::log_error(LOG_LEVEL_INFO,"user db %s successful backup in %s",
                       dol->get_name().c_str(),bak_db.c_str());
 
     int err = udb.open_db();

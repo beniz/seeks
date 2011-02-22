@@ -1,5 +1,6 @@
 TESTS = $(check_PROGRAMS)
 
+bin_PROGRAMS=user_db_ops
 noinst_PROGRAMS=test_curl_mget shash
 if HAVE_PROTOBUF
 if HAVE_TC
@@ -17,6 +18,7 @@ user_db_clear_SOURCES=user-db-clear.cpp
 user_db_remove_SOURCES=user-db-remove.cpp
 user_db_export_SOURCES=user-db-export.cpp
 user_db_find_key_SOURCES=user-db-find-key.cpp
+user_db_ops_SOURCES=user-db-ops.cpp
 ut_user_db_SOURCES=ut-user-db.cpp
 endif
 endif

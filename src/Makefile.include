@@ -43,7 +43,7 @@ AM_LDFLAGS += \
 endif
 
 LDADD += \
-	-lseeksuserdb
+	-lseeksuserdb -lseeksuserdbfix
 endif
 
 AM_CPPFLAGS += \
