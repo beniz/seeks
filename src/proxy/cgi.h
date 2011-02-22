@@ -114,6 +114,10 @@ namespace sp
                                         http_response *rsp);
       static sp_err cgi_error_disabled(const client_state *csp,
                                        http_response *rsp);
+      static sp_err cgi_error_plugin(const client_state *csp,
+                                     http_response *rsp,
+                                     const sp_err &error_to_report,
+                                     const std::string &pname);
       static sp_err cgi_error_unknown(const client_state *csp,
                                       http_response *rsp,
                                       sp_err error_to_report);

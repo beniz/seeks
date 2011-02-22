@@ -538,10 +538,17 @@ namespace sp
       {
         err = cgi::cgi_error_bad_param(csp, rsp);
       }
-
-    if (err && (err != SP_ERR_MEMORY))
+    else if (err && !d->_plugin_name.empty())
       {
-        /* Unexpected error or external (plugin) error. */
+        /* internal plugin error. */
+        errlog::log_error(LOG_LEVEL_ERROR,
+                          "Error %d in plugin %s caught in top-level handler",
+                          err, d->_plugin_name.c_str());
+        err = cgi::cgi_error_plugin(csp, rsp, err, d->_plugin_name);
+      }
+    else if (err && (err != SP_ERR_MEMORY))
+      {
+        /* Unexpected error error. */
         errlog::log_error(LOG_LEVEL_ERROR,
                           "Unexpected CGI error %d in top-level handler", err);
         err = cgi::cgi_error_unknown(csp, rsp, err);
@@ -1153,6 +1160,48 @@ namespace sp
 
   /*********************************************************************
    *
+   * Function    :  cgi_error_plugin
+   *
+   * Description :  Almost-CGI function that is called if an unexpected
+   *                error occurs in a plugin CGI called from the top-level
+   *                handler.
+   *
+   *                Note this is not a true CGI, it takes an error
+   *                code rather than a map of parameters.
+   *
+   * Parameters  :
+   *          1  :  csp = Current client state (buffers, headers, etc...)
+   *          2  :  rsp = http_response data structure for output
+   *          3  :  error_to_report = Error code to report
+   *          4  :  pname = plugin name.
+   *
+   * Returns     :  SP_ERR_OK on success
+   *                SP_ERR_MEMORY on out-of-memory error.
+   *
+   *********************************************************************/
+  sp_err cgi::cgi_error_plugin(const client_state *csp,
+                               http_response *rsp,
+                               const sp_err &error_to_report,
+                               const std::string &pname)
+  {
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
+
+    assert(csp);
+    assert(rsp);
+
+    if (NULL == (exports = cgi::default_exports(csp, NULL)))
+      {
+        return SP_ERR_MEMORY;
+      }
+
+    miscutil::add_map_entry(exports,"pname",1,pname.c_str(),1);
+    miscutil::add_map_entry(exports,"errtr",1,miscutil::to_string(error_to_report).c_str(),1);
+    return cgi::template_fill_for_cgi(csp, "cgi-error-plugin",
+                                      csp->_config->_templdir, exports, rsp);
+  }
+
+  /*********************************************************************
+   *
    * Function    :  cgi_error_unknown
    *
    * Description :  Almost-CGI function that is called if an unexpected
@@ -1194,8 +1243,8 @@ namespace sp
     static const char body_suffix[] =
       "</b></p>\r\n"
       "<p>Please "
-      "<a href=\"http://sourceforge.net/tracker/?group_id=165896\">"
-      "file a bug report</a>.</p>\r\n"
+      "<a href=\"http://redmine.seeks-project.info/projects/seeks/issues\">"
+      "report this error</a>.</p>\r\n"
       "</body>\r\n"
       "</html>\r\n";
     char errnumbuf[30];

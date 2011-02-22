@@ -219,8 +219,8 @@ namespace sp
           {
             errlog::log_error(LOG_LEVEL_INFO, "registering CGI dispatcher %s", cgid->_name);
 
-            plugin_manager::_cgi_dispatchers.insert(std::pair<const char*,cgi_dispatcher*>(cgid->_name,
-                                                    cgid));
+            cgid->_plugin_name = p->get_name();
+            plugin_manager::_cgi_dispatchers.insert(std::pair<const char*,cgi_dispatcher*>(cgid->_name,cgid));
           }
 
         ++vit;

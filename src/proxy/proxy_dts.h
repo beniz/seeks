@@ -901,6 +901,9 @@ namespace sp
 
       /** A flag that indicates whether unintentional calls to this CGI can cause damage */
       int _harmless;
+
+      /** a plugin name when the CGI belongs to a plugin. */
+      std::string _plugin_name;
   };
 
   /**
