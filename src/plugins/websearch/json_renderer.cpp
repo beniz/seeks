@@ -258,6 +258,12 @@ namespace seeks_plugins
         std::vector<std::string> query_words;
         miscutil::tokenize(query_clean,query_words," "); // allows to extract most discriminative words not in query.
 
+        // checks for safe snippets (for now, only used for images).
+        const char* safesearch_p = miscutil::lookup(parameters,"safesearch");
+        bool safesearch_off = false;
+        if (safesearch_p)
+          safesearch_off = strcasecmp(safesearch_p,"on") == 0 ? false : true;
+
         // proceed with rendering.
         const char *rpp_str = miscutil::lookup(parameters,"rpp"); // results per page.
         int rpp = websearch::_wconfig->_Nr;
@@ -278,6 +284,10 @@ namespace seeks_plugins
         for (size_t i=0; i<ssize; i++)
           {
             if (snippets.at(i)->_doc_type == REJECTED)
+              continue;
+            if (!snippets.at(i)->is_se_enabled(parameters))
+              continue;
+            if (!safesearch_off && !snippets.at(i)->_safe)
               continue;
             if (!similarity || snippets.at(i)->_seeks_ir > 0)
               {
