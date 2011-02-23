@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010, 2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -54,8 +54,13 @@ namespace sp
     public:
       /**
        * \brief db constructor, called by system.
+       * @param local whether the user db is local or remote.
+       * @param haddr the host address of the remote db, empty means from config.
+       * @param hport the host port of the remote db.
        */
-      user_db(const bool &local=true);
+      user_db(const bool &local=true,
+              const std::string &haddr="",
+              const int &hport=-1);
 
       /**
        * \brief db constructor, for opening a existing db by its name.

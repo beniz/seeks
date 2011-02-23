@@ -52,7 +52,9 @@ namespace sp
   std::string user_db::_db_version_key = "db-version";
   double user_db::_db_version = 0.5;
 
-  user_db::user_db(const bool &local)
+  user_db::user_db(const bool &local,
+                   const std::string &haddr,
+                   const int &hport)
     :_opened(false)
   {
     // init the mutex;
@@ -64,8 +66,13 @@ namespace sp
 #endif
       _hdb = new db_obj_local();
 #if defined(TT)
-    else _hdb = new db_obj_remote(seeks_proxy::_config->_user_db_haddr,
-                                    seeks_proxy::_config->_user_db_hport);
+    else
+      {
+        if (haddr.empty())
+          _hdb = new db_obj_remote(seeks_proxy::_config->_user_db_haddr,
+                                   seeks_proxy::_config->_user_db_hport);
+        else _hdb = new db_obj_remote(haddr.c_str(),hport);
+      }
 #endif
     _hdb->dbsetmutex();
     static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
@@ -106,10 +113,6 @@ namespace sp
       {
         db_obj_local *dol = static_cast<db_obj_local*>(_hdb);
         dol->set_name(seeks_proxy::_config->_user_db_file);
-      }
-    else // remote db.
-      {
-
       }
   }
 
