@@ -77,15 +77,15 @@ namespace seeks_plugins
     return 0;
   }
 
-  int db_uri_record::merge_with(const db_record &dbr)
+  db_err db_uri_record::merge_with(const db_record &dbr)
   {
     if (dbr._plugin_name != _plugin_name)
       {
-        return -2;
+        return DB_ERR_MERGE_PLUGIN;
       }
     const db_uri_record &dburi = static_cast<const db_uri_record&>(dbr);
     _hits += dburi._hits;
-    return 0;
+    return SP_ERR_OK;
   }
 
   void db_uri_record::create_uri_record(sp::db::record &r) const

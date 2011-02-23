@@ -269,10 +269,10 @@ namespace seeks_plugins
     return 0;
   }
 
-  int db_query_record::merge_with(const db_record &dbr)
+  db_err db_query_record::merge_with(const db_record &dbr)
   {
     if (dbr._plugin_name != _plugin_name)
-      return -2;
+      return DB_ERR_MERGE_PLUGIN;
 
     const db_query_record &dqr = static_cast<const db_query_record&>(dbr);
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator fhit;
@@ -293,7 +293,7 @@ namespace seeks_plugins
           }
         ++hit;
       }
-    return 0;
+    return SP_ERR_OK;
   }
 
   void db_query_record::create_query_record(sp::db::record &r) const

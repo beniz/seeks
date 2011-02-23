@@ -138,12 +138,12 @@ namespace sp
     delete _hdb;
   }
 
-  int user_db::open_db()
+  db_err user_db::open_db()
   {
     if (_opened)
       {
         errlog::log_error(LOG_LEVEL_INFO, "user_db already opened");
-        return 0;
+        return SP_ERR_OK;
       }
 
     // try to get write access, if not, fall back to read-only access, with a warning.
@@ -158,22 +158,22 @@ namespace sp
             int ecode = _hdb->dbecode();
             errlog::log_error(LOG_LEVEL_ERROR,"user db read-only or creation db open error: %s",_hdb->dberrmsg(ecode));
             _opened = false;
-            return ecode;
+            return DB_ERR_OPEN;
           }
       }
     uint64_t rn = number_records();
     errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
                       _hdb->get_name().c_str(),rn);
     _opened = true;
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::open_db_readonly()
+  db_err user_db::open_db_readonly()
   {
     if (_opened)
       {
         errlog::log_error(LOG_LEVEL_INFO,"user db already opened");
-        return 0;
+        return SP_ERR_OK;
       }
 
     if (!_hdb->dbopen(HDBOREADER | HDBOCREAT | HDBONOLCK)) // Beware: no effect is the db is remote as this is set by the server.
@@ -187,15 +187,15 @@ namespace sp
     errlog::log_error(LOG_LEVEL_INFO,"opened user_db %s, (%u records)",
                       _hdb->get_name().c_str(),rn);
     _opened = true;
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::close_db()
+  db_err user_db::close_db()
   {
     if (!_opened)
       {
         errlog::log_error(LOG_LEVEL_INFO,"user_db %s already closed", _hdb->get_name().c_str());
-        return 0;
+        return SP_ERR_OK;
       }
 
     if (!_hdb->dbclose())
@@ -203,30 +203,30 @@ namespace sp
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db %s close error: %s", _hdb->get_name().c_str(),
                           _hdb->dberrmsg(ecode));
-        return ecode;
+        return DB_ERR_CLOSE;
       }
     _opened = false;
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::optimize_db()
+  db_err user_db::optimize_db()
   {
     db_obj_local *ldb = dynamic_cast<db_obj_local*>(_hdb);
     if (ldb && !ldb->dboptimize(0,-1,-1,HDBTDEFLATE))
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",_hdb->dberrmsg(ecode));
-        return ecode;
+        return DB_ERR_OPTIMIZE;
       }
     else
       {
         //TODO: db_obj_remote.
       }
     errlog::log_error(LOG_LEVEL_INFO,"user db optimized");
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::set_version(const double &v)
+  db_err user_db::set_version(const double &v)
   {
     mutex_lock(&_db_mutex);
     const char *keyc = user_db::_db_version_key.c_str();
@@ -235,10 +235,10 @@ namespace sp
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
         mutex_unlock(&_db_mutex);
-        return -1;
+        return DB_ERR_PUT;
       }
     mutex_unlock(&_db_mutex);
-    return 0;
+    return SP_ERR_OK;
   }
 
   double user_db::get_version()
@@ -284,26 +284,29 @@ namespace sp
     return rkey.substr(pos+1);
   }
 
-  int user_db::extract_plugin_and_key(const std::string &rkey,
-                                      std::string &plugin_name,
-                                      std::string &key)
+  db_err user_db::extract_plugin_and_key(const std::string &rkey,
+                                         std::string &plugin_name,
+                                         std::string &key)
   {
     size_t pos = rkey.find_first_of(":");
     if (pos == std::string::npos)
-      return 1;
+      return DB_ERR_PLUGIN_KEY;
     plugin_name = rkey.substr(0,pos);
     key = rkey.substr(pos+1);
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::find_matching(const std::string &ref_key,
-                             const std::string &plugin_name,
-                             std::vector<std::string> &matching_keys)
+  db_err user_db::find_matching(const std::string &ref_key,
+                                const std::string &plugin_name,
+                                std::vector<std::string> &matching_keys)
   {
     void *rkey = NULL;
     int rkey_size;
     std::vector<std::string> to_remove;
-    _hdb->dbiterinit();
+    if (!_hdb->dbiterinit())
+      {
+        return DB_ERR_ITER;
+      }
     while ((rkey = _hdb->dbiternext(&rkey_size)) != NULL)
       {
         std::string rkey_str = std::string((const char*)rkey,rkey_size);
@@ -319,7 +322,7 @@ namespace sp
             free(rkey);
           }
       }
-    return 0;
+    return SP_ERR_OK;
   }
 
   db_record* user_db::find_dbr(const std::string &key,
@@ -372,8 +375,8 @@ namespace sp
     else return NULL;
   }
 
-  int user_db::add_dbr(const std::string &key,
-                       const db_record &dbr)
+  db_err user_db::add_dbr(const std::string &key,
+                          const db_record &dbr)
   {
     mutex_lock(&_db_mutex);
     std::string str;
@@ -386,26 +389,33 @@ namespace sp
         int err_m = edbr->merge_with(dbr); // virtual call.
 
         edbr->update_creation_time(); // set creation time to the time of this update.
-        if (err_m < 0)
+        if (err_m == DB_ERR_MERGE)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record merging error");
             delete edbr;
             mutex_unlock(&_db_mutex);
-            return -1;
+            return DB_ERR_MERGE;
           }
-        else if (err_m == -2)
+        else if (err_m == DB_ERR_MERGE_PLUGIN)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: tried to merge records from different plugins");
             delete edbr;
             mutex_unlock(&_db_mutex);
-            return -2;
+            return DB_ERR_MERGE_PLUGIN;
+          }
+        else if (err_m != SP_ERR_OK)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"Aborting adding record to user db: unknown error");
+            delete edbr;
+            mutex_unlock(&_db_mutex);
+            return DB_ERR_UNKNOWN;
           }
         if (edbr->serialize(str) != 0)
           {
             // serialization error.
             errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record serialization error");
             delete edbr;
-            return -1;
+            return DB_ERR_SERIALIZE;
           }
         delete edbr;
       }
@@ -415,7 +425,7 @@ namespace sp
           {
             // serialization error.
             errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record serialization error");
-            return -1;
+            return DB_ERR_SERIALIZE;
           }
       }
 
@@ -436,13 +446,13 @@ namespace sp
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
         mutex_unlock(&_db_mutex);
-        return -1;
+        return DB_ERR_PUT;
       }
     mutex_unlock(&_db_mutex);
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::remove_dbr(const std::string &rkey)
+  db_err user_db::remove_dbr(const std::string &rkey)
   {
     if (!_hdb->dbout2(rkey.c_str()))
       {
@@ -452,16 +462,16 @@ namespace sp
         if (ecode != TCENOREC)
           {
             errlog::log_error(LOG_LEVEL_ERROR,"user db removing record error: %s",_hdb->dberrmsg(ecode));
-            return -1;
+            return DB_ERR_NO_REC;
           }
-        return 1;
+        return DB_ERR_REMOVE;
       }
     errlog::log_error(LOG_LEVEL_INFO,"removed record %s from user db",rkey.c_str());
-    return 1;
+    return SP_ERR_OK;
   }
 
-  int user_db::remove_dbr(const std::string &key,
-                          const std::string &plugin_name)
+  db_err user_db::remove_dbr(const std::string &key,
+                             const std::string &plugin_name)
   {
     // create key.
     std::string rkey = user_db::generate_rkey(key,plugin_name);
@@ -470,19 +480,19 @@ namespace sp
     return remove_dbr(rkey);
   }
 
-  int user_db::clear_db()
+  db_err user_db::clear_db()
   {
     if (!_hdb->dbvanish())
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db clearing error: %s",_hdb->dberrmsg(ecode));
-        return ecode;
+        return DB_ERR_CLEAN;
       }
     errlog::log_error(LOG_LEVEL_INFO,"cleared all records in db %s",_hdb->get_name().c_str());
-    return 0;
+    return SP_ERR_OK;
   }
 
-  int user_db::prune_db(const time_t &date)
+  db_err user_db::prune_db(const time_t &date)
   {
     void *rkey = NULL;
     int rkey_size;
@@ -500,7 +510,7 @@ namespace sp
             std::string rkey_str = std::string((char*)rkey);
             if (rkey_str != user_db::_db_version_key
                 && user_db::extract_plugin_and_key(rkey_str,
-                                                   plugin_name,key) != 0)
+                                                   plugin_name,key) != SP_ERR_OK)
               {
                 errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
               }
@@ -524,6 +534,7 @@ namespace sp
                 if (dbr->deserialize(str) != 0)
                   {
                     // deserialization error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing record %s",rkey_str.c_str());
                   }
                 else if (dbr->_creation_time < date)
                   to_remove.push_back(rkey_str);
@@ -537,11 +548,13 @@ namespace sp
     for (size_t i=0; i<trs; i++)
       err += remove_dbr(to_remove.at(i));
     errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db",trs);
+    if (err >= DB_ERR_UNKNOWN)
+      return DB_ERR_UNKNOWN;
     return err;
   }
 
-  int user_db::prune_db(const std::string &plugin_name,
-                        const time_t date)
+  db_err user_db::prune_db(const std::string &plugin_name,
+                           const time_t date)
   {
     void *rkey = NULL;
     int rkey_size;
@@ -559,7 +572,7 @@ namespace sp
             std::string rkey_str = std::string((char*)rkey);
             if (rkey_str != user_db::_db_version_key
                 && user_db::extract_plugin_and_key(rkey_str,
-                                                   cplugin_name,key) != 0)
+                                                   cplugin_name,key) != SP_ERR_OK)
               {
                 errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
               }
@@ -599,11 +612,13 @@ namespace sp
       err += remove_dbr(to_remove.at(i));
     errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db belonging to plugin %s",
                       trs,plugin_name.c_str());
+    if (err >= DB_ERR_UNKNOWN)
+      return DB_ERR_UNKNOWN;
     return err;
   }
 
-  int user_db::do_smthg_db(const std::string &plugin_name,
-                           void *data)
+  db_err user_db::do_smthg_db(const std::string &plugin_name,
+                              void *data)
   {
     void *rkey = NULL;
     int rkey_size;
@@ -621,7 +636,7 @@ namespace sp
             std::string rkey_str = std::string((char*)rkey);
             if (rkey_str != user_db::_db_version_key
                 && user_db::extract_plugin_and_key(rkey_str,
-                                                   cplugin_name,key) != 0)
+                                                   cplugin_name,key) != SP_ERR_OK)
               {
                 errlog::log_error(LOG_LEVEL_ERROR,"Could not extract record plugin and key from internal user db key");
               }
@@ -660,6 +675,8 @@ namespace sp
       err += remove_dbr(to_remove.at(i));
     errlog::log_error(LOG_LEVEL_INFO,"Pruned %u records from user db belonging to plugin %s",
                       trs,plugin_name.c_str());
+    if (err >= DB_ERR_UNKNOWN)
+      return DB_ERR_UNKNOWN;
     return err;
   }
 
@@ -807,7 +824,7 @@ namespace sp
     _db_sweepers.push_back(uds);
   }
 
-  int user_db::unregister_sweeper(user_db_sweepable *uds)
+  db_err user_db::unregister_sweeper(user_db_sweepable *uds)
   {
     std::vector<user_db_sweepable*>::iterator vit = _db_sweepers.begin();
     while (vit!=_db_sweepers.end())
@@ -815,11 +832,11 @@ namespace sp
         if ((*vit) == uds)
           {
             _db_sweepers.erase(vit);
-            return 0;
+            return SP_ERR_OK;
           }
         ++vit;
       }
-    return 1; // was not registered in the first place.
+    return DB_ERR_SWEEPER_NF; // was not registered in the first place.
   }
 
   int user_db::sweep_db()

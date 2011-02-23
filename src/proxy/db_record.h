@@ -20,6 +20,7 @@
 #define DB_RECORD_H
 
 #include "db_record_msg.pb.h"
+#include "db_err.h"
 
 #include <time.h>
 #include <string>
@@ -95,11 +96,11 @@ namespace sp
 
       /**
        * \brief merges two records.
-       * @return < 0 if error, 0 otherwise (-2 is reserved error).
+       * @return SP_ERR_OK if no error, DB_ERR_MERGE or DB_ERR_MERGE_PLUGIN otherwise.
        */
-      virtual int merge_with(const db_record &dbr)
+      virtual db_err merge_with(const db_record &dbr)
       {
-        return 0;
+        return SP_ERR_OK;
       };
 
       /**

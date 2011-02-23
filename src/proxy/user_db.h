@@ -19,7 +19,7 @@
 #ifndef USER_DB_H
 #define USER_DB_H
 
-//#include "config.h"
+#include "db_err.h"
 #include "mutexes.h"
 #include "db_record.h"
 #include "sweeper.h"
@@ -74,30 +74,33 @@ namespace sp
 
       /**
        * \brief opens the db if not already opened.
+       * @return SP_ERR_OK if no error, DB_ERR_OPEN otherwise.
        */
-      int open_db();
+      db_err open_db();
 
       /**
        * \brief opens the db in read-only mode if not already opened.
+       * @return SP_ERR_OK if no error, DB_ERR_OPEN otherwise.
        */
-      int open_db_readonly();
+      db_err open_db_readonly();
 
       /**
        * \brief closes the db if opened.
        */
-      int close_db();
+      db_err close_db();
 
       /**
        * \brief optimizes database.
+       * @return SP_ERR_OK if no error, DB_ERR_OPTIMIZE otherwise.
        */
-      int optimize_db();
+      db_err optimize_db();
 
       /**
        * \brief sets db version
        * @param v version to be set.
-       * @return 0 if no error, -1 otherwise.
+       * @return SP_ERR_OK if no error, DB_ERR_PUT otherwise.
        */
-      int set_version(const double &v);
+      db_err set_version(const double &v);
 
       /**
        * \brief gets db version.
@@ -131,10 +134,11 @@ namespace sp
       /**
        * \brief extracts both the record key and the plugin name
        *        from the internal record key.
+       * @return SP_ERR_OK if no error, DB_ERR_PLUGIN_KEY otherwise.
        */
-      static int extract_plugin_and_key(const std::string &rkey,
-                                        std::string &plugin_name,
-                                        std::string &key);
+      static db_err extract_plugin_and_key(const std::string &rkey,
+                                           std::string &plugin_name,
+                                           std::string &key);
 
       /**
        * \brief finds a set of matching records based on a key.
@@ -142,6 +146,7 @@ namespace sp
        * @param ref_key the reference record key,
        * @param plugin_name the reference plugin name,
        * @param matching_rkeys vector of matching rkeys (of the form plugin_name:key).
+       * @return SP_ERR_OK if no error, DB_ERR_ITER otherwise.
        */
       int find_matching(const std::string &ref_key,
                         const std::string &plugin_name,
@@ -160,46 +165,53 @@ namespace sp
        * \brief serializes and adds record to db.
        * @param key is record key (the internal key is a mixture of plugin name and record key).
        * @param dbr the db record object to be serialized and added.
-       * @return 0 if no error.
+       * @return SP_ERR_OK if no error, error code otherwise.
+       * @see db_err.h
        */
-      int add_dbr(const std::string &key,
-                  const db_record &dbr);
+      db_err add_dbr(const std::string &key,
+                     const db_record &dbr);
 
       /**
        * \brief removes record with key 'rkey'.
-       * Beware, as internal rkeys are constructed from both plugin name and a record key.
+       * @param key is record key (the internal key is a mixture of plugin name and record key).
+       * @return SP_ERR_OK if no error, error code otherwise.
        */
-      int remove_dbr(const std::string &rkey);
+      db_err remove_dbr(const std::string &rkey);
 
       /**
        * \brief removes record that has 'key' and belongs to plugin 'plugin_name'.
+       * @return SP_ERR_OK if no error, error code otherwise.
        */
-      int remove_dbr(const std::string &key,
-                     const std::string &plugin_name);
+      db_err remove_dbr(const std::string &key,
+                        const std::string &plugin_name);
 
       /**
        * \brief removes all records in db.
+       * @return SP_ERR_OK if no error, DB_ERR_CLEAN otherwise.
        */
-      int clear_db();
+      db_err clear_db();
 
       /**
        * \brief removes all records older than date.
+       * @return SP_ERR_OK if no error, error code otherwise.
        */
-      int prune_db(const time_t &date);
+      db_err prune_db(const time_t &date);
 
       /**
        * \brief removes all records that belong to plugin 'plugin_name'.
        *        If date != 0 only records that are older than date are removed.
+       * @return SP_ERR_OK if no error, error code otherwise.
        */
-      int prune_db(const std::string &plugin_name,
-                   const time_t date = 0);
+      db_err prune_db(const std::string &plugin_name,
+                      const time_t date = 0);
 
       /**
        * \brief applies a virtual function do_smthg over data for every
        *        record matching plugin plugin_name.
+       * @return SP_ERR_OK if no error, error code otherwise.
        */
-      int do_smthg_db(const std::string &plugin_name,
-                      void *data);
+      db_err do_smthg_db(const std::string &plugin_name,
+                         void *data);
 
       /**
        * \brief returns db size on disk.
@@ -234,8 +246,9 @@ namespace sp
 
       /**
        * \brief unregisters user_db_sweepable.
+       * @return SP_ERR_OK if no error, DB_ERR_SWEEPER_NF otherwise.
        */
-      int unregister_sweeper(user_db_sweepable *uds);
+      db_err unregister_sweeper(user_db_sweepable *uds);
 
       /**
        * \brief calls on sweepers.

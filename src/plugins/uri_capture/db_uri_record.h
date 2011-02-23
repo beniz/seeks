@@ -45,7 +45,7 @@ namespace seeks_plugins
 
       virtual int deserialize(const std::string &msg);
 
-      virtual int merge_with(const db_record &dbr);
+      virtual db_err merge_with(const db_record &dbr);
 
       void create_uri_record(sp::db::record &r) const;
 
