@@ -47,19 +47,25 @@ namespace seeks_plugins
 
       void estimate_ranks(const std::string &query,
                           const std::string &lang,
-                          std::vector<search_snippet*> &snippets);
+                          std::vector<search_snippet*> &snippets,
+                          const std::string &host="",
+                          const int &port=-1) throw (sp_exception);
 
       void get_related_queries(const std::string &query,
                                const std::string &lang,
-                               std::multimap<double,std::string,std::less<double> > &related_queries);
+                               std::multimap<double,std::string,std::less<double> > &related_queries,
+                               const std::string &host="",
+                               const int &port=-1) throw (sp_exception);
 
       void get_recommended_urls(const std::string &query,
                                 const std::string &lang,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
+                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
+                                const std::string &host="",
+                                const int &port=-1) throw (sp_exception);
 
       static void thumb_down_url(const std::string &query,
                                  const std::string &lang,
-                                 const std::string &url);
+                                 const std::string &url) throw (sp_exception);
 
     public:
       static plugin *_uc_plugin;

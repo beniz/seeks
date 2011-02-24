@@ -102,6 +102,7 @@ namespace seeks_plugins
             errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
             return err;
           }
+        else return err;
 
         // redirect to current query url.
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
@@ -112,7 +113,7 @@ namespace seeks_plugins
         std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
         return websearch::cgi_websearch_search(csp,rsp,parameters);
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err cf::tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -132,40 +133,53 @@ namespace seeks_plugins
     const char *langp = miscutil::lookup(parameters,"lang");
     if (!langp)
       {
-        //TODO: this should not happen.
+        // XXX: this should not happen.
         return SP_ERR_CGI_PARAMS;
       }
     lang = std::string(langp);
-    cf::thumb_down_url(query,lang,url); //TODO: catch internal errors.
+    try
+      {
+        cf::thumb_down_url(query,lang,url);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
     return SP_ERR_OK;
   }
 
   void cf::estimate_ranks(const std::string &query,
                           const std::string &lang,
-                          std::vector<search_snippet*> &snippets)
+                          std::vector<search_snippet*> &snippets,
+                          const std::string &host,
+                          const int &port) throw (sp_exception)
   {
     simple_re sre; // estimator.
-    sre.estimate_ranks(query,lang,snippets);
+    sre.estimate_ranks(query,lang,snippets,host,port);
   }
 
   void cf::get_related_queries(const std::string &query,
                                const std::string &lang,
-                               std::multimap<double,std::string,std::less<double> > &related_queries)
+                               std::multimap<double,std::string,std::less<double> > &related_queries,
+                               const std::string &host,
+                               const int &port) throw (sp_exception)
   {
-    query_recommender::recommend_queries(query,lang,related_queries);
+    query_recommender::recommend_queries(query,lang,related_queries,host,port);
   }
 
   void cf::get_recommended_urls(const std::string &query,
                                 const std::string &lang,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
+                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
+                                const std::string &host,
+                                const int &port) throw (sp_exception)
   {
     simple_re sre; // estimator.
-    sre.recommend_urls(query,lang,snippets);
+    sre.recommend_urls(query,lang,snippets,host,port);
   }
 
   void cf::thumb_down_url(const std::string &query,
                           const std::string &lang,
-                          const std::string &url)
+                          const std::string &url) throw (sp_exception)
   {
     simple_re sre; // estimator.
     sre.thumb_down_url(query,lang,url);

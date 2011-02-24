@@ -60,21 +60,23 @@ namespace seeks_plugins
 
   void query_recommender::recommend_queries(const std::string &query,
       const std::string &lang,
-      std::multimap<double,std::string,std::less<double> > &related_queries)
+      std::multimap<double,std::string,std::less<double> > &related_queries,
+      const std::string &host,
+      const int &port) throw (sp_exception)
   {
     // get stop word list.
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // fetch records from user db.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-    rank_estimator::fetch_user_db_record(query,records);
+    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+      rank_estimator::fetch_user_db_record(query,records);*/
 
     // aggregate related queries.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,records,qdata);
+    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+      rank_estimator::extract_queries(query,lang,records,qdata);*/
 
     // destroy records.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
+    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
     while (rit!=records.end())
       {
@@ -83,6 +85,17 @@ namespace seeks_plugins
         ++rit;
         delete dbr;
         delete (*crit).first;
+    	}*/
+
+    // fetch queries from user DB.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    try
+      {
+        rank_estimator::fetch_query_data(query,lang,qdata,host,port);
+      }
+    catch(sp_exception &e)
+      {
+        throw e;
       }
 
     // clean query.

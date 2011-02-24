@@ -380,9 +380,17 @@ namespace seeks_plugins
     if (strcasecmp(pers,"on") == 0)
       {
 #if defined(PROTOBUF) && defined(TC)
-        sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
-        sort_rank::get_related_queries(qc);
-        sort_rank::get_recommended_urls(qc);
+        try
+          {
+            sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
+            sort_rank::get_related_queries(qc);
+            sort_rank::get_recommended_urls(qc);
+          }
+        catch (sp_exception &e)
+          {
+            std::string msg = "Failed personalization of image results: " + e.to_string();
+            errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+          }
 #endif
       }
 

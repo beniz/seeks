@@ -45,7 +45,44 @@ namespace seeks_plugins
 {
 
   /*- rank_estimator -*/
+  void rank_estimator::fetch_query_data(const std::string &query,
+                                        const std::string &lang,
+                                        hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                        const std::string &host,
+                                        const int &port) throw (sp_exception)
+  {
+    user_db *udb = NULL;
+    if (host.empty()) // local user database.
+      udb = seeks_proxy::_user_db;
+    else
+      {
+        udb = new user_db(true,host,port); // remote db.
+        int err = udb->open_db();
+        if (err != SP_ERR_OK)
+          {
+            delete udb;
+            std::string msg = "cannot open remote db " + host + ":" + miscutil::to_string(port);
+            throw sp_exception(err,msg);
+          }
+      }
+
+    // fetch records from user DB.
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+    rank_estimator::fetch_user_db_record(query,udb,records);
+
+    // extract queries.
+    rank_estimator::extract_queries(query,lang,udb,records,qdata);
+
+    // close db.
+    if (udb != seeks_proxy::_user_db) // not the local db.
+      delete udb;
+
+    // destroy records.
+    rank_estimator::destroy_records(records);
+  }
+
   void rank_estimator::fetch_user_db_record(const std::string &query,
+      user_db *udb,
       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records)
   {
     static std::string qc_str = "query-capture";
@@ -62,7 +99,7 @@ namespace seeks_plugins
     while (hit!=features.end())
       {
         std::string key_str = (*hit).second.to_rstring();
-        db_record *dbr = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
+        db_record *dbr = udb->find_dbr(key_str,qc_str);
         if (dbr)
           {
             records.insert(std::pair<const DHTKey*,db_record*>(new DHTKey((*hit).second),dbr));
@@ -73,6 +110,7 @@ namespace seeks_plugins
 
   void rank_estimator::extract_queries(const std::string &query,
                                        const std::string &lang,
+                                       user_db *udb,
                                        const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
                                        hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
   {
@@ -129,7 +167,7 @@ namespace seeks_plugins
                       }
 
                     std::string key_str = (*features.begin()).second.to_rstring();
-                    db_record *dbr_data = seeks_proxy::_user_db->find_dbr(key_str,qc_str);
+                    db_record *dbr_data = udb->find_dbr(key_str,qc_str);
                     if (!dbr_data) // this should never happen.
                       {
                         errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
@@ -205,25 +243,38 @@ namespace seeks_plugins
 
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
-                                 std::vector<search_snippet*> &snippets)
+                                 std::vector<search_snippet*> &snippets,
+                                 const std::string &host,
+                                 const int &port) throw (sp_exception)
   {
     // get stop word list.
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // fetch records from user DB.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-    rank_estimator::fetch_user_db_record(query,records);
+    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+      rank_estimator::fetch_user_db_record(query,records);*/
 
     //std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
 
     // extract queries.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,records,qdata);
+    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+      rank_estimator::extract_queries(query,lang,records,qdata);*/
 
     //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
 
     // destroy records.
-    rank_estimator::destroy_records(records);
+    //rank_estimator::destroy_records(records);
+
+    // fetch queries from user DB.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    try
+      {
+        rank_estimator::fetch_query_data(query,lang,qdata,host,port);
+      }
+    catch(sp_exception &e)
+      {
+        throw e;
+      }
 
     // gather normalizing values.
     int i = 0;
@@ -456,25 +507,38 @@ namespace seeks_plugins
 
   void simple_re::recommend_urls(const std::string &query,
                                  const std::string &lang,
-                                 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets)
+                                 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
+                                 const std::string &host,
+                                 const int &port) throw (sp_exception)
   {
     // get stop word list.
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // fetch records from user DB.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-    rank_estimator::fetch_user_db_record(query,records);
+    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+      rank_estimator::fetch_user_db_record(query,records);*/
 
     //std::cerr << "[recommend_urls]: number of fetched records: " << records.size() << std::endl;
 
     // extract queries.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,records,qdata);
+    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+      rank_estimator::extract_queries(query,lang,records,qdata);*/
 
     //std::cerr << "[recommend_urls]: number of extracted queries: " << qdata.size() << std::endl;
 
     // destroy records.
-    rank_estimator::destroy_records(records);
+    //rank_estimator::destroy_records(records);
+
+    // fetch queries from user DB.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    try
+      {
+        rank_estimator::fetch_query_data(query,lang,qdata,host,port);
+      }
+    catch(sp_exception &e)
+      {
+        throw e;
+      }
 
     // gather normalizing values.
     int nvurls = 1.0;
@@ -563,20 +627,31 @@ namespace seeks_plugins
 
   void simple_re::thumb_down_url(const std::string &query,
                                  const std::string &lang,
-                                 const std::string &url)
+                                 const std::string &url) throw (sp_exception)
   {
     static std::string qc_string = "query-capture";
 
     // fetch records from user DB.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-    rank_estimator::fetch_user_db_record(query,records);
+    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+      rank_estimator::fetch_user_db_record(query,records);*/
 
     // extract queries.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,records,qdata);
+    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+      rank_estimator::extract_queries(query,lang,records,qdata);*/
 
     // destroy records.
-    rank_estimator::destroy_records(records);
+    //rank_estimator::destroy_records(records);
+
+    // fetch queries from user DB.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    try
+      {
+        rank_estimator::fetch_query_data(query,lang,qdata);
+      }
+    catch(sp_exception &e)
+      {
+        throw e;
+      }
 
     // preprocess url.
     std::string host, path;
@@ -619,12 +694,14 @@ namespace seeks_plugins
       }
     else // we should never reach here.
       {
-        errlog::log_error(LOG_LEVEL_ERROR,"thumb_down_url %s failed: cannot find query %s in records",
-                          purl.c_str(),query_clean.c_str());
+        std::string msg = "thumb_down_url " + purl + " failed: cannot find query " + query_clean + " in records";
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
 
         // destroy query data.
         rank_estimator::destroy_query_data(qdata);
-        return;
+
+        // exception.
+        throw sp_exception(DB_ERR_NO_REC,msg);
       }
 
     // locate url and host in captured uris and remove / lower counters accordingly.

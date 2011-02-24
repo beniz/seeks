@@ -300,7 +300,7 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets)
+  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
   {
     if (!websearch::_cf_plugin)
       return;
@@ -309,14 +309,14 @@ namespace seeks_plugins
                      search_snippet::max_seeks_rank);
   }
 
-  void sort_rank::get_related_queries(query_context *qc)
+  void sort_rank::get_related_queries(query_context *qc) throw (sp_exception)
   {
     if (!websearch::_cf_plugin)
       return;
     static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,qc->_suggestions);
   }
 
-  void sort_rank::get_recommended_urls(query_context *qc)
+  void sort_rank::get_recommended_urls(query_context *qc) throw (sp_exception)
   {
     if (!websearch::_cf_plugin)
       return;

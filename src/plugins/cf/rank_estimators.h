@@ -39,21 +39,33 @@ namespace seeks_plugins
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
-                                  std::vector<search_snippet*> &snippets) {};
+                                  std::vector<search_snippet*> &snippets,
+                                  const std::string &host="",
+                                  const int &port=-1) throw (sp_exception) {};
 
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
-                                  std::vector<search_snippet*> &snippets) {};
+                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippet,
+                                  const std::string &host="",
+                                  const int &port=-1) throw (sp_exception) {};
 
       virtual void thumb_down_url(const std::string &query,
                                   const std::string &lang,
-                                  const std::string &url) {};
+                                  const std::string &url) throw (sp_exception) {};
+
+      static void fetch_query_data(const std::string &query,
+                                   const std::string &lang,
+                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                   const std::string &host="",
+                                   const int &port=-1) throw (sp_exception);
 
       static void fetch_user_db_record(const std::string &query,
+                                       user_db *udb,
                                        hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
 
       static void extract_queries(const std::string &query,
                                   const std::string &lang,
+                                  user_db *udb,
                                   const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
 
@@ -71,15 +83,19 @@ namespace seeks_plugins
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
-                                  std::vector<search_snippet*> &snippets);
+                                  std::vector<search_snippet*> &snippets,
+                                  const std::string &host="",
+                                  const int &port=-1) throw (sp_exception);
 
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
-                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets);
+                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
+                                  const std::string &host="",
+                                  const int &port=-1) throw (sp_exception);
 
       virtual void thumb_down_url(const std::string &query,
                                   const std::string &lang,
-                                  const std::string &url);
+                                  const std::string &url) throw (sp_exception);
 
       float estimate_rank(search_snippet *s,
                           const std::map<std::string,bool> *filter,

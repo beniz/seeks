@@ -123,7 +123,7 @@ class SRETest : public testing::Test
 TEST_F(SRETest,fetch_user_db_record)
 {
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(queries[1],records);
+  rank_estimator::fetch_user_db_record(queries[1],seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
   rank_estimator::destroy_records(records);
 }
@@ -131,11 +131,11 @@ TEST_F(SRETest,fetch_user_db_record)
 TEST_F(SRETest,extract_queries)
 {
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(queries[2],records);
+  rank_estimator::fetch_user_db_record(queries[2],seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
 
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-  rank_estimator::extract_queries(queries[2],"en",records,qdata);
+  rank_estimator::extract_queries(queries[2],"en",seeks_proxy::_user_db,records,qdata);
   ASSERT_EQ(2,qdata.size());
   hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
   = qdata.begin();
@@ -336,7 +336,7 @@ TEST_F(SRETest, utf8)
   qcelt->store_queries(q,url,host,"query-capture");
 
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(q,records);
+  rank_estimator::fetch_user_db_record(q,seeks_proxy::_user_db,records);
   ASSERT_EQ(1,records.size());
   rank_estimator::destroy_records(records);
 }

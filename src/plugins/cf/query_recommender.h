@@ -42,7 +42,9 @@ namespace seeks_plugins
 
       static void recommend_queries(const std::string &query,
                                     const std::string &lang,
-                                    std::multimap<double,std::string,std::less<double> > &related_queries);
+                                    std::multimap<double,std::string,std::less<double> > &related_queries,
+                                    const std::string &host="",
+                                    const int &port=-1) throw (sp_exception);
 
       static void merge_recommended_queries(std::multimap<double,std::string,std::less<double> > &related_queries,
                                             hash_map<const char*,double,hash<const char*>,eqstr> &update);
