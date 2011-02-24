@@ -110,7 +110,15 @@ TEST(QCAPITest, process_url)
 
 TEST_F(QCTest,store_queries)
 {
-  qcelt->store_queries(queries[0],"query-capture");
+  try
+    {
+      qcelt->store_queries(queries[0],"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
 
   hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -139,7 +147,14 @@ TEST_F(QCTest,store_queries_url)
   std::string url = uris[1];
   std::string host,path;
   query_capture::process_url(url,host,path);
-  qcelt->store_queries(queries[0],url,host,"query-capture");
+  try
+    {
+      qcelt->store_queries(queries[0],url,host,"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
 
   hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -164,12 +179,26 @@ TEST_F(QCTest,store_queries_url_merge)
   std::string url = uris[1];
   std::string host,path;
   query_capture::process_url(url,host,path);
-  qcelt->store_queries(queries[0],url,host,"query-capture");
+  try
+    {
+      qcelt->store_queries(queries[0],url,host,"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
 
   std::string url2 = uris[2];
   query_capture::process_url(url2,host,path);
-  qcelt->store_queries(queries[0],url2,host,"query-capture");
+  try
+    {
+      qcelt->store_queries(queries[0],url2,host,"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
 
   hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -198,7 +227,14 @@ TEST_F(QCTest,remove_url)
   std::string url = uris[1];
   std::string host,path;
   query_capture::process_url(url,host,path);
-  qcelt->store_queries(queries[0],url,host,"query-capture");
+  try
+    {
+      qcelt->store_queries(queries[0],url,host,"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
 
   hash_multimap<uint32_t,DHTKey,id_hash_uint> features;

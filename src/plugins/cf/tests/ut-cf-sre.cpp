@@ -100,10 +100,24 @@ class SRETest : public testing::Test
       std::string url = uris[1];
       std::string host,path;
       query_capture::process_url(url,host,path);
-      qcelt->store_queries(queries[0],url,host,"query-capture");
+      try
+        {
+          qcelt->store_queries(queries[0],url,host,"query-capture");
+        }
+      catch (sp_exception &e)
+        {
+          ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+        }
       std::string url2 = uris[2];
       query_capture::process_url(url2,host,path);
-      qcelt->store_queries(queries[1],url2,host,"query-capture");
+      try
+        {
+          qcelt->store_queries(queries[1],url2,host,"query-capture");
+        }
+      catch (sp_exception &e)
+        {
+          ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+        }
       ASSERT_EQ(3,seeks_proxy::_user_db->number_records()); // seeks, seeks project, project.
     }
 
@@ -333,7 +347,14 @@ TEST_F(SRETest, utf8)
   std::string url = uris[1];
   std::string host, path;
   query_capture::process_url(url,host,path);
-  qcelt->store_queries(q,url,host,"query-capture");
+  try
+    {
+      qcelt->store_queries(q,url,host,"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
 
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
   rank_estimator::fetch_user_db_record(q,seeks_proxy::_user_db,records);

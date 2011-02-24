@@ -23,6 +23,7 @@
 
 #include "plugin.h"
 #include "interceptor_plugin.h"
+#include "sp_exception.h"
 #include "query_capture_configuration.h"
 #include "DHTKey.h"
 
@@ -71,10 +72,10 @@ namespace seeks_plugins
       int remove_all_query_records();
 
       static void store_queries(const std::string &query,
-                                const std::string &url, const std::string &host);
+                                const std::string &url, const std::string &host) throw (sp_exception);
 
       // store_query called from websearch plugin.
-      void store_queries(const std::string &query) const;
+      void store_queries(const std::string &query) const throw (sp_exception);
 
       static void process_url(std::string &url, std::string &host);
 
@@ -94,25 +95,25 @@ namespace seeks_plugins
 
       static void store_queries(const std::string &query,
                                 const std::string &url, const std::string &host,
-                                const std::string &plugin_name);
+                                const std::string &plugin_name) throw (sp_exception);
 
       static void store_queries(const std::string &query,
-                                const std::string &plugin_name);
+                                const std::string &plugin_name) throw (sp_exception);
 
       static void store_query(const DHTKey &key,
                               const std::string &query,
                               const uint32_t &radius,
-                              const std::string &plugin_name);
+                              const std::string &plugin_name) throw (sp_exception);
 
       static void store_url(const DHTKey &key, const std::string &query,
                             const std::string &url, const std::string &host,
                             const uint32_t &radius,
-                            const std::string &plugin_name);
+                            const std::string &plugin_name) throw (sp_exception);
 
       static void remove_url(const DHTKey &key, const std::string &query,
                              const std::string &url, const std::string &host,
                              const short &url_hits, const uint32_t &radius,
-                             const std::string &plugin_name);
+                             const std::string &plugin_name) throw (sp_exception);
 
       static void get_useful_headers(const std::list<const char*> &headers,
                                      std::string &host, std::string &referer,

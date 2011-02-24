@@ -954,7 +954,16 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
         // query_capture if plugin is available and activated.
         if (_qc_plugin && _qc_plugin_activated)
-          static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_query);
+          {
+            try
+              {
+                static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_query);
+              }
+            catch (sp_exception &e)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
+              }
+          }
 #endif
       }
 

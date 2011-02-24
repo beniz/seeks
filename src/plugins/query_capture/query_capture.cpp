@@ -19,7 +19,7 @@
 #include "query_capture.h"
 #include "query_capture_configuration.h"
 #include "db_query_record.h"
-#include "sp_err.h"
+#include "qc_err.h"
 #include "seeks_proxy.h" // for user_db.
 #include "proxy_configuration.h"
 #include "user_db.h"
@@ -228,7 +228,14 @@ namespace seeks_plugins
     std::string url = std::string(urlp);
     query_capture::process_url(url,host,path);
 
-    query_capture::store_queries(query,url,host);
+    try
+      {
+        query_capture::store_queries(query,url,host);
+      }
+    catch (sp_exception &e)
+      {
+        return e.code();
+      }
     return SP_ERR_OK;
   }
 
@@ -265,7 +272,7 @@ namespace seeks_plugins
   }
 
   void query_capture::store_queries(const std::string &query,
-                                    const std::string &url, const std::string &host)
+                                    const std::string &url, const std::string &host) throw (sp_exception)
   {
     // check charset encoding.
     std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
@@ -278,7 +285,7 @@ namespace seeks_plugins
     query_capture_element::store_queries(query,url,host,"query-capture");
   }
 
-  void query_capture::store_queries(const std::string &query) const
+  void query_capture::store_queries(const std::string &query) const throw (sp_exception)
   {
     // check charset encoding.
     std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
@@ -380,8 +387,14 @@ namespace seeks_plugins
         query_capture::process_url(url,host);
 
         // store queries and URL / HOST.
-        query_capture_element::store_queries(query_str,url,host,_parent->get_name());
-
+        try
+          {
+            query_capture_element::store_queries(query_str,url,host,_parent->get_name());
+          }
+        catch (sp_exception &e)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
+          }
         delete parameters;
       }
 
@@ -390,7 +403,7 @@ namespace seeks_plugins
 
   void query_capture_element::store_queries(const std::string &query,
       const std::string &url, const std::string &host,
-      const std::string &plugin_name)
+      const std::string &plugin_name) throw (sp_exception)
   {
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -402,18 +415,54 @@ namespace seeks_plugins
     // URLs are stored only for queries of radius 0. This scheme allows to save
     // DB space. To recover URLs from a query of radius > 1, a second lookup is necessary,
     // for the recorded query of radius 0 that holds the URL counters.
+    int uerr = 0;
+    int qerr = 0;
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
     while (hit!=features.end())
       {
         if ((*hit).first == 0)
-          query_capture_element::store_url((*hit).second,query,url,host,(*hit).first,plugin_name);
-        else query_capture_element::store_query((*hit).second,query,(*hit).first,plugin_name);
+          {
+            try
+              {
+                query_capture_element::store_url((*hit).second,query,url,host,(*hit).first,plugin_name);
+              }
+            catch (sp_exception &e)
+              {
+                uerr++;
+              }
+          }
+        else
+          {
+            try
+              {
+                query_capture_element::store_query((*hit).second,query,(*hit).first,plugin_name);
+              }
+            catch (sp_exception &e)
+              {
+                qerr++;
+              }
+          }
         ++hit;
+      }
+    if (uerr && qerr)
+      {
+        std::string msg = "failed storing URL " + url + " and query fragments for query " + query;
+        throw sp_exception(QC_ERR_STORE,msg);
+      }
+    else if (uerr)
+      {
+        std::string msg = "failed storing URL " + url + " for query " + query;
+        throw sp_exception(QC_ERR_STORE_URL,msg);
+      }
+    else if (qerr)
+      {
+        std::string msg = "failed storing some or all query fragments for query " + query;
+        throw sp_exception(QC_ERR_STORE_QUERY,msg);
       }
   }
 
   void query_capture_element::store_queries(const std::string &query,
-      const std::string &plugin_name)
+      const std::string &plugin_name) throw (sp_exception)
   {
     // strip query.
     std::string q = query_capture_element::no_command_query(query);
@@ -426,57 +475,100 @@ namespace seeks_plugins
                                     features);
 
     // store query with hash fragment as key.
+    int err = 0;
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
     while (hit!=features.end())
       {
-        query_capture_element::store_query((*hit).second,q,(*hit).first,plugin_name);
+        try
+          {
+            query_capture_element::store_query((*hit).second,q,(*hit).first,plugin_name);
+          }
+        catch(sp_exception &e)
+          {
+            err++;
+          }
         ++hit;
+      }
+    if (err != 0)
+      {
+        std::string msg = "failed storing some or all query fragments for query " + query;
+        throw sp_exception(QC_ERR_STORE_QUERY,msg);
       }
   }
 
   void query_capture_element::store_query(const DHTKey &key,
                                           const std::string &query,
                                           const uint32_t &radius,
-                                          const std::string &plugin_name)
+                                          const std::string &plugin_name) throw (sp_exception)
   {
     std::string key_str = key.to_rstring();
     db_query_record dbqr(plugin_name,query,radius);
-    seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+    db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+    if (err != SP_ERR_OK)
+      {
+        std::string msg = "failed storage of captured query fragment" + key_str + " for query " + query + " with error "
+                          + miscutil::to_string(err);
+        throw sp_exception(err,msg);
+      }
   }
 
   void query_capture_element::store_url(const DHTKey &key, const std::string &query,
                                         const std::string &url, const std::string &host,
                                         const uint32_t &radius,
-                                        const std::string &plugin_name)
+                                        const std::string &plugin_name) throw (sp_exception)
   {
     std::string key_str = key.to_rstring();
     if (!url.empty())
       {
         db_query_record dbqr(plugin_name,query,radius,url);
-        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        if (err != SP_ERR_OK)
+          {
+            std::string msg = "failed storage of captured url " + url + " for query " + query + " with error "
+                              + miscutil::to_string(err);
+            throw sp_exception(err,msg);
+          }
       }
     if (!host.empty() && host != url)
       {
         db_query_record dbqr(plugin_name,query,radius,host);
-        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        if (err != SP_ERR_OK)
+          {
+            std::string msg = "failed storage of captured host " + host + " for query " + query + " with error "
+                              + miscutil::to_string(err);
+            throw sp_exception(err,msg);
+          }
       }
   }
 
   void query_capture_element::remove_url(const DHTKey &key, const std::string &query,
                                          const std::string &url, const std::string &host,
                                          const short &url_hits, const uint32_t &radius,
-                                         const std::string &plugin_name)
+                                         const std::string &plugin_name) throw (sp_exception)
   {
     std::string key_str = key.to_rstring();
     if (!url.empty())
       {
         db_query_record dbqr(plugin_name,query,radius,url,1,-url_hits);
-        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        if (err != SP_ERR_OK)
+          {
+            std::string msg = "failed removal of captured url " + url + " for query " + query + " with error "
+                              + miscutil::to_string(err);
+            throw sp_exception(err,msg);
+          }
       }
     if (!host.empty() && host != url)
       {
         db_query_record dbqr(plugin_name,query,radius,host,1,-url_hits);
-        seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        if (err != SP_ERR_OK)
+          {
+            std::string msg = "failed storage of captured host " + host + " for query " + query + " with error "
+                              + miscutil::to_string(err);
+            throw sp_exception(err,msg);
+          }
       }
   }
 
