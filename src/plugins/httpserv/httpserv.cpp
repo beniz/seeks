@@ -529,19 +529,40 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
+    int code = 200;
+    std::string status = "OK";
     if (serr != SP_ERR_OK)
       {
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,500,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-
-        return;
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS
+            || serr == WB_ERR_NO_ENGINE
+            || serr == WB_ERR_QUERY_ENCODING)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else if (serr == WB_ERR_SE_CONNECT)
+          {
+            rsp._body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
+t.dtd\"><html><head><title>408 - Seeks fail connection to background search engines </title></head><body></body></html>");
+            code = 408;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
       }
 
     /* fill up response. */
-    std::string ct; // content-type.
+    std::string ct = "text/html"; // default content-type.
     std::list<const char*>::const_iterator lit = rsp._headers.begin();
     while (lit!=rsp._headers.end())
       {
@@ -556,7 +577,10 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     std::string content;
     if (rsp._body)
       content = std::string(rsp._body); // XXX: beware of length.
-    httpserv::reply_with_body(r,200,"OK",content,ct);
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -617,29 +641,20 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     sp_err err = query_capture::qc_redir(&csp,&rsp,parameters,urlp);
 
     // error catching.
-    if (err == SP_ERR_CGI_PARAMS)
+    if (err != SP_ERR_OK)
       {
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>400 - Seeks API bad parameter error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,400,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-        return;
-      }
-    else if (err == SP_ERR_PARSE)
-      {
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>403 - Seeks unauthorized resource error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,403,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-        return;
-      }
-    else if (err != SP_ERR_OK)
-      {
-        // XXX: unused right now.
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,500,"ERROR",error_message);
+        /* fill up response. */
+        std::string ct = "text/html"; // default content-type.
+        std::string content;
+        if (rsp._body)
+          content = std::string(rsp._body); // XXX: beware of length.
+        int code = 500;
+        if (err == SP_ERR_CGI_PARAMS)
+          code = 400;
+        else if (err == SP_ERR_PARSE)
+          code = 403;
+        httpserv::reply_with_error(r,code,"ERROR",content);
+        miscutil::free_map(parameters);
 
         /* run the sweeper, for timed out query contexts. */
         sweeper::sweep();
@@ -688,51 +703,36 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
 
     // call for capture callback.
-    /*std::string url,query,lang;
-      sp_err err = cf::tbd(parameters,url,query,lang);*/
-    sp_err err = cf::cgi_tbd(&csp,&rsp,parameters);
-
-    // error catching.
-    if (err == SP_ERR_CGI_PARAMS)
-      {
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>400 - Seeks API bad parameter error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,400,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-        return;
-      }
-    else if (err == SP_ERR_PARSE)
-      {
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>403 - Seeks unauthorized resource error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,403,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-        return;
-      }
-    else if (err != SP_ERR_OK)
-      {
-        // XXX: unused right now.
-        std::string error_message = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head><title>500 - Seeks websearch error </title></head><body></body></html>";
-        httpserv::reply_with_error(r,500,"ERROR",error_message);
-
-        /* run the sweeper, for timed out query contexts. */
-        sweeper::sweep();
-        return;
-      }
-
-    // redirect to current query url.
-    /*miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-    std::string base_url = query_context::detect_base_url_http(&csp);
-    std::string rurl = base_url + "/search?"
-                       + cgi::build_url_from_parameters(parameters);
-           httpserv::reply_with_redirect_302(r,rurl.c_str());*/
-
+    sp_err serr = cf::cgi_tbd(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
+    miscutil::list_remove_all(&csp._headers);
 
-    /* fillup response. */
-    std::string ct; // content-type.
+    int code = 200;
+    std::string status = "OK";
+    if (serr != SP_ERR_OK)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
+      }
+
+    /* fill up response. */
+    std::string ct = "text/html"; // default content-type.
     std::list<const char*>::const_iterator lit = rsp._headers.begin();
     while (lit!=rsp._headers.end())
       {
@@ -747,11 +747,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     std::string content;
     if (rsp._body)
       content = std::string(rsp._body); // XXX: beware of length.
-    httpserv::reply_with_body(r,200,"OK",content,ct);
 
-    /* run the sweeper, for timed out elements. */
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
+
+    /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
-
   }
 #endif
 
