@@ -41,6 +41,7 @@ TEST(JsonRendererTest, render_engines)
 TEST(JsonRendererTest, render_snippets)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
+  websearch::_wconfig->_se_enabled |= SE_DUMMY;
   std::string json_str;
 
   int current_page = 1;
@@ -56,6 +57,7 @@ TEST(JsonRendererTest, render_snippets)
   json_str = "";
   snippets.resize(1);
   search_snippet s1;
+  s1._engine |= SE_DUMMY;
   s1.set_url("URL1");
   snippets[0] = &s1;
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
@@ -72,9 +74,11 @@ TEST(JsonRendererTest, render_snippets)
   // 3 snippets, page 2, 2 result per page, thumbs on
   snippets.resize(3);
   search_snippet s2;
+  s2._engine |= SE_DUMMY;
   s2.set_url("URL2");
   snippets[1] = &s2;
   search_snippet s3;
+  s3._engine |= SE_DUMMY;
   s3.set_url("URL3");
   snippets[2] = &s3;
   parameters.insert(std::pair<const char*,const char*>("rpp", "2"));
@@ -121,6 +125,7 @@ TEST(JsonRendererTest, render_snippets)
 TEST(JsonRendererTest, render_clustered_snippets)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
+  websearch::_wconfig->_se_enabled |= SE_DUMMY;
   query_context context;
   cluster clusters[3];
 
@@ -131,16 +136,19 @@ TEST(JsonRendererTest, render_clustered_snippets)
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
   search_snippet s1;
+  s1._engine |= SE_DUMMY;
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
   clusters[0].add_point(s1._id, NULL);
   clusters[0]._label = "CLUSTER1";
 
   search_snippet s2;
+  s2._engine |= SE_DUMMY;
   s2.set_url("URL2");
   context.add_to_unordered_cache(&s2);
   clusters[1].add_point(s2._id, NULL);
   search_snippet s3;
+  s3._engine |= SE_DUMMY;
   s3.set_url("URL3");
   context.add_to_unordered_cache(&s3);
   clusters[1].add_point(s3._id, NULL);
@@ -164,6 +172,7 @@ TEST(JsonRendererTest, render_clustered_snippets)
 TEST(JsonRendererTest, render_json_results)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
+  websearch::_wconfig->_se_enabled |= SE_DUMMY;
   http_response* rsp;
   query_context context;
   double qtime = 1234;
@@ -174,10 +183,12 @@ TEST(JsonRendererTest, render_json_results)
   snippets.resize(2);
 
   search_snippet s1;
+  s1._engine |= SE_DUMMY;
   s1.set_url("URL1");
   snippets[0] = &s1;
 
   search_snippet s2;
+  s2._engine |= SE_DUMMY;
   s2.set_url("URL2");
   snippets[1] = &s2;
   parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
@@ -209,6 +220,7 @@ TEST(JsonRendererTest, render_json_results)
 TEST(JsonRendererTest, render_clustered_json_results)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
+  websearch::_wconfig->_se_enabled |= SE_DUMMY;
 
   cluster clusters[1];
   http_response* rsp;
@@ -220,6 +232,7 @@ TEST(JsonRendererTest, render_clustered_json_results)
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
   search_snippet s1;
+  s1._engine |= SE_DUMMY;
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
   clusters[0].add_point(s1._id, NULL);
