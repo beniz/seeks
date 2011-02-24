@@ -250,35 +250,56 @@ namespace seeks_plugins
 
     if (store)
       {
-        store_uri(uri,host);
+        try
+          {
+            store_uri(uri,host);
+          }
+        catch (sp_exception &e)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
+          }
       }
 
     return NULL; // no response, so the proxy does not crunch this HTTP request.
   }
 
-  void uri_capture_element::store_uri(const std::string &uri, const std::string &host) const
+  void uri_capture_element::store_uri(const std::string &uri, const std::string &host) const throw (sp_exception)
   {
     // add record to user db.
     db_uri_record dbur(_parent->get_name());
     if (!uri.empty())
       {
         db_record *dbr = seeks_proxy::_user_db->find_dbr(uri,_parent->get_name());
+        db_err err = seeks_proxy::_user_db->add_dbr(uri,dbur);
+        if (err != SP_ERR_OK)
+          {
+            if (dbr)
+              delete dbr;
+            std::string msg = "failed storage of captured URI " + uri;
+            throw sp_exception(err,msg);
+          }
         if (!dbr)
           static_cast<uri_capture*>(_parent)->_nr++;
         else delete dbr;
-        seeks_proxy::_user_db->add_dbr(uri,dbur);
       }
     if (!host.empty() && uri != host)
       {
         db_record *dbr = seeks_proxy::_user_db->find_dbr(host,_parent->get_name());
+        db_err err = seeks_proxy::_user_db->add_dbr(host,dbur);
+        if (err != SP_ERR_OK)
+          {
+            if (dbr)
+              delete dbr;
+            std::string msg = "failed storage of captured host " + host + " for URI " + uri;
+            throw sp_exception(err,msg);
+          }
         if (!dbr)
           static_cast<uri_capture*>(_parent)->_nr++;
         else delete dbr;
-        seeks_proxy::_user_db->add_dbr(host,dbur);
       }
   }
 
-  void uri_capture_element::remove_uri(const std::string &uri, const std::string &host)
+  void uri_capture_element::remove_uri(const std::string &uri, const std::string &host) const throw (sp_exception)
   {
     int uri_hits = 1;
     if (!uri.empty())
@@ -288,7 +309,12 @@ namespace seeks_plugins
           {
             uri_hits = static_cast<db_uri_record*>(dbr)->_hits;
             delete dbr;
-            seeks_proxy::_user_db->remove_dbr(uri,_parent->get_name());
+            db_err err = seeks_proxy::_user_db->remove_dbr(uri,_parent->get_name());
+            if (err != SP_ERR_OK)
+              {
+                std::string msg = "failed removal of captured URI " + uri;
+                throw sp_exception(err,msg);
+              }
             static_cast<uri_capture*>(_parent)->_nr--;
           }
       }
@@ -299,13 +325,23 @@ namespace seeks_plugins
           {
             if (static_cast<db_uri_record*>(dbr)->_hits - uri_hits <= 0)
               {
-                seeks_proxy::_user_db->remove_dbr(host,_parent->get_name());
+                db_err err = seeks_proxy::_user_db->remove_dbr(host,_parent->get_name());
+                if (err != SP_ERR_OK)
+                  {
+                    std::string msg = "failed removal of captured host " + host + " for URI " + uri;
+                    throw sp_exception(err,msg);
+                  }
                 static_cast<uri_capture*>(_parent)->_nr--;
               }
             else
               {
                 db_uri_record dbur(_parent->get_name(),-uri_hits);
-                seeks_proxy::_user_db->add_dbr(host,dbur);
+                db_err err = seeks_proxy::_user_db->add_dbr(host,dbur);
+                if (err != SP_ERR_OK)
+                  {
+                    std::string msg = "failed removal of captured host hits " + host + " for URI " + uri;
+                    throw sp_exception(err,msg);
+                  }
               }
             delete dbr;
           }

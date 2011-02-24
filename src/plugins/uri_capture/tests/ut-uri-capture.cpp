@@ -103,7 +103,14 @@ TEST_F(URICaptureTest,store_remove)
 {
   std::string url = uri_capture_element::prepare_uri(uris[1]);
   std::string host = uri_capture_element::prepare_uri(uris[0]);
-  urielt->store_uri(url,host);
+  try
+    {
+      urielt->store_uri(url,host);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(2,seeks_proxy::_user_db->number_records());
   ASSERT_EQ(2,uripl->_nr);
 
@@ -121,7 +128,14 @@ TEST_F(URICaptureTest,store_remove)
   ASSERT_EQ(1,uridbr->_hits);
   delete uridbr;
 
-  urielt->remove_uri(url,host);
+  try
+    {
+      urielt->remove_uri(url,host);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(0,seeks_proxy::_user_db->number_records());
   ASSERT_EQ(0,uripl->_nr);
 }
@@ -130,11 +144,25 @@ TEST_F(URICaptureTest,store_merge_remove)
 {
   std::string url = uri_capture_element::prepare_uri(uris[1]);
   std::string host = uri_capture_element::prepare_uri(uris[0]);
-  urielt->store_uri(url,host);
+  try
+    {
+      urielt->store_uri(url,host);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(2,uripl->_nr);
 
   std::string url1 = uri_capture_element::prepare_uri(uris[2]);
-  urielt->store_uri(url1,host);
+  try
+    {
+      urielt->store_uri(url1,host);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
   ASSERT_EQ(3,uripl->_nr);
 
   db_record *dbr = seeks_proxy::_user_db->find_dbr(host,"uri-capture");

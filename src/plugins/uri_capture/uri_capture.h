@@ -21,6 +21,7 @@
 
 #define NO_PERL // we do not use Perl.
 
+#include "sp_exception.h"
 #include "stl_hash.h"
 #include "plugin.h"
 #include "interceptor_plugin.h"
@@ -72,9 +73,9 @@ namespace seeks_plugins
 
       virtual http_response* plugin_response(client_state *csp);
 
-      void store_uri(const std::string &uri, const std::string &host) const;
+      void store_uri(const std::string &uri, const std::string &host) const throw (sp_exception);
 
-      void remove_uri(const std::string &uri, const std::string &host);
+      void remove_uri(const std::string &uri, const std::string &host) const throw (sp_exception);
 
       static std::string prepare_uri(const std::string &uri);
 

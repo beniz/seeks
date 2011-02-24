@@ -709,7 +709,7 @@ namespace seeks_plugins
     if (ucpl)
       {
         uri_capture *uc = static_cast<uri_capture*>(ucpl);
-        static_cast<uri_capture_element*>(uc->_interceptor_plugin)->remove_uri(purl,host);
+        static_cast<uri_capture_element*>(uc->_interceptor_plugin)->remove_uri(purl,host); // may throw.
       }
 
     // destroy query data.
