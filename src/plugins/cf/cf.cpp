@@ -97,12 +97,11 @@ namespace seeks_plugins
       {
         std::string url,query,lang;
         sp_err err = cf::tbd(parameters,url,query,lang);
-        if (err == SP_ERR_CGI_PARAMS)
+        if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
           {
             errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
             return err;
           }
-        else return err;
 
         // redirect to current query url.
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
@@ -143,6 +142,7 @@ namespace seeks_plugins
       }
     catch(sp_exception &e)
       {
+        errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
         return e.code();
       }
     return SP_ERR_OK;
