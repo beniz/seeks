@@ -21,6 +21,7 @@
 #include "proxy_configuration.h"
 #include "plugin_manager.h"
 #include "plugin.h"
+#include "udb_service.h" // for remote 'sn' resource service.
 #include "errlog.h"
 
 #include <unistd.h>
@@ -35,6 +36,8 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+
+using seeks_plugins::udb_service;
 
 namespace sp
 {
@@ -54,8 +57,9 @@ namespace sp
 
   user_db::user_db(const bool &local,
                    const std::string &haddr,
-                   const int &hport)
-    :_opened(false)
+                   const int &hport,
+                   const std::string &rsc)
+    :_opened(false),_rsc(rsc)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
@@ -328,6 +332,9 @@ namespace sp
   db_record* user_db::find_dbr(const std::string &key,
                                const std::string &plugin_name)
   {
+    if (_rsc == "sn") // call to a remote seeks node resource.
+      return find_dbr_rsc_sn(key,plugin_name);
+
     // create key.
     std::string rkey = user_db::generate_rkey(key,plugin_name);
 
@@ -857,6 +864,19 @@ namespace sp
         ++vit;
       }
     return n; // number of swept records.
+  }
+
+  db_record* user_db::find_dbr_rsc_sn(const std::string &key,
+                                      const std::string &plugin_name)
+  {
+    plugin *pl = plugin_manager::get_plugin("udb-service");
+    if (pl)
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"cannot find udb-service plugin for remote user db call to a seeks node resource");
+        return NULL;
+      }
+    db_obj_remote *dorj = static_cast<db_obj_remote*>(_hdb);
+    return udb_service::find_dbr_client(dorj->_host,dorj->_port,key,plugin_name);
   }
 
 } /* end of namespace. */

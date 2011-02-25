@@ -17,7 +17,7 @@ AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I${srcdir}/../../websearch \
              -I${srcdir}/../ -I${srcdir}/../../../utils -I${srcdir}/../../../lsh -I${srcdir}/../../../proxy @PCRE_CFLAGS@ @XML2_CFLAGS@ \
 	     -I${srcdir}/../../../dht 
 if HAVE_PROTOBUF
-AM_CPPFLAGS += -I${srcdir}/../../query_capture -I${srcdir}/../../cf -I${srcdir}/../../uri_capture \
+AM_CPPFLAGS += -I${srcdir}/../../query_capture -I${srcdir}/../../cf -I${srcdir}/../../uri_capture -I${srcdir}/../../udb_service \
              -I../../../proxy `pkg-config --cflags protobuf`
 
 if HAVE_TC
@@ -34,7 +34,7 @@ AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
 AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websearch -L../../../dht 
 if HAVE_PROTOBUF
-AM_LDFLAGS += -L../../query_capture -L../../uri_capture -L../../cf \
+AM_LDFLAGS += -L../../query_capture -L../../uri_capture -L../../cf -L../../udb_service \
 	      `pkg-config --libs protobuf`
 
 if HAVE_TC
@@ -52,7 +52,7 @@ endif
 LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin 
 if HAVE_PROTOBUF
 if HAVE_TC
-LDADD += -lquerycaptureplugin -luricaptureplugin -lseeksuserdb -lcfplugin 
+LDADD += -lquerycaptureplugin -luricaptureplugin -lseeksuserdb -lcfplugin -ludbserviceplugin
 endif
 endif
 LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ -lpthread -lpcreposix -lpcre -lz

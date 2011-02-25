@@ -60,7 +60,8 @@ namespace sp
        */
       user_db(const bool &local=true,
               const std::string &haddr="",
-              const int &hport=-1);
+              const int &hport=-1,
+              const std::string &rsc="");
 
       /**
        * \brief db constructor, for opening a existing db by its name.
@@ -255,6 +256,10 @@ namespace sp
        */
       int sweep_db();
 
+      /*- 'sn' remote resource calls. -*/
+      db_record *find_dbr_rsc_sn(const std::string &key,
+                                 const std::string &plugin_name);
+
     public:
       db_obj *_hdb; /**< local or remote Tokyo Cabinet hashtable db. */
       bool _opened; /**< whether the db is opened. */
@@ -265,6 +270,7 @@ namespace sp
 
     private:
       sp_mutex_t _db_mutex; /**< mutex around db operations. */
+      std::string _rsc; /**< remote resource type ("", tt or sn). */
   };
 
 } /* end of namespace. */

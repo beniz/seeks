@@ -44,11 +44,11 @@ dist_libseeksuserdb_la_SOURCES+=protobuf_export_format/json_format.cc \
 
 libseeksuserdb_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe -I.\
                            -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
-	                   `pkg-config --cflags protobuf`
+	                   `pkg-config --cflags protobuf` -I${srcdir}/../plugins/udb_service
 
 libseeksuserdbfix_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
                               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh -I${srcdir}/../plugins/query_capture \
-	                      -I${srcdir}/../dht `pkg-config --cflags protobuf`
+	                      -I${srcdir}/../dht `pkg-config --cflags protobuf` -I${srcdir}/../plugins/udb_service
 dist_libseeksuserdbfix_la_SOURCES=user_db_fix.cpp
 
 if HAVE_TC
