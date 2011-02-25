@@ -38,7 +38,6 @@ namespace seeks_plugins
 
       virtual void stop() {};
 
-      //TODO
       static db_err cgi_find_dbr(client_state *csp,
                                  http_response *rsp,
                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
