@@ -18,10 +18,14 @@
 
 #include "udb_client.h"
 #include "curl_mget.h"
+#include "plugin_manager.h"
+#include "plugin.h"
 #include "miscutil.h"
 #include "errlog.h"
 
 using sp::curl_mget;
+using sp::plugin_manager;
+using sp::plugin;
 using sp::miscutil;
 using sp::errlog;
 
@@ -65,6 +69,25 @@ namespace seeks_plugins
                           key.c_str(),host.c_str(),miscutil::to_string(port).c_str());
       }
     return dbr;
+  }
+
+  db_record* udb_client::deserialize_found_record(const std::string &str, const std::string &pn)
+  {
+    plugin *pl = plugin_manager::get_plugin(pn);
+    if (!pl)
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"plugin %s not found for deserializing udb served record",pn.c_str());
+        return NULL;
+      }
+    db_record *dbr = pl->create_db_record();
+    int serr = dbr->deserialize(str);
+    if (serr == 0)
+      return dbr;
+    else
+      {
+        delete dbr;
+        return NULL;
+      }
   }
 
 } /* end of namespace. */
