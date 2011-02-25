@@ -75,4 +75,13 @@ namespace seeks_plugins
     return uc.find_dbr_client(host,port,key,pn);
   }
 
+  /* plugin registration. */
+  extern "C"
+  {
+    plugin* maker()
+    {
+      return new udb_service;
+    }
+  }
+
 } /* end of namespace. */
