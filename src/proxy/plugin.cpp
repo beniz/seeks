@@ -30,12 +30,12 @@
 namespace sp
 {
   plugin::plugin()
-      :_interceptor_plugin(NULL),_action_plugin(NULL),_filter_plugin(NULL)
+    :_configuration(NULL),_interceptor_plugin(NULL),_action_plugin(NULL),_filter_plugin(NULL)
   {
   }
 
   plugin::plugin(const std::string &config_filename)
-      : _config_filename(config_filename),
+    : _config_filename(config_filename),_configuration(NULL),
       _interceptor_plugin(NULL),_action_plugin(NULL),
       _filter_plugin(NULL)
   {
