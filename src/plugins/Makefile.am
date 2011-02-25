@@ -1,7 +1,7 @@
 SUBDIRS=
 if HAVE_TC
 if HAVE_PROTOBUF
-SUBDIRS += query_capture uri_capture cf 
+SUBDIRS += query_capture uri_capture cf udb_service
 endif
 endif
 SUBDIRS += websearch blocker 
