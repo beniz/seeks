@@ -7,17 +7,20 @@ if HAVE_TC
 AM_CPPFLAGS += \
 	-I$(top_srcdir)/src/plugins/uri_capture \
 	-I$(top_srcdir)/src/plugins/query_capture \
-	-I$(top_srcdir)/src/plugins/cf
+	-I$(top_srcdir)/src/plugins/cf \
+	-I$(top_srcdir)/src/plugins/udb_service
 
 AM_LDFLAGS += \
 	-L$(top_builddir)/src/plugins/uri_capture \
 	-L$(top_builddir)/src/plugins/query_capture \
-	-L$(top_builddir)/src/plugins/cf
+	-L$(top_builddir)/src/plugins/cf \
+	-L$(top_builddir)/src/plugins/udb_service
 
 LDADD += \
         -luricaptureplugin \
 	-lquerycaptureplugin \
-	-lcfplugin
+	-lcfplugin \
+	-ludbserviceplugin
 endif
 endif
 

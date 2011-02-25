@@ -537,6 +537,7 @@ AM_CONDITIONAL(HAVE_LIBEVENT,test x$le_found = xtrue)
 AC_SUBST(uricapture,true)
 AC_SUBST(querycapture,true)
 AC_SUBST(cf,true)
+AC_SUBST(udbservice,true)
 
 # check on protocol buffers.
 PKG_CHECK_MODULES([protobuf],[protobuf >= 2.2],protobuf=true,protobuf=false)
@@ -548,6 +549,7 @@ if test $protobuf = false ; then
    AC_SUBST(uricapture,false)
    AC_SUBST(querycapture,false)
    AC_SUBST(cf,false)
+   AC_SUBST(udbservice,false)
 fi
 
 # check on tokyo cabinet.
@@ -570,6 +572,7 @@ if test $tokyocabinet = false ; then
       AC_SUBST(uricapture,false)
       AC_SUBST(querycapture,false)
       AC_SUBST(cf,false)
+      AC_SUBST(udbservice,false)
    fi
 fi
 
@@ -760,6 +763,8 @@ src/plugins/query_capture/Makefile \
 src/plugins/query_capture/tests/Makefile \
 src/plugins/cf/Makefile \
 src/plugins/cf/tests/Makefile \
+src/plugins/udb_service/Makefile \
+src/plugins/udb_service/tests/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)
 
@@ -790,4 +795,5 @@ AC_MSG_NOTICE([Configured to build seeks:
  query capture:		  ${querycapture}
  URI capture:		  ${uricapture}
  Personalization:	  ${cf}
+ User DB service:         ${udbservice}
 ])
