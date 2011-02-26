@@ -32,9 +32,6 @@
 #include <sys/stat.h>
 #include <iostream>
 
-using sp::encode;
-using sp::errlog;
-
 namespace seeks_plugins
 {
 

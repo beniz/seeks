@@ -212,6 +212,25 @@ TEST(SREAPITest,query_halo_weight)
   ASSERT_TRUE(w2<w1);
 }
 
+TEST(SREAPITest,estimate_rank)
+{
+  simple_re sre;
+  vurl_data vd_url(uris[0],1);
+  vurl_data vd_host(uris[1],1);
+  search_snippet s;
+  float posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.3);
+  float posterior_check = ((log(2)+1) / (log(3) + 1)) * 0.3 * (log(2) + 1) / (log(3) + 1);
+  ASSERT_EQ(posterior_check,posterior);
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  ASSERT_EQ(posterior_check,posterior);
+  vd_url._hits = -1;
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  ASSERT_TRUE(posterior < 0.0);
+  vd_host._hits = -1;
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  ASSERT_TRUE(posterior < 0.0);
+}
+
 TEST_F(SRETest,recommend_urls)
 {
   static std::string lang = "en";
@@ -316,7 +335,7 @@ TEST_F(SRETest,thumb_down_url)
   delete dbqr;
 }
 
-//TODO: test estimate ranks.
+// test estimate ranks.
 TEST_F(SRETest,estimate_ranks)
 {
   static std::string lang = "en";

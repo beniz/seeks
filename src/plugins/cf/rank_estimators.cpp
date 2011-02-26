@@ -283,7 +283,7 @@ namespace seeks_plugins
     float q_vurl_hits[qdata.size()];
     while (hit!=qdata.end())
       {
-        q_vurl_hits[i++] = (*hit).second->vurls_total_hits();
+        q_vurl_hits[i++] = fabs((*hit).second->vurls_total_hits()); // normalization: avoid negative values.
         ++hit;
       }
     float sum_se_ranks = 0.0;
@@ -323,13 +323,16 @@ namespace seeks_plugins
           {
             float qpost = estimate_rank((*vit),filter.empty() ? NULL:&filter,ns,(*hit).second,
                                         q_vurl_hits[i++],url,host);
-            //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
-            //qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
-            qpost *= simple_re::query_halo_weight(query,(*hit).second->_query,(*hit).second->_radius,swl);
-            //qpost *= 1.0/(log(simple_re::query_distance(query,(*hit).second->_query,swl) + 1.0) + 1.0);
-            posteriors[j] += qpost; // boosting over similar queries.
+            if (qpost > 0.0)
+              {
+                //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
+                //qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
+                qpost *= simple_re::query_halo_weight(query,(*hit).second->_query,(*hit).second->_radius,swl);
+                //qpost *= 1.0/(log(simple_re::query_distance(query,(*hit).second->_query,swl) + 1.0) + 1.0);
+                posteriors[j] += qpost; // boosting over similar queries.
+                //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
+              }
 
-            //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
             ++hit;
           }
 
@@ -374,7 +377,8 @@ namespace seeks_plugins
     vurl_data *vd_host = qd->find_vurl(host);
 
     // compute rank.
-    return estimate_rank(s,filter,ns,vd_url,vd_host,total_hits);
+    return estimate_rank(s,filter,ns,vd_url,vd_host,total_hits,
+                         cf_configuration::_config->_domain_name_weight);
   }
 
   float simple_re::estimate_rank(search_snippet *s,
@@ -382,7 +386,8 @@ namespace seeks_plugins
                                  const int &ns,
                                  const vurl_data *vd_url,
                                  const vurl_data *vd_host,
-                                 const float &total_hits)
+                                 const float &total_hits,
+                                 const float &domain_name_weight)
   {
     float posterior = 0.0;
     bool filtered = false;
@@ -397,7 +402,7 @@ namespace seeks_plugins
     if (!vd_url || vd_url->_hits < 0 || filtered)
       {
         float num = (vd_url && vd_url->_hits < 0) ? vd_url->_hits : 1.0;
-        posterior = num / (log(total_hits + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
+        posterior = num / (log(fabs(total_hits) + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
         if (filtered && !s)
           {
             posterior = 0.0; // if no snippet support, filtered out. XXX: this may change in the long term.
@@ -405,7 +410,7 @@ namespace seeks_plugins
       }
     else
       {
-        posterior = (log(vd_url->_hits + 1.0) + 1.0)/ (log(total_hits + 1.0) + ns);
+        posterior = (log(vd_url->_hits + 1.0) + 1.0)/ (log(fabs(total_hits) + 1.0) + ns);
         if (s)
           {
             s->_personalized = true;
@@ -422,16 +427,16 @@ namespace seeks_plugins
     else filtered = false;
     if (filtered)
       {
-        posterior *= cf_configuration::_config->_domain_name_weight
-                     / (log(total_hits + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
+        posterior *= domain_name_weight
+                     / (log(fabs(total_hits) + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
         if (vd_host && !s)
           posterior = 0.0; // if no snippet support, filtered out. XXX: this may change in the long term.
       }
     else
       {
-        posterior *= cf_configuration::_config->_domain_name_weight
+        posterior *= domain_name_weight
                      * (log(vd_host->_hits + 1.0) + 1.0)
-                     / (log(total_hits + 1.0) + ns); // with domain-name weight factor.
+                     / (log(fabs(total_hits) + 1.0) + ns); // with domain-name weight factor.
         if (s && (!vd_url || vd_url->_hits > 0))
           s->_personalized = true;
       }
@@ -591,7 +596,8 @@ namespace seeks_plugins
             // we do not recommend hosts.
             if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now, also avoids pure hosts.
               {
-                posterior = estimate_rank(NULL,&filter,nvurls,vd,NULL,q_vurl_hits[i]);
+                posterior = estimate_rank(NULL,&filter,nvurls,vd,NULL,
+                                          q_vurl_hits[i],cf_configuration::_config->_domain_name_weight);
 
                 // level them down according to query radius.
                 //posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.

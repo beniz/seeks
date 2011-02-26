@@ -110,7 +110,8 @@ namespace seeks_plugins
                           const int &ns,
                           const vurl_data *vd_url,
                           const vurl_data *vd_host,
-                          const float &total_hits);
+                          const float &total_hits,
+                          const float &domain_name_weight);
 
       float estimate_prior(search_snippet *s,
                            const std::map<std::string,bool> *filter,
