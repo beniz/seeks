@@ -117,21 +117,24 @@ namespace sp
 
 #endif // defined(TC)
 
-#if defined(TT)
-
   /*- db_obj_remote -*/
   db_obj_remote::db_obj_remote(const std::string &host,
                                const int &port)
     :db_obj(),_host(host),_port(port)
   {
+#if defined(TT)
     _hdb = tcrdbnew();
+#endif
   }
 
   db_obj_remote::~db_obj_remote()
   {
+#if defined(TT)
     tcrdbdel(_hdb);
+#endif
   }
 
+#if defined(TT)
   int db_obj_remote::dbecode() const
   {
     return tcrdbecode(_hdb);
@@ -196,11 +199,10 @@ namespace sp
 
   //TODO: dbtune & dboptimize.
 
+#endif
   std::string db_obj_remote::get_name() const
   {
     return _host + ":" + miscutil::to_string(_port);
   }
-
-#endif
 
 } /* end of namespace. */

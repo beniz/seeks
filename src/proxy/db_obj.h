@@ -133,7 +133,6 @@ namespace sp
   };
 #endif
 
-#if defined (TT)
   class db_obj_remote : public db_obj
   {
     public:
@@ -142,6 +141,7 @@ namespace sp
 
       virtual ~db_obj_remote();
 
+#if defined (TT)
       virtual int dbecode() const;
 
       virtual const char* dberrmsg(int ecode) const;
@@ -175,6 +175,73 @@ namespace sp
       /* bool dbtune(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts);
 
          bool dboptimize(int64_t bnum, int8_t apow, int8_t fpow, uint8_t opts); */
+#else
+      virtual int dbecode() const
+      {
+        return 0;
+      };
+
+      virtual const char* dberrmsg(int ecode) const
+      {
+        return NULL;
+      };
+
+      virtual bool dbsetmutex()
+      {
+        return false;
+      }
+
+      virtual bool dbopen(int c=0)
+      {
+        return false;
+      };
+
+      virtual bool dbclose()
+      {
+        return false;
+      };
+
+      virtual bool dbput(const void *kbuf, int ksiz,
+                         const void *vbuf, int vsiz)
+      {
+        return false;
+      };
+
+      virtual void* dbget(const void *kbuf, int ksiz, int *sp)
+      {
+        return NULL;
+      };
+
+      virtual bool dbiterinit()
+      {
+        return false;
+      };
+
+      virtual void* dbiternext(int *sp)
+      {
+        return NULL;
+      };
+
+      virtual bool dbout2(const char *kstr)
+      {
+        return false;
+      };
+
+      virtual bool dbvanish()
+      {
+        return false;
+      };
+
+      virtual uint64_t dbfsiz() const
+      {
+        return 0;
+      };
+
+      virtual uint64_t dbrnum() const
+      {
+        return 0;
+      };
+#endif
 
       void set_host(const std::string &host)
       {
@@ -183,12 +250,13 @@ namespace sp
 
       virtual std::string get_name() const;
 
+#if defined(TT)
       TCRDB *_hdb; /**< Tokyo Tyrant remote db. */
+#endif
 
       std::string _host; // db host.
       int _port; // db port.
   };
-#endif
 
 } /* end of namespace. */
 
