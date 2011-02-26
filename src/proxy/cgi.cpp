@@ -2173,7 +2173,8 @@ namespace sp
     ip_address = NULL;
     if (!err) err = miscutil::add_map_entry(exports, "my-hostname",   1,
                                               encode::html_encode(hostname ? hostname : "unknown"), 0);
-    freez(hostname);
+    if (hostname)
+      freez(hostname);
     hostname = NULL;
     if (!err) err = miscutil::add_map_entry(exports, "homepage",      1, encode::html_encode(HOME_PAGE_URL), 0);
     if (!err) err = miscutil::add_map_entry(exports, "default-cgi",   1, encode::html_encode(CGI_PREFIX), 0);
