@@ -21,11 +21,12 @@
 namespace seeks_plugins
 {
 #define hash_domain_name_weight       1333166351ul  /* "domain-name-weight" */
+#define hash_record_cache_timeout     1954675964ul  /* "record-cache-timeout" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
   cf_configuration::cf_configuration(const std::string &filename)
-      :configuration_spec(filename)
+    :configuration_spec(filename)
   {
     load_config();
   }
@@ -37,6 +38,7 @@ namespace seeks_plugins
   void cf_configuration::set_default_config()
   {
     _domain_name_weight = 0.7;
+    _record_cache_timeout = 600; // 10 mins.
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -48,6 +50,12 @@ namespace seeks_plugins
         _domain_name_weight = atof(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Weight given to the domain names in the simple filter");
+        break;
+
+      case hash_record_cache_timeout:
+        _record_cache_timeout = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Timeout on cached remote records, in seconds");
         break;
 
       default:

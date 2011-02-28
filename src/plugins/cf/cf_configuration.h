@@ -43,6 +43,7 @@ namespace seeks_plugins
 
       // main options.
       float _domain_name_weight; /**< weight given to domain names. */
+      int _record_cache_timeout; /**< timeout on cached remote records, in seconds. */
 
       static cf_configuration *_config;
   };
