@@ -122,7 +122,7 @@ namespace seeks_plugins
     if (!queryp)
       return SP_ERR_CGI_PARAMS;
 
-    char *dec_urlp = encode::url_decode(urlp);
+    char *dec_urlp = encode::url_decode_but_not_plus(urlp);
     url = std::string(dec_urlp);
     free(dec_urlp);
     query = std::string(queryp);
