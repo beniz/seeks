@@ -45,6 +45,8 @@ namespace seeks_plugins
 {
 
   /*- rank_estimator -*/
+  cr_store rank_estimator::_store;
+
   void rank_estimator::fetch_query_data(const std::string &query,
                                         const std::string &lang,
                                         hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
@@ -99,7 +101,8 @@ namespace seeks_plugins
     while (hit!=features.end())
       {
         std::string key_str = (*hit).second.to_rstring();
-        db_record *dbr = udb->find_dbr(key_str,qc_str);
+        //db_record *dbr = udb->find_dbr(key_str,qc_str);
+        db_record *dbr = rank_estimator::find_dbr(udb,key_str,qc_str);
         if (dbr)
           {
             records.insert(std::pair<const DHTKey*,db_record*>(new DHTKey((*hit).second),dbr));
@@ -167,7 +170,8 @@ namespace seeks_plugins
                       }
 
                     std::string key_str = (*features.begin()).second.to_rstring();
-                    db_record *dbr_data = udb->find_dbr(key_str,qc_str);
+                    //db_record *dbr_data = udb->find_dbr(key_str,qc_str);
+                    db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str);
                     if (!dbr_data) // this should never happen.
                       {
                         errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
@@ -229,6 +233,27 @@ namespace seeks_plugins
         ++hit;
         delete qd;
       }
+  }
+
+  db_record* rank_estimator::find_dbr(user_db *udb, const std::string &key,
+                                      const std::string &plugin_name)
+  {
+    if (udb == seeks_proxy::_user_db) // local
+      return udb->find_dbr(key,plugin_name);
+
+    db_obj_remote *dorj = static_cast<db_obj_remote*>(udb->_hdb);
+    db_record *dbr = NULL;
+    std::string rkey = user_db::generate_rkey(key,plugin_name);
+    if (cf_configuration::_config->_record_cache_timeout > 0)
+      {
+        dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,rkey);
+        if (dbr)
+          return dbr;
+      }
+    dbr = udb->find_dbr(key,plugin_name);
+    if (dbr && cf_configuration::_config->_record_cache_timeout > 0)
+      rank_estimator::_store.add(dorj->_host,dorj->_port,rkey,dbr);
+    return dbr;
   }
 
   /*- simple_re -*/

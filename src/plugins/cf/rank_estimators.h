@@ -19,6 +19,7 @@
 #ifndef RANK_ESTIMATORS_H
 #define RANK_ESTIMATORS_H
 
+#include "cr_store.h"
 #include "search_snippet.h"
 #include "db_query_record.h"
 #include "stopwordlist.h"
@@ -72,6 +73,11 @@ namespace seeks_plugins
       static void destroy_records(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
 
       static void destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+
+      static db_record* find_dbr(user_db *udb, const std::string &key,
+                                 const std::string &plugin_name);
+
+      static cr_store _store;
   };
 
   class simple_re : public rank_estimator

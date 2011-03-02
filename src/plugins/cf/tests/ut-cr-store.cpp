@@ -21,6 +21,11 @@
 
 #include "cr_store.h"
 #include "seeks_proxy.h"
+#include "rank_estimators.h"
+#include "query_capture.h"
+#include "user_db.h"
+#include "plugin_manager.h"
+#include "proxy_configuration.h"
 
 using namespace seeks_plugins;
 using namespace sp;
@@ -56,7 +61,7 @@ TEST(CRTest,cr_cache)
   ASSERT_TRUE(crc->_records.empty());
 }
 
-TEST(CRTtest,cr_record)
+TEST(CRTest,cr_record)
 {
   cr_store crs;
   std::string key = "1645a6897e62417931f26bcbdf4687c9c026b626";
@@ -68,6 +73,69 @@ TEST(CRTtest,cr_record)
   ASSERT_TRUE(rec == rec_f);
   sweeper::sweep_all(); // delete cr and unregister from dust.
   ASSERT_TRUE(crs._store.empty());
+}
+
+TEST(CRTest,find_dbr)
+{
+  std::string dbfile = "seeks_test.db";
+  unlink(dbfile.c_str()); // just in case.
+  user_db udb(dbfile);
+  udb.open_db();
+  seeks_proxy::_user_db = &udb;
+
+  // load plugins.
+  std::string basedir = "../../../";
+  seeks_proxy::_basedir = basedir.c_str();
+  seeks_proxy::_configfile = basedir + "config";
+  seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
+  plugin_manager::_plugin_repository = basedir + "/plugins/";
+  plugin_manager::load_all_plugins();
+  plugin_manager::instanciate_plugins();
+
+  // access to plugins.
+  plugin *pl = plugin_manager::get_plugin("query-capture");
+  ASSERT_TRUE(NULL!=pl);
+  query_capture *qcpl = static_cast<query_capture*>(pl);
+  ASSERT_TRUE(NULL!=qcpl);
+  query_capture_element *qcelt = static_cast<query_capture_element*>(qcpl->_interceptor_plugin);
+
+  // add a record to the db.
+  std::string query = "seeks";
+  std::string url = "http://www.seeks-project.info/";
+  std::string host,path;
+  query_capture::process_url(url,host,path);
+  try
+    {
+      qcelt->store_queries(query,url,host,"query-capture");
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+
+  // test find_dbr based on cr_store.
+  seeks_proxy::_user_db = NULL;
+  std::string key = "1645a6897e62417931f26bcbdf4687c9c026b626";
+  db_record *dbr = rank_estimator::find_dbr(&udb,key,"query-capture");
+  ASSERT_TRUE(NULL!=dbr);
+  db_query_record *dqr = dynamic_cast<db_query_record*>(dbr);
+  ASSERT_TRUE(NULL!=dqr);
+  ASSERT_EQ(1,dqr->_related_queries.size());
+  query_data *qd = (*dqr->_related_queries.begin()).second;
+  ASSERT_TRUE(NULL!=qd);
+  ASSERT_EQ("seeks",qd->_query);
+  ASSERT_EQ(2,qd->_visited_urls->size());
+  db_record *dbr2 = rank_estimator::find_dbr(&udb,key,"query-capture");
+  ASSERT_EQ(dbr,dbr2);
+  ASSERT_EQ(1,rank_estimator::_store._store.size());
+
+  // clear all.
+  sweeper::sweep_all();
+
+  udb.close_db();
+  plugin_manager::close_all_plugins();
+  delete seeks_proxy::_config;
+  unlink(dbfile.c_str());
 }
 
 int main(int argc, char **argv)
