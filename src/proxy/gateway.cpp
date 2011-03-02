@@ -4,7 +4,7 @@
  *                or SOCKS5 proxy).
  *
  * Copyright   :  Modified by Emmanuel Benazera for the Seeks Project,
- *                2009.
+ *                2009,2010,2011.
  *
  *                Written by and Copyright (C) 2001-2009 the SourceForge
  *                Privoxy team. http://www.privoxy.org/
@@ -51,6 +51,7 @@
 #include <winsock2.h>
 #endif /* def _WIN32 */
 
+#include "mem_utils.h"
 #include "proxy_dts.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
