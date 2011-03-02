@@ -3,3 +3,8 @@
 # to hold good / interesting URL (wrt. content).
 # default: 0.3
 domain-name-weight 0.3
+
+# Timeout on cached remote records, in seconds.
+# 0 means no cache at all.
+# default: 600
+record-cache-timeout 600
