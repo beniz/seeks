@@ -38,6 +38,14 @@ namespace seeks_plugins
 
       virtual ~rank_estimator() {};
 
+      virtual void personalize(const std::string &query,
+                               const std::string &lang,
+                               std::vector<search_snippet*> &snippets,
+                               std::multimap<double,std::string,std::less<double> > &related_queries,
+                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                               const std::string &host="",
+                               const int &port=-1) throw (sp_exception) {};
+
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
                                   std::vector<search_snippet*> &snippets,
@@ -87,17 +95,38 @@ namespace seeks_plugins
 
       virtual ~simple_re();
 
+      virtual void personalize(const std::string &query,
+                               const std::string &lang,
+                               std::vector<search_snippet*> &snippets,
+                               std::multimap<double,std::string,std::less<double> > &related_queries,
+                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                               const std::string &host="",
+                               const int &port=-1) throw (sp_exception);
+
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
                                   std::vector<search_snippet*> &snippets,
                                   const std::string &host="",
                                   const int &port=-1) throw (sp_exception);
 
+      void estimate_ranks(const std::string &query,
+                          const std::string &lang,
+                          std::vector<search_snippet*> &snippets,
+                          hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
+                          std::map<std::string,bool> *filter);
+
+
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
                                   hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                   const std::string &host="",
                                   const int &port=-1) throw (sp_exception);
+
+      void recommend_urls(const std::string &query,
+                          const std::string &lang,
+                          hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
+                          hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
+                          std::map<std::string,bool> *filter);
 
       virtual void thumb_down_url(const std::string &query,
                                   const std::string &lang,
@@ -137,7 +166,7 @@ namespace seeks_plugins
       static float query_halo_weight(const std::string &q1, const std::string &q2,
                                      const uint32_t &q2_radius, const stopwordlist *swl=NULL);
 
-      static void build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+      static void build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
                                   std::map<std::string,bool> &filter);
   };
 

@@ -45,6 +45,14 @@ namespace seeks_plugins
       static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                         std::string &url, std::string &query, std::string &lang);
 
+      void personalize(const std::string &query,
+                       const std::string &lang,
+                       std::vector<search_snippet*> &snippets,
+                       std::multimap<double,std::string,std::less<double> > &related_queries,
+                       hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                       const std::string &host="",
+                       const int &port=-1) throw (sp_exception);
+
       void estimate_ranks(const std::string &query,
                           const std::string &lang,
                           std::vector<search_snippet*> &snippets,

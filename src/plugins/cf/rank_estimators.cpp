@@ -266,30 +266,14 @@ namespace seeks_plugins
   {
   }
 
-  void simple_re::estimate_ranks(const std::string &query,
-                                 const std::string &lang,
-                                 std::vector<search_snippet*> &snippets,
-                                 const std::string &host,
-                                 const int &port) throw (sp_exception)
+  void simple_re::personalize(const std::string &query,
+                              const std::string &lang,
+                              std::vector<search_snippet*> &snippets,
+                              std::multimap<double,std::string,std::less<double> > &related_queries,
+                              hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                              const std::string &host,
+                              const int &port) throw (sp_exception)
   {
-    // get stop word list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-
-    // fetch records from user DB.
-    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-      rank_estimator::fetch_user_db_record(query,records);*/
-
-    //std::cerr << "[estimate_ranks]: number of fetched records: " << records.size() << std::endl;
-
-    // extract queries.
-    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-      rank_estimator::extract_queries(query,lang,records,qdata);*/
-
-    //std::cerr << "[estimate_ranks]: number of extracted queries: " << qdata.size() << std::endl;
-
-    // destroy records.
-    //rank_estimator::destroy_records(records);
-
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
@@ -301,12 +285,62 @@ namespace seeks_plugins
         throw e;
       }
 
+    // build up the filter.
+    std::map<std::string,bool> filter;
+    simple_re::build_up_filter(&qdata,filter);
+
+    // rank, urls & queries.
+    estimate_ranks(query,lang,snippets,&qdata,&filter);
+    recommend_urls(query,lang,reco_snippets,&qdata,&filter);
+    query_recommender::recommend_queries(query,lang,related_queries,&qdata);
+
+    // destroy query data.
+    rank_estimator::destroy_query_data(qdata);
+  }
+
+  void simple_re::estimate_ranks(const std::string &query,
+                                 const std::string &lang,
+                                 std::vector<search_snippet*> &snippets,
+                                 const std::string &host,
+                                 const int &port) throw (sp_exception)
+  {
+    // fetch queries from user DB.
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    try
+      {
+        rank_estimator::fetch_query_data(query,lang,qdata,host,port);
+      }
+    catch(sp_exception &e)
+      {
+        throw e;
+      }
+
+    // build up the filter.
+    std::map<std::string,bool> filter;
+    simple_re::build_up_filter(&qdata,filter);
+
+    // estimate ranks.
+    estimate_ranks(query,lang,snippets,&qdata,&filter);
+
+    // destroy query data.
+    rank_estimator::destroy_query_data(qdata);
+  }
+
+  void simple_re::estimate_ranks(const std::string &query,
+                                 const std::string &lang,
+                                 std::vector<search_snippet*> &snippets,
+                                 hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
+                                 std::map<std::string,bool> *filter)
+  {
+    // get stop word list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+
     // gather normalizing values.
     int i = 0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
-    = qdata.begin();
-    float q_vurl_hits[qdata.size()];
-    while (hit!=qdata.end())
+    = qdata->begin();
+    float q_vurl_hits[qdata->size()];
+    while (hit!=qdata->end())
       {
         q_vurl_hits[i++] = fabs((*hit).second->vurls_total_hits()); // normalization: avoid negative values.
         ++hit;
@@ -324,10 +358,6 @@ namespace seeks_plugins
     if (cf::_uc_plugin)
       nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
 
-    // build up the filter.
-    std::map<std::string,bool> filter;
-    simple_re::build_up_filter(qdata,filter);
-
     // estimate each URL's rank.
     int j = 0;
     size_t ns = snippets.size();
@@ -343,10 +373,10 @@ namespace seeks_plugins
 
         i = 0;
         posteriors[j] = 0.0;
-        hit = qdata.begin();
-        while (hit!=qdata.end())
+        hit = qdata->begin();
+        while (hit!=qdata->end())
           {
-            float qpost = estimate_rank((*vit),filter.empty() ? NULL:&filter,ns,(*hit).second,
+            float qpost = estimate_rank((*vit),filter->empty() ? NULL:filter,ns,(*hit).second,
                                         q_vurl_hits[i++],url,host);
             if (qpost > 0.0)
               {
@@ -365,7 +395,7 @@ namespace seeks_plugins
         float prior = 1.0;
         if (nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB
             && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enought competition on domains.
-          prior = estimate_prior((*vit),filter.empty() ? NULL:&filter,url,host,nuri);
+          prior = estimate_prior((*vit),filter->empty() ? NULL:filter,url,host,nuri);
         posteriors[j] *= prior;
 
         //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
@@ -384,9 +414,6 @@ namespace seeks_plugins
             //std::cerr << "url: " << snippets.at(k)->_url << " -- seeks_rank: " << snippets.at(k)->_seeks_rank << std::endl;
           }
       }
-
-    // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
   }
 
   float simple_re::estimate_rank(search_snippet *s,
@@ -541,24 +568,6 @@ namespace seeks_plugins
                                  const std::string &host,
                                  const int &port) throw (sp_exception)
   {
-    // get stop word list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-
-    // fetch records from user DB.
-    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-      rank_estimator::fetch_user_db_record(query,records);*/
-
-    //std::cerr << "[recommend_urls]: number of fetched records: " << records.size() << std::endl;
-
-    // extract queries.
-    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-      rank_estimator::extract_queries(query,lang,records,qdata);*/
-
-    //std::cerr << "[recommend_urls]: number of extracted queries: " << qdata.size() << std::endl;
-
-    // destroy records.
-    //rank_estimator::destroy_records(records);
-
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
@@ -570,14 +579,34 @@ namespace seeks_plugins
         throw e;
       }
 
+    // build up the filter.
+    std::map<std::string,bool> filter;
+    simple_re::build_up_filter(&qdata,filter);
+
+    // urls.
+    recommend_urls(query,lang,snippets,&qdata,&filter);
+
+    // destroy query data.
+    rank_estimator::destroy_query_data(qdata);
+  }
+
+  void simple_re::recommend_urls(const std::string &query,
+                                 const std::string &lang,
+                                 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
+                                 hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
+                                 std::map<std::string,bool> *filter)
+  {
+    // get stop word list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+
     // gather normalizing values.
     int nvurls = 1.0;
     int i = 0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
-    = qdata.begin();
-    float q_vurl_hits[qdata.size()];
-    while (hit!=qdata.end())
+    = qdata->begin();
+    float q_vurl_hits[qdata->size()];
+    while (hit!=qdata->end())
       {
         int vhits = (*hit).second->vurls_total_hits();
         q_vurl_hits[i++] = vhits;
@@ -591,13 +620,9 @@ namespace seeks_plugins
     if (cf::_uc_plugin)
       nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
 
-    // build up the filter.
-    std::map<std::string,bool> filter;
-    simple_re::build_up_filter(qdata,filter);
-
     // look for URLs to recommend.
-    hit = qdata.begin();
-    while(hit!=qdata.end())
+    hit = qdata->begin();
+    while(hit!=qdata->end())
       {
         query_data *qd = (*hit).second;
         if (!qd->_visited_urls)
@@ -621,7 +646,7 @@ namespace seeks_plugins
             // we do not recommend hosts.
             if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now, also avoids pure hosts.
               {
-                posterior = estimate_rank(NULL,&filter,nvurls,vd,NULL,
+                posterior = estimate_rank(NULL,filter,nvurls,vd,NULL,
                                           q_vurl_hits[i],cf_configuration::_config->_domain_name_weight);
 
                 // level them down according to query radius.
@@ -651,9 +676,6 @@ namespace seeks_plugins
         ++i;
         ++hit;
       }
-
-    // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::thumb_down_url(const std::string &query,
@@ -661,17 +683,6 @@ namespace seeks_plugins
                                  const std::string &url) throw (sp_exception)
   {
     static std::string qc_string = "query-capture";
-
-    // fetch records from user DB.
-    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-      rank_estimator::fetch_user_db_record(query,records);*/
-
-    // extract queries.
-    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-      rank_estimator::extract_queries(query,lang,records,qdata);*/
-
-    // destroy records.
-    //rank_estimator::destroy_records(records);
 
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
@@ -822,11 +833,11 @@ namespace seeks_plugins
     return log(1.0 + std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
   }
 
-  void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+  void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
                                   std::map<std::string,bool> &filter)
   {
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit = qdata.begin();
-    while(hit!=qdata.end())
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit = qdata->begin();
+    while(hit!=qdata->end())
       {
         query_data *qd = (*hit).second;
         if (qd->_radius == 0)

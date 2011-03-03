@@ -64,29 +64,6 @@ namespace seeks_plugins
       const std::string &host,
       const int &port) throw (sp_exception)
   {
-    // get stop word list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-
-    // fetch records from user db.
-    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-      rank_estimator::fetch_user_db_record(query,records);*/
-
-    // aggregate related queries.
-    /*hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-      rank_estimator::extract_queries(query,lang,records,qdata);*/
-
-    // destroy records.
-    /*hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
-    while (rit!=records.end())
-      {
-        db_record *dbr = (*rit).second;
-        crit = rit;
-        ++rit;
-        delete dbr;
-        delete (*crit).first;
-    	}*/
-
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
@@ -98,6 +75,20 @@ namespace seeks_plugins
         throw e;
       }
 
+    query_recommender::recommend_queries(query,lang,related_queries,&qdata);
+
+    // destroy query data.
+    rank_estimator::destroy_query_data(qdata);
+  }
+
+  void query_recommender::recommend_queries(const std::string &query,
+      const std::string &lang,
+      std::multimap<double,std::string,std::less<double> > &related_queries,
+      hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata)
+  {
+    // get stop word list.
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+
     // clean query.
     std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);
@@ -107,8 +98,8 @@ namespace seeks_plugins
     hash_map<const char*,double,hash<const char*>,eqstr> update;
     hash_map<const char*,double,hash<const char*>,eqstr>::iterator uit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
-    = qdata.begin();
-    while(hit!=qdata.end())
+    = qdata->begin();
+    while(hit!=qdata->end())
       {
         std::string rquery = (*hit).second->_query;
         rquery = query_capture_element::no_command_query(rquery);
@@ -130,17 +121,6 @@ namespace seeks_plugins
 
     // merging.
     query_recommender::merge_recommended_queries(related_queries,update);
-
-    // destroy query data.
-    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
-    hit = qdata.begin();
-    while (hit!=qdata.end())
-      {
-        query_data *qd = (*hit).second;
-        chit = hit;
-        ++hit;
-        delete qd;
-      }
   }
 
   void query_recommender::merge_recommended_queries(std::multimap<double,std::string,std::less<double> > &related_queries,

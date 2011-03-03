@@ -145,6 +145,18 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
+  void cf::personalize(const std::string &query,
+                       const std::string &lang,
+                       std::vector<search_snippet*> &snippets,
+                       std::multimap<double,std::string,std::less<double> > &related_queries,
+                       hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                       const std::string &host,
+                       const int &port) throw (sp_exception)
+  {
+    simple_re sre;
+    sre.personalize(query,lang,snippets,related_queries,reco_snippets,host,port);
+  }
+
   void cf::estimate_ranks(const std::string &query,
                           const std::string &lang,
                           std::vector<search_snippet*> &snippets,
