@@ -26,7 +26,7 @@ websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
 				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
-				   se_parser_twitter.cpp se_parser_youtube.cpp se_parser_dailymotion.cpp \
+				   se_parser_twitter.cpp se_parser_osearch.cpp se_parser_youtube.cpp se_parser_dailymotion.cpp \
 			           query_interceptor.cpp websearch_configuration.cpp \
 				   se_parser_yauba.cpp se_parser_blekko.cpp\
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
@@ -34,9 +34,9 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h json_renderer_private.h oskmeans.h \
 				   query_context.h query_interceptor.h search_snippet.h se_handler.h se_parser_bing.h \
 				   se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
-	                           se_parser_youtube.h se_parser_dailymotion.h se_parser_yauba.h se_parser_twitter.h\
+	                           se_parser_youtube.h se_parser_dailymotion.h se_parser_yauba.h se_parser_twitter.h se_parser_osearch.h \
 				   se_parser_blekko.h se_query.h sort_rank.h static_renderer.h websearch_configuration.h websearch.h \
-	                           dynamic_renderer.h wb_err.h
+	                           dynamic_renderer.h wb_err.h 
 libseekswebsearchplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ @LCOV_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL

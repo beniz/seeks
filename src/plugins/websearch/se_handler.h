@@ -36,7 +36,7 @@ namespace seeks_plugins
   class search_snippet;
   class query_context;
 
-#define NSEs 12  // number of supported search engines.
+#define NSEs 13  // number of supported search engines.
 
 #ifndef ENUM_SE
 #define ENUM_SE
@@ -49,6 +49,7 @@ namespace seeks_plugins
     EXALEAD,
     GOOGLE,
     IDENTICA,
+    OPENSEARCH,
     SEEKS,
     TWITTER,
     YAHOO,
