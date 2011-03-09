@@ -30,7 +30,7 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   se_parser_yahoo::se_parser_yahoo()
-    :_start_results(false),_begin_results(false),_title_flag(false),
+    :se_parser(),_start_results(false),_begin_results(false),_title_flag(false),
      _summary_flag(false)
   {
 
