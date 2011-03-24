@@ -453,7 +453,9 @@ namespace json_renderer_private
   {
     /*- query info. -*/
     // query.
-    results.push_back("\"query\":\"" + qc->_query + "\"");
+    std::string escaped_query = qc->_query;
+    miscutil::replace_in_string(escaped_query,"\"","\\\"");
+    results.push_back("\"query\":\"" + escaped_query + "\"");
 
     // language.
     results.push_back("\"lang\":\"" + qc->_auto_lang + "\"");
