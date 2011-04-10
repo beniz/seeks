@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
   //std::cout << "buffer: " << buffer << std::endl;
 
-  se_parser_ggle spg;
+  se_parser_ggle spg("");
   std::vector<search_snippet*> snippets;
   spg.parse_output(buffer, &snippets, 0);
 

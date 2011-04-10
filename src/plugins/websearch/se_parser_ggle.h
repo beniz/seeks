@@ -27,7 +27,7 @@ namespace seeks_plugins
   class se_parser_ggle : public se_parser
   {
     public:
-      se_parser_ggle();
+      se_parser_ggle(const std::string &url);
 
       ~se_parser_ggle();
 

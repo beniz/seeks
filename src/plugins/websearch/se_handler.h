@@ -20,6 +20,7 @@
 #define SE_HANDLER_H
 
 #include "wb_err.h"
+#include "feeds.h"
 #include "sp_exception.h"
 #include "seeks_proxy.h"
 
@@ -36,10 +37,10 @@ namespace seeks_plugins
   class search_snippet;
   class query_context;
 
-#define NSEs 13  // number of supported search engines.
+  /*#define NSEs 13  // number of supported search engines.
 
-#ifndef ENUM_SE
-#define ENUM_SE
+  #ifndef ENUM_SE
+  #define ENUM_SE
   enum SE  // in alphabetical order.
   {
     BING,
@@ -56,7 +57,7 @@ namespace seeks_plugins
     YAUBA,
     YOUTUBE
   };
-#endif
+  #endif*/
 
   class search_engine
   {
@@ -70,14 +71,13 @@ namespace seeks_plugins
       /*- variables. -*/
       std::string _description;
       bool _anonymous;  // false by default.
-      hash_map<const char*,const char*,hash<const char*>,eqstr> *_param_translation;
   };
 
   // arguments to a threaded parser.
   struct ps_thread_arg
   {
     ps_thread_arg()
-      :_se((SE)0),_output(NULL),_snippets(NULL),_qr(NULL),_err(SP_ERR_OK)
+      :_output(NULL),_snippets(NULL),_qr(NULL),_err(SP_ERR_OK)
     {
     };
 
@@ -87,7 +87,7 @@ namespace seeks_plugins
       // we do delete snippets outside the destructor (depends on whether we're using threads).
     };
 
-    int _se; // search engine (ggle, bing, ...).
+    feed_parser _se; // search engine (ggle, bing, ...).
     char *_output; // page content, to be parsed into snippets.
     std::vector<search_snippet*> *_snippets; // websearch result snippets.
     int _offset; // offset to snippets rank (when asking page x, with x > 1).
@@ -204,27 +204,27 @@ namespace seeks_plugins
 
       /*-- querying the search engines. --*/
       static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                        int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled) throw (sp_exception);
+                                        int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception);
 
       static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                              const SE &se, std::string &url, const query_context *qc,
+                              const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
                               std::list<const char*> *&lheaders);
 
-      static void set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses);
+      //static void set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses);
 
       /*-- parsing --*/
-      static se_parser* create_se_parser(const SE &se);
+      static se_parser* create_se_parser(const feed_parser &se);
 
       static void parse_ses_output(std::string **outputs, const int &nresults,
                                    std::vector<search_snippet*> &snippets,
                                    const int &count_offset,
-                                   query_context *qr, const std::bitset<NSEs> &se_enabled);
+                                   query_context *qr, const feeds &se_enabled);
 
       static void parse_output(ps_thread_arg &args);
 
       /*-- variables. --*/
     public:
-      static std::string _se_strings[NSEs];
+      //static std::string _se_strings[NSEs];
 
       /* search engine objects. */
       static se_ggle _ggle;

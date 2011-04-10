@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   ifs.read (buffer, length);
   ifs.close();
 
-  html_txt_parser htp;
+  html_txt_parser htp("");
   htp.parse_output(buffer,NULL,0);
 
   std::cout << htp.get_txt_nocopy() << std::endl;

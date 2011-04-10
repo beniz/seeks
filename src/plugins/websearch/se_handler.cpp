@@ -48,7 +48,7 @@ namespace seeks_plugins
 {
   /*- search_engine & derivatives. -*/
   search_engine::search_engine()
-    :_description(""),_anonymous(false),_param_translation(NULL)
+    :_description(""),_anonymous(false)
   {
   }
 
@@ -69,7 +69,7 @@ namespace seeks_plugins
   void se_ggle::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                             std::string &url, const query_context *qc)
   {
-    std::string q_ggle = se_handler::_se_strings[GOOGLE]; // query to ggle.
+    std::string q_ggle = url;//se_handler::_se_strings[GOOGLE]; // query to ggle.
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -116,7 +116,7 @@ namespace seeks_plugins
   void se_bing::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                             std::string &url, const query_context *qc)
   {
-    std::string q_bing = se_handler::_se_strings[BING]; // query to bing.
+    std::string q_bing = url;//se_handler::_se_strings[BING]; // query to bing.
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -156,7 +156,7 @@ namespace seeks_plugins
   void se_yahoo::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                              std::string &url, const query_context *qc)
   {
-    std::string q_yahoo = se_handler::_se_strings[YAHOO];
+    std::string q_yahoo = url;//se_handler::_se_strings[YAHOO];
     const char *query = miscutil::lookup(parameters,"q");
 
     // page.
@@ -193,7 +193,7 @@ namespace seeks_plugins
   void se_exalead::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                std::string &url, const query_context *qc)
   {
-    std::string q_exa = se_handler::_se_strings[EXALEAD];
+    std::string q_exa = url;//se_handler::_se_strings[EXALEAD];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -236,7 +236,7 @@ namespace seeks_plugins
   void se_twitter::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                std::string &url, const query_context *qc)
   {
-    std::string q_twit = se_handler::_se_strings[TWITTER];
+    std::string q_twit = url;//se_handler::_se_strings[TWITTER];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -274,7 +274,7 @@ namespace seeks_plugins
   void se_identica::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                 std::string &url, const query_context *qc)
   {
-    std::string q_dent = se_handler::_se_strings[IDENTICA];
+    std::string q_dent = url;//se_handler::_se_strings[IDENTICA];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -312,7 +312,7 @@ namespace seeks_plugins
   void se_youtube::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                std::string &url, const query_context *qc)
   {
-    std::string q_yt = se_handler::_se_strings[YOUTUBE];
+    std::string q_yt = url;//se_handler::_se_strings[YOUTUBE];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -350,7 +350,7 @@ namespace seeks_plugins
   void se_blekko::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                               std::string &url, const query_context *qc)
   {
-    std::string q_blekko = se_handler::_se_strings[BLEKKO];
+    std::string q_blekko = url;//se_handler::_se_strings[BLEKKO];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -385,7 +385,7 @@ namespace seeks_plugins
   {
     static std::string lang[8][2] = {{"it","it"},{"fr","fr"},{"de","de"},{"hi","in"}, {"pt","br"}, {"br","br"},{"ru","ru"}, {"zh","cn"}};
 
-    std::string q_yau = se_handler::_se_strings[YAUBA];
+    std::string q_yau = url;//se_handler::_se_strings[YAUBA];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -432,7 +432,7 @@ namespace seeks_plugins
   void se_dailymotion::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
   std::string &url, const query_context *qc)
   {
-    std::string q_dm = se_handler::_se_strings[DAILYMOTION];
+    std::string q_dm = url;//se_handler::_se_strings[DAILYMOTION];
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -454,7 +454,7 @@ namespace seeks_plugins
   }
 
   /*- se_handler. -*/
-  std::string se_handler::_se_strings[NSEs] =  // in alphabetical order.
+  /*std::string se_handler::_se_strings[NSEs] =  // in alphabetical order.
   {
     // bing: www.bing.com/search?q=markov+chain&go=&form=QBLH&filt=all
     "http://www.bing.com/search?q=%query&first=%start&mkt=%lang",
@@ -482,7 +482,7 @@ namespace seeks_plugins
     "http://%lang.yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y",
     // http://gdata.youtube.com/feeds/base/videos?q=sax roll&client=ytapi-youtube-search&alt=rss&v=2
     "http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num"
-  };
+    };*/
 
   se_ggle se_handler::_ggle = se_ggle();
   se_bing se_handler::_bing = se_bing();
@@ -530,30 +530,38 @@ namespace seeks_plugins
 
   /*-- queries to the search engines. */
   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                         int &nresults, const query_context *qc, const std::bitset<NSEs> &se_enabled) throw (sp_exception)
+  int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception)
   {
     std::vector<std::string> urls;
-    urls.reserve(NSEs);
+    urls.reserve(se_enabled.size());
+    //urls.reserve(NSEs);
     std::vector<std::list<const char*>*> headers;
-    headers.reserve(NSEs);
+    headers.reserve(se_enabled.size());
+    //headers.reserve(NSEs);
 
     // enabling of SEs.
-    for (int i=0; i<NSEs; i++)
+    /*for (int i=0; i<NSEs; i++)
       {
         if (se_enabled[i])
+    	{*/
+    std::set<feed_parser,feed_parser::lxn>::iterator it
+    = se_enabled._feedset.begin();
+    while(it!=se_enabled._feedset.end())
+      {
+        std::vector<std::string> all_urls;
+        std::list<const char*> *lheaders = NULL;
+        se_handler::query_to_se(parameters,(*it),all_urls,qc,lheaders);
+        for (size_t j=0; j<all_urls.size(); j++)
           {
-            std::string url;
-            std::list<const char*> *lheaders = NULL;
-            se_handler::query_to_se(parameters,(SE)i,url,qc,lheaders);
-            urls.push_back(url);
+            urls.push_back(all_urls.at(j));
             headers.push_back(lheaders);
           }
+        ++it;
       }
 
     if (urls.empty())
       {
         nresults = 0;
-        //return NULL; // beware.
         throw sp_exception(WB_ERR_NO_ENGINE,"no engine enabled to forward query to");
       }
     else nresults = urls.size();
@@ -565,15 +573,15 @@ namespace seeks_plugins
 
     // get content.
     curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-                  websearch::_wconfig->_se_connect_timeout,0);
+    websearch::_wconfig->_se_connect_timeout,0);
     mutex_lock(&_curl_mutex);
     if (websearch::_wconfig->_background_proxy_addr.empty())
       cmg.www_mget(urls,urls.size(),&headers,
-                   "",0,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
+      "",0,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
     else cmg.www_mget(urls,urls.size(),&headers,
-                        websearch::_wconfig->_background_proxy_addr,
-                        websearch::_wconfig->_background_proxy_port,
-                        &se_handler::_curl_handlers);
+      websearch::_wconfig->_background_proxy_addr,
+      websearch::_wconfig->_background_proxy_port,
+      &se_handler::_curl_handlers);
     mutex_unlock(&_curl_mutex);
 
     std::string **outputs = new std::string*[urls.size()];
@@ -608,8 +616,8 @@ namespace seeks_plugins
   }
 
   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                               const SE &se, std::string &url, const query_context *qc,
-                               std::list<const char*> *&lheaders)
+  const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
+  std::list<const char*> *&lheaders)
   {
     lheaders = new std::list<const char*>();
 
@@ -621,114 +629,103 @@ namespace seeks_plugins
         ++sit;
       }
 
-    switch (se)
-      {
-      case GOOGLE:
-        _ggle.query_to_se(parameters,url,qc);
-        break;
-      case BING:
-        _bing.query_to_se(parameters,url,qc);
-        break;
-      case YAHOO:
-        _yahoo.query_to_se(parameters,url,qc);
-        break;
-      case EXALEAD:
-        _exalead.query_to_se(parameters,url,qc);
-        break;
-      case TWITTER:
-        _twitter.query_to_se(parameters,url,qc);
-        break;
-      case IDENTICA:
-        _identica.query_to_se(parameters,url,qc);
-        break;
-      case YOUTUBE:
-        _youtube.query_to_se(parameters,url,qc);
-        break;
-      case YAUBA:
-        _yauba.query_to_se(parameters,url,qc);
-        break;
-      case BLEKKO:
-        _blekko.query_to_se(parameters,url,qc);
-        break;
-      case DAILYMOTION:
-        _dailym.query_to_se(parameters,url,qc);
-        break;
-      case SEEKS:
-        break;
-      case DUMMY:
-        break;
-      }
+    std::string url = se.get_url(); //TODO: handle multiple urls.
+    if (se._name == "google")
+      _ggle.query_to_se(parameters,url,qc);
+    else if (se._name == "bing")
+      _bing.query_to_se(parameters,url,qc);
+    else if (se._name == "yahoo")
+      _yahoo.query_to_se(parameters,url,qc);
+    else if (se._name == "exalead")
+      _exalead.query_to_se(parameters,url,qc);
+    else if (se._name == "twitter")
+      _twitter.query_to_se(parameters,url,qc);
+    else if (se._name == "identica")
+      _identica.query_to_se(parameters,url,qc);
+    else if (se._name == "youtube")
+      _youtube.query_to_se(parameters,url,qc);
+    else if (se._name == "yauba")
+      _yauba.query_to_se(parameters,url,qc);
+    else if (se._name == "blekko")
+      _blekko.query_to_se(parameters,url,qc);
+    else if (se._name == "dailymotion")
+      _dailym.query_to_se(parameters,url,qc);
+    else if (se._name == "seeks")
+      {}
+    else if (se._name == "dummy")
+      {}
+    all_urls.push_back(url);
   }
 
-  void se_handler::set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses)
+  /*void se_handler::set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses)
   {
     int msize = std::min((int)ses.size(),NSEs);
     for (int i=0; i<msize; i++)
       {
-        std::string se = ses.at(i);
+      std::string se = ses.at(i);*/
 
-        /* put engine name into lower cases. */
-        std::transform(se.begin(),se.end(),se.begin(),tolower);
+  /* put engine name into lower cases. */
+  /*std::transform(se.begin(),se.end(),se.begin(),tolower);
 
-        if (se == "google")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-          }
-        else if (se == "bing")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_BING);
-          }
-        else if (se == "yahoo")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_YAHOO);
-          }
-        else if (se == "exalead")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
-          }
-        else if (se == "twitter")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_TWITTER);
-          }
-        else if (se == "identica")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
-          }
-        else if (se == "youtube")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
-          }
-        else if (se == "yauba")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_YAUBA);
-          }
-        else if (se == "blekko")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
-          }
-        else if (se == "dailymotion")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
-          }
-        else if (se == "dummy")
-          {
-            se_enabled |= std::bitset<NSEs>(SE_DUMMY);
-          }
-      }
-  }
+  if (se == "google")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
+    }
+  else if (se == "bing")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_BING);
+    }
+  else if (se == "yahoo")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_YAHOO);
+    }
+  else if (se == "exalead")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
+    }
+  else if (se == "twitter")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_TWITTER);
+    }
+  else if (se == "identica")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
+    }
+  else if (se == "youtube")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
+    }
+  else if (se == "yauba")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_YAUBA);
+    }
+  else if (se == "blekko")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
+    }
+  else if (se == "dailymotion")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
+    }
+  else if (se == "dummy")
+    {
+      se_enabled |= std::bitset<NSEs>(SE_DUMMY);
+    }
+        }
+        } */
 
   /*-- parsing. --*/
   void se_handler::parse_ses_output(std::string **outputs, const int &nresults,
-                                    std::vector<search_snippet*> &snippets,
-                                    const int &count_offset,
-                                    query_context *qr,
-                                    const std::bitset<NSEs> &se_enabled)
+  std::vector<search_snippet*> &snippets,
+  const int &count_offset,
+  query_context *qr,
+  const feeds &se_enabled)
   {
     // use multiple threads unless told otherwise.
     int j = 0;
     if (seeks_proxy::_config->_multi_threaded)
       {
-        size_t active_ses = se_enabled.count();
+        size_t active_ses = se_enabled.size();//se_enabled.count();
         pthread_t parser_threads[active_ses];
         ps_thread_arg* parser_args[active_ses];
         for (size_t i=0; i<active_ses; i++)
@@ -736,36 +733,37 @@ namespace seeks_plugins
 
         // threads, one per parser.
         int k = 0;
-        for (int i=0; i<NSEs; i++)
+        //for (int i=0; i<NSEs; i++)
+        std::set<feed_parser,feed_parser::lxn>::iterator it
+        = se_enabled._feedset.begin();
+        while(it!=se_enabled._feedset.end())
           {
-            if (se_enabled[i])
+            if (outputs[j])
               {
-                if (outputs[j])
-                  {
-                    ps_thread_arg *args = new ps_thread_arg();
-                    args->_se = (SE)i;
-                    args->_output = (char*) outputs[j]->c_str();  // XXX: sad cast.
-                    args->_snippets = new std::vector<search_snippet*>();
-                    args->_offset = count_offset;
-                    args->_qr = qr;
-                    parser_args[k] = args;
+                ps_thread_arg *args = new ps_thread_arg();
+                args->_se = (*it);
+                args->_output = (char*) outputs[j]->c_str();  // XXX: sad cast.
+                args->_snippets = new std::vector<search_snippet*>();
+                args->_offset = count_offset;
+                args->_qr = qr;
+                parser_args[k] = args;
 
-                    pthread_t ps_thread;
-                    int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
-                                             (void * (*)(void *))se_handler::parse_output, args);
-                    if (err != 0)
-                      {
-                        errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
-                        parser_threads[k++] = 0;
-                        delete args;
-                        parser_args[k] = NULL;
-                        continue;
-                      }
-                    parser_threads[k++] = ps_thread;
+                pthread_t ps_thread;
+                int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
+                (void * (*)(void *))se_handler::parse_output, args);
+                if (err != 0)
+                  {
+                    errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
+                    parser_threads[k++] = 0;
+                    delete args;
+                    parser_args[k] = NULL;
+                    continue;
                   }
-                else parser_threads[k++] = 0;
-                j++;
+                parser_threads[k++] = ps_thread;
               }
+            else parser_threads[k++] = 0;
+            j++;
+            ++it;
           }
 
         // join and merge results.
@@ -781,7 +779,7 @@ namespace seeks_plugins
               {
                 if (parser_args[i]->_err == SP_ERR_OK)
                   std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
-                            std::back_inserter(snippets));
+                  std::back_inserter(snippets));
                 parser_args[i]->_snippets->clear();
                 delete parser_args[i]->_snippets;
                 delete parser_args[i];
@@ -790,33 +788,34 @@ namespace seeks_plugins
       }
     else
       {
-        for (int i=0; i<NSEs; i++)
+        //for (int i=0; i<NSEs; i++)
+        std::set<feed_parser,feed_parser::lxn>::iterator it
+        = se_enabled._feedset.begin();
+        while(it!=se_enabled._feedset.end())
           {
-            if (se_enabled[i])
+            if (outputs[j])
               {
-                if (outputs[j])
-                  {
-                    ps_thread_arg args;
-                    args._se = (SE)i;
-                    args._output = (char*)outputs[j]->c_str(); // XXX: sad cast.
-                    args._snippets = &snippets;
-                    args._offset = count_offset;
-                    args._qr = qr;
-                    parse_output(args);
-                  }
-                j++;
+                ps_thread_arg args;
+                args._se = (*it);
+                args._output = (char*)outputs[j]->c_str(); // XXX: sad cast.
+                args._snippets = &snippets;
+                args._offset = count_offset;
+                args._qr = qr;
+                parse_output(args);
               }
+            j++;
+            ++it;
           }
       }
   }
 
   void se_handler::parse_output(ps_thread_arg &args)
   {
-    se_parser *se = se_handler::create_se_parser((SE)args._se);
-
+    se_parser *se = se_handler::create_se_parser(args._se);
     try
       {
-        if ((SE)args._se == YOUTUBE || (SE)args._se == DAILYMOTION)
+        //if ((SE)args._se == YOUTUBE || (SE)args._se == DAILYMOTION)
+        if (args._se._name == "youtube" || args._se._name == "dailymotion")
           se->parse_output_xml(args._output,args._snippets,args._offset);
         else se->parse_output(args._output,args._snippets,args._offset);
       }
@@ -837,7 +836,7 @@ namespace seeks_plugins
       }
 
     // hack for getting stuff out of ggle.
-    if (args._se == GOOGLE)
+    if (args._se._name == "google")
       {
         // get more stuff from the parser.
         se_parser_ggle *se_p_ggle = static_cast<se_parser_ggle*>(se);
@@ -850,46 +849,33 @@ namespace seeks_plugins
     delete se;
   }
 
-  se_parser* se_handler::create_se_parser(const SE &se)
+  se_parser* se_handler::create_se_parser(const feed_parser &se)
   {
     se_parser *sep = NULL;
-    switch (se)
-      {
-      case GOOGLE:
-        sep = new se_parser_ggle();
-        break;
-      case BING:
-        sep = new se_parser_bing();
-        break;
-      case YAHOO:
-        sep = new se_parser_yahoo();
-        break;
-      case EXALEAD:
-        sep = new se_parser_exalead();
-        break;
-      case TWITTER:
-        sep = new se_parser_twitter();
-        break;
-      case IDENTICA:
-        sep = new se_parser_twitter("identica");
-        break;
-      case YOUTUBE:
-        sep = new se_parser_youtube();
-        break;
-      case YAUBA:
-        sep = new se_parser_yauba();
-        break;
-      case BLEKKO:
-        sep = new se_parser_blekko();
-        break;
-      case DAILYMOTION:
-        sep = new se_parser_dailymotion();
-        break;
-      case SEEKS:
-        break;
-      case DUMMY:
-        break;
-      }
+    if (se._name == "google")
+      sep = new se_parser_ggle(se.get_url());
+    else if (se._name == "bing")
+      sep = new se_parser_bing(se.get_url());
+    else if (se._name == "yahoo")
+      sep = new se_parser_yahoo(se.get_url());
+    else if (se._name == "exalead")
+      sep = new se_parser_exalead(se.get_url());
+    else if (se._name == "twitter")
+      sep = new se_parser_twitter(se.get_url());
+    else if (se._name == "identica")
+      sep = new se_parser_twitter("identica",se.get_url());
+    else if (se._name == "youtube")
+      sep = new se_parser_youtube(se.get_url());
+    else if (se._name == "yauba")
+      sep = new se_parser_yauba(se.get_url());
+    else if (se._name == "blekko")
+      sep = new se_parser_blekko(se.get_url());
+    else if (se._name == "dailymotion")
+      sep = new se_parser_dailymotion(se.get_url());
+    else if (se._name == "seeks")
+      {}
+    else if (se._name == "dummy")
+      {}
 
     return sep;
   }

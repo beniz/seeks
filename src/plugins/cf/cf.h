@@ -19,6 +19,7 @@
 #ifndef CF_H
 #define CF_H
 
+#include "sp_exception.h"
 #include "plugin.h"
 #include "search_snippet.h"
 

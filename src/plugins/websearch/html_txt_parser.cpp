@@ -20,8 +20,8 @@
 
 namespace seeks_plugins
 {
-  html_txt_parser::html_txt_parser()
-      : se_parser(),_txt("")
+  html_txt_parser::html_txt_parser(const std::string &url)
+    : se_parser(url),_txt("")
   {
   }
 

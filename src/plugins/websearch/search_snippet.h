@@ -19,8 +19,9 @@
 #ifndef SEARCH_SNIPPET_H
 #define SEARCH_SNIPPET_H
 
-#include "websearch_configuration.h" // for NSEs.
+//#include "websearch_configuration.h" // for NSEs.
 #include "proxy_dts.h" // for url_spec.
+#include "feeds.h"
 
 #include <string>
 #include <vector>
@@ -70,8 +71,8 @@ namespace seeks_plugins
       static bool less_meta_rank(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_meta_rank == s2->_meta_rank)
-          return s1->_rank / static_cast<double>(s1->_engine.count())
-                 < s2->_rank / static_cast<double>(s2->_engine.count());
+          return s1->_rank / static_cast<double>(s1->_engine.size())
+                 < s2->_rank / static_cast<double>(s2->_engine.size());
         else
           return s1->_meta_rank < s2->_meta_rank;
       };
@@ -79,8 +80,8 @@ namespace seeks_plugins
       static bool max_meta_rank(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_meta_rank == s2->_meta_rank)
-          return s1->_rank / static_cast<double>(s1->_engine.count())
-                 < s2->_rank / static_cast<double>(s2->_engine.count());  // beware: min rank is still better.
+          return s1->_rank / static_cast<double>(s1->_engine.size())
+                 < s2->_rank / static_cast<double>(s2->_engine.size());  // beware: min rank is still better.
         else
           return s1->_meta_rank > s2->_meta_rank;  // max seeks rank is better.
       };
@@ -214,7 +215,7 @@ namespace seeks_plugins
       double _meta_rank; // rank computed locally by the meta-search engine.
       double _seeks_rank; // rank computed locally, mostly for personalized ranking.
 
-      std::bitset<NSEs> _engine;  // engines from which it was created (if not directly published).
+      feeds _engine;  // engines from which it was created (if not directly published).
       enum DOC_TYPE _doc_type;
 
       // type-dependent information.

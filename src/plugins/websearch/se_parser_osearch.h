@@ -50,7 +50,7 @@ namespace seeks_plugins
   class se_parser_osearch_atom : public se_parser, public se_parser_osearch
   {
     public:
-      se_parser_osearch_atom();
+      se_parser_osearch_atom(const std::string &url);
 
       ~se_parser_osearch_atom();
 
@@ -82,7 +82,7 @@ namespace seeks_plugins
   class se_parser_osearch_rss : public se_parser, public se_parser_osearch
   {
     public:
-      se_parser_osearch_rss();
+      se_parser_osearch_rss(const std::string &url);
 
       ~se_parser_osearch_rss();
 

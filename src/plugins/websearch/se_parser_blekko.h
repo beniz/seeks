@@ -27,7 +27,7 @@ namespace seeks_plugins
   class se_parser_blekko : public se_parser
   {
     public:
-      se_parser_blekko();
+      se_parser_blekko(const std::string &url);
       ~se_parser_blekko();
 
       // virtual.

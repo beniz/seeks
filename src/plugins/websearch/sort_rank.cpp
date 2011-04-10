@@ -78,7 +78,7 @@ namespace seeks_plugins
          */
         qc->_lsh_ham = new LSHSystemHamming(55,5);
         qc->_ulsh_ham = new LSHUniformHashTableHamming(qc->_lsh_ham,
-            websearch::_wconfig->_Nr*3*NSEs);
+            websearch::_wconfig->_Nr*3*websearch::_wconfig->_se_enabled.size());
       }
 
     std::vector<search_snippet*>::iterator it = snippets.begin();
@@ -154,7 +154,7 @@ namespace seeks_plugins
             //std::cerr << "new url scanned: " << sp->_url << std::endl;
             //debug
 
-            sp->_meta_rank = sp->_engine.count();
+            sp->_meta_rank = sp->_engine.size();
             sp->_new = false;
 
             qc->add_to_unordered_cache(sp);

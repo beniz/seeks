@@ -37,10 +37,18 @@ using namespace json_renderer_private;
 
 namespace seeks_plugins
 {
-  std::string json_renderer::render_engines(const std::bitset<NSEs> &engines)
+  std::string json_renderer::render_engines(const feeds &engines)
   {
     std::list<std::string> engs;
-    if (engines.to_ulong()&SE_GOOGLE)
+    std::set<feed_parser,feed_parser::lxn>::const_iterator it
+    = engines._feedset.begin();
+    while(it!=engines._feedset.end())
+      {
+        engs.push_back("\"" + (*it)._name + "\"");
+        ++it;
+      }
+
+    /*if (engines.to_ulong()&SE_GOOGLE)
       engs.push_back("\"google\"");
     if (engines.to_ulong()&SE_BING)
       {
@@ -81,7 +89,7 @@ namespace seeks_plugins
     if (engines.to_ulong()&SE_BLEKKO)
       {
         engs.push_back("\"blekko\"");
-      }
+    	}*/
     return miscutil::join_string_list(",",engs);
   }
 
@@ -483,7 +491,7 @@ namespace json_renderer_private
       results.push_back(cached_queries);
 
     // engines.
-    if (qc->_engines.to_ulong() > 0)
+    if (qc->_engines.size() > 0)
       {
         results.push_back("\"engines\":[" +
                           (img ? json_renderer::render_img_engines(qc)

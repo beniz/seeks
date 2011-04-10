@@ -346,7 +346,7 @@ namespace seeks_plugins
     miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 
     // lookup activated engines.
-    std::bitset<NSEs> se_enabled;
+    feeds se_enabled;
     query_context::fillup_engines(parameters,se_enabled);
 
     // check for empty cluster, and determine which rendering to use.
@@ -366,8 +366,10 @@ namespace seeks_plugins
                     ++hit;
                     continue;
                   }
-                std::bitset<NSEs> band = (sp->_engine & se_enabled);
-                if (band.count() == 0)
+                //std::bitset<NSEs> band = (sp->_engine & se_enabled);
+
+                feeds band = se_enabled.inter(sp->_engine);
+                if (band.size() == 0)
                   {
                     ++hit;
                     continue;
@@ -416,8 +418,9 @@ namespace seeks_plugins
                 ++hit;
                 continue;
               }
-            std::bitset<NSEs> band = (sp->_engine & se_enabled);
-            if (band.count() == 0)
+            //std::bitset<NSEs> band = (sp->_engine & se_enabled);
+            feeds band = se_enabled.inter(sp->_engine);
+            if (band.size() == 0)
               {
                 ++hit;
                 continue;

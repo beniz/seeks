@@ -26,8 +26,8 @@ using sp::miscutil;
 
 namespace seeks_plugins
 {
-  se_parser_dailymotion::se_parser_dailymotion()
-      :se_parser(),_in_item(false),_in_title(false),_in_link(false),_in_pubdate(false),_in_summary(false)
+  se_parser_dailymotion::se_parser_dailymotion(const std::string &url)
+    :se_parser(url),_in_item(false),_in_title(false),_in_link(false),_in_pubdate(false),_in_summary(false)
   {
   }
 
@@ -47,7 +47,8 @@ namespace seeks_plugins
         // create new snippet.
         search_snippet *sp = new search_snippet(_count + 1);
         _count++;
-        sp->_engine |= std::bitset<NSEs>(SE_DAILYMOTION);
+        //sp->_engine |= std::bitset<NSEs>(SE_DAILYMOTION);
+        sp->_engine = feeds("dailymotion",_url);
         sp->_doc_type = VIDEO_THUMB;
         pc->_current_snippet = sp;
       }

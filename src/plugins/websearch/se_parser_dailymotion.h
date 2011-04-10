@@ -27,7 +27,7 @@ namespace seeks_plugins
   class se_parser_dailymotion : public se_parser
   {
     public:
-      se_parser_dailymotion();
+      se_parser_dailymotion(const std::string &url);
       ~se_parser_dailymotion();
 
       // virtual.

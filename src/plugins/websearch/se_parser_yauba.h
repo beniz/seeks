@@ -1,6 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2010 Laurent Peuch  <cortex@worlddomination.be>
+ *               2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,7 +28,7 @@ namespace seeks_plugins
   class se_parser_yauba : public se_parser
   {
     public:
-      se_parser_yauba();
+      se_parser_yauba(const std::string &url);
       ~se_parser_yauba();
 
       // virtual.

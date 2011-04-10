@@ -9,12 +9,21 @@ search-results-page 10
 
 # one or more enabled search engines
 # google, yahoo, bing, exalead, yauba, blekko
-search-engine google
-search-engine bing
-search-engine yahoo
-search-engine exalead
-#search-engine yauba
-#search-engine blekko
+# entries of the form search-engine <engine> <url> <default | nodefault>
+# 'default' indicates that the engine and url are default engines when
+# no engine is specified to the API.
+#search-engine seeks http://s.s nodefault
+search-engine google http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding default
+search-engine bing http://www.bing.com/search?q=%query&first=%start&mkt=%lang default
+search-engine yahoo http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs= default
+search-engine exalead http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start nodefault
+search-engine youtube http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num nodefault
+search-engine dailymotion http://www.dailymotion.com/rss/relevance/search/%query/%start nodefault
+search-engine identica http://identi.ca/api/search.atom?q=%query&page=%start&rpp=%num nodefault
+search-engine twitter http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num nodefault
+search-engine yauba http://%lang.yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y nodefault
+search-engine blekko http://blekko.com/ws/%query/rss?ps=100 default
+#search-engine dummy http://dummy.du nodefault
 
 # minimum number of seconds search results are kept in
 # the system cache, for reuse, update, etc...

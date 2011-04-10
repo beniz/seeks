@@ -29,7 +29,7 @@ namespace seeks_plugins
   class se_parser_exalead : public se_parser
   {
     public:
-      se_parser_exalead();
+      se_parser_exalead(const std::string &url);
       ~se_parser_exalead();
 
       // virtual.

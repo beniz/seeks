@@ -38,6 +38,7 @@ class QCTest : public testing::Test
       websearch::_wconfig = new websearch_configuration("");
       websearch::_wconfig->_se_connect_timeout = 1;
       websearch::_wconfig->_se_transfer_timeout = 1;
+      websearch::_wconfig->_se_enabled = feeds("dummy","url1");
     }
 
     virtual void TearDown()
@@ -52,7 +53,7 @@ TEST_F(QCTest,expand_no_engine_fail)
   client_state csp;
   http_response rsp;
   hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
-  std::bitset<NSEs> engines;
+  feeds engines;
   int code = SP_ERR_OK;
   try
     {
@@ -73,8 +74,7 @@ TEST_F(QCTest,expand_no_engine_output_fail)
   hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
   miscutil::add_map_entry(&parameters,"q",1,"test",1);
   miscutil::add_map_entry(&parameters,"expansion",1,"",1);
-  std::bitset<NSEs> engines;
-  engines.set(3);
+  feeds engines("dummy");
   int code = SP_ERR_OK;
   try
     {

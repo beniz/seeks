@@ -26,9 +26,9 @@ using sp::miscutil;
 
 namespace seeks_plugins
 {
-  se_parser_twitter::se_parser_twitter(const std::string &service)
-      :se_parser(),_in_entry(false),_in_title(false),_in_published(false),_in_uri(false),
-      _service(service)
+  se_parser_twitter::se_parser_twitter(const std::string &service, const std::string &url)
+    :se_parser(url),_in_entry(false),_in_title(false),_in_published(false),_in_uri(false),
+     _service(service)
   {
   }
 
@@ -50,9 +50,11 @@ namespace seeks_plugins
         search_snippet *sp = new search_snippet(_count + 1);
         _count++;
         if (_service.empty() || _service == "twitter")
-          sp->_engine |= std::bitset<NSEs>(SE_TWITTER);
+          sp->_engine = feeds("twitter",_url);
+        //sp->_engine |= std::bitset<NSEs>(SE_TWITTER);
         else if (_service == "identica")
-          sp->_engine |= std::bitset<NSEs>(SE_IDENTICA);
+          sp->_engine = feeds("identica",_url);
+        //sp->_engine |= std::bitset<NSEs>(SE_IDENTICA);
         sp->_doc_type = TWEET;
         pc->_current_snippet = sp;
       }

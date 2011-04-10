@@ -29,8 +29,8 @@ namespace seeks_plugins
   std::string se_parser_bing::_bing_stupid[2] =
   { "Document title", "Titre du document / Document title" };
 
-  se_parser_bing::se_parser_bing()
-    :se_parser(),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
+  se_parser_bing::se_parser_bing(const std::string &url)
+    :se_parser(url),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
     _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
   {
   }
@@ -77,7 +77,8 @@ namespace seeks_plugins
             // create new snippet.
             search_snippet *sp = new search_snippet(_count+1);
             _count++;
-            sp->_engine |= std::bitset<NSEs>(SE_BING);
+            //sp->_engine |= std::bitset<NSEs>(SE_BING);
+            sp->_engine = feeds("bing",_url);
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
 

@@ -29,14 +29,14 @@ using sp::urlmatch;
 
 namespace seeks_plugins
 {
-  se_parser_ggle::se_parser_ggle()
-      :se_parser(),_body_flag(false),_h2_flag(false),_h2_sr_flag(false),
-      _ol_flag(false),_li_flag(false),_h3_flag(false),
-      _div_flag_summary(false),_div_flag_forum(false),_sum_flag(false),
-      _link_flag(false),_cite_flag(false),
-      _cached_flag(false),_span_cached_flag(false),
-      _ff_flag(false),_new_link_flag(false),_spell_flag(false),_sgg_spell_flag(false),
-      _end_sgg_spell_flag(false),_rt_flag(false)
+  se_parser_ggle::se_parser_ggle(const std::string &url)
+    :se_parser(url),_body_flag(false),_h2_flag(false),_h2_sr_flag(false),
+     _ol_flag(false),_li_flag(false),_h3_flag(false),
+     _div_flag_summary(false),_div_flag_forum(false),_sum_flag(false),
+     _link_flag(false),_cite_flag(false),
+     _cached_flag(false),_span_cached_flag(false),
+     _ff_flag(false),_new_link_flag(false),_spell_flag(false),_sgg_spell_flag(false),
+     _end_sgg_spell_flag(false),_rt_flag(false)
   {
   }
 
@@ -144,7 +144,8 @@ namespace seeks_plugins
         // create new snippet.
         search_snippet *sp = new search_snippet(_count+1);
         _count++;
-        sp->_engine |= std::bitset<NSEs>(SE_GOOGLE);
+        //sp->_engine |= std::bitset<NSEs>(SE_GOOGLE);
+        sp->_engine = feeds("google",_url);
         pc->_current_snippet = sp;
 
         // reset some variables.

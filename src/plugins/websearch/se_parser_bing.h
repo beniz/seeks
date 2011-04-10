@@ -27,7 +27,7 @@ namespace seeks_plugins
   class se_parser_bing : public se_parser
   {
     public:
-      se_parser_bing();
+      se_parser_bing(const std::string &url);
       ~se_parser_bing();
 
       // virtual.

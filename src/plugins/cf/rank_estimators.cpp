@@ -466,7 +466,7 @@ namespace seeks_plugins
         if (s)
           {
             s->_personalized = true;
-            s->_engine |= SE_SEEKS;
+            s->_engine.add_feed("seeks");
             s->_meta_rank++;
           }
       }
@@ -525,7 +525,7 @@ namespace seeks_plugins
         if (s)
           {
             s->_personalized = true;
-            s->_engine |= SE_SEEKS;
+            s->_engine.add_feed("seeks");
             s->_meta_rank++;
           }
       }

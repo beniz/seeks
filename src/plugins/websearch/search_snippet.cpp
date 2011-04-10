@@ -226,8 +226,8 @@ namespace seeks_plugins
     json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
     json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
     double rank = 0.0;
-    if (_engine.to_ulong() > 0)
-      rank = _rank / static_cast<double>(_engine.count());
+    if (_engine.size() > 0)
+      rank = _rank / static_cast<double>(_engine.size());
     json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
     json_str += "\"cite\":\"";
     if (!_cite.empty())
@@ -349,7 +349,8 @@ namespace seeks_plugins
         html_content += "\"></a><div>";
       }
 
-    if (prs && _personalized && !(_engine.to_ulong()&SE_SEEKS))
+    if (prs && _personalized && !_engine.has_feed("seeks"))
+      //!(_engine.to_ulong()&SE_SEEKS))
       {
         html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
       }
@@ -366,7 +367,7 @@ namespace seeks_plugins
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
                           + "/search?q=@query@&page=1&expansion=1&action=expand&engines=seeng&lang"
                           + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
-    if (_engine.to_ulong()&SE_GOOGLE)
+    if (_engine.has_feed("google"))
       {
         std::string ggle_se_icon = se_icon;
         miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
@@ -375,7 +376,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(ggle_se_icon,"@query@",_qc->_url_enc_query);
         html_content += ggle_se_icon;
       }
-    if (_engine.to_ulong()&SE_BING)
+    if (_engine.has_feed("bing"))
       {
         std::string bing_se_icon = se_icon;
         miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
@@ -384,7 +385,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
         html_content += bing_se_icon;
       }
-    if (_engine.to_ulong()&SE_BLEKKO)
+    if (_engine.has_feed("blekko"))
       {
         std::string blekko_se_icon = se_icon;
         miscutil::replace_in_string(blekko_se_icon,"icon","search_engine_blekko");
@@ -393,7 +394,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(blekko_se_icon,"@query@",_qc->_url_enc_query);
         html_content += blekko_se_icon;
       }
-    if (_engine.to_ulong()&SE_YAUBA)
+    if (_engine.has_feed("yauba"))
       {
         std::string yauba_se_icon = se_icon;
         miscutil::replace_in_string(yauba_se_icon,"icon","search_engine_yauba");
@@ -402,7 +403,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(yauba_se_icon,"@query@",_qc->_url_enc_query);
         html_content += yauba_se_icon;
       }
-    if (_engine.to_ulong()&SE_YAHOO)
+    if (_engine.has_feed("yahoo"))
       {
         std::string yahoo_se_icon = se_icon;
         miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
@@ -411,7 +412,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
         html_content += yahoo_se_icon;
       }
-    if (_engine.to_ulong()&SE_EXALEAD)
+    if (_engine.has_feed("exalead"))
       {
         std::string exalead_se_icon = se_icon;
         miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
@@ -420,7 +421,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(exalead_se_icon,"@query@",_qc->_url_enc_query);
         html_content += exalead_se_icon;
       }
-    if (_engine.to_ulong()&SE_TWITTER)
+    if (_engine.has_feed("twitter"))
       {
         std::string twitter_se_icon = se_icon;
         miscutil::replace_in_string(twitter_se_icon,"icon","search_engine_twitter");
@@ -429,7 +430,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(twitter_se_icon,"@query@",_qc->_url_enc_query);
         html_content += twitter_se_icon;
       }
-    if (_engine.to_ulong()&SE_DAILYMOTION)
+    if (_engine.has_feed("dailymotion"))
       {
         std::string yt_se_icon = se_icon;
         miscutil::replace_in_string(yt_se_icon,"icon","search_engine_dailymotion");
@@ -438,7 +439,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
         html_content += yt_se_icon;
       }
-    if (_engine.to_ulong()&SE_YOUTUBE)
+    if (_engine.has_feed("youtube"))
       {
         std::string yt_se_icon = se_icon;
         miscutil::replace_in_string(yt_se_icon,"icon","search_engine_youtube");
@@ -447,7 +448,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
         html_content += yt_se_icon;
       }
-    if (_engine.to_ulong()&SE_SEEKS)
+    if (_engine.has_feed("seeks"))
       {
         std::string sk_se_icon = se_icon;
         miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
@@ -634,10 +635,17 @@ namespace seeks_plugins
 
   bool search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    std::bitset<NSEs> se_enabled;
+    feeds se_enabled;
     query_context::fillup_engines(parameters,se_enabled);
-    std::bitset<NSEs> band = _engine & se_enabled;
-    return (band.count() != 0);
+    feeds band = _engine.inter(se_enabled);
+    if (band.empty())
+      {
+        // check for a wildcard (all feeds for a given parser).
+        band = _engine.inter_gen(se_enabled);
+      }
+    return (band.size() != 0);
+    /*std::bitset<NSEs> band = _engine & se_enabled;
+      return (band.count() != 0);*/
   }
 
   void search_snippet::set_title(const std::string &title)
@@ -964,17 +972,20 @@ namespace seeks_plugins
   {
     if (s1->_doc_type != TWEET)
       {
-        std::bitset<NSEs> setest = s1->_engine;
+        if (s1->_engine.equal(s2->_engine))
+          return;
+        /*std::bitset<NSEs> setest = s1->_engine;
         setest &= s2->_engine;
         if (setest.count()>0)
-          return;
+        	return;*/
       }
 
     // search engine rank.
     s1->_rank += s2->_rank;
 
     // search engine.
-    s1->_engine |= s2->_engine;
+    //s1->_engine |= s2->_engine;
+    s1->_engine = s1->_engine.sunion(s2->_engine);
 
     // cached link.
     if (s1->_cached.empty())
@@ -1007,7 +1018,7 @@ namespace seeks_plugins
       }
     else
       {
-        s1->_meta_rank = s1->_engine.count();
+        s1->_meta_rank = s1->_engine.size();
 
         s1->bing_yahoo_us_merge();
       }
@@ -1018,8 +1029,10 @@ namespace seeks_plugins
     // XXX: hack, on English queries, Bing & Yahoo are the same engine,
     // therefore the rank must be tweaked accordingly in this special case.
     if (_qc->_auto_lang == "en"
-        && (_engine.to_ulong()&SE_YAHOO)
-        && (_engine.to_ulong()&SE_BING))
+        //&& (_engine.to_ulong()&SE_YAHOO)
+        //&& (_engine.to_ulong()&SE_BING))
+        && (_engine.has_feed("yahoo"))
+        && (_engine.has_feed("bing")))
       _meta_rank--;
   }
 

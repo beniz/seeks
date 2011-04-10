@@ -26,8 +26,8 @@ using sp::miscutil;
 
 namespace seeks_plugins
 {
-  se_parser_yauba::se_parser_yauba()
-      :se_parser(),_in_item(false),_in_title(false),_in_result(false),_in_summary(false),_in_cite(false)
+  se_parser_yauba::se_parser_yauba(const std::string &url)
+    :se_parser(url),_in_item(false),_in_title(false),_in_result(false),_in_summary(false),_in_cite(false)
   {
   }
 
@@ -50,7 +50,8 @@ namespace seeks_plugins
             // create new snippet.
             search_snippet *sp = new search_snippet(_count + 1);
             _count++;
-            sp->_engine |= std::bitset<NSEs>(SE_YAUBA);
+            //sp->_engine |= std::bitset<NSEs>(SE_YAUBA);
+            sp->_engine = feeds("yauba",_url);
             pc->_current_snippet = sp;
           }
       }

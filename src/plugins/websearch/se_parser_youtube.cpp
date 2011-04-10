@@ -26,8 +26,8 @@ using sp::miscutil;
 
 namespace seeks_plugins
 {
-  se_parser_youtube::se_parser_youtube()
-      :se_parser(),_in_item(false),_in_title(false),_in_link(false),_in_date(false),_in_description(false)
+  se_parser_youtube::se_parser_youtube(const std::string &url)
+    :se_parser(url),_in_item(false),_in_title(false),_in_link(false),_in_date(false),_in_description(false)
   {
   }
 
@@ -48,7 +48,8 @@ namespace seeks_plugins
         // create new snippet.
         search_snippet *sp = new search_snippet(_count + 1);
         _count++;
-        sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
+        //sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
+        sp->_engine = feeds("youtube",_url);
         sp->_doc_type = VIDEO_THUMB;
         pc->_current_snippet = sp;
         //const char *a_link = se_parser::get_attribute((const char**)attributes, "rdf:about");
@@ -173,7 +174,7 @@ namespace seeks_plugins
       {
         //std::cout << "  </link>" << std::endl;
         miscutil::replace_in_string(_link,"&feature=youtube_gdata",""),
-        pc->_current_snippet->set_url(_link);
+                 pc->_current_snippet->set_url(_link);
         _in_link = false;
         _link = "";
       }

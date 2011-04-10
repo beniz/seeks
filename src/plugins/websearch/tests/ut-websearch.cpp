@@ -42,6 +42,7 @@ class WBTest : public testing::Test
       websearch::_wconfig = new websearch_configuration(""); // default websearch configuration.
       websearch::_wconfig->_se_connect_timeout = 1;
       websearch::_wconfig->_se_transfer_timeout = 1;
+      websearch::_wconfig->_se_enabled = feeds("dummy","url1");
       _pconfig = new proxy_configuration(""); // default proxy configuration.
       _pconfig->_templdir = strdup("");
     }
@@ -65,6 +66,7 @@ class WBExistTest : public testing::Test
       websearch::_wconfig = new websearch_configuration(""); // default websearch configuration.
       websearch::_wconfig->_se_connect_timeout = 1;
       websearch::_wconfig->_se_transfer_timeout = 1;
+      websearch::_wconfig->_se_enabled = feeds("dummy","url1");
       _pconfig = new proxy_configuration(""); // default proxy configuration.
       _pconfig->_templdir = strdup("");
       _qc = new query_context();
@@ -125,6 +127,7 @@ TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
   miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
+
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
 }

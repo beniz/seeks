@@ -20,7 +20,8 @@
 #define WEBSEARCH_CONFIGURATION_H
 
 #include "configuration_spec.h"
-#include "se_handler.h" // NSEs.
+//#include "se_handler.h" // NSEs.
+#include "feeds.h"
 
 #include <bitset>
 
@@ -54,6 +55,8 @@ namespace seeks_plugins
       // virtual
       virtual void set_default_config();
 
+      void set_default_engines();
+
       virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
                                      char *buf, const unsigned long &linenum);
 
@@ -62,7 +65,11 @@ namespace seeks_plugins
       // main options.
       std::string _lang; /**< langage of the search results. */
       int _Nr; /**< max number of search results per page. */
-      std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
+      //std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
+      bool _default_engines; /**< whether this config defines the default engines or not. */
+      feeds _se_enabled; /**< enabled search engines and feeds. */
+      hash_map<const char*,feed_url_options,hash<const char*>,eqstr> _se_options; /**< search engines options. */
+      feeds _se_default; /**< default set of search engines. */
       bool _thumbs; /**< enabled thumbs */
       bool _js; /**< enabled js */
       bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */

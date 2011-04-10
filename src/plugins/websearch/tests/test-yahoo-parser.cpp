@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   ifs.read (buffer, length);
   ifs.close();
 
-  se_parser_yahoo spy;
+  se_parser_yahoo spy("");
   std::vector<search_snippet*> snippets;
   spy.parse_output(buffer,&snippets, 0);
 

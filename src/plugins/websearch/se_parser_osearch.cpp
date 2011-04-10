@@ -42,8 +42,8 @@ namespace seeks_plugins
   }
 
   /*- se_parser_osearch_atom -*/
-  se_parser_osearch_atom::se_parser_osearch_atom()
-    :se_parser(),se_parser_osearch()
+  se_parser_osearch_atom::se_parser_osearch_atom(const std::string &url)
+    :se_parser(url),se_parser_osearch()
   {
   }
 
@@ -64,7 +64,8 @@ namespace seeks_plugins
       {
         // create new snippet.
         search_snippet *sp = new search_snippet(++_count);
-        sp->_engine |= std::bitset<NSEs>(SE_OPENSEARCH);
+        //sp->_engine |= std::bitset<NSEs>(SE_OPENSEARCH);
+        sp->_engine = feeds("opensearch",_url);
         pc->_current_snippet = sp;
         pc->_snippets->push_back(pc->_current_snippet);
         _entry_flag = true;
@@ -203,8 +204,8 @@ namespace seeks_plugins
   }
 
   /*- se_parser_osearch_rss -*/
-  se_parser_osearch_rss::se_parser_osearch_rss()
-    :se_parser(),se_parser_osearch(),_link_flag(false)
+  se_parser_osearch_rss::se_parser_osearch_rss(const std::string &url)
+    :se_parser(url),se_parser_osearch(),_link_flag(false)
   {
   }
 
@@ -225,7 +226,8 @@ namespace seeks_plugins
       {
         // create new snippet.
         search_snippet *sp = new search_snippet(++_count);
-        sp->_engine |= std::bitset<NSEs>(SE_OPENSEARCH);
+        //sp->_engine |= std::bitset<NSEs>(SE_OPENSEARCH);
+        sp->_engine = feeds("opensearch",_url);
         pc->_current_snippet = sp;
         pc->_snippets->push_back(pc->_current_snippet);
         _entry_flag = true;

@@ -26,7 +26,7 @@ namespace seeks_plugins
   class se_parser_yahoo : public se_parser
   {
     public:
-      se_parser_yahoo();
+      se_parser_yahoo(const std::string &url);
 
       ~se_parser_yahoo();
 

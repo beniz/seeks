@@ -65,12 +65,12 @@ int main(int argc, char **argv)
 
   if (strcasecmp(type,"atom") == 0)
     {
-      se_parser_osearch_atom spos;
+      se_parser_osearch_atom spos("");
       spos.parse_output(buffer,&snippets,0);
     }
   else if (strcasecmp(type,"rss") == 0)
     {
-      se_parser_osearch_rss spos;
+      se_parser_osearch_rss spos("");
       spos.parse_output(buffer,&snippets,0);
     }
   std::cout << "snippets size: " << snippets.size() << std::endl;

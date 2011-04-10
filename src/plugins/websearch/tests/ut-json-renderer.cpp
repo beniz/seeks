@@ -1,6 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
+ *               2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,13 +36,20 @@ using sp::proxy_configuration;
 
 TEST(JsonRendererTest, render_engines)
 {
-  EXPECT_EQ("\"google\",\"bing\",\"yauba\",\"yahoo\",\"exalead\",\"twitter\"", json_renderer::render_engines(SE_GOOGLE|SE_BING|SE_YAUBA|SE_YAHOO|SE_EXALEAD|SE_TWITTER));
+  feeds fd;
+  fd.add_feed("google");
+  fd.add_feed("bing");
+  fd.add_feed("yauba");
+  fd.add_feed("yahoo");
+  fd.add_feed("exalead");
+  fd.add_feed("twitter");
+  EXPECT_EQ("\"bing\",\"exalead\",\"google\",\"twitter\",\"yahoo\",\"yauba\"", json_renderer::render_engines(fd));
 }
 
 TEST(JsonRendererTest, render_snippets)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
-  websearch::_wconfig->_se_enabled |= SE_DUMMY;
+  websearch::_wconfig->_se_enabled = feeds("dummy","url1");
   std::string json_str;
 
   int current_page = 1;
@@ -57,7 +65,7 @@ TEST(JsonRendererTest, render_snippets)
   json_str = "";
   snippets.resize(1);
   search_snippet s1;
-  s1._engine |= SE_DUMMY;
+  s1._engine = feeds("dummy","url1");
   s1.set_url("URL1");
   snippets[0] = &s1;
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
@@ -74,11 +82,11 @@ TEST(JsonRendererTest, render_snippets)
   // 3 snippets, page 2, 2 result per page, thumbs on
   snippets.resize(3);
   search_snippet s2;
-  s2._engine |= SE_DUMMY;
+  s2._engine = feeds("dummy","url1");
   s2.set_url("URL2");
   snippets[1] = &s2;
   search_snippet s3;
-  s3._engine |= SE_DUMMY;
+  s3._engine = feeds("dummy","url1");
   s3.set_url("URL3");
   snippets[2] = &s3;
   parameters.insert(std::pair<const char*,const char*>("rpp", "2"));
@@ -125,7 +133,7 @@ TEST(JsonRendererTest, render_snippets)
 TEST(JsonRendererTest, render_clustered_snippets)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
-  websearch::_wconfig->_se_enabled |= SE_DUMMY;
+  websearch::_wconfig->_se_enabled = feeds("dummy","url1");
   query_context context;
   cluster clusters[3];
 
@@ -136,19 +144,19 @@ TEST(JsonRendererTest, render_clustered_snippets)
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
   search_snippet s1;
-  s1._engine |= SE_DUMMY;
+  s1._engine = feeds("dummy","url1");
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
   clusters[0].add_point(s1._id, NULL);
   clusters[0]._label = "CLUSTER1";
 
   search_snippet s2;
-  s2._engine |= SE_DUMMY;
+  s2._engine = feeds("dummy","url1");
   s2.set_url("URL2");
   context.add_to_unordered_cache(&s2);
   clusters[1].add_point(s2._id, NULL);
   search_snippet s3;
-  s3._engine |= SE_DUMMY;
+  s3._engine = feeds("dummy","url1");
   s3.set_url("URL3");
   context.add_to_unordered_cache(&s3);
   clusters[1].add_point(s3._id, NULL);
@@ -172,7 +180,7 @@ TEST(JsonRendererTest, render_clustered_snippets)
 TEST(JsonRendererTest, render_json_results)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
-  websearch::_wconfig->_se_enabled |= SE_DUMMY;
+  websearch::_wconfig->_se_enabled = feeds("dummy","url1");
   http_response* rsp;
   query_context context;
   double qtime = 1234;
@@ -183,12 +191,12 @@ TEST(JsonRendererTest, render_json_results)
   snippets.resize(2);
 
   search_snippet s1;
-  s1._engine |= SE_DUMMY;
+  s1._engine = feeds("dummy","url1");
   s1.set_url("URL1");
   snippets[0] = &s1;
 
   search_snippet s2;
-  s2._engine |= SE_DUMMY;
+  s2._engine = feeds("dummy","url1");
   s2.set_url("URL2");
   snippets[1] = &s2;
   parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
@@ -220,7 +228,7 @@ TEST(JsonRendererTest, render_json_results)
 TEST(JsonRendererTest, render_clustered_json_results)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
-  websearch::_wconfig->_se_enabled |= SE_DUMMY;
+  websearch::_wconfig->_se_enabled = feeds("dummy","url1");
 
   cluster clusters[1];
   http_response* rsp;
@@ -232,7 +240,7 @@ TEST(JsonRendererTest, render_clustered_json_results)
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
   search_snippet s1;
-  s1._engine |= SE_DUMMY;
+  s1._engine = feeds("dummy","url1");
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
   clusters[0].add_point(s1._id, NULL);
@@ -319,7 +327,7 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
-  context._engines = std::bitset<NSEs>(SE_YAHOO);
+  context._engines = feeds("yahoo","url2");
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);

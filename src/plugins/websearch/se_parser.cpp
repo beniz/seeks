@@ -66,8 +66,8 @@ namespace seeks_plugins
 {
   sp_mutex_t se_parser::_se_parser_mutex;
 
-  se_parser::se_parser()
-    :_count(0)
+  se_parser::se_parser(const std::string &url)
+    :_count(0),_url(url)
   {
   }
 

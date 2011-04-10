@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera, <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -74,7 +74,7 @@ namespace seeks_plugins
                   http_response *rsp,
                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                   const int &page_start, const int &page_end,
-                  const std::bitset<NSEs> &se_enabled) throw (sp_exception);
+                  const feeds &se_enabled) throw (sp_exception);
 
       /**
        * virtual call to evaluate the sweeping condition.
@@ -209,7 +209,7 @@ namespace seeks_plugins
        * \brief fill up activated search engines from parameters or configuration.
        */
       static void fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                 std::bitset<NSEs> &engines);
+                                 feeds &engines);
 
       /**
        * \brief true if context has no results.
@@ -278,7 +278,8 @@ namespace seeks_plugins
       sp_mutex_t _qc_mutex;
 
       /* search engines used in this context. */
-      std::bitset<NSEs> _engines;
+      //std::bitset<NSEs> _engines;
+      feeds _engines;
 
       /* whether this context is registered or not. */
       bool _registered;
