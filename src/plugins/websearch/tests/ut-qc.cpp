@@ -74,7 +74,7 @@ TEST_F(QCTest,expand_no_engine_output_fail)
   hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
   miscutil::add_map_entry(&parameters,"q",1,"test",1);
   miscutil::add_map_entry(&parameters,"expansion",1,"",1);
-  feeds engines("dummy");
+  feeds engines("dummy","URL1");
   int code = SP_ERR_OK;
   try
     {
