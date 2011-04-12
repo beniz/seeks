@@ -183,7 +183,11 @@ namespace seeks_plugins
   bool feeds::add_feed(const feed_parser &f)
   {
     if (f.empty())
-      return false;
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Cannot add empty feed parser %s",
+                          f._name.c_str());
+        return false;
+      }
     std::pair<std::set<feed_parser,feed_parser::lxn>::iterator,bool> ret
     = _feedset.insert(f);
     if (!ret.second)
