@@ -145,7 +145,7 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
-  class se_identica : public search_engine
+  /*class se_identica : public search_engine
   {
     public:
       se_identica();
@@ -153,7 +153,7 @@ namespace seeks_plugins
 
       virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                std::string &url, const query_context *qc);
-  };
+  		       };*/
 
   class se_youtube : public search_engine
   {
@@ -232,7 +232,7 @@ namespace seeks_plugins
       static se_yahoo _yahoo;
       static se_exalead _exalead;
       static se_twitter _twitter;
-      static se_identica _identica;
+      //static se_identica _identica;
       static se_youtube _youtube;
       static se_dailymotion _dailym;
       static se_yauba _yauba;

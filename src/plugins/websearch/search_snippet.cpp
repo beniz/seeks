@@ -638,14 +638,13 @@ namespace seeks_plugins
     feeds se_enabled;
     query_context::fillup_engines(parameters,se_enabled);
     feeds band = _engine.inter(se_enabled);
+
     if (band.empty())
       {
         // check for a wildcard (all feeds for a given parser).
         band = _engine.inter_gen(se_enabled);
       }
     return (band.size() != 0);
-    /*std::bitset<NSEs> band = _engine & se_enabled;
-      return (band.count() != 0);*/
   }
 
   void search_snippet::set_title(const std::string &title)

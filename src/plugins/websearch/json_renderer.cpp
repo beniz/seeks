@@ -47,49 +47,6 @@ namespace seeks_plugins
         engs.push_back("\"" + (*it)._name + "\"");
         ++it;
       }
-
-    /*if (engines.to_ulong()&SE_GOOGLE)
-      engs.push_back("\"google\"");
-    if (engines.to_ulong()&SE_BING)
-      {
-        engs.push_back("\"bing\"");
-      }
-    if (engines.to_ulong()&SE_YAUBA)
-      {
-        engs.push_back("\"yauba\"");
-      }
-    if (engines.to_ulong()&SE_YAHOO)
-      {
-        engs.push_back("\"yahoo\"");
-      }
-    if (engines.to_ulong()&SE_EXALEAD)
-      {
-        engs.push_back("\"exalead\"");
-      }
-    if (engines.to_ulong()&SE_TWITTER)
-      {
-        engs.push_back("\"twitter\"");
-      }
-    if (engines.to_ulong()&SE_IDENTICA)
-      {
-        engs.push_back("\"identica\"");
-      }
-    if (engines.to_ulong()&SE_DAILYMOTION)
-      {
-        engs.push_back("\"dailymotion\"");
-      }
-    if (engines.to_ulong()&SE_YOUTUBE)
-      {
-        engs.push_back("\"youtube\"");
-      }
-    if (engines.to_ulong()&SE_SEEKS)
-      {
-        engs.push_back("\"seeks\"");
-      }
-    if (engines.to_ulong()&SE_BLEKKO)
-      {
-        engs.push_back("\"blekko\"");
-    	}*/
     return miscutil::join_string_list(",",engs);
   }
 
