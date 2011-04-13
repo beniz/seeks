@@ -44,7 +44,6 @@ using lsh::mrf;
 
 namespace seeks_plugins
 {
-  std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
   std::string query_context::_default_alang = "en";
   std::string query_context::_default_alang_reg = "en-US";
 
@@ -169,7 +168,7 @@ namespace seeks_plugins
   uint32_t query_context::hash_query_for_context(const std::string &query_key)
   {
     std::string sorted_query = query_context::sort_query(query_key);
-    return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
+    return mrf::mrf_single_feature(sorted_query);
   }
 
   void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
@@ -421,7 +420,7 @@ namespace seeks_plugins
     std::string url_lc(url);
     std::transform(url.begin(),url.end(),url_lc.begin(),tolower);
     std::string surl = urlmatch::strip_url(url_lc);
-    uint32_t id = mrf::mrf_single_feature(surl,query_context::_query_delims);
+    uint32_t id = mrf::mrf_single_feature(surl);
     return get_cached_snippet(id);
   }
 

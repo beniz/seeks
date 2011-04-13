@@ -657,7 +657,7 @@ namespace seeks_plugins
                 if (posterior > 0.0)
                   {
                     std::string surl = urlmatch::strip_url(vd->_url);
-                    uint32_t sid = mrf::mrf_single_feature(surl,""); //TODO: generic id generator.
+                    uint32_t sid = mrf::mrf_single_feature(surl);
                     if ((sit = snippets.find(sid))!=snippets.end())
                       (*sit).second->_seeks_rank += posterior; // update.
                     else

@@ -665,7 +665,7 @@ namespace seeks_plugins
     std::string url_lc(_url);
     std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
     std::string surl = urlmatch::strip_url(url_lc);
-    _id = mrf::mrf_single_feature(surl,"");
+    _id = mrf::mrf_single_feature(surl);
   }
 
   void search_snippet::set_url_no_decode(const std::string &url)
@@ -674,7 +674,7 @@ namespace seeks_plugins
     std::string url_lc(_url);
     std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
     std::string surl = urlmatch::strip_url(url_lc);
-    _id = mrf::mrf_single_feature(surl,"");
+    _id = mrf::mrf_single_feature(surl);
   }
 
   void search_snippet::set_cite(const std::string &cite)

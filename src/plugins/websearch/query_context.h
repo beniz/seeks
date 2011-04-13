@@ -271,9 +271,6 @@ namespace seeks_plugins
       /* other HTTP headers, useful when interrogating search engines. */
       std::list<const char*> _useful_http_headers;
 
-      /* query tokenizing and hashing delimiters. */
-      static std::string _query_delims;
-
       /* mutex for threaded work on the context. */
       sp_mutex_t _qc_mutex;
 

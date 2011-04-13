@@ -165,8 +165,6 @@ namespace lsh
       // straight hash of a query string.
       static uint32_t mrf_single_feature(const std::string &str);
 
-      static uint32_t mrf_single_feature(const std::string &str,
-                                         const std::string &delims);
       template<typename feat>
       static void mrf_features_query(const std::string &str,
                                      std::vector<feat> &features,
@@ -336,7 +334,7 @@ namespace lsh
       static void compute_tf_idf(std::vector<hash_map<uint32_t,float,id_hash_uint>*> &bags);
 
       /* hashing. */
-      static uint32_t mrf_hash(const std::vector<std::string> &tokens);
+      static uint32_t mrf_hash(const std::string &token);
 
       /* measuring similarity. */
       static int hash_compare(const uint32_t &a, const uint32_t &b);
