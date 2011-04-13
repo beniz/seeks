@@ -106,7 +106,6 @@ namespace seeks_plugins
     //_se_enabled.add_feed("exalead","http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start");
     /*_se_enabled.add_feed("youtube","");
     _se_enabled.add_feed("dailymotion","");
-    _se_enabled.add_feed("identica","");
     _se_enabled.add_feed("twitter","");
     _se_enabled.add_feed("yauba","");
     _se_enabled.add_feed("blekko","");*/
@@ -159,28 +158,6 @@ namespace seeks_plugins
             _default_engines = false;
           }
 
-        /*if (strcasecmp(arg,"google") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-        else if (strcasecmp(arg,"bing") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_BING);
-        else if (strcasecmp(arg,"yahoo") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
-        else if (strcasecmp(arg,"exalead") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
-        else if (strcasecmp(arg,"twitter") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_TWITTER);
-        else if (strcasecmp(arg,"identica") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
-        else if (strcasecmp(arg,"youtube") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
-        else if (strcasecmp(arg,"dailymotion") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
-        else if (strcasecmp(arg,"yauba") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_YAUBA);
-        else if (strcasecmp(arg,"blekko") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
-        else if (strcasecmp(arg,"opensearch") == 0)
-        	_se_enabled |=  std::bitset<NSEs>(SE_OPENSEARCH);*/
         fed = feed_parser(vec[0]);
         def_fed = feed_parser(vec[0]);
         std::cerr << "config: adding feed: " << fed._name << std::endl;
@@ -199,8 +176,6 @@ namespace seeks_plugins
         _se_enabled.add_feed(fed);
         if (!def_fed.empty())
           _se_default.add_feed(def_fed);
-
-        //std::cerr << "se_default size: " << _se_default.size() << " -- count: " << _se_default.count() << std::endl;
 
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Enabled search engine");
