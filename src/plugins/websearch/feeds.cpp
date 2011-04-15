@@ -82,6 +82,29 @@ namespace seeks_plugins
     return (*_urls.begin());
   }
 
+  std::string feed_parser::get_url(const size_t &i) const
+  {
+    if (_urls.empty())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"feed parser %s has no url attached",_name.c_str());
+        return "";
+      }
+    std::set<std::string>::const_iterator it = _urls.begin();
+    size_t j=0;
+    while(j<i)
+      {
+        it++;
+        if (it == _urls.end())
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"feed parser %s has less than %u urls",
+                              _name.c_str(),i);
+            return "";
+          }
+        j++;
+      }
+    return (*it);
+  }
+
   size_t feed_parser::size() const
   {
     return _urls.size();

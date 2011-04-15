@@ -37,28 +37,6 @@ namespace seeks_plugins
   class search_snippet;
   class query_context;
 
-  /*#define NSEs 13  // number of supported search engines.
-
-  #ifndef ENUM_SE
-  #define ENUM_SE
-  enum SE  // in alphabetical order.
-  {
-    BING,
-    BLEKKO,
-    DAILYMOTION,
-    DUMMY,
-    EXALEAD,
-    GOOGLE,
-    IDENTICA,
-    OPENSEARCH,
-    SEEKS,
-    TWITTER,
-    YAHOO,
-    YAUBA,
-    YOUTUBE
-  };
-  #endif*/
-
   class search_engine
   {
     public:
@@ -77,7 +55,7 @@ namespace seeks_plugins
   struct ps_thread_arg
   {
     ps_thread_arg()
-      :_output(NULL),_snippets(NULL),_qr(NULL),_err(SP_ERR_OK)
+      :_se_idx(0),_output(NULL),_snippets(NULL),_qr(NULL),_err(SP_ERR_OK)
     {
     };
 
@@ -87,7 +65,8 @@ namespace seeks_plugins
       // we do delete snippets outside the destructor (depends on whether we're using threads).
     };
 
-    feed_parser _se; // search engine (ggle, bing, ...).
+    feed_parser _se; // feed  parser (ggle, bing, opensearch, ...).
+    int _se_idx; // feed url index.
     char *_output; // page content, to be parsed into snippets.
     std::vector<search_snippet*> *_snippets; // websearch result snippets.
     int _offset; // offset to snippets rank (when asking page x, with x > 1).
@@ -145,16 +124,6 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
-  /*class se_identica : public search_engine
-  {
-    public:
-      se_identica();
-      ~se_identica();
-
-      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                               std::string &url, const query_context *qc);
-  		       };*/
-
   class se_youtube : public search_engine
   {
     public:
@@ -210,10 +179,8 @@ namespace seeks_plugins
                               const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
                               std::list<const char*> *&lheaders);
 
-      //static void set_engines(std::bitset<NSEs> &se_enabled, const std::vector<std::string> &ses);
-
       /*-- parsing --*/
-      static se_parser* create_se_parser(const feed_parser &se);
+      static se_parser* create_se_parser(const feed_parser &se, const size_t &i);
 
       static void parse_ses_output(std::string **outputs, const int &nresults,
                                    std::vector<search_snippet*> &snippets,
@@ -224,7 +191,6 @@ namespace seeks_plugins
 
       /*-- variables. --*/
     public:
-      //static std::string _se_strings[NSEs];
 
       /* search engine objects. */
       static se_ggle _ggle;
@@ -232,7 +198,6 @@ namespace seeks_plugins
       static se_yahoo _yahoo;
       static se_exalead _exalead;
       static se_twitter _twitter;
-      //static se_identica _identica;
       static se_youtube _youtube;
       static se_dailymotion _dailym;
       static se_yauba _yauba;

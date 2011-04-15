@@ -74,6 +74,8 @@ namespace seeks_plugins
 
       std::string get_url() const;
 
+      std::string get_url(const size_t &i) const;
+
       size_t size() const;
 
       feed_parser diff(const feed_parser &fp) const;

@@ -19,8 +19,7 @@ search-engine yahoo http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt
 search-engine exalead http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start nodefault
 search-engine youtube http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num nodefault
 search-engine dailymotion http://www.dailymotion.com/rss/relevance/search/%query/%start nodefault
-search-engine twitter http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num nodefault 
-#http://identi.ca/api/search.atom?q=%query&page=%start&rpp=%num nodefault
+search-engine twitter http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num nodefault http://identi.ca/api/search.atom?q=%query&page=%start&rpp=%num nodefault
 search-engine yauba http://%lang.yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y nodefault
 search-engine blekko http://blekko.com/ws/%query/rss?ps=100 default
 #search-engine dummy http://dummy.du nodefault

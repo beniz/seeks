@@ -476,7 +476,14 @@ namespace seeks_plugins
         for (size_t j=0; j<all_urls.size(); j++)
           {
             urls.push_back(all_urls.at(j));
-            headers.push_back(lheaders);
+            if (j == 0)
+              headers.push_back(lheaders);
+            else
+              {
+                std::list<const char*> *lheadersc = new std::list<const char*>();
+                miscutil::list_duplicate(lheadersc,lheaders);
+                headers.push_back(lheadersc);
+              }
           }
         ++it;
       }
@@ -551,30 +558,33 @@ namespace seeks_plugins
         ++sit;
       }
 
-    std::string url = se.get_url(); //TODO: handle multiple urls.
-    if (se._name == "google")
-      _ggle.query_to_se(parameters,url,qc);
-    else if (se._name == "bing")
-      _bing.query_to_se(parameters,url,qc);
-    else if (se._name == "yahoo")
-      _yahoo.query_to_se(parameters,url,qc);
-    else if (se._name == "exalead")
-      _exalead.query_to_se(parameters,url,qc);
-    else if (se._name == "twitter")
-      _twitter.query_to_se(parameters,url,qc);
-    else if (se._name == "youtube")
-      _youtube.query_to_se(parameters,url,qc);
-    else if (se._name == "yauba")
-      _yauba.query_to_se(parameters,url,qc);
-    else if (se._name == "blekko")
-      _blekko.query_to_se(parameters,url,qc);
-    else if (se._name == "dailymotion")
-      _dailym.query_to_se(parameters,url,qc);
-    else if (se._name == "seeks")
-      {}
-    else if (se._name == "dummy")
-      {}
-    all_urls.push_back(url);
+    for (size_t i=0; i<se.size(); i++)
+      {
+        std::string url = se.get_url(i);
+        if (se._name == "google")
+          _ggle.query_to_se(parameters,url,qc);
+        else if (se._name == "bing")
+          _bing.query_to_se(parameters,url,qc);
+        else if (se._name == "yahoo")
+          _yahoo.query_to_se(parameters,url,qc);
+        else if (se._name == "exalead")
+          _exalead.query_to_se(parameters,url,qc);
+        else if (se._name == "twitter")
+          _twitter.query_to_se(parameters,url,qc);
+        else if (se._name == "youtube")
+          _youtube.query_to_se(parameters,url,qc);
+        else if (se._name == "yauba")
+          _yauba.query_to_se(parameters,url,qc);
+        else if (se._name == "blekko")
+          _blekko.query_to_se(parameters,url,qc);
+        else if (se._name == "dailymotion")
+          _dailym.query_to_se(parameters,url,qc);
+        else if (se._name == "seeks")
+          {}
+        else if (se._name == "dummy")
+          {}
+        all_urls.push_back(url);
+      }
   }
 
   /*-- parsing. --*/
@@ -589,62 +599,63 @@ namespace seeks_plugins
     if (seeks_proxy::_config->_multi_threaded)
       {
         size_t active_ses = se_enabled.size();
-        pthread_t parser_threads[active_ses];
-        ps_thread_arg* parser_args[active_ses];
-        for (size_t i=0; i<active_ses; i++)
-          parser_args[i] = NULL;
+        std::vector<pthread_t> parser_threads;
+        std::vector<ps_thread_arg*> parser_args;
 
         // threads, one per parser.
-        int k = 0;
         std::set<feed_parser,feed_parser::lxn>::iterator it
         = se_enabled._feedset.begin();
         while(it!=se_enabled._feedset.end())
           {
-            if (outputs[j])
+            for (size_t f=0; f<(*it).size(); f++)
               {
-                ps_thread_arg *args = new ps_thread_arg();
-                args->_se = (*it);
-                args->_output = (char*) outputs[j]->c_str();  // XXX: sad cast.
-                args->_snippets = new std::vector<search_snippet*>();
-                args->_offset = count_offset;
-                args->_qr = qr;
-                parser_args[k] = args;
-
-                pthread_t ps_thread;
-                int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
-                (void * (*)(void *))se_handler::parse_output, args);
-                if (err != 0)
+                if (outputs[j])
                   {
-                    errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
-                    parser_threads[k++] = 0;
-                    delete args;
-                    parser_args[k] = NULL;
-                    continue;
+                    ps_thread_arg *args = new ps_thread_arg();
+                    args->_se = (*it);
+                    args->_se_idx = f;
+                    args->_output = (char*) outputs[j]->c_str();  // XXX: sad cast.
+                    args->_snippets = new std::vector<search_snippet*>();
+                    args->_offset = count_offset;
+                    args->_qr = qr;
+                    parser_args.push_back(args);
+
+                    pthread_t ps_thread;
+                    int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
+                    (void * (*)(void *))se_handler::parse_output, args);
+                    if (err != 0)
+                      {
+                        errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
+                        parser_threads.push_back(0);
+                        delete args;
+                        parser_args.push_back(NULL);
+                        continue;
+                      }
+                    parser_threads.push_back(ps_thread);
                   }
-                parser_threads[k++] = ps_thread;
+                else parser_threads.push_back(0);
+                j++;
               }
-            else parser_threads[k++] = 0;
-            j++;
             ++it;
           }
 
         // join and merge results.
-        for (size_t i=0; i<active_ses; i++)
+        for (size_t i=0; i<parser_threads.size(); i++)
           {
-            if (parser_threads[i]!=0)
-              pthread_join(parser_threads[i],NULL);
+            if (parser_threads.at(i)!=0)
+              pthread_join(parser_threads.at(i),NULL);
           }
 
         for (size_t i=0; i<active_ses; i++)
           {
-            if (parser_args[i])
+            if (parser_args.at(i))
               {
-                if (parser_args[i]->_err == SP_ERR_OK)
-                  std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
+                if (parser_args.at(i)->_err == SP_ERR_OK)
+                  std::copy(parser_args.at(i)->_snippets->begin(),parser_args.at(i)->_snippets->end(),
                   std::back_inserter(snippets));
-                parser_args[i]->_snippets->clear();
-                delete parser_args[i]->_snippets;
-                delete parser_args[i];
+                parser_args.at(i)->_snippets->clear();
+                delete parser_args.at(i)->_snippets;
+                delete parser_args.at(i);
               }
           }
       }
@@ -672,7 +683,7 @@ namespace seeks_plugins
 
   void se_handler::parse_output(ps_thread_arg &args)
   {
-    se_parser *se = se_handler::create_se_parser(args._se);
+    se_parser *se = se_handler::create_se_parser(args._se,args._se_idx);
     try
       {
         if (args._se._name == "youtube" || args._se._name == "dailymotion")
@@ -709,27 +720,28 @@ namespace seeks_plugins
     delete se;
   }
 
-  se_parser* se_handler::create_se_parser(const feed_parser &se)
+  se_parser* se_handler::create_se_parser(const feed_parser &se,
+  const size_t &i)
   {
     se_parser *sep = NULL;
     if (se._name == "google")
-      sep = new se_parser_ggle(se.get_url());
+      sep = new se_parser_ggle(se.get_url(i));
     else if (se._name == "bing")
-      sep = new se_parser_bing(se.get_url());
+      sep = new se_parser_bing(se.get_url(i));
     else if (se._name == "yahoo")
-      sep = new se_parser_yahoo(se.get_url());
+      sep = new se_parser_yahoo(se.get_url(i));
     else if (se._name == "exalead")
-      sep = new se_parser_exalead(se.get_url());
+      sep = new se_parser_exalead(se.get_url(i));
     else if (se._name == "twitter")
-      sep = new se_parser_twitter(se.get_url());
+      sep = new se_parser_twitter(se.get_url(i));
     else if (se._name == "youtube")
-      sep = new se_parser_youtube(se.get_url());
+      sep = new se_parser_youtube(se.get_url(i));
     else if (se._name == "yauba")
-      sep = new se_parser_yauba(se.get_url());
+      sep = new se_parser_yauba(se.get_url(i));
     else if (se._name == "blekko")
-      sep = new se_parser_blekko(se.get_url());
+      sep = new se_parser_blekko(se.get_url(i));
     else if (se._name == "dailymotion")
-      sep = new se_parser_dailymotion(se.get_url());
+      sep = new se_parser_dailymotion(se.get_url(i));
     else if (se._name == "seeks")
       {}
     else if (se._name == "dummy")

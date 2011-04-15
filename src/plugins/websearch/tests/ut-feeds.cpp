@@ -43,6 +43,20 @@ TEST(FeedsTest,add_feed)
   ASSERT_FALSE(ret);
 }
 
+TEST(FeedsTest,get_url)
+{
+  feeds f1("dummy","url1");
+  f1.add_feed("dummy","url2");
+  ASSERT_EQ(2,f1.size());
+  feed_parser fp = (*f1._feedset.begin());
+  std::string url = fp.get_url(0);
+  ASSERT_EQ("url1",url);
+  url = fp.get_url(1);
+  ASSERT_EQ("url2",url);
+  url = fp.get_url(2);
+  ASSERT_TRUE(url.empty());
+}
+
 TEST(FeedsTest,sunion)
 {
   feeds f1("dummy","url1");
