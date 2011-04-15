@@ -114,5 +114,5 @@ dynamic-ui 0
 ui-theme compact
 
 # Maximum number of recommended queries in results.
-# default: 20
+# default: 13
 num-recommended-queries 13
