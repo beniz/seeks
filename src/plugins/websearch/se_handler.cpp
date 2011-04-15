@@ -35,6 +35,7 @@
 #include "se_parser_dailymotion.h"
 #include "se_parser_yauba.h"
 #include "se_parser_blekko.h"
+#include "se_parser_doku.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -415,6 +416,33 @@ namespace seeks_plugins
     url = q_dm;
   }
 
+  se_doku::se_doku()
+    :search_engine()
+  {
+  }
+
+  se_doku::~se_doku()
+  {
+  }
+
+  void se_doku::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+  std::string &url, const query_context *qc)
+  {
+    std::string q_dm = url;
+    const char *query = miscutil::lookup(parameters,"q");
+
+    // query.
+    char *qenc = encode::url_encode(query);
+    std::string qenc_str = std::string(qenc);
+    free(qenc);
+    miscutil::replace_in_string(q_dm,"%query",qenc_str);
+
+    // log the query.
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying doku: %s", q_dm.c_str());
+
+    url = q_dm;
+  }
+
   se_ggle se_handler::_ggle = se_ggle();
   se_bing se_handler::_bing = se_bing();
   se_yahoo se_handler::_yahoo = se_yahoo();
@@ -424,6 +452,7 @@ namespace seeks_plugins
   se_yauba se_handler::_yauba = se_yauba();
   se_blekko se_handler::_blekko = se_blekko();
   se_dailymotion se_handler::_dailym = se_dailymotion();
+  se_doku se_handler::_doku = se_doku();
 
   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
   sp_mutex_t se_handler::_curl_mutex;
@@ -579,6 +608,8 @@ namespace seeks_plugins
           _blekko.query_to_se(parameters,url,qc);
         else if (se._name == "dailymotion")
           _dailym.query_to_se(parameters,url,qc);
+        else if (se._name == "dokuwiki")
+          _doku.query_to_se(parameters,url,qc);
         else if (se._name == "seeks")
           {}
         else if (se._name == "dummy")
@@ -684,11 +715,19 @@ namespace seeks_plugins
   void se_handler::parse_output(ps_thread_arg &args)
   {
     se_parser *se = se_handler::create_se_parser(args._se,args._se_idx);
+    if (!se)
+      {
+        args._err = WB_ERR_NO_ENGINE;
+        errlog::log_error(LOG_LEVEL_ERROR,"no engine for %s",args._se._name.c_str());
+        return;
+      }
     try
       {
         if (args._se._name == "youtube" || args._se._name == "dailymotion")
           se->parse_output_xml(args._output,args._snippets,args._offset);
         else se->parse_output(args._output,args._snippets,args._offset);
+        errlog::log_error(LOG_LEVEL_DEBUG,"parser %s: %u snippets",
+        args._se._name.c_str(),args._snippets->size());
       }
     catch (sp_exception &e)
       {
@@ -742,6 +781,8 @@ namespace seeks_plugins
       sep = new se_parser_blekko(se.get_url(i));
     else if (se._name == "dailymotion")
       sep = new se_parser_dailymotion(se.get_url(i));
+    else if (se._name == "dokuwiki")
+      sep = new se_parser_doku(se.get_url(i));
     else if (se._name == "seeks")
       {}
     else if (se._name == "dummy")

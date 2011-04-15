@@ -448,6 +448,15 @@ namespace seeks_plugins
         miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
         html_content += yt_se_icon;
       }
+    if (_engine.has_feed("dokuwiki"))
+      {
+        std::string dk_se_icon = se_icon;
+        miscutil::replace_in_string(dk_se_icon,"icon","search_engine_dokuwiki");
+        miscutil::replace_in_string(dk_se_icon,"setitle","Dokuwiki");
+        miscutil::replace_in_string(dk_se_icon,"seeng","dokuwiki");
+        miscutil::replace_in_string(dk_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += dk_se_icon;
+      }
     if (_engine.has_feed("seeks"))
       {
         std::string sk_se_icon = se_icon;
