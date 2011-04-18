@@ -174,6 +174,16 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
+  class se_mediawiki : public search_engine
+  {
+    public:
+      se_mediawiki();
+      ~se_mediawiki();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
   class se_handler
   {
     public:
@@ -213,6 +223,7 @@ namespace seeks_plugins
       static se_yauba _yauba;
       static se_blekko _blekko;
       static se_doku _doku;
+      static se_mediawiki _mediaw;
 
       static std::vector<CURL*> _curl_handlers;
       static sp_mutex_t _curl_mutex;

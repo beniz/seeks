@@ -36,6 +36,7 @@
 #include "se_parser_yauba.h"
 #include "se_parser_blekko.h"
 #include "se_parser_doku.h"
+#include "se_parser_mediawiki.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -443,6 +444,33 @@ namespace seeks_plugins
     url = q_dm;
   }
 
+  se_mediawiki::se_mediawiki()
+    :search_engine()
+  {
+  }
+
+  se_mediawiki::~se_mediawiki()
+  {
+  }
+
+  void se_mediawiki::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+  std::string &url, const query_context *qc)
+  {
+    std::string q_dm = url;
+    const char *query = miscutil::lookup(parameters,"q");
+
+    // query.
+    char *qenc = encode::url_encode(query);
+    std::string qenc_str = std::string(qenc);
+    free(qenc);
+    miscutil::replace_in_string(q_dm,"%query",qenc_str);
+
+    // log the query.
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying mediawiki: %s", q_dm.c_str());
+
+    url = q_dm;
+  }
+
   se_ggle se_handler::_ggle = se_ggle();
   se_bing se_handler::_bing = se_bing();
   se_yahoo se_handler::_yahoo = se_yahoo();
@@ -453,6 +481,7 @@ namespace seeks_plugins
   se_blekko se_handler::_blekko = se_blekko();
   se_dailymotion se_handler::_dailym = se_dailymotion();
   se_doku se_handler::_doku = se_doku();
+  se_mediawiki se_handler::_mediaw = se_mediawiki();
 
   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
   sp_mutex_t se_handler::_curl_mutex;
@@ -610,6 +639,8 @@ namespace seeks_plugins
           _dailym.query_to_se(parameters,url,qc);
         else if (se._name == "dokuwiki")
           _doku.query_to_se(parameters,url,qc);
+        else if (se._name == "mediawiki")
+          _mediaw.query_to_se(parameters,url,qc);
         else if (se._name == "seeks")
           {}
         else if (se._name == "dummy")
@@ -783,6 +814,8 @@ namespace seeks_plugins
       sep = new se_parser_dailymotion(se.get_url(i));
     else if (se._name == "dokuwiki")
       sep = new se_parser_doku(se.get_url(i));
+    else if (se._name == "mediawiki")
+      sep = new se_parser_mediawiki(se.get_url(i));
     else if (se._name == "seeks")
       {}
     else if (se._name == "dummy")

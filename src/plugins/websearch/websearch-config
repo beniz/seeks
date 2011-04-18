@@ -23,6 +23,7 @@ search-engine twitter http://search.twitter.com/search.atom?q=%query&page=%start
 search-engine yauba http://%lang.yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y nodefault
 search-engine blekko http://blekko.com/ws/%query/rss?ps=100 default
 search-engine dokuwiki http://doc.ubuntu-fr.org/?do=search&id=%query nodefault
+search-engine mediawiki http://www.mediawiki.org/w/index.php?title=Special%3ASearch&search=%query&button= nodefault
 #search-engine dummy http://dummy.du nodefault
 
 # minimum number of seconds search results are kept in
