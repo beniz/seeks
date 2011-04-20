@@ -466,6 +466,15 @@ namespace seeks_plugins
         miscutil::replace_in_string(md_se_icon,"@query@",_qc->_url_enc_query);
         html_content += md_se_icon;
       }
+    if (_engine.has_feed("opensearch_rss") || _engine.has_feed("opensearch_atom"))
+      {
+        std::string md_se_icon = se_icon;
+        miscutil::replace_in_string(md_se_icon,"icon","search_engine_opensearch");
+        miscutil::replace_in_string(md_se_icon,"setitle","Opensearch");
+        miscutil::replace_in_string(md_se_icon,"seeng","opensearch");
+        miscutil::replace_in_string(md_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += md_se_icon;
+      }
     if (_engine.has_feed("seeks"))
       {
         std::string sk_se_icon = se_icon;

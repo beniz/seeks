@@ -64,8 +64,7 @@ namespace seeks_plugins
       {
         // create new snippet.
         search_snippet *sp = new search_snippet(++_count);
-        //sp->_engine |= std::bitset<NSEs>(SE_OPENSEARCH);
-        sp->_engine = feeds("opensearch",_url);
+        sp->_engine = feeds("opensearch_atom",_url);
         pc->_current_snippet = sp;
         pc->_snippets->push_back(pc->_current_snippet);
         _entry_flag = true;
@@ -226,8 +225,7 @@ namespace seeks_plugins
       {
         // create new snippet.
         search_snippet *sp = new search_snippet(++_count);
-        //sp->_engine |= std::bitset<NSEs>(SE_OPENSEARCH);
-        sp->_engine = feeds("opensearch",_url);
+        sp->_engine = feeds("opensearch_rss",_url);
         pc->_current_snippet = sp;
         pc->_snippets->push_back(pc->_current_snippet);
         _entry_flag = true;
@@ -238,7 +236,6 @@ namespace seeks_plugins
       }
     else if (_entry_flag && strcasecmp(tag,"link") == 0)
       {
-        std::cerr << "got link\n";
         _link_flag = true;
       }
     /*else if (_entry_flag && strcasecmp(tag,"updated") == 0)
@@ -293,7 +290,6 @@ namespace seeks_plugins
     if (_link_flag)
       {
         std::string a_chars = std::string((char*)chars);
-        std::cerr << "link a_chars: " << a_chars << std::endl;
         miscutil::replace_in_string(a_chars,"\n"," ");
         miscutil::replace_in_string(a_chars,"\r"," ");
         pc->_current_snippet->set_url(a_chars);

@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009 - 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -184,6 +184,26 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
+  class se_osearch_rss : public search_engine
+  {
+    public:
+      se_osearch_rss();
+      ~se_osearch_rss();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
+  class se_osearch_atom : public search_engine
+  {
+    public:
+      se_osearch_atom();
+      ~se_osearch_atom();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
   class se_handler
   {
     public:
@@ -224,6 +244,8 @@ namespace seeks_plugins
       static se_blekko _blekko;
       static se_doku _doku;
       static se_mediawiki _mediaw;
+      static se_osearch_rss _osearch_rss;
+      static se_osearch_atom _osearch_atom;
 
       static std::vector<CURL*> _curl_handlers;
       static sp_mutex_t _curl_mutex;
