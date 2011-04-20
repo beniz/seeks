@@ -191,7 +191,11 @@ namespace seeks_plugins
             continue;
           }
         if (qc->_query != query)
-          suggs.push_back("\"" + qc->_query + "\"");
+          {
+            std::string escaped_query = qc->_query;
+            miscutil::replace_in_string(escaped_query,"\"","\\\"");
+            suggs.push_back("\"" + escaped_query + "\"");
+          }
         ++sit;
       }
     if (!suggs.empty())
