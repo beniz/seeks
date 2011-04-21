@@ -37,50 +37,15 @@ using namespace json_renderer_private;
 
 namespace seeks_plugins
 {
-  std::string json_renderer::render_engines(const std::bitset<NSEs> &engines)
+  std::string json_renderer::render_engines(const feeds &engines)
   {
     std::list<std::string> engs;
-    if (engines.to_ulong()&SE_GOOGLE)
-      engs.push_back("\"google\"");
-    if (engines.to_ulong()&SE_BING)
+    std::set<feed_parser,feed_parser::lxn>::const_iterator it
+    = engines._feedset.begin();
+    while(it!=engines._feedset.end())
       {
-        engs.push_back("\"bing\"");
-      }
-    if (engines.to_ulong()&SE_YAUBA)
-      {
-        engs.push_back("\"yauba\"");
-      }
-    if (engines.to_ulong()&SE_YAHOO)
-      {
-        engs.push_back("\"yahoo\"");
-      }
-    if (engines.to_ulong()&SE_EXALEAD)
-      {
-        engs.push_back("\"exalead\"");
-      }
-    if (engines.to_ulong()&SE_TWITTER)
-      {
-        engs.push_back("\"twitter\"");
-      }
-    if (engines.to_ulong()&SE_IDENTICA)
-      {
-        engs.push_back("\"identica\"");
-      }
-    if (engines.to_ulong()&SE_DAILYMOTION)
-      {
-        engs.push_back("\"dailymotion\"");
-      }
-    if (engines.to_ulong()&SE_YOUTUBE)
-      {
-        engs.push_back("\"youtube\"");
-      }
-    if (engines.to_ulong()&SE_SEEKS)
-      {
-        engs.push_back("\"seeks\"");
-      }
-    if (engines.to_ulong()&SE_BLEKKO)
-      {
-        engs.push_back("\"blekko\"");
+        engs.push_back("\"" + (*it)._name + "\"");
+        ++it;
       }
     return miscutil::join_string_list(",",engs);
   }
@@ -208,33 +173,8 @@ namespace seeks_plugins
     std::string json_str_eng = "";
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     const img_query_context *iqc = static_cast<const img_query_context*>(qc);
-    std::bitset<IMG_NSEs> engines = iqc->_img_engines;
-    if (engines.to_ulong()&SE_BING_IMG)
-      json_str_eng += "\"bing\"";
-    if (engines.to_ulong()&SE_FLICKR)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"flickr\"";
-      }
-    if (engines.to_ulong()&SE_GOOGLE_IMG)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"google\"";
-      }
-    if (engines.to_ulong()&SE_WCOMMONS)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"wcommons\"";
-      }
-    if (engines.to_ulong()&SE_YAHOO_IMG)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"yahoo\"";
-      }
+    feeds engines = iqc->_img_engines;
+    json_str_eng += render_engines(engines);
 #endif
     return json_str_eng;
   }
@@ -489,7 +429,7 @@ namespace json_renderer_private
       results.push_back(cached_queries);
 
     // engines.
-    if (qc->_engines.to_ulong() > 0)
+    if (qc->_engines.size() > 0)
       {
         results.push_back("\"engines\":[" +
                           (img ? json_renderer::render_img_engines(qc)

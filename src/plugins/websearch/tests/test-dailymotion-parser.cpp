@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
   //std::cout << "buffer: " << buffer << std::endl;
 
-  se_parser_dailymotion spb;
+  se_parser_dailymotion spb("");
   std::vector<search_snippet*> snippets;
   spb.parse_output_xml(buffer,&snippets, 0);
 

@@ -28,7 +28,7 @@ namespace seeks_plugins
   class se_parser_flickr : public se_parser
   {
     public:
-      se_parser_flickr();
+      se_parser_flickr(const std::string &url);
       ~se_parser_flickr();
 
       // virtual.

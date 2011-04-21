@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010, 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,14 +25,14 @@
 namespace seeks_plugins
 {
 
-  enum IMG_SE // in alphabetical order.
+  /*enum IMG_SE // in alphabetical order.
   {
     BING_IMG,
     FLICKR,
     GOOGLE_IMG,
     WCOMMONS,
     YAHOO_IMG
-  };
+    };*/
 
   class se_bing_img : public search_engine
   {
@@ -94,21 +94,22 @@ namespace seeks_plugins
     public:
       /*-- querying the search engines. --*/
       static std::string** query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                        int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception);
+                                        int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception);
 
       static void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                              const IMG_SE &se, std::string &url, const query_context *qc,
+                              const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
                               std::list<const char*> *&lheaders);
 
-      static void set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses);
+      //static void set_engines(const feeds &se_enabled, const std::vector<std::string> &ses);
 
       /*-- parsing --*/
-      static se_parser* create_se_parser(const IMG_SE &se, const bool &safesearch);
+      static se_parser* create_se_parser(const feed_parser &se,
+                                         const size_t &i, const bool &safesearch);
 
       static sp_err parse_ses_output(std::string **outputs, const int &nresults,
                                      std::vector<search_snippet*> &snippets,
                                      const int &count_offset,
-                                     query_context *qr, const std::bitset<IMG_NSEs> &se_enabled);
+                                     query_context *qr, const feeds &se_enabled);
 
       static void parse_output(ps_thread_arg &args);
 
@@ -120,7 +121,7 @@ namespace seeks_plugins
       static se_yahoo_img _img_yahoo;
       static se_wcommons _img_wcommons;
 
-      static std::string _se_strings[IMG_NSEs];
+      //static std::string _se_strings[IMG_NSEs];
   };
 
 } /* end of namespace. */

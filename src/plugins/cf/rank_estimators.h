@@ -19,6 +19,7 @@
 #ifndef RANK_ESTIMATORS_H
 #define RANK_ESTIMATORS_H
 
+#include "sp_exception.h"
 #include "cr_store.h"
 #include "search_snippet.h"
 #include "db_query_record.h"

@@ -27,7 +27,7 @@ namespace seeks_plugins
   class se_parser_twitter : public se_parser
   {
     public:
-      se_parser_twitter(const std::string &service="");
+      se_parser_twitter(const std::string &url="");
       ~se_parser_twitter();
 
       // virtual.
@@ -57,7 +57,6 @@ namespace seeks_plugins
       bool _in_published;
       bool _in_uri;
 
-      std::string _service;
       std::string _title;
       std::string _published;
       std::string _uri;

@@ -979,9 +979,6 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
         try
           {
-            /*sort_rank::personalized_rank_snippets(qc,qc->_cached_snippets);
-            sort_rank::get_related_queries(qc);
-            sort_rank::get_recommended_urls(qc);*/
             sort_rank::personalize(qc);
           }
         catch (sp_exception &e)

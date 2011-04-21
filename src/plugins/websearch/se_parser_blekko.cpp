@@ -28,8 +28,8 @@ using sp::encode;
 
 namespace seeks_plugins
 {
-  se_parser_blekko::se_parser_blekko()
-      :se_parser(),_in_entry(false),_in_title(false),_in_uri(false),_in_description(false)
+  se_parser_blekko::se_parser_blekko(const std::string &url)
+    :se_parser(url),_in_entry(false),_in_title(false),_in_uri(false),_in_description(false)
   {
   }
 
@@ -50,7 +50,8 @@ namespace seeks_plugins
         // create new snippet.
         search_snippet *sp = new search_snippet(_count + 1);
         _count++;
-        sp->_engine |= std::bitset<NSEs>(SE_BLEKKO);
+        //sp->_engine |= std::bitset<NSEs>(SE_BLEKKO);
+        sp->_engine = feeds("blekko",_url);
         pc->_current_snippet = sp;
       }
     else if (_in_entry && strcasecmp(tag, "title") == 0)

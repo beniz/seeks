@@ -29,7 +29,7 @@ namespace seeks_plugins
   {
 
     public:
-      se_parser_ggle_img();
+      se_parser_ggle_img(const std::string &url);
       ~se_parser_ggle_img();
 
       // virtual.

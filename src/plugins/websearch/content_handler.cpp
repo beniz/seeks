@@ -255,7 +255,7 @@ namespace seeks_plugins
     if (!args._output)
       return;
 
-    html_txt_parser *txt_parser = new html_txt_parser();
+    html_txt_parser *txt_parser = new html_txt_parser("");
     txt_parser->parse_output(args._output,NULL,0);
     args._txt_content = txt_parser->_txt;
     delete txt_parser;

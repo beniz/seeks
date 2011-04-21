@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
   //std::cout << "buffer: " << buffer << std::endl;
 
-  se_parser_ggle_img spb;
+  se_parser_ggle_img spb("");
   std::vector<search_snippet*> snippets;
   spb.parse_output(buffer,&snippets, 0);
 

@@ -20,6 +20,7 @@
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
+#include "wb_err.h"
 #include "se_parser.h"
 #include "errlog.h"
 
@@ -39,7 +40,7 @@ class ParserTest : public testing::Test
 TEST_F(ParserTest, parser_output_xml_normal)
 {
   std::string page = "<xml>b</xml>";
-  se_parser sep;
+  se_parser sep("");
   std::vector<search_snippet*> snippets;
   try
     {
@@ -54,7 +55,7 @@ TEST_F(ParserTest, parser_output_xml_normal)
 TEST_F(ParserTest, parser_output_xml_fail)
 {
   std::string page = "<li></ut>";
-  se_parser sep;
+  se_parser sep("");
   std::vector<search_snippet*> snippets;
   int code = SP_ERR_OK;
   try
@@ -71,7 +72,7 @@ TEST_F(ParserTest, parser_output_xml_fail)
 TEST_F(ParserTest, parser_output_normal)
 {
   std::string page = "<html>b</html>";
-  se_parser sep;
+  se_parser sep("");
   std::vector<search_snippet*> snippets;
   int code = SP_ERR_OK;
   try
@@ -87,7 +88,7 @@ TEST_F(ParserTest, parser_output_normal)
 TEST_F(ParserTest, parser_output_recoverable_error_ignore)
 {
   std::string page = "<li></ut>";
-  se_parser sep;
+  se_parser sep("");
   std::vector<search_snippet*> snippets;
   int code = SP_ERR_OK;
   try

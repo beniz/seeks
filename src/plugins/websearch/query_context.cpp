@@ -44,7 +44,6 @@ using lsh::mrf;
 
 namespace seeks_plugins
 {
-  std::string query_context::_query_delims = ""; // delimiters for tokenizing and hashing queries. "" because preprocessed and concatened.
   std::string query_context::_default_alang = "en";
   std::string query_context::_default_alang_reg = "en-US";
 
@@ -169,7 +168,7 @@ namespace seeks_plugins
   uint32_t query_context::hash_query_for_context(const std::string &query_key)
   {
     std::string sorted_query = query_context::sort_query(query_key);
-    return mrf::mrf_single_feature(sorted_query,query_context::_query_delims);
+    return mrf::mrf_single_feature(sorted_query);
   }
 
   void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
@@ -263,51 +262,28 @@ namespace seeks_plugins
     // if the list is included in that of the context, perform expansion, results will be filtered later on.
     if (!cache_check || strcasecmp(cache_check,"yes") == 0)
       {
-        std::bitset<NSEs> beng;
+        feeds beng;
         const char *eng = miscutil::lookup(parameters,"engines");
         if (eng)
           {
             query_context::fillup_engines(parameters,beng);
           }
-        else beng = websearch::_wconfig->_se_enabled;
+        else beng = feeds(websearch::_wconfig->_se_default);
 
         // test inclusion.
-        std::bitset<NSEs> inc = beng;
-        inc &= _engines;
-        if (inc.count() == beng.count())
-          {
-            // included, nothing more to be done.
-            // blekko check, called once per query.
-            /*if (_blekko)
-              {
-                std::bitset<NSEs> tblekko = _engines;
-                tblekko |= std::bitset<NSEs>(SE_BLEKKO);
-                if (_engines == tblekko)
-                  _engines ^= std::bitset<NSEs>(SE_BLEKKO);
-            		  }*/
-          }
-        else // test intersection.
-          {
-            std::bitset<NSEs> bint;
-            for (int b=0; b<NSEs; b++)
-              {
-                if (beng[b] && !inc[b])
-                  bint.set(b);
-              }
+        feeds inc = _engines.inter(beng);
 
-            // blekko check, called once per query.
-            if (_blekko)
-              {
-                std::bitset<NSEs> tblekko = bint;
-                tblekko |= std::bitset<NSEs>(SE_BLEKKO);
-                if (bint == tblekko)
-                  bint ^= std::bitset<NSEs>(SE_BLEKKO);
-              }
+        //TODO: unit test the whole engine selection.
+        if (!beng.equal(inc))
+          {
+            // union of beng and fdiff.
+            feeds fdiff = _engines.diff(beng);
+            feeds fint = _engines.diff(fdiff);
 
             // catch up expansion with the newly activated engines.
             try
               {
-                expand(csp,rsp,parameters,0,_page_expansion,bint);
+                expand(csp,rsp,parameters,0,_page_expansion,fint);
               }
             catch (sp_exception &e)
               {
@@ -316,10 +292,12 @@ namespace seeks_plugins
               }
 
             expanded = true;
-            _engines |= bint;
+
+            // union engines & fint.
+            _engines = _engines.sunion(fint);
           }
 
-        // seeks button used as a back button.
+        // whether we need to move forward.
         if (_page_expansion > 0 && horizon <= (int)_page_expansion)
           {
             // reset expansion parameter.
@@ -352,7 +330,7 @@ namespace seeks_plugins
                              http_response *rsp,
                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                              const int &page_start, const int &page_end,
-                             const std::bitset<NSEs> &se_enabled) throw (sp_exception)
+                             const feeds &se_enabled) throw (sp_exception)
   {
     for (int i=page_start; i<page_end; i++) // catches up with requested horizon.
       {
@@ -374,18 +352,9 @@ namespace seeks_plugins
             throw e; // no engine found or connection error.
           }
 
-        std::bitset<NSEs> tblekko = se_enabled;
-        tblekko |= std::bitset<NSEs>(SE_BLEKKO);
-        if (se_enabled == tblekko)
+        feed_parser fp = se_enabled.find_feed("blekko");
+        if (!fp._name.empty())
           _blekko = true; // call once.
-
-        // test for failed connection to the SEs comes here.
-        /*if (!outputs)
-          {
-        	    //TODO: catch exception instead.
-            websearch::failed_ses_connect(csp,rsp);
-        	    return;
-        	    }*/
 
         // parse the output and create result search snippets.
         int rank_offset = (i > 0) ? i * websearch::_wconfig->_Nr : 0;
@@ -438,7 +407,7 @@ namespace seeks_plugins
     std::string url_lc(url);
     std::transform(url.begin(),url.end(),url_lc.begin(),tolower);
     std::string surl = urlmatch::strip_url(url_lc);
-    uint32_t id = mrf::mrf_single_feature(surl,query_context::_query_delims);
+    uint32_t id = mrf::mrf_single_feature(surl);
     return get_cached_snippet(id);
   }
 
@@ -738,7 +707,7 @@ namespace seeks_plugins
   }
 
   void query_context::fillup_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                     std::bitset<NSEs> &engines)
+                                     feeds &engines)
   {
     const char *eng = miscutil::lookup(parameters,"engines");
     if (eng)
@@ -746,10 +715,12 @@ namespace seeks_plugins
         std::string engines_str = std::string(eng);
         std::vector<std::string> vec_engines;
         miscutil::tokenize(engines_str,vec_engines,",");
-        std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());
-        se_handler::set_engines(engines,vec_engines);
+        for (size_t i=0; i<vec_engines.size(); i++)
+          {
+            engines.add_feed(vec_engines.at(i),websearch::_wconfig);
+          }
       }
-    else engines = websearch::_wconfig->_se_enabled;
+    else engines = feeds(websearch::_wconfig->_se_default);
   }
 
   void query_context::reset_snippets_personalization_flags()
@@ -760,9 +731,11 @@ namespace seeks_plugins
         if ((*vit)->_personalized)
           {
             (*vit)->_personalized = false;
-            if ((*vit)->_engine.to_ulong()&SE_SEEKS)
-              (*vit)->_engine ^= SE_SEEKS;
-            (*vit)->_meta_rank = (*vit)->_engine.count();
+            /*if ((*vit)->_engine.to_ulong()&SE_SEEKS)
+              (*vit)->_engine ^= SE_SEEKS;*/
+            if ((*vit)->_engine.has_feed("seeks"))
+              (*vit)->_engine.remove_feed("seeks");
+            (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
             (*vit)->bing_yahoo_us_merge();
           }
         ++vit;

@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
   //std::cout << "buffer: " << buffer << std::endl;
 
-  se_parser_wcommons spwc;
+  se_parser_wcommons spwc("");
   std::vector<search_snippet*> snippets;
   spwc.parse_output(buffer,&snippets, 0);
 

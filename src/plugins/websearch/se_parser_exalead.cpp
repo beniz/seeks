@@ -30,10 +30,10 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-  se_parser_exalead::se_parser_exalead()
-      :se_parser(),_result_flag(false),_title_flag(false),_p_flag(false),
-      _summary_flag(false),_cite_flag(false),_cached_flag(false),_b_title_flag(false),
-      _b_summary_flag(false),_ignore_flag(false)
+  se_parser_exalead::se_parser_exalead(const std::string &url)
+    :se_parser(url),_result_flag(false),_title_flag(false),_p_flag(false),
+     _summary_flag(false),_cite_flag(false),_cached_flag(false),_b_title_flag(false),
+     _b_summary_flag(false),_ignore_flag(false)
   {
   }
 
@@ -68,7 +68,8 @@ namespace seeks_plugins
             _result_flag = true;
             search_snippet *sp = new search_snippet(_count+1);
             _count++;
-            sp->_engine |= std::bitset<NSEs>(SE_EXALEAD);
+            //sp->_engine |= std::bitset<NSEs>(SE_EXALEAD);
+            sp->_engine = feeds("exalead",_url);
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
           }

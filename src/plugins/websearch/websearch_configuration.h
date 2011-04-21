@@ -20,7 +20,7 @@
 #define WEBSEARCH_CONFIGURATION_H
 
 #include "configuration_spec.h"
-#include "se_handler.h" // NSEs.
+#include "feeds.h"
 
 #include <bitset>
 
@@ -28,21 +28,6 @@ using sp::configuration_spec;
 
 namespace seeks_plugins
 {
-
-  /* engines in alphabetical order. */
-#define SE_BING               1U
-#define SE_BLEKKO             2U
-#define SE_DAILYMOTION        4U
-#define SE_DUMMY              8U
-#define SE_EXALEAD           16U
-#define SE_GOOGLE            32U
-#define SE_IDENTICA          64U
-#define SE_OPENSEARCH       128U
-#define SE_SEEKS            256U
-#define SE_TWITTER          512U
-#define SE_YAHOO           1024U
-#define SE_YAUBA           2048U
-#define SE_YOUTUBE         4096U
 
   class websearch_configuration : public configuration_spec
   {
@@ -54,6 +39,8 @@ namespace seeks_plugins
       // virtual
       virtual void set_default_config();
 
+      void set_default_engines();
+
       virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
                                      char *buf, const unsigned long &linenum);
 
@@ -62,7 +49,11 @@ namespace seeks_plugins
       // main options.
       std::string _lang; /**< langage of the search results. */
       int _Nr; /**< max number of search results per page. */
-      std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
+      //std::bitset<NSEs> _se_enabled; /**< enabled search engines. */
+      bool _default_engines; /**< whether this config defines the default engines or not. */
+      feeds _se_enabled; /**< enabled search engines and feeds. */
+      hash_map<const char*,feed_url_options,hash<const char*>,eqstr> _se_options; /**< search engines options. */
+      feeds _se_default; /**< default set of search engines. */
       bool _thumbs; /**< enabled thumbs */
       bool _js; /**< enabled js */
       bool _content_analysis; /**< enables advanced ranking with background fetch of webpage content. */

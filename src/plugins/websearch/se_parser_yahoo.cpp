@@ -29,8 +29,8 @@ using sp::miscutil;
 
 namespace seeks_plugins
 {
-  se_parser_yahoo::se_parser_yahoo()
-    :se_parser(),_start_results(false),_begin_results(false),_title_flag(false),
+  se_parser_yahoo::se_parser_yahoo(const std::string &url)
+    :se_parser(url),_start_results(false),_begin_results(false),_title_flag(false),
      _summary_flag(false)
   {
 
@@ -73,7 +73,8 @@ namespace seeks_plugins
 
             // create new snippet.
             search_snippet *sp = new search_snippet(_count++);
-            sp->_engine |= std::bitset<NSEs>(SE_YAHOO);
+            //sp->_engine |= std::bitset<NSEs>(SE_YAHOO);
+            sp->_engine = feeds("yahoo",_url);
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
           }

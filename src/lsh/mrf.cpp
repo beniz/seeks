@@ -324,17 +324,7 @@ namespace lsh
 
   uint32_t mrf::mrf_single_feature(const std::string &str)
   {
-    std::vector<std::string> tokens;
-    mrf::tokenize(str,tokens,mrf::_default_delims);
-    return mrf::mrf_hash(tokens);
-  }
-
-  uint32_t mrf::mrf_single_feature(const std::string &str,
-                                   const std::string &delims)
-  {
-    std::vector<std::string> tokens;
-    mrf::tokenize(str,tokens,delims);
-    return mrf::mrf_hash(tokens);
+    return mrf::mrf_hash(str);
   }
 
   void mrf::mrf_features(std::vector<std::string> &tokens,
@@ -651,52 +641,9 @@ namespace lsh
   }
 
   /*- hashing. -*/
-  /* uint32_t mrf::mrf_hash(const str_chain &chain)
+  uint32_t mrf::mrf_hash(const std::string &token)
   {
-    // rank chains which do not contain any skipped token (i.e. no
-    // order preservation).
-    str_chain cchain(chain);
-    if (!chain.has_skip())
-      cchain = chain.rank_alpha();
-
-    uint32_t h = 0;
-    size_t csize = std::min(10,(int)cchain.size());  // beware: hctable may be too small...
-    for (size_t i=0;i<csize;i++)
-      {
-  std::string token = cchain.at(i);
-  uint32_t hashed_token = mrf::_skip_token;
-  if (token != "<skip>")
-    hashed_token= mrf::SuperFastHash(token.c_str(),token.size());
-
-  #ifdef DEBUG
-  //debug
-   //std::cout << "hashed token: " << hashed_token << std::endl;
-  //debug
-  #endif
-
-  h += hashed_token * mrf::_hctable[i]; // beware...
-      }
-    return h;
-  } */
-
-  uint32_t mrf::mrf_hash(const std::vector<std::string> &tokens)
-  {
-    uint32_t h = 0;
-    size_t csize = std::min(10,(int)tokens.size());
-    for (size_t i=0; i<csize; i++)
-      {
-        std::string token = tokens.at(i);
-        uint32_t hashed_token= SuperFastHash(token.c_str(),token.size());
-
-#ifdef DEBUG
-        //debug
-        //std::cout << "hashed token: " << hashed_token << std::endl;
-        //debug
-#endif
-
-        h += hashed_token * mrf::_hctable[i]; // beware...
-      }
-    return h;
+    return SuperFastHash(token.c_str(),token.size());
   }
 
   // Paul Hsieh's super fast hash function.

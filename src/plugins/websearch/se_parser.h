@@ -38,7 +38,7 @@ namespace seeks_plugins
   class se_parser
   {
     public:
-      se_parser();
+      se_parser(const std::string &url);
 
       virtual ~se_parser();
 
@@ -76,6 +76,7 @@ namespace seeks_plugins
 
     protected:
       int _count; // number of snippets.
+      std::string _url; // url template for this parser (acts as an identifier).
   };
 
 } /* end of namespace. */

@@ -28,10 +28,9 @@ using sp::miscutil;
 namespace seeks_plugins
 {
 
-  se_parser_wcommons::se_parser_wcommons()
-      :se_parser(),_results_flag(false),_sr_flag(false)
+  se_parser_wcommons::se_parser_wcommons(const std::string &url)
+    :se_parser(url),_results_flag(false),_sr_flag(false)
   {
-
   }
 
   se_parser_wcommons::~se_parser_wcommons()
@@ -75,7 +74,7 @@ namespace seeks_plugins
             // create new snippet.
             img_search_snippet *sp = new img_search_snippet(_count+1);
             _count++;
-            sp->_img_engine |= std::bitset<IMG_NSEs>(SE_WCOMMONS);
+            sp->_img_engine = feeds("wcommons",_url);
             pc->_current_snippet = sp;
 
             if (!_results_flag)

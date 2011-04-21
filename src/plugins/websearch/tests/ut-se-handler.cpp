@@ -43,7 +43,7 @@ class SEHandlerTest : public testing::Test
 
 TEST_F(SEHandlerTest,query_to_ses_fail_no_engine)
 {
-  std::bitset<NSEs> engines;
+  feeds engines;
   hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
   int nresults = 0;
   query_context *qc = NULL;
@@ -63,8 +63,7 @@ TEST_F(SEHandlerTest,query_to_ses_fail_no_engine)
 
 TEST_F(SEHandlerTest,query_to_ses_fail_connect)
 {
-  std::bitset<NSEs> engines;
-  engines.set(3); // dummy engine.
+  feeds engines("dummy","url1");
   hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>(2);
   miscutil::add_map_entry(parameters,"q",1,"test",1);

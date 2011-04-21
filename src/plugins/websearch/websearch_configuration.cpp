@@ -51,9 +51,8 @@ namespace seeks_plugins
 #define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
-    :configuration_spec(filename)
+    :configuration_spec(filename),_default_engines(false)
   {
-    _se_enabled = std::bitset<NSEs>(0);
     load_config();
   }
 
@@ -66,8 +65,7 @@ namespace seeks_plugins
     _lang = "auto";
     _Nr = 10;
     _thumbs = false;
-    _se_enabled.set();
-    _se_enabled.flip(3); // all engines but dummy is default.
+    set_default_engines();
     _query_context_delay = 300; // in seconds, 5 minutes.
     _js = false; // default is no javascript, this may change later on.
     _content_analysis = false;
@@ -88,10 +86,34 @@ namespace seeks_plugins
     _num_reco_queries = 20;
   }
 
+  void websearch_configuration::set_default_engines()
+  {
+    std::string url = "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding";
+    _se_enabled.add_feed("google",url);
+    feed_url_options fuo(url,true);
+    _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
+    url = "http://www.bing.com/search?q=%query&first=%start&mkt=%lang";
+    _se_enabled.add_feed("bing",url);
+    fuo = feed_url_options(url,true);
+    _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
+    url = "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=";
+    _se_enabled.add_feed("yahoo",url);
+    fuo = feed_url_options(url,true);
+    _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
+    _default_engines = true;
+  }
+
   void websearch_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
       char *buf, const unsigned long &linenum)
   {
     std::vector<std::string> bpvec;
+    char tmp[BUFFER_SIZE];
+    int vec_count;
+    char *vec[20]; // max 10 urls per feed parser.
+    int i;
+    feed_parser fed;
+    feed_parser def_fed;
+    bool def = false;
     switch (cmd_hash)
       {
       case hash_lang :
@@ -107,31 +129,43 @@ namespace seeks_plugins
         break;
 
       case hash_se :
-        if (_se_enabled.count() == NSEs-1) // all bits set - dummy is default, so now reset to 0.
-          _se_enabled.reset();
+        strlcpy(tmp,arg,sizeof(tmp));
+        vec_count = miscutil::ssplit(tmp," \t",vec,SZ(vec),1,1);
+        div_t divresult;
+        divresult = div(vec_count-1,2);
+        if (divresult.rem > 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Wrong number of parameters for search-engine "
+                              "directive in websearch plugin configuration file");
+            break;
+          }
+        if (_default_engines)
+          {
+            // reset engines.
+            _se_enabled = feeds();
+            _se_options.clear();
+            _default_engines = false;
+          }
 
-        if (strcasecmp(arg,"google") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_GOOGLE);
-        else if (strcasecmp(arg,"bing") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_BING);
-        else if (strcasecmp(arg,"yahoo") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_YAHOO);
-        else if (strcasecmp(arg,"exalead") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_EXALEAD);
-        else if (strcasecmp(arg,"twitter") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_TWITTER);
-        else if (strcasecmp(arg,"identica") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_IDENTICA);
-        else if (strcasecmp(arg,"youtube") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_YOUTUBE);
-        else if (strcasecmp(arg,"dailymotion") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_DAILYMOTION);
-        else if (strcasecmp(arg,"yauba") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_YAUBA);
-        else if (strcasecmp(arg,"blekko") == 0)
-          _se_enabled |= std::bitset<NSEs>(SE_BLEKKO);
-        else if (strcasecmp(arg,"opensearch") == 0)
-          _se_enabled |=  std::bitset<NSEs>(SE_OPENSEARCH);
+        fed = feed_parser(vec[0]);
+        def_fed = feed_parser(vec[0]);
+        //std::cerr << "config: adding feed: " << fed._name << std::endl;
+        for (i=1; i<vec_count; i+=2)
+          {
+            //std::cerr << "config: adding url: " << vec[i] << std::endl;
+            fed.add_url(vec[i]);
+            def = false;
+            if (strcmp(vec[i+1],"default")==0)
+              def = true;
+            feed_url_options fuo(vec[i],def);
+            _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
+            if (def)
+              def_fed.add_url(vec[i]);
+          }
+        _se_enabled.add_feed(fed);
+        if (!def_fed.empty())
+          _se_default.add_feed(def_fed);
+
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Enabled search engine");
         break;

@@ -27,7 +27,7 @@ namespace seeks_plugins
   class se_parser_youtube : public se_parser
   {
     public:
-      se_parser_youtube();
+      se_parser_youtube(const std::string &url);
       ~se_parser_youtube();
 
       // virtual.

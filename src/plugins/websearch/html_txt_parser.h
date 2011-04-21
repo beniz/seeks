@@ -27,7 +27,7 @@ namespace seeks_plugins
   class html_txt_parser : public se_parser
   {
     public:
-      html_txt_parser();
+      html_txt_parser(const std::string &url);
 
       ~html_txt_parser();
 
