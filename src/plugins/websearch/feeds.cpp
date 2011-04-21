@@ -18,6 +18,9 @@
 
 #include "feeds.h"
 #include "websearch_configuration.h"
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch_configuration.h"
+#endif
 #include "errlog.h"
 
 #include <iostream>
@@ -246,6 +249,27 @@ namespace seeks_plugins
     feed_parser fp_ptr((*it));
     return add_feed(fp_ptr);
   }
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+  bool feeds::add_feed(const std::string &name,
+                       img_websearch_configuration *wconfig)
+  {
+    if (!wconfig)
+      return add_feed(name);
+    feed_parser fp(name);
+    std::set<feed_parser,feed_parser::lxn>::iterator it
+    = wconfig->_img_se_enabled._feedset.find(fp);
+    if (it == wconfig->_img_se_enabled._feedset.end())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Cannot find feed parser %s in configuration",
+                          name.c_str());
+        return false;
+      }
+    // copy and feed_parser object.
+    feed_parser fp_ptr((*it));
+    return add_feed(fp_ptr);
+  }
+#endif
 
   bool feeds::remove_feed(const std::string &name)
   {

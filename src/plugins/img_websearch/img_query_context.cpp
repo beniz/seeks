@@ -121,35 +121,27 @@ namespace seeks_plugins
     // if the list is included in that of the context, perform expansion, results will be filtered later on.
     if (!cache_check || strcasecmp(cache_check,"yes") == 0)
       {
-        std::bitset<IMG_NSEs> beng;
+        feeds beng;
         const char *eng = miscutil::lookup(parameters,"engines");
         if (eng)
           {
             img_query_context::fillup_img_engines(parameters,beng);
           }
-        else beng = img_websearch_configuration::_img_wconfig->_img_se_enabled;
+        else beng = img_websearch_configuration::_img_wconfig->_img_se_default;
 
         // test inclusion.
-        std::bitset<IMG_NSEs> inc = beng;
-        inc &= _img_engines;
+        feeds inc = _img_engines.inter(beng);
 
-        if (inc.count() == beng.count())
+        if (!beng.equal(inc))
           {
-            // included, nothing more to be done.
-          }
-        else // test intersection.
-          {
-            std::bitset<IMG_NSEs> bint;
-            for (int b=0; b<IMG_NSEs; b++)
-              {
-                if (beng[b] && !inc[b])
-                  bint.set(b);
-              }
+            // union of beng and fdiff.
+            feeds fdiff = _img_engines.diff(beng);
+            feeds fint = _img_engines.diff(fdiff);
 
             try
               {
                 // catch up expansion with the newly activated engines.
-                expand_img(csp,rsp,parameters,0,_page_expansion,bint);
+                expand_img(csp,rsp,parameters,0,_page_expansion,fint);
               }
             catch (sp_exception &e)
               {
@@ -158,7 +150,9 @@ namespace seeks_plugins
               }
 
             expanded = true;
-            _img_engines |= bint;
+
+            // union engines & fint.
+            _img_engines = _img_engines.sunion(fint);
           }
 
         // check for safesearch change.
@@ -230,7 +224,7 @@ namespace seeks_plugins
                                      http_response *rsp,
                                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                      const int &page_start, const int &page_end,
-                                     const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception)
+                                     const feeds &se_enabled) throw (sp_exception)
   {
     for (int i=page_start; i<page_end; i++) // catches up with requested horizon.
       {
@@ -253,15 +247,8 @@ namespace seeks_plugins
             throw e; // no engine found or connection error.
           }
 
-        // test for failed connection to the SEs comes here.
-        /*if (!outputs)
-          {
-            return websearch::failed_ses_connect(csp,rsp);
-        	    }*/
-
         // parse the output and create result search snippets.
         int rank_offset = (i > 0) ? i * img_websearch_configuration::_img_wconfig->_Nr : 0;
-
         se_handler_img::parse_ses_output(outputs,nresults,_cached_snippets,rank_offset,this,se_enabled);
         for (int j=0; j<nresults; j++)
           if (outputs[j])
@@ -272,7 +259,7 @@ namespace seeks_plugins
   }
 
   void img_query_context::fillup_img_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-      std::bitset<IMG_NSEs> &engines)
+      feeds &engines)
   {
     const char *eng = miscutil::lookup(parameters,"engines");
     if (eng)
@@ -280,10 +267,12 @@ namespace seeks_plugins
         std::string engines_str = std::string(eng);
         std::vector<std::string> vec_engines;
         miscutil::tokenize(engines_str,vec_engines,",");
-        std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());
-        se_handler_img::set_engines(engines,vec_engines);
+        for (size_t i=0; i<vec_engines.size(); i++)
+          {
+            engines.add_feed(vec_engines.at(i),img_websearch_configuration::_img_wconfig);
+          }
       }
-    else engines = img_websearch_configuration::_img_wconfig->_img_se_enabled;
+    else engines = img_websearch_configuration::_img_wconfig->_img_se_default;
   }
 
 } /* end of namespace. */

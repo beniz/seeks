@@ -169,33 +169,8 @@ namespace seeks_plugins
     std::string json_str_eng = "";
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     const img_query_context *iqc = static_cast<const img_query_context*>(qc);
-    std::bitset<IMG_NSEs> engines = iqc->_img_engines;
-    if (engines.to_ulong()&SE_BING_IMG)
-      json_str_eng += "\"bing\"";
-    if (engines.to_ulong()&SE_FLICKR)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"flickr\"";
-      }
-    if (engines.to_ulong()&SE_GOOGLE_IMG)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"google\"";
-      }
-    if (engines.to_ulong()&SE_WCOMMONS)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"wcommons\"";
-      }
-    if (engines.to_ulong()&SE_YAHOO_IMG)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"yahoo\"";
-      }
+    feeds engines = iqc->_img_engines;
+    json_str_eng += render_engines(engines);
 #endif
     return json_str_eng;
   }

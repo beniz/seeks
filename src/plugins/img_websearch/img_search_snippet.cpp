@@ -20,6 +20,7 @@
 #include "websearch.h"
 #include "query_context.h"
 #include "img_query_context.h"
+#include "json_renderer.h"
 #include "miscutil.h"
 #include "mem_utils.h"
 #include "encode.h"
@@ -118,7 +119,7 @@ namespace seeks_plugins
     html_content += title_enc;
     free_const(title_enc);
 
-    if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
+    if (_img_engine.has_feed("google_img"))
       {
         std::string ggle_se_icon = se_icon;
         miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
@@ -127,7 +128,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(ggle_se_icon,"@query@",_qc->_url_enc_query);
         html_content += ggle_se_icon;
       }
-    if (_img_engine.to_ulong()&SE_BING_IMG)
+    if (_img_engine.has_feed("bing_img"))
       {
         std::string bing_se_icon = se_icon;
         miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
@@ -136,7 +137,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
         html_content += bing_se_icon;
       }
-    if (_img_engine.to_ulong()&SE_FLICKR)
+    if (_img_engine.has_feed("flickr"))
       {
         std::string flickr_se_icon = se_icon;
         miscutil::replace_in_string(flickr_se_icon,"icon","search_engine_flickr");
@@ -145,7 +146,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(flickr_se_icon,"@query@",_qc->_url_enc_query);
         html_content += flickr_se_icon;
       }
-    if (_img_engine.to_ulong()&SE_WCOMMONS)
+    if (_img_engine.has_feed("wcommons"))
       {
         std::string wcommons_se_icon = se_icon;
         miscutil::replace_in_string(wcommons_se_icon,"icon","search_engine_wcommons");
@@ -154,7 +155,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(wcommons_se_icon,"@query@",_qc->_url_enc_query);
         html_content += wcommons_se_icon;
       }
-    if (_img_engine.to_ulong()&SE_YAHOO_IMG)
+    if (_img_engine.has_feed("yahoo_img"))
       {
         std::string yahoo_se_icon = se_icon;
         miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
@@ -268,7 +269,8 @@ namespace seeks_plugins
         json_str += "\"cached\":\"" + _cached + "\","; // XXX: cached might be malformed without preprocessing.
       }
     json_str += "\"engines\":[";
-    std::string json_str_eng = "";
+    json_str += json_renderer::render_engines(_img_engine);
+    /*std::string json_str_eng = "";
     if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
       json_str_eng += "\"google\"";
     if (_img_engine.to_ulong()&SE_BING_IMG)
@@ -294,8 +296,8 @@ namespace seeks_plugins
         if (!json_str_eng.empty())
           json_str_eng += ",";
         json_str_eng += "\"yahoo\"";
-      }
-    json_str += json_str_eng + "]";
+    	}*/
+    json_str += "]";
     json_str += ",\"type\":\"" + get_doc_type_str() + "\"";
     json_str += ",\"personalized\":\"";
     if (_personalized)
@@ -310,10 +312,12 @@ namespace seeks_plugins
 
   bool img_search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    std::bitset<IMG_NSEs> se_enabled;
+    feeds se_enabled;
     img_query_context::fillup_img_engines(parameters,se_enabled);
-    std::bitset<IMG_NSEs> band = _img_engine & se_enabled;
-    return (band.count() != 0);
+    feeds band = _img_engine.inter(se_enabled);
+    if (band.empty())
+      band = _img_engine.inter_gen(se_enabled); // check for a wildcard (all feeds for a given parser).
+    return (band.size() != 0);
   }
 
   void img_search_snippet::set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
@@ -350,11 +354,15 @@ namespace seeks_plugins
   {
     search_snippet::merge_snippets(s1,s2);
 
-    std::bitset<IMG_NSEs> setest = s1->_img_engine;
+    if (s1->_img_engine.equal(s2->_img_engine))
+      return;
+    s1->_img_engine = s1->_img_engine.sunion(s2->_img_engine);
+
+    /*std::bitset<IMG_NSEs> setest = s1->_img_engine;
     setest &= s2->_img_engine;
     if (setest.count()>0)
       return;
-    s1->_img_engine |= s2->_img_engine;
+      s1->_img_engine |= s2->_img_engine; */
 
     if (!s1->_cached_image && s2->_cached_image)
       s1->_cached_image = new std::string(*s2->_cached_image);
@@ -365,8 +373,10 @@ namespace seeks_plugins
     // XXX: hack, on English queries, Bing & Yahoo are the same engine,
     // therefore the rank must be tweaked accordingly in this special case.
     if (s1->_qc->_auto_lang == "en"
-        && (s1->_img_engine.to_ulong()&SE_YAHOO_IMG)
-        && (s1->_img_engine.to_ulong()&SE_BING_IMG))
+        && s1->_img_engine.has_feed("yahoo_img")
+        && s1->_img_engine.has_feed("bing_img"))
+      //&& (s1->_img_engine.to_ulong()&SE_YAHOO_IMG)
+      //&& (s1->_img_engine.to_ulong()&SE_BING_IMG))
       s1->_seeks_rank--;
   }
 

@@ -28,8 +28,8 @@ using sp::miscutil;
 namespace seeks_plugins
 {
 
-  se_parser_bing_img::se_parser_bing_img()
-      :se_parser(),_results_flag(false),_link_flag(false),_title_flag(false),_safesearch(true)
+  se_parser_bing_img::se_parser_bing_img(const std::string &url)
+    :se_parser(url),_results_flag(false),_link_flag(false),_title_flag(false),_safesearch(true)
   {
   }
 
@@ -77,7 +77,7 @@ namespace seeks_plugins
             img_search_snippet *sp = new img_search_snippet(_count+1);
             sp->_safe = _safesearch;
             _count++;
-            sp->_img_engine |= std::bitset<IMG_NSEs>(SE_BING_IMG);
+            sp->_img_engine = feeds("bing_img",_url);
             pc->_current_snippet = sp;
           }
         else if (_results_flag && a_class && strcasecmp(a_class,"md_mu") == 0)

@@ -70,7 +70,7 @@ namespace seeks_plugins
                                      const img_search_snippet *s2);
 
       // variables.
-      std::bitset<IMG_NSEs> _img_engine;
+      feeds _img_engine;
 
 #ifdef FEATURE_OPENCV2
       // OpenCV feature format.

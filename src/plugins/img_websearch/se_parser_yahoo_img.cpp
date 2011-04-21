@@ -30,8 +30,8 @@ using sp::encode;
 namespace seeks_plugins
 {
 
-  se_parser_yahoo_img::se_parser_yahoo_img()
-      :se_parser(),_results_flag(false),_cite_flag(false),_safesearch(true)
+  se_parser_yahoo_img::se_parser_yahoo_img(const std::string &url)
+    :se_parser(url),_results_flag(false),_cite_flag(false),_safesearch(true)
   {
   }
 
@@ -71,7 +71,7 @@ namespace seeks_plugins
         img_search_snippet *sp = new img_search_snippet(_count+1);
         sp->_safe = _safesearch;
         _count++;
-        sp->_img_engine |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
+        sp->_img_engine = feeds("yahoo_img",_url);
         pc->_current_snippet = sp;
       }
     else if (_results_flag && strcasecmp(tag,"a") == 0)

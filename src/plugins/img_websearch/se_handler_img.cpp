@@ -47,7 +47,7 @@ namespace seeks_plugins
   void se_bing_img::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                 std::string &url, const query_context *qc)
   {
-    std::string q_bing = se_handler_img::_se_strings[BING_IMG]; // query to bing.
+    std::string q_bing = url;
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -84,7 +84,7 @@ namespace seeks_plugins
   void se_ggle_img::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                 std::string &url, const query_context *qc)
   {
-    std::string q_ggle = se_handler_img::_se_strings[GOOGLE_IMG]; // query to ggle.
+    std::string q_ggle = url;
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -131,7 +131,7 @@ namespace seeks_plugins
   void se_flickr::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                               std::string &url, const query_context *qc)
   {
-    std::string q_fl = se_handler_img::_se_strings[FLICKR]; // query to flickr.
+    std::string q_fl = url;
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -167,7 +167,7 @@ namespace seeks_plugins
   void se_yahoo_img::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                  std::string &url, const query_context *qc)
   {
-    std::string q_ya = se_handler_img::_se_strings[YAHOO_IMG]; // query to yahoo.
+    std::string q_ya = url;
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -203,7 +203,7 @@ namespace seeks_plugins
   void se_wcommons::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                 std::string &url, const query_context *qc)
   {
-    std::string q_wcom = se_handler_img::_se_strings[WCOMMONS]; // query to wikimedia commons.
+    std::string q_wcom = url;
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -232,7 +232,7 @@ namespace seeks_plugins
   }
 
   /*- se_handler_img -*/
-  std::string se_handler_img::_se_strings[IMG_NSEs] =  // in alphabetical order.
+  /*std::string se_handler_img::_se_strings[IMG_NSEs] =  // in alphabetical order.
   {
     // bing: www.bing.com/images/search?q=markov+chain&go=&form=QBIR
     "http://www.bing.com/images/search?q=%query&first=%start&mkt=%lang",
@@ -244,7 +244,7 @@ namespace seeks_plugins
     "http://commons.wikimedia.org/w/index.php?search=%query&limit=%num&offset=%start",
     // images.search.yahoo.com/search/images?ei=UTF-8&p=lapin&js=0&lang=fr&b=21
     "http://images.search.yahoo.com/search/images?ei=UTF-8&p=%query&js=0&vl=lang_%lang&b=%start"
-  };
+    };*/
 
   se_bing_img se_handler_img::_img_bing = se_bing_img();
   se_ggle_img se_handler_img::_img_ggle = se_ggle_img();
@@ -254,31 +254,41 @@ namespace seeks_plugins
 
   /*-- queries to the image search engines. --*/
   std::string** se_handler_img::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-      int &nresults, const query_context *qc, const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception)
+      int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception)
   {
     std::vector<std::string> urls;
-    urls.reserve(IMG_NSEs);
+    urls.reserve(se_enabled.size());
     std::vector<std::list<const char*>*> headers;
-    headers.reserve(IMG_NSEs);
+    headers.reserve(se_enabled.size());
     std::vector<std::string> cookies;
-    cookies.reserve(IMG_NSEs);
+    cookies.reserve(se_enabled.size());
 
     // enabling of SEs.
-    for (int i=0; i<IMG_NSEs; i++)
+    std::set<feed_parser,feed_parser::lxn>::iterator it
+    = se_enabled._feedset.begin();
+    while(it!=se_enabled._feedset.end())
       {
-        if (se_enabled[i])
+        std::vector<std::string> all_urls;
+        std::list<const char*> *lheaders = NULL;
+        se_handler_img::query_to_se(parameters,(*it),all_urls,qc,lheaders);
+        for (size_t j=0; j<all_urls.size(); j++)
           {
-            std::string url;
-            std::list<const char*> *lheaders = NULL;
-            se_handler_img::query_to_se(parameters,(IMG_SE)i,url,qc,lheaders);
-            urls.push_back(url);
-            headers.push_back(lheaders);
-            if ((IMG_SE)i == BING_IMG)  // safe search cookies.
+            urls.push_back(all_urls.at(j));
+            if (j == 0)
+              headers.push_back(lheaders);
+            else
+              {
+                std::list<const char*> *lheadersc = new std::list<const char*>();
+                miscutil::list_duplicate(lheadersc,lheaders);
+                headers.push_back(lheadersc);
+              }
+            if ((*it)._name == "bing_img")  // safe search cookies.
               cookies.push_back(se_bing_img::_safe_search_cookie.c_str());
-            else if ((IMG_SE)i == YAHOO_IMG)
+            else if ((*it)._name == "yahoo_img")
               cookies.push_back(se_yahoo_img::_safe_search_cookie.c_str());
             else cookies.push_back("");
           }
+        ++it;
       }
 
     if (urls.empty())
@@ -335,7 +345,7 @@ namespace seeks_plugins
   }
 
   void se_handler_img::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                   const IMG_SE &se, std::string &url, const query_context *qc,
+                                   const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
                                    std::list<const char*> *&lheaders)
   {
     lheaders = new std::list<const char*>();
@@ -348,35 +358,31 @@ namespace seeks_plugins
         ++sit;
       }
 
-    switch (se)
+    for (size_t i=0; i<se.size(); i++)
       {
-      case GOOGLE_IMG:
-        _img_ggle.query_to_se(parameters,url,qc);
-        break;
-      case BING_IMG:
-        _img_bing.query_to_se(parameters,url,qc);
-        break;
-      case FLICKR:
-        _img_flickr.query_to_se(parameters,url,qc);
-        break;
-      case WCOMMONS:
-        _img_wcommons.query_to_se(parameters,url,qc);
-        break;
-      case YAHOO_IMG:
-        _img_yahoo.query_to_se(parameters,url,qc);
-        break;
+        std::string url = se.get_url(i);
+        if (se._name == "google_img")
+          _img_ggle.query_to_se(parameters,url,qc);
+        else if (se._name == "bing_img")
+          _img_bing.query_to_se(parameters,url,qc);
+        else if (se._name == "flickr")
+          _img_flickr.query_to_se(parameters,url,qc);
+        else if (se._name == "wcommons")
+          _img_wcommons.query_to_se(parameters,url,qc);
+        else if (se._name == "yahoo_img")
+          _img_yahoo.query_to_se(parameters,url,qc);
+        all_urls.push_back(url);
       }
   }
 
-  void se_handler_img::set_engines(std::bitset<IMG_NSEs> &se_enabled, const std::vector<std::string> &ses)
+  /*void se_handler_img::set_engines(const feeds &se_enabled, const std::vector<std::string> &ses)
   {
     int msize = std::min((int)ses.size(),IMG_NSEs);
     for (int i=0; i<msize; i++)
       {
         std::string se = ses.at(i);
 
-        /* put engine name into lower cases. */
-        std::transform(se.begin(),se.end(),se.begin(),tolower);
+  std::transform(se.begin(),se.end(),se.begin(),tolower);
 
         if (se == "google")
           {
@@ -400,36 +406,35 @@ namespace seeks_plugins
           }
         // XXX: other engines come here.
       }
-  }
+      }*/
 
   sp_err se_handler_img::parse_ses_output(std::string **outputs, const int &nresults,
                                           std::vector<search_snippet*> &snippets,
                                           const int &count_offset,
                                           query_context *qr,
-                                          const std::bitset<IMG_NSEs> &se_enabled)
+                                          const feeds &se_enabled)
   {
     int j = 0;
-    size_t active_ses = se_enabled.count();
-    pthread_t parser_threads[active_ses];
-    ps_thread_arg* parser_args[active_ses];
-    for (size_t i=0; i<active_ses; i++)
-      parser_args[i] = NULL;
+    std::vector<pthread_t> parser_threads;
+    std::vector<ps_thread_arg*> parser_args;
 
     // threads, one per parser.
-    int k = 0;
-    for (int i=0; i<IMG_NSEs; i++)
+    std::set<feed_parser,feed_parser::lxn>::iterator it
+    = se_enabled._feedset.begin();
+    while(it!=se_enabled._feedset.end())
       {
-        if (se_enabled[i])
+        for (size_t f=0; f<(*it).size(); f++)
           {
             if (outputs[j])
               {
                 ps_thread_arg *args = new ps_thread_arg();
-                args->_se = (IMG_SE)i;
+                args->_se = (*it);
+                args->_se_idx = f;
                 args->_output = (char*) outputs[j]->c_str();  // XXX: sad cast.
                 args->_snippets = new std::vector<search_snippet*>();
                 args->_offset = count_offset;
                 args->_qr = qr;
-                parser_args[k] = args;
+                parser_args.push_back(args);
 
                 pthread_t ps_thread;
                 int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
@@ -437,33 +442,34 @@ namespace seeks_plugins
                 if (err != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
-                    parser_threads[k++] = 0;
+                    parser_threads.push_back(0);
                     delete args;
-                    parser_args[k] = NULL;
+                    parser_args.push_back(NULL);
                     continue;
                   }
-                parser_threads[k++] = ps_thread;
+                parser_threads.push_back(ps_thread);
               }
-            else parser_threads[k++] = 0;
+            else parser_threads.push_back(0);
             j++;
           }
+        ++it;
       }
     // join and merge results.
-    for (size_t i=0; i<active_ses; i++)
+    for (size_t i=0; i<parser_threads.size(); i++)
       {
-        if (parser_threads[i]!=0)
-          pthread_join(parser_threads[i],NULL);
+        if (parser_threads.at(i)!=0)
+          pthread_join(parser_threads.at(i),NULL);
       }
 
-    for (size_t i=0; i<active_ses; i++)
+    for (size_t i=0; i<parser_args.size(); i++)
       {
-        if (parser_args[i])
+        if (parser_args.at(i))
           {
-            std::copy(parser_args[i]->_snippets->begin(),parser_args[i]->_snippets->end(),
+            std::copy(parser_args.at(i)->_snippets->begin(),parser_args.at(i)->_snippets->end(),
                       std::back_inserter(snippets));
-            parser_args[i]->_snippets->clear();
-            delete parser_args[i]->_snippets;
-            delete parser_args[i];
+            parser_args.at(i)->_snippets->clear();
+            delete parser_args.at(i)->_snippets;
+            delete parser_args.at(i);
           }
       }
     return SP_ERR_OK;
@@ -471,14 +477,22 @@ namespace seeks_plugins
 
   void se_handler_img::parse_output(ps_thread_arg &args)
   {
-    se_parser *se = se_handler_img::create_se_parser((IMG_SE)args._se,
+    se_parser *se = se_handler_img::create_se_parser(args._se,args._se_idx,
                     static_cast<img_query_context*>(args._qr)->_safesearch);
 
+    if (!se)
+      {
+        args._err = WB_ERR_NO_ENGINE;
+        errlog::log_error(LOG_LEVEL_ERROR,"no image engine for %s",args._se._name.c_str());
+        return;
+      }
     try
       {
-        if ((IMG_SE)args._se == BING_IMG)
+        if (args._se._name == "bing_img")
           se->parse_output_xml(args._output,args._snippets,args._offset);
         else se->parse_output(args._output,args._snippets,args._offset);
+        errlog::log_error(LOG_LEVEL_DEBUG,"parser %s: %u snippets",
+                          args._se._name.c_str(),args._snippets->size());
       }
     catch (sp_exception &e)
       {
@@ -498,33 +512,27 @@ namespace seeks_plugins
     delete se;
   }
 
-  se_parser* se_handler_img::create_se_parser(const IMG_SE &se,
-      const bool &safesearch)
+  se_parser* se_handler_img::create_se_parser(const feed_parser &se,
+      const size_t &i, const bool &safesearch)
   {
     se_parser *sep = NULL;
-    se_parser_bing_img *sepb = NULL;
-    se_parser_yahoo_img *sepy = NULL;
-    switch (se)
+    if (se._name == "google_img")
+      sep = new se_parser_ggle_img(se.get_url(i));
+    else if (se._name == "bing_img")
       {
-      case GOOGLE_IMG:
-        sep = new se_parser_ggle_img();
-        break;
-      case BING_IMG:
-        sepb = new se_parser_bing_img();
+        se_parser_bing_img *sepb = new se_parser_bing_img(se.get_url(i));
         sepb->_safesearch = safesearch;
         sep = sepb;
-        break;
-      case FLICKR:
-        sep = new se_parser_flickr();
-        break;
-      case WCOMMONS:
-        sep = new se_parser_wcommons();
-        break;
-      case YAHOO_IMG:
-        sepy = new se_parser_yahoo_img();
+      }
+    else if (se._name == "flickr")
+      sep = new se_parser_flickr(se.get_url(i));
+    else if (se._name == "wcommons")
+      sep = new se_parser_wcommons(se.get_url(i));
+    else if (se._name == "yahoo_img")
+      {
+        se_parser_yahoo_img *sepy = new se_parser_yahoo_img(se.get_url(i));
         sepy->_safesearch = safesearch;
         sep = sepy;
-        break;
       }
     return sep;
   }

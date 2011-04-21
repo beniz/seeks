@@ -20,7 +20,7 @@
 #define IMG_WEBSEARCH_CONFIGURATION_H
 
 #include "configuration_spec.h"
-
+#include "feeds.h"
 #include <bitset>
 
 using sp::configuration_spec;
@@ -29,13 +29,13 @@ namespace seeks_plugins
 {
 
   /* engines in alphabetical order. */
-#define IMG_NSEs 5 // number of image engines.
+  /*#define IMG_NSEs 5 // number of image engines.
 
-#define SE_BING_IMG            1U
-#define SE_FLICKR              2U
-#define SE_GOOGLE_IMG          4U
-#define SE_WCOMMONS            8U
-#define SE_YAHOO_IMG          16U
+  #define SE_BING_IMG            1U
+  #define SE_FLICKR              2U
+  #define SE_GOOGLE_IMG          4U
+  #define SE_WCOMMONS            8U
+  #define SE_YAHOO_IMG          16U*/
 
   class img_websearch_configuration : public configuration_spec
   {
@@ -47,13 +47,18 @@ namespace seeks_plugins
       // virtual.
       virtual void set_default_config();
 
+      void set_default_engines();
+
       virtual void handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
                                      char *buf, const unsigned long &linenum);
 
       virtual void finalize_configuration();
 
       // main options.
-      std::bitset<IMG_NSEs> _img_se_enabled; /**< enabled image search engines. */
+      bool _default_engines; /**< whether this config defines the default engines or not. */
+      feeds _img_se_enabled; /**< enabled image search engines. */
+      hash_map<const char*,feed_url_options,hash<const char*>,eqstr> _se_options; /**< search engines options. */
+      feeds _img_se_default; /**< default set of search engines. */
       bool _img_content_analysis; /**< whether to download image thumbnails to detect identical images, or not. */
       int _Nr; /**< number of images per page. */
       bool _safe_search; /**< whether 'safe' image search is activated, or not. */

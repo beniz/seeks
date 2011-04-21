@@ -28,7 +28,7 @@ namespace seeks_plugins
   class se_parser_bing_img : public se_parser
   {
     public:
-      se_parser_bing_img();
+      se_parser_bing_img(const std::string &url);
       ~se_parser_bing_img();
 
       // virtual.

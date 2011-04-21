@@ -28,7 +28,7 @@ namespace seeks_plugins
   class se_parser_wcommons : public se_parser
   {
     public:
-      se_parser_wcommons();
+      se_parser_wcommons(const std::string &url);
       ~se_parser_wcommons();
 
       // virtual

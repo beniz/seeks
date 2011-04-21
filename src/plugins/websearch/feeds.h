@@ -19,6 +19,7 @@
 #ifndef FEEDS_H
 #define FEEDS_H
 
+#include "config.h"
 #include <string>
 #include <algorithm>
 #include <set>
@@ -27,6 +28,9 @@ namespace seeks_plugins
 {
 
   class websearch_configuration;
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+  class img_websearch_configuration;
+#endif
 
   class feed_url_options
   {
@@ -119,6 +123,11 @@ namespace seeks_plugins
 
       bool add_feed(const std::string &name,
                     websearch_configuration *wconfig);
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+      bool add_feed(const std::string &name,
+                    img_websearch_configuration *wconfig);
+#endif
 
       bool remove_feed(const std::string &name);
 

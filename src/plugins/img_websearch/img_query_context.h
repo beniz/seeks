@@ -50,13 +50,13 @@ namespace seeks_plugins
                       http_response *rsp,
                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                       const int &page_start, const int &page_end,
-                      const std::bitset<IMG_NSEs> &se_enabled) throw (sp_exception);
+                      const feeds &se_enabled) throw (sp_exception);
 
       static void fillup_img_engines(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                     std::bitset<IMG_NSEs> &engines);
+                                     feeds &engines);
 
     public:
-      std::bitset<IMG_NSEs> _img_engines;
+      feeds _img_engines;
       unsigned short _exp_safesearch_on;
       unsigned short _exp_safesearch_off;
       bool _safesearch;

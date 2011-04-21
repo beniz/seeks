@@ -30,8 +30,8 @@ using sp::encode;
 namespace seeks_plugins
 {
 
-  se_parser_ggle_img::se_parser_ggle_img()
-    :se_parser(),_results_flag(false)
+  se_parser_ggle_img::se_parser_ggle_img(const std::string &url)
+    :se_parser(url),_results_flag(false)
   {
   }
 
@@ -54,7 +54,7 @@ namespace seeks_plugins
         // create new snippet.
         img_search_snippet *sp = new img_search_snippet(_count+1);
         _count++;
-        sp->_img_engine |= std::bitset<IMG_NSEs>(SE_GOOGLE_IMG);
+        sp->_img_engine = feeds("google_img",_url);
         pc->_current_snippet = sp;
       }
     else if (_results_flag && strcasecmp(tag,"img") == 0)
