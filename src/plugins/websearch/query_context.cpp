@@ -271,7 +271,6 @@ namespace seeks_plugins
         else beng = feeds(websearch::_wconfig->_se_default);
 
         // test inclusion.
-        //feeds fdiff = _engines.diff(beng);
         feeds inc = _engines.inter(beng);
 
         //TODO: unit test the whole engine selection.
@@ -356,18 +355,6 @@ namespace seeks_plugins
         feed_parser fp = se_enabled.find_feed("blekko");
         if (!fp._name.empty())
           _blekko = true; // call once.
-        /*std::bitset<NSEs> tblekko = se_enabled;
-        tblekko |= std::bitset<NSEs>(SE_BLEKKO);
-        if (se_enabled == tblekko)
-        	_blekko = true;*/ // call once.
-
-        // test for failed connection to the SEs comes here.
-        /*if (!outputs)
-          {
-        	    //TODO: catch exception instead.
-            websearch::failed_ses_connect(csp,rsp);
-        	    return;
-        	    }*/
 
         // parse the output and create result search snippets.
         int rank_offset = (i > 0) ? i * websearch::_wconfig->_Nr : 0;
@@ -728,14 +715,11 @@ namespace seeks_plugins
         std::string engines_str = std::string(eng);
         std::vector<std::string> vec_engines;
         miscutil::tokenize(engines_str,vec_engines,",");
-        /*std::sort(vec_engines.begin(),vec_engines.end(),std::less<std::string>());
-        	  se_handler::set_engines(engines,vec_engines);*/
         for (size_t i=0; i<vec_engines.size(); i++)
           {
             engines.add_feed(vec_engines.at(i),websearch::_wconfig);
           }
       }
-    //else engines = feeds(websearch::_wconfig->_se_enabled);
     else engines = feeds(websearch::_wconfig->_se_default);
   }
 

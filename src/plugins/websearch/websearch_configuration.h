@@ -20,7 +20,6 @@
 #define WEBSEARCH_CONFIGURATION_H
 
 #include "configuration_spec.h"
-//#include "se_handler.h" // NSEs.
 #include "feeds.h"
 
 #include <bitset>

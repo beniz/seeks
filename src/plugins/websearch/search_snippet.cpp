@@ -350,7 +350,6 @@ namespace seeks_plugins
       }
 
     if (prs && _personalized && !_engine.has_feed("seeks"))
-      //!(_engine.to_ulong()&SE_SEEKS))
       {
         html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
       }
@@ -1045,7 +1044,6 @@ namespace seeks_plugins
     else
       {
         s1->_meta_rank = s1->_engine.size();
-
         s1->bing_yahoo_us_merge();
       }
   }
@@ -1055,10 +1053,8 @@ namespace seeks_plugins
     // XXX: hack, on English queries, Bing & Yahoo are the same engine,
     // therefore the rank must be tweaked accordingly in this special case.
     if (_qc->_auto_lang == "en"
-        //&& (_engine.to_ulong()&SE_YAHOO)
-        //&& (_engine.to_ulong()&SE_BING))
-        && (_engine.has_feed("yahoo"))
-        && (_engine.has_feed("bing")))
+        && _engine.has_feed("yahoo")
+        && _engine.has_feed("bing"))
       _meta_rank--;
   }
 

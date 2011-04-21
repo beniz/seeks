@@ -721,7 +721,6 @@ namespace seeks_plugins
     int j = 0;
     if (seeks_proxy::_config->_multi_threaded)
       {
-        size_t active_ses = se_enabled.size();
         std::vector<pthread_t> parser_threads;
         std::vector<ps_thread_arg*> parser_args;
 
@@ -769,7 +768,7 @@ namespace seeks_plugins
               pthread_join(parser_threads.at(i),NULL);
           }
 
-        for (size_t i=0; i<active_ses; i++)
+        for (size_t i=0; i<parser_args.size(); i++)
           {
             if (parser_args.at(i))
               {

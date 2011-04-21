@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009 - 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -71,13 +71,11 @@ namespace seeks_plugins
                     _count--;
                     pc->_snippets->pop_back();
                   }
-                //else pc->_snippets->push_back(pc->_current_snippet);
               }
 
             // create new snippet.
             search_snippet *sp = new search_snippet(_count+1);
             _count++;
-            //sp->_engine |= std::bitset<NSEs>(SE_BING);
             sp->_engine = feeds("bing",_url);
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
