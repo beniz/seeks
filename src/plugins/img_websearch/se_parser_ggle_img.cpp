@@ -45,9 +45,13 @@ namespace seeks_plugins
   {
     const char *tag = (const char*)name;
 
-    if (strcasecmp(tag,"ol") == 0)
+    if (!_results_flag && strcasecmp(tag,"div") == 0)
       {
-        _results_flag = true;
+        const char *id = se_parser::get_attribute((const char**)attributes,"id");
+        if (id && strcasecmp(id,"res") == 0)
+          {
+            _results_flag = true;
+          }
       }
     else if (_results_flag && strcasecmp(tag,"td") == 0)
       {
@@ -67,21 +71,29 @@ namespace seeks_plugins
             miscutil::replace_in_string(cached_link,"\n","");
             miscutil::replace_in_string(cached_link,"\r","");
             pc->_current_snippet->_cached = cached_link;
-            int pos = cached_link.find(":http:");
+          }
+      }
+    else if (_results_flag && strcasecmp(tag,"a") == 0)
+      {
+        const char *a_href = se_parser::get_attribute((const char**)attributes,"href");
+        if (a_href)
+          {
+            std::string furl = a_href;
+            miscutil::replace_in_string(furl,"/imgres?imgurl=","");
+            size_t pos = furl.find("imgrefurl");
             if (pos != std::string::npos)
               {
-                std::string url = cached_link.substr(pos+1);
+                std::string url = furl.substr(0,pos-1);
                 pc->_current_snippet->set_url(url);
-
                 pos = url.find_last_of("/");
-                url = url.substr(pos+1);
-                miscutil::replace_in_string(url,"_"," ");
-                miscutil::replace_in_string(url,"-"," ");
-                miscutil::replace_in_string(url,".jpg",""); // TODO: other extensions.
-                char *dec_url = encode::url_decode(url.c_str());
-                char *enc_url = encode::html_encode_and_free_original(dec_url);
-                pc->_current_snippet->_title = enc_url;
-                free(enc_url);
+                if (pos != std::string::npos && pos+1 != std::string::npos)
+                  {
+                    std::string imgfile = url.substr(pos+1);
+                    char *dec_url = encode::url_decode(imgfile.c_str());
+                    char *enc_url = encode::html_encode_and_free_original(dec_url);
+                    pc->_current_snippet->_title = enc_url;
+                    free(enc_url);
+                  }
               }
           }
       }
@@ -119,7 +131,7 @@ namespace seeks_plugins
       {
         _results_flag = false;
       }
-    else if (strcasecmp(tag,"td") == 0)
+    if (_results_flag && strcasecmp(tag,"td") == 0)
       {
         if (pc->_current_snippet)
           {
