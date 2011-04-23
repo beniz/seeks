@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -200,7 +200,7 @@ namespace seeks_plugins
     ref_sp = qc->get_cached_snippet(id);
 
     if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
-      return;
+      throw sp_exception(WB_ERR_NO_REF_SIM,"cannot find ref id among cached snippets");
 
     ref_sp->set_back_similarity_link(parameters);
 
