@@ -59,9 +59,12 @@ namespace seeks_plugins
         // std::cout << "  <title>" << std::endl;
         _in_title = true;
       }
+    // XXX: for some reason the non XML parser does not deal well
+    // enclosed in the content of <link></link>.
+    // The XML parser gets it right, but fucks it up everywhere else.
     else if (_in_entry && strcasecmp(tag, "guid") == 0)
       {
-        // std::cout << "  <link>" << std::endl;
+        //std::cout << "  <guid>" << std::endl;
         _in_uri = true;
       }
     else if (_in_entry && strcasecmp(tag, "description") == 0)
@@ -96,16 +99,16 @@ namespace seeks_plugins
         miscutil::replace_in_string(a_chars,"\r"," ");
         miscutil::replace_in_string(a_chars,"-"," ");
         _description += a_chars;
-        // std::cout << "    " << _description << std::endl;
+        //std::cout << "    " << _description << std::endl;
       }
     else if (_in_title)
       {
         std::string a_chars = std::string((char*)chars);
         miscutil::replace_in_string(a_chars,"\n"," ");
         miscutil::replace_in_string(a_chars,"\r"," ");
-        miscutil::replace_in_string(a_chars,"-"," ");
+        //miscutil::replace_in_string(a_chars,"-"," ");
         _title += a_chars;
-        // std::cout << "    " << _title << std::endl;
+        //std::cout << "    " << _title << std::endl;
       }
     else if (_in_uri)
       {
@@ -113,9 +116,11 @@ namespace seeks_plugins
         //miscutil::replace_in_string(a_chars,"\n"," ");
         //miscutil::replace_in_string(a_chars,"\r"," ");
         //miscutil::replace_in_string(a_chars,"-"," ");
-        //_uri += a_chars;
-        // //std::cout << "    " << _uri << std::endl;
         _uri.append((char*)chars, length);
+        size_t pos = _uri.find_first_of(" ");
+        if (pos != std::string::npos)
+          _uri = _uri.substr(0,pos);
+
         // std::cout << "    " << _uri << std::endl;
       }
   }
@@ -162,7 +167,7 @@ namespace seeks_plugins
       }
     else if (_in_entry && _in_uri && strcasecmp(tag, "guid") ==0)
       {
-        // std::cout << "  </link>" << std::endl;
+        //std::cout << "  </guid>: " << _uri << std::endl;
         _in_uri = false;
         pc->_current_snippet->set_url(_uri);
         _uri = "";
