@@ -4,19 +4,19 @@ proxydir=$(datadir)/seeks
 bin_PROGRAMS=seeks
 seeks_SOURCES=seeks.cpp
 
-AM_CPPFLAGS=-Wall -Wno-deprecated -g -pipe \
+AM_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ @ICU_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/query_capture -I${srcdir}/plugins/uri_capture -I${srcdir}/plugins/cf -I${srcdir}/plugins/udb_service -I${srcdir}/dht \
 	    `pkg-config opencv --cflags` 
 if HAVE_PROTOBUF
-AM_CPPFLAGS += -Iproxy/ `pkg-config --cflags protobuf`
+AM_CXXFLAGS += -Iproxy/ `pkg-config --cflags protobuf`
 
 if HAVE_TC
-AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`
+AM_CXXFLAGS += `pkg-config --cflags tokyocabinet`
 endif
 
 if HAVE_TT
-AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
+AM_CXXFLAGS += `pkg-config --cflags tokyotyrant`
 endif
 
 endif
