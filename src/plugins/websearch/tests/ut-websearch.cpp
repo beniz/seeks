@@ -221,6 +221,31 @@ TEST_F(WBTest,preprocess_parameters_bad_charset)
   miscutil::free_map(parameters);
 }
 
+TEST_F(WBTest,preprocess_parameters_dyn_ui_no_expand_action)
+{
+  client_state csp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"seeks",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"1",1);
+  miscutil::add_map_entry(parameters,"action",1,"similarity",1);
+  miscutil::add_map_entry(parameters,"ui",1,"dyn",1);
+  miscutil::add_map_entry(parameters,"output",1,"html",1);
+  int code = SP_ERR_OK;
+  try
+    {
+      websearch::preprocess_parameters(parameters,&csp);
+    }
+  catch(sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(SP_ERR_OK,code);
+  const char *action = miscutil::lookup(parameters,"action");
+  ASSERT_TRUE(strcmp(action,"expand")==0);
+  miscutil::free_map(parameters);
+}
+
 TEST_F(WBTest,cgi_websearch_search_no_param)
 {
   client_state csp;

@@ -340,7 +340,7 @@ namespace seeks_plugins
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                             "lreg",1,qlang_reg.c_str(),1);
 
-    // set action to expand and expansion to 1 if q is specified but not action
+    // set action to expand and expansion to 1 if q is specified but not action.
     const char *action = miscutil::lookup(parameters,"action");
     if (!action)
       {
@@ -348,6 +348,23 @@ namespace seeks_plugins
                                 "action",1,"expand",1);
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "expansion",1,"1",1);
+      }
+
+    // set action to expand if request is for a dynamic UI with html output (i.e. js UI bootstrap).
+    const char *ui = miscutil::lookup(parameters,"ui");
+    std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
+    if (ui_str == "dyn")
+      {
+        const char *output = miscutil::lookup(parameters,"output");
+        if (!output || miscutil::strcmpic(output,"html") == 0)
+          {
+            if (miscutil::strcmpic(action,"expand") != 0)
+              {
+                miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action");
+                miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                                        "action",1,"expand",1);
+              }
+          }
       }
 
     // set expansion to 1 if missing while action is expand.
