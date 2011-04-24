@@ -76,11 +76,10 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    int p = 31;
     char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
-    q_ggle.replace(p,6,qenc_str);
+    miscutil::replace_in_string(q_ggle,"%query",qenc_str);
 
     // expansion = result page called...
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -123,11 +122,10 @@ namespace seeks_plugins
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    int p = 29;
     char *qenc = encode::url_encode(query);
     std::string qenc_str = std::string(qenc);
     free(qenc);
-    q_bing.replace(p,6,qenc_str);
+    miscutil::replace_in_string(q_bing,"%query",qenc_str);
 
     // page.
     const char *expansion = miscutil::lookup(parameters,"expansion");
