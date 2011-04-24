@@ -371,7 +371,7 @@ Y.one("#search_form").on("submit", function (e) {
         clustered = 0;
         if (pi_twe.engines == '')
         {
-            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_twe.expansion,"lang":lang,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter,identica&callback={callback}";
+            var url = '@base-url@/search?' + Y.QueryString.stringify({"q":queryInput.get('value'),"expansion":pi_twe.expansion,"lang":lang,"action":"expand","rpp":40,"prs":pi_twe.pers,"content_analysis":pi_twe.ca,"ui":"dyn","output":"json"}) + "&engines=twitter&callback={callback}";
             refresh(url);
         }
         else render();

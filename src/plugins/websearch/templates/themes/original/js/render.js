@@ -11,7 +11,7 @@ snippetVidTemplate =
 
 snippetTweetTemplate =
     '<li class="search_snippet"><a href="{cite}"><img class="tweet_profile" src="{cached}" ></a><h3><a href="{url}">{title}</a></h3><div><cite>{cite}</cite><date> ({date})</date><a class="search_cache" href="/search?q={enc_query}&page=1&expansion=1&action=similarity&id={id}\
-&engines=twitter,identica">Similar</a></div></li>';
+&engines=twitter">Similar</a></div></li>';
 
 persTemplateFlag = '{prs}';
 
