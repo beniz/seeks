@@ -366,7 +366,6 @@ namespace seeks_plugins
                     ++hit;
                     continue;
                   }
-                //std::bitset<NSEs> band = (sp->_engine & se_enabled);
 
                 feeds band = se_enabled.inter(sp->_engine);
                 if (band.size() == 0)

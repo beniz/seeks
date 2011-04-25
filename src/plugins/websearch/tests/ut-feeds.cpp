@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "feeds.h"
+#include "websearch_configuration.h"
 
 using namespace seeks_plugins;
 
@@ -41,6 +42,33 @@ TEST(FeedsTest,add_feed)
   feed_parser fe;
   ret = f1.add_feed(fe);
   ASSERT_FALSE(ret);
+}
+
+TEST(FeedsTest,add_feed_config)
+{
+  websearch_configuration wconfig("");
+  feed_url_options fuo1("url1","id1");
+  feed_url_options fuo2("url2","id2");
+  wconfig._se_options.insert(std::pair<const char*,feed_url_options>(fuo1._url.c_str(),fuo1));
+  wconfig._se_options.insert(std::pair<const char*,feed_url_options>(fuo2._url.c_str(),fuo2));
+  wconfig._se_enabled.add_feed("dummy","url1");
+  wconfig._se_enabled.add_feed("dummy","url2");
+  std::vector<std::string> vec;
+  vec.push_back("dummy");
+  vec.push_back("id1");
+  feeds f;
+  f.add_feed(vec,&wconfig);
+  ASSERT_EQ(1,f.size());
+  feed_parser fp = f.find_feed("dummy");
+  ASSERT_EQ(1,fp.size());
+  ASSERT_EQ("url1",fp.get_url());
+  vec.push_back("id2");
+  feeds f1;
+  f1.add_feed(vec,&wconfig);
+  fp = f1.find_feed("dummy");
+  ASSERT_EQ(2,fp.size());
+  ASSERT_EQ("url1",fp.get_url(0));
+  ASSERT_EQ("url2",fp.get_url(1));
 }
 
 TEST(FeedsTest,get_url)

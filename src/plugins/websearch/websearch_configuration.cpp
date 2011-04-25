@@ -90,15 +90,15 @@ namespace seeks_plugins
   {
     std::string url = "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding";
     _se_enabled.add_feed("google",url);
-    feed_url_options fuo(url,true);
+    feed_url_options fuo(url,"google",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://www.bing.com/search?q=%query&first=%start&mkt=%lang";
     _se_enabled.add_feed("bing",url);
-    fuo = feed_url_options(url,true);
+    fuo = feed_url_options(url,"bing",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=";
     _se_enabled.add_feed("yahoo",url);
-    fuo = feed_url_options(url,true);
+    fuo = feed_url_options(url,"yahoo",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     _default_engines = true;
   }
@@ -132,7 +132,7 @@ namespace seeks_plugins
         strlcpy(tmp,arg,sizeof(tmp));
         vec_count = miscutil::ssplit(tmp," \t",vec,SZ(vec),1,1);
         div_t divresult;
-        divresult = div(vec_count-1,2);
+        divresult = div(vec_count-1,3);
         if (divresult.rem > 0)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "Wrong number of parameters for search-engine "
@@ -150,14 +150,15 @@ namespace seeks_plugins
         fed = feed_parser(vec[0]);
         def_fed = feed_parser(vec[0]);
         //std::cerr << "config: adding feed: " << fed._name << std::endl;
-        for (i=1; i<vec_count; i+=2)
+        for (i=1; i<vec_count; i+=3)
           {
             //std::cerr << "config: adding url: " << vec[i] << std::endl;
             fed.add_url(vec[i]);
+            std::string fu_name = vec[i+1];
             def = false;
-            if (strcmp(vec[i+1],"default")==0)
+            if (strcmp(vec[i+2],"default")==0)
               def = true;
-            feed_url_options fuo(vec[i],def);
+            feed_url_options fuo(vec[i],fu_name,def);
             _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
             if (def)
               def_fed.add_url(vec[i]);

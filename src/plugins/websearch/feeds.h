@@ -23,6 +23,7 @@
 #include <string>
 #include <algorithm>
 #include <set>
+#include <vector>
 
 namespace seeks_plugins
 {
@@ -36,13 +37,15 @@ namespace seeks_plugins
   {
     public:
       feed_url_options(const std::string &url,
+                       const std::string &id,
                        const bool &sedefault=false)
-        :_url(url),_default(sedefault)
+        :_url(url),_id(id),_default(sedefault)
       {};
 
       ~feed_url_options() {};
 
       std::string _url;
+      std::string _id; /**< url feed id. */
       bool _default; /**< whether this url is default. */
   };
 
@@ -124,8 +127,14 @@ namespace seeks_plugins
       bool add_feed(const std::string &name,
                     websearch_configuration *wconfig);
 
+      bool add_feed(const std::vector<std::string> &vec_name_ids,
+                    websearch_configuration *wconfig);
+
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
       bool add_feed(const std::string &name,
+                    img_websearch_configuration *wconfig);
+
+      bool add_feed(const std::vector<std::string> &vec_name_ids,
                     img_websearch_configuration *wconfig);
 #endif
 

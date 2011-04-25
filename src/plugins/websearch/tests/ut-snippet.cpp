@@ -38,7 +38,7 @@ TEST(SearchSnippetTest,is_se_enabled)
   parameters.insert(std::pair<const char*,const char*>("engines","seeks,dummy"));
   search_snippet s1;
   s1._engine = feeds("seeks","url1");
-  ASSERT_TRUE(s1.is_se_enabled(&parameters));
+  ASSERT_FALSE(s1.is_se_enabled(&parameters));
   search_snippet s2;
   s2._engine = feeds("yahoo","url2");
   ASSERT_FALSE(s2.is_se_enabled(&parameters));

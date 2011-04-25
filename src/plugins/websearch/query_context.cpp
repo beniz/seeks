@@ -717,7 +717,13 @@ namespace seeks_plugins
         miscutil::tokenize(engines_str,vec_engines,",");
         for (size_t i=0; i<vec_engines.size(); i++)
           {
-            engines.add_feed(vec_engines.at(i),websearch::_wconfig);
+            std::string engine = vec_engines.at(i);
+            std::vector<std::string> vec_names;
+            miscutil::tokenize(engine,vec_names,":");
+            if (vec_names.size()==1)
+              engines.add_feed(engine,websearch::_wconfig);
+            else engines.add_feed(vec_names,
+                                    websearch::_wconfig);
           }
       }
     else engines = feeds(websearch::_wconfig->_se_default);
@@ -731,8 +737,6 @@ namespace seeks_plugins
         if ((*vit)->_personalized)
           {
             (*vit)->_personalized = false;
-            /*if ((*vit)->_engine.to_ulong()&SE_SEEKS)
-              (*vit)->_engine ^= SE_SEEKS;*/
             if ((*vit)->_engine.has_feed("seeks"))
               (*vit)->_engine.remove_feed("seeks");
             (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.

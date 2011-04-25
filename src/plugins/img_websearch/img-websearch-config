@@ -3,11 +3,11 @@
 # entries of the form search-engine <engine> <url> <default | nodefault>
 # 'default' indicates that the engine and url are default engines when
 # no engine is specified to the API.
-img-search-engine google_img http://www.google.com/images?q=%query&gbv=1&start=%start&hl=%lang&ie=%encoding&oe=%encoding default
-img-search-engine bing_img http://www.bing.com/images/search?q=%query&first=%start&mkt=%lang nodefault
-img-search-engine flickr http://www.flickr.com/search/?q=%query&page=%start default
-img-search-engine wcommons http://commons.wikimedia.org/w/index.php?search=%query&limit=%num&offset=%start default
-img-search-engine yahoo_img http://images.search.yahoo.com/search/images?ei=UTF-8&p=%query&js=0&vl=lang_%lang&b=%start default
+img-search-engine google_img http://www.google.com/images?q=%query&gbv=1&start=%start&hl=%lang&ie=%encoding&oe=%encoding google_img default
+#img-search-engine bing_img http://www.bing.com/images/search?q=%query&first=%start&mkt=%lang bing_img nodefault
+img-search-engine flickr http://www.flickr.com/search/?q=%query&page=%start flickr default
+img-search-engine wcommons http://commons.wikimedia.org/w/index.php?search=%query&limit=%num&offset=%start wcommons default
+img-search-engine yahoo_img http://images.search.yahoo.com/search/images?ei=UTF-8&p=%query&js=0&vl=lang_%lang&b=%start yahoo_img default
 
 # enables background download of image thumbnails and their analysis 
 # for detecting identical and near-identical images.

@@ -59,19 +59,19 @@ namespace seeks_plugins
   {
     std::string url = "http://www.google.com/images?q=%query&gbv=1&start=%start&hl=%lang&ie=%encoding&oe=%encoding";
     _img_se_enabled.add_feed("google_img",url);
-    feed_url_options fuo(url,true);
+    feed_url_options fuo(url,"google_img",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://www.flickr.com/search/?q=%query&page=%start";
-    _img_se_enabled.add_feed("bing_img",url);
-    fuo = feed_url_options(url,true);
+    _img_se_enabled.add_feed("flickr",url);
+    fuo = feed_url_options(url,"flickr",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://commons.wikimedia.org/w/index.php?search=%query&limit=%num&offset=%start";
     _img_se_enabled.add_feed("wcommons",url);
-    fuo= feed_url_options(url,true);
+    fuo= feed_url_options(url,"wcommons",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://images.search.yahoo.com/search/images?ei=UTF-8&p=%query&js=0&vl=lang_%lang&b=%start";
-    _img_se_enabled.add_feed("wcommons",url);
-    fuo= feed_url_options(url,true);
+    _img_se_enabled.add_feed("yahoo_img",url);
+    fuo= feed_url_options(url,"yahoo_img",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     _default_engines = true;
   }
@@ -93,7 +93,7 @@ namespace seeks_plugins
         strlcpy(tmp,arg,sizeof(tmp));
         vec_count = miscutil::ssplit(tmp," \t",vec,SZ(vec),1,1);
         div_t divresult;
-        divresult = div(vec_count-1,2);
+        divresult = div(vec_count-1,3);
         if (divresult.rem > 0)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "Wrong number of parameters for search-engine "
@@ -112,32 +112,20 @@ namespace seeks_plugins
         fed = feed_parser(vec[0]);
         def_fed = feed_parser(vec[0]);
 
-        for (i=1; i<vec_count; i+=2)
+        for (i=1; i<vec_count; i+=3)
           {
             fed.add_url(vec[i]);
+            std::string fu_name = vec[i+1];
             def = false;
-            if (strcmp(vec[i+1],"default")==0)
+            if (strcmp(vec[i+2],"default")==0)
               def = true;
-            feed_url_options fuo(vec[i],def);
+            feed_url_options fuo(vec[i],fu_name,def);
             _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
             if (def)
               def_fed.add_url(vec[i]);
           }
         if (!def_fed.empty())
           _img_se_default.add_feed(def_fed);
-
-        /* if (_img_se_enabled.count() == IMG_NSEs) // all bits set is default, so now reset to 0.
-                _img_se_enabled.reset();
-              if (strcasecmp(arg,"google") == 0)
-                _img_se_enabled |= std::bitset<IMG_NSEs>(SE_GOOGLE_IMG);
-              else if (strcasecmp(arg,"bing") == 0)
-                _img_se_enabled |= std::bitset<IMG_NSEs>(SE_BING_IMG);
-              else if (strcasecmp(arg,"flickr") == 0)
-                _img_se_enabled |= std::bitset<IMG_NSEs>(SE_FLICKR);
-              else if (strcasecmp(arg,"yahoo") == 0)
-                _img_se_enabled |= std::bitset<IMG_NSEs>(SE_YAHOO_IMG);
-              else if (strcasecmp(arg,"wcommons") == 0)
-        _img_se_enabled |= std::bitset<IMG_NSEs>(SE_WCOMMONS); */
 
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Enabled image search engine");

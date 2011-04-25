@@ -269,7 +269,13 @@ namespace seeks_plugins
         miscutil::tokenize(engines_str,vec_engines,",");
         for (size_t i=0; i<vec_engines.size(); i++)
           {
-            engines.add_feed(vec_engines.at(i),img_websearch_configuration::_img_wconfig);
+            std::string engine = vec_engines.at(i);
+            std::vector<std::string> vec_names;
+            miscutil::tokenize(engine,vec_names,":");
+            if (vec_names.size()==1)
+              engines.add_feed(engine,img_websearch_configuration::_img_wconfig);
+            else engines.add_feed(vec_names,
+                                    img_websearch_configuration::_img_wconfig);
           }
       }
     else engines = img_websearch_configuration::_img_wconfig->_img_se_default;

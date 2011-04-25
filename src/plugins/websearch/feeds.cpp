@@ -241,13 +241,64 @@ namespace seeks_plugins
     = wconfig->_se_enabled._feedset.find(fp);
     if (it == wconfig->_se_enabled._feedset.end())
       {
-        errlog::log_error(LOG_LEVEL_ERROR,"Cannot find feed parser %s in configuration",
+        errlog::log_error(LOG_LEVEL_ERROR,"feed parser %s not enabled in configuration",
                           name.c_str());
         return false;
       }
+
     // copy and feed_parser object.
     feed_parser fp_ptr((*it));
     return add_feed(fp_ptr);
+  }
+
+  bool feeds::add_feed(const std::vector<std::string> &vec_name_ids,
+                       websearch_configuration *wconfig)
+  {
+    if (vec_name_ids.empty())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"empty feed parser name and ids");
+        return false;
+      }
+    if (vec_name_ids.size() == 1)
+      return add_feed(vec_name_ids.at(0),wconfig);
+    if (!wconfig)
+      return add_feed(vec_name_ids.at(0));
+    feed_parser fp(vec_name_ids.at(0));
+    std::set<feed_parser,feed_parser::lxn>::iterator it
+    = wconfig->_se_enabled._feedset.find(fp);
+    if (it == wconfig->_se_enabled._feedset.end())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"feed parser %s not enabled in configuration",
+                          vec_name_ids.at(0).c_str());
+        return false;
+      }
+
+    hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
+    for (size_t i=1; i<vec_name_ids.size(); i++)
+      {
+        std::string id = vec_name_ids.at(i);
+        hit = wconfig->_se_options.begin();
+        while(hit!=wconfig->_se_options.end())
+          {
+            if ((*hit).second._id == id)
+              {
+                fp.add_url((*hit).second._url);
+                break;
+              }
+            ++hit;
+          }
+        if (hit == wconfig->_se_options.end())
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"Cannot find feed with id %s for parser %s in configuration",
+                              vec_name_ids.at(0).c_str(),id.c_str());
+          }
+      }
+
+    if (fp.empty())
+      return false;
+
+    // return feed_parser object.
+    return add_feed(fp);
   }
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
@@ -268,6 +319,56 @@ namespace seeks_plugins
     // copy and feed_parser object.
     feed_parser fp_ptr((*it));
     return add_feed(fp_ptr);
+  }
+
+  bool feeds::add_feed(const std::vector<std::string> &vec_name_ids,
+                       img_websearch_configuration *wconfig)
+  {
+    if (vec_name_ids.empty())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"empty feed parser name and ids");
+        return false;
+      }
+    if (vec_name_ids.size() == 1)
+      return add_feed(vec_name_ids.at(0),wconfig);
+    if (!wconfig)
+      return add_feed(vec_name_ids.at(0));
+    feed_parser fp(vec_name_ids.at(0));
+    std::set<feed_parser,feed_parser::lxn>::iterator it
+    = wconfig->_img_se_enabled._feedset.find(fp);
+    if (it == wconfig->_img_se_enabled._feedset.end())
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"feed parser %s not enabled in configuration",
+                          vec_name_ids.at(0).c_str());
+        return false;
+      }
+
+    hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
+    for (size_t i=1; i<vec_name_ids.size(); i++)
+      {
+        std::string id = vec_name_ids.at(i);
+        hit = wconfig->_se_options.begin();
+        while(hit!=wconfig->_se_options.end())
+          {
+            if ((*hit).second._id == id)
+              {
+                fp.add_url((*hit).second._url);
+                break;
+              }
+            ++hit;
+          }
+        if (hit == wconfig->_se_options.end())
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"Cannot find feed with id %s for parser %s in configuration",
+                              vec_name_ids.at(0).c_str(),id.c_str());
+          }
+      }
+
+    if (fp.empty())
+      return false;
+
+    // return feed_parser object.
+    return add_feed(fp);
   }
 #endif
 
