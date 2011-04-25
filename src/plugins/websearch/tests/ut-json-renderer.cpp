@@ -89,6 +89,7 @@ TEST(JsonRendererTest, render_snippets)
   s3.set_url("URL3");
   snippets[2] = &s3;
   parameters.insert(std::pair<const char*,const char*>("rpp", "2"));
+  parameters.insert(std::pair<const char*,const char*>("page","1"));
 
   current_page = 2;
   json_str = "";

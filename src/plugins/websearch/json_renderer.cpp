@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010, 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -214,17 +214,10 @@ namespace seeks_plugins
         if (rpp_str)
           rpp = atoi(rpp_str);
         size_t ssize = snippets.size();
-        size_t snisize = ssize;
-        size_t snistart = 0;
-        if (current_page == 0) // page is not taken into account, return all results.
-          {
-          }
-        else
-          {
-            snisize = std::min(current_page*rpp,(int)snippets.size());
-            snistart = (current_page-1)*rpp;
-          }
+        size_t snisize = std::min(current_page*rpp,(int)snippets.size());
+        size_t snistart = (current_page-1)*rpp;
         size_t count = 0;
+
         for (size_t i=0; i<ssize; i++)
           {
             if (snippets.at(i)->_doc_type == REJECTED)
