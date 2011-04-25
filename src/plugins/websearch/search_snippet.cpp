@@ -235,6 +235,7 @@ namespace seeks_plugins
       {
         std::string cite = _cite;
         miscutil::replace_in_string(cite,"\"","\\\"");
+        miscutil::replace_in_string(cite,"\n","");
         json_str += cite + "\",";
       }
     else json_str += url + "\",";
@@ -248,6 +249,7 @@ namespace seeks_plugins
       set_archive_link();
     std::string archive = _archive;
     miscutil::replace_in_string(archive,"\"","\\\"");
+    miscutil::replace_in_string(archive,"\n","");
     json_str += "\"archive\":\"" + archive + "\",";
     json_str += "\"engines\":[";
     json_str += json_renderer::render_engines(_engine);
