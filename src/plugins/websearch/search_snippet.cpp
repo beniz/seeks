@@ -218,6 +218,7 @@ namespace seeks_plugins
     json_str += "\"title\":\"" + title + "\",";
     std::string url = _url;
     miscutil::replace_in_string(url,"\"","\\\"");
+    miscutil::replace_in_string(url,"\n","");
     json_str += "\"url\":\"" + url + "\",";
     std::string summary = _summary;
     miscutil::replace_in_string(summary,"\\","\\\\");
