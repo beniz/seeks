@@ -510,35 +510,20 @@ namespace seeks_plugins
 
   feeds feeds::inter(const feeds &f) const
   {
-    std::set<feed_parser,feed_parser::lxn> output_inter;
-    std::set_intersection(_feedset.begin(),_feedset.end(),
-                          f._feedset.begin(),f._feedset.end(),
-                          std::inserter(output_inter,output_inter.begin()),
-                          feed_parser::lxn());
-    feeds fds(output_inter);
-
-    // intersection + inter + add it up to output_inter.
-    std::vector<feed_parser> to_add;
+    feeds fds;
+    std::set<feed_parser,feed_parser::lxn>::iterator fit;
     std::set<feed_parser,feed_parser::lxn>::iterator it
-    = fds._feedset.begin();
-    while(it!=fds._feedset.end())
+    = f._feedset.begin();
+    while(it!=f._feedset.end())
       {
-        feed_parser fdo = f.find_feed((*it)._name);
-        const feed_parser interd((*it).inter(fdo));
-        if (interd.empty())
+        if ((fit = _feedset.find((*it)._name))!=_feedset.end())
           {
-            std::set<feed_parser,feed_parser::lxn>::iterator it1 = it;
-            ++it;
-            fds._feedset.erase(it1);
+            feed_parser interd((*it).inter((*fit)));
+            if (!interd.empty())
+              fds.add_feed(interd);
           }
-        else
-          {
-            to_add.push_back(interd);
-            ++it;
-          }
+        ++it;
       }
-    for (size_t i=0; i<to_add.size(); i++)
-      fds.add_feed(to_add.at(i));
     return fds;
   }
 
