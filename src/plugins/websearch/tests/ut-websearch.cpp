@@ -23,6 +23,7 @@
 #include "wb_err.h"
 #include "websearch.h"
 #include "websearch_configuration.h"
+#include "se_handler.h"
 #include "proxy_configuration.h"
 #include "sweeper.h"
 #include "errlog.h"
@@ -97,6 +98,8 @@ TEST_F(WBTest,perform_websearch_bad_param_new)
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,&parameters,render);
   ASSERT_EQ(SP_ERR_CGI_PARAMS,err);
+  se_handler::cleanup_handlers();
+  sweeper::sweep_all();
 }
 
 TEST_F(WBTest,perform_websearch_no_engine_fail_new)
@@ -112,6 +115,8 @@ TEST_F(WBTest,perform_websearch_no_engine_fail_new)
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_NO_ENGINE,err);
   miscutil::free_map(parameters);
+  se_handler::cleanup_handlers();
+  sweeper::sweep_all();
 }
 
 TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
@@ -130,6 +135,8 @@ TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
 
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
+  se_handler::cleanup_handlers();
+  sweeper::sweep_all();
 }
 
 TEST_F(WBExistTest,perform_websearch_bad_param_new)
@@ -144,6 +151,8 @@ TEST_F(WBExistTest,perform_websearch_bad_param_new)
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(SP_ERR_CGI_PARAMS,err);
   miscutil::free_map(parameters);
+  se_handler::cleanup_handlers();
+  sweeper::sweep_all();
 }
 
 TEST_F(WBExistTest,perform_websearch_no_engine_fail_new)
@@ -160,6 +169,8 @@ TEST_F(WBExistTest,perform_websearch_no_engine_fail_new)
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_NO_ENGINE,err);
   miscutil::free_map(parameters);
+  se_handler::cleanup_handlers();
+  sweeper::sweep_all();
 }
 
 TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
@@ -177,6 +188,8 @@ TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
+  se_handler::cleanup_handlers();
+  sweeper::sweep_all();
 }
 
 TEST_F(WBTest,preprocess_parameters_ok)
