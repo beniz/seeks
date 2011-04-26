@@ -59,6 +59,7 @@ TEST_F(SEHandlerTest,query_to_ses_fail_no_engine)
     }
   ASSERT_EQ(WB_ERR_NO_ENGINE,code);
   parameters.clear();
+  se_handler::cleanup_handlers();
 }
 
 TEST_F(SEHandlerTest,query_to_ses_fail_connect)
@@ -87,6 +88,7 @@ TEST_F(SEHandlerTest,query_to_ses_fail_connect)
   ASSERT_EQ(WB_ERR_NO_ENGINE_OUTPUT,code);
   delete websearch::_wconfig;
   miscutil::free_map(parameters);
+  se_handler::cleanup_handlers();
 }
 
 int main(int argc, char **argv)
