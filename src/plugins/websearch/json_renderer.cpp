@@ -159,6 +159,8 @@ namespace seeks_plugins
           {
             std::string escaped_query = qc->_query;
             miscutil::replace_in_string(escaped_query,"\"","\\\"");
+            miscutil::replace_in_string(escaped_query,"\\t","");
+            miscutil::replace_in_string(escaped_query,"\\r","");
             suggs.push_back("\"" + escaped_query + "\"");
           }
         ++sit;
