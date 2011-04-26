@@ -219,9 +219,13 @@ TEST(SREAPITest,estimate_rank)
   vurl_data vd_host(uris[1],1);
   search_snippet s;
   float posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.3);
-  float posterior_check = ((log(2)+1) / (log(3) + 1)) * 0.3 * (log(2) + 1) / (log(3) + 1);
+  float posterior_check = ((log(2) + 1) / (log(3) + 1)) * 0.3 * (log(2) + 1) / (log(3) + 1);
   ASSERT_EQ(posterior_check,posterior);
   posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  ASSERT_EQ(posterior_check,posterior);
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.0);
+  ASSERT_TRUE(posterior > 0.0);
+  posterior_check = (log(2) + 1) / (log(3) + 1);
   ASSERT_EQ(posterior_check,posterior);
   vd_url._hits = -1;
   posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);

@@ -472,6 +472,9 @@ namespace seeks_plugins
       }
 
     // host.
+    if (domain_name_weight <= 0.0)
+      return posterior;
+
     if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
         || s->_doc_type == IMAGE // empty or type with not enough competition on domains.
         || (filter && (filtered || filter->find(vd_host->_url.c_str())!=filter->end()))) // filter domain out if url was filtered out.
