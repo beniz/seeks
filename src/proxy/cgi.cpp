@@ -2475,6 +2475,7 @@ namespace sp
 
     if (s[0] == '\0')
       {
+        free(s);
         s = strdup("None specified");
       }
     return s;

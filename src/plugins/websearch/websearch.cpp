@@ -1135,6 +1135,8 @@ namespace seeks_plugins
     // not catching error on template filling...
     err = cgi::template_fill_for_cgi_str(csp,"connect-failed",csp->_config->_templdir,
                                          exports,rsp);
+    if (path)
+      free(path);
     return err;
   }
 

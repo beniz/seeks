@@ -649,6 +649,7 @@ namespace seeks_plugins
       {
         delete[] outputs;
         outputs = NULL;
+        delete[] cmg._outputs;
         throw sp_exception(WB_ERR_NO_ENGINE_OUTPUT,"no output from any search engine");
       }
 
