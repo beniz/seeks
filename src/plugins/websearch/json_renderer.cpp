@@ -216,8 +216,11 @@ namespace seeks_plugins
         if (rpp_str)
           rpp = atoi(rpp_str);
         size_t ssize = snippets.size();
-        size_t snisize = std::min(current_page*rpp,(int)snippets.size());
-        size_t snistart = (current_page-1)*rpp;
+        int ccpage = current_page;
+        if (ccpage <= 0)
+          ccpage = 1;
+        size_t snisize = std::min(ccpage*rpp,(int)snippets.size());
+        size_t snistart = (ccpage-1)*rpp;
         size_t count = 0;
 
         for (size_t i=0; i<ssize; i++)

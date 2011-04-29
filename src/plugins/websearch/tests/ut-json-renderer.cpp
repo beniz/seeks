@@ -49,6 +49,10 @@ TEST(JsonRendererTest, render_snippets)
   websearch::_wconfig = new websearch_configuration("not a real filename");
   websearch::_wconfig->_se_enabled = feeds("dummy","URL1");
   websearch::_wconfig->_se_default = feeds("dummy","URL1");
+  websearch::_wconfig->_se_enabled.add_feed("dummy","URL2");
+  websearch::_wconfig->_se_default.add_feed("dummy","URL2");
+  websearch::_wconfig->_se_enabled.add_feed("dummy","URL3");
+  websearch::_wconfig->_se_default.add_feed("dummy","URL3");
   std::string json_str;
 
   int current_page = 1;
@@ -78,7 +82,7 @@ TEST(JsonRendererTest, render_snippets)
   EXPECT_TRUE(json_str.find(s1._url) != std::string::npos);
   EXPECT_NE(std::string::npos, json_str.find("thumb"));
 
-  // 3 snippets, page 2, 2 result per page, thumbs on
+  // 3 snippets, page 2, 2 results per page, thumbs on
   snippets.resize(3);
   search_snippet s2;
   s2._engine = feeds("dummy","URL2");
@@ -89,7 +93,6 @@ TEST(JsonRendererTest, render_snippets)
   s3.set_url("URL3");
   snippets[2] = &s3;
   parameters.insert(std::pair<const char*,const char*>("rpp", "2"));
-  parameters.insert(std::pair<const char*,const char*>("page","1"));
 
   current_page = 2;
   json_str = "";
@@ -98,7 +101,7 @@ TEST(JsonRendererTest, render_snippets)
   EXPECT_EQ(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
 
-  // 3 snippets, page 1, 2 result per page, thumbs on
+  // 3 snippets, page 1, 2 results per page, thumbs on
   current_page = 1;
   json_str = "";
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
@@ -135,6 +138,10 @@ TEST(JsonRendererTest, render_clustered_snippets)
   websearch::_wconfig = new websearch_configuration("not a real filename");
   websearch::_wconfig->_se_enabled = feeds("dummy","URL1");
   websearch::_wconfig->_se_default = feeds("dummy","URL1");
+  websearch::_wconfig->_se_enabled.add_feed("dummy","URL2");
+  websearch::_wconfig->_se_default.add_feed("dummy","URL2");
+  websearch::_wconfig->_se_enabled.add_feed("dummy","URL3");
+  websearch::_wconfig->_se_default.add_feed("dummy","URL3");
   query_context context;
   cluster clusters[3];
 
@@ -165,7 +172,7 @@ TEST(JsonRendererTest, render_clustered_snippets)
 
   clusters[2]._label = "CLUSTER3";
 
-  parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
+  //parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
 
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 3, &context, json_str, &parameters));
   EXPECT_NE(std::string::npos, json_str.find(clusters[0]._label));
@@ -183,6 +190,8 @@ TEST(JsonRendererTest, render_json_results)
   websearch::_wconfig = new websearch_configuration("not a real filename");
   websearch::_wconfig->_se_enabled = feeds("dummy","URL1");
   websearch::_wconfig->_se_default = feeds("dummy","URL1");
+  websearch::_wconfig->_se_enabled.add_feed("dummy","URL2");
+  websearch::_wconfig->_se_default.add_feed("dummy","URL2");
   http_response* rsp;
   query_context context;
   double qtime = 1234;
@@ -212,7 +221,7 @@ TEST(JsonRendererTest, render_json_results)
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
+  EXPECT_EQ(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
 
   // select page 2
