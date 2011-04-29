@@ -38,16 +38,21 @@ namespace seeks_plugins
   {
     public:
       vurl_data(const std::string &url)
-        :_url(url),_hits(1)
+        :_url(url),_hits(1),_url_date(0)
       {};
 
       vurl_data(const std::string &url,
-                const short &hits)
-        :_url(url),_hits(hits)
+                const short &hits,
+                const std::string &title="",
+                const std::string &summary="",
+                const uint32_t &url_date=0)
+        :_url(url),_hits(hits),_title(title),
+         _summary(summary),_url_date(url_date)
       {};
 
       vurl_data(const vurl_data *vd)
-        :_url(vd->_url),_hits(vd->_hits)
+        :_url(vd->_url),_hits(vd->_hits),_title(vd->_title),
+         _summary(vd->_summary),_url_date(vd->_url_date)
       {};
 
       ~vurl_data() {};
@@ -55,10 +60,27 @@ namespace seeks_plugins
       void merge(const vurl_data *vd)
       {
         _hits += vd->_hits;
+
+        // update of title and summary.
+        if (_title.empty())
+          {
+            _title = vd->_title;
+            _summary = vd->_summary;
+          }
+        else if (!vd->_title.empty()
+                 && (vd->_url_date == 0
+                     || vd->_url_date > _url_date))
+          {
+            _title = vd->_title;
+            _summary = vd->_summary;
+          }
       };
 
       std::string _url;
       short _hits;
+      std::string _title;
+      std::string _summary;
+      uint32_t _url_date;
   };
 
   class query_data
@@ -71,7 +93,10 @@ namespace seeks_plugins
                  const short &radius,
                  const std::string &url,
                  const short &hits=1,
-                 const short &url_hits=1);
+                 const short &url_hits=1,
+                 const std::string &title="",
+                 const std::string &summary="",
+                 const uint32_t &url_date=0);
 
       query_data(const query_data *qd);
 
@@ -109,7 +134,10 @@ namespace seeks_plugins
                       const short &radius,
                       const std::string &url,
                       const short &hits=1,
-                      const short &url_hits=1);
+                      const short &url_hits=1,
+                      const std::string &title="",
+                      const std::string &summary="",
+                      const uint32_t &url_date=0);
 
       db_query_record(const db_query_record &dbr);
 

@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010, 2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -47,6 +47,7 @@ namespace seeks_plugins
       time_t _sweep_cycle; /**< how long between two cycles of query db record sweeping. */
       time_t _retention;   /**< query db record retention, in seconds. */
       bool _protected_redirection; /**< whether URL redirection is protected against abuses. */
+      bool _save_url_data; /**< whether to save URL title & summary for reuse. */
 
       static query_capture_configuration *_config;
   };

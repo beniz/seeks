@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010, 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -40,6 +40,11 @@ static std::string queries[1] =
   "seeks"
 };
 
+static std::string keys[1] =
+{
+  "1645a6897e62417931f26bcbdf4687c9c026b626"
+};
+
 static std::string uris[3] =
 {
   "http://www.seeks-project.info/",
@@ -68,6 +73,7 @@ class QCTest : public testing::Test
       seeks_proxy::_basedir = basedir.c_str();
       plugin_manager::_plugin_repository = basedir + "/plugins/";
       seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
+      //query_capture_configuration *qcc = new query_capture_configuration("");
 
       seeks_proxy::_user_db = new user_db(dbfile);
       seeks_proxy::_user_db->open_db();
@@ -98,7 +104,7 @@ class QCTest : public testing::Test
     query_capture_element *qcelt;
 };
 
-TEST(QCAPITest, process_url)
+TEST(QCAPITest,process_url)
 {
   std::string url = "http://www.seeks-project.info/pr/";
   std::string host, path;
@@ -106,6 +112,49 @@ TEST(QCAPITest, process_url)
   EXPECT_EQ("seeks-project.info",host);
   EXPECT_EQ("/pr/",path);
   EXPECT_EQ("http://www.seeks-project.info/pr",url);
+}
+
+TEST_F(QCTest,store_url_sp)
+{
+  search_snippet sp;
+  sp.set_url(uris[0]);
+  std::string title = "The Seeks Project";
+  sp.set_title(title);
+  std::string summary = "Seeks Project homepage";
+  sp.set_summary(summary);
+  DHTKey key = DHTKey::from_rstring(keys[0]);
+  std::string host;
+  std::string url = uris[0];
+  query_capture::process_url(url,host);
+  uint32_t radius = 0;
+  try
+    {
+      qcelt->store_url(key,queries[0],
+                       url,host,radius,"query-capture",&sp);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+  ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
+  db_record *dbr = seeks_proxy::_user_db->find_dbr(keys[0],"query-capture");
+  ASSERT_TRUE(dbr!=NULL);
+  db_query_record *dbqr = dynamic_cast<db_query_record*>(dbr);
+  ASSERT_TRUE(dbqr!=NULL);
+  hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+  = dbqr->_related_queries.find(queries[0].c_str());
+  ASSERT_FALSE(dbqr->_related_queries.end()==hit);
+  ASSERT_TRUE((*hit).second!=NULL);
+  ASSERT_EQ(queries[0],(*hit).second->_query);
+  ASSERT_EQ(0,(*hit).second->_radius);
+  ASSERT_EQ(1,(*hit).second->_hits);
+  ASSERT_TRUE((*hit).second->_visited_urls!=NULL);
+  ASSERT_EQ(1,(*hit).second->_visited_urls->size());
+  vurl_data *vd = (*(*hit).second->_visited_urls->begin()).second;
+  ASSERT_TRUE(vd!=NULL);
+  ASSERT_EQ(url,vd->_url);
+  ASSERT_EQ(title,vd->_title);
+  ASSERT_EQ(summary,vd->_summary);
 }
 
 TEST_F(QCTest,store_queries)
