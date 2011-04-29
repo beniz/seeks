@@ -19,7 +19,7 @@ $(protoc_outputs): $(protoc_inputs)
 querycapturepluginlib_LTLIBRARIES=libquerycaptureplugin.la
 dist_libquerycaptureplugin_la_SOURCES=query_capture.cpp db_query_record.cpp \
 	                         query_capture_configuration.cpp query_capture.h \
-				 db_query_record.h query_capture_configuration.h
+				 db_query_record.h query_capture_configuration.h qc_err.h
 nodist_libquerycaptureplugin_la_SOURCES=$(protoc_outputs)
 
 BUILT_SOURCES = $(protoc_outputs)

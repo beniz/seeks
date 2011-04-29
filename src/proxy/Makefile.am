@@ -105,7 +105,9 @@ noinst_HEADERS = \
 	protobuf_export_format/strutil.h \
 	db_obj.h \
 	user_db.h \
-	user_db_fix.h
+	user_db_fix.h \
+	db_err.h \
+	sp_exception.h
 
 libseeksproxy_la_CXXFLAGS+=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' -DSEEKS_DATADIR='"$(datadir)/seeks/"' -DSEEKS_PLUGINS_LIBDIR='"$(libdir)/seeks/plugins/"'
 libseeksplugins_la_CXXFLAGS+=-Wall -g @CURL_CFLAGS@ @PCRE_CFLAGS@
