@@ -9,7 +9,7 @@ search-results-page 10
 
 # one or more enabled search engines
 # google, yahoo, bing, exalead, yauba, blekko
-# entries of the form search-engine <engine> <url> <default | nodefault>
+# entries are of the form search-engine <engine> <url> <name> <default | nodefault>
 # 'default' indicates that the engine and url are default engines when
 # no engine is specified to the API.
 #search-engine seeks s.s no_name default

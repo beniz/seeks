@@ -1,6 +1,6 @@
 # one or more enabled search engines
 # google, bing, flickr, yahoo
-# entries of the form search-engine <engine> <url> <default | nodefault>
+# entries of the form search-engine <engine> <url> <name> <default | nodefault>
 # 'default' indicates that the engine and url are default engines when
 # no engine is specified to the API.
 img-search-engine google_img http://www.google.com/images?q=%query&gbv=1&start=%start&hl=%lang&ie=%encoding&oe=%encoding google_img default
