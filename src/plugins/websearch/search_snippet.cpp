@@ -522,10 +522,11 @@ namespace seeks_plugins
       }
     if (!_summary.empty())
       html_content += "<br>";
+    html_content += "<a class=\"search_cite\" href=\"" + _url + "\">";
     html_content += "<cite>";
     html_content += cite_enc;
     free_const(cite_enc);
-    html_content += "</cite>";
+    html_content += "</cite></a>";
 
     if (!_cached.empty() && _doc_type != TWEET && _doc_type != VIDEO_THUMB)
       {
@@ -587,14 +588,10 @@ namespace seeks_plugins
     if (_doc_type != REJECTED)
       {
         html_content += "<a class=\"search_cache\" href=\"";
-        if (!prs)
-          {
-            html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
-                            + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
-            if (engines)
-              html_content += std::string(engines);
-          }
-        else html_content += _url;
+        html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
+                        + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
+        if (engines)
+          html_content += std::string(engines);
         html_content += " \"> ";
         switch (_doc_type)
           {

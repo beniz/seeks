@@ -218,6 +218,10 @@ body {
 	margin-left: 3px;
 }
 
+#search_results .search_cite {
+	color: gray;
+}
+
 #search_results .search_similarity {
         color: olive;
 	margin-left: 3px;
