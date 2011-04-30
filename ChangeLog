@@ -1,3 +1,37 @@
+* DiAngelo-0.3.3-SOLO-stable
+
+- Reworked parser and feeds / search engines connection. Allows using the
+  same parser over several feeds. Each feed can be accessed independently
+  from the API.
+
+- Added support for the following result formats: opensearch (ATOM & RSS),
+  dokuwiki and mediawiki.
+	
+- Slightly improved personalization over halos of similar queries.
+	
+- Few bug fixes, on personalization and on parsers.
+
+- User db optimization is now optional.
+
+- Improved exception model and handling in all plugins.
+
+- Added info API call to HTTP server plugin.
+
+- Many fixes to JSON search output.
+
+- Support for remote user database, for personalization and other means.
+  This allows to deport the user database away from the Seeks node itself.
+  It is the first step towards enabling of a mixture of remote user
+  profiles, in forthcoming version.
+
+- Personalization using remote user database.
+
+- Added new user db remote service plugin (udb-service) to serve user
+  database records remotely, over HTTP.
+
+- Added support for Tokyo Tyrant.
+ 
+	
 * DiAngelo-0.3.2-SOLO-stable
 
 - Added active rejection of personalized results. This allows a negative
