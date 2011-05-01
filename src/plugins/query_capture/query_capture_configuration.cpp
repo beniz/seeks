@@ -29,11 +29,12 @@ namespace seeks_plugins
 #define hash_query_sweep_cycle             2195388340ul  /* "query-sweep-cycle" */
 #define hash_query_retention               1932741391ul  /* "query-retention" */
 #define hash_query_protect_redir            645686780ul  /* "protected-redirection" */
+#define hash_save_url_data                 3465855637ul  /* "save-url-data" */
 
   query_capture_configuration* query_capture_configuration::_config = NULL;
 
   query_capture_configuration::query_capture_configuration(const std::string &filename)
-      :configuration_spec(filename)
+    :configuration_spec(filename)
   {
     if (query_capture_configuration::_config)
       delete query_capture_configuration::_config;
@@ -52,6 +53,7 @@ namespace seeks_plugins
     _sweep_cycle = 2592000;  // one month, in seconds.
     _retention = 31104000;   // one year, in seconds.
     _protected_redirection = false; // should be activated on public nodes.
+    _save_url_data = false;
   }
 
   void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -90,6 +92,12 @@ namespace seeks_plugins
         _protected_redirection = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether the protection against abusive use of the URL redirection scheme is activated");
+        break;
+
+      case hash_save_url_data:
+        _save_url_data = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to save URL snippet's title and summary.");
         break;
 
       default:

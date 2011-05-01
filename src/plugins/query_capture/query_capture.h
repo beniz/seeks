@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010, 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,6 +26,7 @@
 #include "sp_exception.h"
 #include "query_capture_configuration.h"
 #include "DHTKey.h"
+#include "search_snippet.h"
 
 using namespace sp;
 using dht::DHTKey;
@@ -72,7 +73,8 @@ namespace seeks_plugins
       int remove_all_query_records();
 
       static void store_queries(const std::string &query,
-                                const std::string &url, const std::string &host) throw (sp_exception);
+                                const std::string &url, const std::string &host,
+                                const std::string &qlang="") throw (sp_exception);
 
       // store_query called from websearch plugin.
       void store_queries(const std::string &query) const throw (sp_exception);
@@ -95,7 +97,8 @@ namespace seeks_plugins
 
       static void store_queries(const std::string &query,
                                 const std::string &url, const std::string &host,
-                                const std::string &plugin_name) throw (sp_exception);
+                                const std::string &plugin_name,
+                                const std::string &qlang="") throw (sp_exception);
 
       static void store_queries(const std::string &query,
                                 const std::string &plugin_name) throw (sp_exception);
@@ -108,7 +111,8 @@ namespace seeks_plugins
       static void store_url(const DHTKey &key, const std::string &query,
                             const std::string &url, const std::string &host,
                             const uint32_t &radius,
-                            const std::string &plugin_name) throw (sp_exception);
+                            const std::string &plugin_name,
+                            const search_snippet *sp=NULL) throw (sp_exception);
 
       static void remove_url(const DHTKey &key, const std::string &query,
                              const std::string &url, const std::string &host,

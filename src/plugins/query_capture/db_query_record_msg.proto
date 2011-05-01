@@ -6,6 +6,9 @@ message visited_url
 {
  required string url = 1;
  required int32 hits = 2; /* url hits for this query. */
+ optional string title = 3; /* url title. */
+ optional string summary = 4; /* snippet summary. */
+ optional uint32 url_date = 5; /* URL data date. */
 }
 
 message visited_urls

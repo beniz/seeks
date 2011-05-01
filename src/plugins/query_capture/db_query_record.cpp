@@ -52,11 +52,14 @@ namespace seeks_plugins
                          const short &radius,
                          const std::string &url,
                          const short &hits,
-                         const short &url_hits)
+                         const short &url_hits,
+                         const std::string &title,
+                         const std::string &summary,
+                         const uint32_t &url_date)
     :_query(query),_radius(radius),_hits(hits),_record_key(NULL)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
-    vurl_data *vd = new vurl_data(url,url_hits);
+    vurl_data *vd = new vurl_data(url,url_hits,title,summary,url_date);
     add_vurl(vd);
   }
 
@@ -205,10 +208,13 @@ namespace seeks_plugins
                                    const short &radius,
                                    const std::string &url,
                                    const short &hits,
-                                   const short &url_hits)
+                                   const short &url_hits,
+                                   const std::string &title,
+                                   const std::string &summary,
+                                   const uint32_t &url_date)
     :db_record(plugin_name)
   {
-    query_data *qd = new query_data(query,radius,url,hits,url_hits);
+    query_data *qd = new query_data(query,radius,url,hits,url_hits,title,summary,url_date);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
@@ -323,6 +329,12 @@ namespace seeks_plugins
                     sp::db::visited_url *rq_vurl = rq_vurls->add_vurl();
                     rq_vurl->set_url(vd->_url);
                     rq_vurl->set_hits(vd->_hits);
+                    if (!vd->_title.empty())
+                      {
+                        rq_vurl->set_title(vd->_title);
+                        rq_vurl->set_summary(vd->_summary);
+                        rq_vurl->set_url_date(vd->_url_date);
+                      }
                   }
                 else std::cerr << "[Debug]: null vurl_data element in visited_urls...\n";
                 ++vhit;
@@ -353,7 +365,10 @@ namespace seeks_plugins
             sp::db::visited_url *rq_vurl = rq_vurls->mutable_vurl(j);
             std::string url = rq_vurl->url();
             short uhits = rq_vurl->hits();
-            vurl_data *vd = new vurl_data(url,uhits);
+            std::string title = rq_vurl->title();
+            std::string summary = rq_vurl->summary();
+            uint32_t date = rq_vurl->url_date();
+            vurl_data *vd = new vurl_data(url,uhits,title,summary,date);
             rd->_visited_urls->insert(std::pair<const char*,vurl_data*>(vd->_url.c_str(),vd));
           }
         _related_queries.insert(std::pair<const char*,query_data*>(rd->_query.c_str(),rd));

@@ -143,9 +143,9 @@ namespace seeks_plugins
   {
     // look for dependent plugins.
     _qc_plugin = plugin_manager::get_plugin("query-capture");
-    _qc_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str()); //TODO: hot deactivation.
+    _qc_plugin_activated = seeks_proxy::_config->is_plugin_activated("query-capture"); //TODO: hot deactivation.
     _cf_plugin = plugin_manager::get_plugin("cf");
-    _cf_plugin_activated = seeks_proxy::_config->is_plugin_activated(_name.c_str());
+    _cf_plugin_activated = seeks_proxy::_config->is_plugin_activated("cf");
   }
 
   void websearch::stop()

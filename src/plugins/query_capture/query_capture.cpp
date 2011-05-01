@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010, 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -20,7 +20,10 @@
 #include "query_capture_configuration.h"
 #include "db_query_record.h"
 #include "qc_err.h"
+#include "websearch.h"
+#include "query_context.h"
 #include "seeks_proxy.h" // for user_db.
+#include "plugin_manager.h"
 #include "proxy_configuration.h"
 #include "user_db.h"
 #include "proxy_dts.h"
@@ -221,6 +224,9 @@ namespace seeks_plugins
     // XXX: could be threaded and detached.
     char *queryp = encode::url_decode(q);
     std::string query = queryp;
+    std::string qlang;
+    if (!query_context::has_query_lang(query,qlang))
+      qlang = query_context::_default_alang;
     query = query_capture_element::no_command_query(query);
     free(queryp);
 
@@ -230,7 +236,7 @@ namespace seeks_plugins
 
     try
       {
-        query_capture::store_queries(query,url,host);
+        query_capture::store_queries(query,url,host,qlang);
       }
     catch (sp_exception &e)
       {
@@ -272,7 +278,8 @@ namespace seeks_plugins
   }
 
   void query_capture::store_queries(const std::string &query,
-                                    const std::string &url, const std::string &host) throw (sp_exception)
+                                    const std::string &url, const std::string &host,
+                                    const std::string &qlang) throw (sp_exception)
   {
     // check charset encoding.
     std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
@@ -282,7 +289,7 @@ namespace seeks_plugins
                           query.c_str());
         return;
       }
-    query_capture_element::store_queries(query,url,host,"query-capture");
+    query_capture_element::store_queries(query,url,host,"query-capture",qlang);
   }
 
   void query_capture::store_queries(const std::string &query) const throw (sp_exception)
@@ -403,7 +410,8 @@ namespace seeks_plugins
 
   void query_capture_element::store_queries(const std::string &query,
       const std::string &url, const std::string &host,
-      const std::string &plugin_name) throw (sp_exception)
+      const std::string &plugin_name,
+      const std::string &qlang) throw (sp_exception)
   {
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -424,7 +432,25 @@ namespace seeks_plugins
           {
             try
               {
-                query_capture_element::store_url((*hit).second,query,url,host,(*hit).first,plugin_name);
+                if (!query_capture_configuration::_config->_save_url_data)
+                  query_capture_element::store_url((*hit).second,query,url,host,(*hit).first,plugin_name);
+                else
+                  {
+                    // grab snippet and title, if available from the websearch plugin cache.
+                    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+                    = new hash_map<const char*,const char*,hash<const char*>,eqstr>(2);
+                    miscutil::add_map_entry(parameters,"q",1,query.c_str(),1);
+                    miscutil::add_map_entry(parameters,"lang",1,qlang.c_str(),1);
+                    query_context *qc = websearch::lookup_qc(parameters);
+                    miscutil::free_map(parameters);
+                    search_snippet *sp = NULL;
+                    if (qc)
+                      {
+                        sp = qc->get_cached_snippet(url);
+                        query_capture_element::store_url((*hit).second,query,url,host,
+                                                         (*hit).first,plugin_name,sp);
+                      }
+                  }
               }
             catch (sp_exception &e)
               {
@@ -515,13 +541,28 @@ namespace seeks_plugins
   void query_capture_element::store_url(const DHTKey &key, const std::string &query,
                                         const std::string &url, const std::string &host,
                                         const uint32_t &radius,
-                                        const std::string &plugin_name) throw (sp_exception)
+                                        const std::string &plugin_name,
+                                        const search_snippet *sp) throw (sp_exception)
   {
     std::string key_str = key.to_rstring();
     if (!url.empty())
       {
-        db_query_record dbqr(plugin_name,query,radius,url);
-        db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+        db_err err = SP_ERR_OK;
+        if (!sp)
+          {
+            db_query_record dbqr(plugin_name,query,radius,url);
+            err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+          }
+        else
+          {
+            // url_date.
+            struct timeval tv_now;
+            gettimeofday(&tv_now, NULL);
+            uint32_t url_date = tv_now.tv_sec;
+            db_query_record dbqr(plugin_name,query,radius,url,
+                                 1,1,sp->_title,sp->_summary,url_date);
+            err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
+          }
         if (err != SP_ERR_OK)
           {
             std::string msg = "failed storage of captured url " + url + " for query " + query + " with error "
