@@ -746,13 +746,26 @@ namespace seeks_plugins
       }
   }
 
-  void query_context::update_recommended_urls()
+  bool query_context::update_recommended_urls()
   {
+    bool cache_changed = false;
     hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit, hit2, cit;
     hit = _recommended_snippets.begin();
     while(hit!=_recommended_snippets.end())
       {
-        if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
+        if (!(*hit).second->_title.empty())
+          {
+            (*hit).second->_qc = this;
+            (*hit).second->_personalized = true;
+            (*hit).second->_engine.add_feed("seeks","s.s");
+            (*hit).second->_meta_rank++;
+            _cached_snippets.push_back((*hit).second);
+            cache_changed = true;
+            hit2 = hit;
+            ++hit;
+            _recommended_snippets.erase(hit2);
+          }
+        else if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
           {
             hit2 = hit;
             ++hit;
@@ -761,6 +774,7 @@ namespace seeks_plugins
           }
         else ++hit;
       }
+    return cache_changed;
   }
 
 } /* end of namespace. */

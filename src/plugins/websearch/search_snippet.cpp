@@ -661,6 +661,8 @@ namespace seeks_plugins
 
   bool search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    if (_personalized && _engine.has_feed("seeks"))
+      return true;
     feeds se_enabled;
     query_context::fillup_engines(parameters,se_enabled);
     feeds band = _engine.inter(se_enabled);

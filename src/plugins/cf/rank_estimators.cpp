@@ -380,10 +380,7 @@ namespace seeks_plugins
                                         q_vurl_hits[i++],url,host);
             if (qpost > 0.0)
               {
-                //qpost *= (*vit)->_seeks_rank / sum_se_ranks; // account for URL rank in results from search engines.
-                //qpost *= 1.0/static_cast<float>(log((*hit).second->_radius + 1.0) + 1.0); // account for distance to original query.
                 qpost *= simple_re::query_halo_weight(query,(*hit).second->_query,(*hit).second->_radius,swl);
-                //qpost *= 1.0/(log(simple_re::query_distance(query,(*hit).second->_query,swl) + 1.0) + 1.0);
                 posteriors[j] += qpost; // boosting over similar queries.
                 //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
               }
@@ -667,6 +664,8 @@ namespace seeks_plugins
                       {
                         search_snippet *sp = new search_snippet();
                         sp->set_url(vd->_url);
+                        sp->set_title(vd->_title);
+                        sp->set_summary(vd->_summary);
                         sp->_meta_rank = 1;
                         sp->_seeks_rank = posterior;
                         snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));

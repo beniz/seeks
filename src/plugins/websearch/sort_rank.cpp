@@ -299,17 +299,17 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalize(query_context *qc) throw (sp_exception)
+  bool sort_rank::personalize(query_context *qc) throw (sp_exception)
   {
     if (!websearch::_cf_plugin)
-      return;
+      return false;
     static_cast<cf*>(websearch::_cf_plugin)->personalize(qc->_query,qc->_auto_lang,
         qc->_cached_snippets,
         qc->_suggestions,
         qc->_recommended_snippets);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
-    qc->update_recommended_urls();
+    return qc->update_recommended_urls();
   }
 
   void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)

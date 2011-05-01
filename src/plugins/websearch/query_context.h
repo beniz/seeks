@@ -226,8 +226,9 @@ namespace seeks_plugins
 
       /**
        * \brief update recommended URLs.
+       * @return true if cached_snippets has changed, false otherwise.
        */
-      void update_recommended_urls();
+      bool update_recommended_urls();
 
     public:
       std::string _query; /**< clean query, no commands in it. */
