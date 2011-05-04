@@ -68,11 +68,12 @@ namespace seeks_plugins
 
   db_record* udb_service::find_dbr_client(const std::string &host,
                                           const int &port,
+                                          const std::string &path,
                                           const std::string &key,
                                           const std::string &pn)
   {
     udb_client uc;
-    return uc.find_dbr_client(host,port,key,pn);
+    return uc.find_dbr_client(host,port,path,key,pn);
   }
 
   /* plugin registration. */

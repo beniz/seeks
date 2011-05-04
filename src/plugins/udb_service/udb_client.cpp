@@ -23,6 +23,8 @@
 #include "miscutil.h"
 #include "errlog.h"
 
+#include <iostream>
+
 using sp::curl_mget;
 using sp::plugin_manager;
 using sp::plugin;
@@ -43,10 +45,14 @@ namespace seeks_plugins
 
   db_record* udb_client::find_dbr_client(const std::string &host,
                                          const int &port,
+                                         const std::string &path,
                                          const std::string &key,
                                          const std::string &pn)
   {
-    std::string url = host + ":" + miscutil::to_string(port) + "/find_dbr?";
+    std::string url = host;
+    if (port != -1)
+      url += ":" + miscutil::to_string(port);
+    url += path + "/find_dbr?";
     url += "urkey=" + key;
     url += "&pn=" + pn;
     curl_mget cmg(1,3,0,3,0); // timeouts: 3 seconds. TODO: in config.
@@ -66,7 +72,7 @@ namespace seeks_plugins
       {
         // transmission or deserialization error.
         errlog::log_error(LOG_LEVEL_ERROR,"transmission or deserialization error fetching record %s from %s:%s",
-                          key.c_str(),host.c_str(),miscutil::to_string(port).c_str());
+                          key.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
       }
     return dbr;
   }

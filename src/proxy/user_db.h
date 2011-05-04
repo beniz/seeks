@@ -61,6 +61,7 @@ namespace sp
       user_db(const bool &local=true,
               const std::string &haddr="",
               const int &hport=-1,
+              const std::string &hpath="",
               const std::string &rsc="");
 
       /**

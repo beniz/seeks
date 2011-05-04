@@ -149,12 +149,10 @@ namespace seeks_plugins
                        const std::string &lang,
                        std::vector<search_snippet*> &snippets,
                        std::multimap<double,std::string,std::less<double> > &related_queries,
-                       hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
-                       const std::string &host,
-                       const int &port) throw (sp_exception)
+                       hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets) throw (sp_exception)
   {
     simple_re sre;
-    sre.personalize(query,lang,snippets,related_queries,reco_snippets,host,port);
+    sre.peers_personalize(query,lang,snippets,related_queries,reco_snippets);
   }
 
   void cf::estimate_ranks(const std::string &query,

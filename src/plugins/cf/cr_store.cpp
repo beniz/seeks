@@ -139,10 +139,11 @@ namespace seeks_plugins
 
   void cr_store::add(const std::string &host,
                      const int &port,
+                     const std::string &path,
                      const std::string &key,
                      db_record *rec)
   {
-    std::string peer = cr_store::generate_peer(host,port);
+    std::string peer = cr_store::generate_peer(host,port,path);
     add(peer,key,rec);
   }
 
@@ -167,9 +168,10 @@ namespace seeks_plugins
   }
 
   void cr_store::remove(const std::string &host,
-                        const int &port)
+                        const int &port,
+                        const std::string &path)
   {
-    std::string peer = cr_store::generate_peer(host,port);
+    std::string peer = cr_store::generate_peer(host,port,path);
     remove(peer);
   }
 
@@ -187,9 +189,10 @@ namespace seeks_plugins
 
   db_record* cr_store::find(const std::string &host,
                             const int &port,
+                            const std::string &path,
                             const std::string &key)
   {
-    std::string peer = cr_store::generate_peer(host,port);
+    std::string peer = cr_store::generate_peer(host,port,path);
     return find(peer,key);
   }
 
@@ -202,20 +205,27 @@ namespace seeks_plugins
       {
         cr_cache *crc = (*hit).second;
         cached_record *cr = crc->find(key);
-        cr->update_last_use();
         mutex_unlock(&_store_mutex);
         if (!cr)
-          return NULL;
-        else return cr->_rec;
+          {
+            mutex_unlock(&_store_mutex);
+            return NULL;
+          }
+        cr->update_last_use();
+        mutex_unlock(&_store_mutex);
+        return cr->_rec;
       }
     mutex_unlock(&_store_mutex);
     return NULL;
   }
 
   std::string cr_store::generate_peer(const std::string &host,
-                                      const int &port)
+                                      const int &port,
+                                      const std::string &path)
   {
-    return host + ":" + miscutil::to_string(port);
+    if (port != -1)
+      return host + ":" + miscutil::to_string(port) + path;
+    else return host + path;
   }
 
 } /* end of namespace. */

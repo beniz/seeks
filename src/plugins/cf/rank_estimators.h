@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,12 +19,14 @@
 #ifndef RANK_ESTIMATORS_H
 #define RANK_ESTIMATORS_H
 
+#include "peer_list.h"
 #include "sp_exception.h"
 #include "cr_store.h"
 #include "search_snippet.h"
 #include "db_query_record.h"
 #include "stopwordlist.h"
 #include "mrf.h"
+#include "mutexes.h"
 
 using lsh::stopwordlist;
 using lsh::str_chain;
@@ -32,12 +34,49 @@ using lsh::str_chain;
 namespace seeks_plugins
 {
 
+  class rank_estimator;
+
+  struct perso_thread_arg
+  {
+    perso_thread_arg()
+      :_snippets(NULL),_related_queries(NULL),_reco_snippets(NULL),_estimator(NULL),_pe(NULL)
+    {};
+
+    ~perso_thread_arg()
+    {}
+
+    std::string _query;
+    std::string _lang;
+    std::vector<search_snippet*> *_snippets;
+    std::multimap<double,std::string,std::less<double> > *_related_queries;
+    hash_map<uint32_t,search_snippet*,id_hash_uint> *_reco_snippets;
+    rank_estimator *_estimator;
+    peer *_pe;
+    sp_err _err; // error code.
+  };
+
   class rank_estimator
   {
     public:
-      rank_estimator() {};
+      rank_estimator();
 
       virtual ~rank_estimator() {};
+
+      void peers_personalize(const std::string &query,
+                             const std::string &lang,
+                             std::vector<search_snippet*> &snippets,
+                             std::multimap<double,std::string,std::less<double> > &related_queries,
+                             hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets);
+
+      void threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
+                                std::vector<pthread_t> &perso_threads,
+                                const std::string &query, const std::string &lang,
+                                std::vector<search_snippet*> *snippets,
+                                std::multimap<double,std::string,std::less<double> > *related_queries,
+                                hash_map<uint32_t,search_snippet*,id_hash_uint> *reco_snippets,
+                                peer *pe = NULL);
+
+      static void personalize_cb(perso_thread_arg *args);
 
       virtual void personalize(const std::string &query,
                                const std::string &lang,
@@ -45,7 +84,9 @@ namespace seeks_plugins
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                const std::string &host="",
-                               const int &port=-1) throw (sp_exception) {};
+                               const int &port=-1,
+                               const std::string &path="",
+                               const std::string &rsc="") throw (sp_exception) {};
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
@@ -67,7 +108,9 @@ namespace seeks_plugins
                                    const std::string &lang,
                                    hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
                                    const std::string &host="",
-                                   const int &port=-1) throw (sp_exception);
+                                   const int &port=-1,
+                                   const std::string &path="",
+                                   const std::string &rsc="") throw (sp_exception);
 
       static void fetch_user_db_record(const std::string &query,
                                        user_db *udb,
@@ -87,6 +130,8 @@ namespace seeks_plugins
                                  const std::string &plugin_name);
 
       static cr_store _store;
+
+      static sp_mutex_t _est_mutex;
   };
 
   class simple_re : public rank_estimator
@@ -102,7 +147,9 @@ namespace seeks_plugins
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                const std::string &host="",
-                               const int &port=-1) throw (sp_exception);
+                               const int &port=-1,
+                               const std::string &path="",
+                               const std::string &rsc="") throw (sp_exception);
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,

@@ -35,6 +35,7 @@ namespace seeks_plugins
 
       db_record* find_dbr_client(const std::string &host,
                                  const int &port,
+                                 const std::string &path,
                                  const std::string &key,
                                  const std::string &pn);
 

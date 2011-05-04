@@ -114,7 +114,6 @@ TEST(CRTest,find_dbr)
     }
 
   // test find_dbr based on cr_store.
-  seeks_proxy::_user_db = NULL;
   std::string key = "1645a6897e62417931f26bcbdf4687c9c026b626";
   db_record *dbr = rank_estimator::find_dbr(&udb,key,"query-capture");
   ASSERT_TRUE(NULL!=dbr);
@@ -125,7 +124,10 @@ TEST(CRTest,find_dbr)
   ASSERT_TRUE(NULL!=qd);
   ASSERT_EQ("seeks",qd->_query);
   ASSERT_EQ(2,qd->_visited_urls->size());
-  db_record *dbr2 = rank_estimator::find_dbr(&udb,key,"query-capture");
+  std::string rkey = user_db::generate_rkey(key,"query-capture");
+  rank_estimator::_store.add(host,-1,"",rkey,dbr);
+  user_db udbr(false,host,-1,"","sn");
+  db_record *dbr2 = rank_estimator::find_dbr(&udbr,key,"query-capture");
   ASSERT_EQ(dbr,dbr2);
   ASSERT_EQ(1,rank_estimator::_store._store.size());
 

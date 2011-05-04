@@ -119,8 +119,9 @@ namespace sp
 
   /*- db_obj_remote -*/
   db_obj_remote::db_obj_remote(const std::string &host,
-                               const int &port)
-    :db_obj(),_host(host),_port(port)
+                               const int &port,
+                               const std::string &path)
+    :db_obj(),_host(host),_port(port),_path(path)
   {
 #if defined(TT)
     _hdb = tcrdbnew();
@@ -202,7 +203,9 @@ namespace sp
 #endif
   std::string db_obj_remote::get_name() const
   {
-    return _host + ":" + miscutil::to_string(_port);
+    if (_port == -1)
+      return _host + _path;
+    else return _host + ":" + miscutil::to_string(_port) + _path;
   }
 
 } /* end of namespace. */

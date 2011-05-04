@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010, 2011 Emmanuel Benazera, <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -46,19 +46,134 @@ namespace seeks_plugins
 
   /*- rank_estimator -*/
   cr_store rank_estimator::_store;
+  sp_mutex_t rank_estimator::_est_mutex;
+
+  rank_estimator::rank_estimator()
+  {
+    mutex_init(&_est_mutex);
+  }
+
+  // threaded call to personalization.
+  void rank_estimator::peers_personalize(const std::string &query,
+                                         const std::string &lang,
+                                         std::vector<search_snippet*> &snippets,
+                                         std::multimap<double,std::string,std::less<double> > &related_queries,
+                                         hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets)
+  {
+    std::vector<pthread_t> perso_threads;
+    std::vector<perso_thread_arg*> perso_args;
+
+    // thread for local db.
+    threaded_personalize(perso_args,perso_threads,
+                         query,lang,&snippets,&related_queries,&reco_snippets);
+
+    // one thread per remote peer, to handle the IO.
+    hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
+    = cf_configuration::_config->_pl._peers.begin();
+    while(hit!=cf_configuration::_config->_pl._peers.end())
+      {
+        threaded_personalize(perso_args,perso_threads,
+                             query,lang,&snippets,&related_queries,&reco_snippets,
+                             (*hit).second);
+        ++hit;
+      }
+
+    // join.
+    for (size_t i=0; i<perso_threads.size(); i++)
+      {
+        if (perso_threads.at(i)!=0)
+          pthread_join(perso_threads.at(i),NULL);
+      }
+
+    // clear.
+    for (size_t i=0; i<perso_args.size(); i++)
+      {
+        if (perso_args.at(i))
+          {
+            //TODO: any data to collect ?
+            delete perso_args.at(i);
+          }
+      }
+  }
+
+  void rank_estimator::threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
+      std::vector<pthread_t> &perso_threads,
+      const std::string &query,
+      const std::string &lang,
+      std::vector<search_snippet*> *snippets,
+      std::multimap<double,std::string,std::less<double> > *related_queries,
+      hash_map<uint32_t,search_snippet*,id_hash_uint> *reco_snippets,
+      peer *pe)
+  {
+    perso_thread_arg *args  = new perso_thread_arg();
+    args->_query = query;
+    args->_lang = lang;
+    args->_snippets = snippets;
+    args->_related_queries = related_queries;
+    args->_reco_snippets = reco_snippets;
+    args->_estimator = this;
+    args->_pe = pe;
+    args->_err = SP_ERR_OK;
+
+    pthread_t p_thread;
+    int err = pthread_create(&p_thread, NULL, // default attribute is PTHREAD_CREATE_JOINABLE
+                             (void * (*)(void*))rank_estimator::personalize_cb,args);
+    if (err!=0)
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Error creating personalization thread.");
+        perso_threads.push_back(0);
+        delete args;
+        perso_args.push_back(NULL);
+        return;
+      }
+    perso_args.push_back(args);
+    perso_threads.push_back(p_thread);
+  }
+
+  void rank_estimator::personalize_cb(perso_thread_arg *args)
+  {
+    // call + catch exception here.
+    try
+      {
+        if (!args->_pe)
+          args->_estimator->personalize(args->_query,args->_lang,
+                                        *args->_snippets,
+                                        *args->_related_queries,
+                                        *args->_reco_snippets);
+        else
+          args->_estimator->personalize(args->_query,args->_lang,
+                                        *args->_snippets,
+                                        *args->_related_queries,
+                                        *args->_reco_snippets,
+                                        args->_pe->_host,
+                                        args->_pe->_port,
+                                        args->_pe->_path,
+                                        args->_pe->_rsc);
+      }
+    catch(sp_exception &e)
+      {
+        args->_err = e.code();
+      }
+  }
 
   void rank_estimator::fetch_query_data(const std::string &query,
                                         const std::string &lang,
                                         hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
                                         const std::string &host,
-                                        const int &port) throw (sp_exception)
+                                        const int &port,
+                                        const std::string &path,
+                                        const std::string &rsc) throw (sp_exception)
   {
     user_db *udb = NULL;
     if (host.empty()) // local user database.
       udb = seeks_proxy::_user_db;
-    else
+    else if (rsc == "sn")
       {
-        udb = new user_db(true,host,port); // remote db.
+        udb = new user_db(false,host,port,path,rsc);
+      }
+    else if (rsc == "tt")
+      {
+        udb = new user_db(false,host,port); // remote db.
         int err = udb->open_db();
         if (err != SP_ERR_OK)
           {
@@ -66,6 +181,12 @@ namespace seeks_plugins
             std::string msg = "cannot open remote db " + host + ":" + miscutil::to_string(port);
             throw sp_exception(err,msg);
           }
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Wrong user db resource %s for fetching data",
+                          rsc.c_str());
+        return;
       }
 
     // fetch records from user DB.
@@ -75,12 +196,16 @@ namespace seeks_plugins
     // extract queries.
     rank_estimator::extract_queries(query,lang,udb,records,qdata);
 
+    errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %g queries",
+                      host.c_str(),path.c_str(),qdata.size());
+
     // close db.
     if (udb != seeks_proxy::_user_db) // not the local db.
       delete udb;
 
     // destroy records.
-    rank_estimator::destroy_records(records);
+    if (cf_configuration::_config->_record_cache_timeout == 0)
+      rank_estimator::destroy_records(records);
   }
 
   void rank_estimator::fetch_user_db_record(const std::string &query,
@@ -101,7 +226,6 @@ namespace seeks_plugins
     while (hit!=features.end())
       {
         std::string key_str = (*hit).second.to_rstring();
-        //db_record *dbr = udb->find_dbr(key_str,qc_str);
         db_record *dbr = rank_estimator::find_dbr(udb,key_str,qc_str);
         if (dbr)
           {
@@ -121,7 +245,10 @@ namespace seeks_plugins
 
     str_chain strc_query(query_capture_element::no_command_query(query),0,true);
     strc_query = strc_query.rank_alpha();
+
+    mutex_lock(&_est_mutex);
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+    mutex_unlock(&_est_mutex);
 
     /*
      * Iterate records and gather queries and data.
@@ -170,7 +297,6 @@ namespace seeks_plugins
                       }
 
                     std::string key_str = (*features.begin()).second.to_rstring();
-                    //db_record *dbr_data = udb->find_dbr(key_str,qc_str);
                     db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str);
                     if (!dbr_data) // this should never happen.
                       {
@@ -180,26 +306,30 @@ namespace seeks_plugins
                         continue;
                       }
 
-                    db_query_record *dbqr_data = static_cast<db_query_record*>(dbr_data);
-                    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit2
-                    = dbqr_data->_related_queries.begin();
-                    while (qit2!=dbqr_data->_related_queries.end())
+                    db_query_record *dbqr_data = dynamic_cast<db_query_record*>(dbr_data);
+                    if (dbqr_data)
                       {
-                        if ((*qit2).second->_radius == 0
-                            && (*qit2).second->_query == qd->_query)
+                        hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit2
+                        = dbqr_data->_related_queries.begin();
+                        while (qit2!=dbqr_data->_related_queries.end())
                           {
-                            query_data *dbqrc = new query_data((*qit2).second);
-                            str_chain strc_rquery(qd->_query,0,true);
-                            dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size())
-                                             - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
-                            dbqrc->_record_key = new DHTKey((*features.begin()).second); // mark the data with the record key.
-                            qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
-                                         dbqrc));
-                            break;
+                            if ((*qit2).second->_radius == 0
+                                && (*qit2).second->_query == qd->_query)
+                              {
+                                query_data *dbqrc = new query_data((*qit2).second);
+                                str_chain strc_rquery(qd->_query,0,true);
+                                dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size())
+                                                 - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
+                                dbqrc->_record_key = new DHTKey((*features.begin()).second); // mark the data with the record key.
+                                qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
+                                             dbqrc));
+                                break;
+                              }
+                            ++qit2;
                           }
-                        ++qit2;
+                        if (cf_configuration::_config->_record_cache_timeout == 0)
+                          delete dbqr_data;
                       }
-                    delete dbqr_data;
                   }
               }
             ++qit;
@@ -240,20 +370,28 @@ namespace seeks_plugins
   {
     if (udb == seeks_proxy::_user_db) // local
       return udb->find_dbr(key,plugin_name);
-
-    db_obj_remote *dorj = static_cast<db_obj_remote*>(udb->_hdb);
-    db_record *dbr = NULL;
-    std::string rkey = user_db::generate_rkey(key,plugin_name);
-    if (cf_configuration::_config->_record_cache_timeout > 0)
+    else
       {
-        dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,rkey);
-        if (dbr)
-          return dbr;
+        db_obj_remote *dorj = dynamic_cast<db_obj_remote*>(udb->_hdb);
+        db_record *dbr = NULL;
+        std::string rkey = user_db::generate_rkey(key,plugin_name);
+        if (dorj)
+          {
+            if (cf_configuration::_config->_record_cache_timeout > 0)
+              {
+                dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,dorj->_path,rkey);
+                if (dbr)
+                  return dbr;
+              }
+            errlog::log_error(LOG_LEVEL_DEBUG,"fetching record %s from %s%s",
+                              key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
+            dbr = udb->find_dbr(key,plugin_name);
+            if (dbr && cf_configuration::_config->_record_cache_timeout > 0)
+              rank_estimator::_store.add(dorj->_host,dorj->_port,dorj->_path,rkey,dbr);
+            return dbr;
+          }
+        else return NULL;
       }
-    dbr = udb->find_dbr(key,plugin_name);
-    if (dbr && cf_configuration::_config->_record_cache_timeout > 0)
-      rank_estimator::_store.add(dorj->_host,dorj->_port,rkey,dbr);
-    return dbr;
   }
 
   /*- simple_re -*/
@@ -272,13 +410,15 @@ namespace seeks_plugins
                               std::multimap<double,std::string,std::less<double> > &related_queries,
                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                               const std::string &host,
-                              const int &port) throw (sp_exception)
+                              const int &port,
+                              const std::string &path,
+                              const std::string &rsc) throw (sp_exception)
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,qdata,host,port);
+        rank_estimator::fetch_query_data(query,lang,qdata,host,port,path,rsc);
       }
     catch(sp_exception &e)
       {
@@ -290,12 +430,15 @@ namespace seeks_plugins
     simple_re::build_up_filter(&qdata,filter);
 
     // rank, urls & queries.
+    mutex_lock(&_est_mutex);
     estimate_ranks(query,lang,snippets,&qdata,&filter);
     recommend_urls(query,lang,reco_snippets,&qdata,&filter);
     query_recommender::recommend_queries(query,lang,related_queries,&qdata);
+    mutex_unlock(&_est_mutex);
 
     // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
+    if (cf_configuration::_config->_record_cache_timeout == 0)
+      rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
@@ -323,7 +466,8 @@ namespace seeks_plugins
     estimate_ranks(query,lang,snippets,&qdata,&filter);
 
     // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
+    if (cf_configuration::_config->_record_cache_timeout == 0)
+      rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
@@ -407,7 +551,7 @@ namespace seeks_plugins
         for (size_t k=0; k<ns; k++)
           {
             posteriors[k] /= sum_posteriors; // normalize.
-            snippets.at(k)->_seeks_rank = posteriors[k];
+            snippets.at(k)->_seeks_rank += posteriors[k]; //TODO: additive filter.
             //std::cerr << "url: " << snippets.at(k)->_url << " -- seeks_rank: " << snippets.at(k)->_seeks_rank << std::endl;
           }
       }
@@ -521,7 +665,8 @@ namespace seeks_plugins
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
         prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ (log(furi + 1.0) + 1.0);
-        delete uc_dbr;
+        if (cf_configuration::_config->_record_cache_timeout == 0)
+          delete uc_dbr;
         if (s)
           {
             s->_personalized = true;
@@ -587,7 +732,8 @@ namespace seeks_plugins
     recommend_urls(query,lang,snippets,&qdata,&filter);
 
     // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
+    if (cf_configuration::_config->_record_cache_timeout == 0)
+      rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::recommend_urls(const std::string &query,
@@ -742,7 +888,8 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
 
         // destroy query data.
-        rank_estimator::destroy_query_data(qdata);
+        if (cf_configuration::_config->_record_cache_timeout == 0)
+          rank_estimator::destroy_query_data(qdata);
 
         // exception.
         throw sp_exception(DB_ERR_NO_REC,msg);
@@ -757,7 +904,8 @@ namespace seeks_plugins
       }
 
     // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
+    if (cf_configuration::_config->_record_cache_timeout == 0)
+      rank_estimator::destroy_query_data(qdata);
   }
 
   uint32_t simple_re::damerau_levenshtein_distance(const std::string &s1, const std::string &s2,

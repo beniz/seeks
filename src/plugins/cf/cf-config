@@ -8,3 +8,11 @@ domain-name-weight 0.3
 # 0 means no cache at all.
 # default: 600
 record-cache-timeout 600
+
+# Static list of peers for collaborative filtering.
+# One of more lines, of the form: cf-peer address port http | tt
+# 'sn' for HTTP transport to Seeks node (should be default), 
+# and 'tt' for serving a peer user database with Tokyo Tyrant.
+# default: unset
+#cf-peer http://seeks-project.info/search_exp.php sn
+#cf-peer http://seeks-project.info/search.php sn

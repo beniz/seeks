@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,11 +17,21 @@
  */
 
 #include "cf_configuration.h"
+#include "miscutil.h"
+#include "urlmatch.h"
+#include "errlog.h"
+
+#include <iostream>
+
+using sp::miscutil;
+using sp::urlmatch;
+using sp::errlog;
 
 namespace seeks_plugins
 {
 #define hash_domain_name_weight       1333166351ul  /* "domain-name-weight" */
 #define hash_record_cache_timeout     1954675964ul  /* "record-cache-timeout" */
+#define hash_cf_peer                  1520012134ul  /* "cf-peer" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -44,6 +54,14 @@ namespace seeks_plugins
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
       char *buf, const unsigned long &linenum)
   {
+    char tmp[BUFFER_SIZE];
+    int vec_count;
+    char *vec[4];
+    int port;
+    char *endptr;
+    std::vector<std::string> elts;
+    std::string host, path, address;
+
     switch (cmd_hash)
       {
       case hash_domain_name_weight:
@@ -56,6 +74,29 @@ namespace seeks_plugins
         _record_cache_timeout = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Timeout on cached remote records, in seconds");
+        break;
+
+      case hash_cf_peer:
+        strlcpy(tmp,arg,sizeof(tmp));
+        vec_count = miscutil::ssplit(tmp," \t",vec,SZ(vec),1,1);
+        div_t divresult;
+        divresult = div(vec_count,2);
+        if (divresult.rem != 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"Wrong number of parameter when specifying static collaborative filtering peer");
+            break;
+          }
+        address = vec[0];
+        std::cerr << "address: " << address << std::endl;
+        urlmatch::parse_url_host_and_path(address,host,path);
+        miscutil::tokenize(host,elts,":");
+        port = -1;
+        if (elts.size()>1)
+          port = atoi(elts.at(1).c_str());
+        std::cerr << "host: " << host << " -- path: " << path << " -- port: " << port << " -- rsc: " << vec[1] << std::endl;
+        _pl.add(host,port,path,std::string(vec[1]));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Remote peer address for collaborative filtering");
         break;
 
       default:

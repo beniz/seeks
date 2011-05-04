@@ -739,7 +739,7 @@ namespace seeks_plugins
                     args->_snippets = new std::vector<search_snippet*>();
                     args->_offset = count_offset;
                     args->_qr = qr;
-                    parser_args.push_back(args);
+                    //parser_args.push_back(args);
 
                     pthread_t ps_thread;
                     int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
@@ -752,6 +752,7 @@ namespace seeks_plugins
                         parser_args.push_back(NULL);
                         continue;
                       }
+                    parser_args.push_back(args);
                     parser_threads.push_back(ps_thread);
                   }
                 else parser_threads.push_back(0);

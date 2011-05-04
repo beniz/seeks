@@ -137,7 +137,8 @@ namespace sp
   {
     public:
       db_obj_remote(const std::string &host,
-                    const int &port);
+                    const int &port,
+                    const std::string &path="");
 
       virtual ~db_obj_remote();
 
@@ -256,6 +257,7 @@ namespace sp
 
       std::string _host; // db host.
       int _port; // db port.
+      std::string _path;
   };
 
 } /* end of namespace. */

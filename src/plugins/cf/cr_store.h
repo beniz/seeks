@@ -23,8 +23,8 @@
  *        and frees cr_cache entries as needed.
  *
  *        Adding an item to the cr_store registers a cached_record object
- *        with the Seeks' proxy sweeper. When acached_record object times
- *        out, the sweeper deletes it, triggering the chain above.
+ *        with the Seeks' proxy sweeper. When a cached_record object times
+ *        out, the sweeper deletes it, triggering the deletion chain.
  */
 
 #ifndef CR_STORE_H
@@ -97,6 +97,7 @@ namespace seeks_plugins
 
       void add(const std::string &host,
                const int &port,
+               const std::string &path,
                const std::string &key,
                db_record *rec);
 
@@ -105,19 +106,22 @@ namespace seeks_plugins
                db_record *rec);
 
       void remove(const std::string &host,
-                  const int &port);
+                  const int &port,
+                  const std::string &path);
 
       void remove(const std::string &peer);
 
       db_record* find(const std::string &host,
                       const int &port,
+                      const std::string &path,
                       const std::string &key);
 
       db_record* find(const std::string &peer,
                       const std::string &key);
 
       static std::string generate_peer(const std::string &host,
-                                       const int &port);
+                                       const int &port,
+                                       const std::string &path="");
 
       hash_map<const char*,cr_cache*,hash<const char*>,eqstr> _store;
     private:
