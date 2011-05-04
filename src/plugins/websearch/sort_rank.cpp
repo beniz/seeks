@@ -304,6 +304,7 @@ namespace seeks_plugins
     if (!websearch::_cf_plugin)
       return false;
     static_cast<cf*>(websearch::_cf_plugin)->personalize(qc->_query,qc->_auto_lang,
+        qc->_page_expansion,
         qc->_cached_snippets,
         qc->_suggestions,
         qc->_recommended_snippets);
@@ -316,7 +317,8 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,qc->_auto_lang,snippets); //TODO: pass a copy of snippets.
+    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,qc->_auto_lang,
+        qc->_page_expansion,snippets);
     std::stable_sort(snippets.begin(),snippets.end(),
                      search_snippet::max_seeks_rank);
   }
@@ -325,7 +327,8 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,qc->_suggestions);
+    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,
+        qc->_page_expansion,qc->_suggestions);
   }
 
   void sort_rank::get_recommended_urls(query_context *qc) throw (sp_exception)
@@ -333,6 +336,7 @@ namespace seeks_plugins
     if (!websearch::_cf_plugin)
       return;
     static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_auto_lang,
+        qc->_page_expansion,
         qc->_recommended_snippets);
     qc->update_recommended_urls();
   }

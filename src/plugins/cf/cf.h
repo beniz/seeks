@@ -48,24 +48,28 @@ namespace seeks_plugins
 
       void personalize(const std::string &query,
                        const std::string &lang,
+                       const uint32_t &expansion,
                        std::vector<search_snippet*> &snippets,
                        std::multimap<double,std::string,std::less<double> > &related_queries,
                        hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets) throw (sp_exception);
 
       void estimate_ranks(const std::string &query,
                           const std::string &lang,
+                          const uint32_t &expansion,
                           std::vector<search_snippet*> &snippets,
                           const std::string &host="",
                           const int &port=-1) throw (sp_exception);
 
       void get_related_queries(const std::string &query,
                                const std::string &lang,
+                               const uint32_t &expansion,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                const std::string &host="",
                                const int &port=-1) throw (sp_exception);
 
       void get_recommended_urls(const std::string &query,
                                 const std::string &lang,
+                                const uint32_t &expansion,
                                 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                 const std::string &host="",
                                 const int &port=-1) throw (sp_exception);

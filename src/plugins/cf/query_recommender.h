@@ -43,6 +43,7 @@ namespace seeks_plugins
 
       static void recommend_queries(const std::string &query,
                                     const std::string &lang,
+                                    const uint32_t &expansion,
                                     std::multimap<double,std::string,std::less<double> > &related_queries,
                                     const std::string &host="",
                                     const int &port=-1) throw (sp_exception);

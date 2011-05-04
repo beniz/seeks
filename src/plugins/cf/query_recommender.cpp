@@ -60,6 +60,7 @@ namespace seeks_plugins
 
   void query_recommender::recommend_queries(const std::string &query,
       const std::string &lang,
+      const uint32_t &expansion,
       std::multimap<double,std::string,std::less<double> > &related_queries,
       const std::string &host,
       const int &port) throw (sp_exception)
@@ -68,7 +69,7 @@ namespace seeks_plugins
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,qdata,host,port);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,host,port);
       }
     catch(sp_exception &e)
       {

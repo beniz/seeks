@@ -147,41 +147,45 @@ namespace seeks_plugins
 
   void cf::personalize(const std::string &query,
                        const std::string &lang,
+                       const uint32_t &expansion,
                        std::vector<search_snippet*> &snippets,
                        std::multimap<double,std::string,std::less<double> > &related_queries,
                        hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets) throw (sp_exception)
   {
     simple_re sre;
-    sre.peers_personalize(query,lang,snippets,related_queries,reco_snippets);
+    sre.peers_personalize(query,lang,expansion,snippets,related_queries,reco_snippets);
   }
 
   void cf::estimate_ranks(const std::string &query,
                           const std::string &lang,
+                          const uint32_t &expansion,
                           std::vector<search_snippet*> &snippets,
                           const std::string &host,
                           const int &port) throw (sp_exception)
   {
     simple_re sre; // estimator.
-    sre.estimate_ranks(query,lang,snippets,host,port);
+    sre.estimate_ranks(query,lang,expansion,snippets,host,port);
   }
 
   void cf::get_related_queries(const std::string &query,
                                const std::string &lang,
+                               const uint32_t &expansion,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                const std::string &host,
                                const int &port) throw (sp_exception)
   {
-    query_recommender::recommend_queries(query,lang,related_queries,host,port);
+    query_recommender::recommend_queries(query,lang,expansion,related_queries,host,port);
   }
 
   void cf::get_recommended_urls(const std::string &query,
                                 const std::string &lang,
+                                const uint32_t &expansion,
                                 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                 const std::string &host,
                                 const int &port) throw (sp_exception)
   {
     simple_re sre; // estimator.
-    sre.recommend_urls(query,lang,snippets,host,port);
+    sre.recommend_urls(query,lang,expansion,snippets,host,port);
   }
 
   void cf::thumb_down_url(const std::string &query,
