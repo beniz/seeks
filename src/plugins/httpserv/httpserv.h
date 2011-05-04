@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -80,8 +80,11 @@ namespace seeks_plugins
       static void img_websearch(struct evhttp_request *r, void *arg);
       static void seeks_img_search_css(struct evhttp_request *r, void *arg);
 #endif
+#if defined(PROTOBUF) && defined(TC)
       static void qc_redir(struct evhttp_request *r, void *arg);
       static void tbd(struct evhttp_request *r, void *arg);
+      static void find_dbr(struct evhttp_request *r, void *arg);
+#endif
       static void unknown_path(struct evhttp_request *r, void *arg);
 
       /* utils. */

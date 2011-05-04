@@ -34,6 +34,7 @@
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h"
 #include "cf.h"
+#include "udb_service.h"
 #endif
 
 #include <unistd.h>
@@ -137,6 +138,7 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
     evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL);
     evhttp_set_cb(_srv,"/tbd",&httpserv::tbd,NULL);
+    evhttp_set_cb(_srv,"/find_dbr",&httpserv::find_dbr,NULL);
 #endif
 
     //evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
@@ -755,6 +757,95 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
   }
+
+  void httpserv::find_dbr(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+
+    /* parse query. */
+    const char *uri_str = r->uri;
+    if (uri_str)
+      {
+        std::string uri = std::string(r->uri);
+        parameters = httpserv::parse_query(uri);
+      }
+    if (!parameters || !uri_str)
+      {
+        // send 400 error response.
+        if (parameters)
+          miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+
+    // fill up csp headers.
+    const char *referer = evhttp_find_header(r->input_headers, "referer");
+    if (referer)
+      miscutil::enlist_unique_header(&csp._headers,"referer",strdup(referer));
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",strdup(referer));
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
+    // call to find_dbr callback.
+    sp_err serr = udb_service::cgi_find_dbr(&csp,&rsp,parameters);
+    miscutil::free_map(parameters);
+    miscutil::list_remove_all(&csp._headers);
+
+    int code = 200;
+    std::string status = "OK";
+    if (serr != SP_ERR_OK)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
+      }
+
+    /* fill up response. */
+    std::string ct = "text/html"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body); // XXX: beware of length.
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
+
+    /* run the sweeper, for timed out query contexts. */
+    sweeper::sweep();
+  }
+
 #endif
 
   void httpserv::unknown_path(struct evhttp_request *r, void *arg)
