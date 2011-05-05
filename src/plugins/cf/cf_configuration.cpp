@@ -92,7 +92,10 @@ namespace seeks_plugins
         miscutil::tokenize(host,elts,":");
         port = -1;
         if (elts.size()>1)
-          port = atoi(elts.at(1).c_str());
+          {
+            host = elts.at(0);
+            port = atoi(elts.at(1).c_str());
+          }
         std::cerr << "host: " << host << " -- path: " << path << " -- port: " << port << " -- rsc: " << vec[1] << std::endl;
         _pl.add(host,port,path,std::string(vec[1]));
         configuration_spec::html_table_row(_config_args,cmd,arg,
