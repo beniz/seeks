@@ -338,6 +338,15 @@ namespace seeks_plugins
                           delete dbqr_data;
                       }
                   }
+                else // radius is below requested expansion, keep queries for recommendation.
+                  {
+                    query_data *dbqrc = new query_data(*qd);
+                    str_chain strc_rquery(qd->_query,0,true);
+                    dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size())
+                                     - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
+                    qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
+                                 dbqrc));
+                  }
               }
             ++qit;
           }
