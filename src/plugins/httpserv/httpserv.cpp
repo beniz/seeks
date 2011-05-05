@@ -836,7 +836,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       }
     std::string content;
     if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+      content = std::string(rsp._body,rsp._content_length); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
