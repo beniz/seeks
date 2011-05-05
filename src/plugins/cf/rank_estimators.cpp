@@ -438,11 +438,14 @@ namespace seeks_plugins
     simple_re::build_up_filter(&qdata,filter);
 
     // rank, urls & queries.
-    mutex_lock(&_est_mutex);
-    estimate_ranks(query,lang,snippets,&qdata,&filter);
-    recommend_urls(query,lang,reco_snippets,&qdata,&filter);
-    query_recommender::recommend_queries(query,lang,related_queries,&qdata);
-    mutex_unlock(&_est_mutex);
+    if (!qdata.empty())
+      {
+        mutex_lock(&_est_mutex);
+        estimate_ranks(query,lang,snippets,&qdata,&filter);
+        recommend_urls(query,lang,reco_snippets,&qdata,&filter);
+        query_recommender::recommend_queries(query,lang,related_queries,&qdata);
+        mutex_unlock(&_est_mutex);
+      }
 
     // destroy query data.
     if (cf_configuration::_config->_record_cache_timeout == 0)
