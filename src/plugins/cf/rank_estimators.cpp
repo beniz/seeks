@@ -541,11 +541,20 @@ namespace seeks_plugins
         hit = qdata->begin();
         while (hit!=qdata->end())
           {
-            float qpost = estimate_rank((*vit),filter->empty() ? NULL:filter,ns,(*hit).second,
+            query_data *qd = (*hit).second;
+            if (!qd->_visited_urls)
+              {
+
+                ++hit;
+                i++;
+                continue;
+              }
+
+            float qpost = estimate_rank((*vit),filter->empty() ? NULL:filter,ns,qd,
                                         q_vurl_hits[i++],url,host);
             if (qpost > 0.0)
               {
-                qpost *= simple_re::query_halo_weight(query,(*hit).second->_query,(*hit).second->_radius,swl);
+                qpost *= simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
                 posteriors[j] += qpost; // boosting over similar queries.
                 //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
               }
