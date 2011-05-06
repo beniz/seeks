@@ -279,16 +279,18 @@ namespace seeks_plugins
 
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
+                str_chain strc_rquery(qd->_query,0,true);
+                int nradius = std::max(strc_rquery.size(),strc_query.size())
+                              - strc_query.intersect_size(strc_rquery);
+
                 if (qd->_radius == 0) // contains the data.
                   {
                     query_data *nqd = new query_data(qd);
-                    str_chain strc_rquery(qd->_query,0,true);
-                    nqd->_radius = std::max(strc_rquery.size(),strc_query.size())
-                                   - strc_query.intersect_size(strc_rquery);
+                    nqd->_radius = nradius;
                     nqd->_record_key = new DHTKey(*(*vit).first); // mark data with record key.
                     qdata.insert(std::pair<const char*,query_data*>(nqd->_query.c_str(),nqd));
                   }
-                else if (qd->_radius <= (expansion==0 ? 0 : expansion-1)) //TODO: check on max radius here.
+                else if (nradius <= (expansion==0 ? 0 : expansion-1)) //TODO: check on max radius here.
                   {
                     // data are in lower radius records.
                     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -324,9 +326,7 @@ namespace seeks_plugins
                                 && (*qit2).second->_query == qd->_query)
                               {
                                 query_data *dbqrc = new query_data((*qit2).second);
-                                str_chain strc_rquery(qd->_query,0,true);
-                                dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size())
-                                                 - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
+                                dbqrc->_radius = nradius;
                                 dbqrc->_record_key = new DHTKey((*features.begin()).second); // mark the data with the record key.
                                 qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
                                              dbqrc));
@@ -728,7 +728,8 @@ namespace seeks_plugins
       {
         if (s)
           {
-            s->_meta_rank++;
+            if (s->_meta_rank <= s->_engine.size())
+              s->_meta_rank++;
             s->_personalized = true;
           }
         delete dbr;
