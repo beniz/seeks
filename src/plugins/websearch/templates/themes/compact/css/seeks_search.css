@@ -28,8 +28,6 @@ body {
 	padding: 5px 10px 5px 20px;
 	
 	width: 100%;
-	/*background-color: #cacaca;*/
-	/*background-image: url(base-url/plugins/websearch/public/themes/compact/images/gradient1.png);*/
 	background-color:white;
 	border-bottom: 2px solid #999999;
   min-width: 890px;
@@ -94,6 +92,22 @@ body {
 #search_button {
 	width: 58px;
 	height: 21px;
+}
+
+#search_info {
+    position: fixed;
+    margin-top: 65px;
+    margin-left: 20px;
+    top: 0px;
+    left: 0px;
+    height: 20px;
+    width: 100%;
+    /*border-bottom: 2px solid #999999;*/
+ }
+
+#search_info .info {
+    margin-left: 10px;
+    color: gray;
 }
 
 #search_results {

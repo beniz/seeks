@@ -75,6 +75,7 @@ namespace seeks_plugins
   {
     if (!qc->_suggestions.empty())
       {
+        std::string used_rqueries = miscutil::to_string(qc->_suggestions.size());
         const char *base_url = miscutil::lookup(exports,"base-url");
         std::string base_url_str = "";
         if (base_url)
@@ -106,8 +107,13 @@ namespace seeks_plugins
               break;
           }
         miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
+        miscutil::add_map_entry(exports,"$xxrqueries",1,used_rqueries.c_str(),1);
       }
-    else miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
+    else
+      {
+        miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
+        miscutil::add_map_entry(exports,"$xxrqueries",1,strdup(""),0);
+      }
   }
 
   void static_renderer::render_recommendations(const query_context *qc,

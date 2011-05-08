@@ -112,7 +112,8 @@ namespace seeks_plugins
             ++k;
             ++mit;
           }
-        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]";
+        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]"
+               + ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size());
       }
     return "";
   }
