@@ -112,7 +112,7 @@ namespace seeks_plugins
     else
       {
         miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
-        miscutil::add_map_entry(exports,"$xxrqueries",1,strdup(""),0);
+        miscutil::add_map_entry(exports,"$xxrqueries",1,strdup("0"),0);
       }
   }
 
