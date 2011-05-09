@@ -305,6 +305,7 @@ namespace seeks_plugins
       return false;
     static_cast<cf*>(websearch::_cf_plugin)->personalize(qc->_query,qc->_auto_lang,
         qc->_page_expansion,
+        qc->_npeers,
         qc->_cached_snippets,
         qc->_suggestions,
         qc->_recommended_snippets);

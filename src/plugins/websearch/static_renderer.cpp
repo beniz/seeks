@@ -114,6 +114,7 @@ namespace seeks_plugins
         miscutil::add_map_entry(exports,"$xxsugg",1,strdup(""),0);
         miscutil::add_map_entry(exports,"$xxrqueries",1,strdup("0"),0);
       }
+    miscutil::add_map_entry(exports,"$xxnpeers",1,miscutil::to_string(qc->_npeers).c_str(),1);
   }
 
   void static_renderer::render_recommendations(const query_context *qc,

@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -243,6 +243,12 @@ namespace seeks_plugins
       // temporary flag used for marking snippets for which the
       // personalization system has found ranking information in local dataset.
       bool _personalized;
+
+      // number of peers influencing this snippet.
+      uint32_t _npeers;
+
+      // number of collaborative 'hits' for this snippet.
+      uint32_t _hits;
   };
 
 } /* end of namespace. */

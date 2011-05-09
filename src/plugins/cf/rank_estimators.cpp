@@ -57,12 +57,15 @@ namespace seeks_plugins
   void rank_estimator::peers_personalize(const std::string &query,
                                          const std::string &lang,
                                          const uint32_t &expansion,
+                                         uint32_t &npeers,
                                          std::vector<search_snippet*> &snippets,
                                          std::multimap<double,std::string,std::less<double> > &related_queries,
                                          hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets)
   {
     std::vector<pthread_t> perso_threads;
     std::vector<perso_thread_arg*> perso_args;
+
+    bool have_peers = npeers > 0 ? true : false;
 
     // thread for local db.
     threaded_personalize(perso_args,perso_threads,
@@ -91,7 +94,8 @@ namespace seeks_plugins
       {
         if (perso_args.at(i))
           {
-            //TODO: any data to collect ?
+            if (!have_peers && perso_args.at(i)->_err == SP_ERR_OK)
+              npeers++;
             delete perso_args.at(i);
           }
       }
@@ -572,6 +576,14 @@ namespace seeks_plugins
         //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
 
         sum_posteriors += posteriors[j++];
+
+        if ((*vit)->_personalized && (*vit)->_engine.has_feed("seeks"))
+          {
+            (*vit)->_engine.add_feed("seeks","s.s");
+            (*vit)->_meta_rank++;
+            (*vit)->_npeers++;
+          }
+
         ++vit;
       }
 
@@ -638,7 +650,9 @@ namespace seeks_plugins
           {
             s->_personalized = true;
             s->_engine.add_feed("seeks","s.s");
-            s->_meta_rank++;
+            /* s->_meta_rank++;
+            s->_npeers++;*/
+            s->_hits += vd_url->_hits;
           }
       }
 
@@ -701,7 +715,7 @@ namespace seeks_plugins
           {
             s->_personalized = true;
             s->_engine.add_feed("seeks","s.s");
-            s->_meta_rank++;
+            //s->_meta_rank++;
           }
       }
     dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);

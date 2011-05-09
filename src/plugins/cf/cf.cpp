@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -148,12 +148,13 @@ namespace seeks_plugins
   void cf::personalize(const std::string &query,
                        const std::string &lang,
                        const uint32_t &expansion,
+                       uint32_t &npeers,
                        std::vector<search_snippet*> &snippets,
                        std::multimap<double,std::string,std::less<double> > &related_queries,
                        hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets) throw (sp_exception)
   {
     simple_re sre;
-    sre.peers_personalize(query,lang,expansion,snippets,related_queries,reco_snippets);
+    sre.peers_personalize(query,lang,expansion,npeers,snippets,related_queries,reco_snippets);
   }
 
   void cf::estimate_ranks(const std::string &query,

@@ -49,7 +49,7 @@ namespace seeks_plugins
 
   query_context::query_context()
     :sweepable(),_page_expansion(0),_lsh_ham(NULL),_ulsh_ham(NULL),_compute_tfidf_features(true),
-     _registered(false)
+     _registered(false),_npeers(0)
   {
     mutex_init(&_qc_mutex);
   }
@@ -57,7 +57,7 @@ namespace seeks_plugins
   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                const std::list<const char*> &http_headers)
     :sweepable(),_page_expansion(0),_blekko(false),_lsh_ham(NULL),_ulsh_ham(NULL),_compute_tfidf_features(true),
-     _registered(false)
+     _registered(false),_npeers(0)
   {
     mutex_init(&_qc_mutex);
 
@@ -741,6 +741,8 @@ namespace seeks_plugins
               (*vit)->_engine.remove_feed("seeks");
             (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
             (*vit)->bing_yahoo_us_merge();
+            (*vit)->_npeers = 0;
+            (*vit)->_hits = 0;
           }
         ++vit;
       }

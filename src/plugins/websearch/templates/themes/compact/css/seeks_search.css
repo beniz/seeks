@@ -172,6 +172,11 @@ body {
 	background-position: left center;
 }
 
+#search_results .search_snippet .snippet_info {
+    font-size: 10px;
+    color: gray;
+}
+
 #search_results .search_snippet .search_engine a {
         text-decoration: none;
 }

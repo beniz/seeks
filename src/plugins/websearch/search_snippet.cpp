@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera, juban@free.fr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -61,13 +61,13 @@ namespace seeks_plugins
 
   search_snippet::search_snippet()
     :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false)
+     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0)
   {
   }
 
   search_snippet::search_snippet(const short &rank)
     :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false)
+     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0)
   {
   }
 
@@ -275,6 +275,10 @@ namespace seeks_plugins
       json_str += "yes";
     else json_str += "no";
     json_str += "\"";
+    if (_npeers > 0)
+      json_str += ",\"snpeers\":\"" + miscutil::to_string(_npeers) + "\"";
+    if (_hits > 0)
+      json_str += ",\"hits\":\"" + miscutil::to_string(_hits) + "\"";
     if (!_date.empty())
       json_str += ",\"date\":\"" + _date + "\"";
 
@@ -649,6 +653,9 @@ namespace seeks_plugins
           html_content += std::string(engines);
         html_content += "&lang=" + _qc->_auto_lang;
         html_content += "\">&nbsp;</a>";
+        if (_hits > 0 && _npeers > 0)
+          html_content += "<br><div class=\"snippet_info\">" + miscutil::to_string(_hits)
+                          + " recommendation(s) by " + miscutil::to_string(_npeers) + " peer(s).</div>";
       }
 
     html_content += "</div></li>\n";

@@ -287,6 +287,9 @@ namespace seeks_plugins
 
       /* default language region. */
       static std::string _default_alang_reg;
+
+      /* number of peers influencing this context. */
+      uint32_t _npeers;
   };
 
 } /* end of namespace. */
