@@ -98,14 +98,16 @@ body {
     position: fixed;
     margin-top: 65px;
     margin-left: 20px;
-    top: 0px;
+    top: -5px;
     left: 0px;
-    height: 20px;
+    height: 30px;
     width: 100%;
-    /*border-bottom: 2px solid #999999;*/
+    background-color:white;
+    /*border-bottom: 1px solid #999999;*/
  }
 
 #search_info .info {
+    margin-top: 5px;
     margin-left: 10px;
     color: gray;
 }
