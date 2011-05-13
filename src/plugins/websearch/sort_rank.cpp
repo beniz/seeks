@@ -175,8 +175,10 @@ namespace seeks_plugins
       } // end while.
 
     // sort by rank.
+    /*std::stable_sort(snippets.begin(),snippets.end(),
+      search_snippet::max_meta_rank);*/
     std::stable_sort(snippets.begin(),snippets.end(),
-                     search_snippet::max_meta_rank);
+                     search_snippet::max_seeks_rank);
 
     //debug
     /* std::cerr << "[Debug]: sorted result snippets:\n";

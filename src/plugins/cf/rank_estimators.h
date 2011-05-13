@@ -97,7 +97,8 @@ namespace seeks_plugins
                                   const std::string &lang,
                                   std::vector<search_snippet*> &snippets,
                                   const std::string &host="",
-                                  const int &port=-1) throw (sp_exception) {};
+                                  const int &port=-1,
+                                  const std::string &rsc="") throw (sp_exception) {};
 
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
@@ -164,14 +165,15 @@ namespace seeks_plugins
                                   const uint32_t &expansion,
                                   std::vector<search_snippet*> &snippets,
                                   const std::string &host="",
-                                  const int &port=-1) throw (sp_exception);
+                                  const int &port=-1,
+                                  const std::string &rsc="") throw (sp_exception);
 
       void estimate_ranks(const std::string &query,
                           const std::string &lang,
                           std::vector<search_snippet*> &snippets,
                           hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                          std::map<std::string,bool> *filter);
-
+                          std::map<std::string,bool> *filter,
+                          const std::string &rsc);
 
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
@@ -196,7 +198,8 @@ namespace seeks_plugins
                           const query_data *qd,
                           const float &total_hits,
                           const std::string &surl,
-                          const std::string &host);
+                          const std::string &host,
+                          bool &pers);
 
       float estimate_rank(search_snippet *s,
                           const std::map<std::string,bool> *filter,
@@ -204,7 +207,8 @@ namespace seeks_plugins
                           const vurl_data *vd_url,
                           const vurl_data *vd_host,
                           const float &total_hits,
-                          const float &domain_name_weight);
+                          const float &domain_name_weight,
+                          bool &pers);
 
       float estimate_prior(search_snippet *s,
                            const std::map<std::string,bool> *filter,
