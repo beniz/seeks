@@ -51,9 +51,9 @@ namespace sp
                        const long &connect_timeout_ms,
                        const long &transfer_timeout_sec,
                        const long &transfer_timeout_ms)
-      :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
-      _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
-      _transfer_timeout_ms(transfer_timeout_ms)
+    :_nrequests(nrequests),_connect_timeout_sec(connect_timeout_sec),
+     _connect_timeout_ms(connect_timeout_ms),_transfer_timeout_sec(transfer_timeout_sec),
+     _transfer_timeout_ms(transfer_timeout_ms)
   {
     _outputs = new std::string*[_nrequests];
     for (int i=0; i<_nrequests; i++)
@@ -193,7 +193,7 @@ namespace sp
                                    (void *)arg_cbget);
 
         if (error != 0)
-          std::cout << "Couldn't run thread number " << i << ", errno " << error << std::endl;
+          errlog::log_error(LOG_LEVEL_ERROR,"Couldn't run thread number %g",i,", errno %g",error);
         //else std::cout << "Thread " << i << ", gets " << urls[i] << std::endl;
       }
 
