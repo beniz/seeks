@@ -4,7 +4,7 @@ querycapturepluginlibdir = $(libdir)/seeks/plugins/query_capture
 querycaptureplugindatadir = $(datadir)/seeks/plugins/query_capture
 
 AM_CXXFLAGS=-Wall -g -pipe
-AM_CPPFLAGS= -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh -I${srcdir}/../../dht -I${srcdir}/../websearch \
+AM_CPPFLAGS= -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh -I${srcdir}/../../dht -I${srcdir}/../websearch -I${srcdir}/../uri_capture \
 	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
             @PCRE_CFLAGS@ \
 	    -I../../proxy/
