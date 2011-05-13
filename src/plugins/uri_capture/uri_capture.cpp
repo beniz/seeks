@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,6 +26,7 @@
 #include "urlmatch.h"
 #include "miscutil.h"
 #include "charset_conv.h"
+#include "curl_mget.h"
 #include "errlog.h"
 
 #include <sys/time.h>
@@ -144,6 +145,77 @@ namespace seeks_plugins
   int uri_capture::remove_all_uri_records()
   {
     return seeks_proxy::_user_db->prune_db(_name);
+  }
+
+  uc_err uri_capture::fetch_uri_html_title(const std::vector<std::string> &uris,
+      std::vector<std::string> &titles,
+      const long &timeout,
+      const std::vector<std::list<const char*>*> *headers)
+  {
+    curl_mget cmg(uris.size(),timeout,0,timeout,0);
+    cmg.www_mget(uris,uris.size(),headers,"",0);
+
+    return uri_capture::parse_uri_html_title(uris,titles,cmg._outputs);
+  }
+
+  uc_err uri_capture::parse_uri_html_title(const std::vector<std::string> &uris,
+      std::vector<std::string> &titles,
+      std::string **outputs)
+  {
+    static std::string pattern_b = "<title>";
+    static std::string pattern_e = "</title>";
+    static std::list<const char*> cheaders; // empty, for charset conv.
+
+    size_t err = 0;
+    for (size_t i=0; i<uris.size(); i++)
+      {
+        std::string title;
+        if (outputs[i])
+          {
+            std::string *pageptr = outputs[i];
+            size_t pos_b = 0;
+            std::string::const_iterator sit = pageptr->begin();
+            if ((pos_b = miscutil::ci_find(*pageptr,pattern_b,sit))!=std::string::npos)
+              {
+                size_t pos_e = 0;
+                if ((pos_e = miscutil::ci_find(*pageptr,pattern_e,sit))!=std::string::npos)
+                  {
+                    title = pageptr->substr(pos_b+pattern_b.size(),pos_e-pos_b-pattern_e.size()+1);
+                  }
+              }
+          }
+        if (title.empty())
+          {
+            titles.push_back("");
+            errlog::log_error(LOG_LEVEL_ERROR,"Failed fetching or parsing title of uri %s",uris.at(i).c_str());
+            err++;
+          }
+        else if (title.find("404")!=std::string::npos)
+          {
+            titles.push_back("");
+          }
+        else
+          {
+            title = miscutil::chomp_cpp(title);
+            miscutil::replace_in_string(title,"\n","");
+            miscutil::replace_in_string(title,"\r","");
+            std::string titlec = charset_conv::charset_check_and_conversion(title,cheaders);
+            if (titlec.empty())
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for title %s or uri %s",
+                                  title.c_str(),uris.at(i).c_str());
+                titles.push_back("");
+              }
+            else
+              {
+                errlog::log_error(LOG_LEVEL_DEBUG,"fetched title of uri %s\n%s",uris.at(i).c_str(),titlec.c_str());
+                titles.push_back(titlec);
+              }
+          }
+      }
+    if (err == uris.size())
+      return UC_ERR_CONNECT;
+    else return SP_ERR_OK;
   }
 
   /*- uri_capture_element -*/

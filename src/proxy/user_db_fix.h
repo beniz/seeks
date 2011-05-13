@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -18,6 +18,9 @@
 
 #ifndef USER_DB_FIX_H
 #define USER_DB_FIX_H
+
+#include <vector>
+#include <list>
 
 namespace sp
 {
@@ -47,6 +50,12 @@ namespace sp
        * \brief fix for non UTF-8 encoded queries.
        */
       static int fix_issue_154();
+
+      /**
+       * \brief fill up uri titles.
+       */
+      static int fill_up_uri_titles(const long &timeout,
+                                    const std::vector<std::list<const char*>*> *headers);
   };
 
 } /* end of namespace. */

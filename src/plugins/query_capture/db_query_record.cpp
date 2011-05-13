@@ -28,6 +28,8 @@
 #include "query_capture_configuration.h" // idem.
 using lsh::qprocess;
 
+#include "uri_capture.h"
+
 #include <algorithm>
 #include <iterator>
 #include <iostream>
@@ -617,5 +619,68 @@ namespace seeks_plugins
 
     return dumped_queries;
   }
+
+  void db_query_record::fetch_url_titles(uint32_t &fetched_urls,
+                                         const long &timeout,
+                                         const std::vector<std::list<const char*>*> *headers)
+  {
+    std::vector<vurl_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+
+        if (!qd->_visited_urls)
+          {
+            ++hit;
+            continue;
+          }
+
+        hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit
+        = qd->_visited_urls->begin();
+        while(vit!=qd->_visited_urls->end())
+          {
+            vurl_data *vd = (*vit).second;
+            /*if (vd->_url[vd->_url.length()-1] == '/')
+              {
+                std::string url = vd->_url.substr(0,vd->_url.length()-1);  // fix url.
+                hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator vit2 = vit;
+                ++vit;
+                qd->_visited_urls->erase(vit2);
+                vd->_url = url;
+                to_insert.push_back(vd);
+                fixed_urls++;
+            		}*/
+            if (vd->_title.empty())
+              {
+                std::vector<std::string> titles;
+                std::vector<std::string> uris;
+                uris.push_back(vd->_url);
+                uc_err ferr = uri_capture::fetch_uri_html_title(uris,titles,timeout,headers);
+                if (ferr == SP_ERR_OK)
+                  {
+                    fetched_urls++;
+                    vd->_title = titles.at(0);
+                  }
+              }
+            ++vit;
+          }
+
+        /*size_t tis = to_insert.size();
+        if (tis > 0)
+          {
+            for (size_t i=0; i<tis; i++)
+              qd->_visited_urls->insert(std::pair<const char*,vurl_data*>(to_insert.at(i)->_url.c_str(),
+                                        to_insert.at(i)));
+            fixed_queries++;
+            to_insert.clear();
+        	    }*/
+
+        ++hit;
+      }
+    //return fixed_queries;
+  }
+
 
 } /* end of namespace. */

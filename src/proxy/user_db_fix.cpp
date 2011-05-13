@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -442,5 +442,85 @@ namespace sp
     return err;
   }
 
+  int user_db_fix::fill_up_uri_titles(const long &timeout,
+                                      const std::vector<std::list<const char*>*> *headers)
+  {
+    user_db udb; // existing user db.
+    int err = udb.open_db();
+    if (err != 0)
+      {
+        // handle error.
+        errlog::log_error(LOG_LEVEL_ERROR,"Could not open the user db for fixing it");
+        return -1;
+      }
+
+    // traverse records.
+    uint32_t furls = 0;
+    std::map<std::string,db_record*> to_add;
+    void *rkey = NULL;
+    int rkey_size;
+    std::vector<std::string> to_remove;
+    udb._hdb->dbiterinit();
+    while ((rkey = udb._hdb->dbiternext(&rkey_size)) != NULL)
+      {
+        int value_size;
+        void *value = udb._hdb->dbget(rkey, rkey_size, &value_size);
+        if (value)
+          {
+            std::string str = std::string((char*)value,value_size);
+            free(value);
+            std::string key, plugin_name;
+            std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   plugin_name,key) != 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"Filling up url titles: could not extract record plugin and key from internal user db key");
+              }
+            else if (plugin_name != "query-capture")
+              {
+              }
+            else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                db_record *dbr = NULL;
+                if (!pl)
+                  {
+                    // handle error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Filling up db url titles: could not find plugin %s",
+                                      plugin_name.c_str());
+                    dbr = new db_record();
+                  }
+                else
+                  {
+                    dbr = pl->create_db_record();
+                  }
+
+                if (dbr->deserialize(str) != 0)
+                  {
+                    // deserialization error.
+                  }
+                else
+                  {
+                    uint32_t fu = 0;
+                    static_cast<db_query_record*>(dbr)->fetch_url_titles(fu,timeout,headers);
+                    if (fu > 0)
+                      {
+                        furls += fu;
+                        udb.remove_dbr(rkey_str);
+                        udb.add_dbr(key,*dbr);
+                      }
+                  }
+                delete dbr;
+              }
+          }
+        free(rkey);
+      }
+
+    udb.close_db();
+    errlog::log_error(LOG_LEVEL_INFO,"Filling up url titles: %u urls fetched",furls);
+    return err;
+  }
 
 } /* end of namespace. */

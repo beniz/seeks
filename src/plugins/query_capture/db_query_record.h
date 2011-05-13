@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,6 +27,7 @@
 using sp::user_db;
 
 #include <vector>
+#include <list>
 
 using sp::db_record;
 using dht::DHTKey;
@@ -162,6 +163,10 @@ namespace seeks_plugins
       int fix_issue_281(uint32_t &fixed_urls);
 
       int fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries, uint32_t &removed_urls);
+
+      void fetch_url_titles(uint32_t &fetched_urls,
+                            const long &timeout,
+                            const std::vector<std::list<const char*>*> *headers);
 
     public:
       hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;

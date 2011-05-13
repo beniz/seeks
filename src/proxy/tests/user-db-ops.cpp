@@ -20,6 +20,7 @@
 #include "user_db_fix.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
+#include "miscutil.h"
 #include "errlog.h"
 #include "plugin_manager.h"
 
@@ -34,7 +35,8 @@ std::string get_usage()
   std::string usage = "Usage: <db_file> <seeks base dir> <command>\n";
   usage += "commands:\n";
   usage += "remove_non_utf8\t\tRemoves non UTF8 queries and URLs\n";
-  usage += "optimize\t\tOptimizes database, weeding out blank space";
+  usage += "optimize\t\tOptimizes database, weeding out blank space\n";
+  usage += "fetch_urls\t\tfetch URL titles for URLs captured along with queries\n";
   return usage;
 }
 
@@ -59,7 +61,7 @@ int main(int argc, char **argv)
   //seeks_proxy::_configfile = basedir + "/config";
   seeks_proxy::initialize_mutexes();
   errlog::init_log_module();
-  errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO);
+  errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO | LOG_LEVEL_DEBUG);
 
   seeks_proxy::_basedir = basedir.c_str();
   plugin_manager::_plugin_repository = basedir + "/plugins/";
@@ -83,6 +85,24 @@ int main(int argc, char **argv)
     {
       seeks_proxy::_user_db->optimize_db();
       seeks_proxy::_user_db->close_db();
+    }
+  else if (command == "fetch_urls")
+    {
+      seeks_proxy::_user_db->close_db();
+      std::string ua = "user-agent: ";
+      std::string uacust = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1";
+      ua += uacust;
+      long timeout = 5;
+      std::vector<std::list<const char*>*> headers;
+      std::list<const char*> *lheaders = new std::list<const char*>();
+      miscutil::enlist(lheaders,ua.c_str());
+      headers.push_back(lheaders);
+      user_db_fix::fill_up_uri_titles(timeout,&headers);
+      for (size_t i=0; i<headers.size(); i++)
+        {
+          miscutil::list_remove_all(headers.at(i));
+          delete headers.at(i);
+        }
     }
   else
     {

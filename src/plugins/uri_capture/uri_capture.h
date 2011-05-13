@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,6 +25,7 @@
 #include "stl_hash.h"
 #include "plugin.h"
 #include "interceptor_plugin.h"
+#include "uc_err.h"
 
 using namespace sp;
 
@@ -59,6 +60,15 @@ namespace seeks_plugins
       virtual sp::db_record* create_db_record();
 
       int remove_all_uri_records();
+
+      static uc_err fetch_uri_html_title(const std::vector<std::string> &uris,
+                                         std::vector<std::string> &titles,
+                                         const long &timeout,
+                                         const std::vector<std::list<const char*>*> *headers);
+
+      static uc_err parse_uri_html_title(const std::vector<std::string> &uris,
+                                         std::vector<std::string> &titles,
+                                         std::string **outputs);
 
     public:
       uint64_t _nr; /**< number of captured URI in user db. */

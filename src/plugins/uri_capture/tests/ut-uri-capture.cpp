@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -180,6 +180,28 @@ TEST_F(URICaptureTest,store_merge_remove)
   ASSERT_TRUE(uridbr!=NULL);
   ASSERT_EQ(1,uridbr->_hits);
   delete uridbr;
+}
+
+TEST(URIAPITest,parse_uri_html_title)
+{
+  std::vector<std::string> uris;
+  std::vector<std::string> titles;
+  std::string **outputs = new std::string*[2];
+  std::string uri1 = "www.seeks-project.info";
+  std::string s1 = "<title>Seeks Project</title>";
+  uris.push_back(uri1);
+  outputs[0] = &s1;
+  uc_err err = uri_capture::parse_uri_html_title(uris,titles,outputs);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(1,titles.size());
+  ASSERT_EQ("Seeks Project",titles.at(0));
+  std::string s2 = "<title>Seeks Project";
+  titles.clear();
+  outputs[0] = &s2;
+  err = uri_capture::parse_uri_html_title(uris,titles,outputs);
+  ASSERT_EQ(UC_ERR_CONNECT,err);
+  ASSERT_EQ(1,titles.size());
+  ASSERT_TRUE(titles.at(0).empty());
 }
 
 int main(int argc, char **argv)
