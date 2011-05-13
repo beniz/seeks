@@ -79,6 +79,7 @@ namespace sp
       {
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_easy_setopt(curl, CURLOPT_MAXREDIRS,5);
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0); // do not check on SSL certificate.
       }
