@@ -155,7 +155,9 @@ namespace seeks_plugins
     curl_mget cmg(uris.size(),timeout,0,timeout,0);
     cmg.www_mget(uris,uris.size(),headers,"",0);
 
-    return uri_capture::parse_uri_html_title(uris,titles,cmg._outputs);
+    uc_err err = uri_capture::parse_uri_html_title(uris,titles,cmg._outputs);
+    delete[] cmg._outputs;
+    return err;
   }
 
   uc_err uri_capture::parse_uri_html_title(const std::vector<std::string> &uris,
@@ -183,6 +185,7 @@ namespace seeks_plugins
                     title = pageptr->substr(pos_b+pattern_b.size(),pos_e-pos_b-pattern_e.size()+1);
                   }
               }
+            delete outputs[i];
           }
         if (title.empty())
           {
