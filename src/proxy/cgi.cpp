@@ -410,10 +410,16 @@ namespace sp
     if (*query_args_start == '/')
       {
         *query_args_start++ = '\0';
-        if ((param_list = new hash_map<const char*,const char*,hash<const char*>,eqstr>()))
+        try
           {
-            miscutil::add_map_entry(param_list, "file", 1,
-                                    encode::url_decode(query_args_start), 0);
+            if ((param_list = new hash_map<const char*,const char*,hash<const char*>,eqstr>()))
+              {
+                miscutil::add_map_entry(param_list, "file", 1,
+                                        encode::url_decode(query_args_start), 0);
+              }
+          }
+        catch (std::bad_alloc &e)
+          {
           }
       }
     else
@@ -437,7 +443,11 @@ namespace sp
      */
 
     /* Get mem for response or fail*/
-    if (NULL == (rsp = new http_response()))
+    try
+      {
+        rsp = new http_response();
+      }
+    catch (std::bad_alloc &e)
       {
         freez(path_copy);
         delete param_list;
@@ -589,7 +599,11 @@ namespace sp
     int pairs, i;
     hash_map<const char*,const char*,hash<const char*>,eqstr> *cgi_params;
 
-    if (NULL == (cgi_params = new hash_map<const char*,const char*,hash<const char*>,eqstr>()))
+    try
+      {
+        cgi_params = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+      }
+    catch (std::bad_alloc &e)
       {
         return NULL;
       }
@@ -838,7 +852,11 @@ namespace sp
         return cgi::cgi_error_memory();
       }
 
-    if (NULL == (rsp = new http_response()))
+    try
+      {
+        rsp = new http_response();
+      }
+    catch (std::bad_alloc &e)
       {
         miscutil::free_map(exports);
         return cgi::cgi_error_memory();
@@ -2149,9 +2167,14 @@ namespace sp
 
     assert(csp);
 
-    exports = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
-    if (exports == NULL)
-      return NULL;
+    try
+      {
+        exports = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+      }
+    catch (std::bad_alloc &e)
+      {
+        return NULL;
+      }
 
     if (csp->_config->_hostname)
       {

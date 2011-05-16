@@ -237,7 +237,11 @@ namespace sp
     /*
      * Get memory or fail
      */
-    if (NULL == (r = new pcrs_substitute()))
+    try
+      {
+        r = new pcrs_substitute();
+      }
+    catch (std::bad_alloc &e)
       {
         *errptr = PCRS_ERR_NOMEM;
         return NULL;
@@ -600,7 +604,11 @@ plainchar:
     /*
      * Get and init memory
      */
-    if (NULL == (newjob = new pcrs_job()))
+    try
+      {
+        newjob = new pcrs_job();
+      }
+    catch (std::bad_alloc &e)
       {
         *errptr = PCRS_ERR_NOMEM;
         return NULL;
@@ -772,7 +780,11 @@ plainchar:
         return(PCRS_ERR_BADJOB);
       }
 
-    if (NULL == (matches = new pcrs_match[max_matches]))
+    try
+      {
+        matches = new pcrs_match[max_matches];
+      }
+    catch (std::bad_alloc &e)
       {
         *result = NULL;
         return(PCRS_ERR_NOMEM);
@@ -818,7 +830,11 @@ plainchar:
           {
             int old_max_matches = max_matches;
             max_matches = (int)(max_matches * PCRS_MAX_MATCH_GROW);
-            if (NULL == (dummy = new pcrs_match[max_matches]))
+            try
+              {
+                dummy = new pcrs_match[max_matches];
+              }
+            catch (std::bad_alloc &e)
               {
                 delete[] matches;
                 *result = NULL;
