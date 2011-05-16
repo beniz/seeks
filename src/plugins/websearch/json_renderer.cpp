@@ -106,7 +106,10 @@ namespace seeks_plugins
         = qc->_suggestions.begin();
         while(mit!=qc->_suggestions.end())
           {
-            suggs.push_back("\"" + (*mit).second + "\"");
+            std::string sugg = (*mit).second;
+            miscutil::replace_in_string(sugg,"\\","\\\\");
+            miscutil::replace_in_string(sugg,"\"","\\\"");
+            suggs.push_back("\"" + sugg + "\"");
             if (k > websearch::_wconfig->_num_reco_queries)
               break;
             ++k;
