@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   seeks_proxy::_user_db->open_db_readonly();
 
   plugin_manager::load_all_plugins();
-  plugin_manager::instanciate_plugins();
+  plugin_manager::start_plugins();
 
   seeks_proxy::_user_db->print(std::cout);
 

@@ -160,7 +160,8 @@ namespace sp
     std::vector<plugin*>::iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
       {
-        (*vit)->stop();
+        if (seeks_proxy::_config->is_plugin_activated((*vit)->get_name_cstr()))
+          (*vit)->stop();
         delete *vit;
         ++vit;
       }
@@ -182,13 +183,14 @@ namespace sp
     return 1;
   }
 
-  int plugin_manager::instanciate_plugins()
+  int plugin_manager::start_plugins()
   {
     // start registered plugins.
     std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
       {
-        (*vit)->start();
+        if (seeks_proxy::_config->is_plugin_activated((*vit)->get_name_cstr()))
+          (*vit)->start();
         ++vit;
       }
 

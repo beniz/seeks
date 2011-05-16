@@ -55,7 +55,7 @@ int main(int argc, char **argv)
   seeks_proxy::_user_db->open_db_readonly();
 
   plugin_manager::load_all_plugins();
-  plugin_manager::instanciate_plugins();
+  plugin_manager::start_plugins();
 
   std::ofstream output (destfile.c_str());
   seeks_proxy::_user_db->export_db(output, format);

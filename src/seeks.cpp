@@ -574,7 +574,7 @@ int main(int argc, const char *argv[])
       errlog::log_error(LOG_LEVEL_INFO,"Disabling Seeks' proxy since it appears the HTTP server plugin is running on this node. This default behavior can be overriden by setting the 'automatic-proxy-disable' option to 0.");
       seeks_proxy::_run_proxy = false;
     }
-  plugin_manager::instanciate_plugins();
+  plugin_manager::start_plugins();
 
 #if defined(PROTOBUF) && (defined(TC) || defined(TT))
   // fix broken user DB by detecting and rewriting it.

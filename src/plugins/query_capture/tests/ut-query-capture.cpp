@@ -78,7 +78,7 @@ class QCTest : public testing::Test
       seeks_proxy::_user_db = new user_db(dbfile);
       seeks_proxy::_user_db->open_db();
       plugin_manager::load_all_plugins();
-      plugin_manager::instanciate_plugins();
+      plugin_manager::start_plugins();
 
       plugin *pl = plugin_manager::get_plugin("query-capture");
       ASSERT_TRUE(NULL!=pl);

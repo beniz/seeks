@@ -73,7 +73,7 @@ namespace sp
       /**
        * \brief creates the plugin objects.
        */
-      static int instanciate_plugins();
+      static int start_plugins();
 
       /**
        * \brief registers a plugin and its CGI functions.

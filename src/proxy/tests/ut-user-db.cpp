@@ -68,7 +68,7 @@ TEST(UserdbTest, all_fct)
   db->open_db();
 
   plugin_manager::load_all_plugins();
-  plugin_manager::instanciate_plugins();
+  plugin_manager::start_plugins();
 
   // start tests.
 
