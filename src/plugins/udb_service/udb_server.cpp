@@ -50,6 +50,7 @@ namespace seeks_plugins
         rsp->_content_length = body_size;
         for (size_t i=0; i<str.length(); i++)
           rsp->_body[i] = str[i];
+        delete dbr;
         return SP_ERR_OK;
       }
   }
