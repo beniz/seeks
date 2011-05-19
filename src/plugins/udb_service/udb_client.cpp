@@ -69,6 +69,7 @@ namespace seeks_plugins
     else if (cmg._outputs[0]->empty())
       {
         // no result.
+        delete cmg._outputs[0];
         delete[] cmg._outputs;
         return NULL;
       }
