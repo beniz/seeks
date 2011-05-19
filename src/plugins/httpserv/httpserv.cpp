@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -94,8 +94,6 @@ namespace seeks_plugins
 
   httpserv::~httpserv()
   {
-    evhttp_free(_srv);
-    event_base_free(_evbase);
   }
 
   void httpserv::start()
@@ -120,6 +118,8 @@ namespace seeks_plugins
   void httpserv::stop()
   {
     event_base_loopbreak(_evbase);
+    evhttp_free(_srv);
+    event_base_free(_evbase);
   }
 
   void httpserv::init_callbacks()
