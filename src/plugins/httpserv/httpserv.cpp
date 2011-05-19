@@ -163,7 +163,8 @@ namespace seeks_plugins
                                   const std::string &error_message)
   {
     /* error output. */
-    errlog::log_error(LOG_LEVEL_ERROR,"httpserv error: %s",error_message.c_str());
+    errlog::log_error(LOG_LEVEL_ERROR,"httpserv error: code %d %s",
+                      http_code,error_message.c_str());
 
     // body.
     struct evbuffer *buffer;
@@ -799,12 +800,14 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
     int code = 200;
     std::string status = "OK";
-    if (serr != SP_ERR_OK)
+    std::string err_msg;
+    if (serr != SP_ERR_OK && serr != DB_ERR_NO_REC)
       {
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
             cgi::cgi_error_bad_param(&csp,&rsp);
+            err_msg = "Bad Parameter";
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -812,6 +815,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
             http_response *crsp = cgi::cgi_error_memory();
             rsp = *crsp;
             delete crsp;
+            err_msg = "Memory Error";
             code = 500;
           }
         else
@@ -835,12 +839,12 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
+    if (rsp._body && serr != DB_ERR_NO_REC)
       content = std::string(rsp._body,rsp._content_length); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
-    else httpserv::reply_with_error(r,code,"ERROR",content);
+    else httpserv::reply_with_error(r,code,err_msg.c_str(),content);
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();

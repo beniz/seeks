@@ -62,7 +62,13 @@ namespace seeks_plugins
     cmg.www_mget(urls,1,NULL,"",0); // not going through a proxy. TODO: support for external proxy.
     if (!cmg._outputs[0])
       {
-        // no result or failed connection.
+        // failed connection.
+        delete[] cmg._outputs;
+        return NULL;
+      }
+    else if (cmg._outputs[0]->empty())
+      {
+        // no result.
         delete[] cmg._outputs;
         return NULL;
       }
