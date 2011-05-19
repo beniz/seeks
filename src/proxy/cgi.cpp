@@ -550,11 +550,21 @@ namespace sp
       }
     else if (err && !d->_plugin_name.empty())
       {
-        /* internal plugin error. */
-        errlog::log_error(LOG_LEVEL_ERROR,
-                          "%d in plugin %s caught in top-level handler",
-                          err, d->_plugin_name.c_str());
-        err = cgi::cgi_error_plugin(csp, rsp, err, d->_plugin_name);
+        /* list of filtered errors at proxy level. */
+        if (err == DB_ERR_NO_REC) // XXX: other errors to be avoided come here.
+          {
+            /* let's assume that it worked. */
+            rsp->_reason = RSP_REASON_CGI_CALL;
+            return cgi::finish_http_response(csp, rsp);
+          }
+        else
+          {
+            /* internal plugin error. */
+            errlog::log_error(LOG_LEVEL_ERROR,
+                              "%d in plugin %s caught in top-level handler",
+                              err, d->_plugin_name.c_str());
+            err = cgi::cgi_error_plugin(csp, rsp, err, d->_plugin_name);
+          }
       }
     else if (err && (err != SP_ERR_MEMORY))
       {
