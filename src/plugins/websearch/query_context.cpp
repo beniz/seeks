@@ -740,10 +740,12 @@ namespace seeks_plugins
             if ((*vit)->_engine.has_feed("seeks"))
               (*vit)->_engine.remove_feed("seeks");
             (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
+            (*vit)->_seeks_rank = 0;
             (*vit)->bing_yahoo_us_merge();
             (*vit)->_npeers = 0;
             (*vit)->_hits = 0;
           }
+        else (*vit)->_seeks_rank = 0; // reset.
         ++vit;
       }
   }
