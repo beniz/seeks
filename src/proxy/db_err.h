@@ -37,5 +37,6 @@ typedef int db_err;
 #define DB_ERR_CLEAN              513 /**< error while emptying the db. */
 #define DB_ERR_SWEEPER_NF         514 /**< sweeper not found. */
 #define DB_ERR_UNKNOWN            515 /**< unknown or uncaught error. */
+#define DB_ERR_NO_DB              516 /**< no db. */
 
 #endif
