@@ -81,7 +81,7 @@ namespace seeks_plugins
       {
         return SP_ERR_FILE; // no user db.
       }
-    std::string content = std::string(csp->_iob._cur,csp->_iob._size); // XXX: beware...
+    std::string content = std::string(csp->_iob._cur);//,csp->_iob._size); // XXX: beware...
     return udb_server::find_bqc_cb(content,rsp);
   }
 
