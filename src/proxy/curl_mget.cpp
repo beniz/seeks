@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -101,6 +101,15 @@ namespace sp
         curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
       }
 
+    if (arg->_content) // POST request.
+      {
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void*)arg->_content->c_str());
+        if (arg->_content_size >= 0)
+          curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, arg->_content_size);
+        /*std::cerr << "curl_mget POST size: " << arg->_content_size << std::endl
+          << "content: " << *arg->_content << std::endl;*/
+      }
+
     struct curl_slist *slist=NULL;
 
     // useful headers.
@@ -111,6 +120,11 @@ namespace sp
           {
             slist = curl_slist_append(slist,(*sit));
             ++sit;
+          }
+        if (arg->_content)
+          {
+            slist = curl_slist_append(slist,strdup(arg->_content_type.c_str()));
+            slist = curl_slist_append(slist,strdup("Expect:"));
           }
       }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
@@ -163,7 +177,11 @@ namespace sp
                                     const std::vector<std::list<const char*>*> *headers,
                                     const std::string &proxy_addr, const short &proxy_port,
                                     std::vector<CURL*> *chandlers,
-                                    std::vector<std::string> *cookies)
+                                    std::vector<std::string> *cookies,
+                                    const bool &post,
+                                    std::string *content,
+                                    const int &content_size,
+                                    const std::string &content_type)
   {
     assert((int)urls.size() == nrequests); // check.
 
@@ -186,6 +204,11 @@ namespace sp
           arg_cbget->_handler = chandlers->at(i);
         if (cookies)
           arg_cbget->_cookies = cookies->at(i);
+        if (content)
+          {
+            arg_cbget->_content = content;
+            arg_cbget->_content_size = content_size;
+          }
         _cbgets[i] = arg_cbget;
 
         int error = pthread_create(&tid[i],
