@@ -139,6 +139,7 @@ namespace seeks_plugins
     evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL);
     evhttp_set_cb(_srv,"/tbd",&httpserv::tbd,NULL);
     evhttp_set_cb(_srv,"/find_dbr",&httpserv::find_dbr,NULL);
+    evhttp_set_cb(_srv,"/find_bqc",&httpserv::find_bqc,NULL);
 #endif
 
     //evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
@@ -797,6 +798,126 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     sp_err serr = udb_service::cgi_find_dbr(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
+
+    int code = 200;
+    std::string status = "OK";
+    std::string err_msg;
+    if (serr != SP_ERR_OK && serr != DB_ERR_NO_REC)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp);
+            err_msg = "Bad Parameter";
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            err_msg = "Memory Error";
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
+      }
+
+    /* fill up response. */
+    std::string ct = "text/html"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body && serr != DB_ERR_NO_REC)
+      content = std::string(rsp._body,rsp._content_length); // XXX: beware of length.
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,err_msg.c_str(),content);
+
+    /* run the sweeper, for timed out query contexts. */
+    sweeper::sweep();
+  }
+
+  void httpserv::find_bqc(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+
+    /* check that we're getting a proper POST request. */
+    if (r->type != EVHTTP_REQ_POST)
+      {
+        httpserv::reply_with_error_400(r); //TODO: proper error type.
+        return;
+      }
+
+    /* parse query. */
+    const char *uri_str = r->uri;
+    if (uri_str)
+      {
+        std::string uri = std::string(r->uri);
+        parameters = httpserv::parse_query(uri);
+      }
+    if (!parameters || !uri_str)
+      {
+        // send 400 error response.
+        if (parameters)
+          miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+
+    /* grab POST content. */
+    evbuffer *input_buffer = r->input_buffer;
+    if (!input_buffer)
+      {
+        httpserv::reply_with_error_400(r); //TODO: proper error type.
+        return;
+      }
+    std::string post_content = std::string((char*)input_buffer->buffer,
+                                           input_buffer->off / sizeof(u_char)); // Beware.
+    if (post_content.empty())
+      {
+        httpserv::reply_with_error_400(r); //TODO: proper error type.
+        return;
+      }
+    size_t post_content_size = post_content.length() * sizeof(char);
+    csp._iob._cur = new char[post_content_size];
+    strlcpy(csp._iob._cur,post_content.c_str(),post_content_size+1);
+    csp._iob._size = post_content_size;
+
+    // fill up csp headers.
+    const char *referer = evhttp_find_header(r->input_headers, "referer");
+    if (referer)
+      miscutil::enlist_unique_header(&csp._headers,"referer",strdup(referer));
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",strdup(referer));
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",strdup(host));
+
+    // call to find_bqc callback.
+    sp_err serr = udb_service::cgi_find_bqc(&csp,&rsp,parameters);
+    miscutil::free_map(parameters);
+    miscutil::list_remove_all(&csp._headers);
+    delete csp._iob._cur;
+    csp._iob._cur = NULL;
+    csp._iob._size = 0;
 
     int code = 200;
     std::string status = "OK";

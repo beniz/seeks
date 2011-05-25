@@ -84,6 +84,7 @@ namespace seeks_plugins
       static void qc_redir(struct evhttp_request *r, void *arg);
       static void tbd(struct evhttp_request *r, void *arg);
       static void find_dbr(struct evhttp_request *r, void *arg);
+      static void find_bqc(struct evhttp_request *r, void *arg);
 #endif
       static void unknown_path(struct evhttp_request *r, void *arg);
 
