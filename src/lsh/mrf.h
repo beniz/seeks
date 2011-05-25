@@ -118,6 +118,10 @@ namespace lsh
       {
         return _chain.size();
       }
+      bool empty() const
+      {
+        return _chain.empty();
+      }
       std::string at(const int &i) const
       {
         return _chain.at(i);
