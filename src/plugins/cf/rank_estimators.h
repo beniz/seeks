@@ -123,6 +123,10 @@ namespace seeks_plugins
                                        user_db *udb,
                                        hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
 
+      static void fetch_user_db_record(const std::vector<std::string> &qhashes,
+                                       user_db *udb,
+                                       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
+
       static void extract_queries(const std::string &query,
                                   const std::string &lang,
                                   const uint32_t &expansion,
@@ -136,6 +140,11 @@ namespace seeks_plugins
 
       static db_record* find_dbr(user_db *udb, const std::string &key,
                                  const std::string &plugin_name);
+
+      static void filter_extracted_queries(const std::string &query,
+                                           const std::string &lang,
+                                           const uint32_t &expansion,
+                                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
 
       static cr_store _store;
 

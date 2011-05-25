@@ -140,6 +140,8 @@ namespace seeks_plugins
                       const std::string &summary="",
                       const uint32_t &url_date=0);
 
+      db_query_record(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+
       db_query_record(const db_query_record &dbr);
 
       db_query_record();
@@ -167,6 +169,9 @@ namespace seeks_plugins
       void fetch_url_titles(uint32_t &fetched_urls,
                             const long &timeout,
                             const std::vector<std::list<const char*>*> *headers);
+
+      static void copy_related_queries(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &rq,
+                                       hash_map<const char*,query_data*,hash<const char*>,eqstr> &nrq);
 
     public:
       hash_map<const char*,query_data*,hash<const char*>,eqstr> _related_queries;

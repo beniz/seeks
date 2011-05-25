@@ -17,6 +17,9 @@
  */
 
 #include "udb_client.h"
+#include "DHTKey.h"
+#include "qprocess.h"
+#include "halo_msg_wrapper.h"
 #include "curl_mget.h"
 #include "plugin_manager.h"
 #include "plugin.h"
@@ -30,7 +33,7 @@ using sp::plugin_manager;
 using sp::plugin;
 using sp::miscutil;
 using sp::errlog;
-
+using lsh::qprocess;
 
 namespace seeks_plugins
 {
@@ -81,6 +84,68 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,"transmission or deserialization error fetching record %s from %s:%s",
                           key.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
       }
+    return dbr;
+  }
+
+  db_record* udb_client::find_bqc(const std::string &host,
+                                  const int &port,
+                                  const std::string &path,
+                                  const std::string &query,
+                                  const uint32_t &expansion)
+  {
+    static std::string ctype = "Content-Type: application/x-protobuf";
+
+    // create halo of hashes.
+    hash_multimap<uint32_t,DHTKey,id_hash_uint> qhashes;
+    qprocess::generate_query_hashes(query,0,5,qhashes); // TODO: 5 in configuration (cf).
+    std::string msg;
+    try
+      {
+        halo_msg_wrapper::serialize(expansion,qhashes,msg);
+      }
+    catch(sp_exception &e)
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,e.what().c_str());
+        return NULL;
+      }
+
+    std::string url = host;
+    if (port != -1)
+      url += ":" + miscutil::to_string(port);
+    url += path + "/find_bqc?";
+    curl_mget cmg(1,3,0,3,0); // timeouts: 3 seconds.
+    std::vector<std::string> urls;
+    urls.reserve(1);
+    urls.push_back(url);
+    errlog::log_error(LOG_LEVEL_DEBUG,"call: %s",url.c_str());
+    cmg.www_mget(urls,1,NULL,"",0,
+                 NULL,NULL,true,&msg,msg.length()*sizeof(char),
+                 ctype); // not going through a proxy. TODO: support for external proxy.
+    if (!cmg._outputs[0])
+      {
+        // failed connection.
+        errlog::log_error(LOG_LEVEL_DEBUG,"transmission error, nothing found in find_bqc response to query %s from %s:%s",
+                          query.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
+        delete[] cmg._outputs;
+        return NULL;
+      }
+    else if (cmg._outputs[0]->empty())
+      {
+        // no result.
+        delete cmg._outputs[0];
+        delete[] cmg._outputs;
+        return NULL;
+      }
+    db_record *dbr = udb_client::deserialize_found_record(*cmg._outputs[0],"query-capture");
+    delete[] cmg._outputs;
+    if (!dbr)
+      {
+        // transmission or deserialization error.
+        errlog::log_error(LOG_LEVEL_ERROR,"transmission or deserialization error fetching batch records for query %s from %s:%s",
+                          query.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
+      }
+    /*std::cerr << "obtained dbr:";
+      dbr->print(std::cerr);*/
     return dbr;
   }
 

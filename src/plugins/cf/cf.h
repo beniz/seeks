@@ -22,6 +22,7 @@
 #include "sp_exception.h"
 #include "plugin.h"
 #include "search_snippet.h"
+#include "db_query_record.h"
 
 using namespace sp;
 
@@ -78,6 +79,10 @@ namespace seeks_plugins
       static void thumb_down_url(const std::string &query,
                                  const std::string &lang,
                                  const std::string &url) throw (sp_exception);
+
+      static void find_bqc_cb(const std::vector<std::string> &qhashes,
+                              const uint32_t &expansion,
+                              db_query_record *&dbr);
 
     public:
       static plugin *_uc_plugin;

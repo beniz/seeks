@@ -16,37 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UDB_CLIENT_H
-#define UDB_CLIENT_H
+#ifndef HALO_MSG_WRAPPER_H
+#define HALO_MSG_WRAPPER_H
 
-#include "db_record.h"
+#include "halo_msg.pb.h"
+#include "sp_exception.h"
+#include "DHTKey.h"
+#include "stl_hash.h"
 
-using sp::db_record;
+#include <string>
+#include <vector>
 
 namespace seeks_plugins
 {
 
-  class udb_client
+  class halo_msg_wrapper
   {
     public:
-      udb_client();
+      static void deserialize(const std::string &msg,
+                              uint32_t &expansion,
+                              std::vector<std::string> &qhashes) throw (sp_exception);
 
-      ~udb_client();
-
-      db_record* find_dbr_client(const std::string &host,
-                                 const int &port,
-                                 const std::string &path,
-                                 const std::string &key,
-                                 const std::string &pn);
-
-      db_record* find_bqc(const std::string &host,
-                          const int &port,
-                          const std::string &path,
-                          const std::string &query,
-                          const uint32_t &expansion);
-
-      static db_record* deserialize_found_record(const std::string &str,
-          const std::string &pn);
+      static void serialize(const uint32_t &expansion,
+                            const hash_multimap<uint32_t,DHTKey,id_hash_uint> &qhashes,
+                            std::string &msg) throw (sp_exception);
   };
 
 } /* end of namespace. */

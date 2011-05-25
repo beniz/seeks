@@ -220,17 +220,20 @@ namespace seeks_plugins
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
-  db_query_record::db_query_record(const db_query_record &dbr)
+  db_query_record::db_query_record(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &rq)
   {
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
-    = dbr._related_queries.begin();
-    while (hit!=dbr._related_queries.end())
+    = rq.begin();
+    while(hit!=rq.end())
       {
-        query_data *rd = (*hit).second;
-        query_data *crd = new query_data(*rd);
-        _related_queries.insert(std::pair<const char*,query_data*>(crd->_query.c_str(),crd));
+        _related_queries.insert(std::pair<const char*,query_data*>((*hit).second->_query.c_str(),(*hit).second));
         ++hit;
       }
+  }
+
+  db_query_record::db_query_record(const db_query_record &dbr)
+  {
+    db_query_record::copy_related_queries(dbr._related_queries,_related_queries);
   }
 
   db_query_record::db_query_record()
@@ -374,6 +377,20 @@ namespace seeks_plugins
             rd->_visited_urls->insert(std::pair<const char*,vurl_data*>(vd->_url.c_str(),vd));
           }
         _related_queries.insert(std::pair<const char*,query_data*>(rd->_query.c_str(),rd));
+      }
+  }
+
+  void db_query_record::copy_related_queries(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &rq,
+      hash_map<const char*,query_data*,hash<const char*>,eqstr> &nrq)
+  {
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
+    = rq.begin();
+    while (hit!=rq.end())
+      {
+        query_data *rd = (*hit).second;
+        query_data *crd = new query_data(rd);
+        nrq.insert(std::pair<const char*,query_data*>(crd->_query.c_str(),crd));
+        ++hit;
       }
   }
 

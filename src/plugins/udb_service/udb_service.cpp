@@ -23,6 +23,7 @@
 #include "miscutil.h"
 
 #include <string.h>
+#include <iostream>
 
 namespace seeks_plugins
 {
@@ -35,10 +36,14 @@ namespace seeks_plugins
     _version_minor = "1";
 
     // cgi dispatchers.
-    _cgi_dispatchers.reserve(1);
+    _cgi_dispatchers.reserve(2);
     cgi_dispatcher *cgid_find_dbr
     = new cgi_dispatcher("find_dbr",&udb_service::cgi_find_dbr,NULL,TRUE);
     _cgi_dispatchers.push_back(cgid_find_dbr);
+
+    cgi_dispatcher *cgid_find_bqc
+    = new cgi_dispatcher("find_bqc",&udb_service::cgi_find_bqc,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_find_bqc);
   }
 
   udb_service::~udb_service()
@@ -64,6 +69,20 @@ namespace seeks_plugins
         return SP_ERR_FILE; // no user db.
       }
     return udb_server::find_dbr_cb(key_str,pn_str,rsp);
+  }
+
+  db_err udb_service::cgi_find_bqc(client_state *csp,
+                                   http_response *rsp,
+                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    /* std::cerr << "find_bqc: content: ";
+       std::cerr << csp->_iob._cur << std::endl; */
+    if (!seeks_proxy::_user_db)
+      {
+        return SP_ERR_FILE; // no user db.
+      }
+    std::string content = std::string(csp->_iob._cur,csp->_iob._size); // XXX: beware...
+    return udb_server::find_bqc_cb(content,rsp);
   }
 
   db_record* udb_service::find_dbr_client(const std::string &host,

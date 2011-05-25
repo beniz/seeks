@@ -24,6 +24,7 @@
 #include "query_capture.h"
 #include "uri_capture.h"
 #include "db_uri_record.h"
+#include "udb_client.h"
 #include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
@@ -192,30 +193,48 @@ namespace seeks_plugins
             throw sp_exception(err,msg);
           }
       }
-    else
+    else if (rsc != "bsn")
       {
         errlog::log_error(LOG_LEVEL_ERROR,"Wrong user db resource %s for fetching data",
                           rsc.c_str());
         return;
       }
 
-    // fetch records from user DB.
-    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-    rank_estimator::fetch_user_db_record(query,udb,records);
+    if (rsc != "bsn")
+      {
+        // fetch records from user DB.
+        hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+        rank_estimator::fetch_user_db_record(query,udb,records);
 
-    // extract queries.
-    rank_estimator::extract_queries(query,lang,expansion,udb,records,qdata);
+        // extract queries.
+        rank_estimator::extract_queries(query,lang,expansion,udb,records,qdata);
 
-    errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
-                      host.c_str(),path.c_str(),qdata.size());
+        errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
+                          host.c_str(),path.c_str(),qdata.size());
 
-    // close db.
-    if (udb != seeks_proxy::_user_db) // not the local db.
-      delete udb;
+        // close db.
+        if (udb != seeks_proxy::_user_db) // not the local db.
+          delete udb;
 
-    // destroy records.
-    if (cf_configuration::_config->_record_cache_timeout == 0)
-      rank_estimator::destroy_records(records);
+        // destroy records.
+        if (cf_configuration::_config->_record_cache_timeout == 0)
+          rank_estimator::destroy_records(records);
+      }
+    else // remote batch seeks node operations.
+      {
+        udb_client udbc;
+        std::string squery = query_capture_element::no_command_query(query);
+        db_record *dbr = udbc.find_bqc(host,port,path,squery,expansion);
+        if (dbr)
+          {
+            db_query_record *dbqr = static_cast<db_query_record*>(dbr);
+            db_query_record::copy_related_queries(dbqr->_related_queries,qdata);
+            delete dbqr;
+            rank_estimator::filter_extracted_queries(squery,lang,expansion,qdata);
+            errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
+                              host.c_str(),path.c_str(),qdata.size());
+          }
+      }
   }
 
   void rank_estimator::fetch_user_db_record(const std::string &query,
@@ -232,16 +251,30 @@ namespace seeks_plugins
     qprocess::generate_query_hashes(q,0,5,features); //TODO: from configuration (5).
 
     // fetch records from the user DB.
+    std::vector<std::string> qhashes;
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
     while (hit!=features.end())
       {
         std::string key_str = (*hit).second.to_rstring();
-        db_record *dbr = rank_estimator::find_dbr(udb,key_str,qc_str);
+        qhashes.push_back(key_str);
+        ++hit;
+      }
+    fetch_user_db_record(qhashes,udb,records);
+  }
+
+  void rank_estimator::fetch_user_db_record(const std::vector<std::string> &qhashes,
+      user_db *udb,
+      hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records)
+  {
+    static std::string qc_str = "query-capture";
+    for (size_t i=0; i<qhashes.size(); i++)
+      {
+        db_record *dbr = rank_estimator::find_dbr(udb,qhashes.at(i),qc_str);
         if (dbr)
           {
-            records.insert(std::pair<const DHTKey*,db_record*>(new DHTKey((*hit).second),dbr));
+            DHTKey dkey = DHTKey::from_rstring(qhashes.at(i)); // XXX: could avoid this by storing keys beforehand.
+            records.insert(std::pair<const DHTKey*,db_record*>(new DHTKey(dkey),dbr));
           }
-        ++hit;
       }
   }
 
@@ -254,12 +287,19 @@ namespace seeks_plugins
   {
     static std::string qc_str = "query-capture";
 
-    str_chain strc_query(query_capture_element::no_command_query(query),0,true);
-    strc_query = strc_query.rank_alpha();
+    str_chain strc_query;
+    stopwordlist *swl = NULL;
 
-    mutex_lock(&_est_mutex);
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-    mutex_unlock(&_est_mutex);
+    /* check whether query is available (i.e. acting locally). */
+    if (!query.empty())
+      {
+        strc_query = str_chain(query_capture_element::no_command_query(query),0,true);
+        strc_query = strc_query.rank_alpha();
+
+        mutex_lock(&_est_mutex);
+        swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+        mutex_unlock(&_est_mutex);
+      }
 
     /*
      * Iterate records and gather queries and data.
@@ -275,6 +315,11 @@ namespace seeks_plugins
           {
             query_data *qd = (*qit).second;
 
+            /*
+             * skipped if query is N/A. In this case, this means we're fetching
+             * more that what we need, and results need to be filtered afterwards,
+             * and query data radius recomputed.
+             */
             if (swl && !query_recommender::select_query(strc_query,qd->_query,swl))
               {
                 ++qit;
@@ -284,8 +329,10 @@ namespace seeks_plugins
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
                 str_chain strc_rquery(qd->_query,0,true);
-                int nradius = std::max(strc_rquery.size(),strc_query.size())
-                              - strc_query.intersect_size(strc_rquery);
+                int nradius = qd->_radius;
+                if (!strc_query.empty())
+                  nradius = std::max(strc_rquery.size(),strc_query.size())
+                            - strc_query.intersect_size(strc_rquery);
 
                 if (qd->_radius == 0) // contains the data.
                   {
@@ -294,7 +341,7 @@ namespace seeks_plugins
                     nqd->_record_key = new DHTKey(*(*vit).first); // mark data with record key.
                     qdata.insert(std::pair<const char*,query_data*>(nqd->_query.c_str(),nqd));
                   }
-                else if (nradius <= (expansion==0 ? 0 : expansion-1)) //TODO: check on max radius here.
+                else if (query.empty() || nradius <= (expansion==0 ? 0 : expansion-1)) //TODO: check on max radius here.
                   {
                     // data are in lower radius records.
                     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -345,9 +392,12 @@ namespace seeks_plugins
                 else // radius is below requested expansion, keep queries for recommendation.
                   {
                     query_data *dbqrc = new query_data(*qd);
-                    str_chain strc_rquery(qd->_query,0,true);
-                    dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size())
-                                     - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
+                    if (!strc_query.empty())
+                      {
+                        str_chain strc_rquery(qd->_query,0,true);
+                        dbqrc->_radius = std::max(strc_query.size(),strc_rquery.size())
+                                         - strc_query.intersect_size(strc_rquery); // update radius relatively to original query.
+                      }
                     qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
                                  dbqrc));
                   }
@@ -411,6 +461,69 @@ namespace seeks_plugins
             return dbr;
           }
         else return NULL;
+      }
+  }
+
+  void rank_estimator::filter_extracted_queries(const std::string &query,
+      const std::string &lang,
+      const uint32_t &expansion,
+      hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
+  {
+    str_chain strc_query = str_chain(query_capture_element::no_command_query(query),0,true);
+    strc_query = strc_query.rank_alpha();
+
+    mutex_lock(&_est_mutex);
+    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+    mutex_unlock(&_est_mutex);
+
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = qdata.begin();
+    while(hit!=qdata.end())
+      {
+        query_data *qd = (*hit).second;
+        if (swl && !query_recommender::select_query(strc_query,qd->_query,swl))
+          {
+            ++hit;
+            continue;
+          }
+        str_chain strc_rquery(qd->_query,0,true);
+        int nradius = std::max(strc_rquery.size(),strc_query.size())
+                      - strc_query.intersect_size(strc_rquery);
+        /*if (qd->_radius == 0)
+          {
+            qd->_radius = nradius;
+            ++hit;
+          }
+          else */
+        if (nradius > (expansion==0 ? 0 : expansion-1))
+          {
+            /* hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
+            ++hit;
+            query_data *rqd = (*hit2).second;
+            qdata.erase(hit2);
+            delete rqd; */
+            if (qd->_visited_urls)
+              {
+                hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator mit
+                = qd->_visited_urls->begin();
+                hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator mit2;
+                while(mit!=qd->_visited_urls->end())
+                  {
+                    mit2 = mit;
+                    ++mit;
+                    vurl_data *vd = (*mit2).second;
+                    qd->_visited_urls->erase(mit2);
+                    delete vd;
+                  }
+                delete qd->_visited_urls;
+                qd->_visited_urls = NULL;
+              }
+          }
+        else
+          {
+            qd->_radius = nradius;
+          }
+        ++hit;
       }
   }
 
@@ -687,7 +800,6 @@ namespace seeks_plugins
                      / (log(fabs(total_hits) + 1.0) + ns); // with domain-name weight factor.
         if (s && (!vd_url || vd_url->_hits > 0))
           pers = true;
-        //s->_personalized = true;
       }
     //std::cerr << "posterior: " << posterior << std::endl;
 

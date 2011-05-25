@@ -1,0 +1,5 @@
+message hash_halo
+{
+ required uint32 expansion = 1;
+ repeated string key = 2;
+}

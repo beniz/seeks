@@ -16,29 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UDB_SERVER_H
-#define UDB_SERVER_H
+#ifndef UDBS_ERR_H
+#define UDBS_ERR_H
 
-#include "db_err.h"
-#include "proxy_dts.h"
+#include "sp_err.h"
+typedef int udbs_err;
 
-using namespace sp;
-
-namespace seeks_plugins
-{
-
-  class udb_server
-  {
-    public:
-      static db_err find_dbr_cb(const char *key_str, const char *pn_str,
-                                http_response *rsp);
-
-      static db_err find_bqc_cb(const std::string &content,
-                                http_response *rsp);
-
-      // other cb come here.
-  };
-
-} /* end of namespace. */
+#define UDBS_ERR_SERIALIZE                   4001 /**< msg serialization error. */
+#define UDBS_ERR_DESERIALIZE                 4002 /**< msg deserialization error. */
 
 #endif

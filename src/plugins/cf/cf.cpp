@@ -197,6 +197,22 @@ namespace seeks_plugins
     sre.thumb_down_url(query,lang,url);
   }
 
+  void cf::find_bqc_cb(const std::vector<std::string> &qhashes,
+                       const uint32_t &expansion,
+                       db_query_record *&dbr)
+  {
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+    rank_estimator::fetch_user_db_record(qhashes,
+                                         seeks_proxy::_user_db,
+                                         records);
+    std::string query,lang;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,records,qdata);
+    if (!qdata.empty())
+      dbr = new db_query_record(qdata); // no copy.
+    else dbr = NULL;
+  }
+
   /* plugin registration. */
   extern "C"
   {

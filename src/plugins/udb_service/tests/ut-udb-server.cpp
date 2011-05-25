@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "udb_server.h"
+#include "halo_msg_wrapper.h"
 #include "query_capture.h"
 #include "user_db.h"
 #include "seeks_proxy.h"
@@ -27,10 +28,12 @@
 #include "proxy_configuration.h"
 #include "lsh_configuration.h"
 #include "qprocess.h"
+#include "db_query_record.h"
 #include "urlmatch.h"
 #include "errlog.h"
 
 using namespace seeks_plugins;
+using lsh::qprocess;
 
 static std::string queries[3] =
 {
@@ -151,6 +154,40 @@ TEST_F(UDBSTest,find_dbr_cb)
   int serr = dbr->deserialize(str);
   ASSERT_EQ(0,serr);
   delete dbr;
+}
+
+TEST_F(UDBSTest,find_bqc_cb)
+{
+  hash_multimap<uint32_t,DHTKey,id_hash_uint> qhashes;
+  qprocess::generate_query_hashes(queries[0],0,5,qhashes);
+  std::string content;
+  try
+    {
+      halo_msg_wrapper::serialize(1,qhashes,content);
+    }
+  catch(sp_exception &e)
+    {
+      ASSERT_FALSE(e.code()==SP_ERR_OK);
+    }
+  http_response rsp;
+  db_err err = udb_server::find_bqc_cb(content,&rsp);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string pn = "query-capture";
+  std::string str(rsp._body,rsp._content_length);
+  ASSERT_FALSE(str.empty());
+  plugin *pl = plugin_manager::get_plugin(pn);
+  ASSERT_FALSE(NULL == pl);
+  db_record * dbr = pl->create_db_record();
+  int serr = dbr->deserialize(str);
+  ASSERT_EQ(0,serr);
+  db_query_record *dbqr = static_cast<db_query_record*>(dbr);
+  ASSERT_TRUE(NULL!=dbqr);
+  ASSERT_EQ(1,dbqr->_related_queries.size());
+  query_data *qd = (*dbqr->_related_queries.begin()).second;
+  ASSERT_TRUE(NULL!=qd);
+  ASSERT_TRUE(NULL!=qd->_visited_urls);
+  ASSERT_EQ(2,qd->_visited_urls->size());
+  delete dbqr;
 }
 
 int main(int argc, char **argv)
