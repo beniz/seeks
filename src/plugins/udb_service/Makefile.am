@@ -22,7 +22,7 @@ endif
 
 udbservicepluginlib_LTLIBRARIES=libudbserviceplugin.la
 libudbserviceplugin_la_SOURCES=udb_service.cpp udb_server.cpp udb_client.cpp \
-			       halo_msg_wrapper.cpp
+			       halo_msg_wrapper.cpp \
 	                       udb_service.h udb_server.h udb_client.h \
 	                       halo_msg_wrapper.h
 
