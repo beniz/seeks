@@ -51,7 +51,7 @@ namespace seeks_plugins
                     db_record *rec,
                     cr_cache *cache);
 
-      ~cached_record();
+      virtual ~cached_record();
 
       virtual bool sweep_me();
 

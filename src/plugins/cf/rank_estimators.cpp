@@ -217,8 +217,10 @@ namespace seeks_plugins
           delete udb;
 
         // destroy records.
-        if (cf_configuration::_config->_record_cache_timeout == 0)
+        if (udb == seeks_proxy::_user_db
+            || cf_configuration::_config->_record_cache_timeout == 0)
           rank_estimator::destroy_records(records);
+        else rank_estimator::destroy_records_key(records);
       }
     else // remote batch seeks node operations.
       {
@@ -422,6 +424,20 @@ namespace seeks_plugins
       }
   }
 
+  void rank_estimator::destroy_records_key(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records)
+  {
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator rit = records.begin();
+    hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey>::iterator crit;
+    while (rit!=records.end())
+      {
+        crit = rit;
+        ++rit;
+        const DHTKey *key = (*crit).first;
+        records.erase(crit);
+        delete key;
+      }
+  }
+
   void rank_estimator::destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
   {
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit,hit2;
@@ -574,8 +590,7 @@ namespace seeks_plugins
       }
 
     // destroy query data.
-    if (cf_configuration::_config->_record_cache_timeout == 0)
-      rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
@@ -605,8 +620,7 @@ namespace seeks_plugins
     estimate_ranks(query,lang,snippets,&qdata,&filter,rsc);
 
     // destroy query data.
-    if (cf_configuration::_config->_record_cache_timeout == 0)
-      rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_query_data(qdata);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
@@ -972,7 +986,9 @@ namespace seeks_plugins
                 // update or create snippet.
                 if (posterior > 0.0)
                   {
-                    std::string surl = urlmatch::strip_url(vd->_url);
+                    std::string surl = vd->_url;
+                    std::transform(vd->_url.begin(),vd->_url.end(),surl.begin(),tolower);
+                    surl = urlmatch::strip_url(surl);
                     uint32_t sid = mrf::mrf_single_feature(surl);
                     if ((sit = snippets.find(sid))!=snippets.end())
                       (*sit).second->_seeks_rank += posterior; // update.
