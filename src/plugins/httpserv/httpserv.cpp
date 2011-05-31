@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -459,6 +459,8 @@ namespace seeks_plugins
           }
         else if (serr == WB_ERR_SE_CONNECT)
           {
+            if (rsp._body)
+              free(rsp._body);
             rsp._body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
 t.dtd\"><html><head><title>408 - Seeks fail connection to background search engines </title></head><body></body></html>");
             code = 408;
@@ -554,6 +556,8 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           }
         else if (serr == WB_ERR_SE_CONNECT)
           {
+            if (rsp._body)
+              free(rsp._body);
             rsp._body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
 t.dtd\"><html><head><title>408 - Seeks fail connection to background search engines </title></head><body></body></html>");
             code = 408;
