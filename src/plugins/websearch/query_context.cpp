@@ -734,10 +734,19 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
+        //std::cerr << "reviewing URL: " << (*vit)->_url << std::endl;
         if ((*vit)->_personalized)
           {
             (*vit)->_personalized = false;
-            if ((*vit)->_engine.has_feed("seeks"))
+            if ((*vit)->_engine.count() == 1
+                && (*vit)->_engine.has_feed("seeks"))
+              {
+                remove_from_unordered_cache((*vit)->_id);
+                delete (*vit);
+                vit = _cached_snippets.erase(vit);
+                continue;
+              }
+            else if ((*vit)->_engine.has_feed("seeks"))
               (*vit)->_engine.remove_feed("seeks");
             (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
             (*vit)->_seeks_rank = 0;
@@ -757,23 +766,25 @@ namespace seeks_plugins
     hit = _recommended_snippets.begin();
     while(hit!=_recommended_snippets.end())
       {
-        if (!(*hit).second->_title.empty())
+        cit = _unordered_snippets.find((*hit).first);
+        if (cit != _unordered_snippets.end())
+          {
+            hit2 = hit;
+            ++hit;
+            delete (*hit2).second;
+            _recommended_snippets.erase(hit2);
+          }
+        else if (!(*hit).second->_title.empty())
           {
             (*hit).second->_qc = this;
             (*hit).second->_personalized = true;
             (*hit).second->_engine.add_feed("seeks","s.s");
             (*hit).second->_meta_rank++;
             _cached_snippets.push_back((*hit).second);
+            //add_to_unordered_cache((*hit).second);
             cache_changed = true;
             hit2 = hit;
             ++hit;
-            _recommended_snippets.erase(hit2);
-          }
-        else if ((cit = _unordered_snippets.find((*hit).first))!=_unordered_snippets.end())
-          {
-            hit2 = hit;
-            ++hit;
-            delete (*hit2).second;
             _recommended_snippets.erase(hit2);
           }
         else ++hit;

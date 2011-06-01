@@ -61,7 +61,8 @@ namespace seeks_plugins
                                          uint32_t &npeers,
                                          std::vector<search_snippet*> &snippets,
                                          std::multimap<double,std::string,std::less<double> > &related_queries,
-                                         hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets)
+                                         hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                                         query_context *qc)
   {
     std::vector<pthread_t> perso_threads;
     std::vector<perso_thread_arg*> perso_args;
@@ -70,7 +71,7 @@ namespace seeks_plugins
 
     // thread for local db.
     threaded_personalize(perso_args,perso_threads,
-                         query,lang,expansion,&snippets,&related_queries,&reco_snippets);
+                         query,lang,expansion,&snippets,&related_queries,&reco_snippets,NULL,qc);
 
     // one thread per remote peer, to handle the IO.
     hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
@@ -110,7 +111,8 @@ namespace seeks_plugins
       std::vector<search_snippet*> *snippets,
       std::multimap<double,std::string,std::less<double> > *related_queries,
       hash_map<uint32_t,search_snippet*,id_hash_uint> *reco_snippets,
-      peer *pe)
+      peer *pe,
+      query_context *qc)
   {
     perso_thread_arg *args  = new perso_thread_arg();
     args->_query = query;
@@ -119,6 +121,7 @@ namespace seeks_plugins
     args->_related_queries = related_queries;
     args->_reco_snippets = reco_snippets;
     args->_estimator = this;
+    args->_qc = qc;
     args->_pe = pe;
     args->_expansion = expansion;
     args->_err = SP_ERR_OK;
@@ -148,7 +151,8 @@ namespace seeks_plugins
                                         args->_expansion,
                                         *args->_snippets,
                                         *args->_related_queries,
-                                        *args->_reco_snippets);
+                                        *args->_reco_snippets,"",-1,"","",
+                                        args->_qc);
         else
           args->_estimator->personalize(args->_query,args->_lang,
                                         args->_expansion,
@@ -158,7 +162,8 @@ namespace seeks_plugins
                                         args->_pe->_host,
                                         args->_pe->_port,
                                         args->_pe->_path,
-                                        args->_pe->_rsc);
+                                        args->_pe->_rsc,
+                                        args->_qc);
       }
     catch(sp_exception &e)
       {
@@ -562,7 +567,8 @@ namespace seeks_plugins
                               const std::string &host,
                               const int &port,
                               const std::string &path,
-                              const std::string &rsc) throw (sp_exception)
+                              const std::string &rsc,
+                              query_context *qc) throw (sp_exception)
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
@@ -583,8 +589,10 @@ namespace seeks_plugins
     if (!qdata.empty())
       {
         mutex_lock(&_est_mutex);
-        estimate_ranks(query,lang,snippets,&qdata,&filter,rsc);
         recommend_urls(query,lang,reco_snippets,&qdata,&filter);
+        select_recommended_urls(reco_snippets,snippets,qc);
+        estimate_ranks(query,lang,snippets,&qdata,&filter,rsc);
+
         query_recommender::recommend_queries(query,lang,related_queries,&qdata);
         mutex_unlock(&_est_mutex);
       }
@@ -690,7 +698,6 @@ namespace seeks_plugins
               {
                 qpost *= simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
                 posteriors[j] += qpost; // boosting over similar queries.
-                //std::cerr << "url: " << (*vit)->_url << " -- qpost: " << qpost << std::endl;
               }
 
             ++hit;
@@ -699,9 +706,10 @@ namespace seeks_plugins
         // estimate the url prior.
         float prior = 1.0;
         if (rsc.empty() && nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB
-            && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enought competition on domains.
+            && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enough competition on domains.
           prior = estimate_prior((*vit),filter->empty() ? NULL:filter,url,host,nuri);
         posteriors[j] *= prior;
+        posteriors[j] *= (*vit)->_meta_rank + 1; // accounts for multiple sources.
 
         //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
 
@@ -710,7 +718,6 @@ namespace seeks_plugins
         if (spers)// && (*vit)->_engine.has_feed("seeks"))
           {
             (*vit)->_personalized = true;
-            //(*vit)->_engine.add_feed("seeks","s.s");
             (*vit)->_meta_rank++;
             (*vit)->_npeers++;
           }
@@ -723,7 +730,7 @@ namespace seeks_plugins
       {
         for (size_t k=0; k<ns; k++)
           {
-            posteriors[k] /= sum_posteriors; // normalize.
+            //posteriors[k] /= sum_posteriors; // normalize.
             snippets.at(k)->_seeks_rank += posteriors[k]; //TODO: additive filter.
             //std::cerr << "url: " << snippets.at(k)->_url << " -- seeks_rank: " << snippets.at(k)->_seeks_rank << std::endl;
           }
@@ -782,10 +789,7 @@ namespace seeks_plugins
         posterior = (log(vd_url->_hits + 1.0) + 1.0)/ (log(fabs(total_hits) + 1.0) + ns);
         if (s)
           {
-            //s->_personalized = true;
             s->_engine.add_feed("seeks","s.s");
-            /* s->_meta_rank++;
-            s->_npeers++;*/
             s->_hits += vd_url->_hits;
             pers = true;
           }
@@ -804,8 +808,8 @@ namespace seeks_plugins
       {
         posterior *= domain_name_weight
                      / (log(fabs(total_hits) + 1.0) + ns); // XXX: may replace ns with a less discriminative value.
-        if (vd_host && !s)
-          posterior = 0.0; // if no snippet support, filtered out. XXX: this may change in the long term.
+        /*if (vd_host && !s)
+          posterior = 0.0;*/ // if no snippet support, filtered out. XXX: this may change in the long term.
       }
     else
       {
@@ -815,8 +819,6 @@ namespace seeks_plugins
         if (s && (!vd_url || vd_url->_hits > 0))
           pers = true;
       }
-    //std::cerr << "posterior: " << posterior << std::endl;
-
     return posterior;
   }
 
@@ -976,12 +978,19 @@ namespace seeks_plugins
             if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now, also avoids pure hosts.
               {
                 bool spers = false;
-                posterior = estimate_rank(NULL,filter,nvurls,vd,NULL,
+
+                std::string host, path;
+                query_capture::process_url(vd->_url,host,path);
+                vurl_data *vd_host = qd->find_vurl(host);
+
+                posterior = estimate_rank(NULL,filter,nvurls,vd,vd_host,
                                           q_vurl_hits[i],cf_configuration::_config->_domain_name_weight,spers);
 
                 // level them down according to query radius.
-                //posterior *= 1.0 / static_cast<float>(log(qd->_radius + 1.0) + 1.0); // account for distance to original query.
                 posterior *= halo_weight;
+
+                /* std::cerr << "recommended URL: " << vd->_url << " -- posterior: " << posterior
+                   << " -- prior: " << prior << std::endl; */
 
                 // update or create snippet.
                 if (posterior > 0.0)
@@ -991,15 +1000,18 @@ namespace seeks_plugins
                     surl = urlmatch::strip_url(surl);
                     uint32_t sid = mrf::mrf_single_feature(surl);
                     if ((sit = snippets.find(sid))!=snippets.end())
-                      (*sit).second->_seeks_rank += posterior; // update.
+                      (*sit).second->_seeks_rank += posterior; // update, boosting over similar queries.
                     else
                       {
                         search_snippet *sp = new search_snippet();
+                        sp->_personalized = true;
                         sp->set_url(vd->_url);
                         sp->set_title(vd->_title);
                         sp->set_summary(vd->_summary);
                         sp->_meta_rank = 1;
-                        sp->_seeks_rank = posterior;
+                        //sp->_seeks_rank = posterior;
+                        //sp->_npeers++;
+                        //sp->_hits = vd->_hits;
                         snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
                       }
                   }
@@ -1009,6 +1021,27 @@ namespace seeks_plugins
           }
         ++i;
         ++hit;
+      }
+  }
+
+  void simple_re::select_recommended_urls(hash_map<uint32_t,search_snippet*,id_hash_uint> &rsnippets,
+                                          std::vector<search_snippet*> &snippets,
+                                          query_context *rqc)
+  {
+    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator chit;
+    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit
+    = rsnippets.begin();
+    while(hit!=rsnippets.end())
+      {
+        if (!(*hit).second->_title.empty())
+          {
+            (*hit).second->_qc = rqc;
+            snippets.push_back((*hit).second);
+            chit = hit;
+            ++hit;
+            rsnippets.erase(chit);
+          }
+        else ++hit;
       }
   }
 

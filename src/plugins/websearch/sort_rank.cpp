@@ -305,15 +305,19 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return false;
-    static_cast<cf*>(websearch::_cf_plugin)->personalize(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,
-        qc->_npeers,
-        qc->_cached_snippets,
-        qc->_suggestions,
-        qc->_recommended_snippets);
+    cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
+    cfp->personalize(qc->_query,qc->_auto_lang,
+                     qc->_page_expansion,
+                     qc->_npeers,
+                     qc->_cached_snippets,
+                     qc->_suggestions,
+                     qc->_recommended_snippets,
+                     qc);
+    //bool upd = qc->update_recommended_urls();
+    //cfp->normalize(qc->_cached_snippets);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
-    return qc->update_recommended_urls();
+    return true;
   }
 
   void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)

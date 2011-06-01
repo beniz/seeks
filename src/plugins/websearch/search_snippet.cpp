@@ -1055,6 +1055,9 @@ namespace seeks_plugins
         s1->_meta_rank = s1->_engine.size();
         s1->bing_yahoo_us_merge();
       }
+
+    // hits.
+    s1->_hits += s2->_hits;
   }
 
   void search_snippet::bing_yahoo_us_merge()

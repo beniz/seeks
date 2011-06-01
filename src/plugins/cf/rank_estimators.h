@@ -39,7 +39,7 @@ namespace seeks_plugins
   struct perso_thread_arg
   {
     perso_thread_arg()
-      :_snippets(NULL),_related_queries(NULL),_reco_snippets(NULL),_estimator(NULL),_pe(NULL),_expansion(1)
+      :_snippets(NULL),_related_queries(NULL),_reco_snippets(NULL),_qc(NULL),_estimator(NULL),_pe(NULL),_expansion(1)
     {};
 
     ~perso_thread_arg()
@@ -50,6 +50,7 @@ namespace seeks_plugins
     std::vector<search_snippet*> *_snippets;
     std::multimap<double,std::string,std::less<double> > *_related_queries;
     hash_map<uint32_t,search_snippet*,id_hash_uint> *_reco_snippets;
+    query_context *_qc;
     rank_estimator *_estimator;
     peer *_pe;
     uint32_t _expansion;
@@ -69,7 +70,8 @@ namespace seeks_plugins
                              uint32_t &npeers,
                              std::vector<search_snippet*> &snippets,
                              std::multimap<double,std::string,std::less<double> > &related_queries,
-                             hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets);
+                             hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
+                             query_context *qc);
 
       void threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
                                 std::vector<pthread_t> &perso_threads,
@@ -78,7 +80,8 @@ namespace seeks_plugins
                                 std::vector<search_snippet*> *snippets,
                                 std::multimap<double,std::string,std::less<double> > *related_queries,
                                 hash_map<uint32_t,search_snippet*,id_hash_uint> *reco_snippets,
-                                peer *pe = NULL);
+                                peer *pe = NULL,
+                                query_context *qc = NULL);
 
       static void personalize_cb(perso_thread_arg *args);
 
@@ -91,7 +94,8 @@ namespace seeks_plugins
                                const std::string &host="",
                                const int &port=-1,
                                const std::string &path="",
-                               const std::string &rsc="") throw (sp_exception) {};
+                               const std::string &rsc="",
+                               query_context *qc = NULL) throw (sp_exception) {};
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
@@ -169,7 +173,8 @@ namespace seeks_plugins
                                const std::string &host="",
                                const int &port=-1,
                                const std::string &path="",
-                               const std::string &rsc="") throw (sp_exception);
+                               const std::string &rsc="",
+                               query_context *qc = NULL) throw (sp_exception);
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
@@ -198,6 +203,10 @@ namespace seeks_plugins
                           hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                           hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
                           std::map<std::string,bool> *filter);
+
+      void select_recommended_urls(hash_map<uint32_t,search_snippet*,id_hash_uint> &rsnippets,
+                                   std::vector<search_snippet*> &snippets,
+                                   query_context *rqc);
 
       virtual void thumb_down_url(const std::string &query,
                                   const std::string &lang,
