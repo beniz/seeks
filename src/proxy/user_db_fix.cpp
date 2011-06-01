@@ -25,6 +25,7 @@ using seeks_plugins::db_query_record;
 
 #include "errlog.h"
 #include "db_obj.h"
+#include "seeks_proxy.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -520,6 +521,98 @@ namespace sp
 
     udb.close_db();
     errlog::log_error(LOG_LEVEL_INFO,"Filling up url titles: %u urls fetched",furls);
+    return err;
+  }
+
+  int user_db_fix::merge_with(const std::string &db_to_merge)
+  {
+
+    user_db udbm(db_to_merge);
+    int err = udbm.open_db_readonly();
+    if (err != 0)
+      {
+        // handle error.
+        errlog::log_error(LOG_LEVEL_ERROR,"Could not open the db to be merged %s",db_to_merge.c_str());
+        return -1;
+      }
+
+    user_db *udb = seeks_proxy::_user_db;; // existing user db.
+    /*err = udb.open_db();
+    if (err != 0)
+      {
+        // handle error.
+        errlog::log_error(LOG_LEVEL_ERROR,"Could not open the user db for merging operation");
+        udbm.close_db();
+    return -1;
+    }*/
+
+    // iterate records in db to be merged,
+    // find every record in destination db,
+    // merge if found.
+    uint32_t rmer = 0;
+    void *rkey = NULL;
+    int rkey_size;
+    udbm._hdb->dbiterinit();
+    while ((rkey = udbm._hdb->dbiternext(&rkey_size)) != NULL)
+      {
+        int value_size;
+        void *value = udbm._hdb->dbget(rkey, rkey_size, &value_size);
+        if (value)
+          {
+            std::string str = std::string((char*)value,value_size);
+            free(value);
+            std::string key, plugin_name;
+            std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   plugin_name,key) != 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"db merge_with: could not extract record plugin and key from internal user db key");
+              }
+            else if (plugin_name != "query-capture")
+              {
+              }
+            else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                db_record *dbr = NULL;
+                if (!pl)
+                  {
+                    // handle error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"db merge_with: could not find plugin %s",
+                                      plugin_name.c_str());
+                    dbr = new db_record();
+                  }
+                else
+                  {
+                    dbr = pl->create_db_record();
+                  }
+
+                if (dbr->deserialize(str) != 0)
+                  {
+                    // deserialization error.
+                  }
+                else
+                  {
+                    db_record *edbr = udb->find_dbr(key,plugin_name);
+                    if (edbr)
+                      {
+                        rmer++;
+                        dbr->merge_with(*edbr);
+                        udb->remove_dbr(rkey_str);
+                        udb->add_dbr(key,*dbr);
+                      }
+                    delete edbr;
+                  }
+                delete dbr;
+              }
+          }
+        free(rkey);
+      }
+    udb->close_db();
+    udbm.close_db();
+    errlog::log_error(LOG_LEVEL_INFO,"merged %u records", rmer);
     return err;
   }
 

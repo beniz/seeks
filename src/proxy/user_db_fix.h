@@ -19,6 +19,7 @@
 #ifndef USER_DB_FIX_H
 #define USER_DB_FIX_H
 
+#include <string>
 #include <vector>
 #include <list>
 
@@ -56,6 +57,11 @@ namespace sp
        */
       static int fill_up_uri_titles(const long &timeout,
                                     const std::vector<std::list<const char*>*> *headers);
+
+      /**
+       * \brief merge db into
+       */
+      static int merge_with(const std::string &db_to_merge);
   };
 
 } /* end of namespace. */

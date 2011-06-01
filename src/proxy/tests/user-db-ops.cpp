@@ -37,12 +37,13 @@ std::string get_usage()
   usage += "remove_non_utf8\t\tRemoves non UTF8 queries and URLs\n";
   usage += "optimize\t\tOptimizes database, weeding out blank space\n";
   usage += "fetch_urls\t\tfetch URL titles for URLs captured along with queries\n";
+  usage += "merge\t\t\tmerge records with those of another DB\n\t\t\tUsage: <db_file> <seeks base dir> <command> <db to merge>";
   return usage;
 }
 
 int main(int argc, char **argv)
 {
-  if (argc < 4)
+  if (argc < 5)
     {
       std::cout << get_usage() << std::endl;
       exit(0);
@@ -103,6 +104,13 @@ int main(int argc, char **argv)
           miscutil::list_remove_all(headers.at(i));
           delete headers.at(i);
         }
+    }
+  else if (command == "merge")
+    {
+      std::string dbtomerge = argv[4];
+      std::cout << "db to merge: " << dbtomerge << std::endl;
+      //seeks_proxy::_user_db->close_db();
+      user_db_fix::merge_with(dbtomerge.c_str());
     }
   else
     {
