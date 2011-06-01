@@ -80,7 +80,7 @@ namespace seeks_plugins
       {
         threaded_personalize(perso_args,perso_threads,
                              query,lang,expansion,&snippets,&related_queries,&reco_snippets,
-                             (*hit).second);
+                             (*hit).second,qc);
         ++hit;
       }
 
