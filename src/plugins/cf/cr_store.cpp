@@ -89,7 +89,8 @@ namespace seeks_plugins
     if ((hit=_records.find(key.c_str()))!=_records.end())
       {
         // update existing record with new one.
-        // Beware as old record is 'sweepable' so a call to unregister_sweepable.
+        // Beware as old record is 'sweepable', a call to unregister_sweepable
+        // may be under way.
         cached_record *cro = (*hit).second;
         sweeper::unregister_sweepable(cro);
         mutex_unlock(&_cache_mutex);
