@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010, 2011 Emmanuel Benazera, <ebenazer@seeks-project.info>
+ * Copyright (C) 2010-2011 Emmanuel Benazera, <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -28,6 +28,8 @@
 #include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+#include "mem_utils.h"
+#include "DHTKey.h"
 #include "errlog.h"
 
 #include <assert.h>
@@ -581,9 +583,28 @@ namespace seeks_plugins
         throw e;
       }
 
-    // build up the filter.
-    std::map<std::string,bool> filter;
-    simple_re::build_up_filter(&qdata,filter);
+    // build up the filter based on local data.
+    hash_map<const char*,bool,hash<const char*>,eqstr> filter;
+    if (host.empty()) // we're local.
+      simple_re::build_up_filter(&qdata,filter,true);
+    else
+      {
+        // fetch queries from user DB.
+        hash_map<const char*,query_data*,hash<const char*>,eqstr> lqdata;
+        try
+          {
+            rank_estimator::fetch_query_data(query,lang,expansion,lqdata,"",-1,"","");
+          }
+        catch(sp_exception &e)
+          {
+            throw e;
+          }
+        simple_re::build_up_filter(&lqdata,filter,true);
+        rank_estimator::destroy_query_data(lqdata);
+
+        // update filter with remote data, with dominance of local data.
+        simple_re::build_up_filter(&qdata,filter,false);
+      }
 
     // rank, urls & queries.
     if (!qdata.empty())
@@ -599,6 +620,9 @@ namespace seeks_plugins
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
+
+    // destroy filter.
+    simple_re::destroy_filter(filter);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
@@ -621,21 +645,24 @@ namespace seeks_plugins
       }
 
     // build up the filter.
-    std::map<std::string,bool> filter;
-    simple_re::build_up_filter(&qdata,filter);
+    hash_map<const char*,bool,hash<const char*>,eqstr> filter;
+    simple_re::build_up_filter(&qdata,filter,true); // Beware, local filtering.
 
     // estimate ranks.
     estimate_ranks(query,lang,snippets,&qdata,&filter,rsc);
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
+
+    // destroy filter.
+    simple_re::destroy_filter(filter);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
                                  std::vector<search_snippet*> &snippets,
                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                                 std::map<std::string,bool> *filter,
+                                 hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
                                  const std::string &rsc)
   {
     // get stop word list.
@@ -738,7 +765,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_rank(search_snippet *s,
-                                 const std::map<std::string,bool> *filter,
+                                 const hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
                                  const int &ns,
                                  const query_data *qd,
                                  const float &total_hits,
@@ -757,7 +784,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_rank(search_snippet *s,
-                                 const std::map<std::string,bool> *filter,
+                                 const hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
                                  const int &ns,
                                  const vurl_data *vd_url,
                                  const vurl_data *vd_host,
@@ -770,8 +797,12 @@ namespace seeks_plugins
 
     if (vd_url && filter)
       {
-        std::map<std::string,bool>::const_iterator hit = filter->find(vd_url->_url.c_str());
-        if (hit!=filter->end())
+        byte *hashcode = NULL;
+        DHTKey::RMD((byte*)vd_url->_url.c_str(),hashcode);
+        hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit
+        = filter->find(reinterpret_cast<const char*>(hashcode));
+        free(hashcode);
+        if (hit!=filter->end() && (*hit).second)
           filtered = true;
       }
 
@@ -799,10 +830,22 @@ namespace seeks_plugins
     if (domain_name_weight <= 0.0)
       return posterior;
 
+    hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
     if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
-        || s->_doc_type == IMAGE // empty or type with not enough competition on domains.
-        || (filter && (filtered || filter->find(vd_host->_url.c_str())!=filter->end()))) // filter domain out if url was filtered out.
+        || s->_doc_type == IMAGE) // empty or type with not enough competition on domains.
       filtered = true;
+    else if (filter && filtered)
+      filtered = true;
+    else if (filter)
+      {
+        byte *hashcode = NULL;
+        DHTKey::RMD((byte*)vd_host->_url.c_str(),hashcode);
+        if ((hit = filter->find(reinterpret_cast<const char*>(hashcode)))!=filter->end()
+            && (*hit).second) // filter domain out if url was filtered out.
+          filtered = true;
+        else filtered = false;
+        free(hashcode);
+      }
     else filtered = false;
     if (filtered)
       {
@@ -823,7 +866,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_prior(search_snippet *s,
-                                  const std::map<std::string,bool> *filter,
+                                  const hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
                                   const std::string &surl,
                                   const std::string &host,
                                   const uint64_t &nuri)
@@ -835,8 +878,12 @@ namespace seeks_plugins
 
     if (filter)
       {
-        std::map<std::string,bool>::const_iterator hit = filter->find(surl.c_str());
-        if (hit!=filter->end())
+        byte *hashcode = NULL;
+        DHTKey::RMD((byte*)surl.c_str(),hashcode);
+        hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit
+        = filter->find(reinterpret_cast<const char*>(hashcode));
+        free(hashcode);
+        if (hit!=filter->end() && (*hit).second)
           filtered = true;
       }
     db_record *dbr = seeks_proxy::_user_db->find_dbr(surl,uc_str);
@@ -855,7 +902,9 @@ namespace seeks_plugins
             //s->_meta_rank++;
           }
       }
-    dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
+    dbr = NULL;
+    if (s)
+      dbr = seeks_proxy::_user_db->find_dbr(host,uc_str);
 
     // XXX: code below is too aggressive and pushes other results too quickly
     //      below all the personalized results.
@@ -875,9 +924,23 @@ namespace seeks_plugins
     // the meta rank of the snippet is incremented. This allows search engine
     // results to compete with the personalized results.
     // filter out domain if url was filtered out.
-    if (dbr && (!filter || (!filtered && filter->find(host.c_str())==filter->end())))
+    bool hfiltered = true;
+    if (dbr && !filtered)
       {
-        if (s)
+        if (!filter)
+          hfiltered = false;
+        else
+          {
+            hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
+            byte *hashcode = NULL;
+            DHTKey::RMD((byte*)host.c_str(),hashcode);
+            if ((hit = filter->find(reinterpret_cast<const char*>(hashcode)))==filter->end()
+                || !(*hit).second)
+              hfiltered = false;
+            free(hashcode);
+          }
+
+        if (s && !hfiltered)
           {
             //db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
             if (s->_meta_rank <= s->_engine.size())
@@ -887,7 +950,7 @@ namespace seeks_plugins
           }
         delete dbr;
       }
-    //std::cerr << "prior: " << prior << std::endl;
+
     return prior;
   }
 
@@ -910,22 +973,24 @@ namespace seeks_plugins
       }
 
     // build up the filter.
-    std::map<std::string,bool> filter;
-    simple_re::build_up_filter(&qdata,filter);
+    hash_map<const char*,bool,hash<const char*>,eqstr> filter;
+    simple_re::build_up_filter(&qdata,filter,true); // Beware: local filtering.
 
     // urls.
     recommend_urls(query,lang,snippets,&qdata,&filter);
 
     // destroy query data.
-    if (cf_configuration::_config->_record_cache_timeout == 0)
-      rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_query_data(qdata);
+
+    // destroy filter.
+    simple_re::destroy_filter(filter);
   }
 
   void simple_re::recommend_urls(const std::string &query,
                                  const std::string &lang,
                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                                 std::map<std::string,bool> *filter)
+                                 hash_map<const char*,bool,hash<const char*>,eqstr> *filter)
   {
     // get stop word list.
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
@@ -1203,8 +1268,10 @@ namespace seeks_plugins
   }
 
   void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                                  std::map<std::string,bool> &filter)
+                                  hash_map<const char*,bool,hash<const char*>,eqstr> &filter,
+                                  const bool &local)
   {
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator mit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit = qdata->begin();
     while(hit!=qdata->end())
       {
@@ -1220,7 +1287,31 @@ namespace seeks_plugins
                     vurl_data *vd = (*vit).second;
                     if (vd->_hits < 0)
                       {
-                        filter.insert(std::pair<std::string,bool>(vd->_url,true));
+                        byte *hashcode = NULL;
+                        DHTKey::RMD((byte*)vd->_url.c_str(),hashcode);
+                        const char *key = reinterpret_cast<const char*>(hashcode);
+                        if (local
+                            || (mit = filter.find(key))!=filter.end())
+                          {
+                            filter.insert(std::pair<const char*,bool>(key,true));
+                          }
+                        else free(hashcode);
+                      }
+                    else if (local)
+                      {
+                        byte *hashcode = NULL;
+                        DHTKey::RMD((byte*)vd->_url.c_str(),hashcode);
+                        const char *key = reinterpret_cast<const char*>(hashcode);
+
+                        // check presence to avoid leak.
+                        mit = filter.find(key);
+                        if (mit != filter.end())
+                          {
+                            const char *ekey = (*mit).first;
+                            filter.erase(mit);
+                            free_const(ekey);
+                          }
+                        filter.insert(std::pair<const char*,bool>(key,false));
                       }
                     ++vit;
                   }
@@ -1228,6 +1319,21 @@ namespace seeks_plugins
             break;
           }
         ++hit;
+      }
+  }
+
+  // destroy filter.
+  void simple_re::destroy_filter(hash_map<const char*,bool,hash<const char*>,eqstr> &filter)
+  {
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit,chit;
+    hit = filter.begin();
+    while(hit!=filter.end())
+      {
+        chit = hit;
+        ++hit;
+        const char *key = (*chit).first;
+        //filter.erase(chit);
+        free_const(key);
       }
   }
 
