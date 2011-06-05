@@ -28,8 +28,6 @@
 #include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
-#include "mem_utils.h"
-#include "DHTKey.h"
 #include "errlog.h"
 
 #include <assert.h>
@@ -592,7 +590,7 @@ namespace seeks_plugins
       }
 
     // build up the filter based on local data.
-    hash_map<const char*,bool,hash<const char*>,eqstr> filter;
+    hash_map<uint32_t,bool,id_hash_uint> filter;
     if (host.empty()) // we're local.
       simple_re::build_up_filter(&qdata,filter,true);
     else
@@ -624,13 +622,10 @@ namespace seeks_plugins
 
         query_recommender::recommend_queries(query,lang,related_queries,&qdata);
         mutex_unlock(&_est_mutex);
+
+        // destroy query data.
+        rank_estimator::destroy_query_data(qdata);
       }
-
-    // destroy query data.
-    rank_estimator::destroy_query_data(qdata);
-
-    // destroy filter.
-    simple_re::destroy_filter(filter);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
@@ -653,7 +648,7 @@ namespace seeks_plugins
       }
 
     // build up the filter.
-    hash_map<const char*,bool,hash<const char*>,eqstr> filter;
+    hash_map<uint32_t,bool,id_hash_uint> filter;
     simple_re::build_up_filter(&qdata,filter,true); // Beware, local filtering.
 
     // estimate ranks.
@@ -661,16 +656,13 @@ namespace seeks_plugins
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
-
-    // destroy filter.
-    simple_re::destroy_filter(filter);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
                                  std::vector<search_snippet*> &snippets,
                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                                 hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
+                                 hash_map<uint32_t,bool,id_hash_uint> *filter,
                                  const std::string &rsc)
   {
     // get stop word list.
@@ -786,7 +778,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_rank(search_snippet *s,
-                                 const hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
+                                 const hash_map<uint32_t,bool,id_hash_uint> *filter,
                                  const int &ns,
                                  const query_data *qd,
                                  const float &total_hits,
@@ -805,7 +797,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_rank(search_snippet *s,
-                                 const hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
+                                 const hash_map<uint32_t,bool,id_hash_uint> *filter,
                                  const int &ns,
                                  const vurl_data *vd_url,
                                  const vurl_data *vd_host,
@@ -818,11 +810,9 @@ namespace seeks_plugins
 
     if (vd_url && filter)
       {
-        byte *hashcode = NULL;
-        DHTKey::RMD((byte*)vd_url->_url.c_str(),hashcode);
-        hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit
-        = filter->find(reinterpret_cast<const char*>(hashcode));
-        delete[] hashcode;
+        uint32_t id = mrf::mrf_single_feature(vd_url->_url);
+        hash_map<uint32_t,bool,id_hash_uint>::const_iterator hit
+        = filter->find(id);
         if (hit!=filter->end() && (*hit).second)
           filtered = true;
       }
@@ -851,7 +841,7 @@ namespace seeks_plugins
     if (domain_name_weight <= 0.0)
       return posterior;
 
-    hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
+    hash_map<uint32_t,bool,id_hash_uint>::const_iterator hit;
     if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
         || s->_doc_type == IMAGE) // empty or type with not enough competition on domains.
       filtered = true;
@@ -859,13 +849,11 @@ namespace seeks_plugins
       filtered = true;
     else if (filter)
       {
-        byte *hashcode = NULL;
-        DHTKey::RMD((byte*)vd_host->_url.c_str(),hashcode);
-        if ((hit = filter->find(reinterpret_cast<const char*>(hashcode)))!=filter->end()
+        uint32_t id = mrf::mrf_single_feature(vd_host->_url);
+        if ((hit = filter->find(id))!=filter->end()
             && (*hit).second) // filter domain out if url was filtered out.
           filtered = true;
         else filtered = false;
-        delete[] hashcode;
       }
     else filtered = false;
     if (filtered)
@@ -887,7 +875,7 @@ namespace seeks_plugins
   }
 
   float simple_re::estimate_prior(search_snippet *s,
-                                  const hash_map<const char*,bool,hash<const char*>,eqstr> *filter,
+                                  const hash_map<uint32_t,bool,id_hash_uint> *filter,
                                   const std::string &surl,
                                   const std::string &host,
                                   const uint64_t &nuri)
@@ -899,11 +887,9 @@ namespace seeks_plugins
 
     if (filter)
       {
-        byte *hashcode = NULL;
-        DHTKey::RMD((byte*)surl.c_str(),hashcode);
-        hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit
-        = filter->find(reinterpret_cast<const char*>(hashcode));
-        delete[] hashcode;
+        uint32_t id = mrf::mrf_single_feature(surl);
+        hash_map<uint32_t,bool,id_hash_uint>::const_iterator hit
+        = filter->find(id);
         if (hit!=filter->end() && (*hit).second)
           filtered = true;
       }
@@ -952,13 +938,11 @@ namespace seeks_plugins
           hfiltered = false;
         else
           {
-            hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
-            byte *hashcode = NULL;
-            DHTKey::RMD((byte*)host.c_str(),hashcode);
-            if ((hit = filter->find(reinterpret_cast<const char*>(hashcode)))==filter->end()
+            hash_map<uint32_t,bool,id_hash_uint>::const_iterator hit;
+            uint32_t id = mrf::mrf_single_feature(host);
+            if ((hit = filter->find(id))==filter->end()
                 || !(*hit).second)
               hfiltered = false;
-            delete[] hashcode;
           }
 
         if (s && !hfiltered)
@@ -994,7 +978,7 @@ namespace seeks_plugins
       }
 
     // build up the filter.
-    hash_map<const char*,bool,hash<const char*>,eqstr> filter;
+    hash_map<uint32_t,bool,id_hash_uint> filter;
     simple_re::build_up_filter(&qdata,filter,true); // Beware: local filtering.
 
     // urls.
@@ -1002,16 +986,13 @@ namespace seeks_plugins
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
-
-    // destroy filter.
-    simple_re::destroy_filter(filter);
   }
 
   void simple_re::recommend_urls(const std::string &query,
                                  const std::string &lang,
                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                                 hash_map<const char*,bool,hash<const char*>,eqstr> *filter)
+                                 hash_map<uint32_t,bool,id_hash_uint> *filter)
   {
     // get stop word list.
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
@@ -1290,10 +1271,10 @@ namespace seeks_plugins
   }
 
   void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
-                                  hash_map<const char*,bool,hash<const char*>,eqstr> &filter,
+                                  hash_map<uint32_t,bool,id_hash_uint> &filter,
                                   const bool &local)
   {
-    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator mit;
+    hash_map<uint32_t,bool,id_hash_uint>::iterator mit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit = qdata->begin();
     while(hit!=qdata->end())
       {
@@ -1309,31 +1290,24 @@ namespace seeks_plugins
                     vurl_data *vd = (*vit).second;
                     if (vd->_hits < 0)
                       {
-                        byte *hashcode = NULL;
-                        DHTKey::RMD((byte*)vd->_url.c_str(),hashcode);
-                        const char *key = reinterpret_cast<const char*>(hashcode);
+                        uint32_t id = mrf::mrf_single_feature(vd->_url);
                         if (local
-                            || (mit = filter.find(key))!=filter.end())
+                            || (mit = filter.find(id))!=filter.end())
                           {
-                            filter.insert(std::pair<const char*,bool>(key,true));
+                            filter.insert(std::pair<uint32_t,bool>(id,true));
                           }
-                        else delete[] hashcode;
                       }
                     else if (local)
                       {
-                        byte *hashcode = NULL;
-                        DHTKey::RMD((byte*)vd->_url.c_str(),hashcode);
-                        const char *key = reinterpret_cast<const char*>(hashcode);
+                        uint32_t id = mrf::mrf_single_feature(vd->_url);
 
                         // check presence to avoid leak.
-                        mit = filter.find(key);
+                        mit = filter.find(id);
                         if (mit != filter.end())
                           {
-                            const char *ekey = (*mit).first;
-                            filter.erase(mit);
-                            delete[] ekey;
+                            (*mit).second = false;
                           }
-                        filter.insert(std::pair<const char*,bool>(key,false));
+                        else filter.insert(std::pair<uint32_t,bool>(id,false));
                       }
                     ++vit;
                   }
@@ -1341,21 +1315,6 @@ namespace seeks_plugins
             break;
           }
         ++hit;
-      }
-  }
-
-  // destroy filter.
-  void simple_re::destroy_filter(hash_map<const char*,bool,hash<const char*>,eqstr> &filter)
-  {
-    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit,chit;
-    hit = filter.begin();
-    while(hit!=filter.end())
-      {
-        chit = hit;
-        ++hit;
-        const char *key = (*chit).first;
-        //filter.erase(chit);
-        free_const(key);
       }
   }
 
