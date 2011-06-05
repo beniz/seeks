@@ -1018,8 +1018,10 @@ namespace seeks_plugins
     s1->_rank += s2->_rank;
 
     // search engine.
-    //s1->_engine |= s2->_engine;
     s1->_engine = s1->_engine.sunion(s2->_engine);
+
+    // seeks_rank
+    s1->_seeks_rank += s2->_seeks_rank;
 
     // cached link.
     if (s1->_cached.empty())
@@ -1043,7 +1045,7 @@ namespace seeks_plugins
     if (s1->_file_format.length() < s2->_file_format.length())  // we could do better here, ok enough for now.
       s1->_file_format = s2->_file_format;
 
-    // seeks rank.
+    // meta rank.
     if (s1->_doc_type == TWEET)
       {
         if (s1->_meta_rank <= 0)
