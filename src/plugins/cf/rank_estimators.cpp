@@ -699,11 +699,24 @@ namespace seeks_plugins
     vit = snippets.begin();
     while (vit!=snippets.end())
       {
+        if ((*vit)->_engine.has_feed("seeks")
+            && (*vit)->_url.find("http") == std::string::npos)
+          {
+            // This is a recommended domain, let's skip it.
+            search_snippet *sp = (*vit);
+            vit = snippets.erase(vit);
+            delete sp;
+            continue;
+          }
+
         bool spers = false;
         std::string url = (*vit)->_url;
 
         std::string host, path;
         query_capture::process_url(url,host,path);
+
+        if ((*vit)->_engine.has_feed("seeks"))
+          host = "";
 
         i = 0;
         posteriors[j] = 0.0;
@@ -1074,6 +1087,7 @@ namespace seeks_plugins
                         sp->set_title(vd->_title);
                         sp->set_summary(vd->_summary);
                         sp->_meta_rank = 1;
+                        sp->_engine.add_feed("seeks","s.s");
                         //sp->_seeks_rank = posterior;
                         //sp->_npeers++;
                         //sp->_hits = vd->_hits;
