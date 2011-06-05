@@ -145,7 +145,8 @@ namespace seeks_plugins
       static void destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
 
       static db_record* find_dbr(user_db *udb, const std::string &key,
-                                 const std::string &plugin_name);
+                                 const std::string &plugin_name,
+                                 bool &in_store);
 
       static void filter_extracted_queries(const std::string &query,
                                            const std::string &lang,

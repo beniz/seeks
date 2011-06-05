@@ -278,7 +278,8 @@ namespace seeks_plugins
     static std::string qc_str = "query-capture";
     for (size_t i=0; i<qhashes.size(); i++)
       {
-        db_record *dbr = rank_estimator::find_dbr(udb,qhashes.at(i),qc_str);
+        bool in_store = false;
+        db_record *dbr = rank_estimator::find_dbr(udb,qhashes.at(i),qc_str,in_store);
         if (dbr)
           {
             DHTKey dkey = DHTKey::from_rstring(qhashes.at(i)); // XXX: could avoid this by storing keys beforehand.
@@ -366,7 +367,8 @@ namespace seeks_plugins
                       }
 
                     std::string key_str = (*features.begin()).second.to_rstring();
-                    db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str);
+                    bool in_store = false;
+                    db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str,in_store);
                     if (!dbr_data) // this should never happen.
                       {
                         errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
@@ -394,8 +396,9 @@ namespace seeks_plugins
                               }
                             ++qit2;
                           }
-                        //if (cf_configuration::_config->_record_cache_timeout == 0)
-                        delete dbqr_data;
+                        // do not delete if it comes from the store.
+                        if (!in_store)
+                          delete dbqr_data;
                       }
                   }
                 else // radius is below requested expansion, keep queries for recommendation.
@@ -459,8 +462,10 @@ namespace seeks_plugins
   }
 
   db_record* rank_estimator::find_dbr(user_db *udb, const std::string &key,
-                                      const std::string &plugin_name)
+                                      const std::string &plugin_name,
+                                      bool &in_store)
   {
+    in_store = false;
     if (udb == seeks_proxy::_user_db) // local
       return udb->find_dbr(key,plugin_name);
     else
@@ -474,7 +479,10 @@ namespace seeks_plugins
               {
                 dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,dorj->_path,rkey);
                 if (dbr)
-                  return dbr;
+                  {
+                    in_store = true;
+                    return dbr;
+                  }
               }
             errlog::log_error(LOG_LEVEL_DEBUG,"fetching record %s from %s%s",
                               key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
