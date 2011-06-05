@@ -394,8 +394,8 @@ namespace seeks_plugins
                               }
                             ++qit2;
                           }
-                        if (cf_configuration::_config->_record_cache_timeout == 0)
-                          delete dbqr_data;
+                        //if (cf_configuration::_config->_record_cache_timeout == 0)
+                        delete dbqr_data;
                       }
                   }
                 else // radius is below requested expansion, keep queries for recommendation.
@@ -814,7 +814,7 @@ namespace seeks_plugins
         DHTKey::RMD((byte*)vd_url->_url.c_str(),hashcode);
         hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit
         = filter->find(reinterpret_cast<const char*>(hashcode));
-        free(hashcode);
+        delete[] hashcode;
         if (hit!=filter->end() && (*hit).second)
           filtered = true;
       }
@@ -857,7 +857,7 @@ namespace seeks_plugins
             && (*hit).second) // filter domain out if url was filtered out.
           filtered = true;
         else filtered = false;
-        free(hashcode);
+        delete[] hashcode;
       }
     else filtered = false;
     if (filtered)
@@ -895,7 +895,7 @@ namespace seeks_plugins
         DHTKey::RMD((byte*)surl.c_str(),hashcode);
         hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit
         = filter->find(reinterpret_cast<const char*>(hashcode));
-        free(hashcode);
+        delete[] hashcode;
         if (hit!=filter->end() && (*hit).second)
           filtered = true;
       }
@@ -912,7 +912,7 @@ namespace seeks_plugins
           {
             s->_personalized = true;
             s->_engine.add_feed("seeks","s.s");
-            //s->_meta_rank++;
+
           }
       }
     dbr = NULL;
@@ -950,7 +950,7 @@ namespace seeks_plugins
             if ((hit = filter->find(reinterpret_cast<const char*>(hashcode)))==filter->end()
                 || !(*hit).second)
               hfiltered = false;
-            free(hashcode);
+            delete[] hashcode;
           }
 
         if (s && !hfiltered)
@@ -1309,7 +1309,7 @@ namespace seeks_plugins
                           {
                             filter.insert(std::pair<const char*,bool>(key,true));
                           }
-                        else free(hashcode);
+                        else delete[] hashcode;
                       }
                     else if (local)
                       {
@@ -1323,7 +1323,7 @@ namespace seeks_plugins
                           {
                             const char *ekey = (*mit).first;
                             filter.erase(mit);
-                            free_const(ekey);
+                            delete[] ekey;
                           }
                         filter.insert(std::pair<const char*,bool>(key,false));
                       }
