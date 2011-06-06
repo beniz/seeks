@@ -32,6 +32,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <typeinfo>
 #include <iostream>
 
 using lsh::qprocess;
@@ -375,7 +376,17 @@ namespace seeks_plugins
                         continue;
                       }
 
-                    db_query_record *dbqr_data = dynamic_cast<db_query_record*>(dbr_data);
+                    db_query_record *dbqr_data = NULL;
+
+                    try
+                      {
+                        dynamic_cast<db_query_record*>(dbr_data);
+                      }
+                    catch(std::bad_cast &bc)
+                      {
+                        dbqr_data = NULL;
+                      }
+
                     if (dbqr_data)
                       {
                         hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator qit2
@@ -475,9 +486,12 @@ namespace seeks_plugins
           {
             if (cf_configuration::_config->_record_cache_timeout > 0)
               {
-                dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,dorj->_path,rkey);
-                if (dbr)
+                bool has_key = false;
+                dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,dorj->_path,rkey,has_key);
+                if (dbr || has_key)
                   {
+                    errlog::log_error(LOG_LEVEL_DEBUG,"found in store: record %s from %s%s",
+                                      key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
                     in_store = true;
                     return dbr;
                   }
@@ -486,7 +500,12 @@ namespace seeks_plugins
                               key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
             dbr = udb->find_dbr(key,plugin_name);
             if (dbr && cf_configuration::_config->_record_cache_timeout > 0)
-              rank_estimator::_store.add(dorj->_host,dorj->_port,dorj->_path,rkey,dbr);
+              {
+                rank_estimator::_store.add(dorj->_host,dorj->_port,dorj->_path,rkey,dbr);
+                errlog::log_error(LOG_LEVEL_DEBUG,"storing: record %s from %s%s",
+                                  key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
+
+              }
             return dbr;
           }
         else return NULL;

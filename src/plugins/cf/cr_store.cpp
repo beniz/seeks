@@ -24,6 +24,8 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <iostream>
+
 using sp::sweeper;
 using sp::miscutil;
 using sp::errlog;
@@ -45,7 +47,8 @@ namespace seeks_plugins
   {
     // remove from cache object and destroy record.
     _cache->remove(_key);
-    delete _rec;
+    if (_rec)
+      delete _rec;
     if (_cache->_records.empty())
       delete _cache;
   }
@@ -191,14 +194,16 @@ namespace seeks_plugins
   db_record* cr_store::find(const std::string &host,
                             const int &port,
                             const std::string &path,
-                            const std::string &key)
+                            const std::string &key,
+                            bool &has_key)
   {
     std::string peer = cr_store::generate_peer(host,port,path);
-    return find(peer,key);
+    return find(peer,key,has_key);
   }
 
   db_record* cr_store::find(const std::string &peer,
-                            const std::string &key)
+                            const std::string &key,
+                            bool &has_key)
   {
     mutex_lock(&_store_mutex);
     hash_map<const char*,cr_cache*,hash<const char*>,eqstr>::const_iterator hit;
@@ -209,13 +214,16 @@ namespace seeks_plugins
         mutex_unlock(&_store_mutex);
         if (!cr)
           {
+            has_key = false;
             mutex_unlock(&_store_mutex);
             return NULL;
           }
+        has_key = true;
         cr->update_last_use();
         mutex_unlock(&_store_mutex);
         return cr->_rec;
       }
+    has_key = false;
     mutex_unlock(&_store_mutex);
     return NULL;
   }

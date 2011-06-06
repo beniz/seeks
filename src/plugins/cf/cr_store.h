@@ -114,10 +114,12 @@ namespace seeks_plugins
       db_record* find(const std::string &host,
                       const int &port,
                       const std::string &path,
-                      const std::string &key);
+                      const std::string &key,
+                      bool &has_key);
 
       db_record* find(const std::string &peer,
-                      const std::string &key);
+                      const std::string &key,
+                      bool &has_key);
 
       static std::string generate_peer(const std::string &host,
                                        const int &port,
