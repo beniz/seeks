@@ -499,7 +499,7 @@ namespace seeks_plugins
             errlog::log_error(LOG_LEVEL_DEBUG,"fetching record %s from %s%s",
                               key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
             dbr = udb->find_dbr(key,plugin_name);
-            if (dbr && cf_configuration::_config->_record_cache_timeout > 0)
+            if (cf_configuration::_config->_record_cache_timeout > 0)
               {
                 rank_estimator::_store.add(dorj->_host,dorj->_port,dorj->_path,rkey,dbr);
                 errlog::log_error(LOG_LEVEL_DEBUG,"storing: record %s from %s%s",
