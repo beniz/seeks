@@ -380,11 +380,14 @@ namespace seeks_plugins
 
                     try
                       {
-                        dynamic_cast<db_query_record*>(dbr_data);
+                        dbqr_data = dynamic_cast<db_query_record*>(dbr_data);
                       }
                     catch(std::bad_cast &bc)
                       {
+                        delete dbr_data;
                         dbqr_data = NULL;
+                        ++qit;
+                        continue;
                       }
 
                     if (dbqr_data)

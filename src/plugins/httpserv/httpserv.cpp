@@ -900,9 +900,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         return;
       }
     size_t post_content_size = post_content.length() * sizeof(char);
-    csp._iob._cur = new char[post_content_size];
+    csp._iob._cur = new char[post_content_size+1];
     strlcpy(csp._iob._cur,post_content.c_str(),post_content_size+1);
-    csp._iob._size = post_content_size;
+    csp._iob._size = post_content_size+1;
 
     // fill up csp headers.
     const char *referer = evhttp_find_header(r->input_headers, "referer");
@@ -919,7 +919,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     sp_err serr = udb_service::cgi_find_bqc(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
-    delete csp._iob._cur;
+    delete[] csp._iob._cur;
     csp._iob._cur = NULL;
     csp._iob._size = 0;
 

@@ -212,6 +212,7 @@ namespace seeks_plugins
     if (!qdata.empty())
       dbr = new db_query_record(qdata); // no copy.
     else dbr = NULL;
+    rank_estimator::destroy_records(records);
   }
 
   /* plugin registration. */
