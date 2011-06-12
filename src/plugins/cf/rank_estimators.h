@@ -148,6 +148,10 @@ namespace seeks_plugins
                                  const std::string &plugin_name,
                                  bool &in_store);
 
+      static db_record* find_bqc(const std::string &host, const int &port,
+                                 const std::string &path, const std::string &query,
+                                 const int &expansion);
+
       static void filter_extracted_queries(const std::string &query,
                                            const std::string &lang,
                                            const uint32_t &expansion,

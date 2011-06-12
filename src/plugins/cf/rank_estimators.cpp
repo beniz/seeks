@@ -230,14 +230,16 @@ namespace seeks_plugins
       }
     else // remote batch seeks node operations.
       {
-        udb_client udbc;
+        //udb_client udbc;
         std::string squery = query_capture_element::no_command_query(query);
-        db_record *dbr = udbc.find_bqc(host,port,path,squery,expansion);
+        //db_record *dbr = udbc.find_bqc(host,port,path,squery,expansion);
+        db_record *dbr = rank_estimator::find_bqc(host,port,path,query,expansion);
         if (dbr)
           {
             db_query_record *dbqr = static_cast<db_query_record*>(dbr);
             db_query_record::copy_related_queries(dbqr->_related_queries,qdata);
-            delete dbqr;
+            if (cf_configuration::_config->_record_cache_timeout == 0)
+              delete dbqr;
             rank_estimator::filter_extracted_queries(squery,lang,expansion,qdata);
             errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                               host.c_str(),path.c_str(),qdata.size());
@@ -513,6 +515,41 @@ namespace seeks_plugins
           }
         else return NULL;
       }
+  }
+
+  db_record* rank_estimator::find_bqc(const std::string &host, const int &port,
+                                      const std::string &path, const std::string &query,
+                                      const int &expansion)
+  {
+    db_record *dbr = NULL;
+    std::string squery = query_capture_element::no_command_query(query);
+
+    // try out in the store.
+    if (cf_configuration::_config->_record_cache_timeout > 0)
+      {
+        bool has_key = false;
+        dbr = rank_estimator::_store.find(host,port,path,squery,has_key);
+        if (dbr || has_key)
+          {
+            errlog::log_error(LOG_LEVEL_DEBUG,"found in store: bqc record %s from %s%s",
+                              squery.c_str(),host.c_str(),path.c_str());
+            return dbr;
+          }
+      }
+
+    // otherwise, make a call and store result.
+    if (!dbr)
+      {
+        udb_client udbc;
+        dbr = udbc.find_bqc(host,port,path,squery,expansion);
+        if (cf_configuration::_config->_record_cache_timeout > 0)
+          {
+            rank_estimator::_store.add(host,port,path,squery,dbr);
+            errlog::log_error(LOG_LEVEL_DEBUG,"storing: bqc record %s from %s%s",
+                              squery.c_str(),host.c_str(),path.c_str());
+          }
+      }
+    return dbr;
   }
 
   void rank_estimator::filter_extracted_queries(const std::string &query,
