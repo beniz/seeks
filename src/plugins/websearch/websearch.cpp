@@ -1111,17 +1111,19 @@ namespace seeks_plugins
 
     rsp->_reason = RSP_REASON_CONNECT_FAILED;
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports = cgi::default_exports(csp,NULL);
-    char *path = strdup("");
+    char *path = NULL;
     sp_err err = SP_ERR_OK;
     if (csp->_http._path)
-      err = miscutil::string_append(&path, csp->_http._path);
+      {
+        path = strdup(csp->_http._path);
+      }
 
     if (!err)
       err = miscutil::add_map_entry(exports, "host", 1, encode::html_encode(csp->_http._host), 0);
     if (!err)
       err = miscutil::add_map_entry(exports, "hostport", 1, encode::html_encode(csp->_http._hostport), 0);
     if (!err)
-      err = miscutil::add_map_entry(exports, "path", 1, encode::html_encode_and_free_original(path), 0);
+      err = miscutil::add_map_entry(exports, "path", 1, encode::html_encode(path), 0);
     if (!err)
       err = miscutil::add_map_entry(exports, "protocol", 1, csp->_http._ssl ? "https://" : "http://", 1);
     if (!err)
