@@ -351,17 +351,25 @@ fi
 #==========================================================================
 # Finding icu
 #==========================================================================
-# First, check for the icu-config tool
-AC_PATH_PROGS(ICU_CONFIG, icu-config, no)
-if test x$ICU_CONFIG = xno; then
-   AM_CONDITIONAL(HAVE_ICU,false)
+AC_ARG_ENABLE(icu,
+AC_HELP_STRING([--disable-icu], [Don't use icu to detect and convert non-UTF8 strings (default is NO)]),
+[enableval2=$enableval],
+[enableval2=yes])
+if test $enableval2 = yes; then
+   # First, check for the icu-config tool
+   AC_PATH_PROGS(ICU_CONFIG, icu-config, no)
+   if test x$ICU_CONFIG = xno; then
+      AM_CONDITIONAL(HAVE_ICU,false)
+   else
+    AC_DEFINE(FEATURE_ICU,1,"ICU library is there")
+    AM_CONDITIONAL(HAVE_ICU,true)
+    ICU_LDADD=`$ICU_CONFIG --ldflags`
+    AC_SUBST(ICU_LDADD)
+    ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+    AC_SUBST(ICU_CFLAGS)
+   fi
 else
-   AC_DEFINE(FEATURE_ICU,1,"ICU library is there")
-   AM_CONDITIONAL(HAVE_ICU,true)
-   ICU_LDADD=`$ICU_CONFIG --ldflags`
-   AC_SUBST(ICU_LDADD)
-   ICU_CFLAGS=`$ICU_CONFIG --cppflags`
-   AC_SUBST(ICU_CFLAGS)
+  AM_CONDITIONAL(HAVE_ICU,false)
 fi
 
 #ICU_LDADD=`$ICU_CONFIG --ldflags`
