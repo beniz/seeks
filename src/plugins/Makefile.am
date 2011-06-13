@@ -1,10 +1,13 @@
 SUBDIRS=
 if HAVE_TC
 if HAVE_PROTOBUF
-SUBDIRS += query_capture uri_capture cf udb_service
+SUBDIRS += query_capture uri_capture cf
 endif
 endif
 SUBDIRS += websearch blocker 
+if HAVE_PROTOBUF
+SUBDIRS += udb_service
+endif
 if HAVE_IMG_WEBSEARCH_PLUGIN
 SUBDIRS+=img_websearch
 endif
