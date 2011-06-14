@@ -69,7 +69,8 @@ namespace seeks_plugins
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,host,port);
+        peer pe(host,port,"",""); //TODO: missing peer and rsc.
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,&pe);
       }
     catch(sp_exception &e)
       {

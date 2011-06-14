@@ -34,6 +34,8 @@ namespace seeks_plugins
   class peer
   {
     public:
+      peer();
+
       peer(const std::string &host,
            const int &port,
            const std::string &path,
@@ -75,6 +77,8 @@ namespace seeks_plugins
 
       hash_map<const char*,peer*,hash<const char*>,eqstr> _peers;
   };
+
+
 
 } /* end of namespace. */
 

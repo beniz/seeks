@@ -148,22 +148,24 @@ namespace seeks_plugins
     try
       {
         if (!args->_pe)
-          args->_estimator->personalize(args->_query,args->_lang,
-                                        args->_expansion,
-                                        *args->_snippets,
-                                        *args->_related_queries,
-                                        *args->_reco_snippets,"",-1,"","",
-                                        args->_qc);
+          {
+            peer pe;
+            pe._status = PEER_OK;
+            args->_estimator->personalize(args->_query,args->_lang,
+                                          args->_expansion,
+                                          *args->_snippets,
+                                          *args->_related_queries,
+                                          *args->_reco_snippets,
+                                          &pe,//"",-1,"","",
+                                          args->_qc);
+          }
         else
           args->_estimator->personalize(args->_query,args->_lang,
                                         args->_expansion,
                                         *args->_snippets,
                                         *args->_related_queries,
                                         *args->_reco_snippets,
-                                        args->_pe->_host,
-                                        args->_pe->_port,
-                                        args->_pe->_path,
-                                        args->_pe->_rsc,
+                                        args->_pe,
                                         args->_qc);
       }
     catch(sp_exception &e)
@@ -176,11 +178,17 @@ namespace seeks_plugins
                                         const std::string &lang,
                                         const uint32_t &expansion,
                                         hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                        const std::string &host,
-                                        const int &port,
-                                        const std::string &path,
-                                        const std::string &rsc) throw (sp_exception)
+                                        peer *pe
+                                        /*const std::string &host,
+                                                                      const int &port,
+                                                                      const std::string &path,
+                                                                      const std::string &rsc*/) throw (sp_exception)
   {
+    const std::string host = pe->_host;
+    const int port = pe->_port;
+    const std::string path = pe->_path;
+    const std::string rsc = pe->_rsc;
+
     user_db *udb = NULL;
     if (host.empty()) // local user database.
       udb = seeks_proxy::_user_db;
@@ -230,9 +238,7 @@ namespace seeks_plugins
       }
     else // remote batch seeks node operations.
       {
-        //udb_client udbc;
         std::string squery = query_capture_element::no_command_query(query);
-        //db_record *dbr = udbc.find_bqc(host,port,path,squery,expansion);
         db_record *dbr = rank_estimator::find_bqc(host,port,path,query,expansion);
         if (dbr)
           {
@@ -631,17 +637,14 @@ namespace seeks_plugins
                               std::vector<search_snippet*> &snippets,
                               std::multimap<double,std::string,std::less<double> > &related_queries,
                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
-                              const std::string &host,
-                              const int &port,
-                              const std::string &path,
-                              const std::string &rsc,
+                              peer *pe,
                               query_context *qc) throw (sp_exception)
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,host,port,path,rsc);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,pe);
       }
     catch(sp_exception &e)
       {
@@ -650,7 +653,7 @@ namespace seeks_plugins
 
     // build up the filter based on local data.
     hash_map<uint32_t,bool,id_hash_uint> filter;
-    if (host.empty()) // we're local.
+    if (pe->_host.empty()) // we're local.
       simple_re::build_up_filter(&qdata,filter,true);
     else
       {
@@ -658,7 +661,7 @@ namespace seeks_plugins
         hash_map<const char*,query_data*,hash<const char*>,eqstr> lqdata;
         try
           {
-            rank_estimator::fetch_query_data(query,lang,expansion,lqdata,"",-1,"","");
+            rank_estimator::fetch_query_data(query,lang,expansion,lqdata,pe);
           }
         catch(sp_exception &e)
           {
@@ -677,7 +680,7 @@ namespace seeks_plugins
         mutex_lock(&_est_mutex);
         recommend_urls(query,lang,reco_snippets,&qdata,&filter);
         select_recommended_urls(reco_snippets,snippets,qc);
-        estimate_ranks(query,lang,snippets,&qdata,&filter,rsc);
+        estimate_ranks(query,lang,snippets,&qdata,&filter,pe->_rsc);
 
         query_recommender::recommend_queries(query,lang,related_queries,&qdata);
         mutex_unlock(&_est_mutex);
@@ -687,6 +690,7 @@ namespace seeks_plugins
       }
   }
 
+  // DEPRECATED
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
                                  const uint32_t &expansion,
@@ -699,7 +703,8 @@ namespace seeks_plugins
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,host,port);
+        peer pe(host,port,"",rsc);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -1018,6 +1023,7 @@ namespace seeks_plugins
     return prior;
   }
 
+  // DEPRECATED
   void simple_re::recommend_urls(const std::string &query,
                                  const std::string &lang,
                                  const uint32_t &expansion,
@@ -1029,7 +1035,8 @@ namespace seeks_plugins
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,host,port);
+        peer pe(host,port,"","");
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -1182,7 +1189,8 @@ namespace seeks_plugins
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,0,qdata);
+        peer pe;
+        rank_estimator::fetch_query_data(query,lang,0,qdata,&pe);
       }
     catch(sp_exception &e)
       {

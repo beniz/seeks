@@ -27,6 +27,11 @@ namespace seeks_plugins
 {
 
   /*- peer -*/
+  peer::peer()
+    :_port(-1),_status(PEER_UNKNOWN)
+  {
+  }
+
   peer::peer(const std::string &host,
              const int &port,
              const std::string &path,

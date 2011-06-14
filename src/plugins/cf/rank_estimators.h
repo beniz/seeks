@@ -91,12 +91,10 @@ namespace seeks_plugins
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
-                               const std::string &host="",
-                               const int &port=-1,
-                               const std::string &path="",
-                               const std::string &rsc="",
+                               peer *pe,
                                query_context *qc = NULL) throw (sp_exception) {};
 
+      // DEPRECATED
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
                                   std::vector<search_snippet*> &snippets,
@@ -104,6 +102,7 @@ namespace seeks_plugins
                                   const int &port=-1,
                                   const std::string &rsc="") throw (sp_exception) {};
 
+      // DEPRECATED
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
                                   hash_map<uint32_t,search_snippet*,id_hash_uint> &snippet,
@@ -118,10 +117,7 @@ namespace seeks_plugins
                                    const std::string &lang,
                                    const uint32_t &expansion,
                                    hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                   const std::string &host="",
-                                   const int &port=-1,
-                                   const std::string &path="",
-                                   const std::string &rsc="") throw (sp_exception);
+                                   peer *pe) throw (sp_exception);
 
       static void fetch_user_db_record(const std::string &query,
                                        user_db *udb,
@@ -175,10 +171,7 @@ namespace seeks_plugins
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
-                               const std::string &host="",
-                               const int &port=-1,
-                               const std::string &path="",
-                               const std::string &rsc="",
+                               peer *pe,
                                query_context *qc = NULL) throw (sp_exception);
 
       virtual void estimate_ranks(const std::string &query,
