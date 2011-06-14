@@ -35,4 +35,4 @@ clean-local:
 
 EXTRA_DIST = $(protoc_inputs)
 
-SUBDIRS=. tests
+#SUBDIRS=. tests
