@@ -25,6 +25,7 @@
 #include "uri_capture.h"
 #include "db_uri_record.h"
 #include "udb_client.h"
+#include "udbs_err.h"
 #include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
@@ -178,11 +179,7 @@ namespace seeks_plugins
                                         const std::string &lang,
                                         const uint32_t &expansion,
                                         hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                        peer *pe
-                                        /*const std::string &host,
-                                                                      const int &port,
-                                                                      const std::string &path,
-                                                                      const std::string &rsc*/) throw (sp_exception)
+                                        peer *pe) throw (sp_exception)
   {
     const std::string host = pe->_host;
     const int port = pe->_port;
@@ -547,7 +544,19 @@ namespace seeks_plugins
     if (!dbr)
       {
         udb_client udbc;
-        dbr = udbc.find_bqc(host,port,path,squery,expansion);
+        try
+          {
+            dbr = udbc.find_bqc(host,port,path,squery,expansion);
+          }
+        catch (sp_exception &e)
+          {
+            /*if (e.code() == UDBS_ERR_CONNECT)
+              {
+            //TODO: set peer status
+              }
+              else */ //TODO: set peer status to unknown.
+            dbr = NULL;
+          }
         if (cf_configuration::_config->_record_cache_timeout > 0)
           {
             rank_estimator::_store.add(host,port,path,squery,dbr);

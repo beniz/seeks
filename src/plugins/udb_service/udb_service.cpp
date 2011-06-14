@@ -75,8 +75,6 @@ namespace seeks_plugins
                                    http_response *rsp,
                                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    /* std::cerr << "find_bqc: content: ";
-       std::cerr << csp->_iob._cur << std::endl; */
     if (!seeks_proxy::_user_db)
       {
         return SP_ERR_FILE; // no user db.

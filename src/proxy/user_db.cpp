@@ -17,6 +17,7 @@
  */
 
 #include "user_db.h"
+#include "sp_exception.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 #include "plugin_manager.h"
@@ -714,6 +715,7 @@ namespace sp
       {
         std::string rec_pn,rec_key;
         std::string rkey_str = std::string((char*)rkey,rkey_size);
+        free(rkey);
         if (rkey_str != user_db::_db_version_key
             && user_db::extract_plugin_and_key(rkey_str,
                                                rec_pn,rec_key) != 0)
@@ -723,7 +725,6 @@ namespace sp
           }
         else if (rec_pn == plugin_name)
           n++;
-        free(rkey);
       }
     return n;
   }
@@ -883,7 +884,16 @@ namespace sp
         return NULL;
       }
     db_obj_remote *dorj = static_cast<db_obj_remote*>(_hdb);
-    return udb_service::find_dbr_client(dorj->_host,dorj->_port,dorj->_path,key,plugin_name);
+    db_record *dbr = NULL;
+    try
+      {
+        udb_service::find_dbr_client(dorj->_host,dorj->_port,dorj->_path,key,plugin_name);
+      }
+    catch (sp_exception &e)
+      {
+        // XXX: we should catch and report error to the high-level call.
+      }
+    return dbr;
   }
 
 } /* end of namespace. */

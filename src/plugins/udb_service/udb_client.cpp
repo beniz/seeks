@@ -17,6 +17,7 @@
  */
 
 #include "udb_client.h"
+#include "udbs_err.h"
 #include "DHTKey.h"
 #include "qprocess.h"
 #include "halo_msg_wrapper.h"
@@ -50,7 +51,7 @@ namespace seeks_plugins
                                          const int &port,
                                          const std::string &path,
                                          const std::string &key,
-                                         const std::string &pn)
+                                         const std::string &pn) throw (sp_exception)
   {
     std::string url = host;
     if (port != -1)
@@ -67,7 +68,11 @@ namespace seeks_plugins
       {
         // failed connection.
         delete[] cmg._outputs;
-        return NULL;
+        std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
+        std::string msg = "failed connection or transmission error in response to fetching record "
+                          + key + " from " + host + port_str;
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
     else if (cmg._outputs[0]->empty())
       {
@@ -81,8 +86,11 @@ namespace seeks_plugins
     if (!dbr)
       {
         // transmission or deserialization error.
-        errlog::log_error(LOG_LEVEL_ERROR,"transmission or deserialization error fetching record %s from %s:%s",
-                          key.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
+        std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
+        std::string msg = "transmission or deserialization error fetching record "
+                          + key + " from " + host + port_str;
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(UDBS_ERR_DESERIALIZE,msg);
       }
     return dbr;
   }
@@ -91,7 +99,7 @@ namespace seeks_plugins
                                   const int &port,
                                   const std::string &path,
                                   const std::string &query,
-                                  const uint32_t &expansion)
+                                  const uint32_t &expansion) throw (sp_exception)
   {
     static std::string ctype = "Content-Type: application/x-protobuf";
 
@@ -106,7 +114,7 @@ namespace seeks_plugins
     catch(sp_exception &e)
       {
         errlog::log_error(LOG_LEVEL_ERROR,e.what().c_str());
-        return NULL;
+        throw e;
       }
 
     std::string url = host;
@@ -124,10 +132,12 @@ namespace seeks_plugins
     if (!cmg._outputs[0])
       {
         // failed connection.
-        errlog::log_error(LOG_LEVEL_DEBUG,"transmission error, nothing found in find_bqc response to query %s from %s:%s",
-                          query.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
+        std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
+        std::string msg = "failed connection or transmission error, nothing found in find_bqc response to query "
+                          + query + " from " + host + port_str;
+        errlog::log_error(LOG_LEVEL_DEBUG,msg.c_str());
         delete[] cmg._outputs;
-        return NULL;
+        throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
     else if (cmg._outputs[0]->empty())
       {
@@ -141,11 +151,12 @@ namespace seeks_plugins
     if (!dbr)
       {
         // transmission or deserialization error.
-        errlog::log_error(LOG_LEVEL_ERROR,"transmission or deserialization error fetching batch records for query %s from %s:%s",
-                          query.c_str(),host.c_str(),port!=-1 ? miscutil::to_string(port).c_str() : "");
+        std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
+        std::string msg = "transmission or deserialization error fetching batch records for query "
+                          + query + " from " + host + port_str;
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        throw sp_exception(UDBS_ERR_DESERIALIZE,msg);
       }
-    /*std::cerr << "obtained dbr:";
-      dbr->print(std::cerr);*/
     return dbr;
   }
 

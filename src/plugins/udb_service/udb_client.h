@@ -19,6 +19,7 @@
 #ifndef UDB_CLIENT_H
 #define UDB_CLIENT_H
 
+#include "sp_exception.h"
 #include "db_record.h"
 
 using sp::db_record;
@@ -37,13 +38,13 @@ namespace seeks_plugins
                                  const int &port,
                                  const std::string &path,
                                  const std::string &key,
-                                 const std::string &pn);
+                                 const std::string &pn) throw (sp_exception);
 
       db_record* find_bqc(const std::string &host,
                           const int &port,
                           const std::string &path,
                           const std::string &query,
-                          const uint32_t &expansion);
+                          const uint32_t &expansion) throw (sp_exception);
 
       static db_record* deserialize_found_record(const std::string &str,
           const std::string &pn);

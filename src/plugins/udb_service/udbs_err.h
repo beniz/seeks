@@ -24,5 +24,6 @@ typedef int udbs_err;
 
 #define UDBS_ERR_SERIALIZE                   4001 /**< msg serialization error. */
 #define UDBS_ERR_DESERIALIZE                 4002 /**< msg deserialization error. */
+#define UDBS_ERR_CONNECT                     4003 /**< peer connection error. */
 
 #endif
