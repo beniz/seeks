@@ -304,14 +304,15 @@ namespace seeks_plugins
     if ((safesearch_p && strcasecmp(safesearch_p,"off") == 0)
         || (!safesearch_p && !img_websearch_configuration::_img_wconfig->_safe_search))
       safesearch_cookies = &cookies;
+    std::vector<int> status;
     curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-                  websearch::_wconfig->_se_connect_timeout,0);
+                  websearch::_wconfig->_se_connect_timeout,0,status);
     if (websearch::_wconfig->_background_proxy_addr.empty())
-      cmg.www_mget(urls,urls.size(),&headers,"",0,NULL,safesearch_cookies); // don't go through the seeks' proxy, or will loop til death!
+      cmg.www_mget(urls,urls.size(),&headers,"",0,status,NULL,safesearch_cookies); // don't go through the seeks' proxy, or will loop til death!
     else cmg.www_mget(urls,urls.size(),&headers,
                         websearch::_wconfig->_background_proxy_addr,
                         websearch::_wconfig->_background_proxy_port,
-                        NULL,safesearch_cookies);
+                        status,NULL,safesearch_cookies);
 
     std::string **outputs = new std::string*[urls.size()];
     bool have_outputs = false;
