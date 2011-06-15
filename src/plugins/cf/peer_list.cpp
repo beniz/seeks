@@ -81,8 +81,8 @@ namespace seeks_plugins
     dead_peer::_dpl->add(this);
     sweeper::register_sweepable(this);
     std::string port_str = (_port != -1) ? miscutil::to_string(_port) : "";
-    errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s as a dead peer to monitor",
-                      _host.c_str(),port_str.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s%s as a dead peer to monitor",
+                      _host.c_str(),port_str.c_str(),_path.c_str());
   }
 
   dead_peer::~dead_peer()
@@ -92,10 +92,9 @@ namespace seeks_plugins
       _dpl->remove(_host,_port,_path);
     if (_pl)
       _pl->add(_host,_port,_path,_rsc);
-    sweeper::unregister_sweepable(this);
     std::string port_str = (_port != -1) ? miscutil::to_string(_port) : "";
-    errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s as a living peer",
-                      _host.c_str(),port_str.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s%s as a living peer",
+                      _host.c_str(),port_str.c_str(),_path.c_str());
   }
 
   void dead_peer::update_last_check()
@@ -116,10 +115,8 @@ namespace seeks_plugins
         db_record *dbr = NULL;
         try
           {
-            // XXX: beware that this call may hit the cache store.
-            // but if the cache store contains something, then the peer
-            // should not be marked as dead anyways...
-            dbr = rank_estimator::find_bqc(_host,_port,_path,test_query,expansion);
+            // not using store.
+            dbr = rank_estimator::find_bqc(_host,_port,_path,test_query,expansion,false);
           }
         catch (sp_exception &e)
           {
@@ -139,10 +136,8 @@ namespace seeks_plugins
           {
             user_db udb(false,_host,_port,_path,_rsc);
 
-            // XXX: beware that this call may hit the cache store.
-            // but if the cache store contains something, then the peer
-            // should not be marked as dead anyways...
-            dbr = rank_estimator::find_dbr(&udb,test_key,"query-capture",in_store);
+            // not using the store.
+            dbr = rank_estimator::find_dbr(&udb,test_key,"query-capture",in_store,false);
           }
         catch (sp_exception &e)
           {

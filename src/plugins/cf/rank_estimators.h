@@ -142,11 +142,11 @@ namespace seeks_plugins
 
       static db_record* find_dbr(user_db *udb, const std::string &key,
                                  const std::string &plugin_name,
-                                 bool &in_store);
+                                 bool &in_store, const bool &use_store=true);
 
       static db_record* find_bqc(const std::string &host, const int &port,
                                  const std::string &path, const std::string &query,
-                                 const int &expansion) throw (sp_exception);
+                                 const int &expansion, const bool &use_store=true) throw (sp_exception);
 
       static void filter_extracted_queries(const std::string &query,
                                            const std::string &lang,

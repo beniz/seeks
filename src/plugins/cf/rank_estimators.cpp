@@ -501,7 +501,7 @@ namespace seeks_plugins
 
   db_record* rank_estimator::find_dbr(user_db *udb, const std::string &key,
                                       const std::string &plugin_name,
-                                      bool &in_store)
+                                      bool &in_store, const bool &use_store)
   {
     in_store = false;
     if (udb == seeks_proxy::_user_db) // local
@@ -513,7 +513,7 @@ namespace seeks_plugins
         std::string rkey = user_db::generate_rkey(key,plugin_name);
         if (dorj)
           {
-            if (cf_configuration::_config->_record_cache_timeout > 0)
+            if (use_store && cf_configuration::_config->_record_cache_timeout > 0)
               {
                 bool has_key = false;
                 dbr = rank_estimator::_store.find(dorj->_host,dorj->_port,dorj->_path,rkey,has_key);
@@ -528,7 +528,7 @@ namespace seeks_plugins
             errlog::log_error(LOG_LEVEL_DEBUG,"fetching record %s from %s%s",
                               key.c_str(),dorj->_host.c_str(),dorj->_path.c_str());
             dbr = udb->find_dbr(key,plugin_name);
-            if (cf_configuration::_config->_record_cache_timeout > 0)
+            if (use_store && cf_configuration::_config->_record_cache_timeout > 0)
               {
                 rank_estimator::_store.add(dorj->_host,dorj->_port,dorj->_path,rkey,dbr);
                 errlog::log_error(LOG_LEVEL_DEBUG,"storing: record %s from %s%s",
@@ -543,13 +543,13 @@ namespace seeks_plugins
 
   db_record* rank_estimator::find_bqc(const std::string &host, const int &port,
                                       const std::string &path, const std::string &query,
-                                      const int &expansion) throw (sp_exception)
+                                      const int &expansion, const bool &use_store) throw (sp_exception)
   {
     db_record *dbr = NULL;
     std::string squery = query_capture_element::no_command_query(query);
 
     // try out in the store.
-    if (cf_configuration::_config->_record_cache_timeout > 0)
+    if (use_store && cf_configuration::_config->_record_cache_timeout > 0)
       {
         bool has_key = false;
         dbr = rank_estimator::_store.find(host,port,path,squery,has_key);
@@ -575,7 +575,7 @@ namespace seeks_plugins
               delete dbr;
             throw e;
           }
-        if (cf_configuration::_config->_record_cache_timeout > 0)
+        if (use_store && cf_configuration::_config->_record_cache_timeout > 0)
           {
             rank_estimator::_store.add(host,port,path,squery,dbr);
             errlog::log_error(LOG_LEVEL_DEBUG,"storing: bqc record %s from %s%s",
