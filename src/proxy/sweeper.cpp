@@ -111,16 +111,12 @@ namespace sp
 
             freez(csp->_ip_addr_str);
             freez(csp->_iob._buf);
-            //freez(csp->_error_message);
 
             if (csp->_action._flags & ACTION_FORWARD_OVERRIDE &&
                 NULL != csp->_fwd)
               {
                 delete csp->_fwd;
               }
-
-            /* miscutil::list_remove_all(&csp->_headers);
-             miscutil::list_remove_all(&csp->_tags); */
 
 #ifdef FEATURE_STATISTICS
             seeks_proxy::_urls_read++;
