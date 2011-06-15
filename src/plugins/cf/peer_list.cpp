@@ -106,7 +106,7 @@ namespace seeks_plugins
 
   bool dead_peer::is_alive() const
   {
-    static std::string test_query = "seeks-alive-test";
+    static std::string test_query = "seeksalivetest";
     static std::string test_key = "c7955c712c49bb7602ff85d3b64bc363ac17033b";
 
     if (_rsc == "bsn")
