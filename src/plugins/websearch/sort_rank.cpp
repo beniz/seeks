@@ -314,7 +314,6 @@ namespace seeks_plugins
                      qc->_recommended_snippets,
                      qc);
     //bool upd = qc->update_recommended_urls();
-    //cfp->normalize(qc->_cached_snippets);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
     return true;
