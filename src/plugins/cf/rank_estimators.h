@@ -146,7 +146,7 @@ namespace seeks_plugins
 
       static db_record* find_bqc(const std::string &host, const int &port,
                                  const std::string &path, const std::string &query,
-                                 const int &expansion);
+                                 const int &expansion) throw (sp_exception);
 
       static void filter_extracted_queries(const std::string &query,
                                            const std::string &lang,
