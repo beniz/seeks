@@ -306,7 +306,7 @@ namespace seeks_plugins
       safesearch_cookies = &cookies;
     std::vector<int> status;
     curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-                  websearch::_wconfig->_se_connect_timeout,0,status);
+                  websearch::_wconfig->_se_connect_timeout,0);
     if (websearch::_wconfig->_background_proxy_addr.empty())
       cmg.www_mget(urls,urls.size(),&headers,"",0,status,NULL,safesearch_cookies); // don't go through the seeks' proxy, or will loop til death!
     else cmg.www_mget(urls,urls.size(),&headers,
