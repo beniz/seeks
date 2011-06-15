@@ -15,5 +15,10 @@ record-cache-timeout 600
 # 'bsn' for HTTP batch transport to Seeks node (soon to be default),
 # 'tt' for serving a peer user database with Tokyo Tyrant.
 # default: unset
+cf-peer http://www.seeks.fr sn
 cf-peer http://seeks-project.info/search_exp.php bsn
 cf-peer http://seeks-project.info/search.php sn
+
+# Time interval in seconds between two check on dead peers.
+# default: 300
+dead-peer-check 300
