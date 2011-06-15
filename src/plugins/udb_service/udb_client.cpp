@@ -70,7 +70,7 @@ namespace seeks_plugins
         delete[] cmg._outputs;
         std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
         std::string msg = "failed connection or transmission error in response to fetching record "
-                          + key + " from " + host + port_str;
+                          + key + " from " + host + port_str + path;
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
@@ -88,7 +88,7 @@ namespace seeks_plugins
         // transmission or deserialization error.
         std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
         std::string msg = "transmission or deserialization error fetching record "
-                          + key + " from " + host + port_str;
+                          + key + " from " + host + port_str + path;
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(UDBS_ERR_DESERIALIZE,msg);
       }
@@ -134,7 +134,7 @@ namespace seeks_plugins
         // failed connection.
         std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
         std::string msg = "failed connection or transmission error, nothing found in find_bqc response to query "
-                          + query + " from " + host + port_str;
+                          + query + " from " + host + port_str + path;
         errlog::log_error(LOG_LEVEL_DEBUG,msg.c_str());
         delete[] cmg._outputs;
         throw sp_exception(UDBS_ERR_CONNECT,msg);
@@ -153,7 +153,7 @@ namespace seeks_plugins
         // transmission or deserialization error.
         std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
         std::string msg = "transmission or deserialization error fetching batch records for query "
-                          + query + " from " + host + port_str;
+                          + query + " from " + host + port_str + path;
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(UDBS_ERR_DESERIALIZE,msg);
       }
