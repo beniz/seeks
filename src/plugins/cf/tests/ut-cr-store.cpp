@@ -69,7 +69,9 @@ TEST(CRTest,cr_record)
   crs.add(cr_store::generate_peer(hosts[0],ports[0]),key,rec);
   ASSERT_EQ(1,crs._store.size());
   ASSERT_EQ(1,seeks_proxy::_memory_dust.size());
-  db_record *rec_f = crs.find(cr_store::generate_peer(hosts[0],ports[0]),key);
+  bool has_key = false;
+  db_record *rec_f = crs.find(cr_store::generate_peer(hosts[0],ports[0]),key,has_key);
+  ASSERT_TRUE(has_key);
   ASSERT_TRUE(rec == rec_f);
   sweeper::sweep_all(); // delete cr and unregister from dust.
   ASSERT_TRUE(crs._store.empty());
