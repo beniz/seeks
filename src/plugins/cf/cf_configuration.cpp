@@ -32,23 +32,35 @@ namespace seeks_plugins
 #define hash_domain_name_weight       1333166351ul  /* "domain-name-weight" */
 #define hash_record_cache_timeout     1954675964ul  /* "record-cache-timeout" */
 #define hash_cf_peer                  1520012134ul  /* "cf-peer" */
+#define hash_dead_peer_check          1043267473ul  /* "dead-peer-check" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
   cf_configuration::cf_configuration(const std::string &filename)
     :configuration_spec(filename)
   {
+    // external static variables.
+    _pl = new peer_list();
+    _dpl = new peer_list();
+    dead_peer::_pl = _pl;
+    dead_peer::_dpl = _dpl;
+
     load_config();
   }
 
   cf_configuration::~cf_configuration()
   {
+    dead_peer::_pl = NULL;
+    dead_peer::_dpl = NULL;
+    delete _pl;
+    delete _dpl;
   }
 
   void cf_configuration::set_default_config()
   {
     _domain_name_weight = 0.7;
     _record_cache_timeout = 600; // 10 mins.
+    _dead_peer_check = 300; // 5 mins.
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -60,7 +72,7 @@ namespace seeks_plugins
     int port;
     char *endptr;
     std::vector<std::string> elts;
-    std::string host, path, address;
+    std::string host, path, address, port_str;
 
     switch (cmd_hash)
       {
@@ -87,7 +99,6 @@ namespace seeks_plugins
             break;
           }
         address = vec[0];
-        std::cerr << "address: " << address << std::endl;
         urlmatch::parse_url_host_and_path(address,host,path);
         miscutil::tokenize(host,elts,":");
         port = -1;
@@ -96,10 +107,18 @@ namespace seeks_plugins
             host = elts.at(0);
             port = atoi(elts.at(1).c_str());
           }
-        std::cerr << "host: " << host << " -- path: " << path << " -- port: " << port << " -- rsc: " << vec[1] << std::endl;
-        _pl.add(host,port,path,std::string(vec[1]));
+        port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
+        errlog::log_error(LOG_LEVEL_DEBUG,"adding peer %s%s%s with resource %s",
+                          host.c_str(),port_str.c_str(),path.c_str(),vec[1]);
+        _pl->add(host,port,path,std::string(vec[1]));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Remote peer address for collaborative filtering");
+        break;
+
+      case hash_dead_peer_check:
+        _dead_peer_check = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Interval of time between two dead peer checks");
         break;
 
       default:

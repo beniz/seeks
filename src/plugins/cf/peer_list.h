@@ -20,6 +20,10 @@
 #define PEER_LIST_H
 
 #include "stl_hash.h"
+#include "sweeper.h"
+#include "mutexes.h"
+
+using sp::sweepable;
 
 namespace seeks_plugins
 {
@@ -41,7 +45,7 @@ namespace seeks_plugins
            const std::string &path,
            const std::string &rsc);
 
-      ~peer();
+      virtual ~peer();
 
       static std::string generate_key(const std::string &host,
                                       const int &port,
@@ -51,8 +55,34 @@ namespace seeks_plugins
       int _port;
       std::string _path;
       enum PEER_STATUS _status;
-      std::string _rsc; // "tt" or "sn", tokyo tyrant or seeks node.
+      std::string _rsc; // "tt", "sn" or "bsn", that is tokyo tyrant, seeks node, or 'batch' seeks node.
       std::string _key;
+  };
+
+  class peer_list;
+
+  class dead_peer : public peer, public sweepable
+  {
+    public:
+      dead_peer();
+
+      dead_peer(const std::string &host,
+                const int &port,
+                const std::string &path,
+                const std::string &rsc);
+
+      virtual ~dead_peer();
+
+      virtual bool sweep_me();
+
+      void update_last_check();
+
+      bool is_alive() const;
+
+      time_t _last_check;
+
+      static peer_list *_pl;  /**< pointer to peer_list, for peer addition. */
+      static peer_list *_dpl; /**< pointer to peer_list, for removal. */
   };
 
   class peer_list
@@ -76,9 +106,9 @@ namespace seeks_plugins
       void remove(const std::string &key);
 
       hash_map<const char*,peer*,hash<const char*>,eqstr> _peers;
+
+      sp_mutex_t _pl_mutex;
   };
-
-
 
 } /* end of namespace. */
 

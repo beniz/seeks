@@ -45,7 +45,9 @@ namespace seeks_plugins
       // main options.
       float _domain_name_weight; /**< weight given to domain names. */
       int _record_cache_timeout; /**< timeout on cached remote records, in seconds. */
-      peer_list _pl; /**< list of peers for collaborative filtering. */
+      peer_list *_pl; /**< list of peers for collaborative filtering. */
+      peer_list *_dpl; /**< list of dead peers, used in operations, to check/uncheck dead peers from the list. */
+      int _dead_peer_check; /**< interval of time between two dead peer checks. */
 
       static cf_configuration *_config;
   };

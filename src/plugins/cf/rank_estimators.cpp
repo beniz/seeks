@@ -77,8 +77,8 @@ namespace seeks_plugins
 
     // one thread per remote peer, to handle the IO.
     hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
-    = cf_configuration::_config->_pl._peers.begin();
-    while(hit!=cf_configuration::_config->_pl._peers.end())
+    = cf_configuration::_config->_pl->_peers.begin();
+    while(hit!=cf_configuration::_config->_pl->_peers.end())
       {
         threaded_personalize(perso_args,perso_threads,
                              query,lang,expansion,&snippets,&related_queries,&reco_snippets,
@@ -157,7 +157,7 @@ namespace seeks_plugins
                                           *args->_snippets,
                                           *args->_related_queries,
                                           *args->_reco_snippets,
-                                          &pe,//"",-1,"","",
+                                          &pe,
                                           args->_qc);
           }
         else
@@ -173,6 +173,27 @@ namespace seeks_plugins
       {
         args->_err = e.code();
       }
+
+    // set peer status.
+    if (args->_pe && args->_err != SP_ERR_OK)
+      {
+        if (args->_err == UDBS_ERR_CONNECT)
+          args->_pe->_status = PEER_NO_CONNECT;
+        else args->_pe->_status = PEER_UNKNOWN; // most likely to be a slow transmission.
+
+        // add peer to monitoring list.
+        dead_peer *dpe = new dead_peer(args->_pe->_host,
+                                       args->_pe->_port,
+                                       args->_pe->_path,
+                                       args->_pe->_rsc);
+        cf_configuration::_config->_pl->remove(args->_pe->_host,
+                                               args->_pe->_port,
+                                               args->_pe->_path);
+        delete args->_pe;
+        args->_pe = NULL;
+      }
+    else if (args->_pe)
+      args->_pe->_status = PEER_OK;
   }
 
   void rank_estimator::fetch_query_data(const std::string &query,
@@ -522,7 +543,7 @@ namespace seeks_plugins
 
   db_record* rank_estimator::find_bqc(const std::string &host, const int &port,
                                       const std::string &path, const std::string &query,
-                                      const int &expansion)
+                                      const int &expansion) throw (sp_exception)
   {
     db_record *dbr = NULL;
     std::string squery = query_capture_element::no_command_query(query);
@@ -550,12 +571,9 @@ namespace seeks_plugins
           }
         catch (sp_exception &e)
           {
-            /*if (e.code() == UDBS_ERR_CONNECT)
-              {
-            //TODO: set peer status
-              }
-              else */ //TODO: set peer status to unknown.
-            dbr = NULL;
+            if (!dbr)
+              delete dbr;
+            throw e;
           }
         if (cf_configuration::_config->_record_cache_timeout > 0)
           {

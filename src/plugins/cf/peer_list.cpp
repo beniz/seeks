@@ -17,9 +17,16 @@
  */
 
 #include "peer_list.h"
+#include "rank_estimators.h"
+#include "cf_configuration.h"
+#include "db_record.h"
 #include "miscutil.h"
 #include "errlog.h"
 
+#include <time.h>
+#include <sys/time.h>
+
+using sp::sweeper;
 using sp::miscutil;
 using sp::errlog;
 
@@ -54,13 +61,134 @@ namespace seeks_plugins
     else return host + ":" + miscutil::to_string(port) + path;
   }
 
+  /*- dead_peer -*/
+  peer_list* dead_peer::_pl = NULL;
+  peer_list* dead_peer::_dpl = NULL;
+
+  dead_peer::dead_peer()
+    :peer()
+  {
+    update_last_check();
+  }
+
+  dead_peer::dead_peer(const std::string &host,
+                       const int &port,
+                       const std::string &path,
+                       const std::string &rsc)
+    :peer(host,port,path,rsc)
+  {
+    update_last_check();
+    dead_peer::_dpl->add(this);
+    sweeper::register_sweepable(this);
+    std::string port_str = (_port != -1) ? miscutil::to_string(_port) : "";
+    errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s as a dead peer to monitor",
+                      _host.c_str(),port_str.c_str());
+  }
+
+  dead_peer::~dead_peer()
+  {
+    // remove from dead peers, destroy and add up to living peer set.
+    if (_dpl)
+      _dpl->remove(_host,_port,_path);
+    if (_pl)
+      _pl->add(_host,_port,_path,_rsc);
+    sweeper::unregister_sweepable(this);
+    std::string port_str = (_port != -1) ? miscutil::to_string(_port) : "";
+    errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s as a living peer",
+                      _host.c_str(),port_str.c_str());
+  }
+
+  void dead_peer::update_last_check()
+  {
+    struct timeval tv_now;
+    gettimeofday(&tv_now,NULL);
+    _last_check = tv_now.tv_sec;
+  }
+
+  bool dead_peer::is_alive() const
+  {
+    static std::string test_query = "seeks-alive-test";
+    static std::string test_key = "c7955c712c49bb7602ff85d3b64bc363ac17033b";
+
+    if (_rsc == "bsn")
+      {
+        int expansion = 1;
+        db_record *dbr = NULL;
+        try
+          {
+            // XXX: beware that this call may hit the cache store.
+            // but if the cache store contains something, then the peer
+            // should not be marked as dead anyways...
+            dbr = rank_estimator::find_bqc(_host,_port,_path,test_query,expansion);
+          }
+        catch (sp_exception &e)
+          {
+            if (dbr)
+              delete dbr;
+            return false;
+          }
+        if (dbr)
+          delete dbr;
+        return true;
+      }
+    else if (_rsc == "sn")
+      {
+        bool in_store = false;
+        db_record *dbr = NULL;
+        try
+          {
+            user_db udb(false,_host,_port,_path,_rsc);
+
+            // XXX: beware that this call may hit the cache store.
+            // but if the cache store contains something, then the peer
+            // should not be marked as dead anyways...
+            dbr = rank_estimator::find_dbr(&udb,test_key,"query-capture",in_store);
+          }
+        catch (sp_exception &e)
+          {
+            if (dbr)
+              delete dbr;
+            return false;
+          }
+        if (dbr)
+          delete dbr;
+        return true;
+      }
+    else return false;
+  }
+
+  bool dead_peer::sweep_me()
+  {
+    // time check, avoids checking for dead peer
+    // too often.
+    struct timeval tv_now;
+    gettimeofday(&tv_now,NULL);
+    double dt = difftime(tv_now.tv_sec,_last_check);
+    if (dt < cf_configuration::_config->_dead_peer_check)
+      return false;
+
+    // run an 'alive' test, if peer alive, then delete it.
+    bool alive = is_alive();
+    update_last_check();
+    std::string port_str = (_port != -1) ? ":" + miscutil::to_string(_port) : "";
+    std::string msg = "checking on " + _host + port_str + _path + " -> alive: " + miscutil::to_string(alive);
+    errlog::log_error(LOG_LEVEL_INFO,msg.c_str());
+    if (alive)
+      {
+        return true;
+      }
+    else return false;
+  }
+
   /*- peer_list -*/
   peer_list::peer_list()
   {
+    mutex_init(&_pl_mutex);
   }
 
   peer_list::~peer_list()
   {
+    mutex_lock(&_pl_mutex);
     hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit
     = _peers.begin();
     hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator chit;
@@ -70,6 +198,7 @@ namespace seeks_plugins
         ++hit;
         delete (*chit).second;
       }
+    mutex_unlock(&_pl_mutex);
   }
 
   void peer_list::add(const std::string &host,
@@ -82,6 +211,7 @@ namespace seeks_plugins
 
   void peer_list::add(peer *p)
   {
+    mutex_lock(&_pl_mutex);
     hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_peers.find(p->_key.c_str()))!=_peers.end())
       {
@@ -92,6 +222,8 @@ namespace seeks_plugins
     else _peers.insert(std::pair<const char*,peer*>(p->_key.c_str(),p));
 
     //TODO: hook up callback for incoming peers.
+
+    mutex_unlock(&_pl_mutex);
   }
 
   void peer_list::remove(const std::string &host,
@@ -104,11 +236,15 @@ namespace seeks_plugins
 
   void peer_list::remove(const std::string &key)
   {
+    mutex_lock(&_pl_mutex);
     hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_peers.find(key.c_str()))!=_peers.end())
       {
         _peers.erase(hit);
+        mutex_unlock(&_pl_mutex);
+        return;
       }
+    mutex_unlock(&_pl_mutex);
     errlog::log_error(LOG_LEVEL_ERROR,"Cannot find peer %s to remove from peer list",
                       key.c_str());
   }
