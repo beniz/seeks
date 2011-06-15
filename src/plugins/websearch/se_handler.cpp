@@ -393,7 +393,7 @@ namespace seeks_plugins
   }
 
   void se_dailymotion::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  std::string &url, const query_context *qc)
+                                   std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
     const char *query = miscutil::lookup(parameters,"q");
@@ -426,7 +426,7 @@ namespace seeks_plugins
   }
 
   void se_doku::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  std::string &url, const query_context *qc)
+                            std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
     const char *query = miscutil::lookup(parameters,"q");
@@ -453,7 +453,7 @@ namespace seeks_plugins
   }
 
   void se_mediawiki::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  std::string &url, const query_context *qc)
+                                 std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
     const char *query = miscutil::lookup(parameters,"q");
@@ -480,7 +480,7 @@ namespace seeks_plugins
   }
 
   void se_osearch_rss::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  std::string &url, const query_context *qc)
+                                   std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
     const char *query = miscutil::lookup(parameters,"q");
@@ -507,7 +507,7 @@ namespace seeks_plugins
   }
 
   void se_osearch_atom::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  std::string &url, const query_context *qc)
+                                    std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
     const char *query = miscutil::lookup(parameters,"q");
@@ -573,7 +573,7 @@ namespace seeks_plugins
 
   /*-- queries to the search engines. */
   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception)
+                                         int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception)
   {
     std::vector<std::string> urls;
     urls.reserve(se_enabled.size());
@@ -615,15 +615,16 @@ namespace seeks_plugins
 
     // get content.
     curl_mget cmg(urls.size(),websearch::_wconfig->_se_transfer_timeout,0,
-    websearch::_wconfig->_se_connect_timeout,0);
+                  websearch::_wconfig->_se_connect_timeout,0);
+    std::vector<int> status;
     mutex_lock(&_curl_mutex);
     if (websearch::_wconfig->_background_proxy_addr.empty())
       cmg.www_mget(urls,urls.size(),&headers,
-      "",0,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
+                   "",0,status,&se_handler::_curl_handlers); // don't go through the seeks' proxy, or will loop til death!
     else cmg.www_mget(urls,urls.size(),&headers,
-      websearch::_wconfig->_background_proxy_addr,
-      websearch::_wconfig->_background_proxy_port,
-      &se_handler::_curl_handlers);
+                        websearch::_wconfig->_background_proxy_addr,
+                        websearch::_wconfig->_background_proxy_port,
+                        status,&se_handler::_curl_handlers);
     mutex_unlock(&_curl_mutex);
 
     std::string **outputs = new std::string*[urls.size()];
@@ -659,8 +660,8 @@ namespace seeks_plugins
   }
 
   void se_handler::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-  const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
-  std::list<const char*> *&lheaders)
+                               const feed_parser &se, std::vector<std::string> &all_urls, const query_context *qc,
+                               std::list<const char*> *&lheaders)
   {
     lheaders = new std::list<const char*>();
 
@@ -711,10 +712,10 @@ namespace seeks_plugins
 
   /*-- parsing. --*/
   void se_handler::parse_ses_output(std::string **outputs, const int &nresults,
-  std::vector<search_snippet*> &snippets,
-  const int &count_offset,
-  query_context *qr,
-  const feeds &se_enabled)
+                                    std::vector<search_snippet*> &snippets,
+                                    const int &count_offset,
+                                    query_context *qr,
+                                    const feeds &se_enabled)
   {
     // use multiple threads unless told otherwise.
     int j = 0;
@@ -743,7 +744,7 @@ namespace seeks_plugins
 
                     pthread_t ps_thread;
                     int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
-                    (void * (*)(void *))se_handler::parse_output, args);
+                                             (void * (*)(void *))se_handler::parse_output, args);
                     if (err != 0)
                       {
                         errlog::log_error(LOG_LEVEL_ERROR, "Error creating parser thread.");
@@ -774,7 +775,7 @@ namespace seeks_plugins
               {
                 if (parser_args.at(i)->_err == SP_ERR_OK)
                   std::copy(parser_args.at(i)->_snippets->begin(),parser_args.at(i)->_snippets->end(),
-                  std::back_inserter(snippets));
+                            std::back_inserter(snippets));
                 parser_args.at(i)->_snippets->clear();
                 delete parser_args.at(i)->_snippets;
                 delete parser_args.at(i);
@@ -818,7 +819,7 @@ namespace seeks_plugins
           se->parse_output_xml(args._output,args._snippets,args._offset);
         else se->parse_output(args._output,args._snippets,args._offset);
         errlog::log_error(LOG_LEVEL_DEBUG,"parser %s: %u snippets",
-        args._se._name.c_str(),args._snippets->size());
+                          args._se._name.c_str(),args._snippets->size());
       }
     catch (sp_exception &e)
       {
@@ -851,7 +852,7 @@ namespace seeks_plugins
   }
 
   se_parser* se_handler::create_se_parser(const feed_parser &se,
-  const size_t &i)
+                                          const size_t &i)
   {
     se_parser *sep = NULL;
     if (se._name == "google")

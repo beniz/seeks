@@ -61,18 +61,21 @@ namespace seeks_plugins
     // fetch content.
     curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
                   websearch::_wconfig->_ct_transfer_timeout,0);
+    std::vector<int> status;
     if (websearch::_wconfig->_background_proxy_addr.empty() && proxy)
       {
         if (seeks_proxy::_run_proxy)
           cmg.www_mget(urls,urls.size(),NULL,
-                       seeks_proxy::_config->_haddr,seeks_proxy::_config->_hport);
-        else cmg.www_mget(urls,urls.size(),NULL,"",0);
+                       seeks_proxy::_config->_haddr,seeks_proxy::_config->_hport,
+                       status);
+        else cmg.www_mget(urls,urls.size(),NULL,"",0,status);
       }
     else if (websearch::_wconfig->_background_proxy_addr.empty())
-      cmg.www_mget(urls,urls.size(),NULL,"",0); // noproxy
+      cmg.www_mget(urls,urls.size(),NULL,"",0,status); // noproxy
     else cmg.www_mget(urls,urls.size(),NULL,
                         websearch::_wconfig->_background_proxy_addr,
-                        websearch::_wconfig->_background_proxy_port);
+                        websearch::_wconfig->_background_proxy_port,
+                        status);
 
     std::string **outputs = new std::string*[urls.size()];
     int k = 0;

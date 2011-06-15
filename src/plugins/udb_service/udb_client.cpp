@@ -63,8 +63,9 @@ namespace seeks_plugins
     std::vector<std::string> urls;
     urls.reserve(1);
     urls.push_back(url);
-    cmg.www_mget(urls,1,NULL,"",0); // not going through a proxy. TODO: support for external proxy.
-    if (!cmg._outputs[0])
+    std::vector<int> status;
+    cmg.www_mget(urls,1,NULL,"",0,status); // not going through a proxy. TODO: support for external proxy.
+    if (status[0] != 0)
       {
         // failed connection.
         delete[] cmg._outputs;
@@ -74,7 +75,7 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
-    else if (cmg._outputs[0]->empty())
+    else if (status[0] && !cmg._outputs[0])
       {
         // no result.
         delete cmg._outputs[0];
@@ -126,10 +127,11 @@ namespace seeks_plugins
     urls.reserve(1);
     urls.push_back(url);
     errlog::log_error(LOG_LEVEL_DEBUG,"call: %s",url.c_str());
-    cmg.www_mget(urls,1,NULL,"",0,
+    std::vector<int> status;
+    cmg.www_mget(urls,1,NULL,"",0,status,
                  NULL,NULL,true,&msg,msg.length()*sizeof(char),
                  ctype); // not going through a proxy. TODO: support for external proxy.
-    if (!cmg._outputs[0])
+    if (status[0] !=0)
       {
         // failed connection.
         std::string port_str = (port != -1) ? ":" + miscutil::to_string(port) : "";
@@ -139,7 +141,7 @@ namespace seeks_plugins
         delete[] cmg._outputs;
         throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
-    else if (cmg._outputs[0]->empty())
+    else if (status[0] == 0 && !cmg._outputs[0])
       {
         // no result.
         delete cmg._outputs[0];

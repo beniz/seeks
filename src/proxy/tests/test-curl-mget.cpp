@@ -41,7 +41,8 @@ int main(int argc, char **argv)
     }
 
   curl_mget cmg(n_requests,60,0,60,0); // 60 seconds connection & transfer timeout.
-  std::string **outputs = cmg.www_mget(addr,n_requests,NULL,"",0); // don't use a proxy.
+  std::vector<int> status;
+  std::string **outputs = cmg.www_mget(addr,n_requests,NULL,"",0,status); // don't use a proxy.
 
   //std::cout << "outputs:\n";
   for (int i=0; i<n_requests; i++)

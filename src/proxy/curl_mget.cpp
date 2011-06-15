@@ -96,7 +96,6 @@ namespace sp
 
     if (!arg->_proxy_addr.empty())
       {
-        //std::string proxy_str = seeks_proxy::_config->_haddr;
         std::string proxy_str = arg->_proxy_addr + ":" + miscutil::to_string(arg->_proxy_port);//+ miscutil::to_string(seeks_proxy::_config->_hport);
         curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
       }
@@ -137,6 +136,7 @@ namespace sp
         int status = curl_easy_perform(curl);
         if (status != 0)  // an error occurred.
           {
+            arg->_status = status;
             errlog::log_error(LOG_LEVEL_ERROR, "curl error: %s", errorbuffer);
 
             if (arg->_output)
@@ -148,6 +148,7 @@ namespace sp
       }
     catch (std::exception &e)
       {
+        arg->_status = -1;
         errlog::log_error(LOG_LEVEL_ERROR, "Error %s in fetching remote data with curl.", e.what());
         if (arg->_output)
           {
@@ -157,6 +158,7 @@ namespace sp
       }
     catch (...)
       {
+        arg->_status = -2;
         if (arg->_output)
           {
             delete arg->_output;
@@ -176,6 +178,7 @@ namespace sp
   std::string** curl_mget::www_mget(const std::vector<std::string> &urls, const int &nrequests,
                                     const std::vector<std::list<const char*>*> *headers,
                                     const std::string &proxy_addr, const short &proxy_port,
+                                    std::vector<int> &status,
                                     std::vector<CURL*> *chandlers,
                                     std::vector<std::string> *cookies,
                                     const bool &post,
@@ -218,19 +221,18 @@ namespace sp
 
         if (error != 0)
           errlog::log_error(LOG_LEVEL_ERROR,"Couldn't run thread number %g",i,", errno %g",error);
-        //else std::cout << "Thread " << i << ", gets " << urls[i] << std::endl;
       }
 
     /* now wait for all threads to terminate */
     for (int i=0; i<nrequests; i++)
       {
         int error = pthread_join(tid[i], NULL);
-        //std::cout << "Thread " << i << " terminated\n";
       }
 
     for (int i=0; i<nrequests; i++)
       {
         _outputs[i] = _cbgets[i]->_output;
+        status.push_back(_cbgets[i]->_status);
         delete _cbgets[i];
       }
 

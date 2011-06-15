@@ -153,7 +153,8 @@ namespace seeks_plugins
       const std::vector<std::list<const char*>*> *headers)
   {
     curl_mget cmg(uris.size(),timeout,0,timeout,0);
-    cmg.www_mget(uris,uris.size(),headers,"",0);
+    std::vector<int> status;
+    cmg.www_mget(uris,uris.size(),headers,"",0,status);
 
     uc_err err = uri_capture::parse_uri_html_title(uris,titles,cmg._outputs);
     delete[] cmg._outputs;
