@@ -352,7 +352,7 @@ namespace seeks_plugins
 
             /*
              * skipped if query is N/A. In this case, this means we're fetching
-             * more that what we need, and results need to be filtered afterwards,
+             * more than what we need, and results need to be filtered afterwards,
              * and query data radius recomputed.
              */
             if (swl && !query_recommender::select_query(strc_query,qd->_query,swl))
@@ -597,6 +597,7 @@ namespace seeks_plugins
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
     mutex_unlock(&_est_mutex);
 
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
     = qdata.begin();
     while(hit!=qdata.end())
@@ -604,7 +605,10 @@ namespace seeks_plugins
         query_data *qd = (*hit).second;
         if (swl && !query_recommender::select_query(strc_query,qd->_query,swl))
           {
+            chit = hit;
             ++hit;
+            qdata.erase(chit);
+            delete qd;
             continue;
           }
         str_chain strc_rquery(qd->_query,0,true);
