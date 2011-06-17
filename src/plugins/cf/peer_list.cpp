@@ -210,9 +210,8 @@ namespace seeks_plugins
     hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_peers.find(p->_key.c_str()))!=_peers.end())
       {
-        // update.
-        delete (*hit).second;
-        (*hit).second = p;
+        // do nothing.
+        // XXX: update may be needed if datastructure evolves.
       }
     else _peers.insert(std::pair<const char*,peer*>(p->_key.c_str(),p));
 
