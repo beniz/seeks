@@ -685,21 +685,35 @@ namespace seeks_plugins
     // build up the filter based on local data.
     hash_map<uint32_t,bool,id_hash_uint> filter;
     if (pe->_host.empty()) // we're local.
-      simple_re::build_up_filter(&qdata,filter,true);
+      {
+        if (qc->_lfilter)
+          qc->_lfilter->clear();
+        else qc->_lfilter = new hash_map<uint32_t,bool,id_hash_uint>();
+        simple_re::build_up_filter(&qdata,*qc->_lfilter,true);
+        filter = *qc->_lfilter;
+      }
     else
       {
-        // fetch queries from user DB.
-        hash_map<const char*,query_data*,hash<const char*>,eqstr> lqdata;
-        try
+        if (qc->_lfilter)
           {
-            rank_estimator::fetch_query_data(query,lang,expansion,lqdata,pe);
+            filter = *qc->_lfilter;
           }
-        catch(sp_exception &e)
+        else
           {
-            throw e;
+            // fetch queries from user DB.
+            hash_map<const char*,query_data*,hash<const char*>,eqstr> lqdata;
+            try
+              {
+                peer pel;
+                rank_estimator::fetch_query_data(query,lang,expansion,lqdata,&pel);
+              }
+            catch(sp_exception &e)
+              {
+                throw e;
+              }
+            simple_re::build_up_filter(&lqdata,filter,true);
+            rank_estimator::destroy_query_data(lqdata);
           }
-        simple_re::build_up_filter(&lqdata,filter,true);
-        rank_estimator::destroy_query_data(lqdata);
 
         // update filter with remote data, with dominance of local data.
         simple_re::build_up_filter(&qdata,filter,false);

@@ -290,6 +290,9 @@ namespace seeks_plugins
 
       /* number of peers influencing this context. */
       uint32_t _npeers;
+
+      /* local personalization URL filter. */
+      hash_map<uint32_t,bool,id_hash_uint> *_lfilter;
   };
 
 } /* end of namespace. */
