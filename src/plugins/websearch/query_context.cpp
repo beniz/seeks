@@ -284,16 +284,18 @@ namespace seeks_plugins
             feeds fint = _engines.diff(fdiff);
 
             // catch up expansion with the newly activated engines.
-            try
+            if (fint.size() > 1 || !fint.has_feed("seeks"))
               {
-                expand(csp,rsp,parameters,0,_page_expansion,fint);
+                try
+                  {
+                    expand(csp,rsp,parameters,0,_page_expansion,fint);
+                  }
+                catch (sp_exception &e)
+                  {
+                    expanded = false;
+                    throw e;
+                  }
               }
-            catch (sp_exception &e)
-              {
-                expanded = false;
-                throw e;
-              }
-
             expanded = true;
 
             // union engines & fint.
@@ -310,19 +312,21 @@ namespace seeks_plugins
       }
 
     // perform requested expansion.
-    try
+    if (_engines.size() > 1 || !_engines.has_feed("seeks"))
       {
-        if (!cache_check)
-          expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
-        else if (strcasecmp(cache_check,"no") == 0)
-          expand(csp,rsp,parameters,0,horizon,_engines);
+        try
+          {
+            if (!cache_check)
+              expand(csp,rsp,parameters,_page_expansion,horizon,_engines);
+            else if (strcasecmp(cache_check,"no") == 0)
+              expand(csp,rsp,parameters,0,horizon,_engines);
+          }
+        catch (sp_exception &e)
+          {
+            expanded = false;
+            throw e;
+          }
       }
-    catch (sp_exception &e)
-      {
-        expanded = false;
-        throw e;
-      }
-
     expanded = true;
 
     // update horizon.
