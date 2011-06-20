@@ -55,6 +55,7 @@ namespace seeks_plugins
       int _port;
       std::string _path;
       enum PEER_STATUS _status;
+      short _retries;
       std::string _rsc; // "tt", "sn" or "bsn", that is tokyo tyrant, seeks node, or 'batch' seeks node.
       std::string _key;
   };

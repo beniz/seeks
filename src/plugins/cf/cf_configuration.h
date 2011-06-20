@@ -48,6 +48,7 @@ namespace seeks_plugins
       peer_list *_pl; /**< list of peers for collaborative filtering. */
       peer_list *_dpl; /**< list of dead peers, used in operations, to check/uncheck dead peers from the list. */
       int _dead_peer_check; /**< interval of time between two dead peer checks. */
+      short _dead_peer_retries; /**< number of retries before marking a peer as dead. */
 
       static cf_configuration *_config;
   };

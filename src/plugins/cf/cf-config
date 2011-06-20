@@ -22,3 +22,6 @@ cf-peer http://seeks-project.info/search.php bsn
 # Time interval in seconds between two check on dead peers.
 # default: 300
 dead-peer-check 300
+
+# Number of retries before marking a peer as dead.
+dead-peer-retries 3

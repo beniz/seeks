@@ -177,20 +177,23 @@ namespace seeks_plugins
     // set peer status.
     if (args->_pe && args->_err != SP_ERR_OK)
       {
-        if (args->_err == UDBS_ERR_CONNECT)
-          args->_pe->_status = PEER_NO_CONNECT;
-        else args->_pe->_status = PEER_UNKNOWN; // most likely to be a slow transmission.
+        if (++args->_pe->_retries > cf_configuration::_config->_dead_peer_retries)
+          {
+            if (args->_err == UDBS_ERR_CONNECT)
+              args->_pe->_status = PEER_NO_CONNECT;
+            else args->_pe->_status = PEER_UNKNOWN; // most likely to be a slow transmission.
 
-        // add peer to monitoring list.
-        dead_peer *dpe = new dead_peer(args->_pe->_host,
-                                       args->_pe->_port,
-                                       args->_pe->_path,
-                                       args->_pe->_rsc);
-        cf_configuration::_config->_pl->remove(args->_pe->_host,
-                                               args->_pe->_port,
-                                               args->_pe->_path);
-        delete args->_pe;
-        args->_pe = NULL;
+            // add peer to monitoring list.
+            dead_peer *dpe = new dead_peer(args->_pe->_host,
+                                           args->_pe->_port,
+                                           args->_pe->_path,
+                                           args->_pe->_rsc);
+            cf_configuration::_config->_pl->remove(args->_pe->_host,
+                                                   args->_pe->_port,
+                                                   args->_pe->_path);
+            delete args->_pe;
+            args->_pe = NULL;
+          }
       }
     else if (args->_pe)
       args->_pe->_status = PEER_OK;

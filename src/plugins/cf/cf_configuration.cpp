@@ -33,6 +33,7 @@ namespace seeks_plugins
 #define hash_record_cache_timeout     1954675964ul  /* "record-cache-timeout" */
 #define hash_cf_peer                  1520012134ul  /* "cf-peer" */
 #define hash_dead_peer_check          1043267473ul  /* "dead-peer-check" */
+#define hash_dead_peer_retries         681362871ul  /* "dead-peer-retries" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -61,6 +62,7 @@ namespace seeks_plugins
     _domain_name_weight = 0.7;
     _record_cache_timeout = 600; // 10 mins.
     _dead_peer_check = 300; // 5 mins.
+    _dead_peer_retries = 3;
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -119,6 +121,12 @@ namespace seeks_plugins
         _dead_peer_check = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Interval of time between two dead peer checks");
+        break;
+
+      case hash_dead_peer_retries:
+        _dead_peer_retries = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Number of retries before marking a peer as dead");
         break;
 
       default:

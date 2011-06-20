@@ -35,7 +35,7 @@ namespace seeks_plugins
 
   /*- peer -*/
   peer::peer()
-    :_port(-1),_status(PEER_UNKNOWN)
+    :_port(-1),_status(PEER_UNKNOWN),_retries(0)
   {
   }
 
@@ -43,7 +43,7 @@ namespace seeks_plugins
              const int &port,
              const std::string &path,
              const std::string &rsc)
-    :_host(host),_port(port),_path(path),_status(PEER_UNKNOWN),_rsc(rsc)
+    :_host(host),_port(port),_path(path),_status(PEER_UNKNOWN),_retries(0),_rsc(rsc)
   {
     _key = peer::generate_key(host,port,path);
   }
