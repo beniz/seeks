@@ -35,5 +35,5 @@ query-sweep-cycle 2592000
 query-retention 31104000
  
 # Saves URL snippet's title and summary for reuse.
-# default: 0
-save-url-data 0
+# default: 1
+save-url-data 1
