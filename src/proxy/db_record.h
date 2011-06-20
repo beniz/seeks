@@ -70,9 +70,19 @@ namespace sp
       virtual int serialize(std::string &msg) const;
 
       /**
-       * \brief fill up the object from a serialized version of it.
+       * \brief fills up the object from a serialized version of it.
        */
       virtual int deserialize(const std::string &msg);
+
+      /**
+       * \brief serializes the compressed object.
+       */
+      virtual int serialize_compressed(std::string &msg) const;
+
+      /**
+       * \brief fills up the object from a compressed serialized version of it.
+       */
+      virtual int deserialize_compressed(const std::string &msg);
 
       /**
        * \brief base serialization.

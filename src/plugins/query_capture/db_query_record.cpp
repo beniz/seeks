@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -33,8 +33,12 @@ using lsh::qprocess;
 #include <algorithm>
 #include <iterator>
 #include <iostream>
+#include <sstream>
 
 #include <iconv.h>
+
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/gzip_stream.h>
 
 using sp::errlog;
 using sp::miscutil;
@@ -275,6 +279,39 @@ namespace seeks_plugins
       {
         errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing db_query_record");
         return 1; // error.
+      }
+    read_query_record(r);
+    return 0;
+  }
+
+  int db_query_record::serialize_compressed(std::string &msg) const
+  {
+    sp::db::record r;
+    create_query_record(r);
+    std::string tmp;
+    if (!r.SerializeToString(&tmp))
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Failed serializing db_query_record to gzip stream");
+        return 1; // error.
+      }
+    ::google::protobuf::io::StringOutputStream zoss(&msg);
+    ::google::protobuf::io::GzipOutputStream gzos(&zoss);
+    ::google::protobuf::io::CodedOutputStream cos(&gzos);
+    cos.WriteString(tmp);
+    return 0;
+  }
+
+  int db_query_record::deserialize_compressed(const std::string &msg)
+  {
+    sp::db::record r;
+    std::istringstream iss(msg,std::istringstream::out);
+    ::google::protobuf::io::IstreamInputStream ziss(&iss);
+    ::google::protobuf::io::GzipInputStream gzis(&ziss);
+    if (!r.ParseFromZeroCopyStream(&gzis))
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"Failed deserializing db_query_record from gzip_stream");
+        // try uncompressed deserialization.
+        return deserialize(msg);
       }
     read_query_record(r);
     return 0;

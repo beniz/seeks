@@ -178,7 +178,7 @@ TEST_F(UDBSTest,find_bqc_cb)
   plugin *pl = plugin_manager::get_plugin(pn);
   ASSERT_FALSE(NULL == pl);
   db_record * dbr = pl->create_db_record();
-  int serr = dbr->deserialize(str);
+  int serr = dbr->deserialize_compressed(str);
   ASSERT_EQ(0,serr);
   db_query_record *dbqr = static_cast<db_query_record*>(dbr);
   ASSERT_TRUE(NULL!=dbqr);

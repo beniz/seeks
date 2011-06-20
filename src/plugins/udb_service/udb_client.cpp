@@ -171,7 +171,7 @@ namespace seeks_plugins
         return NULL;
       }
     db_record *dbr = pl->create_db_record();
-    int serr = dbr->deserialize(str);
+    int serr = dbr->deserialize_compressed(str);
     if (serr == 0)
       return dbr;
     else

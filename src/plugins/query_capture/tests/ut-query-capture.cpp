@@ -219,7 +219,7 @@ TEST_F(QCTest,store_queries_url)
   hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
   = dbqr->_related_queries.find(queries[0].c_str());
   ASSERT_TRUE((*hit).second->_visited_urls!=NULL);
-  ASSERT_EQ(2,(*hit).second->_visited_urls->size()); // url + host.
+  ASSERT_EQ(2,(*hit).second->_visited_urls->size()); // host and url.
   delete dbqr;
 }
 
@@ -304,6 +304,47 @@ TEST_F(QCTest,remove_url)
   = dbqr->_related_queries.find(queries[0].c_str());
   ASSERT_TRUE((*hit).second->_visited_urls==NULL); // protobuffers read no urls in record.
   delete dbqr;
+}
+
+TEST(DBRTest,serialize_deserialize)
+{
+  db_query_record dbr("query-capture",queries[0],0,
+                      uris[1],1,1,"Seeks Project Documentation",
+                      "Seeks project documentation",0);
+  std::string msg;
+  int err = dbr.serialize(msg);
+  ASSERT_EQ(0,err);
+  std::cerr << "msg length: " << msg.length() << std::endl;
+  err = dbr.deserialize(msg);
+  ASSERT_EQ(0,err);
+}
+
+TEST(DBRTest,serialize_deserialize_compressed)
+{
+  db_query_record dbr("query-capture",queries[0],0,
+                      uris[1],1,1,"Seeks Project Documentation",
+                      "Seeks project documentation",0);
+  std::string msg;
+  int err = dbr.serialize_compressed(msg);
+  ASSERT_EQ(0,err);
+  ASSERT_FALSE(msg.empty());
+  std::cerr << "msg length: " << msg.length() << std::endl;
+  err = dbr.deserialize_compressed(msg);
+  ASSERT_EQ(0,err);
+}
+
+TEST(DBRTest,serialize_deserialize_compressed_mix)
+{
+  db_query_record dbr("query-capture",queries[0],0,
+                      uris[1],1,1,"Seeks Project Documentation",
+                      "Seeks project documentation",0);
+  std::string msg;
+  int err = dbr.serialize(msg);
+  ASSERT_EQ(0,err);
+  ASSERT_FALSE(msg.empty());
+  std::cerr << "msg length: " << msg.length() << std::endl;
+  err = dbr.deserialize_compressed(msg);
+  ASSERT_EQ(0,err);
 }
 
 int main(int argc, char **argv)

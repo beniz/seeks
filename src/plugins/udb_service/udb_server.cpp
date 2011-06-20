@@ -89,7 +89,7 @@ namespace seeks_plugins
 
     // serialize dbr.
     std::string str;
-    dbr->serialize(str);
+    dbr->serialize_compressed(str);
     /*std::cerr << "dbr: ";
       dbr->print(std::cerr);*/
 

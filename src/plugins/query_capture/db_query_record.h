@@ -152,6 +152,10 @@ namespace seeks_plugins
 
       virtual int deserialize(const std::string &msg);
 
+      virtual int serialize_compressed(std::string &msg) const;
+
+      virtual int deserialize_compressed(const std::string &msg);
+
       virtual db_err merge_with(const db_record &dqr);
 
       void create_query_record(sp::db::record &r) const;

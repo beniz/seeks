@@ -69,6 +69,18 @@ namespace sp
     return deserialize_base_record(msg);
   }
 
+  // XXX: we do not use compression for this amount of data.
+  int db_record::serialize_compressed(std::string &msg) const
+  {
+    return serialize_base_record(msg);
+  }
+
+  // XXX: we do not usecompression forthis amount of data.
+  int db_record::deserialize_compressed(const std::string &msg)
+  {
+    return deserialize_base_record(msg);
+  }
+
   int db_record::serialize_base_record(std::string &msg) const
   {
     sp::db::record r;
