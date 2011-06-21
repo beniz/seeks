@@ -90,6 +90,8 @@ namespace seeks_plugins
             std::string suggested_q_str = (*mit).second;
             char *sugg_html_enc = encode::html_encode(suggested_q_str.c_str());
             std::string sugg_html_enc_str = std::string(sugg_html_enc);
+            if (sugg_html_enc_str.size() > 45)
+              sugg_html_enc_str =sugg_html_enc_str.substr(0,42) + "...";
             free(sugg_html_enc);
             char *sugg_url_enc = encode::url_encode(suggested_q_str.c_str());
             std::string sugg_url_enc_str = std::string(sugg_url_enc);
