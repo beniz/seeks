@@ -152,7 +152,7 @@ namespace seeks_plugins
                        std::vector<search_snippet*> &snippets,
                        std::multimap<double,std::string,std::less<double> > &related_queries,
                        hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
-                       query_context *qc) throw (sp_exception)
+                       query_context *qc)
   {
     simple_re sre;
     sre.peers_personalize(query,lang,expansion,npeers,snippets,related_queries,reco_snippets,qc);
