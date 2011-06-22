@@ -6,6 +6,7 @@ endif
 endif
 SUBDIRS += websearch blocker 
 if HAVE_PROTOBUF
+SUBDIRS += query_capture/tests
 SUBDIRS += udb_service/tests
 endif
 if HAVE_IMG_WEBSEARCH_PLUGIN

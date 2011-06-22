@@ -34,4 +34,4 @@ nobase_dist_querycaptureplugindata_DATA=query-patterns
 EXTRA_DIST = \
 	$(protoc_inputs)
 
-SUBDIRS = . tests
+#SUBDIRS = . tests
