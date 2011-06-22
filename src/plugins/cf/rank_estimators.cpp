@@ -686,6 +686,7 @@ namespace seeks_plugins
       }
 
     // build up the filter based on local data.
+    // XXX: we could prioretize the call to the local user db.
     hash_map<uint32_t,bool,id_hash_uint> filter;
     if (pe->_host.empty()) // we're local.
       {
@@ -721,6 +722,11 @@ namespace seeks_plugins
         // update filter with remote data, with dominance of local data.
         simple_re::build_up_filter(&qdata,filter,false);
       }
+
+    // wait on feeds fetching end signal.
+    mutex_lock(&qc->_feeds_ack_mutex);
+    cond_wait(&qc->_feeds_ack_cond,&qc->_feeds_ack_mutex);
+    mutex_unlock(&qc->_feeds_ack_mutex);
 
     // rank, urls & queries.
     if (!qdata.empty())

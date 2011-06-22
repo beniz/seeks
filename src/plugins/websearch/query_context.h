@@ -276,7 +276,6 @@ namespace seeks_plugins
       sp_mutex_t _qc_mutex;
 
       /* search engines used in this context. */
-      //std::bitset<NSEs> _engines;
       feeds _engines;
 
       /* whether this context is registered or not. */
@@ -293,6 +292,12 @@ namespace seeks_plugins
 
       /* local personalization URL filter. */
       hash_map<uint32_t,bool,id_hash_uint> *_lfilter;
+
+      /* feeds acquisition mutex for signaling. */
+      sp_mutex_t _feeds_ack_mutex;
+
+      /* feeds acquisition condition variable for signaling. */
+      sp_cond_t _feeds_ack_cond;
   };
 
 } /* end of namespace. */

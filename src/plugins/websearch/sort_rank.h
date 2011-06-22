@@ -44,7 +44,7 @@ namespace seeks_plugins
       static void group_by_types(query_context *qc, cluster *&clusters, short &K);
 
 #if defined(PROTOBUF) && defined(TC)
-      static bool personalize(query_context *qc) throw (sp_exception);
+      static void personalize(query_context *qc);
       static void personalized_rank_snippets(query_context *qc,
                                              std::vector<search_snippet*> &snippets) throw (sp_exception);
       static void get_related_queries(query_context *qc) throw (sp_exception);

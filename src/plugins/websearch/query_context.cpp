@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -52,6 +52,8 @@ namespace seeks_plugins
      _registered(false),_npeers(0),_lfilter(NULL)
   {
     mutex_init(&_qc_mutex);
+    mutex_init(&_feeds_ack_mutex);
+    cond_init(&_feeds_ack_cond);
   }
 
   query_context::query_context(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -60,6 +62,8 @@ namespace seeks_plugins
      _registered(false),_npeers(0),_lfilter(NULL)
   {
     mutex_init(&_qc_mutex);
+    mutex_init(&_feeds_ack_mutex);
+    cond_init(&_feeds_ack_cond);
 
     // reload config if file has changed.
     websearch::_wconfig->load_config();

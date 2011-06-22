@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -67,7 +67,7 @@ namespace seeks_plugins
   {
     _name = "websearch";
     _version_major = "0";
-    _version_minor = "2";
+    _version_minor = "3";
 
     if (seeks_proxy::_datadir.empty())
       _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
@@ -426,7 +426,7 @@ namespace seeks_plugins
 
         // check on requested User Interface:
         // - 'dyn' for dynamic interface: detach a thread for performing the requested
-        //   action, but return the page with embedded JS right now.
+        //   action, but return the page with embedded JS right away.
         // - 'stat' for static interface: perform the requested action and render the page
         //   before returning it.
         const char *ui = miscutil::lookup(parameters,"ui");
@@ -890,7 +890,15 @@ namespace seeks_plugins
       }
     mutex_unlock(&websearch::_context_mutex);
 
+    // check for personalization parameter.
+    const char *pers = miscutil::lookup(parameters,"prs");
+    if (!pers)
+      pers = websearch::_wconfig->_personalization ? "on" : "off";
+    bool persf = (strcasecmp(pers,"on")==0);
+    pthread_t pers_thread;
+
     // expansion: we fetch more pages from every search engine.
+    sp_err err = SP_ERR_OK;
     bool expanded = false;
     if (exists_qc) // we already had a context for this query.
       {
@@ -902,30 +910,51 @@ namespace seeks_plugins
           {
             expanded = true;
             mutex_lock(&qc->_qc_mutex);
+            mutex_lock(&qc->_feeds_ack_mutex);
             try
               {
+                if (persf)
+                  {
+                    int perr = pthread_create(&pers_thread,NULL,
+                                              (void *(*)(void *))&sort_rank::personalize,qc);
+                    if (perr != 0)
+                      {
+                        errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
+                        mutex_unlock(&qc->_qc_mutex);
+                        mutex_unlock(&qc->_feeds_ack_mutex);
+                        return WB_ERR_THREAD;
+                      }
+                  }
                 qc->generate(csp,rsp,parameters,expanded);
               }
             catch (sp_exception &e)
               {
-                int code = e.code();
-                switch(code)
+                err = e.code();
+                switch(err)
                   {
                   case SP_ERR_CGI_PARAMS:
                   case WB_ERR_NO_ENGINE:
-                    mutex_unlock(&qc->_qc_mutex);
                     break;
                   case WB_ERR_NO_ENGINE_OUTPUT:
-                    mutex_unlock(&qc->_qc_mutex);
                     websearch::failed_ses_connect(csp,rsp);
-                    code = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
+                    err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
                     break;
                   default:
                     break;
                   }
-                return code;
               }
-            mutex_unlock(&qc->_qc_mutex);
+
+            // do not return if perso + err != no engine
+            // instead signal all personalization threads that results may have
+            // arrived.
+            mutex_unlock(&qc->_feeds_ack_mutex);
+            if (persf && err != WB_ERR_NO_ENGINE)
+              {
+              }
+            else
+              {
+                return err;
+              }
           }
         else if (miscutil::strcmpic(action,"page") == 0)
           {
@@ -943,30 +972,52 @@ namespace seeks_plugins
         // to generate snippets first.
         expanded = true;
         mutex_lock(&qc->_qc_mutex);
+        mutex_lock(&qc->_feeds_ack_mutex);
         try
           {
+            // personalization in parallel to feeds fetching.
+            if (persf)
+              {
+                int perr = pthread_create(&pers_thread,NULL,
+                                          (void *(*)(void *))&sort_rank::personalize,qc);
+                if (perr != 0)
+                  {
+                    errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
+                    mutex_unlock(&qc->_qc_mutex);
+                    mutex_unlock(&qc->_feeds_ack_mutex);
+                    return WB_ERR_THREAD;
+                  }
+              }
             qc->generate(csp,rsp,parameters,expanded);
           }
         catch (sp_exception &e)
           {
-            int code = e.code();
-            switch(code)
+            err = e.code();
+            switch(err)
               {
               case SP_ERR_CGI_PARAMS:
               case WB_ERR_NO_ENGINE:
-                mutex_unlock(&qc->_qc_mutex);
                 break;
               case WB_ERR_NO_ENGINE_OUTPUT:
-                mutex_unlock(&qc->_qc_mutex);
                 websearch::failed_ses_connect(csp,rsp);
-                code = WB_ERR_SE_CONNECT;
+                err = WB_ERR_SE_CONNECT;
                 break;
               default:
                 break;
               }
-            return code;
           }
-        mutex_unlock(&qc->_qc_mutex);
+
+        // do not return if perso + err != no engine
+        // instead signal all personalization threads that results may have
+        // arrived.
+        mutex_unlock(&qc->_feeds_ack_mutex);
+        if (persf && err != WB_ERR_NO_ENGINE)
+          {
+          }
+        else
+          {
+            return err;
+          }
 
 #if defined(PROTOBUF) && defined(TC)
         // query_capture if plugin is available and activated.
@@ -985,28 +1036,24 @@ namespace seeks_plugins
       }
 
     // sort and rank search snippets.
-    mutex_lock(&qc->_qc_mutex);
+    if (persf)
+      {
+        //pthread_join(pers_thread,NULL);
+        while(pthread_tryjoin_np(pers_thread,NULL))
+          {
+            cond_broadcast(&qc->_feeds_ack_cond);
+          }
+      }
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
                                             parameters);
-    const char *pers = miscutil::lookup(parameters,"prs");
-    if (!pers)
-      pers = websearch::_wconfig->_personalization ? "on" : "off";
-    if (strcasecmp(pers,"on") == 0)
-      {
-#if defined(PROTOBUF) && defined(TC)
-        try
-          {
-            if (sort_rank::personalize(qc))
-              sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
-                                                      parameters);
-          }
-        catch (sp_exception &e)
-          {
-            std::string msg = "Failed personalization of results: " + e.to_string();
-            errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
-          }
-#endif
-      }
+    /*    if (persf)
+    {
+    #if defined(PROTOBUF) && defined(TC)
+    sort_rank::personalize(qc);
+    sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
+    parameters);
+    #endif
+    } */
 
     if (expanded)
       qc->_compute_tfidf_features = true;
@@ -1022,7 +1069,7 @@ namespace seeks_plugins
       qtime = -1.0; // unavailable.
 
     // render the page (static).
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (render)
       {
         const char *ui = miscutil::lookup(parameters,"ui");

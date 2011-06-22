@@ -301,10 +301,10 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  bool sort_rank::personalize(query_context *qc) throw (sp_exception)
+  void sort_rank::personalize(query_context *qc)
   {
     if (!websearch::_cf_plugin)
-      return false;
+      return;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
     cfp->personalize(qc->_query,qc->_auto_lang,
                      qc->_page_expansion,
@@ -313,10 +313,8 @@ namespace seeks_plugins
                      qc->_suggestions,
                      qc->_recommended_snippets,
                      qc);
-    //bool upd = qc->update_recommended_urls();
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
-    return true;
   }
 
   void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
