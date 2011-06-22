@@ -895,7 +895,7 @@ namespace seeks_plugins
     if (!pers)
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
-    pthread_t pers_thread;
+    pthread_t pers_thread = 0;
 
     // expansion: we fetch more pages from every search engine.
     sp_err err = SP_ERR_OK;
@@ -964,6 +964,20 @@ namespace seeks_plugins
 
             // XXX: update other parameters, as needed, qc vs parameters.
             qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+
+            // personalization.
+            if (persf)
+              {
+                int perr = pthread_create(&pers_thread,NULL,
+                                          (void *(*)(void *))&sort_rank::personalize,qc);
+                if (perr != 0)
+                  {
+                    errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
+                    mutex_unlock(&qc->_qc_mutex);
+                    mutex_unlock(&qc->_feeds_ack_mutex);
+                    return WB_ERR_THREAD;
+                  }
+              }
           }
       }
     else
@@ -1036,7 +1050,7 @@ namespace seeks_plugins
       }
 
     // sort and rank search snippets.
-    if (persf)
+    if (persf && pers_thread)
       {
         //pthread_join(pers_thread,NULL);
         while(pthread_tryjoin_np(pers_thread,NULL))
