@@ -1,6 +1,6 @@
 /**
  * This file is part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,13 +30,23 @@ extern "C"
 
 #ifdef FEATURE_PTHREAD
 typedef pthread_mutex_t sp_mutex_t;
+typedef pthread_cond_t  sp_cond_t;
 #else
 typedef CRITICAL_SECTION sp_mutex_t;
+//TODO: sp_cond_t if we continue to support the absence of pthread.
 #endif
 
 /* mutexes. */
 void mutex_lock(sp_mutex_t *mutex);
 void mutex_unlock(sp_mutex_t *mutex);
 void mutex_init(sp_mutex_t *mutex);
+
+/* condition variables. */
+#ifdef FEATURE_PTHREAD
+void cond_init(sp_cond_t *cond);
+void cond_wait(sp_cond_t *cond, sp_mutex_t *mutex);
+void cond_signal(sp_cond_t *cond);
+void cond_broadcast(sp_cond_t *cond);
+#endif
 
 #endif
