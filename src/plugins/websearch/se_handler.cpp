@@ -583,6 +583,11 @@ namespace seeks_plugins
     = se_enabled._feedset.begin();
     while(it!=se_enabled._feedset.end())
       {
+        if ((*it)._name == "seeks")
+          {
+            ++it;
+            continue;
+          }
         std::vector<std::string> all_urls;
         std::list<const char*> *lheaders = NULL;
         se_handler::query_to_se(parameters,(*it),all_urls,qc,lheaders);
