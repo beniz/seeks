@@ -575,10 +575,11 @@ namespace seeks_plugins
   std::string** se_handler::query_to_ses(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                          int &nresults, const query_context *qc, const feeds &se_enabled) throw (sp_exception)
   {
+    size_t esize = (se_enabled.has_feed("seeks")) ? se_enabled.size()-1 : se_enabled.size();
     std::vector<std::string> urls;
-    urls.reserve(se_enabled.size());
+    urls.reserve(esize);
     std::vector<std::list<const char*>*> headers;
-    headers.reserve(se_enabled.size());
+    headers.reserve(esize);
     std::set<feed_parser,feed_parser::lxn>::iterator it
     = se_enabled._feedset.begin();
     while(it!=se_enabled._feedset.end())
@@ -734,6 +735,11 @@ namespace seeks_plugins
         = se_enabled._feedset.begin();
         while(it!=se_enabled._feedset.end())
           {
+            if ((*it)._name == "seeks")
+              {
+                ++it;
+                continue;
+              }
             for (size_t f=0; f<(*it).size(); f++)
               {
                 if (outputs[j])
@@ -793,6 +799,11 @@ namespace seeks_plugins
         = se_enabled._feedset.begin();
         while(it!=se_enabled._feedset.end())
           {
+            if ((*it)._name == "seeks")
+              {
+                ++it;
+                continue;
+              }
             if (outputs[j])
               {
                 ps_thread_arg args;
