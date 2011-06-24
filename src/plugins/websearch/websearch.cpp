@@ -951,7 +951,7 @@ namespace seeks_plugins
             if (persf && err != WB_ERR_NO_ENGINE)
               {
               }
-            else
+            else if (err != SP_ERR_OK)
               {
                 return err;
               }
@@ -1028,7 +1028,7 @@ namespace seeks_plugins
         if (persf && err != WB_ERR_NO_ENGINE)
           {
           }
-        else
+        else if (err != SP_ERR_OK)
           {
             return err;
           }
