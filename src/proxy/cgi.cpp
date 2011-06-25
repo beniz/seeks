@@ -450,7 +450,7 @@ namespace sp
     catch (std::bad_alloc &e)
       {
         freez(path_copy);
-        delete param_list;
+        miscutil::free_map(param_list);
         return cgi::cgi_error_memory();
       }
 
@@ -503,6 +503,9 @@ namespace sp
         return cgi::dispatch(d, path_copy, csp, param_list, rsp);
       }
 
+    miscutil::free_map(param_list);
+    delete rsp;
+    freez(path_copy);
     return NULL; // beware.
   }
 
