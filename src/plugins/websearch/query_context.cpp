@@ -768,6 +768,7 @@ namespace seeks_plugins
         else (*vit)->_seeks_rank = 0; // reset.
         ++vit;
       }
+    _npeers = 0; // reset query context peers.
   }
 
   bool query_context::update_recommended_urls()
