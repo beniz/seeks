@@ -62,8 +62,6 @@ namespace seeks_plugins
     std::vector<pthread_t> perso_threads;
     std::vector<perso_thread_arg*> perso_args;
 
-    bool have_peers = qc->_npeers > 0 ? true : false;
-
     // thread for local db.
     threaded_personalize(perso_args,perso_threads,NULL,qc);
 
@@ -89,7 +87,7 @@ namespace seeks_plugins
       {
         if (perso_args.at(i))
           {
-            if (!have_peers && perso_args.at(i)->_err == SP_ERR_OK)
+            if (perso_args.at(i)->_err == SP_ERR_OK)
               qc->_npeers++;
             delete perso_args.at(i);
           }
@@ -852,7 +850,7 @@ namespace seeks_plugins
             (*vit)->_personalized = true;
             if ((*vit)->_meta_rank <= (*vit)->_engine.size())
               (*vit)->_meta_rank++;
-            //(*vit)->_npeers++;
+            (*vit)->_npeers++;
           }
 
         ++vit;
@@ -924,8 +922,6 @@ namespace seeks_plugins
         posterior = (log(vd_url->_hits + 1.0) + 1.0)/ (log(fabs(total_hits) + 1.0) + ns);
         if (s)
           {
-            if (!s->_engine.has_feed("seeks"))
-              s->_npeers++;
             s->_engine.add_feed("seeks","s.s");
             s->_hits += vd_url->_hits;
             pers = true;
@@ -1003,8 +999,6 @@ namespace seeks_plugins
         if (s)
           {
             s->_personalized = true;
-            if (!s->_engine.has_feed("seeks"))
-              s->_npeers++;
             s->_engine.add_feed("seeks","s.s");
             s->_hits += uc_dbr->_hits;
           }
@@ -1172,7 +1166,6 @@ namespace seeks_plugins
                     if ((sit = snippets.find(sp->_id))!=snippets.end())
                       {
                         //(*sit).second->_seeks_rank += posterior; // update, boosting over similar queries.
-                        (*sit).second->_npeers++;
                         delete sp;
                       }
                     else
@@ -1183,7 +1176,6 @@ namespace seeks_plugins
                         sp->_meta_rank = 1;
                         sp->_engine.add_feed("seeks","s.s");
                         //sp->_seeks_rank = posterior;
-                        sp->_npeers = 1;
                         //sp->_hits = vd->_hits;
                         snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
                       }
