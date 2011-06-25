@@ -60,14 +60,12 @@ namespace seeks_plugins
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
                     || pc->_current_snippet->_url.empty()
                     || pc->_current_snippet->_cached.empty())
-                  //|| pc->_current_snippet->_summary.empty()
-                  //|| pc->_current_snippet->_cite.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
                     _count--;
+                    pc->_snippets->pop_back();
                   }
-                else pc->_snippets->push_back(pc->_current_snippet);
               }
 
             //std::cout << "snippets size: " << pc->_snippets->size() << std::endl;
@@ -79,6 +77,7 @@ namespace seeks_plugins
             _count++;
             sp->_img_engine = feeds("bing_img",_url);
             pc->_current_snippet = sp;
+            pc->_snippets->push_back(sp);
           }
         else if (_results_flag && a_class && strcasecmp(a_class,"md_mu") == 0)
           {

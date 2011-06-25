@@ -63,9 +63,8 @@ namespace seeks_plugins
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
                     _count--;
+                    pc->_snippets->pop_back();
                   }
-
-                else pc->_snippets->push_back(pc->_current_snippet);
               }
 
             // create new snippet.
@@ -73,6 +72,7 @@ namespace seeks_plugins
             _count++;
             sp->_img_engine = feeds("flickr",_url);
             pc->_current_snippet = sp;
+            pc->_snippets->push_back(sp);
           }
       }
     else if (_results_flag && !_span_flag && strcasecmp(tag,"span") == 0)
