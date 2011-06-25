@@ -1071,8 +1071,9 @@ namespace seeks_plugins
             s->_personalized = true;
             //s->_hits += uc_dbr->_hits;
           }
-        delete dbr;
       }
+    if (dbr)
+      delete dbr;
 
     return prior;
   }
