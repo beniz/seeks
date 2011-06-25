@@ -62,13 +62,11 @@ namespace seeks_plugins
                     _count--;
                     pc->_snippets->pop_back();
                   }
-                //else pc->_snippets->push_back(pc->_current_snippet);
               }
 
             _result_flag = true;
             search_snippet *sp = new search_snippet(_count+1);
             _count++;
-            //sp->_engine |= std::bitset<NSEs>(SE_EXALEAD);
             sp->_engine = feeds("exalead",_url);
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);

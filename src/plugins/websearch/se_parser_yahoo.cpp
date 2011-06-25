@@ -65,7 +65,6 @@ namespace seeks_plugins
                 post_process_snippet(pc->_current_snippet);
                 if (pc->_current_snippet)
                   {
-                    //pc->_snippets->push_back(pc->_current_snippet);
                     pc->_current_snippet = NULL;
                   }
                 else pc->_snippets->pop_back();
@@ -73,7 +72,6 @@ namespace seeks_plugins
 
             // create new snippet.
             search_snippet *sp = new search_snippet(_count++);
-            //sp->_engine |= std::bitset<NSEs>(SE_YAHOO);
             sp->_engine = feeds("yahoo",_url);
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
