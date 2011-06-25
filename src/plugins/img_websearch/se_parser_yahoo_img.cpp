@@ -65,14 +65,15 @@ namespace seeks_plugins
                 delete pc->_current_snippet;
                 pc->_current_snippet = NULL;
                 _count--;
+                pc->_snippets->pop_back();
               }
-            else pc->_snippets->push_back(pc->_current_snippet);
           }
         img_search_snippet *sp = new img_search_snippet(_count+1);
         sp->_safe = _safesearch;
         _count++;
         sp->_img_engine = feeds("yahoo_img",_url);
         pc->_current_snippet = sp;
+        pc->_snippets->push_back(sp);
       }
     else if (_results_flag && strcasecmp(tag,"a") == 0)
       {
