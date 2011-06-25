@@ -41,15 +41,15 @@ namespace sp
 
   /*-- http_response --*/
   http_response::http_response()
-      :_status(NULL),_head(NULL),_head_length(0),
-      _body(NULL),_content_length(0),_is_static(0),
-      _reason(0)
+    :_status(NULL),_head(NULL),_head_length(0),
+     _body(NULL),_content_length(0),_is_static(0),
+     _reason(0)
   {}
 
   http_response::http_response(char *head, char *body)
-      :_status(NULL),_head(head),_head_length(strlen(_head)),
-      _body(body),_content_length(strlen(_body)),_is_static(0),
-      _reason(0)
+    :_status(NULL),_head(head),_head_length(strlen(_head)),
+     _body(body),_content_length(strlen(_body)),_is_static(0),
+     _reason(0)
   {}
 
   http_response::~http_response()
@@ -110,7 +110,6 @@ namespace sp
     freez(_host);
     freez(_path);
     freez(_hostport);
-//	freez(_host_ip_addr_str); // freed in spsockets ?
 
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
     freez(_dbuffer);
@@ -193,7 +192,7 @@ namespace sp
 
   /*- action_spec -*/
   action_spec::action_spec(const action_spec *src)
-      : _mask(src->_mask),_add(src->_add)
+    : _mask(src->_mask),_add(src->_add)
   {
     for (int i = 0; i < ACTION_STRING_COUNT; i++)
       {
@@ -251,16 +250,16 @@ namespace sp
 
   /*- client_state -*/
   client_state::client_state()
-      :_config(NULL),_flags(0),
+    :_config(NULL),_flags(0),
 # ifndef HAVE_RFC2553
-      _ip_addr_long(0),
+     _ip_addr_long(0),
 # endif
-      _ip_addr_str(NULL),_fwd(NULL),
-      _content_type(0),_content_length(0),
+     _ip_addr_str(NULL),_fwd(NULL),
+     _content_type(0),_content_length(0),
 # ifdef FEATURE_CONNECTION_KEEP_ALIVE
-      _expected_content_length(0),
+     _expected_content_length(0),
 # endif
-      _error_message(NULL),_next(NULL)
+     _error_message(NULL),_next(NULL)
   {
   }
 

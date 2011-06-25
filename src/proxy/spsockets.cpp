@@ -149,7 +149,7 @@ namespace sp
         errlog::log_error(LOG_LEVEL_ERROR,
                           "Port number (%d) ASCII decimal representation doesn't fit into 6 bytes",
                           portnum);
-        csp->_http._host_ip_addr_str = strdup("unknown");
+        csp->_http._host_ip_addr_str = "unknown";
         return(SP_INVALID_SOCKET);
       }
 
@@ -162,7 +162,7 @@ namespace sp
       {
         errlog::log_error(LOG_LEVEL_INFO,
                           "Can not resolve %s: %s", host, gai_strerror(retval));
-        csp->_http._host_ip_addr_str = strdup("unknown");
+        csp->_http._host_ip_addr_str = "unknown";
         return(SP_INVALID_SOCKET);
       }
 
@@ -179,25 +179,27 @@ namespace sp
           }
 #endif /* def FEATURE_ACL */
 
-        csp->_http._host_ip_addr_str = (char*) zalloc(NI_MAXHOST);
-        if (NULL == csp->_http._host_ip_addr_str)
+        char *host_ip_addr_str = (char*) zalloc(NI_MAXHOST);
+        if (NULL == host_ip_addr_str)
           {
             errlog::log_error(LOG_LEVEL_ERROR,
                               "Out of memory while getting the server IP address.");
             return SP_INVALID_SOCKET;
           }
         retval = getnameinfo(rp->ai_addr, rp->ai_addrlen,
-                             csp->_http._host_ip_addr_str, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-        if (!csp->_http._host_ip_addr_str || retval)
+                             host_ip_addr_str, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+        if (!host_ip_addr_str || retval)
           {
             errlog::log_error(LOG_LEVEL_ERROR,
                               "Can not save csp->http.host_ip_addr_str: %s",
-                              (csp->_http._host_ip_addr_str) ?
+                              (host_ip_addr_str) ?
                               gai_strerror(retval) : "Insufficient memory");
-            freez(csp->_http._host_ip_addr_str);
-            csp->_http._host_ip_addr_str = NULL;
+            freez(host_ip_addr_str);
+            host_ip_addr_str = NULL;
             continue;
           }
+        csp->_http._host_ip_addr_str = std::string(host_ip_addr_str);
+        freez(host_ip_addr_str);
 
 #ifdef _WIN32
         if ((fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) ==
@@ -282,13 +284,13 @@ namespace sp
                     break;
                   }
                 errlog::log_error(LOG_LEVEL_CONNECT, "Could not connect to [%s]:%s: %s.",
-                                  csp->_http._host_ip_addr_str, service, strerror(socket_in_error));
+                                  csp->_http._host_ip_addr_str.c_str(), service, strerror(socket_in_error));
               }
             else
               {
                 errlog::log_error(LOG_LEVEL_ERROR, "Could not get the state of "
                                   "the connection to [%s]:%s: %s; dropping connection.",
-                                  csp->_http._host_ip_addr_str, service, strerror(errno));
+                                  csp->_http._host_ip_addr_str.c_str(), service, strerror(errno));
               }
           }
 
@@ -304,7 +306,7 @@ namespace sp
         return(SP_INVALID_SOCKET);
       }
     errlog::log_error(LOG_LEVEL_CONNECT, "Connected to %s[%s]:%s.",
-                      host, csp->_http._host_ip_addr_str, service);
+                      host, csp->_http._host_ip_addr_str.c_str(), service);
 
     return(fd);
   }
@@ -331,7 +333,7 @@ namespace sp
 
     if ((addr = resolve_hostname_to_ip(host)) == INADDR_NONE)
       {
-        csp->_http._host_ip_addr_str = strdup("unknown");
+        csp->_http._host_ip_addr_str = "unknown";
         return(SP_INVALID_SOCKET);
       }
 
@@ -348,7 +350,7 @@ namespace sp
 
     inaddr.sin_addr.s_addr = addr;
     inaddr.sin_family      = AF_INET;
-    csp->_http._host_ip_addr_str = strdup(inet_ntoa(inaddr.sin_addr));
+    csp->_http._host_ip_addr_str = std::string(inet_ntoa(inaddr.sin_addr));
 
 #ifndef _WIN32
     if (sizeof(inaddr.sin_port) == sizeof(short))
@@ -366,7 +368,7 @@ namespace sp
 #ifdef _WIN32
     if ((fd = socket(inaddr.sin_family, SOCK_STREAM, 0)) == SP_INVALID_SOCKET)
 #else
-  if ((fd = socket(inaddr.sin_family, SOCK_STREAM, 0)) < 0)
+    if ((fd = socket(inaddr.sin_family, SOCK_STREAM, 0)) < 0)
 #endif
       {
         return(SP_INVALID_SOCKET);
@@ -393,7 +395,7 @@ namespace sp
 #ifdef _WIN32
         if (errno == WSAEINPROGRESS)
 #else /* ifndef _WIN32 */
-  if (errno == EINPROGRESS)
+        if (errno == EINPROGRESS)
 #endif /* ndef _WIN32 || __OS2__ */
           {
             break;

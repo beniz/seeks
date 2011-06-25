@@ -1189,7 +1189,7 @@ namespace seeks_plugins
       err = miscutil::add_map_entry(exports, "protocol", 1, csp->_http._ssl ? "https://" : "http://", 1);
     if (!err)
       {
-        err = miscutil::add_map_entry(exports, "host-ip", 1, encode::html_encode(csp->_http._host_ip_addr_str), 0);
+        err = miscutil::add_map_entry(exports, "host-ip", 1, encode::html_encode(csp->_http._host_ip_addr_str.c_str()), 0);
         if (err)
           {
             /* Some failures, like "404 no such domain", don't have an IP address. */

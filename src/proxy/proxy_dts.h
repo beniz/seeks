@@ -138,7 +138,7 @@ namespace sp
       http_request()
         : _cmd(NULL),_ocmd(NULL),_gpc(NULL),_url(NULL),
           _ver(NULL),_status(0),_host(NULL),_port(0),
-          _path(NULL),_hostport(NULL),_ssl(0),_host_ip_addr_str(NULL)
+          _path(NULL),_hostport(NULL),_ssl(0)
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
           ,_dbuffer(NULL),_dvec(NULL),_dcount(0)
 #endif
@@ -161,8 +161,8 @@ namespace sp
       char *_hostport; /**< host[:port] */
       int   _ssl;      /**< Flag if protocol is https */
 
-      char *_host_ip_addr_str; /**< String with dotted decimal representation
-			     of host's IP. NULL before connect_to() */
+      std::string _host_ip_addr_str; /**< String with dotted decimal representation
+					of host's IP. NULL before connect_to() */
 
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
       char  *_dbuffer; /**< Buffer with '\0'-delimited domain name.           */
