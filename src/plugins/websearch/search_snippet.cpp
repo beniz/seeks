@@ -71,6 +71,27 @@ namespace seeks_plugins
   {
   }
 
+  search_snippet::search_snippet(const search_snippet *s)
+    :_qc(s->_qc),_new(s->_new),_id(s->_id),_title(s->_title),_url(s->_url),_cite(s->_cite),
+     _cached(s->_cached),_summary(s->_summary),_summary_noenc(s->_summary_noenc),
+     _file_format(s->_file_format),_date(s->_date),_lang(s->_lang),
+     _archive(s->_archive),_sim_link(s->_sim_link),
+     _sim_back(s->_sim_back),_rank(s->_rank),_meta_rank(s->_meta_rank),
+     _seeks_rank(s->_seeks_rank),_engine(s->_engine),_doc_type(s->_doc_type),
+     _forum_thread_info(s->_forum_thread_info),_cached_content(NULL),
+     _features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(s->_safe),_personalized(s->_personalized),
+     _npeers(s->_npeers),_hits(s->_hits)
+  {
+    if (s->_cached_content)
+      _cached_content = new std::string(*s->_cached_content);
+    if (s->_features)
+      _features = new std::vector<uint32_t>(*s->_features);
+    if (s->_features_tfidf)
+      _features_tfidf = new hash_map<uint32_t,float,id_hash_uint>(*s->_features_tfidf);
+    if (s->_bag_of_words)
+      _bag_of_words = new hash_map<uint32_t,std::string,id_hash_uint>(*s->_bag_of_words);
+  }
+
   search_snippet::~search_snippet()
   {
     if (_cached_content)
@@ -1008,10 +1029,6 @@ namespace seeks_plugins
       {
         if (s1->_engine.equal(s2->_engine))
           return;
-        /*std::bitset<NSEs> setest = s1->_engine;
-        setest &= s2->_engine;
-        if (setest.count()>0)
-        	return;*/
       }
 
     // search engine rank.
@@ -1057,9 +1074,16 @@ namespace seeks_plugins
         s1->_meta_rank = s1->_engine.size();
         s1->bing_yahoo_us_merge();
       }
+  }
 
+  void search_snippet::merge_peer_data(search_snippet *s1,
+                                       const search_snippet *s2)
+  {
     // hits.
     s1->_hits += s2->_hits;
+
+    // peers.
+    s1->_npeers += s2->_npeers;
   }
 
   void search_snippet::bing_yahoo_us_merge()

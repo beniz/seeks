@@ -111,6 +111,7 @@ namespace seeks_plugins
     public:
       search_snippet();
       search_snippet(const short &rank);
+      search_snippet(const search_snippet *s);
 
       virtual ~search_snippet();
 
@@ -181,6 +182,9 @@ namespace seeks_plugins
 
       // merging of snippets (merge s2 into s2, according to certain rules).
       static void merge_snippets(search_snippet *s1, const search_snippet *s2);
+
+      // merging of snippets peer-related data.
+      static void merge_peer_data(search_snippet *s1, const search_snippet *s2);
 
       // hack for correcting meta rank after Bing and Yahoo merged their results in
       // the US.

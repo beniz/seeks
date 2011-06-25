@@ -306,13 +306,7 @@ namespace seeks_plugins
     if (!websearch::_cf_plugin)
       return;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc->_query,qc->_auto_lang,
-                     qc->_page_expansion,
-                     qc->_npeers,
-                     qc->_cached_snippets,
-                     qc->_suggestions,
-                     qc->_recommended_snippets,
-                     qc);
+    cfp->personalize(qc);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }

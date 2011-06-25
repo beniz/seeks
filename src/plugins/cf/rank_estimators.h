@@ -64,22 +64,10 @@ namespace seeks_plugins
 
       virtual ~rank_estimator() {};
 
-      void peers_personalize(const std::string &query,
-                             const std::string &lang,
-                             const uint32_t &expansion,
-                             uint32_t &npeers,
-                             std::vector<search_snippet*> &snippets,
-                             std::multimap<double,std::string,std::less<double> > &related_queries,
-                             hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
-                             query_context *qc);
+      void peers_personalize(query_context *qc);
 
       void threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
                                 std::vector<pthread_t> &perso_threads,
-                                const std::string &query, const std::string &lang,
-                                const uint32_t &expansion,
-                                std::vector<search_snippet*> *snippets,
-                                std::multimap<double,std::string,std::less<double> > *related_queries,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> *reco_snippets,
                                 peer *pe = NULL,
                                 query_context *qc = NULL);
 
@@ -167,7 +155,7 @@ namespace seeks_plugins
 
       virtual void personalize(const std::string &query,
                                const std::string &lang,
-                               const uint32_t &personalize,
+                               const uint32_t &expansion,
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
