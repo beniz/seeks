@@ -30,9 +30,9 @@ namespace seeks_plugins
   std::string query_interceptor::_p_filename = "websearch/patterns/qi_patterns";
 
   query_interceptor::query_interceptor(plugin *parent)
-      :interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
-                           + query_interceptor::_p_filename).c_str()
-                           : std::string(seeks_proxy::_datadir + "/plugins/" + query_interceptor::_p_filename).c_str()),parent)
+    :interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
+                         + query_interceptor::_p_filename).c_str()
+                         : std::string(seeks_proxy::_datadir + "/plugins/" + query_interceptor::_p_filename).c_str()),parent)
   {
   }
 
@@ -67,7 +67,7 @@ namespace seeks_plugins
     http_response *rsp;
     if (NULL == (rsp = new http_response()))
       {
-        delete params;
+        miscutil::free_map(params);
         return cgi::cgi_error_memory();
       }
 
@@ -78,7 +78,7 @@ namespace seeks_plugins
 
     if (!intercepted_query)
       {
-        delete params;
+        miscutil::free_map(params);
         return NULL; // wrong interception, cancel.
       }
 
@@ -93,7 +93,7 @@ namespace seeks_plugins
     cgi::cgi_redirect(rsp,q);
 
     free(q);
-    delete params;
+    miscutil::free_map(params);
     return cgi::finish_http_response(csp,rsp);
   }
 
