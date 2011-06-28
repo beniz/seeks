@@ -259,25 +259,25 @@ body {
 	text-align: center;
 }
 
-#search_page_prev, #search_page_next, #search_home {
+#search_page_prev, #search_page_next, #search_home, #search_page_next_bottom, #search_page_prev_bottom {
 	text-decoration: none;
 	background-repeat: no-repeat;
 	background-position: center center;
 
 }
 
-#search_page_prev, #search_page_next {
+#search_page_prev, #search_page_prev_bottom, #search_page_next, #search_page_next_bottom {
 	font-size: 18px;
 	width: 10px;
 	height: 18px;
 	padding: 5px;
 }
 
-#search_page_prev {
+#search_page_prev, #search_page_prev_bottom {
 	background-image: url(base-url/plugins/websearch/public/themes/original/images/search_page_prev.png);
 }
 
-#search_page_next {
+#search_page_next, #search_page_next_bottom {
 	background-image: url(base-url/plugins/websearch/public/themes/original/images/search_page_next.png);
 }
 

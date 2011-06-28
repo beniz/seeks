@@ -66,7 +66,7 @@ href="@base-url@/search?q=fullquery&amp;expansion=xxexp&amp;action=types&amp;eng
 </div>
 
 <!-- @if-have-one-column-results-head-start -->
-<div id="search_pages_top">xxprev<span id="search_page_current">xxpage</span>xxnext</div>
+<div id="search_pages_top">xxprev<span id="search_page_current_top">xxpage</span>xxnext</div>
 <!-- if-have-one-column-results-head-end@ -->
 
 <!-- @if-have-clustered-results-head-start -->
@@ -105,15 +105,15 @@ Results influenced by xxrqueries similar queries from xxnpeers peer(s).
 </div>
 <!-- if-have-result-message-end@ -->
 <div id="search_sugg" class="right_panel">xxsugg</div>
-<div id="search_sugg" class="right_panel">xxreco</div>
-<div id="search_sugg" class="right_panel">xxqcache</div>
+<div id="search_reco" class="right_panel">xxreco</div>
+<div id="search_cache" class="right_panel">xxqcache</div>
 </td>
 </tr>
 
 <tr>
 <td>
 <!-- @if-have-one-column-results-head-start -->
-<div id="search_pages_bottom">xxprev<span id="search_page_current">xxpage</span>xxnext</div>
+<div id="search_pages_bottom">xxprev<span id="search_page_current_bottom">xxpage</span>xxnext</div>
 <!-- if-have-one-column-results-head-end@ -->
 <!-- @if-have-clustered-results-head-start -->
 <div id="search_pages_bottom"><a href="@base-url@/search?q=fullquery&amp;page=xxpage&amp;expansion=xxexp&amp;action=expand&amp;engines=xxeng&amp;rpp=xxrpp&amp;content_analysis=xxca&amp;prs=xxpers&amp;lang=xxlang&amp;ui=stat" id="search_page_prev" title="Back to list of results">&nbsp;</a><small>back</small></div>

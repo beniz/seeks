@@ -428,7 +428,7 @@ body {
 	background-image: url(base-url/plugins/websearch/public/themes/compact/images/home_32x30.png);
 }*/
 
-#search_page_current, #search_page_current_top {
+#search_page_current_bottom, #search_page_current_top {
 	padding: 10px;
 	text-align:center;
 }
