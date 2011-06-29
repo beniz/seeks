@@ -220,7 +220,8 @@ namespace seeks_plugins
                               std::list<const char*> *&lheaders);
 
       /*-- parsing --*/
-      static se_parser* create_se_parser(const feed_parser &se, const size_t &i);
+      static se_parser* create_se_parser(const feed_parser &se, const size_t &i,
+                                         const std::string &lang);
 
       static void parse_ses_output(std::string **outputs, const int &nresults,
                                    std::vector<search_snippet*> &snippets,

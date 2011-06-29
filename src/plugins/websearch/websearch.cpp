@@ -948,7 +948,7 @@ namespace seeks_plugins
             // instead signal all personalization threads that results may have
             // arrived.
             mutex_unlock(&qc->_feeds_ack_mutex);
-            if (persf && err != WB_ERR_NO_ENGINE)
+            if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
               {
               }
             else if (err != SP_ERR_OK)
@@ -1025,7 +1025,7 @@ namespace seeks_plugins
         // instead signal all personalization threads that results may have
         // arrived.
         mutex_unlock(&qc->_feeds_ack_mutex);
-        if (persf && err != WB_ERR_NO_ENGINE)
+        if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
           {
           }
         else if (err != SP_ERR_OK)
@@ -1052,7 +1052,6 @@ namespace seeks_plugins
     // sort and rank search snippets.
     if (persf && pers_thread)
       {
-        //pthread_join(pers_thread,NULL);
         while(pthread_tryjoin_np(pers_thread,NULL))
           {
             cond_broadcast(&qc->_feeds_ack_cond);
@@ -1060,14 +1059,6 @@ namespace seeks_plugins
       }
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
                                             parameters);
-    /*    if (persf)
-    {
-    #if defined(PROTOBUF) && defined(TC)
-    sort_rank::personalize(qc);
-    sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
-    parameters);
-    #endif
-    } */
 
     if (expanded)
       qc->_compute_tfidf_features = true;
@@ -1152,7 +1143,6 @@ namespace seeks_plugins
       }
     std::string query_key = query_context::assemble_query(q,qlang);
     uint32_t query_hash = query_context::hash_query_for_context(query_key);
-
     hash_map<uint32_t,query_context*,id_hash_uint >::iterator hit;
     if ((hit = active_qcontexts.find(query_hash))!=active_qcontexts.end())
       {

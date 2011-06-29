@@ -1093,29 +1093,10 @@ namespace seeks_plugins
                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
                                  hash_map<uint32_t,bool,id_hash_uint> *filter)
   {
-    // get stop word list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-
     // gather normalizing values.
-    int nvurls = 1.0;
-    int i = 0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
     = qdata->begin();
-    float q_vurl_hits[qdata->size()];
-    while (hit!=qdata->end())
-      {
-        int vhits = (*hit).second->vurls_total_hits();
-        q_vurl_hits[i++] = vhits;
-        if (vhits > 0)
-          nvurls += (*hit).second->_visited_urls->size();
-        ++hit;
-      }
-
-    // get number of captured URIs.
-    uint64_t nuri = 0;
-    if (cf::_uc_plugin)
-      nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
 
     // look for URLs to recommend.
     hit = qdata->begin();
@@ -1128,8 +1109,6 @@ namespace seeks_plugins
             continue;
           }
 
-        float halo_weight = simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
-
         // rank all URLs for this query.
         int i = 0;
         hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator sit;
@@ -1137,48 +1116,26 @@ namespace seeks_plugins
         = qd->_visited_urls->begin();
         while(vit!=qd->_visited_urls->end())
           {
-            float posterior = 0.0;
             vurl_data *vd = (*vit).second;
 
             // we do not recommend hosts.
             if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now, also avoids pure hosts.
               {
-                bool spers = false;
-
-                std::string host, path;
-                query_capture::process_url(vd->_url,host,path);
-                vurl_data *vd_host = qd->find_vurl(host);
-
-                posterior = estimate_rank(NULL,filter,nvurls,vd,vd_host,
-                                          q_vurl_hits[i],cf_configuration::_config->_domain_name_weight,spers);
-
-                // level them down according to query radius.
-                posterior *= halo_weight;
-
-                /* std::cerr << "recommended URL: " << vd->_url << " -- posterior: " << posterior
-                   << " -- prior: " << prior << std::endl; */
-
                 // update or create snippet.
-                if (posterior > 0.0)
+                search_snippet *sp = new search_snippet();
+                sp->set_url(vd->_url);
+                if ((sit = snippets.find(sp->_id))!=snippets.end())
                   {
-                    search_snippet *sp = new search_snippet();
-                    sp->set_url(vd->_url);
-                    if ((sit = snippets.find(sp->_id))!=snippets.end())
-                      {
-                        //(*sit).second->_seeks_rank += posterior; // update, boosting over similar queries.
-                        delete sp;
-                      }
-                    else
-                      {
-                        sp->_personalized = true;
-                        sp->set_title(vd->_title);
-                        sp->set_summary(vd->_summary);
-                        sp->_meta_rank = 1;
-                        sp->_engine.add_feed("seeks","s.s");
-                        //sp->_seeks_rank = posterior;
-                        //sp->_hits = vd->_hits;
-                        snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
-                      }
+                    delete sp;
+                  }
+                else
+                  {
+                    sp->_personalized = true;
+                    sp->set_title(vd->_title);
+                    sp->set_summary(vd->_summary);
+                    sp->_meta_rank = 1;
+                    sp->_engine.add_feed("seeks","s.s");
+                    snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
                   }
               }
 

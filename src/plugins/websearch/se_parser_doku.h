@@ -62,7 +62,9 @@ namespace seeks_plugins
       std::string _link;
       std::string _summary;
       std::string _cite;
-      //std::string _cached;
+
+      std::string _host;
+      std::string _path;
 
       static std::string _sr_string_en;
       static std::string _doku_stupid[2];

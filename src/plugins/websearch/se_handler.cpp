@@ -464,6 +464,11 @@ namespace seeks_plugins
     free(qenc);
     miscutil::replace_in_string(q_dm,"%query",qenc_str);
 
+    // lang.
+    if (websearch::_wconfig->_lang == "auto")
+      miscutil::replace_in_string(q_dm,"%lang",qc->_auto_lang);
+    else miscutil::replace_in_string(q_dm,"%lang",websearch::_wconfig->_lang);
+
     // log the query.
     errlog::log_error(LOG_LEVEL_DEBUG, "Querying mediawiki: %s", q_dm.c_str());
 
@@ -822,7 +827,7 @@ namespace seeks_plugins
 
   void se_handler::parse_output(ps_thread_arg &args)
   {
-    se_parser *se = se_handler::create_se_parser(args._se,args._se_idx);
+    se_parser *se = se_handler::create_se_parser(args._se,args._se_idx,args._qr->_auto_lang);
     if (!se)
       {
         args._err = WB_ERR_NO_ENGINE;
@@ -868,7 +873,8 @@ namespace seeks_plugins
   }
 
   se_parser* se_handler::create_se_parser(const feed_parser &se,
-                                          const size_t &i)
+                                          const size_t &i,
+                                          const std::string &lang)
   {
     se_parser *sep = NULL;
     if (se._name == "google")
@@ -892,7 +898,7 @@ namespace seeks_plugins
     else if (se._name == "dokuwiki")
       sep = new se_parser_doku(se.get_url(i));
     else if (se._name == "mediawiki")
-      sep = new se_parser_mediawiki(se.get_url(i));
+      sep = new se_parser_mediawiki(se.get_url(i),lang);
     else if (se._name == "opensearch_rss")
       sep = new se_parser_osearch_rss(se.get_url(i));
     else if (se._name == "opensearch_atom")
