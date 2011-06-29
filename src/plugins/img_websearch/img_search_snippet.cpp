@@ -107,7 +107,7 @@ namespace seeks_plugins
       }
 #endif
 
-    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=@query@&page=1&expansion=1&action=expand&engines=seeng\">&nbsp;</a></span>";
+    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=@query@&page=1&expansion=1&action=expand&engines=seeng&lang=" + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
     std::string html_content = "<li class=\"search_snippet search_snippet_img\">";
 
     html_content += "<h3><a href=\"";
