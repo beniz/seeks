@@ -18,11 +18,13 @@
 
 #include "se_parser_doku.h"
 #include "miscutil.h"
+#include "urlmatch.h"
 
 #include <strings.h>
 #include <iostream>
 
 using sp::miscutil;
+using sp::urlmatch;
 
 namespace seeks_plugins
 {
@@ -32,6 +34,11 @@ namespace seeks_plugins
   se_parser_doku::se_parser_doku(const std::string &url)
     :se_parser(url),_results_flag(false),_link_flag(false),_search_div(false),_search_snippet(false)
   {
+    urlmatch::parse_url_host_and_path(url,_host,_path);
+    if (miscutil::strncmpic(url.c_str(), "http://",7) == 0)
+      _host = "http://" + _host;
+    else if (miscutil::strncmpic(url.c_str(), "https://",8) == 0)
+      _host = "https://" + _host;
   }
 
   se_parser_doku::~se_parser_doku()
@@ -39,8 +46,8 @@ namespace seeks_plugins
   }
 
   void se_parser_doku::start_element(parser_context *pc,
-  const xmlChar *name,
-  const xmlChar **attributes)
+                                     const xmlChar *name,
+                                     const xmlChar **attributes)
   {
     const char *tag = (const char*)name;
     if (strcasecmp(tag,"div") == 0)
@@ -56,9 +63,9 @@ namespace seeks_plugins
             if (pc->_current_snippet)
               {
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-                || pc->_current_snippet->_url.empty()
-                || pc->_current_snippet->_summary.empty()
-                || pc->_current_snippet->_cite.empty())
+                    || pc->_current_snippet->_url.empty()
+                    || pc->_current_snippet->_summary.empty()
+                    || pc->_current_snippet->_cite.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
@@ -86,7 +93,6 @@ namespace seeks_plugins
         if (a_link)
           {
             _link = std::string(a_link);
-
             _cite = std::string(a_link);
             //std::cout << _cite << std::endl;
           }
@@ -100,22 +106,22 @@ namespace seeks_plugins
   }
 
   void se_parser_doku::characters(parser_context *pc,
-  const xmlChar *chars,
-  int length)
+                                  const xmlChar *chars,
+                                  int length)
   {
     handle_characters(pc, chars, length);
   }
 
   void se_parser_doku::cdata(parser_context *pc,
-  const xmlChar *chars,
-  int length)
+                             const xmlChar *chars,
+                             int length)
   {
     handle_characters(pc, chars, length);
   }
 
   void se_parser_doku::handle_characters(parser_context *pc,
-  const xmlChar *chars,
-  int length)
+                                         const xmlChar *chars,
+                                         int length)
   {
     if (_search_snippet)
       {
@@ -148,7 +154,7 @@ namespace seeks_plugins
   }
 
   void se_parser_doku::end_element(parser_context *pc,
-  const xmlChar *name)
+                                   const xmlChar *name)
   {
     const char *tag = (const char*) name;
 
@@ -158,8 +164,8 @@ namespace seeks_plugins
     if (strcasecmp(tag,"a") == 0)
       {
         _link_flag = false;
-        pc->_current_snippet->_cite = _cite;
-        pc->_current_snippet->set_url_no_decode(_link);
+        pc->_current_snippet->_cite = _host + _cite;
+        pc->_current_snippet->set_url_no_decode(_host + _link);
         _link = "";
         _cite = "";
         pc->_current_snippet->set_title(_title);

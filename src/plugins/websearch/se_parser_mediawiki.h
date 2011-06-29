@@ -66,6 +66,9 @@ namespace seeks_plugins
       std::string _cached;
       std::string _title;
 
+      std::string _host;
+      std::string _path;
+
       static std::string _sr_string_en;
   };
 

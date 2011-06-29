@@ -18,17 +18,24 @@
 
 #include "se_parser_mediawiki.h"
 #include "miscutil.h"
+#include "urlmatch.h"
 
 #include <strings.h>
 #include <iostream>
 
 using sp::miscutil;
+using sp::urlmatch;
 
 namespace seeks_plugins
 {
   se_parser_mediawiki::se_parser_mediawiki(const std::string &url)
     :se_parser(url),_li_sr_flag(false),_a_sr_flag(false),_search_result(false),_end_search(true)
   {
+    urlmatch::parse_url_host_and_path(url,_host,_path);
+    if (miscutil::strncmpic(url.c_str(), "http://",7) == 0)
+      _host = "http://" + _host;
+    else if (miscutil::strncmpic(url.c_str(), "https://",8) == 0)
+      _host = "https://" + _host;
   }
 
   se_parser_mediawiki::~se_parser_mediawiki()
@@ -149,11 +156,10 @@ namespace seeks_plugins
 
     if (_a_sr_flag && strcasecmp(tag,"a") == 0)
       {
-        // TODO ici il faut rajouter le http:// jusqu'à /wiki/...
         pc->_current_snippet->_title = _title;
         _title = "";
-        pc->_current_snippet->set_url(_link);
-        pc->_current_snippet->_cite = _link;
+        pc->_current_snippet->set_url(_host + _link);
+        pc->_current_snippet->_cite = _host + _link;
         _link = "";
         _a_sr_flag = false;
       }
