@@ -198,7 +198,7 @@ namespace seeks_plugins
             char *wenc = encode::url_encode(words.at(i).c_str());
             std::string rword = " " + words.at(i) + " ";
             std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query
-                                   + "+" + std::string(wenc) + "&page=1&expansion=1&action=expand&lang=" + _qc->_auto_lang + "&ui=stat\">" + rword + "</a></span>";
+                                   + "+" + std::string(wenc) + "&amp;page=1&expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
             free(wenc);
             miscutil::ci_replace_in_string(str,rword,bold_str);
           }
@@ -392,8 +392,8 @@ namespace seeks_plugins
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
-                          + "/search?q=@query@&page=1&expansion=1&action=expand&engines=seeng&lang="
-                          + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
+                          + "/search?q=@query@&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=seeng&amp;lang="
+                          + _qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
     if (_engine.has_feed("google"))
       {
         std::string ggle_se_icon = se_icon;
@@ -669,7 +669,7 @@ namespace seeks_plugins
     if (_personalized)
       {
         html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
-                        + _qc->_url_enc_query + "&url=" + url_enc + "&action=expand&expansion=xxexp&ui=stat&engines=";
+                        + _qc->_url_enc_query + "&url=" + url_enc + "&action=expand&amp;expansion=xxexp&amp;ui=stat&engines=";
         if (engines)
           html_content += std::string(engines);
         html_content += "&lang=" + _qc->_auto_lang;
