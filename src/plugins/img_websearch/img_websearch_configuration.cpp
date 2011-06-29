@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -124,6 +124,7 @@ namespace seeks_plugins
             if (def)
               def_fed.add_url(vec[i]);
           }
+        _img_se_enabled.add_feed(fed);
         if (!def_fed.empty())
           _img_se_default.add_feed(def_fed);
 

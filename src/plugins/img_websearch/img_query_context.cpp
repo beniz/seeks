@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2010-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -138,18 +138,21 @@ namespace seeks_plugins
             feeds fdiff = _img_engines.diff(beng);
             feeds fint = _img_engines.diff(fdiff);
 
-            try
+            if (fint.size() > 1 || !fint.has_feed("seeks"))
               {
-                // catch up expansion with the newly activated engines.
-                expand_img(csp,rsp,parameters,0,_page_expansion,fint);
-              }
-            catch (sp_exception &e)
-              {
-                expanded = false;
-                throw e;
-              }
+                try
+                  {
+                    // catch up expansion with the newly activated engines.
+                    expand_img(csp,rsp,parameters,0,_page_expansion,fint);
+                  }
+                catch (sp_exception &e)
+                  {
+                    expanded = false;
+                    throw e;
+                  }
 
-            expanded = true;
+                expanded = true;
+              }
 
             // union engines & fint.
             _img_engines = _img_engines.sunion(fint);
@@ -199,19 +202,21 @@ namespace seeks_plugins
       }
 
     // perform requested expansion.
-    try
+    if (_engines.size() > 1 || !_engines.has_feed("seeks"))
       {
-        if (!cache_check)
-          expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
-        else if (strcasecmp(cache_check,"no") == 0)
-          expand_img(csp,rsp,parameters,0,horizon,_img_engines);
+        try
+          {
+            if (!cache_check)
+              expand_img(csp,rsp,parameters,_page_expansion,horizon,_img_engines);
+            else if (strcasecmp(cache_check,"no") == 0)
+              expand_img(csp,rsp,parameters,0,horizon,_img_engines);
+          }
+        catch (sp_exception &e)
+          {
+            expanded = false;
+            throw e;
+          }
       }
-    catch (sp_exception &e)
-      {
-        expanded = false;
-        throw e;
-      }
-
     expanded = true;
 
     // update horizon.
@@ -273,9 +278,9 @@ namespace seeks_plugins
             std::vector<std::string> vec_names;
             miscutil::tokenize(engine,vec_names,":");
             if (vec_names.size()==1)
-              engines.add_feed(engine,img_websearch_configuration::_img_wconfig);
-            else engines.add_feed(vec_names,
-                                    img_websearch_configuration::_img_wconfig);
+              engines.add_feed_img(engine,img_websearch_configuration::_img_wconfig);
+            else engines.add_feed_img(vec_names,
+                                        img_websearch_configuration::_img_wconfig);
           }
       }
     else engines = img_websearch_configuration::_img_wconfig->_img_se_default;

@@ -131,11 +131,11 @@ namespace seeks_plugins
                     websearch_configuration *wconfig);
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
-      bool add_feed(const std::string &name,
-                    img_websearch_configuration *wconfig);
+      bool add_feed_img(const std::string &name,
+                        img_websearch_configuration *wconfig);
 
-      bool add_feed(const std::vector<std::string> &vec_name_ids,
-                    img_websearch_configuration *wconfig);
+      bool add_feed_img(const std::vector<std::string> &vec_name_ids,
+                        img_websearch_configuration *wconfig);
 #endif
 
       bool remove_feed(const std::string &name);
