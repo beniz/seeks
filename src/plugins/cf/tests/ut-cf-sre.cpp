@@ -84,7 +84,7 @@ class SRETest : public testing::Test
       seeks_proxy::_user_db = new user_db(dbfile);
       seeks_proxy::_user_db->open_db();
       plugin_manager::load_all_plugins();
-      plugin_manager::instanciate_plugins();
+      plugin_manager::start_plugins();
 
       plugin *pl = plugin_manager::get_plugin("query-capture");
       ASSERT_TRUE(NULL!=pl);
@@ -149,7 +149,7 @@ TEST_F(SRETest,extract_queries)
   ASSERT_EQ(3,records.size());
 
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-  rank_estimator::extract_queries(queries[2],"en",seeks_proxy::_user_db,records,qdata);
+  rank_estimator::extract_queries(queries[2],"en",1,seeks_proxy::_user_db,records,qdata);
   ASSERT_EQ(2,qdata.size());
   hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
   = qdata.begin();
@@ -218,20 +218,21 @@ TEST(SREAPITest,estimate_rank)
   vurl_data vd_url(uris[0],1);
   vurl_data vd_host(uris[1],1);
   search_snippet s;
-  float posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.3);
+  bool pers = false;
+  float posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.3,pers);
   float posterior_check = ((log(2) + 1) / (log(3) + 1)) * 0.3 * (log(2) + 1) / (log(3) + 1);
   ASSERT_EQ(posterior_check,posterior);
-  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3,pers);
   ASSERT_EQ(posterior_check,posterior);
-  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.0);
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,2,0.0,pers);
   ASSERT_TRUE(posterior > 0.0);
   posterior_check = (log(2) + 1) / (log(3) + 1);
   ASSERT_EQ(posterior_check,posterior);
   vd_url._hits = -1;
-  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3,pers);
   ASSERT_TRUE(posterior < 0.0);
   vd_host._hits = -1;
-  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3);
+  posterior = sre.estimate_rank(&s,NULL,1,&vd_url,&vd_host,-2,0.3,pers);
   ASSERT_TRUE(posterior < 0.0);
 }
 
@@ -240,10 +241,11 @@ TEST_F(SRETest,recommend_urls)
   static std::string lang = "en";
   simple_re sre;
   hash_map<uint32_t,search_snippet*,id_hash_uint> snippets;
-  sre.recommend_urls(queries[0],lang,snippets);
+  sre.recommend_urls(queries[0],lang,5,snippets);
   ASSERT_EQ(2,snippets.size());
 
-  float url1_score = log(2)*(log(2.0)+1.0) / (log(3.0)+5.0)
+  // scoring is not done in recommend_urls anymore.
+  /*float url1_score = log(2)*(log(2.0)+1.0) / (log(3.0)+5.0)
                      * cf_configuration::_config->_domain_name_weight / (log(3.0)+5.0);
   float url2_score = url1_score / (log(9)+1); // weighting down with query radius.
 
@@ -258,9 +260,9 @@ TEST_F(SRETest,recommend_urls)
   std::string url2 = uris[2];
   query_capture::process_url(url2,host,path);
   ASSERT_EQ(url2,(*hit).second->_url);
-  ASSERT_EQ(url2_score,(*hit).second->_seeks_rank);
+  ASSERT_EQ(url2_score,(*hit).second->_seeks_rank);*/
 
-  hit = snippets.begin();
+  hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit = snippets.begin();
   while(hit!=snippets.end())
     {
       delete (*hit).second;
@@ -357,7 +359,7 @@ TEST_F(SRETest,estimate_ranks)
   snippets.push_back(&s0);
   snippets.push_back(&s1);
   snippets.push_back(&s2);
-  sre.estimate_ranks(queries[1],lang,snippets);
+  sre.estimate_ranks(queries[1],lang,1,snippets);
   ASSERT_EQ(3,snippets.size());
   ASSERT_TRUE(s2._seeks_rank > s1._seeks_rank);
   ASSERT_TRUE(s1._seeks_rank > s0._seeks_rank);
