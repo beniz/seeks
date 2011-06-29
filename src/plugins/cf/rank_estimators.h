@@ -93,6 +93,7 @@ namespace seeks_plugins
       // DEPRECATED
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
+                                  const uint32_t &expansion,
                                   hash_map<uint32_t,search_snippet*,id_hash_uint> &snippet,
                                   const std::string &host="",
                                   const int &port=-1) throw (sp_exception) {};
