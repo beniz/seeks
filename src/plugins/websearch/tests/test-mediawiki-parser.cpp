@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   ifs.read (buffer, length);
   ifs.close();
 
-  se_parser_mediawiki spb("");
+  se_parser_mediawiki spb("","");
   std::vector<search_snippet*> snippets;
   spb.parse_output(buffer,&snippets, 0);
 

@@ -1,6 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2010 Laurent Peuch  <cortex@worlddomination.be>
+ * Copyright (C) 2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,7 +28,8 @@ namespace seeks_plugins
   class se_parser_mediawiki : public se_parser
   {
     public:
-      se_parser_mediawiki(const std::string &url);
+      se_parser_mediawiki(const std::string &url,
+                          const std::string &lang);
       ~se_parser_mediawiki();
 
       // virtual.
