@@ -198,7 +198,7 @@ namespace seeks_plugins
             char *wenc = encode::url_encode(words.at(i).c_str());
             std::string rword = " " + words.at(i) + " ";
             std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query
-                                   + "+" + std::string(wenc) + "&amp;page=1&expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
+                                   + "+" + std::string(wenc) + "&amp;page=1&amp;expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
             free(wenc);
             miscutil::ci_replace_in_string(str,rword,bold_str);
           }
@@ -669,7 +669,7 @@ namespace seeks_plugins
     if (_personalized)
       {
         html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
-                        + _qc->_url_enc_query + "&url=" + url_enc + "&action=expand&amp;expansion=xxexp&amp;ui=stat&engines=";
+                        + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
         if (engines)
           html_content += std::string(engines);
         html_content += "&lang=" + _qc->_auto_lang;
