@@ -130,9 +130,9 @@ TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
   miscutil::add_map_entry(parameters,"action",1,"expand",1);
   miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
+  miscutil::add_map_entry(parameters,"prs",1,"off",1); // no personalization, otherwise connection failure is bypassed as results may come from local db.
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
-
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
@@ -184,6 +184,7 @@ TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
   miscutil::add_map_entry(parameters,"action",1,"expand",1);
   miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
+  miscutil::add_map_entry(parameters,"prs",1,"off",1); // no personalization, otherwise connection failure is bypassed as results may come from local db.
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
