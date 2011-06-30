@@ -386,9 +386,8 @@ namespace seeks_plugins
     html_content += url;
     html_content += "\">";
 
-    const char *title_enc = encode::html_encode(_title.c_str());
+    std::string title_enc = encode::html_decode(_title);
     html_content += title_enc;
-    free_const(title_enc);
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
