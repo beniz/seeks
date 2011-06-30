@@ -198,7 +198,7 @@ namespace seeks_plugins
             char *wenc = encode::url_encode(words.at(i).c_str());
             std::string rword = " " + words.at(i) + " ";
             std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query
-                                   + "+" + std::string(wenc) + "&amp;page=1&expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
+                                   + "+" + std::string(wenc) + "&amp;page=1&amp;expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
             free(wenc);
             miscutil::ci_replace_in_string(str,rword,bold_str);
           }
@@ -342,7 +342,7 @@ namespace seeks_plugins
         && query_capture_configuration::_config
         && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
-        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + url_enc;
+        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&amp;url=" + url_enc;
       }
 #endif
 

@@ -102,12 +102,12 @@ namespace seeks_plugins
         && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
         char *url_enc = encode::url_encode(url.c_str());
-        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&url=" + std::string(url_enc);
+        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&amp;url=" + std::string(url_enc);
         free(url_enc);
       }
 #endif
 
-    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=@query@&page=1&expansion=1&action=expand&engines=seeng&lang=" + _qc->_auto_lang + "&ui=stat\">&nbsp;</a></span>";
+    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=@query@&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=seeng&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
     std::string html_content = "<li class=\"search_snippet search_snippet_img\">";
 
     html_content += "<h3><a href=\"";
@@ -328,7 +328,7 @@ namespace seeks_plugins
       sfsearch = "off";
     _sim_link = "/search_img?q=" + _qc->_url_enc_query
                 + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-                + "&amp;action=similarity&safesearch=" + sfsearch
+                + "&amp;action=similarity&amp;safesearch=" + sfsearch
                 + "&amp;id=" + miscutil::to_string(_id) + "&amp;engines=";
     if (engines)
       _sim_link += std::string(engines);
@@ -343,7 +343,7 @@ namespace seeks_plugins
       sfsearch = "off";
     _sim_link = "/search_img?q=" + _qc->_url_enc_query
                 + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-                + "&amp;action=expand&safesearch=" + sfsearch + "&amp;engines=";
+                + "&amp;action=expand&amp;safesearch=" + sfsearch + "&amp;engines=";
     if (engines)
       _sim_link += std::string(engines);
     _sim_back = true;
