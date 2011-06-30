@@ -53,7 +53,7 @@ namespace seeks_plugins
     _sweep_cycle = 2592000;  // one month, in seconds.
     _retention = 31104000;   // one year, in seconds.
     _protected_redirection = false; // should be activated on public nodes.
-    _save_url_data = false;
+    _save_url_data = true;
   }
 
   void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
