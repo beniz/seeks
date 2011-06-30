@@ -108,7 +108,7 @@ namespace seeks_plugins
     args->_estimator = this;
     args->_qc = qc;
     args->_pe = pe;
-    args->_expansion = qc->_page_expansion;
+    args->_expansion = qc->_page_expansion > 0 ? qc->_page_expansion : 1;
     args->_err = SP_ERR_OK;
 
     pthread_t p_thread;
@@ -380,7 +380,7 @@ namespace seeks_plugins
                     std::string key_str = (*features.begin()).second.to_rstring();
                     bool in_store = false;
                     db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str,in_store);
-                    if (!dbr_data) // this should never happen.
+                    if (!dbr_data) // this should in general not happen unless the query has been pruned away.
                       {
                         errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
                                           key_str.c_str());
