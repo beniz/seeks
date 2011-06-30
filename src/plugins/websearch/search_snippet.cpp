@@ -668,7 +668,7 @@ namespace seeks_plugins
     if (_personalized)
       {
         html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
-                        + _qc->_url_enc_query + "&url=" + url_enc + "&action=expand&amp;expansion=xxexp&amp;ui=stat&engines=";
+                        + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
         if (engines)
           html_content += std::string(engines);
         html_content += "&lang=" + _qc->_auto_lang;

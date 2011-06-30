@@ -115,10 +115,6 @@ namespace sp
       &cgisimple::cgi_send_error_favicon,
       NULL, TRUE /* Sends the favicon image for error pages. */
     ),
-    cgi_dispatcher( "robots.txt",
-    &cgisimple::cgi_robots_txt,
-    NULL, TRUE /* Sends a robots.txt file to tell robots to go away. */
-                  ),
     cgi_dispatcher( "send-banner",
     &cgisimple::cgi_send_banner,
     NULL, TRUE /* Send a built-in image */

@@ -1187,57 +1187,6 @@ namespace sp
 
   /*********************************************************************
    *
-   * Function    :  cgi_robots_txt
-   *
-   * Description :  CGI function to return "/robots.txt".
-   *
-   * Parameters  :
-   *          1  :  csp = Current client state (buffers, headers, etc...)
-   *          2  :  rsp = http_response data structure for output
-   *          3  :  parameters = map of cgi parameters
-   *
-   * CGI Parameters : None
-   *
-   * Returns     :  SP_ERR_OK on success
-   *                SP_ERR_MEMORY on out-of-memory error.
-   *
-   *********************************************************************/
-  sp_err cgisimple::cgi_robots_txt(client_state *csp,
-                                   http_response *rsp,
-                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-  {
-    char buf[100];
-    sp_err err;
-
-    (void)csp;
-    (void)parameters;
-
-    rsp->_body = strdup(
-                   "# This is the Seeks proxy control interface.\n"
-                   "# It isn't very useful to index it, and you're likely to break stuff.\n"
-                   "# So go away!\n"
-                   "\n"
-                   "User-agent: *\n"
-                   "Disallow: /\n"
-                   "\n");
-    if (rsp->_body == NULL)
-      {
-        return SP_ERR_MEMORY;
-      }
-
-    err = miscutil::enlist_unique(&rsp->_headers, "Content-Type: text/plain", 13);
-
-    rsp->_is_static = 1;
-
-    cgi::get_http_time(7 * 24 * 60 * 60, buf, sizeof(buf)); /* 7 days into future */
-    if (!err) err = miscutil::enlist_unique_header(&rsp->_headers, "Expires", buf);
-
-    return (err ? SP_ERR_MEMORY : SP_ERR_OK);
-  }
-
-
-  /*********************************************************************
-   *
    * Function    :  show_defines
    *
    * Description :  Add to a map the state od all conditional #defines
