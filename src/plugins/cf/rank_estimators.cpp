@@ -254,6 +254,7 @@ namespace seeks_plugins
             errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                               host.c_str(),path.c_str(),qdata.size());
           }
+        else throw sp_exception(DB_ERR_NO_REC,"no records found"); // XXX: not an error, but exception makes its handling simpler at this stage.
       }
   }
 
