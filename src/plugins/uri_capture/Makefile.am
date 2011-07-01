@@ -17,7 +17,7 @@ $(protoc_outputs): $(protoc_inputs)
 
 uricapturepluginlib_LTLIBRARIES=liburicaptureplugin.la
 liburicaptureplugin_la_SOURCES=uri_capture.cpp db_uri_record.cpp uri_capture.h \
-	                       uc_configuration.cpp uc_configuration.h db_uri_record.h
+	                       uc_configuration.cpp uc_configuration.h db_uri_record.h uc_err.h
 nodist_liburicaptureplugin_la_SOURCES=$(protoc_outputs)
 
 BUILT_SOURCES = $(protoc_outputs)
