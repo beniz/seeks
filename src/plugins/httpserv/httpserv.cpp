@@ -863,7 +863,11 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* check that we're getting a proper POST request. */
+#ifdef HAVE_LEVENT1
     if (r->type != EVHTTP_REQ_POST)
+#else
+    if (evhttp_request_get_command(r) != EVHTTP_REQ_POST)
+#endif
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.
         return;
@@ -886,14 +890,31 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       }
 
     /* grab POST content. */
+#ifdef HAVE_LEVENT1
     evbuffer *input_buffer = r->input_buffer;
+#else
+    evbuffer *input_buffer = evhttp_request_get_input_buffer(r);
+#endif
     if (!input_buffer)
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.
         return;
       }
+
+#if !defined(HAVE_LEVENT1)
+    std::string post_content;
+    while (evbuffer_get_length(input_buffer))
+      {
+        int n;
+        char cbuf[128];
+        n = evbuffer_remove(input_buffer, cbuf, sizeof(input_buffer)-1);
+        post_content += std::string(cbuf,n);
+      }
+#else
     std::string post_content = std::string((char*)input_buffer->buffer,
-                                           input_buffer->off / sizeof(u_char)); // Beware.
+                                           input_buffer->off / sizeof(u_char));
+#endif
+
     if (post_content.empty())
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.

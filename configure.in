@@ -551,6 +551,19 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBEVENT,test x$le_found = xtrue)
 
+# check whether libevent-1.x is forced.
+AC_ARG_ENABLE(libevent1,
+AC_HELP_STRING([--enable-libevent1],[Forces the use of libevent-1.x (default is NO)]),
+[case "${enableval}" in
+        yes) libevent1=true ;;
+	        no) libevent1=false ;;
+                        *) AC_MSG_ERROR(bad_value ${enableval} for
+--enable-libevent1) ;;
+esac],[libevent1=false])
+if test x$libevent1 = xtrue; then
+   AC_DEFINE(HAVE_LEVENT1,1,"libevent-1.x used to build the HTTP server")
+fi
+
 # plugin variables.
 AC_SUBST(uricapture,true)
 AC_SUBST(querycapture,true)
