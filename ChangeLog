@@ -1,3 +1,39 @@
+* DiAngelo-0.3.4-HIPPY-stable
+
+First release with peer-to-peer activated as default. Every Seeks node
+defines a list of Seeks peers to work with. This list defines a
+ring of trusted peers. In future versions, the list will be updated
+automatically, before a DHT takes over.
+
+- Pure Seeks results: results now include data coming from the Seeks
+  network (other peers) and not exclusively from feeds and search
+  engines in the pipe.
+
+- Default UI now includes peer information and recommendations.
+	
+- Implements three P2P call types over HTTP: per-key db access using Tokyo
+  Tyrant, query fragment key extraction from Seeks node directly, and
+  'batch' P2P query calls that fetch the whole halo of similar queries
+  from a distant Seeks node (default).
+
+- Automatic detection and testing of dead peers. Dead peers are marked back as
+  alive when they are confirmed to operate correctly.
+	
+- libevent-2.x support is now default, see
+http://sourceforge.net/mailarchive/forum.php?thread_name=20110701064850.GA1476%40hyperion.musicophages&forum_name=seeks-users
+
+- new threaded and interleaved calls to feeds and remote Seeks peers.
+
+- new threaded collaborative filter, with improved local filtering (local
+  user control on all results, including those coming from other peers,
+  avoids spam or preferences to be overriden).
+	
+- Many leaks and bug fixes.
+
+- Added special flag to disable OpenCV, as the library seems partly broken
+  on Debian testing & sid. See:
+http://sourceforge.net/mailarchive/forum.php?thread_name=20110701091640.GA3016%40hyperion.musicophages&forum_name=seeks-users
+	
 * DiAngelo-0.3.3-SOLO-stable
 
 - Reworked parser and feeds / search engines connection. Allows using the
