@@ -1003,9 +1003,9 @@ namespace seeks_plugins
             s->_engine.add_feed("seeks","s.s");
             s->_hits += uc_dbr->_hits;
           }
-        if (cf_configuration::_config->_record_cache_timeout == 0)
-          delete uc_dbr;
       }
+    if (dbr)
+      delete dbr;
     dbr = NULL;
     if (s)
       dbr = seeks_proxy::_user_db->find_dbr(phost,uc_str);
