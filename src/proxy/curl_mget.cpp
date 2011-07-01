@@ -102,6 +102,7 @@ namespace sp
 
     if (arg->_content) // POST request.
       {
+        curl_easy_setopt(curl, CURLOPT_POST, 1);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void*)arg->_content->c_str());
         if (arg->_content_size >= 0)
           curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, arg->_content_size);
