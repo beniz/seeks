@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT(Seeks, 0.3.4, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.4, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -28,10 +28,10 @@ AC_SUBST(SEEKS_VERSION_POINT)
 AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
-AC_DEFINE(SEEKS_VERSION_MINOR,"3","")
-AC_DEFINE(SEEKS_VERSION_POINT,"4","")
-AC_DEFINE(SEEKS_VERSION,"0.3.4","")
-AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
+AC_DEFINE(SEEKS_VERSION_MINOR,"4","")
+AC_DEFINE(SEEKS_VERSION_POINT,"0","")
+AC_DEFINE(SEEKS_VERSION,"0.4","")
+AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.
 AC_PROG_CXX
