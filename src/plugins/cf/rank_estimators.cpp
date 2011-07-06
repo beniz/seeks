@@ -70,8 +70,15 @@ namespace seeks_plugins
     = cf_configuration::_config->_pl->_peers.begin();
     while(hit!=cf_configuration::_config->_pl->_peers.end())
       {
-        threaded_personalize(perso_args,perso_threads,
-                             (*hit).second,qc);
+        // connect to living peers only.
+        if ((*hit).second->get_status() == PEER_OK)
+          threaded_personalize(perso_args,perso_threads,
+                               (*hit).second,qc);
+        else
+          {
+            perso_args.push_back(NULL);
+            perso_threads.push_back(0);
+          }
         ++hit;
       }
 
@@ -134,7 +141,7 @@ namespace seeks_plugins
         if (!args->_pe)
           {
             peer pe;
-            pe._status = PEER_OK;
+            pe.set_status_ok();
             args->_estimator->personalize(args->_query,args->_lang,
                                           args->_expansion,
                                           *args->_snippets,
@@ -163,23 +170,18 @@ namespace seeks_plugins
         if (++args->_pe->_retries > cf_configuration::_config->_dead_peer_retries)
           {
             if (args->_err == UDBS_ERR_CONNECT)
-              args->_pe->_status = PEER_NO_CONNECT;
-            else args->_pe->_status = PEER_UNKNOWN; // most likely to be a slow transmission.
+              args->_pe->set_status_no_connect();
+            else args->_pe->set_status_unknown(); // most likely to be a slow transmission.
 
             // add peer to monitoring list.
             dead_peer *dpe = new dead_peer(args->_pe->_host,
                                            args->_pe->_port,
                                            args->_pe->_path,
                                            args->_pe->_rsc);
-            cf_configuration::_config->_pl->remove(args->_pe->_host,
-                                                   args->_pe->_port,
-                                                   args->_pe->_path);
-            delete args->_pe;
-            args->_pe = NULL;
           }
       }
     else if (args->_pe)
-      args->_pe->_status = PEER_OK;
+      args->_pe->set_status_ok();
   }
 
   void rank_estimator::fetch_query_data(const std::string &query,

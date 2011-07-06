@@ -35,16 +35,18 @@ namespace seeks_plugins
 
   /*- peer -*/
   peer::peer()
-    :_port(-1),_status(PEER_UNKNOWN),_retries(0)
+    :_port(-1),_status(PEER_OK),_retries(0)
   {
+    mutex_init(&_st_mutex);
   }
 
   peer::peer(const std::string &host,
              const int &port,
              const std::string &path,
              const std::string &rsc)
-    :_host(host),_port(port),_path(path),_status(PEER_UNKNOWN),_retries(0),_rsc(rsc)
+    :_host(host),_port(port),_path(path),_status(PEER_OK),_retries(0),_rsc(rsc)
   {
+    mutex_init(&_st_mutex);
     _key = peer::generate_key(host,port,path);
   }
 
@@ -61,9 +63,38 @@ namespace seeks_plugins
     else return host + ":" + miscutil::to_string(port) + path;
   }
 
+  void peer::set_status_ok()
+  {
+    mutex_lock(&_st_mutex);
+    _status = PEER_OK;
+    mutex_unlock(&_st_mutex);
+  }
+
+  void peer::set_status_no_connect()
+  {
+    mutex_lock(&_st_mutex);
+    _status = PEER_NO_CONNECT;
+    mutex_unlock(&_st_mutex);
+  }
+
+  void peer::set_status_unknown()
+  {
+    mutex_lock(&_st_mutex);
+    _status = PEER_UNKNOWN;
+    mutex_unlock(&_st_mutex);
+  }
+
+  enum PEER_STATUS peer::get_status()
+  {
+    mutex_lock(&_st_mutex);
+    enum PEER_STATUS st = _status;
+    mutex_unlock(&_st_mutex);
+    return st;
+  }
+
   /*- dead_peer -*/
-  peer_list* dead_peer::_pl = NULL;
   peer_list* dead_peer::_dpl = NULL;
+  peer_list* dead_peer::_pl = NULL;
 
   dead_peer::dead_peer()
     :peer()
@@ -88,10 +119,14 @@ namespace seeks_plugins
   dead_peer::~dead_peer()
   {
     // remove from dead peers, destroy and add up to living peer set.
-    if (_dpl)
-      _dpl->remove(_host,_port,_path);
-    if (_pl)
-      _pl->add(_host,_port,_path,_rsc);
+    if (dead_peer::_dpl)
+      dead_peer::_dpl->remove(_host,_port,_path);
+    if (dead_peer::_pl)
+      {
+        peer *pe = dead_peer::_pl->get(_key);
+        if (pe)
+          pe->set_status_ok();
+      }
     std::string port_str = (_port != -1) ? miscutil::to_string(_port) : "";
     errlog::log_error(LOG_LEVEL_DEBUG,"marking %s%s%s as a living peer",
                       _host.c_str(),port_str.c_str(),_path.c_str());
@@ -241,6 +276,19 @@ namespace seeks_plugins
     mutex_unlock(&_pl_mutex);
     errlog::log_error(LOG_LEVEL_ERROR,"Cannot find peer %s to remove from peer list",
                       key.c_str());
+  }
+
+  peer* peer_list::get(const std::string &key)
+  {
+    mutex_lock(&_pl_mutex);
+    hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit;
+    if ((hit=_peers.find(key.c_str()))!=_peers.end())
+      {
+        mutex_unlock(&_pl_mutex);
+        return (*hit).second;
+      }
+    mutex_unlock(&_pl_mutex);
+    return NULL;
   }
 
 } /* end of namespace. */

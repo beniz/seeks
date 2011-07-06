@@ -51,10 +51,17 @@ namespace seeks_plugins
                                       const int &port,
                                       const std::string &path);
 
+      // safe setters & getters.
+      void set_status_ok();
+      void set_status_no_connect();
+      void set_status_unknown();
+      enum PEER_STATUS get_status();
+
       std::string _host;
       int _port;
       std::string _path;
       enum PEER_STATUS _status;
+      sp_mutex_t _st_mutex; // mutex around status variable.
       short _retries;
       std::string _rsc; // "tt", "sn" or "bsn", that is tokyo tyrant, seeks node, or 'batch' seeks node.
       std::string _key;
@@ -82,8 +89,8 @@ namespace seeks_plugins
 
       time_t _last_check;
 
-      static peer_list *_pl;  /**< pointer to peer_list, for peer addition. */
       static peer_list *_dpl; /**< pointer to peer_list, for removal. */
+      static peer_list *_pl; /**< pointer to full list of peers, for status update. */
   };
 
   class peer_list
@@ -105,6 +112,8 @@ namespace seeks_plugins
                   const std::string &path);
 
       void remove(const std::string &key);
+
+      peer* get(const std::string &key);
 
       hash_map<const char*,peer*,hash<const char*>,eqstr> _peers;
 
