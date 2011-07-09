@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -70,8 +70,10 @@ namespace sp
        */
       hash_map<const char*, bool, hash<const char*>, eqstr> _cchanges;
 
-    protected:
-
+      /**
+       * read-write lock, used for safe reload of config file.
+       */
+      pthread_rwlock_t _conf_rwlock;
   };
 
 } /* end of namespace. */

@@ -147,8 +147,13 @@ namespace seeks_plugins
 
   void cf::personalize(query_context *qc)
   {
+    // check on config file, in case it did change.
+    cf_configuration::_config->load_config();
+    pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
+
     simple_re sre;
     sre.peers_personalize(qc);
+    pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
   }
 
   void cf::estimate_ranks(const std::string &query,

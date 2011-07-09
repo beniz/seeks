@@ -51,6 +51,7 @@ namespace seeks_plugins
 
   cf_configuration::~cf_configuration()
   {
+    // XXX: should mutex to avoid crash (this is only called when node is dying, for now).
     dead_peer::_pl = NULL;
     dead_peer::_dpl = NULL;
     delete _pl;
@@ -72,7 +73,6 @@ namespace seeks_plugins
     int vec_count;
     char *vec[4];
     int port;
-    char *endptr;
     std::vector<std::string> elts;
     std::string host, path, address, port_str;
 

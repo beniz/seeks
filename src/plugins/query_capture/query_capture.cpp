@@ -162,6 +162,10 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
+        // check on config file, in case it did change.
+        query_capture_configuration::_config->load_config();
+        pthread_rwlock_rdlock(&query_capture_configuration::_config->_conf_rwlock);
+
         char *urlp = NULL;
         sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
         if (err == SP_ERR_CGI_PARAMS)
@@ -174,6 +178,7 @@ namespace seeks_plugins
 
         cgi::cgi_redirect(rsp,urlp);
         free(urlp);
+        pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
         return SP_ERR_OK;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
@@ -217,7 +222,6 @@ namespace seeks_plugins
             if (p==std::string::npos)
               return SP_ERR_PARSE;
           }
-        //else return SP_ERR_PARSE;
       }
 
     // capture queries and URL / HOST.
@@ -302,7 +306,9 @@ namespace seeks_plugins
                           query.c_str());
         return;
       }
+    pthread_rwlock_rdlock(&query_capture_configuration::_config->_conf_rwlock);
     query_capture_element::store_queries(query,get_name());
+    pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
   }
 
   /*- query_capture_element -*/

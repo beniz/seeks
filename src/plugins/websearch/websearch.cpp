@@ -811,6 +811,10 @@ namespace seeks_plugins
     if (!action)
       return SP_ERR_CGI_PARAMS;
 
+    // possibly a new search: check on config file in cast it did change.
+    websearch::_wconfig->load_config();
+    pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+
     /**
      * Action can be of type:
      * - "expand": requests an expansion of the search results, expansion horizon is
@@ -836,10 +840,15 @@ namespace seeks_plugins
       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
     else if (miscutil::strcmpic(action,"types") == 0)
       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+        return SP_ERR_CGI_PARAMS;
+      }
 
     errlog::log_error(LOG_LEVEL_INFO,"query: %s",cgi::build_url_from_parameters(parameters).c_str());
 
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
     return err;
   }
 
@@ -880,7 +889,6 @@ namespace seeks_plugins
         // check whether search is expanding or the user is leafing through pages.
         const char *action = miscutil::lookup(parameters,"action");
 
-        websearch::_wconfig->load_config(); // reload config if file has changed.
         if (strcmp(action,"expand") == 0)
           {
             expanded = true;
@@ -935,8 +943,9 @@ namespace seeks_plugins
           {
             const char *page = miscutil::lookup(parameters,"page");
             if (!page)
-              return SP_ERR_CGI_PARAMS;
-
+              {
+                return SP_ERR_CGI_PARAMS;
+              }
             // XXX: update other parameters, as needed, qc vs parameters.
             qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 
