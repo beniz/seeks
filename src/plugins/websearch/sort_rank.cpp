@@ -128,7 +128,12 @@ namespace seeks_plugins
                         search_snippet *comp_sp = qc->get_cached_snippet((*mit).second);
                         if (!comp_sp)
                           comp_sp = qc->get_cached_snippet_title((*mit).second.c_str());
-                        assert(comp_sp != NULL);
+                        if (!comp_sp)
+                          {
+                            // skip this entry.
+                            ++mit;
+                            continue;
+                          }
 
                         // Beware: second url (from sp) is the one to be possibly deleted!
                         bool same = content_handler::has_same_content(qc,comp_sp,sp,st);
