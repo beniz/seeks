@@ -12,7 +12,7 @@ search-results-page 10
 # entries are of the form search-engine <engine> <url> <name> <default | nodefault>
 # 'default' indicates that the engine and url are default engines when
 # no engine is specified to the API.
-search-engine seeks s.s no_name default
+search-engine seeks s.s seeks default
 search-engine google http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding google default
 search-engine bing http://www.bing.com/search?q=%query&first=%start&mkt=%lang bing default
 search-engine yahoo http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs= yahoo default
