@@ -228,8 +228,11 @@ namespace seeks_plugins
     // XXX: could be threaded and detached.
     char *queryp = encode::url_decode(q);
     std::string query = queryp;
+    query_context *qc = websearch::lookup_qc(parameters);
     std::string qlang;
-    if (!query_context::has_query_lang(query,qlang))
+    if (qc)
+      qlang = qc->_auto_lang;
+    else if (!query_context::has_query_lang(query,qlang))
       qlang = query_context::_default_alang;
     query = query_capture_element::no_command_query(query);
     free(queryp);
@@ -455,6 +458,11 @@ namespace seeks_plugins
                         sp = qc->get_cached_snippet(url);
                         query_capture_element::store_url((*hit).second,query,url,host,
                                                          (*hit).first,plugin_name,sp);
+                      }
+                    else
+                      {
+                        query_capture_element::store_url((*hit).second,query,url,host,
+                                                         (*hit).first,plugin_name,NULL);
                       }
                   }
               }
