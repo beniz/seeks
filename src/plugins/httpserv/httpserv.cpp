@@ -219,6 +219,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_hp(&csp,&rsp,&parameters);
@@ -246,6 +249,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_search_hp_css(&csp,&rsp,&parameters);
@@ -269,6 +275,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_search_css(&csp,&rsp,&parameters);
@@ -293,6 +302,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
     sp_err serr = websearch::cgi_websearch_opensearch_xml(&csp,&rsp,&parameters);
@@ -317,6 +329,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested information. */
     sp_err serr = websearch::cgi_websearch_node_info(&csp,&rsp,&parameters);
@@ -342,6 +357,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
     std::string uri_str = std::string(r->uri);
@@ -432,6 +450,9 @@ namespace seeks_plugins
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* perform websearch. */
     sp_err serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
@@ -529,6 +550,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* perform websearch. */
     sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
@@ -600,6 +624,12 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     csp._config = seeks_proxy::_config;
     http_response rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
     sp_err serr = img_websearch::cgi_img_websearch_search_css(&csp,&rsp,&parameters);
