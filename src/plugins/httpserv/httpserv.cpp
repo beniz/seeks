@@ -788,12 +788,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       }
 
     // fill up csp headers.
-    const char *referer = evhttp_find_header(r->input_headers, "referer");
-    if (referer)
-      miscutil::enlist_unique_header(&csp._headers,"referer",referer);
     const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
     if (baseurl)
-      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",referer);
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
@@ -926,12 +923,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     csp._iob._size = post_content_size+1;
 
     // fill up csp headers.
-    const char *referer = evhttp_find_header(r->input_headers, "referer");
-    if (referer)
-      miscutil::enlist_unique_header(&csp._headers,"referer",referer);
     const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
     if (baseurl)
-      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",referer);
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
