@@ -896,6 +896,7 @@ namespace seeks_plugins
             mutex_lock(&qc->_feeds_ack_mutex);
             try
               {
+#if defined(PROTOBUF) && defined(TC)
                 if (persf)
                   {
                     int perr = pthread_create(&pers_thread,NULL,
@@ -908,6 +909,7 @@ namespace seeks_plugins
                         return WB_ERR_THREAD;
                       }
                   }
+#endif
                 qc->generate(csp,rsp,parameters,expanded);
               }
             catch (sp_exception &e)
@@ -949,6 +951,7 @@ namespace seeks_plugins
             // XXX: update other parameters, as needed, qc vs parameters.
             qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 
+#if defined(PROTOBUF) && defined(TC)
             // personalization.
             if (persf)
               {
@@ -962,6 +965,7 @@ namespace seeks_plugins
                     return WB_ERR_THREAD;
                   }
               }
+#endif
           }
       }
     else
@@ -973,6 +977,7 @@ namespace seeks_plugins
         mutex_lock(&qc->_feeds_ack_mutex);
         try
           {
+#if defined(PROTOBUF) && defined(TC)
             // personalization in parallel to feeds fetching.
             if (persf)
               {
@@ -986,6 +991,7 @@ namespace seeks_plugins
                     return WB_ERR_THREAD;
                   }
               }
+#endif
             qc->generate(csp,rsp,parameters,expanded);
           }
         catch (sp_exception &e)
