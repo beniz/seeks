@@ -398,7 +398,7 @@ namespace sp
       cgi_plugin_file_server = true; // plugin name check comes further down.
 
     query_args_start = path_copy;
-    while (*query_args_start && *query_args_start != '?' && *query_args_start != '/')
+    while (*query_args_start && *query_args_start != '?')
       {
         query_args_start++;
       }
