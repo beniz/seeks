@@ -491,7 +491,7 @@ namespace sp
       }
 
     /**
-     * Else find and start the right plugin CGI function.
+     * Else find and trigger the right plugin CGI function.
      */
     d = plugin_manager::find_plugin_cgi_dispatcher(path_copy);
     if (d)
@@ -545,7 +545,7 @@ namespace sp
 
     if (err == SP_ERR_CGI_PARAMS)
       {
-        err = cgi::cgi_error_bad_param(csp, rsp);
+        err = cgi::cgi_error_bad_param(csp, rsp, "html");
       }
     else if (err && !d->_plugin_name.empty())
       {
@@ -1327,18 +1327,24 @@ namespace sp
    *
    *********************************************************************/
   sp_err cgi::cgi_error_bad_param(const client_state *csp,
-                                  http_response *rsp)
+                                  http_response *rsp,
+                                  const std::string &output)
   {
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
-
-    assert(csp);
-    assert(rsp);
 
     if (NULL == (exports = cgi::default_exports(csp, NULL)))
       {
         return SP_ERR_MEMORY;
       }
 
+    if (output == "json")
+      {
+        rsp->_status = strdup("400");
+        rsp->_body = strdup("{\"error\":\"bad parameter\"}");
+        rsp->_content_length = strlen(rsp->_body);
+        miscutil::free_map(exports);
+        return SP_ERR_OK;
+      }
     return cgi::template_fill_for_cgi(csp, "cgi-error-bad-param",
                                       csp->_config->_templdir, exports, rsp);
   }
@@ -2100,11 +2106,6 @@ namespace sp
   {
     sp_err err;
 
-    assert(csp);
-    assert(templatename);
-    assert(exports);
-    assert(rsp);
-
     err = cgi::template_load(csp, &rsp->_body, templatename, templatedir, 0);
     if (err == SP_ERR_FILE)
       {
@@ -2128,11 +2129,6 @@ namespace sp
                                         http_response *rsp)
   {
     sp_err err;
-
-    assert(csp);
-    assert(templatename);
-    assert(exports);
-    assert(rsp);
 
     err = cgi::template_load(csp, &rsp->_body, templatename, templatedir, 0);
     if (err == SP_ERR_FILE)
@@ -2175,8 +2171,6 @@ namespace sp
     int local_help_exists = 0;
     char *ip_address = NULL;
     char *hostname = NULL;
-
-    assert(csp);
 
     try
       {
