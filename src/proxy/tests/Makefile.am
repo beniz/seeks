@@ -2,12 +2,15 @@ TESTS = $(check_PROGRAMS)
 
 bin_PROGRAMS=user_db_ops
 noinst_PROGRAMS=test_curl_mget shash
+check_PROGRAMS=ut_plugin_manager
 if HAVE_PROTOBUF
 if HAVE_TC
 noinst_PROGRAMS += user_db_print user_db_clear user_db_remove user_db_find_key user_db_export
-check_PROGRAMS = ut_user_db ut_urlmatch
+check_PROGRAMS += ut_user_db ut_urlmatch
 endif
 endif
+
+ut_plugin_manager_SOURCES=ut-plugin-manager.cpp
 test_curl_mget_SOURCES=test-curl-mget.cpp
 shash_SOURCES=shash.cpp
 ut_urlmatch_SOURCES=ut-urlmatch.cpp

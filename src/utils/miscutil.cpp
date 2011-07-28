@@ -1062,15 +1062,9 @@ namespace sp
     while ((p2 = miscutil::ci_find(str,pattern,it)) != std::string::npos)
       {
         str.replace(p1+p2,pattern.size(),repl);
-
-        //std::cout << "str: " << str << std::endl;
-
         it = str.begin();
         it += p1+p2 + repl.size();
-
         p1 += p2 + repl.size();
-
-        //std::cout << "it: " << (*it) << std::endl;
       }
     return p1;
   }
@@ -1175,6 +1169,18 @@ namespace sp
     for (std::list<std::string>::const_iterator i = l.begin (), e = l.end (); i != e; ++i)
       {
         if (i != l.begin())
+          result.append(delim);
+        result.append(i->c_str());
+      }
+    return result;
+  }
+
+  std::string miscutil::join_string_list(const std::string& delim, const std::vector<std::string>& v)
+  {
+    std::string result;
+    for (std::vector<std::string>::const_iterator i = v.begin (), e = v.end (); i != e; ++i)
+      {
+        if (i != v.begin())
           result.append(delim);
         result.append(i->c_str());
       }

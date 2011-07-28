@@ -36,6 +36,7 @@
 #include "stl_hash.h"
 #include <inttypes.h>
 #include <list>
+#include <vector>
 #include <string>
 #include <sstream>
 
@@ -145,7 +146,8 @@ namespace sp
 
       /* others. */
       static uint32_t hash_string(const char *data, uint32_t len);
-      static std::string join_string_list(const std::string& delim, const std::list<std::string>& l);
+      static std::string join_string_list(const std::string &delim, const std::list<std::string>& l);
+      static std::string join_string_list(const std::string &delim, const std::vector<std::string> &v);
   };
 
 } /* end of namespace. */
