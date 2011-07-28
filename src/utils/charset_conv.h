@@ -17,6 +17,7 @@
  */
 
 #include "config.h"
+#include "errlog.h"
 #include <iconv.h>
 #include <errno.h>
 
@@ -209,7 +210,7 @@ namespace sp
         // if no header, if we have ICU, then try to detect and convert.
         int32_t c = 0;
         const char *cs = icu_detection_best_match(q.c_str(),q.size(),&c);
-        std::cerr << "detected charset: " << cs << std::endl;
+        errlog::log_error(LOG_LEVEL_DEBUG,"detected charset: %s",cs);
         if (cs && c > 60)
           {
             int32_t clen = 0;
