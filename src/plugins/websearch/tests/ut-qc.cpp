@@ -38,7 +38,7 @@ class QCTest : public testing::Test
       websearch::_wconfig = new websearch_configuration("");
       websearch::_wconfig->_se_connect_timeout = 1;
       websearch::_wconfig->_se_transfer_timeout = 1;
-      websearch::_wconfig->_se_enabled = feeds("dummy","url1");
+      websearch::_wconfig->_se_enabled = feeds("dummy1","url1");
     }
 
     virtual void TearDown()
@@ -162,7 +162,7 @@ TEST_F(QCTest,generate_no_engine_output_fail)
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"q",1,"test",1);
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
-  miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
+  miscutil::add_map_entry(parameters,"engines",1,"dummy1",1);
   bool expanded = false;
   int code = SP_ERR_OK;
   try
