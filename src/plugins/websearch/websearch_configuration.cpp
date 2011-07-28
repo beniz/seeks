@@ -89,15 +89,21 @@ namespace seeks_plugins
   void websearch_configuration::set_default_engines()
   {
     std::string url = "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding";
-    _se_enabled.add_feed("google",url);
+    feed_parser fed("google",url);
+    _se_enabled.add_feed(fed);
+    _se_default.add_feed(fed);
     feed_url_options fuo(url,"google",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://www.bing.com/search?q=%query&first=%start&mkt=%lang";
-    _se_enabled.add_feed("bing",url);
+    fed = feed_parser("bing",url);
+    _se_enabled.add_feed(fed);
+    _se_default.add_feed(fed);
     fuo = feed_url_options(url,"bing",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=";
-    _se_enabled.add_feed("yahoo",url);
+    fed = feed_parser("yahoo",url);
+    _se_enabled.add_feed(fed);
+    _se_default.add_feed(fed);
     fuo = feed_url_options(url,"yahoo",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     _default_engines = true;
