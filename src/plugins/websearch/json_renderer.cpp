@@ -335,6 +335,23 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
+  sp_err json_renderer::render_json_snippet(const search_snippet *sp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      query_context *qc)
+  {
+    std::string query = qc->_query;
+
+    // grab query words.
+    std::vector<std::string> query_words;
+    miscutil::tokenize(query,query_words," "); // allows to extract most discriminative words not in query.
+
+    const std::string json_snippet = sp->to_json(false,query_words);
+    const std::string body = jsonp(json_snippet,miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
   sp_err json_renderer::render_json_node_options(client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
@@ -374,14 +391,6 @@ using namespace seeks_plugins;
 
 namespace json_renderer_private
 {
-  /*std::string query_clean(const std::string& q)
-  {
-    char *html_encoded_query_str = encode::html_encode(q.c_str());
-    std::string html_encoded_query = std::string(html_encoded_query_str);
-    free(html_encoded_query_str);
-    return se_handler::no_command_query(html_encoded_query);
-    }*/
-
   std::string jsonp(const std::string& input, const char* callback)
   {
     std::string output;
