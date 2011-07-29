@@ -584,7 +584,7 @@ namespace seeks_plugins
     std::vector<std::string> urls;
     urls.reserve(esize);
     std::vector<std::list<const char*>*> headers;
-    headers.reserve(esize);
+    //headers.reserve(esize);
     std::set<feed_parser,feed_parser::lxn>::iterator it
     = se_enabled._feedset.begin();
     while(it!=se_enabled._feedset.end())
@@ -692,7 +692,10 @@ namespace seeks_plugins
         else if (se._name == "bing")
           _bing.query_to_se(parameters,url,qc);
         else if (se._name == "yahoo")
-          _yahoo.query_to_se(parameters,url,qc);
+          {
+            _yahoo.query_to_se(parameters,url,qc);
+            miscutil::list_remove_all(lheaders); // browser header modify the output.
+          }
         else if (se._name == "exalead")
           _exalead.query_to_se(parameters,url,qc);
         else if (se._name == "twitter")
