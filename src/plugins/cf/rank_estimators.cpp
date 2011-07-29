@@ -29,6 +29,7 @@
 #include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+#include "mem_utils.h"
 #include "errlog.h"
 
 #include <assert.h>
@@ -188,6 +189,7 @@ namespace seeks_plugins
                                         const std::string &lang,
                                         const uint32_t &expansion,
                                         hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                        hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata,
                                         peer *pe) throw (sp_exception)
   {
     const std::string host = pe->_host;
@@ -227,7 +229,7 @@ namespace seeks_plugins
         rank_estimator::fetch_user_db_record(query,udb,records);
 
         // extract queries.
-        rank_estimator::extract_queries(query,lang,expansion,udb,records,qdata);
+        rank_estimator::extract_queries(query,lang,expansion,udb,records,qdata,inv_qdata);
 
         errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                           host.c_str(),path.c_str(),qdata.size());
@@ -252,7 +254,7 @@ namespace seeks_plugins
             db_query_record::copy_related_queries(dbqr->_related_queries,qdata);
             if (cf_configuration::_config->_record_cache_timeout == 0)
               delete dbqr;
-            rank_estimator::filter_extracted_queries(squery,lang,expansion,qdata);
+            rank_estimator::filter_extracted_queries(squery,lang,expansion,qdata,inv_qdata);
             errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                               host.c_str(),path.c_str(),qdata.size());
           }
@@ -307,7 +309,8 @@ namespace seeks_plugins
                                        const uint32_t &expansion,
                                        user_db *udb,
                                        const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
-                                       hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
+                                       hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                       hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata)
   {
     static std::string qc_str = "query-capture";
 
@@ -364,6 +367,7 @@ namespace seeks_plugins
                     nqd->_radius = nradius;
                     nqd->_record_key = new DHTKey(*(*vit).first); // mark data with record key.
                     qdata.insert(std::pair<const char*,query_data*>(nqd->_query.c_str(),nqd));
+                    rank_estimator::fillup_inv_qdata(nqd,inv_qdata);
                   }
                 else if (query.empty() || nradius <= (expansion==0 ? 0 : expansion-1)) //TODO: check on max radius here.
                   {
@@ -419,6 +423,9 @@ namespace seeks_plugins
                                 dbqrc->_record_key = new DHTKey((*features.begin()).second); // mark the data with the record key.
                                 qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
                                              dbqrc));
+
+                                // fill up the inverse query data index.
+                                rank_estimator::fillup_inv_qdata(dbqrc,inv_qdata);
                                 break;
                               }
                             ++qit2;
@@ -439,11 +446,40 @@ namespace seeks_plugins
                       }
                     qdata.insert(std::pair<const char*,query_data*>(dbqrc->_query.c_str(),
                                  dbqrc));
+                    // fill up the inverse query data index.
+                    rank_estimator::fillup_inv_qdata(dbqrc,inv_qdata);
                   }
               }
             ++qit;
           }
         ++vit;
+      }
+  }
+
+  void rank_estimator::fillup_inv_qdata(query_data *qd,
+                                        hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata)
+  {
+    if (qd->_visited_urls)
+      {
+        hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr>::iterator qit;
+        hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::const_iterator mit
+        = qd->_visited_urls->begin();
+        while(mit!=qd->_visited_urls->end())
+          {
+            vurl_data *vd = (*mit).second;
+            std::string surl = urlmatch::strip_url(vd->_url);
+            if ((qit = inv_qdata.find(surl.c_str()))!=inv_qdata.end())
+              {
+                (*qit).second.push_back(qd);
+              }
+            else
+              {
+                std::vector<query_data*> vec;
+                vec.push_back(qd);
+                inv_qdata.insert(std::pair<const char*,std::vector<query_data*> >(strdup(surl.c_str()),vec));
+              }
+            ++mit;
+          }
       }
   }
 
@@ -485,6 +521,21 @@ namespace seeks_plugins
         hit2 = hit;
         ++hit;
         delete qd;
+      }
+  }
+
+  void rank_estimator::destroy_inv_qdata_key(hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata)
+  {
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr>::iterator rit
+    = inv_qdata.begin();
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr>::iterator crit;
+    while (rit!=inv_qdata.end())
+      {
+        crit = rit;
+        ++rit;
+        const char *key = (*crit).first;
+        inv_qdata.erase(crit);
+        free_const(key);
       }
   }
 
@@ -577,7 +628,8 @@ namespace seeks_plugins
   void rank_estimator::filter_extracted_queries(const std::string &query,
       const std::string &lang,
       const uint32_t &expansion,
-      hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata)
+      hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+      hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata)
   {
     str_chain strc_query = str_chain(query_capture_element::no_command_query(query),0,true);
     strc_query = strc_query.rank_alpha();
@@ -603,19 +655,8 @@ namespace seeks_plugins
         str_chain strc_rquery(qd->_query,0,true);
         int nradius = std::max(strc_rquery.size(),strc_query.size())
                       - strc_query.intersect_size(strc_rquery);
-        /*if (qd->_radius == 0)
-          {
-            qd->_radius = nradius;
-            ++hit;
-          }
-          else */
         if (nradius > (expansion==0 ? 0 : expansion-1))
           {
-            /* hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
-            ++hit;
-            query_data *rqd = (*hit2).second;
-            qdata.erase(hit2);
-            delete rqd; */
             if (qd->_visited_urls)
               {
                 hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator mit
@@ -636,6 +677,7 @@ namespace seeks_plugins
         else
           {
             qd->_radius = nradius;
+            rank_estimator::fillup_inv_qdata(qd,inv_qdata);
           }
         ++hit;
       }
@@ -662,9 +704,10 @@ namespace seeks_plugins
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,pe);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,pe);
       }
     catch(sp_exception &e)
       {
@@ -692,10 +735,11 @@ namespace seeks_plugins
           {
             // fetch queries from user DB.
             hash_map<const char*,query_data*,hash<const char*>,eqstr> lqdata;
+            hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_lqdata; // XXX: not used.
             try
               {
                 peer pel;
-                rank_estimator::fetch_query_data(query,lang,expansion,lqdata,&pel);
+                rank_estimator::fetch_query_data(query,lang,expansion,lqdata,inv_lqdata,&pel);
               }
             catch(sp_exception &e)
               {
@@ -703,6 +747,7 @@ namespace seeks_plugins
               }
             simple_re::build_up_filter(&lqdata,filter,true);
             rank_estimator::destroy_query_data(lqdata);
+            rank_estimator::destroy_inv_qdata_key(inv_lqdata);
           }
 
         // update filter with remote data, with dominance of local data.
@@ -720,17 +765,18 @@ namespace seeks_plugins
         mutex_lock(&_est_mutex);
         recommend_urls(query,lang,reco_snippets,&qdata,&filter);
         select_recommended_urls(reco_snippets,snippets,qc);
-        estimate_ranks(query,lang,snippets,&qdata,&filter,pe->_rsc);
+        estimate_ranks(query,lang,snippets,&qdata,&inv_qdata,&filter,pe->_rsc);
 
         query_recommender::recommend_queries(query,lang,related_queries,&qdata);
         mutex_unlock(&_est_mutex);
 
         // destroy query data.
         rank_estimator::destroy_query_data(qdata);
+        rank_estimator::destroy_inv_qdata_key(inv_qdata);
       }
   }
 
-  // DEPRECATED
+  // DEPRECATED: unit testing only.
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
                                  const uint32_t &expansion,
@@ -741,10 +787,11 @@ namespace seeks_plugins
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
         peer pe(host,port,"",rsc);
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,&pe);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -756,16 +803,18 @@ namespace seeks_plugins
     simple_re::build_up_filter(&qdata,filter,true); // Beware, local filtering.
 
     // estimate ranks.
-    estimate_ranks(query,lang,snippets,&qdata,&filter,rsc);
+    estimate_ranks(query,lang,snippets,&qdata,&inv_qdata,&filter,rsc);
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
                                  std::vector<search_snippet*> &snippets,
                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
+                                 hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> *inv_qdata,
                                  hash_map<uint32_t,bool,id_hash_uint> *filter,
                                  const std::string &rsc)
   {
@@ -773,15 +822,16 @@ namespace seeks_plugins
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // gather normalizing values.
-    int i = 0;
+    float cumul_halo_weights = 0.0;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
     = qdata->begin();
-    float q_vurl_hits[qdata->size()];
     while (hit!=qdata->end())
       {
-        q_vurl_hits[i++] = fabs((*hit).second->vurls_total_hits()); // normalization: avoid negative values.
+        query_data *qd = (*hit).second;
+        cumul_halo_weights += simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
         ++hit;
       }
+
     float sum_se_ranks = 0.0;
     std::vector<search_snippet*>::iterator vit = snippets.begin();
     while (vit!=snippets.end())
@@ -795,12 +845,21 @@ namespace seeks_plugins
     if (cf::_uc_plugin)
       nuri = static_cast<uri_capture*>(cf::_uc_plugin)->_nr;
 
-    // estimate each URL's rank.
-    int j = 0;
+    // compute base weight.
     size_t ns = snippets.size();
+    bool fpers = false;
+    float base_weight = estimate_rank((*vit),filter->empty()?NULL:filter,ns,
+                                      NULL,NULL,20, // 20 is approx mean total url hits per query
+                                      cf_configuration::_config->_domain_name_weight,fpers);
+
+    // estimate each URL's rank.
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr>::const_iterator iit;
+    int j = 0;
     float posteriors[ns];
     float sum_posteriors = 0.0;
     vit = snippets.begin();
+    /*std::cerr << "qdata size: " << qdata->size() << " -- snippets size: " << snippets.size() << std::endl;
+      std::cerr << "number of urls: " << inv_qdata->size() << std::endl;*/
     while (vit!=snippets.end())
       {
         bool spers = false;
@@ -808,32 +867,43 @@ namespace seeks_plugins
 
         std::string host, path;
         query_capture::process_url(url,host,path);
+        std::string surl = urlmatch::strip_url(url);
 
         if ((*vit)->_engine.has_feed("seeks"))
           host = "";
 
-        i = 0;
         posteriors[j] = 0.0;
-        hit = qdata->begin();
-        while (hit!=qdata->end())
-          {
-            query_data *qd = (*hit).second;
-            if (!qd->_visited_urls)
-              {
-                ++hit;
-                i++;
-                continue;
-              }
 
-            float qpost = estimate_rank((*vit),filter->empty() ? NULL:filter,ns,qd,
-                                        q_vurl_hits[i++],url,host,spers);
+        float qpost = 0.0;
+        if ((iit = inv_qdata->find(surl.c_str())) == inv_qdata->end())
+          {
+            qpost = base_weight;
             if (qpost > 0.0)
               {
-                qpost *= simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
-                posteriors[j] += qpost; // boosting over similar queries.
+                qpost *= cumul_halo_weights;
+                posteriors[j] = qpost; // boosting over similar queries.
               }
-
-            ++hit;
+          }
+        else
+          {
+            float effect_weights = 0.0;
+            std::vector<query_data*> vqd = (*iit).second;
+            std::vector<query_data*>::const_iterator qit = vqd.begin();
+            while(qit!=vqd.end())
+              {
+                query_data *qd = (*qit);
+                qpost = estimate_rank((*vit),filter->empty() ? NULL:filter,ns,qd,
+                                      qd->vurls_total_hits(),url,host,spers);
+                if (qpost > 0.0)
+                  {
+                    float weight = simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
+                    effect_weights += weight;
+                    qpost *= weight;
+                    posteriors[j] += qpost; // boosting over similar queries.
+                  }
+                ++qit;
+              }
+            posteriors[j] += base_weight * (cumul_halo_weights - effect_weights); // compensation wrt the structure of the query similarity space.
           }
 
         // estimate the url prior.
@@ -998,7 +1068,7 @@ namespace seeks_plugins
       {
         db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
         prior = (log(uc_dbr->_hits + 1.0) + 1.0)/ (log(furi + 1.0) + 1.0);
-        //std::cerr << "url: " << surl << " -- hits: " << uc_dbr->_hits << std::endl;
+        //std::cerr << "prior url: " << surl << " -- hits: " << uc_dbr->_hits << std::endl;
         if (s)
           {
             s->_personalized = true;
@@ -1069,10 +1139,11 @@ namespace seeks_plugins
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
         peer pe(host,port,"","");
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,&pe);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -1088,6 +1159,7 @@ namespace seeks_plugins
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   void simple_re::recommend_urls(const std::string &query,
@@ -1190,10 +1262,11 @@ namespace seeks_plugins
 
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
         peer pe;
-        rank_estimator::fetch_query_data(query,lang,0,qdata,&pe);
+        rank_estimator::fetch_query_data(query,lang,0,qdata,inv_qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -1246,7 +1319,10 @@ namespace seeks_plugins
 
         // destroy query data.
         if (cf_configuration::_config->_record_cache_timeout == 0)
-          rank_estimator::destroy_query_data(qdata);
+          {
+            rank_estimator::destroy_query_data(qdata);
+            rank_estimator::destroy_inv_qdata_key(inv_qdata);
+          }
 
         // exception.
         throw sp_exception(DB_ERR_NO_REC,msg);
@@ -1262,7 +1338,10 @@ namespace seeks_plugins
 
     // destroy query data.
     if (cf_configuration::_config->_record_cache_timeout == 0)
-      rank_estimator::destroy_query_data(qdata);
+      {
+        rank_estimator::destroy_query_data(qdata);
+        rank_estimator::destroy_inv_qdata_key(inv_qdata);
+      }
   }
 
   uint32_t simple_re::damerau_levenshtein_distance(const std::string &s1, const std::string &s2,

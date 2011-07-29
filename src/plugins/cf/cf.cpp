@@ -206,11 +206,14 @@ namespace seeks_plugins
                                          records);
     std::string query,lang;
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,records,qdata);
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
+    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,
+                                    records,qdata,inv_qdata);
     if (!qdata.empty())
       dbr = new db_query_record(qdata); // no copy.
     else dbr = NULL;
     rank_estimator::destroy_records(records);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   /* plugin registration. */

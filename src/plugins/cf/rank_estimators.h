@@ -106,6 +106,7 @@ namespace seeks_plugins
                                    const std::string &lang,
                                    const uint32_t &expansion,
                                    hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata,
                                    peer *pe) throw (sp_exception);
 
       static void fetch_user_db_record(const std::string &query,
@@ -121,11 +122,17 @@ namespace seeks_plugins
                                   const uint32_t &expansion,
                                   user_db *udb,
                                   const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
-                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                  hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
+
+      static void fillup_inv_qdata(query_data *qd,
+                                   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
 
       static void destroy_records(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
 
       static void destroy_records_key(hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
+
+      static void destroy_inv_qdata_key(hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
 
       static void destroy_query_data(hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
 
@@ -140,7 +147,8 @@ namespace seeks_plugins
       static void filter_extracted_queries(const std::string &query,
                                            const std::string &lang,
                                            const uint32_t &expansion,
-                                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+                                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                           hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
 
       static cr_store _store;
 
@@ -175,6 +183,7 @@ namespace seeks_plugins
                           const std::string &lang,
                           std::vector<search_snippet*> &snippets,
                           hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
+                          hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> *inv_qdata,
                           hash_map<uint32_t,bool,id_hash_uint> *filter,
                           const std::string &rsc);
 

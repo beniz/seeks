@@ -149,7 +149,8 @@ TEST_F(SRETest,extract_queries)
   ASSERT_EQ(3,records.size());
 
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-  rank_estimator::extract_queries(queries[2],"en",1,seeks_proxy::_user_db,records,qdata);
+  hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
+  rank_estimator::extract_queries(queries[2],"en",1,seeks_proxy::_user_db,records,qdata,inv_qdata);
   ASSERT_EQ(2,qdata.size());
   hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
   = qdata.begin();
