@@ -848,7 +848,7 @@ namespace seeks_plugins
     // compute base weight.
     size_t ns = snippets.size();
     bool fpers = false;
-    float base_weight = estimate_rank((*vit),filter->empty()?NULL:filter,ns,
+    float base_weight = estimate_rank(NULL,filter->empty()?NULL:filter,ns,
                                       NULL,NULL,20, // 20 is approx mean total url hits per query
                                       cf_configuration::_config->_domain_name_weight,fpers);
 
