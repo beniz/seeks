@@ -167,6 +167,10 @@ body {
 	background-image: url(base-url/plugins/websearch/public/images/search_engines/blekko.png);
 }
 
+#search_results .search_snippet .search_engine_delicious {
+	background-image: url(base-url/plugins/websearch/public/images/search_engines/delicious_12x12.png);
+}
+
 #search_results .search_snippet .search_engine_dokuwiki {
         background-image: url(base-url/plugins/websearch/public/images/search_engines/dokuwiki_12x12.png);
 }
