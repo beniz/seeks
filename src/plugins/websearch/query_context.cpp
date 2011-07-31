@@ -175,7 +175,7 @@ namespace seeks_plugins
     return mrf::mrf_single_feature(sorted_query);
   }
 
-  void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  void query_context::reset_expansion_parameter(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     // reset expansion parameter.
     miscutil::unmap(parameters,"expansion");
@@ -307,13 +307,13 @@ namespace seeks_plugins
         if (_page_expansion > 0 && horizon <= (int)_page_expansion)
           {
             // reset expansion parameter.
-            query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+            query_context::reset_expansion_parameter(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
             return;
           }
       }
 
     // perform requested expansion.
-    if (_engines.size() > 1 || !_engines.has_feed("seeks"))
+    if (_engines.size() > 1 || (!_engines.has_feed("seeks") && !_engines.has_feed("dummy")))
       {
         try
           {
@@ -742,9 +742,10 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        //std::cerr << "reviewing URL: " << (*vit)->_url << std::endl;
         if ((*vit)->_personalized)
           {
+            // XXX: change of behavior.
+            // may want to remove seeks results when using a user db.
             (*vit)->_personalized = false;
             if ((*vit)->_engine.count() == 1
                 && (*vit)->_engine.has_feed("seeks"))
@@ -757,6 +758,8 @@ namespace seeks_plugins
             else if ((*vit)->_engine.has_feed("seeks"))
               (*vit)->_engine.remove_feed("seeks");
             (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
+
+            //TODO: don't reset in cache.
             (*vit)->_seeks_rank = 0;
             (*vit)->bing_yahoo_us_merge();
             (*vit)->_npeers = 0;

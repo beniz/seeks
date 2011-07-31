@@ -87,9 +87,16 @@ namespace seeks_plugins
           http_response *rsp,
           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
+      static sp_err cgi_websearch_node_info(client_state *csp, http_response *rsp,
+                                            const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
       static sp_err cgi_websearch_search(client_state *csp,
                                          http_response *rsp,
                                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err cgi_websearch_words(client_state *csp,
+                                        http_response *rsp,
+                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static sp_err cgi_websearch_search_cache(client_state *csp,
           http_response *rsp,
@@ -110,9 +117,6 @@ namespace seeks_plugins
       static sp_err cgi_websearch_clusterize(client_state *csp, http_response *rsp,
                                              const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
-      static sp_err cgi_websearch_node_info(client_state *csp, http_response *rsp,
-                                            const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
-
       /* websearch. */
       static void perform_action_threaded(wo_thread_arg *args);
 
@@ -125,6 +129,18 @@ namespace seeks_plugins
                                       http_response *rsp,
                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                       bool render=true);
+
+      static sp_err fetch_snippet(client_state *csp,
+                                  http_response *rsp,
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err words_query(client_state *csp,
+                                http_response *rsp,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err words_snippet(client_state *csp,
+                                  http_response *rsp,
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static query_context* lookup_qc(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 

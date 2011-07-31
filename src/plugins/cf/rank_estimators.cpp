@@ -90,6 +90,7 @@ namespace seeks_plugins
       }
 
     // clear.
+    qc->_npeers = 0;
     for (size_t i=0; i<perso_args.size(); i++)
       {
         if (perso_args.at(i))
@@ -787,6 +788,9 @@ namespace seeks_plugins
     while (vit!=snippets.end())
       {
         sum_se_ranks += (*vit)->_seeks_rank;
+        (*vit)->_seeks_rank = 0;
+        (*vit)->_npeers = 0;
+        (*vit)->_hits = 0;
         ++vit;
       }
 

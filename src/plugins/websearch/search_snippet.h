@@ -19,7 +19,6 @@
 #ifndef SEARCH_SNIPPET_H
 #define SEARCH_SNIPPET_H
 
-//#include "websearch_configuration.h" // for NSEs.
 #include "proxy_dts.h" // for url_spec.
 #include "feeds.h"
 
@@ -142,7 +141,7 @@ namespace seeks_plugins
 
       // json output.
       virtual std::string to_json(const bool &thumbs,
-                                  const std::vector<std::string> &query_words);
+                                  const std::vector<std::string> &query_words) const;
 
       // html output for inclusion in search result template page.
       std::string to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
@@ -161,7 +160,7 @@ namespace seeks_plugins
 
       // selects most discriminative terms in the snippet's vocabulary.
       void discr_words(const std::vector<std::string> &query_words,
-                       std::vector<std::string> &words);
+                       std::set<std::string> &words) const;
 
       // highlights the most discriminative terms (for this snippet among all snippets).
       void highlight_discr(std::string &str, const std::string &base_url_str,

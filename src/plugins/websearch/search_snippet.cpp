@@ -127,14 +127,13 @@ namespace seeks_plugins
   }
 
   void search_snippet::discr_words(const std::vector<std::string> &query_words,
-                                   std::vector<std::string> &words)
+                                   std::set<std::string> &words) const
   {
     static int max_highlights = 3; // ad-hoc default.
 
     if (!_features_tfidf)
       return;
 
-    words.reserve(max_highlights);
     std::map<float,uint32_t,std::greater<float> > f_tfidf;
 
     // sort features in decreasing tf-idf order.
@@ -167,7 +166,7 @@ namespace seeks_plugins
                       break;
                     }
                 if (add)
-                  words.push_back((*bit).second);
+                  words.insert((*bit).second);
                 i++;
               }
             if (i>=max_highlights)
@@ -180,28 +179,30 @@ namespace seeks_plugins
       return;
 
     // sort words by size.
-    std::sort(words.begin(),words.end(),std::greater<std::string>());
+    //std::sort(words.begin(),words.end(),std::greater<std::string>());
   }
 
   void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
                                        const std::vector<std::string> &query_words)
   {
     // select discriminant words.
-    std::vector<std::string> words;
+    std::set<std::string> words;
     discr_words(query_words,words);
 
     // highlighting.
-    for (size_t i=0; i<words.size(); i++)
+    std::set<std::string>::const_iterator sit = words.begin();
+    while(sit!=words.end())
       {
-        if (words.at(i).length() > 2)
+        if ((*sit).length() > 2)
           {
-            char *wenc = encode::url_encode(words.at(i).c_str());
-            std::string rword = " " + words.at(i) + " ";
+            char *wenc = encode::url_encode((*sit).c_str());
+            std::string rword = " " + (*sit) + " ";
             std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query
                                    + "+" + std::string(wenc) + "&amp;page=1&amp;expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
             free(wenc);
             miscutil::ci_replace_in_string(str,rword,bold_str);
           }
+        ++sit;
       }
   }
 
@@ -226,7 +227,7 @@ namespace seeks_plugins
   }
 
   std::string search_snippet::to_json(const bool &thumbs,
-                                      const std::vector<std::string> &query_words)
+                                      const std::vector<std::string> &query_words) const
   {
     std::string json_str;
     json_str += "{";
@@ -266,28 +267,23 @@ namespace seeks_plugins
         miscutil::replace_in_string(cached,"\"","\\\"");
         json_str += "\"cached\":\"" + cached + "\","; // XXX: cached might be malformed without preprocessing.
       }
-    if (_archive.empty())
+    /*if (_archive.empty())
       set_archive_link();
     std::string archive = _archive;
     miscutil::replace_in_string(archive,"\"","\\\"");
     miscutil::replace_in_string(archive,"\n","");
-    json_str += "\"archive\":\"" + archive + "\",";
+    json_str += "\"archive\":\"" + archive + "\",";*/
     json_str += "\"engines\":[";
     json_str += json_renderer::render_engines(_engine);
     json_str += "]";
     if (thumbs)
       json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
-    std::vector<std::string> words;
+    std::set<std::string> words;
     discr_words(query_words,words);
     if (!words.empty())
       {
         json_str += ",\"words\":[";
-        for (size_t w=0; w<words.size(); w++)
-          {
-            json_str += "\"" + words.at(w) + "\"";
-            if (w != words.size()-1)
-              json_str += ",";
-          }
+        json_str += miscutil::join_string_list(",",words);
         json_str += "]";
       }
     json_str += ",\"type\":\"" + get_doc_type_str() + "\"";

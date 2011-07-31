@@ -20,6 +20,7 @@
 #include "cgi.h"
 #include "cgisimple.h"
 #include "encode.h"
+#include "urlmatch.h"
 #include "errlog.h"
 #include "query_interceptor.h"
 #include "proxy_configuration.h"
@@ -36,6 +37,7 @@
 
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h" // dependent plugin.
+#include "cf.h"
 #endif
 
 #include <unistd.h>
@@ -109,7 +111,7 @@ namespace seeks_plugins
     _cgi_dispatchers.push_back(cgid_wb_opensearch_xml);
 
     cgi_dispatcher *cgid_wb_search
-    = new cgi_dispatcher("search", &websearch::cgi_websearch_search, NULL, TRUE);
+    = new cgi_dispatcher("search/txt", &websearch::cgi_websearch_search, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search);
 
     cgi_dispatcher *cgid_wb_search_cache
@@ -341,19 +343,19 @@ namespace seeks_plugins
                             "lreg",1,qlang_reg.c_str(),1);
 
     // set action to expand and expansion to 1 if q is specified but not action.
-    const char *action = miscutil::lookup(parameters,"action");
+    /*const char *action = miscutil::lookup(parameters,"action");
     if (!action)
       {
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "action",1,"expand",1);
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "expansion",1,"1",1);
-      }
+    		}*/
 
     // set action to expand if request is for a dynamic UI with html output (i.e. js UI bootstrap).
     const char *ui = miscutil::lookup(parameters,"ui");
     std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
-    if (ui_str == "dyn")
+    /*if (ui_str == "dyn")
       {
         const char *output = miscutil::lookup(parameters,"output");
         if (!output || miscutil::strcmpic(output,"html") == 0)
@@ -363,13 +365,13 @@ namespace seeks_plugins
                 miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action");
                 miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                         "action",1,"expand",1);
-              }
-          }
-      }
+    			}
+    			}
+    			}*/
 
     // set expansion to 1 if missing while action is expand.
     const char *expansion = miscutil::lookup(parameters,"expansion");
-    if (!expansion && action && miscutil::strcmpic(action,"expand")==0)
+    if (!expansion)// && action && miscutil::strcmpic(action,"expand")==0)
       {
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "expansion",1,"1",1);
@@ -379,65 +381,140 @@ namespace seeks_plugins
   sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    if (!parameters->empty())
+    // check for HTTP method and route.
+    std::string http_method = csp->_http._gpc;
+    std::transform(http_method.begin(),http_method.end(),http_method.begin(),tolower);
+
+#if defined(PROTOBUF) && defined(TC)
+    if (http_method == "delete")
       {
-        const char *query = miscutil::lookup(parameters,"q"); // grab the query.
-        if (!query || strlen(query) == 0)
-          {
-            // return 400 error.
-            return SP_ERR_CGI_PARAMS;
-          }
-        else
-          {
-            try
-              {
-                websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
-              }
-            catch(sp_exception &e)
-              {
-                return e.code();
-              }
-          }
-
-        // check on requested User Interface:
-        // - 'dyn' for dynamic interface: detach a thread for performing the requested
-        //   action, but return the page with embedded JS right away.
-        // - 'stat' for static interface: perform the requested action and render the page
-        //   before returning it.
-        const char *ui = miscutil::lookup(parameters,"ui");
-        std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
-        const char *output = miscutil::lookup(parameters,"output");
-        std::string output_str = output ? std::string(output) : "html";
-        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-        if (ui_str == "dyn" && output_str == "html")
-          {
-            dynamic_renderer::render_result_page(csp,rsp,parameters);
-
-            // detach thread for operations.
-            pthread_t wo_thread;
-            pthread_attr_t attr;
-            pthread_attr_init(&attr);
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-            wo_thread_arg *wta = new wo_thread_arg(csp,rsp,parameters,false);
-            int perr = pthread_create(&wo_thread,&attr,
-                                      (void *(*)(void *))&websearch::perform_action_threaded,wta);
-            if (perr != 0)
-              {
-                errlog::log_error(LOG_LEVEL_ERROR,"Error creating websearch action thread.");
-                return WB_ERR_THREAD;
-              }
-
-            return SP_ERR_OK;
-          }
-
-        // perform websearch or other requested action.
-        return websearch::perform_action(csp,rsp,parameters);
+        // route to snippet rejection callback
+        return cf::cgi_tbd(csp,rsp,parameters);
+      }
+    else if (http_method == "post")
+      {
+        // route to snippet selection callback.
+        return query_capture::cgi_qc_redir(csp,rsp,parameters);
       }
     else
+#endif
+      if (http_method != "get")
+        {
+          //TODO: error.
+        }
+
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/search/txt/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                            ,"q",1,query.c_str(),1); // add query to parameters.
+
+    // check for snippet id, part of path.
+    std::string id_str = urlmatch::next_elt_from_path(path);
+    if (!id_str.empty())
+      miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                              ,"id",1,id_str.c_str(),1); // add snippet id to parameters.
+
+    //std::cerr << "query: " << query << " -- id: " << id_str << std::endl;
+
+    try
       {
-        return SP_ERR_CGI_PARAMS;
+        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
       }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    // setup action.
+    /*miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+      ,"action",1,"expand",1);*/
+
+    // check on requested User Interface:
+    // - 'dyn' for dynamic interface: detach a thread for performing the requested
+    //   action, but return the page with embedded JS right away.
+    // - 'stat' for static interface: perform the requested action and render the page
+    //   before returning it.
+    /*const char *ui = miscutil::lookup(parameters,"ui");
+    std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
+    const char *output = miscutil::lookup(parameters,"output");
+    std::string output_str = output ? std::string(output) : "html";
+    std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
+    std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+    if (ui_str == "dyn" && output_str == "html")
+      {
+    dynamic_renderer::render_result_page(csp,rsp,parameters);
+
+    // detach thread for operations.
+    pthread_t wo_thread;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    wo_thread_arg *wta = new wo_thread_arg(csp,rsp,parameters,false);
+    int perr = pthread_create(&wo_thread,&attr,
+    		  (void *(*)(void *))&websearch::perform_action_threaded,wta); //TODO: perform websearch instead.
+    if (perr != 0)
+    {
+      errlog::log_error(LOG_LEVEL_ERROR,"Error creating websearch action thread.");
+      return WB_ERR_THREAD;
+    }
+
+    return SP_ERR_OK;
+    }*/
+
+    // perform websearch or other requested action.
+    //return websearch::perform_action(csp,rsp,parameters);
+
+    // possibly a new search: check on config file in cast it did change.
+    websearch::_wconfig->load_config();
+    pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+    sp_err err = SP_ERR_OK;
+    if (id_str.empty())
+      err = websearch::perform_websearch(csp,rsp,parameters);
+    else err = websearch::fetch_snippet(csp,rsp,parameters);
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+    return err;
+  }
+
+  sp_err websearch::cgi_websearch_words(client_state *csp, http_response *rsp,
+                                        const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/words/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                            ,"q",1,query.c_str(),1); // add query to parameters.
+
+    // check for snippet id, part of path.
+    std::string id_str = urlmatch::next_elt_from_path(path);
+    if (!id_str.empty())
+      miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                              ,"id",1,id_str.c_str(),1); // add snippet id to parameters.
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    websearch::_wconfig->load_config();
+    pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+    sp_err err = SP_ERR_OK;
+    if (id_str.empty())
+      err = websearch::words_query(csp,rsp,parameters);
+    else err = websearch::words_snippet(csp,rsp,parameters);
+
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+    return err;
   }
 
   sp_err websearch::cgi_websearch_search_cache(client_state *csp, http_response *rsp,
@@ -886,73 +963,12 @@ namespace seeks_plugins
     bool expanded = false;
     if (exists_qc) // we already had a context for this query.
       {
-        // check whether search is expanding or the user is leafing through pages.
-        const char *action = miscutil::lookup(parameters,"action");
-
-        if (strcmp(action,"expand") == 0)
+        expanded = true;
+        mutex_lock(&qc->_qc_mutex);
+        mutex_lock(&qc->_feeds_ack_mutex);
+        try
           {
-            expanded = true;
-            mutex_lock(&qc->_qc_mutex);
-            mutex_lock(&qc->_feeds_ack_mutex);
-            try
-              {
 #if defined(PROTOBUF) && defined(TC)
-                if (persf)
-                  {
-                    int perr = pthread_create(&pers_thread,NULL,
-                                              (void *(*)(void *))&sort_rank::personalize,qc);
-                    if (perr != 0)
-                      {
-                        errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
-                        mutex_unlock(&qc->_qc_mutex);
-                        mutex_unlock(&qc->_feeds_ack_mutex);
-                        return WB_ERR_THREAD;
-                      }
-                  }
-#endif
-                qc->generate(csp,rsp,parameters,expanded);
-              }
-            catch (sp_exception &e)
-              {
-                err = e.code();
-                switch(err)
-                  {
-                  case SP_ERR_CGI_PARAMS:
-                  case WB_ERR_NO_ENGINE:
-                    break;
-                  case WB_ERR_NO_ENGINE_OUTPUT:
-                    websearch::failed_ses_connect(csp,rsp);
-                    err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
-                    break;
-                  default:
-                    break;
-                  }
-              }
-
-            // do not return if perso + err != no engine
-            // instead signal all personalization threads that results may have
-            // arrived.
-            mutex_unlock(&qc->_feeds_ack_mutex);
-            if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
-              {
-              }
-            else if (err != SP_ERR_OK)
-              {
-                return err;
-              }
-          }
-        else if (miscutil::strcmpic(action,"page") == 0)
-          {
-            const char *page = miscutil::lookup(parameters,"page");
-            if (!page)
-              {
-                return SP_ERR_CGI_PARAMS;
-              }
-            // XXX: update other parameters, as needed, qc vs parameters.
-            qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-
-#if defined(PROTOBUF) && defined(TC)
-            // personalization.
             if (persf)
               {
                 int perr = pthread_create(&pers_thread,NULL,
@@ -966,7 +982,45 @@ namespace seeks_plugins
                   }
               }
 #endif
+            qc->generate(csp,rsp,parameters,expanded);
           }
+        catch (sp_exception &e)
+          {
+            err = e.code();
+            switch(err)
+              {
+              case SP_ERR_CGI_PARAMS:
+              case WB_ERR_NO_ENGINE:
+                break;
+              case WB_ERR_NO_ENGINE_OUTPUT:
+                websearch::failed_ses_connect(csp,rsp);
+                err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
+                break;
+              default:
+                break;
+              }
+          }
+
+        // do not return if perso + err != no engine
+        // instead signal all personalization threads that results may have
+        // arrived.
+        mutex_unlock(&qc->_feeds_ack_mutex);
+        if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
+          {
+          }
+        else if (err != SP_ERR_OK)
+          {
+            mutex_unlock(&qc->_qc_mutex);
+            return err;
+          }
+
+        const char *page = miscutil::lookup(parameters,"page");
+        if (!page)
+          {
+            page = "1";
+          }
+        // XXX: update other parameters, as needed, qc vs parameters.
+        //qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
       }
     else
       {
@@ -1020,6 +1074,7 @@ namespace seeks_plugins
           }
         else if (err != SP_ERR_OK)
           {
+            mutex_unlock(&qc->_qc_mutex);
             return err;
           }
 
@@ -1093,9 +1148,10 @@ namespace seeks_plugins
 
     if (strcasecmp(pers,"on") == 0)
       {
-#if defined(PROTOBUF) && defined(TC)
-        qc->reset_snippets_personalization_flags();
-#endif
+        /*#if defined(PROTOBUF) && defined(TC)
+        //TODO: change this behavior, don't reset the cache ?
+              qc->reset_snippets_personalization_flags();
+        #endif*/
       }
 
     // unlock or destroy the query context.
@@ -1106,6 +1162,140 @@ namespace seeks_plugins
         delete qc;
       }
 
+    return err;
+  }
+
+  sp_err websearch::fetch_snippet(client_state *csp, http_response *rsp,
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    query_context *qc = websearch::lookup_qc(parameters);
+
+    if (!qc)
+      {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
+        qc = websearch::lookup_qc(parameters);
+        if (!qc)
+          qc = new query_context(parameters,csp->_headers); // empty context.
+      }
+    if (qc->empty())
+      {
+        sweeper::unregister_sweepable(qc);
+        delete qc;
+      }
+
+    mutex_lock(&qc->_qc_mutex);
+
+    // fetch snippet.
+    const char *id = miscutil::lookup(parameters,"id");
+    if (!id)
+      {
+        mutex_unlock(&qc->_qc_mutex);
+        return SP_ERR_CGI_PARAMS;
+      }
+    uint32_t sid = (uint32_t)strtod(id,NULL);
+    search_snippet *sp = qc->get_cached_snippet(sid);
+    if (!sp)
+      {
+        mutex_unlock(&qc->_qc_mutex);
+        return cgisimple::cgi_error_404(csp,rsp,parameters);
+      }
+
+    // render result page.
+    sp_err err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
+
+    mutex_unlock(&qc->_qc_mutex);
+
+    return err;
+  }
+
+  sp_err websearch::words_query(client_state *csp, http_response *rsp,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    query_context *qc = websearch::lookup_qc(parameters);
+
+    if (!qc)
+      {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
+        qc = websearch::lookup_qc(parameters);
+        if (!qc)
+          qc = new query_context(parameters,csp->_headers); // empty context.
+      }
+    if (qc->empty())
+      {
+        sweeper::unregister_sweepable(qc);
+        delete qc;
+        return cgisimple::cgi_error_404(csp,rsp,parameters);
+      }
+
+    mutex_lock(&qc->_qc_mutex);
+    std::set<std::string> words;
+    std::vector<std::string> query_words;
+    miscutil::tokenize(qc->_query,query_words," ");
+    for (size_t i=0; i<qc->_cached_snippets.size(); i++)
+      {
+        qc->_cached_snippets.at(i)->discr_words(query_words,words);
+      }
+    sp_err err = json_renderer::render_json_words(words,rsp,parameters);
+    mutex_unlock(&qc->_qc_mutex);
+
+    return err;
+  }
+
+  sp_err websearch::words_snippet(client_state *csp, http_response *rsp,
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    query_context *qc = websearch::lookup_qc(parameters);
+
+    if (!qc)
+      {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
+        qc = websearch::lookup_qc(parameters);
+        if (!qc)
+          qc = new query_context(parameters,csp->_headers); // empty context.
+      }
+    if (qc->empty())
+      {
+        sweeper::unregister_sweepable(qc);
+        delete qc;
+        return cgisimple::cgi_error_404(csp,rsp,parameters);
+      }
+
+    mutex_lock(&qc->_qc_mutex);
+
+    // fetch snippet.
+    const char *id = miscutil::lookup(parameters,"id");
+    if (!id)
+      {
+        mutex_unlock(&qc->_qc_mutex);
+        return SP_ERR_CGI_PARAMS;
+      }
+    uint32_t sid = (uint32_t)strtod(id,NULL);
+    search_snippet *sp = qc->get_cached_snippet(sid);
+    if (!sp)
+      {
+        mutex_unlock(&qc->_qc_mutex);
+        return cgisimple::cgi_error_404(csp,rsp,parameters);
+      }
+
+    // get most discriminant words.
+    std::set<std::string> words;
+    std::vector<std::string> query_words;
+    miscutil::tokenize(qc->_query,query_words," ");
+    sp->discr_words(query_words,words);
+
+    // render result page.
+    sp_err err = json_renderer::render_json_words(words,rsp,parameters);
+
+    mutex_unlock(&qc->_qc_mutex);
     return err;
   }
 
@@ -1130,6 +1320,7 @@ namespace seeks_plugins
       {
         // should never happen.
         q = "";
+        return NULL;
       }
     std::string query_key = query_context::assemble_query(q,qlang);
     uint32_t query_hash = query_context::hash_query_for_context(query_key);

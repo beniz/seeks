@@ -108,9 +108,9 @@ namespace seeks_plugins
       static uint32_t hash_query_for_context(const std::string &query_key);
 
       /**
-       * \brief synchronizes qc's parameters with parameters.
+       * \brief resets expansion parameter to 1.
        */
-      void update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      void reset_expansion_parameter(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       /**
        * \brief adds a snippet to the unordered cache set.

@@ -352,6 +352,16 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
+  sp_err json_renderer::render_json_words(const std::set<std::string> &words,
+                                          http_response *rsp,
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  {
+    const std::string body = jsonp(miscutil::join_string_list(",",words),
+                                   miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
   sp_err json_renderer::render_json_node_options(client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {

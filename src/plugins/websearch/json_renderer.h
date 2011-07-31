@@ -69,6 +69,10 @@ namespace seeks_plugins
                                         const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                         query_context *qc);
 
+      static sp_err render_json_words(const std::set<std::string> &words,
+                                      http_response *rsp,
+                                      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
       static sp_err render_clustered_json_results(cluster *clusters,
           const short &K,
           client_state *csp, http_response *rsp,
