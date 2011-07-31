@@ -1187,5 +1187,17 @@ namespace sp
     return result;
   }
 
+  std::string miscutil::join_string_list(const std::string& delim, const std::set<std::string>& s)
+  {
+    std::string result;
+    for (std::set<std::string>::const_iterator i = s.begin (), e = s.end (); i != e; ++i)
+      {
+        if (i != s.begin())
+          result.append(delim);
+        result.append(i->c_str());
+      }
+    return result;
+  }
+
 } /* end of namespace. */
 
