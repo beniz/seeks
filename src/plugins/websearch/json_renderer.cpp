@@ -173,6 +173,7 @@ namespace seeks_plugins
             miscutil::replace_in_string(escaped_query,"\"","\\\"");
             miscutil::replace_in_string(escaped_query,"\\t","");
             miscutil::replace_in_string(escaped_query,"\\r","");
+            miscutil::replace_in_string(escaped_query,"\n","");
             suggs.push_back("\"" + escaped_query + "\"");
           }
         ++sit;
