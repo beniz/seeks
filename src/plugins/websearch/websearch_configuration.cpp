@@ -49,6 +49,7 @@ namespace seeks_plugins
 #define hash_dyn_ui                 3475528514ul /* "dynamic-ui" */
 #define hash_ui_theme                860616402ul /* "ui-theme" */
 #define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
+#define hash_num_recent_queries     2898954524ul /* num-recent-queries */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
     :configuration_spec(filename),_default_engines(false)
@@ -84,6 +85,7 @@ namespace seeks_plugins
     _dyn_ui = false; // default is static user interface.
     _ui_theme = "compact";
     _num_reco_queries = 20;
+    _num_recent_queries = 20;
   }
 
   void websearch_configuration::set_default_engines()
@@ -296,6 +298,12 @@ namespace seeks_plugins
         _num_reco_queries = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Max number of recommended queries");
+        break;
+
+      case hash_num_recent_queries:
+        _num_recent_queries = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Max number of recent queries");
         break;
 
       default:
