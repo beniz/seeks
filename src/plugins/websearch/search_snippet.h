@@ -19,7 +19,6 @@
 #ifndef SEARCH_SNIPPET_H
 #define SEARCH_SNIPPET_H
 
-//#include "websearch_configuration.h" // for NSEs.
 #include "proxy_dts.h" // for url_spec.
 #include "feeds.h"
 
