@@ -114,6 +114,10 @@ namespace seeks_plugins
     = new cgi_dispatcher("search/txt", &websearch::cgi_websearch_search, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search);
 
+    cgi_dispatcher *cgid_wb_words
+    = new cgi_dispatcher("words", &websearch::cgi_websearch_words, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_words);
+
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);

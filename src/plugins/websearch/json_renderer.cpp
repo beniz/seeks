@@ -356,8 +356,15 @@ namespace seeks_plugins
                                           http_response *rsp,
                                           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    const std::string body = jsonp(miscutil::join_string_list(",",words),
-                                   miscutil::lookup(parameters,"callback"));
+    std::set<std::string> qwords;
+    std::set<std::string>::const_iterator sit = words.begin();
+    while(sit!=words.end())
+      {
+        qwords.insert("\"" + (*sit) + "\"");
+        ++sit;
+      }
+    const std::string body = "{\"words\":[" + jsonp(miscutil::join_string_list(",",qwords),
+                             miscutil::lookup(parameters,"callback")) + "]}";
     response(rsp,body);
     return SP_ERR_OK;
   }

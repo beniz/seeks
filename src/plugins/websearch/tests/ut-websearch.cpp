@@ -25,6 +25,7 @@
 #include "websearch_configuration.h"
 #include "se_handler.h"
 #include "proxy_configuration.h"
+#include "content_handler.h"
 #include "sweeper.h"
 #include "errlog.h"
 
@@ -79,6 +80,7 @@ class WBExistTest : public testing::Test
       _qc = new query_context();
       std::string query = "test";
       std::string lang = "en";
+      _qc->_query = query;
       _qc->_query_key = query_context::assemble_query(query,lang);
       _qc->_query_hash = query_context::hash_query_for_context(_qc->_query_key);
       _qc->register_qc();
@@ -366,13 +368,45 @@ TEST_F(WBTest,cgi_websearch_search_bad_charset)
 
 TEST_F(WBExistTest,cgi_websearch_words_query)
 {
+  search_snippet *sp1 = new search_snippet();
+  sp1->set_url("url1");
+  sp1->set_title("jaguar cars for sale");
+  sp1->set_summary("buy jaguar cars for a good price");
+  search_snippet *sp2 = new search_snippet();
+  sp2->set_url("url2");
+  sp2->set_title("Jaguars on the verge of extinction");
+  sp2->set_summary("A large cat from the jungle");
+  _qc->_cached_snippets.push_back(sp1);
+  _qc->add_to_unordered_cache(sp1);
+  _qc->_cached_snippets.push_back(sp2);
+  _qc->add_to_unordered_cache(sp2);
 
+  content_handler::fetch_all_snippets_summary_and_features(_qc);
+
+  client_state csp;
+  csp._config = _pconfig;
+  csp._http._gpc = strdup("get");
+  std::string api_url = "/words/test";
+  csp._http._path = strdup(api_url.c_str());
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"output",1,"json",1);
+  miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
+  sp_err err = websearch::cgi_websearch_words(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp._body,rsp._content_length);
+  //std::cerr << "body: " << body << std::endl;
+  EXPECT_NE(std::string::npos,body.find("\"words\":"));
+  EXPECT_NE(std::string::npos,body.find("\"buy\""));
+  EXPECT_NE(std::string::npos,body.find("\"jungle\""));
+  miscutil::free_map(parameters);
 }
 
-TEST_F(WBExistTest,cgi_websearch_words_snippet)
+/*TEST_F(WBExistTest,cgi_websearch_words_snippet)
 {
-
-}
+  csp._http._gpc = strdup("get");
+  }*/
 
 int main(int argc, char **argv)
 {
