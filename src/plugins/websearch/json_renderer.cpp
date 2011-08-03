@@ -155,11 +155,13 @@ namespace seeks_plugins
     return "";
   }
 
-  std::string json_renderer::render_cached_queries(const std::string &query)
+  std::string json_renderer::render_cached_queries(const std::string &query,
+      const int &nq)
   {
+    int i = 0;
     std::list<std::string> suggs;
     std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
-    while(sit!=seeks_proxy::_memory_dust.end())
+    while(sit!=seeks_proxy::_memory_dust.end() && i++<nq)
       {
         query_context *qc = dynamic_cast<query_context*>((*sit));
         if (!qc)
@@ -167,6 +169,7 @@ namespace seeks_plugins
             ++sit;
             continue;
           }
+        mutex_lock(&qc->_qc_mutex);
         if (qc->_query != query)
           {
             std::string escaped_query = qc->_query;
@@ -175,11 +178,10 @@ namespace seeks_plugins
             miscutil::replace_in_string(escaped_query,"\\r","");
             suggs.push_back("\"" + escaped_query + "\"");
           }
+        mutex_unlock(&qc->_qc_mutex);
         ++sit;
       }
-    if (!suggs.empty())
-      return "\"queries\":[" + miscutil::join_string_list(",",suggs) + "]";
-    else return "";
+    return "\"queries\":[" + miscutil::join_string_list(",",suggs) + "]";
   }
 
   std::string json_renderer::render_img_engines(const query_context *qc)
@@ -380,6 +382,17 @@ namespace seeks_plugins
     return err;
   }
 
+  sp_err json_renderer::render_cached_queries(http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const std::string &query,
+      const int &nq)
+  {
+    std::string json_str = json_renderer::render_cached_queries(query,nq);
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
   sp_err json_renderer::render_clustered_json_results(cluster *clusters,
       const short &K,
       client_state *csp, http_response *rsp,
@@ -463,9 +476,10 @@ namespace json_renderer_private
       results.push_back(reco);
 
     // queries in cache.
-    std::string cached_queries = json_renderer::render_cached_queries(qc->_query);
+    // XXX: now an independent JSON call.
+    /*std::string cached_queries = json_renderer::render_cached_queries(qc->_query);
     if (!cached_queries.empty())
-      results.push_back(cached_queries);
+    results.push_back(cached_queries);*/
 
     // engines.
     if (qc->_engines.size() > 0)

@@ -118,6 +118,10 @@ namespace seeks_plugins
     = new cgi_dispatcher("words", &websearch::cgi_websearch_words, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_words);
 
+    cgi_dispatcher *cgid_wb_recent_queries
+    = new cgi_dispatcher("recent/queries", &websearch::cgi_websearch_recent_queries, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_recent_queries);
+
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);
@@ -567,6 +571,21 @@ namespace seeks_plugins
       {
         return SP_ERR_CGI_PARAMS;
       }
+  }
+
+  sp_err websearch::cgi_websearch_recent_queries(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    const char *nq_str = miscutil::lookup(parameters,"nq");
+    websearch::_wconfig->load_config();
+    pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+    int nq = websearch::_wconfig->_num_recent_queries;
+    if (nq_str)
+      nq = strtod(nq_str,NULL);
+    sp_err err = json_renderer::render_cached_queries(rsp,parameters,"",nq);
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+    return err;
   }
 
   sp_err websearch::cgi_websearch_neighbors_url(client_state *csp, http_response *rsp,

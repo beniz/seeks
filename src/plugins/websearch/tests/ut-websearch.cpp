@@ -57,6 +57,7 @@ class WBTest : public testing::Test
     {
       delete websearch::_wconfig;
       delete _pconfig;
+      sweeper::sweep_all();
     }
 
     proxy_configuration *_pconfig;
@@ -84,14 +85,14 @@ class WBExistTest : public testing::Test
       _qc->_query_key = query_context::assemble_query(query,lang);
       _qc->_query_hash = query_context::hash_query_for_context(_qc->_query_key);
       _qc->register_qc();
+      sweeper::register_sweepable(_qc);
     }
 
     virtual void TearDown()
     {
       delete websearch::_wconfig;
       delete _pconfig;
-      sweeper::unregister_sweepable(_qc);
-      delete _qc;
+      sweeper::sweep_all();
     }
 
     proxy_configuration *_pconfig;
@@ -126,7 +127,7 @@ TEST_F(WBTest,perform_websearch_no_engine_fail_new)
   ASSERT_EQ(WB_ERR_NO_ENGINE,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
-  sweeper::sweep_all();
+  //sweeper::sweep_all();
 }
 
 TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
@@ -146,7 +147,7 @@ TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
-  sweeper::sweep_all();
+  //sweeper::sweep_all();
 }
 
 TEST_F(WBExistTest,perform_websearch_bad_param_new)
@@ -156,13 +157,12 @@ TEST_F(WBExistTest,perform_websearch_bad_param_new)
   hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"q",1,"test",1);
-  //miscutil::add_map_entry(parameters,"action",1,"expand",1);
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(SP_ERR_CGI_PARAMS,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
-  sweeper::sweep_all();
+  //sweeper::sweep_all();
 }
 
 TEST_F(WBExistTest,perform_websearch_no_engine_fail_new)
@@ -180,7 +180,7 @@ TEST_F(WBExistTest,perform_websearch_no_engine_fail_new)
   ASSERT_EQ(WB_ERR_NO_ENGINE,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
-  sweeper::sweep_all();
+  //sweeper::sweep_all();
 }
 
 TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
@@ -200,7 +200,7 @@ TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
-  sweeper::sweep_all();
+  //sweeper::sweep_all();
 }
 
 TEST_F(WBTest,preprocess_parameters_ok)
@@ -326,6 +326,7 @@ TEST_F(WBExistTest,cgi_websearch_search_snippet)
   sp_err err = websearch::cgi_websearch_search(&csp,&rsp,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   std::string body = std::string(rsp._body,rsp._content_length);
+  std::cerr << "body: " << body << std::endl;
   EXPECT_NE(std::string::npos,body.find("\"id\":1289851243"));
   EXPECT_NE(std::string::npos,body.find("\"title\":\"\""));
   EXPECT_NE(std::string::npos,body.find("\"url\":\"http://www.seeks-project.info/\""));
@@ -438,6 +439,37 @@ TEST_F(WBExistTest,cgi_websearch_words_snippet)
   EXPECT_NE(std::string::npos,body.find("\"words\":"));
   EXPECT_NE(std::string::npos,body.find("\"buy\""));
   EXPECT_EQ(std::string::npos,body.find("\"jungle\""));
+  miscutil::free_map(parameters);
+}
+
+TEST_F(WBExistTest,cgi_websearch_recent_queries)
+{
+  query_context *qc = new query_context();
+  std::string query = "seeks";
+  std::string lang = "en";
+  qc->_query = query;
+  qc->_query_key = query_context::assemble_query(query,lang);
+  qc->_query_hash = query_context::hash_query_for_context(qc->_query_key);
+  qc->register_qc();
+  sweeper::register_sweepable(qc);
+  ASSERT_EQ(2,websearch::_active_qcontexts.size());
+  client_state csp;
+  csp._config = _pconfig;
+  csp._http._gpc = strdup("get");
+  std::string api_url = "/recent/queries";
+  csp._http._path = strdup(api_url.c_str());
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"output",1,"json",1);
+  miscutil::add_map_entry(parameters,"engines",1,"dummy",1);
+  sp_err err = websearch::cgi_websearch_recent_queries(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp._body,rsp._content_length);
+  //std::cerr << "body: " << body << std::endl;
+  EXPECT_NE(std::string::npos,body.find("\"queries\":"));
+  EXPECT_NE(std::string::npos,body.find("\"test\""));
+  EXPECT_NE(std::string::npos,body.find("\"seeks\""));
   miscutil::free_map(parameters);
 }
 

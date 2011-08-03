@@ -98,6 +98,10 @@ namespace seeks_plugins
                                         http_response *rsp,
                                         const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
+      static sp_err cgi_websearch_recent_queries(client_state *csp,
+          http_response *rsp,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static sp_err cgi_websearch_search_cache(client_state *csp,
           http_response *rsp,
           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);

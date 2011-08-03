@@ -37,7 +37,8 @@ namespace seeks_plugins
       static std::string render_recommendations(const std::string &query_clean,
           const query_context *qc);
 
-      static std::string render_cached_queries(const std::string &query);
+      static std::string render_cached_queries(const std::string &query,
+          const int &nq);
 
       static std::string render_img_engines(const query_context *qc);
 
@@ -72,6 +73,11 @@ namespace seeks_plugins
       static sp_err render_json_words(const std::set<std::string> &words,
                                       http_response *rsp,
                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
+      static sp_err render_cached_queries(http_response *rsp,
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                          const std::string &query,
+                                          const int &nq);
 
       static sp_err render_clustered_json_results(cluster *clusters,
           const short &K,
