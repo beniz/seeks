@@ -69,7 +69,7 @@ namespace seeks_plugins
   {
     _name = "websearch";
     _version_major = "0";
-    _version_minor = "3";
+    _version_minor = "4";
 
     if (seeks_proxy::_datadir.empty())
       _config_filename = plugin_manager::_plugin_repository + "websearch/websearch-config";
@@ -121,6 +121,14 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_wb_recent_queries
     = new cgi_dispatcher("recent/queries", &websearch::cgi_websearch_recent_queries, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_recent_queries);
+
+    cgi_dispatcher *cgid_wb_cluster_types
+    = new cgi_dispatcher("cluster/types", &websearch::cgi_websearch_clustered_types, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_cluster_types);
+
+    cgi_dispatcher *cgid_wb_cluster_auto
+    = new cgi_dispatcher("cluster/auto", &websearch::cgi_websearch_clusterize, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_cluster_auto);
 
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
@@ -669,65 +677,77 @@ namespace seeks_plugins
   sp_err websearch::cgi_websearch_clustered_types(client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    if (!parameters->empty())
+    // time measure, returned.
+    struct tms st_cpu;
+    struct tms en_cpu;
+    clock_t start_time = times(&st_cpu);
+
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/cluster/types/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                            ,"q",1,query.c_str(),1); // add query to parameters.
+    try
       {
-        // time measure, returned.
-        struct tms st_cpu;
-        struct tms en_cpu;
-        clock_t start_time = times(&st_cpu);
-
-        query_context *qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          {
-            // no cache, (re)do the websearch first.
-            sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            if (err != SP_ERR_OK)
-              return err;
-            qc = websearch::lookup_qc(parameters);
-            if (!qc)
-              qc = new query_context(parameters,csp->_headers); // empty context.
-          }
-
-        cluster *clusters = NULL;
-        short K = 0;
-
-        mutex_lock(&qc->_qc_mutex);
-
-        // regroup search snippets by types.
-        sort_rank::group_by_types(qc,clusters,K);
-
-        // time measured before rendering, since we need to write it down.
-        clock_t end_time = times(&en_cpu);
-        double qtime = (end_time-start_time)/websearch::_cl_sec;
-        if (qtime<0)
-          qtime = -1.0; // unavailable.
-
-        // rendering.
-        const char *output =miscutil::lookup(parameters,"output");
-        sp_err err = SP_ERR_OK;
-        if (!output || miscutil::strcmpic(output,"html")==0)
-          err = static_renderer::render_clustered_result_page_static(clusters,K,
-                csp,rsp,parameters,qc);
-        else
-          {
-            csp->_content_type = CT_JSON;
-            err = json_renderer::render_clustered_json_results(clusters,K,
-                  csp,rsp,parameters,qc,qtime);
-          }
-
-        if (clusters)
-          delete[] clusters;
-
-        mutex_unlock(&qc->_qc_mutex);
-        if (qc->empty())
-          {
-            sweeper::unregister_sweepable(qc);
-            delete qc;
-          }
-
-        return err;
+        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
       }
-    else return SP_ERR_CGI_PARAMS;
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
+        qc = websearch::lookup_qc(parameters);
+        if (!qc)
+          qc = new query_context(parameters,csp->_headers); // empty context.
+      }
+
+    cluster *clusters = NULL;
+    short K = 0;
+
+    mutex_lock(&qc->_qc_mutex);
+
+    // regroup search snippets by types.
+    sort_rank::group_by_types(qc,clusters,K);
+
+    // time measured before rendering, since we need to write it down.
+    clock_t end_time = times(&en_cpu);
+    double qtime = (end_time-start_time)/websearch::_cl_sec;
+    if (qtime<0)
+      qtime = -1.0; // unavailable.
+
+    // rendering.
+    const char *output =miscutil::lookup(parameters,"output");
+    sp_err err = SP_ERR_OK;
+    if (!output || miscutil::strcmpic(output,"html")==0)
+      err = static_renderer::render_clustered_result_page_static(clusters,K,
+            csp,rsp,parameters,qc);
+    else
+      {
+        csp->_content_type = CT_JSON;
+        err = json_renderer::render_clustered_json_results(clusters,K,
+              csp,rsp,parameters,qc,qtime);
+      }
+
+    if (clusters)
+      delete[] clusters;
+
+    mutex_unlock(&qc->_qc_mutex);
+    if (qc->empty())
+      {
+        sweeper::unregister_sweepable(qc);
+        delete qc;
+      }
+
+    return err;
   }
 
   sp_err websearch::cgi_websearch_similarity(client_state *csp, http_response *rsp,
@@ -797,93 +817,104 @@ namespace seeks_plugins
   sp_err websearch::cgi_websearch_clusterize(client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    if (!parameters->empty())
+    // time measure, returned.
+    struct tms st_cpu;
+    struct tms en_cpu;
+    clock_t start_time = times(&st_cpu);
+
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/cluster/auto/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                            ,"q",1,query.c_str(),1); // add query to parameters.
+    try
       {
-        query_context *qc = websearch::lookup_qc(parameters);
+        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
 
-        // time measure, returned.
-        struct tms st_cpu;
-        struct tms en_cpu;
-        clock_t start_time = times(&st_cpu);
-
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
+        qc = websearch::lookup_qc(parameters);
         if (!qc)
-          {
-            // no cache, (re)do the websearch first.
-            sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            if (err != SP_ERR_OK)
-              return err;
-            qc = websearch::lookup_qc(parameters);
-            if (!qc)
-              return SP_ERR_MEMORY;
-          }
+          return SP_ERR_MEMORY;
+      }
 
-        mutex_lock(&qc->_qc_mutex);
+    mutex_lock(&qc->_qc_mutex);
 
-        bool content_analysis = websearch::_wconfig->_content_analysis;
-        const char *ca = miscutil::lookup(parameters,"content_analysis");
-        if (ca && strcasecmp(ca,"on") == 0)
-          content_analysis = true;
-        if (content_analysis)
-          content_handler::fetch_all_snippets_content_and_features(qc);
-        else content_handler::fetch_all_snippets_summary_and_features(qc);
+    bool content_analysis = websearch::_wconfig->_content_analysis;
+    const char *ca = miscutil::lookup(parameters,"content_analysis");
+    if (ca && strcasecmp(ca,"on") == 0)
+      content_analysis = true;
+    if (content_analysis)
+      content_handler::fetch_all_snippets_content_and_features(qc);
+    else content_handler::fetch_all_snippets_summary_and_features(qc);
 
-        if (qc->_cached_snippets.empty())
-          {
-            const char *output = miscutil::lookup(parameters,"output");
-            sp_err err = SP_ERR_OK;
-            if (!output || miscutil::strcmpic(output,"html")==0)
-              err = static_renderer::render_result_page_static(qc->_cached_snippets,
-                    csp,rsp,parameters,qc);
-            else
-              {
-                csp->_content_type = CT_JSON;
-                err = json_renderer::render_json_results(qc->_cached_snippets,
-                      csp,rsp,parameters,qc,
-                      0.0);
-              }
-            mutex_unlock(&qc->_qc_mutex);
-          }
-
-        const char *nclust_str = miscutil::lookup(parameters,"clusters");
-        int nclust = 2;
-        if (nclust_str)
-          nclust = atoi(nclust_str);
-        oskmeans km(qc,qc->_cached_snippets,nclust); // nclust clusters+ 1 garbage for now...
-        km.clusterize();
-        km.post_processing();
-
-        // time measured before rendering, since we need to write it down.
-        clock_t end_time = times(&en_cpu);
-        double qtime = (end_time-start_time)/websearch::_cl_sec;
-        if (qtime<0)
-          qtime = -1.0; // unavailable.
-
-        // rendering.
+    if (qc->_cached_snippets.empty())
+      {
         const char *output = miscutil::lookup(parameters,"output");
         sp_err err = SP_ERR_OK;
         if (!output || miscutil::strcmpic(output,"html")==0)
-          err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
+          err = static_renderer::render_result_page_static(qc->_cached_snippets,
                 csp,rsp,parameters,qc);
         else
           {
             csp->_content_type = CT_JSON;
-            err = json_renderer::render_clustered_json_results(km._clusters,km._K,
-                  csp,rsp,parameters,qc,qtime);
+            err = json_renderer::render_json_results(qc->_cached_snippets,
+                  csp,rsp,parameters,qc,
+                  0.0);
           }
-
-        // reset scores.
-        std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
-        while (vit!=qc->_cached_snippets.end())
-          {
-            (*vit)->_seeks_ir = 0;
-            ++vit;
-          }
-
         mutex_unlock(&qc->_qc_mutex);
-
-        return err;
       }
-    else return SP_ERR_CGI_PARAMS;
+
+    const char *nclust_str = miscutil::lookup(parameters,"clusters");
+    int nclust = 2;
+    if (nclust_str)
+      nclust = atoi(nclust_str);
+    oskmeans km(qc,qc->_cached_snippets,nclust); // nclust clusters+ 1 garbage for now...
+    km.clusterize();
+    km.post_processing();
+
+    // time measured before rendering, since we need to write it down.
+    clock_t end_time = times(&en_cpu);
+    double qtime = (end_time-start_time)/websearch::_cl_sec;
+    if (qtime<0)
+      qtime = -1.0; // unavailable.
+
+    // rendering.
+    const char *output = miscutil::lookup(parameters,"output");
+    sp_err err = SP_ERR_OK;
+    if (!output || miscutil::strcmpic(output,"html")==0)
+      err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
+            csp,rsp,parameters,qc);
+    else
+      {
+        csp->_content_type = CT_JSON;
+        err = json_renderer::render_clustered_json_results(km._clusters,km._K,
+              csp,rsp,parameters,qc,qtime);
+      }
+
+    // reset scores.
+    std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
+    while (vit!=qc->_cached_snippets.end())
+      {
+        (*vit)->_seeks_ir = 0;
+        ++vit;
+      }
+
+    mutex_unlock(&qc->_qc_mutex);
+
+    return err;
   }
 
   sp_err websearch::cgi_websearch_node_info(client_state *csp, http_response *rsp,
