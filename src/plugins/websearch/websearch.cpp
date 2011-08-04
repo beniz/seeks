@@ -130,6 +130,10 @@ namespace seeks_plugins
     = new cgi_dispatcher("cluster/auto", &websearch::cgi_websearch_clusterize, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_cluster_auto);
 
+    cgi_dispatcher *cgid_wb_search_similar
+    = new cgi_dispatcher("similar/txt", &websearch::cgi_websearch_similarity, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_search_similar);
+
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);
@@ -753,65 +757,87 @@ namespace seeks_plugins
   sp_err websearch::cgi_websearch_similarity(client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    if (!parameters->empty())
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/similar/txt/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                            ,"q",1,query.c_str(),1); // add query to parameters.
+
+    // check for snippet id, part of path.
+    std::string id_str = urlmatch::next_elt_from_path(path);
+    if (!id_str.empty())
+      miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                              ,"id",1,id_str.c_str(),1); // add snippet id to parameters.
+
+    try
       {
-        query_context *qc = websearch::lookup_qc(parameters);
-
-        if (!qc)
-          {
-            // no cache, (re)do the websearch first.
-            sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            if (err != SP_ERR_OK)
-              return err;
-            qc = websearch::lookup_qc(parameters);
-            if (!qc)
-              return SP_ERR_MEMORY;
-          }
-        const char *id = miscutil::lookup(parameters,"id");
-        if (!id)
-          return SP_ERR_CGI_PARAMS;
-
-        mutex_lock(&qc->_qc_mutex);
-        search_snippet *ref_sp = NULL;
-
-        try
-          {
-            sort_rank::score_and_sort_by_similarity(qc,id,parameters,ref_sp,qc->_cached_snippets);
-          }
-        catch (sp_exception &e)
-          {
-            mutex_unlock(&qc->_qc_mutex);
-            if (e.code() == WB_ERR_NO_REF_SIM)
-              return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
-            else return e.code();
-          }
-
-        const char *output = miscutil::lookup(parameters,"output");
-        sp_err err = SP_ERR_OK;
-        if (!output || miscutil::strcmpic(output,"html")==0)
-          err = static_renderer::render_result_page_static(qc->_cached_snippets,
-                csp,rsp,parameters,qc);
-        else
-          {
-            csp->_content_type = CT_JSON;
-            err = json_renderer::render_json_results(qc->_cached_snippets,
-                  csp,rsp,parameters,qc,0.0);
-          }
-
-        // reset scores.
-        std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
-        while (vit!=qc->_cached_snippets.end())
-          {
-            (*vit)->_seeks_ir = 0;
-            ++vit;
-          }
-
-        ref_sp->set_similarity_link(parameters); // reset sim_link.
-        mutex_unlock(&qc->_qc_mutex);
-
-        return err;
+        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
       }
-    else return SP_ERR_CGI_PARAMS;
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
+        qc = websearch::lookup_qc(parameters);
+        if (!qc)
+          return SP_ERR_MEMORY;
+      }
+    const char *id = miscutil::lookup(parameters,"id");
+    if (!id)
+      return SP_ERR_CGI_PARAMS;
+
+    mutex_lock(&qc->_qc_mutex);
+    search_snippet *ref_sp = NULL;
+
+    websearch::_wconfig->load_config();
+    pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+    try
+      {
+        sort_rank::score_and_sort_by_similarity(qc,id,parameters,ref_sp,qc->_cached_snippets);
+      }
+    catch (sp_exception &e)
+      {
+        mutex_unlock(&qc->_qc_mutex);
+        pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+        if (e.code() == WB_ERR_NO_REF_SIM)
+          return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
+        else return e.code();
+      }
+
+    const char *output = miscutil::lookup(parameters,"output");
+    sp_err err = SP_ERR_OK;
+    if (!output || miscutil::strcmpic(output,"html")==0)
+      err = static_renderer::render_result_page_static(qc->_cached_snippets,
+            csp,rsp,parameters,qc);
+    else
+      {
+        csp->_content_type = CT_JSON;
+        err = json_renderer::render_json_results(qc->_cached_snippets,
+              csp,rsp,parameters,qc,0.0);
+      }
+
+    // reset scores.
+    std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
+    while (vit!=qc->_cached_snippets.end())
+      {
+        (*vit)->_seeks_ir = 0;
+        ++vit;
+      }
+
+    ref_sp->set_similarity_link(parameters); // reset sim_link.
+    mutex_unlock(&qc->_qc_mutex);
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+    return err;
   }
 
   sp_err websearch::cgi_websearch_clusterize(client_state *csp, http_response *rsp,
