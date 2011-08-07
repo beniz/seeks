@@ -40,12 +40,16 @@ namespace seeks_plugins
 
       virtual void stop();
 
+      static sp_err cgi_peers(client_state *csp,
+                              http_response *rsp,
+                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static sp_err cgi_tbd(client_state *csp,
                             http_response *rsp,
                             const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                        std::string &url, std::string &query, std::string &lang);
+                        const std::string &url, const std::string &query);
 
       void personalize(query_context *qc);
 

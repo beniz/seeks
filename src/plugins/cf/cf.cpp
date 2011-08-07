@@ -18,6 +18,7 @@
 
 #include "cf.h"
 #include "websearch.h"
+#include "json_renderer_private.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
 #include "query_recommender.h"
@@ -26,11 +27,14 @@
 #include "plugin_manager.h"
 #include "cgi.h"
 #include "encode.h"
+#include "urlmatch.h"
 #include "miscutil.h"
 #include "errlog.h"
 
 #include <sys/stat.h>
 #include <iostream>
+
+using namespace json_renderer_private;
 
 namespace seeks_plugins
 {
@@ -63,10 +67,9 @@ namespace seeks_plugins
     _configuration = cf_configuration::_config;
 
     // cgi dispatchers.
-    _cgi_dispatchers.reserve(1);
-    cgi_dispatcher *cgid_tbd
-    = new cgi_dispatcher("tbd",&cf::cgi_tbd,NULL,TRUE);
-    _cgi_dispatchers.push_back(cgid_tbd);
+    cgi_dispatcher *cgid_peers
+    = new cgi_dispatcher("peers",&cf::cgi_peers,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_peers);
   }
 
   cf::~cf()
@@ -86,14 +89,51 @@ namespace seeks_plugins
   {
   }
 
+  sp_err cf::cgi_peers(client_state *csp,
+                       http_response *rsp,
+                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    std::list<std::string> l;
+    hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
+    = cf_configuration::_config->_pl->_peers.begin();
+    while(hit!=cf_configuration::_config->_pl->_peers.end())
+      {
+        peer *p = (*hit).second;
+        l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
+        ++hit;
+      }
+    const std::string json_str = "{\"peers\":" + miscutil::join_string_list(",",l) + "}";
+    const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
   sp_err cf::cgi_tbd(client_state *csp,
                      http_response *rsp,
                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    // check for query and snippet id.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/search/txt/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    std::string url = urlmatch::next_elt_from_path(path);
+    if (url.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1);
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
     if (!parameters->empty())
       {
-        std::string url,query,lang;
-        sp_err err = cf::tbd(parameters,url,query,lang);
+        sp_err err = cf::tbd(parameters,url,query);
         if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
           {
             errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
@@ -101,38 +141,31 @@ namespace seeks_plugins
           }
 
         // redirect to current query url.
-        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-        std::string base_url = query_context::detect_base_url_http(csp);
+        /*miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
+        std::string base_url = query_context::detect_base_url_http(csp);*/
 
-        const char *output = miscutil::lookup(parameters,"output");
+        /*const char *output = miscutil::lookup(parameters,"output");
         std::string output_str = output ? std::string(output) : "html";
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-        return websearch::cgi_websearch_search(csp,rsp,parameters);
+        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower); */
+        //return websearch::cgi_websearch_search(csp,rsp,parameters);
+        return SP_ERR_OK;
       }
     else return SP_ERR_CGI_PARAMS;
   }
 
   sp_err cf::tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                 std::string &url, std::string &query, std::string &lang)
+                 const std::string &url, const std::string &query)
   {
-    const char *urlp = miscutil::lookup(parameters,"url");
-    if (!urlp)
-      return SP_ERR_CGI_PARAMS;
-    const char *queryp = miscutil::lookup(parameters,"q");
-    if (!queryp)
-      return SP_ERR_CGI_PARAMS;
-
-    char *dec_urlp = encode::url_decode_but_not_plus(urlp);
-    url = std::string(dec_urlp);
+    char *dec_urlp = encode::url_decode_but_not_plus(url.c_str());
+    std::string durl = std::string(dec_urlp);
     free(dec_urlp);
-    query = std::string(queryp);
     const char *langp = miscutil::lookup(parameters,"lang");
     if (!langp)
       {
         // XXX: this should not happen.
         return SP_ERR_CGI_PARAMS;
       }
-    lang = std::string(langp);
+    std::string lang = std::string(langp);
     try
       {
         cf::thumb_down_url(query,lang,url);

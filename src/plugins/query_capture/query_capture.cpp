@@ -118,10 +118,10 @@ namespace seeks_plugins
     _configuration = query_capture_configuration::_config;
 
     // cgi dispatchers.
-    _cgi_dispatchers.reserve(1);
+    /*_cgi_dispatchers.reserve(1);
     cgi_dispatcher *cgid_qc_redir
     = new cgi_dispatcher("qc_redir",&query_capture::cgi_qc_redir,NULL,TRUE);
-    _cgi_dispatchers.push_back(cgid_qc_redir);
+    _cgi_dispatchers.push_back(cgid_qc_redir);*/
 
     if (query_capture_configuration::_config->_mode_intercept == "capture")
       _interceptor_plugin = new query_capture_element(this);
@@ -169,7 +169,12 @@ namespace seeks_plugins
         char *urlp = NULL;
         sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
         if (err == SP_ERR_CGI_PARAMS)
-          return cgi::cgi_error_bad_param(csp,rsp);
+          {
+            const char *output_str = miscutil::lookup(parameters,"output");
+            if (output_str && strcmp(output_str,"json")==0)
+              return cgi::cgi_error_bad_param(csp,rsp,"json");
+            else return cgi::cgi_error_bad_param(csp,rsp,"html");
+          }
         else if (err == SP_ERR_PARSE)
           return cgi::cgi_error_disabled(csp,rsp); // wrong use of the resource.
 
@@ -181,7 +186,7 @@ namespace seeks_plugins
         pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
         return SP_ERR_OK;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp);
+    else return cgi::cgi_error_bad_param(csp,rsp,"html");
   }
 
   sp_err query_capture::qc_redir(client_state *csp,
