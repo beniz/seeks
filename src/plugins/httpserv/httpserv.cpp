@@ -453,6 +453,9 @@ namespace seeks_plugins
     const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
     if (baseurl)
       miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+    const char *ua = evhttp_find_header(r->input_headers, "user-agent");
+    if (ua)
+      miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
 
     /* perform websearch. */
     sp_err serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
@@ -553,6 +556,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
     if (baseurl)
       miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+    const char *ua = evhttp_find_header(r->input_headers, "user-agent");
+    if (ua)
+      miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
 
     /* perform websearch. */
     sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
