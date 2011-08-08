@@ -550,6 +550,7 @@ namespace sp
     else if (err && !d->_plugin_name.empty())
       {
         /* list of filtered errors at proxy level. */
+#if defined(PROTOBUF) && defined(TC)
         if (err == DB_ERR_NO_REC) // XXX: other errors to be avoided come here.
           {
             /* let's assume that it worked. */
@@ -557,6 +558,7 @@ namespace sp
             return cgi::finish_http_response(csp, rsp);
           }
         else
+#endif
           {
             /* internal plugin error. */
             errlog::log_error(LOG_LEVEL_ERROR,

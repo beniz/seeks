@@ -39,12 +39,20 @@ namespace seeks_plugins
 {
   std::string json_renderer::render_engines(const feeds &engines)
   {
+    hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
     std::list<std::string> engs;
     std::set<feed_parser,feed_parser::lxn>::const_iterator it
     = engines._feedset.begin();
     while(it!=engines._feedset.end())
       {
-        engs.push_back("\"" + (*it)._name + "\"");
+        std::set<std::string>::const_iterator sit = (*it)._urls.begin();
+        while(sit!=(*it)._urls.end())
+          {
+            if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
+                != websearch::_wconfig->_se_options.end())
+              engs.push_back("\"" + (*hit).second._id + "\"");
+            ++sit;
+          }
         ++it;
       }
     return miscutil::join_string_list(",",engs);
@@ -116,7 +124,7 @@ namespace seeks_plugins
             ++mit;
           }
         return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]"
-               + ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size());
+               + ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size()); // XXX: rqueries seem useless.
       }
     return "";
   }
@@ -165,6 +173,7 @@ namespace seeks_plugins
             miscutil::replace_in_string(escaped_query,"\"","\\\"");
             miscutil::replace_in_string(escaped_query,"\\t","");
             miscutil::replace_in_string(escaped_query,"\\r","");
+            miscutil::replace_in_string(escaped_query,"\n","");
             suggs.push_back("\"" + escaped_query + "\"");
           }
         ++sit;

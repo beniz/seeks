@@ -147,8 +147,13 @@ namespace seeks_plugins
 
   void cf::personalize(query_context *qc)
   {
+    // check on config file, in case it did change.
+    cf_configuration::_config->load_config();
+    pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
+
     simple_re sre;
     sre.peers_personalize(qc);
+    pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
   }
 
   void cf::estimate_ranks(const std::string &query,
@@ -201,11 +206,14 @@ namespace seeks_plugins
                                          records);
     std::string query,lang;
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,records,qdata);
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
+    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,
+                                    records,qdata,inv_qdata);
     if (!qdata.empty())
       dbr = new db_query_record(qdata); // no copy.
     else dbr = NULL;
     rank_estimator::destroy_records(records);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   /* plugin registration. */

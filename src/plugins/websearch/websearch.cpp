@@ -374,31 +374,6 @@ namespace seeks_plugins
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "expansion",1,"1",1);
       }
-
-    // known query.
-    //const char *query_known = miscutil::lookup(parameters,"qknown");
-
-    // if the current query is the same as before, let's apply the current language to it
-    // (i.e. the in-query language command, if any).
-    /*if (query_known)
-      {
-        char *dec_qknown = encode::url_decode(query_known);
-        std::string query_known_str = std::string(dec_qknown);
-        free(dec_qknown);
-
-        if (query_known_str != query_str)
-          {
-            // look for in-query commands.
-            std::string no_command_query = se_handler::no_command_query(query_known_str);
-            if (no_command_query == query_str)
-              {
-                query_str = query_known_str; // replace query with query + in-query command.
-                miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
-                miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                        q,1,query_str.c_str(),1);
-              }
-          }
-    }*/
   }
 
   sp_err websearch::cgi_websearch_search(client_state *csp, http_response *rsp,
@@ -836,6 +811,10 @@ namespace seeks_plugins
     if (!action)
       return SP_ERR_CGI_PARAMS;
 
+    // possibly a new search: check on config file in cast it did change.
+    websearch::_wconfig->load_config();
+    pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+
     /**
      * Action can be of type:
      * - "expand": requests an expansion of the search results, expansion horizon is
@@ -861,10 +840,15 @@ namespace seeks_plugins
       err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
     else if (miscutil::strcmpic(action,"types") == 0)
       err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+        return SP_ERR_CGI_PARAMS;
+      }
 
     errlog::log_error(LOG_LEVEL_INFO,"query: %s",cgi::build_url_from_parameters(parameters).c_str());
 
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
     return err;
   }
 
@@ -905,7 +889,6 @@ namespace seeks_plugins
         // check whether search is expanding or the user is leafing through pages.
         const char *action = miscutil::lookup(parameters,"action");
 
-        websearch::_wconfig->load_config(); // reload config if file has changed.
         if (strcmp(action,"expand") == 0)
           {
             expanded = true;
@@ -913,6 +896,7 @@ namespace seeks_plugins
             mutex_lock(&qc->_feeds_ack_mutex);
             try
               {
+#if defined(PROTOBUF) && defined(TC)
                 if (persf)
                   {
                     int perr = pthread_create(&pers_thread,NULL,
@@ -925,6 +909,7 @@ namespace seeks_plugins
                         return WB_ERR_THREAD;
                       }
                   }
+#endif
                 qc->generate(csp,rsp,parameters,expanded);
               }
             catch (sp_exception &e)
@@ -960,11 +945,13 @@ namespace seeks_plugins
           {
             const char *page = miscutil::lookup(parameters,"page");
             if (!page)
-              return SP_ERR_CGI_PARAMS;
-
+              {
+                return SP_ERR_CGI_PARAMS;
+              }
             // XXX: update other parameters, as needed, qc vs parameters.
             qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
 
+#if defined(PROTOBUF) && defined(TC)
             // personalization.
             if (persf)
               {
@@ -978,6 +965,7 @@ namespace seeks_plugins
                     return WB_ERR_THREAD;
                   }
               }
+#endif
           }
       }
     else
@@ -989,6 +977,7 @@ namespace seeks_plugins
         mutex_lock(&qc->_feeds_ack_mutex);
         try
           {
+#if defined(PROTOBUF) && defined(TC)
             // personalization in parallel to feeds fetching.
             if (persf)
               {
@@ -1002,6 +991,7 @@ namespace seeks_plugins
                     return WB_ERR_THREAD;
                   }
               }
+#endif
             qc->generate(csp,rsp,parameters,expanded);
           }
         catch (sp_exception &e)
@@ -1021,15 +1011,16 @@ namespace seeks_plugins
               }
           }
 
-        // do not return if perso + err != no engine
+        // do not return if personalization on.
         // instead signal all personalization threads that results may have
         // arrived.
         mutex_unlock(&qc->_feeds_ack_mutex);
-        if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
+        if (persf)
           {
           }
         else if (err != SP_ERR_OK)
           {
+            mutex_unlock(&qc->_qc_mutex);
             return err;
           }
 

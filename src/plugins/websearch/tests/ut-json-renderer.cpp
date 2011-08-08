@@ -34,14 +34,14 @@ using sp::proxy_configuration;
 
 TEST(JsonRendererTest, render_engines)
 {
+  websearch::_wconfig = new websearch_configuration("");
   feeds fd;
-  fd.add_feed("google","url0");
-  fd.add_feed("bing","url1");
-  fd.add_feed("yauba","url2");
-  fd.add_feed("yahoo","url3");
-  fd.add_feed("exalead","url4");
-  fd.add_feed("twitter","url5");
-  EXPECT_EQ("\"bing\",\"exalead\",\"google\",\"twitter\",\"yahoo\",\"yauba\"", json_renderer::render_engines(fd));
+  fd.add_feed("google","http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding");
+  fd.add_feed("bing","http://www.bing.com/search?q=%query&first=%start&mkt=%lang");
+  fd.add_feed("yahoo","http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm\
+=p&fl=1&vl=lang_%lang&p=%query&vs=");
+  EXPECT_EQ("\"bing\",\"google\",\"yahoo\"", json_renderer::render_engines(fd));
+  delete websearch::_wconfig;
 }
 
 TEST(JsonRendererTest, render_snippets)
@@ -339,7 +339,7 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
-  context._engines = feeds("yahoo","URL2");
+  context._engines = feeds("yahoo","http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=");
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);

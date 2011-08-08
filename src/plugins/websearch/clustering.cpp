@@ -137,9 +137,9 @@ namespace seeks_plugins
                             break;
                           }
                       }
-                    if (!reject)
+                    if (!reject && swl)
                       {
-                        reject = swl->has_word((*bit).second); // check against the english stopword list.
+                        reject = swl->has_word((*bit).second); // check against the stopword list.
                       }
 
                     if (reject)

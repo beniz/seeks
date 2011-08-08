@@ -59,14 +59,19 @@ TEST(DPTest,sweep)
   dead_peer::_pl = &pl;
   dead_peer::_dpl = &dpl;
 
+  peer *pe = new peer(hosts[0],ports[0],"","bsn");
+  ASSERT_TRUE(PEER_OK==pe->get_status());
+  pe->set_status_unknown();
+  ASSERT_TRUE(PEER_UNKNOWN==pe->get_status());
+  dead_peer::_pl->add(pe);
   dead_peer *dpe = new dead_peer(hosts[0],ports[0],"","bsn");
   dead_peer::_dpl->add(dpe);
   delete dpe;
   ASSERT_TRUE(dead_peer::_dpl->_peers.empty());
   ASSERT_EQ(1,dead_peer::_pl->_peers.size());
-  peer *pe = (*dead_peer::_pl->_peers.begin()).second;
-  dead_peer::_pl->remove(pe->_host,pe->_port,pe->_path);
-  delete pe;
+  peer *tpe = (*dead_peer::_pl->_peers.begin()).second;
+  ASSERT_TRUE(NULL!=tpe);
+  ASSERT_TRUE(PEER_OK==pe->get_status());
 }
 
 int main(int argc, char **argv)

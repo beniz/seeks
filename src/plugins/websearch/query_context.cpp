@@ -65,9 +65,6 @@ namespace seeks_plugins
     mutex_init(&_feeds_ack_mutex);
     cond_init(&_feeds_ack_cond);
 
-    // reload config if file has changed.
-    websearch::_wconfig->load_config();
-
     // set query.
     const char *q = miscutil::lookup(parameters,"q");
     if (!q)

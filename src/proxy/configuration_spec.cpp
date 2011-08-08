@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -39,14 +39,16 @@
 namespace sp
 {
   configuration_spec::configuration_spec(const std::string &filename)
-      :_filename(filename),_lastmodified(0)
+    :_filename(filename),_lastmodified(0)
   {
+    pthread_rwlock_init(&_conf_rwlock,NULL);
     _config_args = strdup("");
   }
 
   configuration_spec::~configuration_spec()
   {
     freez(_config_args);
+    pthread_rwlock_destroy(&_conf_rwlock);
   }
 
   sp_err configuration_spec::load_config()
@@ -65,6 +67,9 @@ namespace sp
       {
         errlog::log_error(LOG_LEVEL_INFO,"Reloading configuration file '%s'",_filename.c_str());
       }
+
+    // write lock
+    pthread_rwlock_wrlock(&_conf_rwlock);
 
     // free html buffer.
     freez(_config_args);
@@ -117,7 +122,10 @@ namespace sp
         _lastmodified = statbuf->st_mtime;
       }
 
-    return SP_ERR_OK; // TODO: finer error handling...
+    // release the write lock.
+    pthread_rwlock_unlock(&_conf_rwlock);
+
+    return SP_ERR_OK;
   }
 
   sp_err configuration_spec::parse_config_line(char *cmd, char* arg, char *tmp, char *buf)

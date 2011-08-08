@@ -162,6 +162,10 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
+        // check on config file, in case it did change.
+        query_capture_configuration::_config->load_config();
+        pthread_rwlock_rdlock(&query_capture_configuration::_config->_conf_rwlock);
+
         char *urlp = NULL;
         sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
         if (err == SP_ERR_CGI_PARAMS)
@@ -174,6 +178,7 @@ namespace seeks_plugins
 
         cgi::cgi_redirect(rsp,urlp);
         free(urlp);
+        pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
         return SP_ERR_OK;
       }
     else return cgi::cgi_error_bad_param(csp,rsp);
@@ -217,15 +222,17 @@ namespace seeks_plugins
             if (p==std::string::npos)
               return SP_ERR_PARSE;
           }
-        //else return SP_ERR_PARSE;
       }
 
     // capture queries and URL / HOST.
     // XXX: could be threaded and detached.
     char *queryp = encode::url_decode(q);
     std::string query = queryp;
+    query_context *qc = websearch::lookup_qc(parameters);
     std::string qlang;
-    if (!query_context::has_query_lang(query,qlang))
+    if (qc)
+      qlang = qc->_auto_lang;
+    else if (!query_context::has_query_lang(query,qlang))
       qlang = query_context::_default_alang;
     query = query_capture_element::no_command_query(query);
     free(queryp);
@@ -302,7 +309,9 @@ namespace seeks_plugins
                           query.c_str());
         return;
       }
+    pthread_rwlock_rdlock(&query_capture_configuration::_config->_conf_rwlock);
     query_capture_element::store_queries(query,get_name());
+    pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
   }
 
   /*- query_capture_element -*/
@@ -449,6 +458,11 @@ namespace seeks_plugins
                         sp = qc->get_cached_snippet(url);
                         query_capture_element::store_url((*hit).second,query,url,host,
                                                          (*hit).first,plugin_name,sp);
+                      }
+                    else
+                      {
+                        query_capture_element::store_url((*hit).second,query,url,host,
+                                                         (*hit).first,plugin_name,NULL);
                       }
                   }
               }

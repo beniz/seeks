@@ -447,6 +447,15 @@ namespace seeks_plugins
         miscutil::replace_in_string(exalead_se_icon,"@query@",_qc->_url_enc_query);
         html_content += exalead_se_icon;
       }
+    if (_engine.has_feed("delicious"))
+      {
+        std::string yahoo_se_icon = se_icon;
+        miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_delicious");
+        miscutil::replace_in_string(yahoo_se_icon,"setitle","Delicious");
+        miscutil::replace_in_string(yahoo_se_icon,"seeng","delicious");
+        miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += yahoo_se_icon;
+      }
     if (_engine.has_feed("twitter"))
       {
         std::string twitter_se_icon = se_icon;

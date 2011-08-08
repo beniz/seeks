@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -38,6 +38,7 @@
 #include "se_parser_doku.h"
 #include "se_parser_mediawiki.h"
 #include "se_parser_osearch.h"
+#include "se_parser_delicious.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -529,6 +530,35 @@ namespace seeks_plugins
     url = q_dm;
   }
 
+  se_delicious::se_delicious()
+    : search_engine()
+  {
+  }
+
+  se_delicious::~se_delicious()
+  {
+  }
+
+  void se_delicious::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                 std::string &url, const query_context *qc)
+  {
+    std::string q_dl = url;
+    const char *query = miscutil::lookup(parameters,"q");
+
+    // query.
+    miscutil::replace_in_string(q_dl,"%query",std::string(query));
+
+    const char *expansion = miscutil::lookup(parameters,"expansion");
+    int pp = (strcmp(expansion,"")!=0) ? atoi(expansion) : 1;
+    std::string pp_str = miscutil::to_string(pp);
+    miscutil::replace_in_string(q_dl,"%start",pp_str);
+
+    // log the query.
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying delicious: %s", q_dl.c_str());
+
+    url = q_dl;
+  }
+
   se_ggle se_handler::_ggle = se_ggle();
   se_bing se_handler::_bing = se_bing();
   se_yahoo se_handler::_yahoo = se_yahoo();
@@ -542,6 +572,7 @@ namespace seeks_plugins
   se_mediawiki se_handler::_mediaw = se_mediawiki();
   se_osearch_rss se_handler::_osearch_rss = se_osearch_rss();
   se_osearch_atom se_handler::_osearch_atom = se_osearch_atom();
+  se_delicious se_handler::_delicious = se_delicious();
 
   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
   sp_mutex_t se_handler::_curl_mutex;
@@ -716,6 +747,8 @@ namespace seeks_plugins
           _osearch_rss.query_to_se(parameters,url,qc);
         else if (se._name == "opensearch_atom")
           _osearch_atom.query_to_se(parameters,url,qc);
+        else if (se._name == "delicious")
+          _delicious.query_to_se(parameters,url,qc);
         else if (se._name == "seeks")
           {}
         else if (se._name == "dummy")
@@ -906,6 +939,8 @@ namespace seeks_plugins
       sep = new se_parser_osearch_rss(se.get_url(i));
     else if (se._name == "opensearch_atom")
       sep = new se_parser_osearch_atom(se.get_url(i));
+    else if (se._name == "delicious")
+      sep = new se_parser_delicious(se.get_url(i));
     else if (se._name == "seeks")
       {}
     else if (se._name == "dummy")

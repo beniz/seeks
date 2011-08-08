@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT(Seeks, 0.3.4, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.4, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -28,10 +28,10 @@ AC_SUBST(SEEKS_VERSION_POINT)
 AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
-AC_DEFINE(SEEKS_VERSION_MINOR,"3","")
-AC_DEFINE(SEEKS_VERSION_POINT,"4","")
-AC_DEFINE(SEEKS_VERSION,"0.3.4","")
-AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
+AC_DEFINE(SEEKS_VERSION_MINOR,"4","")
+AC_DEFINE(SEEKS_VERSION_POINT,"0","")
+AC_DEFINE(SEEKS_VERSION,"0.4","")
+AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.
 AC_PROG_CXX
@@ -570,44 +570,66 @@ AC_SUBST(querycapture,true)
 AC_SUBST(cf,true)
 AC_SUBST(udbservice,true)
 
-# check on protocol buffers.
-PKG_CHECK_MODULES([protobuf],[protobuf >= 2.2],protobuf=true,protobuf=false)
-if test $protobuf = true ; then
-   AC_DEFINE(PROTOBUF,1,"Protocol buffers available")
-fi
-AM_CONDITIONAL(HAVE_PROTOBUF,test x$protobuf = xtrue)
-if test $protobuf = false ; then
+# deactivate personalization.
+AC_ARG_ENABLE(personalization,
+AC_HELP_STRING([--enable-personalization],[Enable storage of past queries and results for personalization (default is YES)]),
+[case "${enableval}" in
+        yes) personalization=true ;;
+                no) personalization=false ;;
+                        *) AC_MSG_ERROR(bad_value ${enableval} for
+--enable-personalization) ;;
+esac],[personalization=true])
+if test $personalization = false ; then
    AC_SUBST(uricapture,false)
    AC_SUBST(querycapture,false)
    AC_SUBST(cf,false)
    AC_SUBST(udbservice,false)
 fi
 
-# check on tokyo cabinet.
-PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
-if test	$tokyocabinet = true ; then
+if test $personalization = true ; then
+   # check on protocol buffers.
+   PKG_CHECK_MODULES([protobuf],[protobuf >= 2.2],protobuf=true,protobuf=false)
+   if test $protobuf = true ; then
+    AC_DEFINE(PROTOBUF,1,"Protocol buffers available")
+   fi
+    AM_CONDITIONAL(HAVE_PROTOBUF,test x$protobuf = xtrue)
+    if test $protobuf = false ; then
+       AC_SUBST(uricapture,false)
+       AC_SUBST(querycapture,false)
+       AC_SUBST(cf,false)
+       AC_SUBST(udbservice,false)
+    fi
+
+ # check on tokyo cabinet.
+ PKG_CHECK_MODULES([tokyocabinet],[tokyocabinet],tokyocabinet=true,tokyocabinet=false)
+ if test $tokyocabinet = true ; then
    AC_DEFINE(TC,1,"Tokyo Cabinet available")
-fi
-AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)
+ fi
+ AM_CONDITIONAL(HAVE_TC,test x$tokyocabinet = xtrue)
 
-# check on tokyo tyrant.
-PKG_CHECK_MODULES([tokyotyrant],[tokyotyrant],tokyotyrant=true,tokyotyrant=false)
-if test	$tokyotyrant = true ; then
+ # check on tokyo tyrant.    
+ PKG_CHECK_MODULES([tokyotyrant],[tokyotyrant],tokyotyrant=true,tokyotyrant=false)
+ if test $tokyotyrant = true ; then
    AC_DEFINE(TT,1,"Tokyo Tyrant available")
-fi
-AM_CONDITIONAL(HAVE_TT,test x$tokyotyrant = xtrue)
+ fi
+ AM_CONDITIONAL(HAVE_TT,test x$tokyotyrant = xtrue)
 
-# deactivate personalization if no support for db.
-if test $tokyocabinet = false ; then
+ # deactivate personalization if no support for db.
+ if test $tokyocabinet = false ; then
    if test $tokyotyrant = false ; then
       AC_SUBST(uricapture,false)
       AC_SUBST(querycapture,false)
       AC_SUBST(cf,false)
       AC_SUBST(udbservice,false)
    fi
-fi
+ fi
+else
+ AM_CONDITIONAL(HAVE_TC,false)
+ AM_CONDITIONAL(HAVE_TT,false)
+ AM_CONDITIONAL(HAVE_PROTOBUF,false)
+fi # end of personalization is true.
 
-# connection keep alive
+# connection keep alive.
 AC_ARG_ENABLE(keepalive,
 AC_HELP_STRING([--enable-keepalive],[Enable keeping outgoing connections alive (default is NO)]),
 [case "${enableval}" in
@@ -808,6 +830,7 @@ AC_MSG_NOTICE([Configured to build seeks:
  Host setup:		  ${host}
  Install prefix:	  ${prefix}
  Compiler:		  ${CC}
+ Personalization:         ${personalization}
 
  Dependencies:
  OpenCV-2.x:		  ${opencv2}
