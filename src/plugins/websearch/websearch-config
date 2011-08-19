@@ -81,6 +81,10 @@ ct-connect-timeout 1
 # default: 3
 ct-transfer-timeout 3
 
+# Maximum allowed query expansion.
+# default: 100
+max-expansions 100
+
 # Enables a more discriminative highlight of words in result snippets.
 # The highlighted words are those that discriminate the most a snippet
 # from all other snippets in the results.
