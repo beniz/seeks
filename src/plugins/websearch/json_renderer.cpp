@@ -144,30 +144,48 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  std::string json_renderer::render_recommendations(const std::string &query_clean,
-      const query_context *qc)
+  std::string json_renderer::render_recommendations(const query_context *qc,
+      const int &nreco)
   {
-    /*if (!qc->_recommended_snippets.empty())
+    std::vector<std::string> query_words;
+    miscutil::tokenize(qc->_query,query_words," "); // allows to extract most discriminative words not in query.
+
+    std::string json_str = "\"recommendations\":[";
+    size_t ssize = qc->_cached_snippets.size();
+    int count = 0;
+    for (size_t i=0; i<ssize; i++)
       {
-        std::list<std::string> suggs;
+        search_snippet *sp = qc->_cached_snippets.at(i);
+        if (sp->_doc_type == REJECTED)
+          continue;
+        if (!sp->_engine.has_feed("seeks"))
+          continue;
+        if (i!=ssize-1)
+          json_str += ",";
+        json_str += sp->to_json(false,query_words);
+        count++;
 
-        std::vector<std::string> query_words;
-        miscutil::tokenize(query_clean,query_words," ");
-
-        int k = 0;
-        hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
-        = qc->_recommended_snippets.begin();
-        while(hit!=qc->_recommended_snippets.end())
+        if (nreco > 0 && count == nreco)
           {
-            suggs.push_back((*hit).second->to_json(false,query_words));
-            if (k > websearch::_wconfig->_num_reco_queries)
-              break;
-            ++k;
-            ++hit;
+            break; // end here.
           }
-        return "\"recommendations\":[" + miscutil::join_string_list(",",suggs) + "]";
       }
-      return "";*/
+    json_str += "]";
+    return json_str;
+  }
+
+  sp_err json_renderer::render_json_recommendations(const query_context *qc,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    int nreco = -1;
+    const char *nreco_str = miscutil::lookup(parameters,"nreco");
+    if (nreco_str)
+      nreco = atoi(nreco_str);
+    std::string json_str = "{" + json_renderer::render_recommendations(qc,nreco) + "}";
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
   }
 
   std::string json_renderer::render_cached_queries(const std::string &query,

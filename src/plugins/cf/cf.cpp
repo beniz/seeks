@@ -75,6 +75,10 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_suggestion
     = new cgi_dispatcher("suggestion",&cf::cgi_suggestion,NULL,TRUE);
     _cgi_dispatchers.push_back(cgid_suggestion);
+
+    cgi_dispatcher *cgid_recommendation
+    = new cgi_dispatcher("recommendation",&cf::cgi_recommendation,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_recommendation);
   }
 
   cf::~cf()
@@ -217,9 +221,70 @@ namespace seeks_plugins
         qc->register_qc();
       }
     mutex_unlock(&websearch::_context_mutex);
+    mutex_lock(&qc->_qc_mutex);
     cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+    sp_err err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+    mutex_unlock(&qc->_qc_mutex);
+    return err;
+  }
 
-    return json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+  sp_err cf::cgi_recommendation(client_state *csp,
+                                http_response *rsp,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for HTTP method and route the call.
+    std::string http_method = csp->_http._gpc;
+    std::transform(http_method.begin(),http_method.end(),http_method.begin(),tolower);
+
+    if (http_method == "get")
+      {
+        return cf::recommendation_get(csp,rsp,parameters);
+      }
+    else if (http_method == "post")
+      {
+        //TODO.
+      }
+    else
+      {
+        //TODO: error.
+      }
+  }
+
+  sp_err cf::recommendation_get(client_state *csp,
+                                http_response *rsp,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/recommendation/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    // ask all peers.
+    mutex_lock(&websearch::_context_mutex);
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        qc = new query_context(parameters,csp->_headers);
+        qc->register_qc();
+      }
+    mutex_unlock(&websearch::_context_mutex);
+    mutex_lock(&qc->_qc_mutex);
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters);
+    mutex_unlock(&qc->_qc_mutex);
+    return err;
   }
 
   void cf::personalize(query_context *qc,
