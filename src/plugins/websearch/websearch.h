@@ -172,7 +172,7 @@ namespace seeks_plugins
       static bool _cf_plugin_activated;
 
       /* multithreading. */
-    private:
+    public:
       static sp_mutex_t _context_mutex;
   };
 

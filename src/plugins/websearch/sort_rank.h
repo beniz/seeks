@@ -45,10 +45,10 @@ namespace seeks_plugins
 
 #if defined(PROTOBUF) && defined(TC)
       static void personalize(query_context *qc);
-      static void personalized_rank_snippets(query_context *qc,
+      /*static void personalized_rank_snippets(query_context *qc,
                                              std::vector<search_snippet*> &snippets) throw (sp_exception);
       static void get_related_queries(query_context *qc) throw (sp_exception);
-      static void get_recommended_urls(query_context *qc) throw (sp_exception);
+      static void get_recommended_urls(query_context *qc) throw (sp_exception);*/
 #endif
   };
 

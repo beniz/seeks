@@ -1257,13 +1257,8 @@ namespace seeks_plugins
         if (err != SP_ERR_OK)
           return err;
         qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          qc = new query_context(parameters,csp->_headers); // empty context.
-      }
-    if (qc->empty())
-      {
-        sweeper::unregister_sweepable(qc);
-        delete qc;
+        if (!qc) // should never happen.
+          return SP_ERR_MEMORY; // 500.
       }
 
     mutex_lock(&qc->_qc_mutex);
@@ -1304,13 +1299,7 @@ namespace seeks_plugins
           return err;
         qc = websearch::lookup_qc(parameters);
         if (!qc)
-          qc = new query_context(parameters,csp->_headers); // empty context.
-      }
-    if (qc->empty())
-      {
-        sweeper::unregister_sweepable(qc);
-        delete qc;
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+          return SP_ERR_MEMORY; // 500.
       }
 
     mutex_lock(&qc->_qc_mutex);
@@ -1340,13 +1329,7 @@ namespace seeks_plugins
           return err;
         qc = websearch::lookup_qc(parameters);
         if (!qc)
-          qc = new query_context(parameters,csp->_headers); // empty context.
-      }
-    if (qc->empty())
-      {
-        sweeper::unregister_sweepable(qc);
-        delete qc;
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+          return SP_ERR_MEMORY; // 500.
       }
 
     mutex_lock(&qc->_qc_mutex);

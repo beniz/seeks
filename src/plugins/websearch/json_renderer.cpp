@@ -104,7 +104,8 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  std::string json_renderer::render_related_queries(const query_context *qc)
+  std::string json_renderer::render_suggested_queries(const query_context *qc,
+      const int &nsuggs)
   {
     if (!qc->_suggestions.empty())
       {
@@ -118,15 +119,29 @@ namespace seeks_plugins
             miscutil::replace_in_string(sugg,"\\","\\\\");
             miscutil::replace_in_string(sugg,"\"","\\\"");
             suggs.push_back("\"" + sugg + "\"");
-            if (k > websearch::_wconfig->_num_reco_queries)
+            if (k >= nsuggs-1)
               break;
             ++k;
             ++mit;
           }
-        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]"
-               + ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size()); // XXX: rqueries seem useless.
+        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]";
+        //+ ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size()); // XXX: rqueries seem useless.
       }
     return "";
+  }
+
+  sp_err json_renderer::render_json_suggested_queries(const query_context *qc,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    int nsuggs = websearch::_wconfig->_num_reco_queries;
+    const char *nsugg_str = miscutil::lookup(parameters,"nsugg");
+    if (nsugg_str)
+      nsuggs = atoi(nsugg_str);
+    std::string json_str = "{" + json_renderer::render_suggested_queries(qc,nsuggs) + "}";
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
   }
 
   std::string json_renderer::render_recommendations(const std::string &query_clean,
@@ -465,10 +480,10 @@ namespace json_renderer_private
     // peers.
     results.push_back("\"npeers\":\"" + miscutil::to_string(qc->_npeers) + "\"");
 
-    // related queries.
-    std::string related_queries = json_renderer::render_related_queries(qc);
-    if (!related_queries.empty())
-      results.push_back(related_queries);
+    // suggested queries.
+    std::string suggested_queries = json_renderer::render_suggested_queries(qc,websearch::_wconfig->_num_reco_queries);
+    if (!suggested_queries.empty())
+      results.push_back(suggested_queries);
 
     // related URLs.
     std::string reco = json_renderer::render_recommendations(qc->_query,qc);

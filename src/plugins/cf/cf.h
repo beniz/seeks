@@ -48,19 +48,25 @@ namespace seeks_plugins
                             http_response *rsp,
                             const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
+      static sp_err cgi_suggestion(client_state *csp,
+                                   http_response *rsp,
+                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                         const std::string &url, const std::string &query);
 
-      void personalize(query_context *qc);
+      static void personalize(query_context *qc,
+                              const bool &wait_external_sources=true,
+                              const std::string &peers="p2p");
 
-      void estimate_ranks(const std::string &query,
-                          const std::string &lang,
-                          const uint32_t &expansion,
-                          std::vector<search_snippet*> &snippets,
-                          const std::string &host="",
-                          const int &port=-1) throw (sp_exception);
+      static void estimate_ranks(const std::string &query,
+                                 const std::string &lang,
+                                 const uint32_t &expansion,
+                                 std::vector<search_snippet*> &snippets,
+                                 const std::string &host="",
+                                 const int &port=-1) throw (sp_exception);
 
-      void get_related_queries(const std::string &query,
+      /*void get_related_queries(const std::string &query,
                                const std::string &lang,
                                const uint32_t &expansion,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
@@ -72,7 +78,7 @@ namespace seeks_plugins
                                 const uint32_t &expansion,
                                 hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                 const std::string &host="",
-                                const int &port=-1) throw (sp_exception);
+                                const int &port=-1) throw (sp_exception);*/
 
       static void thumb_down_url(const std::string &query,
                                  const std::string &lang,
@@ -81,6 +87,8 @@ namespace seeks_plugins
       static void find_bqc_cb(const std::vector<std::string> &qhashes,
                               const uint32_t &expansion,
                               db_query_record *&dbr);
+
+      static std::string select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
     public:
       static plugin *_uc_plugin;

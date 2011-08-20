@@ -18,6 +18,7 @@
 
 #include "cf.h"
 #include "websearch.h"
+#include "json_renderer.h"
 #include "json_renderer_private.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
@@ -70,6 +71,10 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_peers
     = new cgi_dispatcher("peers",&cf::cgi_peers,NULL,TRUE);
     _cgi_dispatchers.push_back(cgid_peers);
+
+    cgi_dispatcher *cgid_suggestion
+    = new cgi_dispatcher("suggestion",&cf::cgi_suggestion,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_suggestion);
   }
 
   cf::~cf()
@@ -178,14 +183,55 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  void cf::personalize(query_context *qc)
+  sp_err cf::cgi_suggestion(client_state *csp,
+                            http_response *rsp,
+                            const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/suggestion/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    // ask all peers.
+    // cost is nearly the same to grab both queries and URLs from
+    // remote peers, and cache the requested data.
+    // for this reason, we call to 'personalize', that fetches both
+    // queries and URLs, rank and cache them into memory.
+    mutex_lock(&websearch::_context_mutex);
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        qc = new query_context(parameters,csp->_headers);
+        qc->register_qc();
+      }
+    mutex_unlock(&websearch::_context_mutex);
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+
+    return json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+  }
+
+  void cf::personalize(query_context *qc,
+                       const bool &wait_external_sources,
+                       const std::string &peers)
   {
     // check on config file, in case it did change.
     cf_configuration::_config->load_config();
     pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
 
     simple_re sre;
-    sre.peers_personalize(qc);
+    sre.peers_personalize(qc,wait_external_sources,peers);
     pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
   }
 
@@ -200,7 +246,7 @@ namespace seeks_plugins
     sre.estimate_ranks(query,lang,expansion,snippets,host,port);
   }
 
-  void cf::get_related_queries(const std::string &query,
+  /*void cf::get_related_queries(const std::string &query,
                                const std::string &lang,
                                const uint32_t &expansion,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
@@ -219,7 +265,7 @@ namespace seeks_plugins
   {
     simple_re sre; // estimator.
     sre.recommend_urls(query,lang,expansion,snippets,host,port);
-  }
+    }*/
 
   void cf::thumb_down_url(const std::string &query,
                           const std::string &lang,
@@ -244,6 +290,15 @@ namespace seeks_plugins
       dbr = new db_query_record(qdata); // no copy.
     else dbr = NULL;
     rank_estimator::destroy_records(records);
+  }
+
+  std::string cf::select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    std::string str = "p2p"; // p2p is default.
+    const char *peers = miscutil::lookup(parameters,"peers");
+    if (peers && strcasecmp(peers,"local")==0)
+      str = "local";
+    return str;
   }
 
   /* plugin registration. */

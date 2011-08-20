@@ -57,30 +57,35 @@ namespace seeks_plugins
   }
 
   // threaded call to personalization.
-  void rank_estimator::peers_personalize(query_context *qc)
+  void rank_estimator::peers_personalize(query_context *qc,
+                                         const bool &wait_external_sources,
+                                         const std::string &peers)
   {
     std::vector<pthread_t> perso_threads;
     std::vector<perso_thread_arg*> perso_args;
 
     // thread for local db.
-    threaded_personalize(perso_args,perso_threads,NULL,qc);
+    threaded_personalize(perso_args,perso_threads,NULL,qc,wait_external_sources);
 
     // one thread per remote peer, to handle the IO.
-    hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
-    = cf_configuration::_config->_pl->_peers.begin();
-    while(hit!=cf_configuration::_config->_pl->_peers.end())
+    if (peers == "p2p")
       {
-        // connect to living peers only.
-        if ((*hit).second->get_status() == PEER_OK)
-          threaded_personalize(perso_args,perso_threads,
-                               (*hit).second,qc);
-        else
+        hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
+        = cf_configuration::_config->_pl->_peers.begin();
+        while(hit!=cf_configuration::_config->_pl->_peers.end())
           {
-            perso_args.push_back(NULL);
-            perso_threads.push_back(0);
+            // connect to living peers only.
+            if ((*hit).second->get_status() == PEER_OK)
+              threaded_personalize(perso_args,perso_threads,
+                                   (*hit).second,qc,wait_external_sources);
+            else
+              {
+                perso_args.push_back(NULL);
+                perso_threads.push_back(0);
+              }
+            ++hit;
           }
-        ++hit;
-      }
+      } // end p2p.
 
     // join.
     for (size_t i=0; i<perso_threads.size(); i++)
@@ -105,7 +110,8 @@ namespace seeks_plugins
   void rank_estimator::threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
       std::vector<pthread_t> &perso_threads,
       peer *pe,
-      query_context *qc)
+      query_context *qc,
+      const bool &wait_external_sources)
   {
     perso_thread_arg *args  = new perso_thread_arg();
     args->_query = qc->_query;
@@ -117,6 +123,7 @@ namespace seeks_plugins
     args->_qc = qc;
     args->_pe = pe;
     args->_expansion = qc->_page_expansion > 0 ? qc->_page_expansion : 1;
+    args->_wait = wait_external_sources;
     args->_err = SP_ERR_OK;
 
     pthread_t p_thread;
@@ -149,7 +156,8 @@ namespace seeks_plugins
                                           *args->_related_queries,
                                           *args->_reco_snippets,
                                           &pe,
-                                          args->_qc);
+                                          args->_qc,
+                                          args->_wait);
           }
         else
           args->_estimator->personalize(args->_query,args->_lang,
@@ -158,7 +166,8 @@ namespace seeks_plugins
                                         *args->_related_queries,
                                         *args->_reco_snippets,
                                         args->_pe,
-                                        args->_qc);
+                                        args->_qc,
+                                        args->_wait);
       }
     catch(sp_exception &e)
       {
@@ -659,7 +668,8 @@ namespace seeks_plugins
                               std::multimap<double,std::string,std::less<double> > &related_queries,
                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                               peer *pe,
-                              query_context *qc) throw (sp_exception)
+                              query_context *qc,
+                              const bool &wait_external_sources) throw (sp_exception)
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
@@ -711,9 +721,12 @@ namespace seeks_plugins
       }
 
     // wait on feeds fetching end signal.
-    mutex_lock(&qc->_feeds_ack_mutex);
-    cond_wait(&qc->_feeds_ack_cond,&qc->_feeds_ack_mutex);
-    mutex_unlock(&qc->_feeds_ack_mutex);
+    if (wait_external_sources)
+      {
+        mutex_lock(&qc->_feeds_ack_mutex);
+        cond_wait(&qc->_feeds_ack_cond,&qc->_feeds_ack_mutex);
+        mutex_unlock(&qc->_feeds_ack_mutex);
+      }
 
     // rank, urls & queries.
     if (!qdata.empty())

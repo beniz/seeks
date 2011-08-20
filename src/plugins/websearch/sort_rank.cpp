@@ -311,12 +311,12 @@ namespace seeks_plugins
     if (!websearch::_cf_plugin)
       return;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc);
+    cfp->personalize(qc,true);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }
 
-  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
+  /*void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
   {
     if (!websearch::_cf_plugin)
       return;
@@ -342,7 +342,7 @@ namespace seeks_plugins
         qc->_page_expansion,
         qc->_recommended_snippets);
     qc->update_recommended_urls();
-  }
+    }*/
 #endif
 
 } /* end of namespace. */

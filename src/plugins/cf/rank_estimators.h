@@ -54,6 +54,7 @@ namespace seeks_plugins
     rank_estimator *_estimator;
     peer *_pe;
     uint32_t _expansion;
+    bool _wait; // whether threads should wait for external data sources.
     sp_err _err; // error code.
   };
 
@@ -64,12 +65,15 @@ namespace seeks_plugins
 
       virtual ~rank_estimator() {};
 
-      void peers_personalize(query_context *qc);
+      void peers_personalize(query_context *qc,
+                             const bool &wait_external_sources,
+                             const std::string &peers);
 
       void threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
                                 std::vector<pthread_t> &perso_threads,
                                 peer *pe = NULL,
-                                query_context *qc = NULL);
+                                query_context *qc = NULL,
+                                const bool &wait_external_sources=true);
 
       static void personalize_cb(perso_thread_arg *args);
 
@@ -80,7 +84,8 @@ namespace seeks_plugins
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                peer *pe,
-                               query_context *qc = NULL) throw (sp_exception) {};
+                               query_context *qc = NULL,
+                               const bool &wait_external_sources=true) throw (sp_exception) {};
 
       // DEPRECATED
       virtual void estimate_ranks(const std::string &query,
@@ -161,7 +166,8 @@ namespace seeks_plugins
                                std::multimap<double,std::string,std::less<double> > &related_queries,
                                hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                peer *pe,
-                               query_context *qc = NULL) throw (sp_exception);
+                               query_context *qc = NULL,
+                               const bool &wait_external_sources=true) throw (sp_exception);
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,

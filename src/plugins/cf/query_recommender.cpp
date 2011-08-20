@@ -62,15 +62,14 @@ namespace seeks_plugins
       const std::string &lang,
       const uint32_t &expansion,
       std::multimap<double,std::string,std::less<double> > &related_queries,
-      const std::string &host,
-      const int &port) throw (sp_exception)
+      peer *pe) throw (sp_exception)
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     try
       {
-        peer pe(host,port,"",""); //TODO: missing peer and rsc.
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,&pe);
+        //peer pe(host,port,"",""); //TODO: missing peer and rsc.
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,pe);
       }
     catch(sp_exception &e)
       {

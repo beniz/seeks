@@ -3,20 +3,19 @@
  * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
  *               2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
@@ -380,6 +379,19 @@ TEST(JsonRendererTest, render_node_options)
   delete csp;
 
   delete websearch::_wconfig;
+}
+
+TEST(JsonRendererTest, render_suggested_queries)
+{
+  query_context qc;
+  qc._suggestions.insert(std::pair<double,std::string>(1.0,"seeks"));
+  qc._suggestions.insert(std::pair<double,std::string>(0.5,"seeks project"));
+  std::string json_str = json_renderer::render_suggested_queries(&qc,3);
+  EXPECT_NE(std::string::npos,json_str.find("\"suggestions\":"));
+  EXPECT_NE(std::string::npos,json_str.find("\"seeks\""));
+  EXPECT_NE(std::string::npos,json_str.find("\"seeks project\""));
+  json_str = json_renderer::render_suggested_queries(&qc,1);
+  EXPECT_EQ(std::string::npos,json_str.find("\"seeks\""));
 }
 
 int main(int argc, char **argv)
