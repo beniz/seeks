@@ -1052,7 +1052,8 @@ namespace seeks_plugins
             if (persf)
               {
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::personalize,qc);
+                                          (void *(*)(void *))&sort_rank::th_personalize,
+                                          new pers_arg(qc,parameters));
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
@@ -1116,7 +1117,8 @@ namespace seeks_plugins
             if (persf)
               {
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::personalize,qc);
+                                          (void *(*)(void *))&sort_rank::th_personalize,
+                                          new pers_arg(qc,parameters));
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");

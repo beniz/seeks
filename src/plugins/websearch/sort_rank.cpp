@@ -306,12 +306,18 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalize(query_context *qc)
+  void sort_rank::th_personalize(pers_arg *arg)
+  {
+    sort_rank::personalize(arg->_qc,arg->_parameters);
+    delete arg;
+  }
+  void sort_rank::personalize(query_context *qc,
+                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     if (!websearch::_cf_plugin)
       return;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc,true);
+    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters));
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }
