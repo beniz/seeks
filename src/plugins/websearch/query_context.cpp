@@ -132,16 +132,6 @@ namespace seeks_plugins
     std::for_each(_cached_snippets.begin(),_cached_snippets.end(),
                   delete_object());
 
-    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator idhit1, idhit2;
-    idhit1 = _recommended_snippets.begin();
-    while(idhit1!=_recommended_snippets.end())
-      {
-        idhit2 = idhit1;
-        ++idhit1;
-        delete (*idhit2).second;
-        _recommended_snippets.erase(idhit2);
-      }
-
     // clears the LSH hashtable.
     if (_ulsh_ham)
       delete _ulsh_ham;
@@ -769,39 +759,6 @@ namespace seeks_plugins
         ++vit;
       }
     _npeers = 0; // reset query context peers.
-  }
-
-  bool query_context::update_recommended_urls()
-  {
-    bool cache_changed = false;
-    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit, hit2, cit;
-    hit = _recommended_snippets.begin();
-    while(hit!=_recommended_snippets.end())
-      {
-        cit = _unordered_snippets.find((*hit).first);
-        if (cit != _unordered_snippets.end())
-          {
-            hit2 = hit;
-            ++hit;
-            delete (*hit2).second;
-            _recommended_snippets.erase(hit2);
-          }
-        else if (!(*hit).second->_title.empty())
-          {
-            (*hit).second->_qc = this;
-            (*hit).second->_personalized = true;
-            (*hit).second->_engine.add_feed("seeks","s.s");
-            (*hit).second->_meta_rank++;
-            _cached_snippets.push_back((*hit).second);
-            //add_to_unordered_cache((*hit).second);
-            cache_changed = true;
-            hit2 = hit;
-            ++hit;
-            _recommended_snippets.erase(hit2);
-          }
-        else ++hit;
-      }
-    return cache_changed;
   }
 
 } /* end of namespace. */

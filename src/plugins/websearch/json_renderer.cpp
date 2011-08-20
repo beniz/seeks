@@ -147,7 +147,7 @@ namespace seeks_plugins
   std::string json_renderer::render_recommendations(const std::string &query_clean,
       const query_context *qc)
   {
-    if (!qc->_recommended_snippets.empty())
+    /*if (!qc->_recommended_snippets.empty())
       {
         std::list<std::string> suggs;
 
@@ -167,7 +167,7 @@ namespace seeks_plugins
           }
         return "\"recommendations\":[" + miscutil::join_string_list(",",suggs) + "]";
       }
-    return "";
+      return "";*/
   }
 
   std::string json_renderer::render_cached_queries(const std::string &query,
@@ -484,17 +484,6 @@ namespace json_renderer_private
     std::string suggested_queries = json_renderer::render_suggested_queries(qc,websearch::_wconfig->_num_reco_queries);
     if (!suggested_queries.empty())
       results.push_back(suggested_queries);
-
-    // related URLs.
-    std::string reco = json_renderer::render_recommendations(qc->_query,qc);
-    if (!reco.empty())
-      results.push_back(reco);
-
-    // queries in cache.
-    // XXX: now an independent JSON call.
-    /*std::string cached_queries = json_renderer::render_cached_queries(qc->_query);
-    if (!cached_queries.empty())
-    results.push_back(cached_queries);*/
 
     // engines.
     if (qc->_engines.size() > 0)

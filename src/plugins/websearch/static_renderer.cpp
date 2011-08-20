@@ -119,49 +119,6 @@ namespace seeks_plugins
     miscutil::add_map_entry(exports,"$xxnpeers",1,miscutil::to_string(qc->_npeers).c_str(),1);
   }
 
-  void static_renderer::render_recommendations(const query_context *qc,
-      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-      const std::string &cgi_base)
-  {
-    if (!qc->_recommended_snippets.empty())
-      {
-        const char *base_url = miscutil::lookup(exports,"base-url");
-        std::string base_url_str = "";
-        if (base_url)
-          base_url_str = std::string(base_url);
-        std::string reco_str = "Related results:";
-
-        std::vector<search_snippet*> sorted_reco;
-        hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
-        = qc->_recommended_snippets.begin();
-        while(hit!=qc->_recommended_snippets.end())
-          {
-            sorted_reco.push_back((*hit).second);
-            ++hit;
-          }
-        std::sort(sorted_reco.begin(),sorted_reco.end(),search_snippet::max_seeks_rank);
-
-        int k=0;
-        std::vector<search_snippet*>::const_iterator vit = sorted_reco.begin();
-        while(vit!=sorted_reco.end())
-          {
-            search_snippet *rs = (*vit);
-            char *url_enc = encode::url_encode(rs->_url.c_str());
-            char *url_html_enc = encode::html_encode(rs->_url.c_str());
-            reco_str += "<br><a href=\"" + base_url_str + "/qc_redir?q=" + qc->_url_enc_query + "&url="
-                        + std::string(url_enc) + "\">" + std::string(url_html_enc) + "</a>";
-            free(url_enc);
-            free(url_html_enc);
-            ++vit;
-            ++k;
-            if (k > websearch::_wconfig->_num_reco_queries)
-              break;
-          }
-        miscutil::add_map_entry(exports,"$xxreco",1,reco_str.c_str(),1);
-      }
-    else miscutil::add_map_entry(exports,"$xxreco",1,strdup(""),0);
-  }
-
   void static_renderer::render_cached_queries(const std::string &query,
       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
       const std::string &cgi_base)
@@ -784,7 +741,7 @@ namespace seeks_plugins
     static_renderer::render_suggestions(qc,exports,cgi_base);
 
     // recommended URLs.
-    static_renderer::render_recommendations(qc,exports,cgi_base);
+    //static_renderer::render_recommendations(qc,exports,cgi_base);
 
     // queries in cache.
     static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
@@ -864,7 +821,7 @@ namespace seeks_plugins
     static_renderer::render_suggestions(qc,exports,cgi_base);
 
     // recommended URLs.
-    static_renderer::render_recommendations(qc,exports,cgi_base);
+    //static_renderer::render_recommendations(qc,exports,cgi_base);
 
     // queries in cache.
     static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);

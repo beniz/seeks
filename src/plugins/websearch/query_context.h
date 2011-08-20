@@ -224,12 +224,6 @@ namespace seeks_plugins
        */
       void reset_snippets_personalization_flags();
 
-      /**
-       * \brief update recommended URLs.
-       * @return true if cached_snippets has changed, false otherwise.
-       */
-      bool update_recommended_urls();
-
     public:
       std::string _query; /**< clean query, no commands in it. */
       std::string _query_key; /**< query of the form ":lg query", used as a key for context retrieval. */
@@ -254,9 +248,6 @@ namespace seeks_plugins
 
       /* suggested queries. */
       std::multimap<double,std::string,std::less<double> > _suggestions;
-
-      /* recomended urls from user profile(s). */
-      hash_map<uint32_t,search_snippet*,id_hash_uint> _recommended_snippets;
 
       /* LSH subsystem for regrouping textual elements. */
       LSHSystemHamming *_lsh_ham;

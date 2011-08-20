@@ -118,7 +118,6 @@ namespace seeks_plugins
     args->_lang = qc->_auto_lang;
     args->_snippets = &qc->_cached_snippets;
     args->_related_queries = &qc->_suggestions;
-    args->_reco_snippets = &qc->_recommended_snippets;
     args->_estimator = this;
     args->_qc = qc;
     args->_pe = pe;
@@ -154,7 +153,6 @@ namespace seeks_plugins
                                           args->_expansion,
                                           *args->_snippets,
                                           *args->_related_queries,
-                                          *args->_reco_snippets,
                                           &pe,
                                           args->_qc,
                                           args->_wait);
@@ -164,7 +162,6 @@ namespace seeks_plugins
                                         args->_expansion,
                                         *args->_snippets,
                                         *args->_related_queries,
-                                        *args->_reco_snippets,
                                         args->_pe,
                                         args->_qc,
                                         args->_wait);
@@ -666,7 +663,6 @@ namespace seeks_plugins
                               const uint32_t &expansion,
                               std::vector<search_snippet*> &snippets,
                               std::multimap<double,std::string,std::less<double> > &related_queries,
-                              hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                               peer *pe,
                               query_context *qc,
                               const bool &wait_external_sources) throw (sp_exception)
@@ -732,6 +728,7 @@ namespace seeks_plugins
     if (!qdata.empty())
       {
         mutex_lock(&_est_mutex);
+        hash_map<uint32_t,search_snippet*,id_hash_uint> reco_snippets;
         recommend_urls(query,lang,reco_snippets,&qdata,&filter);
         select_recommended_urls(reco_snippets,snippets,qc);
         estimate_ranks(query,lang,snippets,&qdata,&filter,pe->_rsc);
@@ -1175,8 +1172,9 @@ namespace seeks_plugins
     = rsnippets.begin();
     while(hit!=rsnippets.end())
       {
-        if ((*hit).second->_engine.has_feed("seeks")
-            && (*hit).second->_url.find("http") == std::string::npos)
+        if (((*hit).second->_engine.has_feed("seeks")
+             && (*hit).second->_url.find("http") == std::string::npos)
+            || (*hit).second->_title.empty())
           {
             // This is a recommended domain host, let's skip it.
             search_snippet *sp = (*hit).second;
@@ -1195,7 +1193,6 @@ namespace seeks_plugins
             ++hit;
             rsnippets.erase(chit);
           }
-        else ++hit;
       }
   }
 

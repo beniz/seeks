@@ -39,7 +39,7 @@ namespace seeks_plugins
   struct perso_thread_arg
   {
     perso_thread_arg()
-      :_snippets(NULL),_related_queries(NULL),_reco_snippets(NULL),_qc(NULL),_estimator(NULL),_pe(NULL),_expansion(1)
+      :_snippets(NULL),_related_queries(NULL),_qc(NULL),_estimator(NULL),_pe(NULL),_expansion(1)
     {};
 
     ~perso_thread_arg()
@@ -49,7 +49,6 @@ namespace seeks_plugins
     std::string _lang;
     std::vector<search_snippet*> *_snippets;
     std::multimap<double,std::string,std::less<double> > *_related_queries;
-    hash_map<uint32_t,search_snippet*,id_hash_uint> *_reco_snippets;
     query_context *_qc;
     rank_estimator *_estimator;
     peer *_pe;
@@ -82,7 +81,6 @@ namespace seeks_plugins
                                const uint32_t &expansion,
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
-                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                peer *pe,
                                query_context *qc = NULL,
                                const bool &wait_external_sources=true) throw (sp_exception) {};
@@ -164,7 +162,6 @@ namespace seeks_plugins
                                const uint32_t &expansion,
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
-                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                peer *pe,
                                query_context *qc = NULL,
                                const bool &wait_external_sources=true) throw (sp_exception);
