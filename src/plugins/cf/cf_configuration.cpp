@@ -34,6 +34,7 @@ namespace seeks_plugins
 #define hash_cf_peer                  1520012134ul  /* "cf-peer" */
 #define hash_dead_peer_check          1043267473ul  /* "dead-peer-check" */
 #define hash_dead_peer_retries         681362871ul  /* "dead-peer-retries" */
+#define hash_post_url_check           3323226172ul  /* "post-url-check" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -64,6 +65,7 @@ namespace seeks_plugins
     _record_cache_timeout = 600; // 10 mins.
     _dead_peer_check = 300; // 5 mins.
     _dead_peer_retries = 3;
+    _post_url_check = true;
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -127,6 +129,12 @@ namespace seeks_plugins
         _dead_peer_retries = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Number of retries before marking a peer as dead");
+        break;
+
+      case hash_post_url_check:
+        _post_url_check = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to ping and check on posted URLs");
         break;
 
       default:
