@@ -9,6 +9,6 @@ AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils  -I${srcdir}/../../proxy -I${src
 ACLOCAL_AMFLAGS=-I m4
 
 notrackingpluginlib_LTLIBRARIES=libnotrackingplugin.la
-libnotrackingplugin_la_SOURCES=no_tracking.cpp no_Tracking.h
+libnotrackingplugin_la_SOURCES=no_tracking.cpp no_tracking.h
 
 nobase_dist_notrackingplugindata_DATA=lm-patterns 
