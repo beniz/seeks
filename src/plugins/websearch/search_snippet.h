@@ -123,7 +123,6 @@ namespace seeks_plugins
       void set_cite_no_decode(const std::string &cite);
 
       void set_summary(const std::string &summary);
-      void set_summary(const char *summary);
 
       void set_date(const std::string &date);
 

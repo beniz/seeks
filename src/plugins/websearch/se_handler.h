@@ -214,6 +214,16 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
+  class se_wordpress : public search_engine
+  {
+    public:
+      se_wordpress();
+      ~se_wordpress();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
   class se_handler
   {
     public:
@@ -258,6 +268,7 @@ namespace seeks_plugins
       static se_osearch_rss _osearch_rss;
       static se_osearch_atom _osearch_atom;
       static se_delicious _delicious;
+      static se_wordpress _wordpress;
 
       static std::vector<CURL*> _curl_handlers;
       static sp_mutex_t _curl_mutex;

@@ -229,6 +229,10 @@ body {
     background-image: url(base-url/plugins/websearch/public/images/search_engines/mediawiki_12x12.png);
 }
 
+#search_results .search_snippet .search_engine_wordpress {
+    background-image: url(base-url/plugins/websearch/public/images/search_engines/wp_12x12.png);
+}
+
 #search_results .search_snippet .search_engine_opensearch {
     background-image: url(base-url/plugins/websearch/public/images/search_engines/opensearch_16x16.png);
 }

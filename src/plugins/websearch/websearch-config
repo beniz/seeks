@@ -25,6 +25,7 @@ search-engine twitter http://search.twitter.com/search.atom?q=%query&page=%start
 search-engine yauba http://%lang.yauba.com/?q=%query&target=websites&pg=%start&ss=n&con=y yauba nodefault
 search-engine dokuwiki http://doc.ubuntu-fr.org/?do=search&id=%query doc_ubuntu nodefault
 search-engine mediawiki http://www.mediawiki.org/w/index.php?title=Special%3ASearch&fulltext=Search&search=%query&button= doc_mwiki nodefault http://%lang.wikipedia.org/w/index.php?title=Special%3ASearch&search=%query wikipedia nodefault
+search-engine wordpress http://www.seeks-project.info/site/?s=%query site_seeks nodefault
 search-engine opensearch_rss http://plone.org/search_rss?SearchableText=%query plosone nodefault
 search-engine opensearch_atom atom_feed_here no_name nodefault
 #search-engine dummy http://dummy.du no_name nodefault
