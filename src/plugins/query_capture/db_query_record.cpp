@@ -706,7 +706,8 @@ namespace seeks_plugins
                 if (ferr == SP_ERR_OK)
                   {
                     fetched_urls++;
-                    vd->_title = titles.at(0);
+                    if (titles.at(0) != "404")
+                      vd->_title = titles.at(0);
                   }
               }
             ++vit;

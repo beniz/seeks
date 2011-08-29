@@ -425,12 +425,13 @@ namespace seeks_plugins
   void query_capture_element::store_queries(const std::string &query,
       const std::string &url, const std::string &host,
       const std::string &plugin_name,
-      const std::string &qlang) throw (sp_exception)
+      const std::string &qlang,
+      const int &radius) throw (sp_exception)
   {
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
     qprocess::generate_query_hashes(query,0,
-                                    query_capture_configuration::_config->_max_radius,
+                                    radius == -1 ? query_capture_configuration::_config->_max_radius : radius,
                                     features);
 
     // push URL into the user db buckets with query fragments as key.
@@ -439,6 +440,13 @@ namespace seeks_plugins
     // for the recorded query of radius 0 that holds the URL counters.
     int uerr = 0;
     int qerr = 0;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+    = new hash_map<const char*,const char*,hash<const char*>,eqstr>(2);
+    miscutil::add_map_entry(parameters,"q",1,query.c_str(),1);
+    miscutil::add_map_entry(parameters,"lang",1,qlang.c_str(),1);
+    query_context *qc = websearch::lookup_qc(parameters);
+    miscutil::free_map(parameters);
+    std::cerr << "features size: " << features.size() << std::endl;
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
     while (hit!=features.end())
       {
@@ -451,12 +459,6 @@ namespace seeks_plugins
                 else
                   {
                     // grab snippet and title, if available from the websearch plugin cache.
-                    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-                    = new hash_map<const char*,const char*,hash<const char*>,eqstr>(2);
-                    miscutil::add_map_entry(parameters,"q",1,query.c_str(),1);
-                    miscutil::add_map_entry(parameters,"lang",1,qlang.c_str(),1);
-                    query_context *qc = websearch::lookup_qc(parameters);
-                    miscutil::free_map(parameters);
                     search_snippet *sp = NULL;
                     if (qc)
                       {

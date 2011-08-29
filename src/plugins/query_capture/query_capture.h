@@ -98,7 +98,8 @@ namespace seeks_plugins
       static void store_queries(const std::string &query,
                                 const std::string &url, const std::string &host,
                                 const std::string &plugin_name,
-                                const std::string &qlang="") throw (sp_exception);
+                                const std::string &qlang="",
+                                const int &radius=-1) throw (sp_exception);
 
       static void store_queries(const std::string &query,
                                 const std::string &plugin_name) throw (sp_exception);

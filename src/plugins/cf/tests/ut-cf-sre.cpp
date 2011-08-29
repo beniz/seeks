@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2010-2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -384,6 +384,83 @@ TEST_F(SRETest, utf8)
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
   rank_estimator::fetch_user_db_record(q,seeks_proxy::_user_db,records);
   ASSERT_EQ(1,records.size());
+  rank_estimator::destroy_records(records);
+}
+
+TEST_F(SRETest,recommendation_post_ok)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_post_url_check = false; // disable URL checking.
+  client_state csp;
+  csp._config = seeks_proxy::_config;
+  csp._http._gpc = strdup("post");
+  csp._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.mx/",1);
+  miscutil::add_map_entry(parameters,"title",1,"Seeks Search",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"0",1);
+  miscutil::add_map_entry(parameters,"radius",1,"5",1);
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  ASSERT_EQ(3,records.size());
+  miscutil::free_map(parameters);
+  rank_estimator::destroy_records(records);
+}
+
+TEST_F(SRETest,recommendation_post_url_check_fail_400)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_post_url_check = true; // enable URL checking.
+  client_state csp;
+  csp._config = seeks_proxy::_config;
+  csp._http._gpc = strdup("post");
+  csp._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.mx/",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"1",1);
+  miscutil::add_map_entry(parameters,"radius",1,"5",1);
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp._body,rsp._content_length);
+  //std::cerr << "body: " << body << std::endl;
+  EXPECT_NE(std::string::npos,body.find("bad parameter"));
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  ASSERT_EQ(0,records.size());
+  miscutil::free_map(parameters);
+  rank_estimator::destroy_records(records);
+}
+
+TEST_F(SRETest,recommendation_post_url_check_retrieve)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_post_url_check = true; // enable URL checking.
+  client_state csp;
+  csp._config = seeks_proxy::_config;
+  csp._http._gpc = strdup("post");
+  csp._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.fr/",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"1",1);
+  miscutil::add_map_entry(parameters,"radius",1,"5",1);
+  miscutil::add_map_entry(parameters,"output",1,"json",1);
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp._body,rsp._content_length);
+  //std::cerr << "body: " << body << std::endl;
+  EXPECT_EQ(std::string::npos,body.find("not found"));
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  ASSERT_EQ(3,records.size());
+  miscutil::free_map(parameters);
   rank_estimator::destroy_records(records);
 }
 

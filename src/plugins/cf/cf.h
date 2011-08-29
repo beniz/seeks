@@ -56,10 +56,14 @@ namespace seeks_plugins
                                        http_response *rsp,
                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
-      //TODO: recommendation post & get.
+      // recommendation post & get.
       static sp_err recommendation_get(client_state *csp,
                                        http_response *rsp,
                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err recommendation_post(client_state *csp,
+                                        http_response *rsp,
+                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                         const std::string &url, const std::string &query);

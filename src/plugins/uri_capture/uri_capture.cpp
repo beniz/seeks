@@ -194,8 +194,11 @@ namespace seeks_plugins
             errlog::log_error(LOG_LEVEL_ERROR,"Failed fetching or parsing title of uri %s",uris.at(i).c_str());
             err++;
           }
-        else if (title.find("404")!=std::string::npos
-                 ||title.find("400")!=std::string::npos)
+        else if (title.find("404")!=std::string::npos)
+          {
+            titles.push_back("404");
+          }
+        else if (title.find("400")!=std::string::npos)
           {
             titles.push_back("");
           }
