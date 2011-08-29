@@ -49,6 +49,11 @@ namespace seeks_plugins
     NEWS,
     TWEET,
     WIKI,
+    POST,
+    BUG,
+    ISSUE,
+    REVISION,
+    COMMENT,
     REJECTED /* user reject, for now by matching a regexp. */
   };
 
