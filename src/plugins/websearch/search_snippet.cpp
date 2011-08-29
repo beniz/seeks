@@ -466,6 +466,15 @@ namespace seeks_plugins
         miscutil::replace_in_string(wd_se_icon,"@query@",_qc->_url_enc_query);
         html_content += wd_se_icon;
       }
+    if (_engine.has_feed("redmine"))
+      {
+        std::string red_se_icon = se_icon;
+        miscutil::replace_in_string(red_se_icon,"icon","search_engine_redmine");
+        miscutil::replace_in_string(red_se_icon,"setitle","Redmine");
+        miscutil::replace_in_string(red_se_icon,"seeng","redmine");
+        miscutil::replace_in_string(red_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += red_se_icon;
+      }
     if (_engine.has_feed("twitter"))
       {
         std::string twitter_se_icon = se_icon;

@@ -224,6 +224,16 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
+  class se_redmine : public search_engine
+  {
+    public:
+      se_redmine();
+      ~se_redmine();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
   class se_handler
   {
     public:
@@ -269,6 +279,7 @@ namespace seeks_plugins
       static se_osearch_atom _osearch_atom;
       static se_delicious _delicious;
       static se_wordpress _wordpress;
+      static se_redmine _redmine;
 
       static std::vector<CURL*> _curl_handlers;
       static sp_mutex_t _curl_mutex;
