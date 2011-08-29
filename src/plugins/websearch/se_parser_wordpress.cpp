@@ -55,6 +55,7 @@ namespace seeks_plugins
             search_snippet *sp = new search_snippet(_count + 1);
             _count++;
             sp->_engine = feeds("wordpress",_url);
+            sp->_doc_type = POST;
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
           }
