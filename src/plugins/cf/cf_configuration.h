@@ -51,6 +51,7 @@ namespace seeks_plugins
       short _dead_peer_retries; /**< number of retries before marking a peer as dead. */
 
       bool _post_url_check; /**< whether to ping on posted URLs. */
+      int _post_radius; /**< similarity impact radius of posted queries. */
 
       static cf_configuration *_config;
   };
