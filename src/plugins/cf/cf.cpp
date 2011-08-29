@@ -93,10 +93,23 @@ namespace seeks_plugins
     if (!parameters->empty())
       {
         std::string url,query,lang;
+        try
+          {
+            websearch::preprocess_parameters(parameters,csp);
+          }
+        catch(sp_exception &e)
+          {
+            return e.code();
+          }
+
         sp_err err = cf::tbd(parameters,url,query,lang);
         if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
           {
             errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
+            return err;
+          }
+        else if (err == DB_ERR_NO_REC)
+          {
             return err;
           }
 
