@@ -62,7 +62,7 @@ namespace seeks_plugins
           {
             if (strcasecmp(a_class,"changeset")==0)
               sp->_doc_type = REVISION;
-            else if (strcasecmp(a_class,"issue")==0)
+            else if (strncasecmp(a_class,"issue",5)==0)
               sp->_doc_type = ISSUE;
           }
         pc->_current_snippet = sp;
