@@ -42,9 +42,6 @@
 #include <algorithm>
 #include <iostream>
 
-#define TRUE 1
-#define FALSE 0
-
 #ifndef HAVE_STRNDUP
 char *strndup(char *str, size_t len)
 {
@@ -538,8 +535,8 @@ namespace sp
     return text;
   }
 
-  int miscutil::list_contains_item(const std::list<const char*> *the_list,
-                                   const char *str)
+  bool miscutil::list_contains_item(const std::list<const char*> *the_list,
+                                    const char *str)
   {
     assert(the_list);
     assert(str);
@@ -558,16 +555,16 @@ namespace sp
             continue;
           }
 
-        if (0 == strcmp(str, (*lit)))
+        if (0 == strcasecmp(str, (*lit)))
           {
             /* Item found */
-            return TRUE;
+            return true;
           }
 
         ++lit;
       }
 
-    return FALSE;
+    return false;
   }
 
   int miscutil::list_duplicate(std::list<const char*> *dest,

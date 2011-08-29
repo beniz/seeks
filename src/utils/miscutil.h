@@ -92,8 +92,8 @@ namespace sp
       static int list_remove_list(std::list<const char*> *dest, const std::list<const char*> *src);
       static void list_remove_all(std::list<const char*> *the_list);
       static char* list_to_text(const std::list<const char*> *the_list);
-      static int list_contains_item(const std::list<const char*> *the_list,
-                                    const char *str);
+      static bool list_contains_item(const std::list<const char*> *the_list,
+                                     const char *str);
       static int list_duplicate(std::list<const char*> *dest,
                                 const std::list<const char*> *src);
       static int list_append_list_unique(std::list<const char*> *dest,
