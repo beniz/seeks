@@ -446,7 +446,9 @@ namespace seeks_plugins
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
       {
+        const char *key = (*hit).first;
         _unordered_snippets_title.erase(hit);
+        free_const(key);
       }
   }
 
