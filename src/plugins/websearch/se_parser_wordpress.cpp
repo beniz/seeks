@@ -59,12 +59,12 @@ namespace seeks_plugins
             pc->_current_snippet = sp;
             pc->_snippets->push_back(pc->_current_snippet);
           }
-        else if (cl_str == "post-content")
+        else if (pc->_current_snippet && cl_str == "post-content")
           {
             _summary_flag = true;
           }
       }
-    else if (strcasecmp(tag,"h2")==0)
+    else if (pc->_current_snippet && strcasecmp(tag,"h2")==0)
       {
         _title_flag = true;
       }
@@ -73,7 +73,7 @@ namespace seeks_plugins
         const char *a_href = se_parser::get_attribute((const char**)attributes,"href");
         pc->_current_snippet->set_url(a_href);
       }
-    else if (strcasecmp(tag,"span")==0)
+    else if (pc->_current_snippet && strcasecmp(tag,"span")==0)
       {
         const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
         if (a_class && strcasecmp(a_class,"post-date")==0)
