@@ -245,13 +245,14 @@ namespace seeks_plugins
      * 3 - .doc, .pps, & so on aka other types of documents.
      * 4 - forums
      * 5 - video file
-     * 6 - tweets
-     * 7 - posts
-     * 8 - revisions
+     * 6 - audio file
+     * 7 - tweets
+     * 8 - posts
+     * 9 - revisions
      * 10 - issues
-     * So for now, K is set to 10.
+     * So for now, K is set to 11.
      */
-    K = 10;
+    K = 11;
     clusters = new cluster[K];
 
     size_t nsnippets = qc->_cached_snippets.size();
