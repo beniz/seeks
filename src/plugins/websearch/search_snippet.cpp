@@ -386,8 +386,9 @@ namespace seeks_plugins
     html_content += url;
     html_content += "\">";
 
-    std::string title_enc = encode::html_decode(_title);
+    char *title_enc = encode::html_encode(_title.c_str());
     html_content += title_enc;
+    free(title_enc);
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
@@ -449,12 +450,30 @@ namespace seeks_plugins
       }
     if (_engine.has_feed("delicious"))
       {
-        std::string yahoo_se_icon = se_icon;
-        miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_delicious");
-        miscutil::replace_in_string(yahoo_se_icon,"setitle","Delicious");
-        miscutil::replace_in_string(yahoo_se_icon,"seeng","delicious");
-        miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += yahoo_se_icon;
+        std::string del_se_icon = se_icon;
+        miscutil::replace_in_string(del_se_icon,"icon","search_engine_delicious");
+        miscutil::replace_in_string(del_se_icon,"setitle","Delicious");
+        miscutil::replace_in_string(del_se_icon,"seeng","delicious");
+        miscutil::replace_in_string(del_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += del_se_icon;
+      }
+    if (_engine.has_feed("wordpress"))
+      {
+        std::string wd_se_icon = se_icon;
+        miscutil::replace_in_string(wd_se_icon,"icon","search_engine_wordpress");
+        miscutil::replace_in_string(wd_se_icon,"setitle","Wordpress");
+        miscutil::replace_in_string(wd_se_icon,"seeng","wordpress");
+        miscutil::replace_in_string(wd_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += wd_se_icon;
+      }
+    if (_engine.has_feed("redmine"))
+      {
+        std::string red_se_icon = se_icon;
+        miscutil::replace_in_string(red_se_icon,"icon","search_engine_redmine");
+        miscutil::replace_in_string(red_se_icon,"setitle","Redmine");
+        miscutil::replace_in_string(red_se_icon,"seeng","redmine");
+        miscutil::replace_in_string(red_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += red_se_icon;
       }
     if (_engine.has_feed("twitter"))
       {
@@ -775,32 +794,6 @@ namespace seeks_plugins
             // do nothing.
           }
       }
-  }
-
-  void search_snippet::set_summary(const char *summary)
-  {
-    static size_t summary_max_size = 240; // characters.
-    _summary_noenc = std::string(summary);
-
-    // clear escaped characters for unencoded output.
-    miscutil::replace_in_string(_summary_noenc,"\\","");
-
-    // encode html so tags are not interpreted.
-    char* str = encode::html_encode(summary);
-    if (strlen(str)<summary_max_size)
-      _summary = std::string(str);
-    else
-      {
-        try
-          {
-            _summary = std::string(str).substr(0,summary_max_size-3) + "...";
-          }
-        catch (std::exception &e)
-          {
-            _summary = "";
-          }
-      }
-    free(str);
   }
 
   void search_snippet::set_summary(const std::string &summary)

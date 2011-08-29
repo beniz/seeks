@@ -810,6 +810,7 @@ src/plugins/img_websearch/Makefile \
 src/plugins/img_websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \
 src/plugins/blocker/Makefile \
+src/plugins/no_tracking/Makefile \
 src/plugins/uri_capture/Makefile \
 src/plugins/uri_capture/tests/Makefile \
 src/plugins/query_capture/Makefile \

@@ -695,7 +695,7 @@ namespace sp
             else
               {
                 snprintf(tempbuf, sizeof(tempbuf), "Bad format string: \"%s\"", fmt);
-                loglevel = LOG_LEVEL_FATAL;
+                //loglevel = LOG_LEVEL_FATAL;
               }
             break;
           case 'c':
@@ -779,7 +779,7 @@ namespace sp
             break;
           default:
             snprintf(tempbuf, sizeof(tempbuf), "Bad format string: \"%s\"", fmt);
-            loglevel = LOG_LEVEL_FATAL;
+            //loglevel = LOG_LEVEL_FATAL;
             break;
           }
         /* switch( p ) */
