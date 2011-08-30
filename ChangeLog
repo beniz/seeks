@@ -1,3 +1,34 @@
+* Bodie-0.3.5-HIPPY-stable
+
+This release brings  improvements to the peer-to-peer search, fixes
+a few bugs, and adds functionalities to Seeks.
+
+- Fixes a computational blowup when expanding queries in P2P search.
+
+- Improved detection of dead peers and their monitoring.
+
+- Added default support for Delicious as a feed.
+
+- Added support for Wordpress search results as a feed.
+
+- Added support for Redmine search results as a feed.
+
+- Fixed a bad encoding of some result titles.
+
+- Fix to the Yahoo result grabber.
+
+- there's now a --enable-personalization option to the configure
+  script. When set to 'no' it allows to disable all personalization
+  features, turning Seeks into a generic meta-search engine.
+
+- An embryo of a no-tracking plugin, that implements HTTP header
+  monitoring for avoiding smart tracking of users (e.g. through the
+  'Last-Modified' header, ...).
+
+- Fixes to the JSON output.
+
+- Many bug fixes.
+
 * DiAngelo-0.3.4-HIPPY-stable
 
 First release with peer-to-peer activated as default. Every Seeks node
