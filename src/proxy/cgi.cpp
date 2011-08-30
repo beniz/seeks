@@ -392,15 +392,16 @@ namespace sp
      */
     bool cgi_file_server = false;
     bool cgi_plugin_file_server = false;
-    if (strncmpic(path_copy,CGI_SITE_FILE_SERVER,strlen(CGI_SITE_FILE_SERVER)) == 0)
-      cgi_file_server = true;
-    else if (strncmpic(path_copy,CGI_SITE_PLUGIN_FILE_SERVER,strlen(CGI_SITE_PLUGIN_FILE_SERVER)) == 0)
-      cgi_plugin_file_server = true; // plugin name check comes further down.
-
     query_args_start = path_copy;
-    while (*query_args_start && *query_args_start != '?')
+    if (strncmpic(path_copy,CGI_SITE_FILE_SERVER,strlen(CGI_SITE_FILE_SERVER)) == 0)
       {
-        query_args_start++;
+        query_args_start += strlen(CGI_SITE_FILE_SERVER);
+        cgi_file_server = true;
+      }
+    else if (strncmpic(path_copy,CGI_SITE_PLUGIN_FILE_SERVER,strlen(CGI_SITE_PLUGIN_FILE_SERVER)) == 0)
+      {
+        query_args_start += strlen(CGI_SITE_PLUGIN_FILE_SERVER);
+        cgi_plugin_file_server = true; // plugin name check comes further down.
       }
 
     if (*query_args_start == '/')
@@ -420,6 +421,10 @@ namespace sp
       }
     else
       {
+        while (*query_args_start && *query_args_start != '?')
+          {
+            query_args_start++;
+          }
         if (*query_args_start == '?')
           {
             *query_args_start++ = '\0';
