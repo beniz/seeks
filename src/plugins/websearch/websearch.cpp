@@ -135,7 +135,7 @@ namespace seeks_plugins
     _cgi_dispatchers.push_back(cgid_wb_search_similar);
 
     cgi_dispatcher *cgid_wb_search_cache
-    = new cgi_dispatcher("search_cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
+    = new cgi_dispatcher("cache", &websearch::cgi_websearch_search_cache, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);
 
     cgi_dispatcher *cgid_wb_node_info
@@ -542,17 +542,32 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
+        std::string path = csp->_http._path;
+        miscutil::replace_in_string(path,"/cache/","");
+        std::string query = urlmatch::next_elt_from_path(path);
+        if (query.empty())
+          return SP_ERR_CGI_PARAMS; // 400 error.
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
+                                ,"q",1,query.c_str(),1); // add query to parameters.
+
         const char *url = miscutil::lookup(parameters,"url"); // grab the url.
         if (!url)
           return SP_ERR_CGI_PARAMS;
+
+        try
+          {
+            websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+          }
+        catch(sp_exception &e)
+          {
+            return e.code();
+          }
 
         query_context *qc = websearch::lookup_qc(parameters);
 
         if (!qc)
           {
-            // redirect to the url.
-            cgi::cgi_redirect(rsp,url);
-            return SP_ERR_OK;
+            return cgisimple::cgi_error_404(csp,rsp,parameters); // no local resource.
           }
 
         mutex_lock(&qc->_qc_mutex);
@@ -571,11 +586,7 @@ namespace seeks_plugins
           }
         else
           {
-            // redirect to the url.
-            cgi::cgi_redirect(rsp,url);
-
-            mutex_unlock(&qc->_qc_mutex);
-
+            return cgisimple::cgi_error_404(csp,rsp,parameters); // no local resource.
             return SP_ERR_OK;
           }
       }
