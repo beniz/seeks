@@ -131,10 +131,13 @@ namespace seeks_plugins
     std::string query = urlmatch::next_elt_from_path(path);
     if (query.empty())
       return SP_ERR_CGI_PARAMS; // 400 error.
-    std::string url = urlmatch::next_elt_from_path(path);
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1);
+    const char *url_str = miscutil::lookup(parameters,"url");
+    if (!url_str)
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    std::string url = url_str;
     if (url.empty())
       return SP_ERR_CGI_PARAMS; // 400 error.
-    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1);
     try
       {
         websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
