@@ -27,12 +27,14 @@
 #endif
 #include "proxy_configuration.h"
 #include "seeks_proxy.h" // for sweepables.
+#include "encode.h"
 
 using sp::cgisimple;
 using sp::miscutil;
 using sp::cgi;
 using sp::proxy_configuration;
 using sp::seeks_proxy;
+using sp::encode;
 using namespace json_renderer_private;
 
 namespace seeks_plugins
@@ -162,7 +164,7 @@ namespace seeks_plugins
           continue;
         if (i!=ssize-1)
           json_str += ",";
-        json_str += sp->to_json(false,query_words);
+        json_str += json_renderer::render_snippet(sp,false,query_words);
         count++;
 
         if (nreco > 0 && count == nreco)
@@ -228,6 +230,84 @@ namespace seeks_plugins
     return json_str_eng;
   }
 
+  std::string json_renderer::render_snippet(const search_snippet *sp,
+      const bool &thumbs,
+      const std::vector<std::string> &query_words)
+  {
+    std::string json_str;
+    json_str += "{";
+    json_str += "\"id\":" + miscutil::to_string(sp->_id) + ",";
+    char *title_enc = encode::html_encode(sp->_title.c_str());
+    std::string title = std::string(title_enc);
+    free(title_enc);
+    miscutil::replace_in_string(title,"\\","\\\\");
+    miscutil::replace_in_string(title,"\"","\\\"");
+    json_str += "\"title\":\"" + title + "\",";
+    std::string url = sp->_url;
+    miscutil::replace_in_string(url,"\"","\\\"");
+    miscutil::replace_in_string(url,"\n","");
+    json_str += "\"url\":\"" + url + "\",";
+    std::string summary = sp->_summary;
+    miscutil::replace_in_string(summary,"\\","\\\\");
+    miscutil::replace_in_string(summary,"\"","\\\"");
+    json_str += "\"summary\":\"" + summary + "\",";
+    json_str += "\"seeks_meta\":" + miscutil::to_string(sp->_meta_rank) + ",";
+    json_str += "\"seeks_score\":" + miscutil::to_string(sp->_seeks_rank) + ",";
+    double rank = 0.0;
+    if (sp->_engine.size() > 0)
+      rank = sp->_rank / static_cast<double>(sp->_engine.size());
+    json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
+    json_str += "\"cite\":\"";
+    if (!sp->_cite.empty())
+      {
+        std::string cite = sp->_cite;
+        miscutil::replace_in_string(cite,"\"","\\\"");
+        miscutil::replace_in_string(cite,"\n","");
+        json_str += cite + "\",";
+      }
+    else json_str += url + "\",";
+    if (!sp->_cached.empty())
+      {
+        std::string cached = sp->_cached;
+        miscutil::replace_in_string(cached,"\"","\\\"");
+        json_str += "\"cached\":\"" + cached + "\","; // XXX: cached might be malformed without preprocessing.
+      }
+    /*if (_archive.empty())
+      set_archive_link();
+    std::string archive = _archive;
+    miscutil::replace_in_string(archive,"\"","\\\"");
+    miscutil::replace_in_string(archive,"\n","");
+    json_str += "\"archive\":\"" + archive + "\",";*/
+    json_str += "\"engines\":[";
+    json_str += json_renderer::render_engines(sp->_engine);
+    json_str += "]";
+    if (thumbs)
+      json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
+    std::set<std::string> words;
+    sp->discr_words(query_words,words);
+    if (!words.empty())
+      {
+        json_str += ",\"words\":[";
+        json_str += miscutil::join_string_list(",",words);
+        json_str += "]";
+      }
+    json_str += ",\"type\":\"" + sp->get_doc_type_str() + "\"";
+    json_str += ",\"personalized\":\"";
+    if (sp->_personalized)
+      json_str += "yes";
+    else json_str += "no";
+    json_str += "\"";
+    if (sp->_npeers > 0)
+      json_str += ",\"snpeers\":\"" + miscutil::to_string(sp->_npeers) + "\"";
+    if (sp->_hits > 0)
+      json_str += ",\"hits\":\"" + miscutil::to_string(sp->_hits) + "\"";
+    if (!sp->_date.empty())
+      json_str += ",\"date\":\"" + sp->_date + "\"";
+
+    json_str += "}";
+    return json_str;
+  }
+
   sp_err json_renderer::render_snippets(const std::string &query_clean,
                                         const int &current_page,
                                         const std::vector<search_snippet*> &snippets,
@@ -284,7 +364,7 @@ namespace seeks_plugins
                   {
                     if (count > snistart && count<snisize)
                       json_str += ",";
-                    json_str += snippets.at(i)->to_json(has_thumbs,query_words);
+                    json_str += json_renderer::render_snippet(snippets.at(i),has_thumbs,query_words);
                   }
                 count++;
               }
@@ -381,7 +461,7 @@ namespace seeks_plugins
     std::vector<std::string> query_words;
     miscutil::tokenize(query,query_words," "); // allows to extract most discriminative words not in query.
 
-    const std::string json_snippet = sp->to_json(false,query_words);
+    const std::string json_snippet = json_renderer::render_snippet(sp,false,query_words);
     const std::string body = jsonp(json_snippet,miscutil::lookup(parameters,"callback"));
     response(rsp,body);
     return SP_ERR_OK;

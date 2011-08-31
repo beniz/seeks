@@ -139,16 +139,6 @@ namespace seeks_plugins
       // sets a back link when similarity is engaged.
       virtual void set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
-      // json output.
-      virtual std::string to_json(const bool &thumbs,
-                                  const std::vector<std::string> &query_words) const;
-
-      // html output for inclusion in search result template page.
-      std::string to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-      virtual std::string to_html_with_highlight(std::vector<std::string> &words,
-          const std::string &base_url,
-          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-
       // whether this snippet's engine(s) is(are) enabled.
       // used in result page rendering.
       virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
@@ -161,10 +151,6 @@ namespace seeks_plugins
       // selects most discriminative terms in the snippet's vocabulary.
       void discr_words(const std::vector<std::string> &query_words,
                        std::set<std::string> &words) const;
-
-      // highlights the most discriminative terms (for this snippet among all snippets).
-      void highlight_discr(std::string &str, const std::string &base_url_str,
-                           const std::vector<std::string> &query_words);
 
       // tag snippet, i.e. detect its type if not already done by the parsers.
       void tag();
@@ -210,7 +196,6 @@ namespace seeks_plugins
       std::string _date;
       std::string _lang;
       std::string _archive; // a link to archive.org
-      std::string _sim_link; // call to similarity sorting.
       bool _sim_back; // whether the back 'button' to similarity is present.
 
       double _rank;  // search engine rank.

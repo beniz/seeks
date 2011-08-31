@@ -28,6 +28,15 @@ namespace seeks_plugins
   {
     public:
       /*- rendering functions. -*/
+      static void highlight_discr(const search_snippet *sp,
+                                  std::string &str, const std::string &base_url_str,
+                                  const std::vector<std::string> &query_words);
+
+      static std::string render_snippet(search_snippet *sp,
+                                        std::vector<std::string> &words,
+                                        const std::string &base_url_str,
+                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static void render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                std::string &html_encoded_query,
@@ -38,11 +47,11 @@ namespace seeks_plugins
 
       static void render_suggestions(const query_context *qc,
                                      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-                                     const std::string &cgi_base="/search?");
+                                     const std::string &cgi_base="/search/txt/");
 
       static void render_cached_queries(const std::string &query,
                                         hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-                                        const std::string &cgi_base="/search?");
+                                        const std::string &cgi_base="/search/txt/");
 
       static void render_lang(const query_context *qc,
                               hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
@@ -72,7 +81,7 @@ namespace seeks_plugins
       static std::string render_cluster_label_query_link(const std::string &url_encoded_query,
           const cluster &cl,
           const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-          const std::string &cgi_base="/search?");
+          const std::string &cgi_base="/search/txt/");
 
       static void render_current_page(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                       hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
@@ -90,7 +99,7 @@ namespace seeks_plugins
                                         const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                         hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                         const query_context *qc,
-                                        const std::string &cgi_base="/search?",
+                                        const std::string &cgi_base="/search/txt/",
                                         const bool &not_end=false);
 
       static void render_prev_page_link(const int &current_page,
@@ -101,7 +110,7 @@ namespace seeks_plugins
                                         const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                         hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                         const query_context *qc,
-                                        const std::string &cgi_base="/search?");
+                                        const std::string &cgi_base="/search/txt/");
 
       static void render_nclusters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
@@ -122,7 +131,7 @@ namespace seeks_plugins
                                               const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                               const query_context *qc,
                                               const std::string &result_tmpl_name,
-                                              const std::string &cgi_base="/search?",
+                                              const std::string &cgi_base="/search/txt/",
                                               const std::vector<std::pair<std::string,std::string> > *param_exports=NULL);
 
       static sp_err render_clustered_result_page_static(cluster *clusters,
@@ -130,7 +139,7 @@ namespace seeks_plugins
           client_state *csp, http_response *rsp,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
           const query_context *qc,
-          const std::string &cgi_base="/search?");
+          const std::string &cgi_base="/search/txt/");
 
       static sp_err render_neighbors_result_page(client_state *csp, http_response *rsp,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

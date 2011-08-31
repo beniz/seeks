@@ -51,6 +51,10 @@ namespace seeks_plugins
 
       static std::string render_img_engines(const query_context *qc);
 
+      static std::string render_snippet(const search_snippet *sp,
+                                        const bool &thumbs,
+                                        const std::vector<std::string> &query_words);
+
       static sp_err render_snippets(const std::string &query_clean,
                                     const int &current_page,
                                     const std::vector<search_snippet*> &snippets,
