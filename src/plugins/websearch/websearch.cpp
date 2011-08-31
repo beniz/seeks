@@ -297,8 +297,9 @@ namespace seeks_plugins
   {
     // decode query (URL encoded).
     const char *query = miscutil::lookup(parameters,"q");
-    char *dec_query = encode::url_decode_but_not_plus(query);
+    char *dec_query = encode::url_decode(query); //TODO: was 'not_plus'.
     std::string query_str = std::string(dec_query);
+    //std::cerr << "query_str: " << query_str << std::endl;
     free(dec_query);
 
     // query charset check.
@@ -405,24 +406,6 @@ namespace seeks_plugins
     std::string http_method = csp->_http._gpc;
     std::transform(http_method.begin(),http_method.end(),http_method.begin(),tolower);
 
-#if defined(PROTOBUF) && defined(TC)
-    if (http_method == "delete")
-      {
-        // route to snippet rejection callback
-        return cf::cgi_tbd(csp,rsp,parameters);
-      }
-    else if (http_method == "post")
-      {
-        // route to snippet selection callback.
-        return query_capture::cgi_qc_redir(csp,rsp,parameters);
-      }
-    else
-#endif
-      if (http_method != "get")
-        {
-          //TODO: error.
-        }
-
     // check for query, part of path.
     std::string path = csp->_http._path;
     miscutil::replace_in_string(path,"/search/txt/","");
@@ -448,6 +431,47 @@ namespace seeks_plugins
       {
         return e.code();
       }
+
+#if defined(PROTOBUF) && defined(TC)
+    if (http_method == "post" || http_method == "delete")
+      {
+        // turn snippet id into url.
+        if (id_str.empty())
+          return SP_ERR_CGI_PARAMS; // 400 error.
+        else
+          {
+            query_context *qc = websearch::lookup_qc(parameters);
+            if (!qc)
+              {
+                return cgisimple::cgi_error_404(csp,rsp,parameters);
+              }
+            uint32_t sid = (uint32_t)strtod(id_str.c_str(),NULL);
+            mutex_lock(&qc->_qc_mutex);
+            search_snippet *sp = qc->get_cached_snippet(sid);
+            mutex_unlock(&qc->_qc_mutex);
+            if (!sp)
+              {
+                return cgisimple::cgi_error_404(csp,rsp,parameters);
+              }
+            else miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url",1,sp->_url.c_str(),1);
+          }
+      }
+    if (http_method == "delete")
+      {
+        // route to snippet rejection callback.
+        return cf::cgi_tbd(csp,rsp,parameters);
+      }
+    if (http_method == "post")
+      {
+        // route to snippet selection callback.
+        return query_capture::cgi_qc_redir(csp,rsp,parameters);
+      }
+    else
+#endif
+      if (http_method != "get" || http_method != "put")
+        {
+          //TODO: error.
+        }
 
     // setup action.
     /*miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
