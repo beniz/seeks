@@ -806,6 +806,7 @@ src/proxy/tests/Makefile \
 src/plugins/Makefile \
 src/plugins/websearch/Makefile \
 src/plugins/websearch/tests/Makefile \
+src/plugins/websearch_api_compat/Makefile \
 src/plugins/img_websearch/Makefile \
 src/plugins/img_websearch/tests/Makefile \
 src/plugins/httpserv/Makefile \

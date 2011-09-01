@@ -4,7 +4,7 @@ if HAVE_PROTOBUF
 SUBDIRS += query_capture uri_capture cf udb_service
 endif
 endif
-SUBDIRS += websearch blocker 
+SUBDIRS += websearch websearch_api_compat blocker 
 if HAVE_PROTOBUF
 SUBDIRS += query_capture/tests
 SUBDIRS += udb_service/tests
