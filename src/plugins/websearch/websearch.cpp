@@ -46,7 +46,7 @@
 #include <iostream>
 #include <algorithm>
 #include <bitset>
-#include <assert.h>
+//#include <assert.h>
 
 using namespace sp;
 
@@ -180,10 +180,6 @@ namespace seeks_plugins
                                      http_response *rsp,
                                      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     // redirection to local file is forbidden by most browsers. Let's read the file instead.
     sp_err err = static_renderer::render_hp(csp,rsp);
 
@@ -194,10 +190,6 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     std::string seeks_search_css_str = "websearch/templates/themes/"
                                        + websearch::_wconfig->_ui_theme + "/css/seeks_hp_search.css";
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
@@ -222,10 +214,6 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     std::string seeks_search_css_str = "websearch/templates/themes/"
                                        + websearch::_wconfig->_ui_theme + "/css/seeks_search.css";
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
@@ -250,10 +238,6 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     std::string seeks_opensearch_xml_str = "websearch/templates/opensearch.xml";
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
     = static_renderer::websearch_exports(csp);
@@ -346,8 +330,6 @@ namespace seeks_plugins
       {
         // detection from HTTP headers.
         query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
-        assert(!qlang.empty());
-        assert(!qlang_reg.empty());
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
       }
@@ -567,7 +549,7 @@ namespace seeks_plugins
     if (!parameters->empty())
       {
         std::string path = csp->_http._path;
-        miscutil::replace_in_string(path,"/cache/","");
+        miscutil::replace_in_string(path,"/cache/txt","");
         std::string query = urlmatch::next_elt_from_path(path);
         if (query.empty())
           return SP_ERR_CGI_PARAMS; // 400 error.
