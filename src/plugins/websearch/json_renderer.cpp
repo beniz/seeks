@@ -500,7 +500,7 @@ namespace seeks_plugins
       const std::string &query,
       const int &nq)
   {
-    std::string json_str = json_renderer::render_cached_queries(query,nq);
+    std::string json_str = "{" + json_renderer::render_cached_queries(query,nq) + "}";
     const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
     response(rsp,body);
     return SP_ERR_OK;
