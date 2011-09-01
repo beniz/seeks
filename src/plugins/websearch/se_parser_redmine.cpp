@@ -32,6 +32,10 @@ namespace seeks_plugins
     :se_parser(url),_results_flag(false),_date_flag(false),_title_flag(false),_summary_flag(false)
   {
     urlmatch::parse_url_host_and_path(url,_host,_path);
+    if (miscutil::strncmpic(url.c_str(), "http://",7) == 0)
+      _host = "http://" + _host;
+    else if (miscutil::strncmpic(url.c_str(), "https://",8) == 0)
+      _host = "https://" + _host;
   }
 
   se_parser_redmine::~se_parser_redmine()
