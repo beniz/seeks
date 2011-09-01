@@ -40,11 +40,13 @@ namespace seeks_plugins
           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static std::string render_recommendations(const query_context *qc,
-          const int &nreco);
+          const int &nreco,
+          const double &qtime);
 
       static sp_err render_json_recommendations(const query_context *qc,
           http_response *rsp,
-          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+          const double &qtime);
 
       static std::string render_cached_queries(const std::string &query,
           const int &nq);

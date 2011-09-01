@@ -37,6 +37,7 @@
 #include "errlog.h"
 
 #include <sys/stat.h>
+#include <sys/times.h>
 #include <iostream>
 
 using namespace json_renderer_private;
@@ -261,6 +262,10 @@ namespace seeks_plugins
                                 http_response *rsp,
                                 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    struct tms st_cpu;
+    struct tms en_cpu;
+    clock_t start_time = times(&st_cpu);
+
     // check for query, part of path.
     std::string path = csp->_http._path;
     miscutil::replace_in_string(path,"/recommendation/","");
@@ -289,7 +294,9 @@ namespace seeks_plugins
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
     cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
-    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters);
+    clock_t end_time = times(&en_cpu);
+    double qtime = (end_time-start_time)/websearch::_cl_sec;
+    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime);
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }

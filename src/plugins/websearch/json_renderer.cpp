@@ -147,12 +147,35 @@ namespace seeks_plugins
   }
 
   std::string json_renderer::render_recommendations(const query_context *qc,
-      const int &nreco)
+      const int &nreco,
+      const double &qtime)
   {
     std::vector<std::string> query_words;
     miscutil::tokenize(qc->_query,query_words," "); // allows to extract most discriminative words not in query.
 
-    std::string json_str = "\"recommendations\":[";
+    std::list<std::string> results;
+
+    // query.
+    std::string escaped_query = qc->_query;
+    miscutil::replace_in_string(escaped_query,"\"","\\\"");
+    results.push_back("\"query\":\"" + escaped_query + "\"");
+
+    // peers.
+    results.push_back("\"npeers\":\"" + miscutil::to_string(qc->_npeers) + "\"");
+
+    // date.
+    char datebuf[256];
+    cgi::get_http_time(0,datebuf,sizeof(datebuf));
+    results.push_back("\"date\":\"" + std::string(datebuf) + "\"");
+
+    // processing time.
+    results.push_back("\"qtime\":" + miscutil::to_string(qtime));
+
+    // header wrapup.
+    std::string json_str = miscutil::join_string_list(",",results);
+
+    //snippets.
+    json_str += ",\"snippets\":[";
     size_t ssize = qc->_cached_snippets.size();
     int count = 0;
     for (size_t i=0; i<ssize; i++)
@@ -178,13 +201,14 @@ namespace seeks_plugins
 
   sp_err json_renderer::render_json_recommendations(const query_context *qc,
       http_response *rsp,
-      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+      const double &qtime)
   {
     int nreco = -1;
     const char *nreco_str = miscutil::lookup(parameters,"nreco");
     if (nreco_str)
       nreco = atoi(nreco_str);
-    std::string json_str = "{" + json_renderer::render_recommendations(qc,nreco) + "}";
+    std::string json_str = "{" + json_renderer::render_recommendations(qc,nreco,qtime) + "}";
     const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
     response(rsp,body);
     return SP_ERR_OK;
