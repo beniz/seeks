@@ -162,7 +162,7 @@ namespace seeks_plugins
           continue;
         if (!sp->_engine.has_feed("seeks"))
           continue;
-        if (i!=ssize-1)
+        if (i!=0 && i!=ssize)
           json_str += ",";
         json_str += json_renderer::render_snippet(sp,false,query_words);
         count++;
