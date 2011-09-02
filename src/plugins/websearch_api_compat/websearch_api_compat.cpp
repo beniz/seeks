@@ -42,6 +42,14 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_wb_search_cache
     = new cgi_dispatcher("search_cache", &websearch_api_compat::cgi_search_cache_compat, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_search_cache);
+
+    cgi_dispatcher *cgid_wb_qc_redir
+    = new cgi_dispatcher("qc_redir",&websearch_api_compat::cgi_qc_redir_compat, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_qc_redir);
+
+    cgi_dispatcher *cgid_wb_tbd
+    = new cgi_dispatcher("tbd",&websearch_api_compat::cgi_tbd_compat, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_wb_tbd);
   }
 
   websearch_api_compat::~websearch_api_compat()
@@ -131,6 +139,88 @@ namespace seeks_plugins
     else return SP_ERR_CGI_PARAMS;
   }
 
+  sp_err websearch_api_compat::cgi_qc_redir_compat(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    if (!parameters->empty())
+      {
+        // check for query.
+        const char *query_str = miscutil::lookup(parameters,"q");
+        if (!query_str || strlen(query_str) == 0)
+          return SP_ERR_CGI_PARAMS;
+        std::string query = query_str;
+
+        // redirection.
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>\
+                                (parameters),"redirect",1,"1",1);
+
+        // check for url.
+        const char *url_str = miscutil::lookup(parameters,"url");
+        if (!url_str)
+          return SP_ERR_CGI_PARAMS;
+        std::string url = url_str;
+        std::transform(url.begin(),url.end(),url.begin(),tolower);
+        std::string surl = urlmatch::strip_url(url);
+        uint32_t id = mrf::mrf_single_feature(surl);
+        std::string sid = miscutil::to_string(id);
+
+        // route to POST /search/txt
+        free(csp->_http._path);
+        std::string path = "/search/txt/" + query + "/" + sid;
+        csp->_http._path = strdup(path.c_str());
+        free(csp->_http._gpc);
+        csp->_http._gpc = strdup("post");
+        return websearch::cgi_websearch_search(csp,rsp,parameters);
+      }
+    else return SP_ERR_CGI_PARAMS;
+  }
+
+  sp_err websearch_api_compat::cgi_tbd_compat(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    if (!parameters->empty())
+      {
+        // check for query.
+        const char *query_str = miscutil::lookup(parameters,"q");
+        if (!query_str || strlen(query_str) == 0)
+          return SP_ERR_CGI_PARAMS;
+        std::string query = query_str;
+
+        // check for url.
+        const char *url_str = miscutil::lookup(parameters,"url");
+        if (!url_str)
+          return SP_ERR_CGI_PARAMS;
+        std::string url = url_str;
+        std::transform(url.begin(),url.end(),url.begin(),tolower);
+        std::string surl = urlmatch::strip_url(url);
+        uint32_t id = mrf::mrf_single_feature(surl);
+        std::string sid = miscutil::to_string(id);
+
+        // route to DELETE /search/txt
+        free(csp->_http._path);
+        std::string path = "/search/txt/" + query + "/" + sid;
+        csp->_http._path = strdup(path.c_str());
+        free(csp->_http._gpc);
+        csp->_http._gpc = strdup("delete");
+        sp_err err = websearch::cgi_websearch_search(csp,rsp,parameters);
+        if (err != SP_ERR_OK)
+          return err;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action",1,"expand",1);
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"output",1,"html",1);
+
+        //return websearch_api_compat::cgi_search_compat(csp,rsp,parameters);
+        free(csp->_http._gpc);
+        csp->_http._gpc = strdup("get");
+        free(csp->_http._path);
+        path = "/search/txt/" + query;
+        csp->_http._path = strdup(path.c_str());
+        return websearch::cgi_websearch_search(csp,rsp,parameters);
+      }
+    else return SP_ERR_CGI_PARAMS;
+  }
 
   /* plugin registration */
   extern "C"
