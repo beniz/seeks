@@ -312,7 +312,15 @@ namespace seeks_plugins
     if (!words.empty())
       {
         json_str += ",\"words\":[";
-        json_str += miscutil::join_string_list(",",words);
+        //json_str += miscutil::join_string_list(",",words);
+        std::set<std::string>::const_iterator sit = words.begin();
+        while(sit!=words.end())
+          {
+            json_str += "\"" + (*sit) + "\"";
+            if (sit != --words.end())
+              json_str += ",";
+            ++sit;
+          }
         json_str += "]";
       }
     json_str += ",\"type\":\"" + sp->get_doc_type_str() + "\"";
