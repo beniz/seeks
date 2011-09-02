@@ -67,7 +67,7 @@ namespace seeks_plugins
           {
             char *wenc = encode::url_encode((*sit).c_str());
             std::string rword = " " + (*sit) + " ";
-            std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search/txt/" + sp->_qc->_url_enc_query
+            std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + sp->_qc->_url_enc_query
                                    + "+" + std::string(wenc) + "&amp;page=1&amp;expansion=1&amp;lang=" + sp->_qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
             free(wenc);
             miscutil::ci_replace_in_string(str,rword,bold_str);
@@ -156,7 +156,7 @@ namespace seeks_plugins
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
-                          + "/search/txt/@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
+                          + "/search/q=@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
                           + sp->_qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
     if (sp->_engine.has_feed("google"))
       {
@@ -362,7 +362,7 @@ namespace seeks_plugins
           }
         else
           {
-            sim_link = "/search/txt/" + sp->_qc->_url_enc_query
+            sim_link = "/search?q=" + sp->_qc->_url_enc_query
                        + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
                        + "&amp;lang=" + sp->_qc->_auto_lang
                        + "&amp;ui=stat";
@@ -533,7 +533,7 @@ namespace seeks_plugins
             char *sugg_url_enc = encode::url_encode(suggested_q_str.c_str());
             std::string sugg_url_enc_str = std::string(sugg_url_enc);
             free(sugg_url_enc);
-            suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "";
+            suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "?q=";
             suggestion_str += sugg_url_enc_str + "?";
             suggestion_str += "lang=" + qc->_auto_lang + "&amp;";
             suggestion_str += "expansion=1&amp;ui=stat";
@@ -582,7 +582,7 @@ namespace seeks_plugins
             char *html_enc_query = encode::html_encode(qc->_query.c_str());
             char *url_enc_query = encode::url_encode(qc->_query.c_str());
             cqueries_str += "<br><a href=\"" + base_url_str + cgi_base
-                            + std::string(url_enc_query) +"?expansion=1&amp;ui=stat\">"
+                            + "?q=" + std::string(url_enc_query) +"?expansion=1&amp;ui=stat\">"
                             + std::string(html_enc_query) + "</a>";
             free(html_enc_query);
             free(url_enc_query);
@@ -922,7 +922,7 @@ namespace seeks_plugins
     free(slabel_html_enc);
 
     std::string label_query = url_encoded_query + "+" + clabel_url_enc_str;
-    std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + cgi_base + label_query
+    std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + cgi_base + "?q=" + label_query
                              + "?page=1&amp;expansion=1&amp;ui=stat\">" + clabel_html_enc_str
                              + "</a><font size=\"2\"> " + slabel_html_enc_str + "</font></h2><br><ol>";
     return html_label;
@@ -995,9 +995,9 @@ namespace seeks_plugins
         const char *prs = miscutil::lookup(parameters,"prs");
         if (!prs)
           prs = websearch::_wconfig->_personalization ? "on" : "off";
-        std::string np_link = "<a href=\"" + base_url_str + cgi_base
+        std::string np_link = "<a href=\"" + base_url_str + cgi_base + "?q="
                               + url_encoded_query + "?page=" + np_str + "&amp;expansion=" + expansion + "&amp;engines="
-                              + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+                              + engines + "&amp;rpp=" + rpp_s + "&amp;action=page&amp;content_analysis=" + ca_s
                               + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
                               + "&amp;ui=stat\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
         miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
@@ -1034,8 +1034,8 @@ namespace seeks_plugins
         if (!prs)
           prs = websearch::_wconfig->_personalization ? "on" : "off";
         std::string ca_s = content_analysis ? "on" : "off";
-        std::string pp_link = "<a href=\"" + base_url_str + cgi_base + url_encoded_query
-                              + "?page=" + pp_str + "&amp" + "&amp;expansion=" + expansion + "&amp;engines="
+        std::string pp_link = "<a href=\"" + base_url_str + "?q=" + cgi_base + url_encoded_query
+                              + "?page=" + pp_str + "&amp;action=page&amp;expansion=" + expansion + "&amp;engines="
                               + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
                               + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
                               + "&amp;ui=stat\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
