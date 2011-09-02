@@ -105,9 +105,9 @@ namespace seeks_plugins
         && query_capture_configuration::_config
         && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
-        //url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&amp;url=" + url_enc;
-        url = "<form method=\"post\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
-              + "\"><input type=\"submit\" class=\"no_button\" value=\"" + sp->_title + "\"/></form>";
+        url = base_url_str + "/qc_redir?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc;
+        /*url = "<form method=\"post\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
+        + "\"><input type=\"submit\" class=\"no_button\" value=\"" + sp->_title + "\"/></form>";*/
       }
 #endif
 
@@ -147,14 +147,13 @@ namespace seeks_plugins
         html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
       }
     else html_content += "<h3>";
-    /*html_content += "<a href=\"";
+    html_content += "<a href=\"";
     html_content += url;
-    html_content += "\">";*/
-    html_content += url;
+    html_content += "\">";
 
-    /*std::string title_enc = encode::html_decode(_title);
+    std::string title_enc = encode::html_decode(sp->_title);
     html_content += title_enc;
-    html_content += "</a>";*/
+    html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
                           + "/search/txt/@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
@@ -449,14 +448,14 @@ namespace seeks_plugins
     if (sp->_personalized)
       {
         //TODO: DELETE is not supported by 'form'
-        html_content += "<form method=\"delete\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/"
-                        + miscutil::to_string(sp->_id) + "\"><input type=\"submit\" class=\"no_button\" value=\"\"/></form>";
-        /*html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
-                        + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
+        /*html_content += "<form method=\"delete\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/"
+        + miscutil::to_string(sp->_id) + "\"><input type=\"submit\" class=\"no_button\" value=\"\"/></form>";*/
+        html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
+                        + sp->_qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
         if (engines)
           html_content += std::string(engines);
-        html_content += "&lang=" + _qc->_auto_lang;
-        html_content += "\">&nbsp;</a>";*/
+        html_content += "&lang=" + sp->_qc->_auto_lang;
+        html_content += "\">&nbsp;</a>";
         if (sp->_hits > 0 && sp->_npeers > 0)
           html_content += "<br><div class=\"snippet_info\">" + miscutil::to_string(sp->_hits)
                           + " recommendation(s) by " + miscutil::to_string(sp->_npeers) + " peer(s).</div>";
