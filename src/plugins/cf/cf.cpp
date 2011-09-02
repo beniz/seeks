@@ -148,40 +148,16 @@ namespace seeks_plugins
         return e.code();
       }
 
-    if (!parameters->empty())
+    sp_err err = cf::tbd(parameters,url,query);
+    if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
       {
-        std::string url,query,lang;
-        try
-          {
-            websearch::preprocess_parameters(parameters,csp);
-          }
-        catch(sp_exception &e)
-          {
-            return e.code();
-          }
-
-        sp_err err = cf::tbd(parameters,url,query);
-        if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
-          {
-            errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
-            return err;
-          }
-        else if (err == DB_ERR_NO_REC)
-          {
-            return err;
-          }
-
-        // redirect to current query url.
-        /*miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-        std::string base_url = query_context::detect_base_url_http(csp);*/
-
-        /*const char *output = miscutil::lookup(parameters,"output");
-        std::string output_str = output ? std::string(output) : "html";
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower); */
-        //return websearch::cgi_websearch_search(csp,rsp,parameters);
-        return SP_ERR_OK;
+        errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
       }
-    else return SP_ERR_CGI_PARAMS;
+    /*else if (err == DB_ERR_NO_REC)
+      {
+    return err;
+    }*/
+    return err;
   }
 
   sp_err cf::tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
