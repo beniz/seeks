@@ -190,8 +190,20 @@ namespace sp
     std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
       {
-        if (seeks_proxy::_config->is_plugin_activated((*vit)->get_name_cstr()))
-          (*vit)->start();
+        plugin *pl = (*vit);
+        if (seeks_proxy::_config->is_plugin_activated(pl->get_name_cstr()))
+          {
+            // register plugin elements.
+            if (pl->_interceptor_plugin)
+              plugin_manager::_ref_interceptor_plugins.push_back(pl->_interceptor_plugin);
+            if (pl->_action_plugin)
+              plugin_manager::_ref_action_plugins.push_back(pl->_action_plugin);
+            if (pl->_filter_plugin)
+              plugin_manager::_ref_filter_plugins.push_back(pl->_filter_plugin);
+
+            // local instrucitons.
+            (*vit)->start();
+          }
         ++vit;
       }
 
@@ -228,14 +240,6 @@ namespace sp
 
         ++vit;
       }
-
-    // register the plugin elements.
-    if (p->_interceptor_plugin)
-      plugin_manager::_ref_interceptor_plugins.push_back(p->_interceptor_plugin);
-    if (p->_action_plugin)
-      plugin_manager::_ref_action_plugins.push_back(p->_action_plugin);
-    if (p->_filter_plugin)
-      plugin_manager::_ref_filter_plugins.push_back(p->_filter_plugin);
   }
 
   cgi_dispatcher* plugin_manager::find_plugin_cgi_dispatcher(const char *path)

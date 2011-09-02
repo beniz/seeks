@@ -942,31 +942,30 @@ namespace sp
    * Returns     :  SP_ERR_OK
    *
    *********************************************************************/
-  sp_err parsers::scan_headers(client_state *csp)
+  /*sp_err parsers::scan_headers(client_state *csp)
   {
     sp_err err = SP_ERR_OK;
 
     std::list<const char*>::const_iterator lit = csp->_headers.begin();
     while (lit!=csp->_headers.end())
       {
-        const char *str = (*lit);
+      const char *str = (*lit);*/
 
-        /* Header crunch()ed in previous run? -> ignore */
-        if (str == NULL)
-          {
-            ++lit;
-            continue;
-          }
+  /* Header crunch()ed in previous run? -> ignore */
+  /*if (str == NULL)
+    {
+      ++lit;
+      continue;
+    }
 
-        errlog::log_error(LOG_LEVEL_HEADER, "scan: %s", str);
-        //err = parsers::header_tagger(csp, (char*)str); // beware.
-        ++lit;
-      }
-
-    return err;
+  errlog::log_error(LOG_LEVEL_HEADER, "scan: %s", str);
+  //err = parsers::header_tagger(csp, (char*)str); // beware.
+  ++lit;
   }
 
-//seeks: deprecated, should be turned into a plugin.
+  return err;
+  }*/
+
   /*********************************************************************
    *
    * Function    :  sed
@@ -1006,7 +1005,7 @@ namespace sp
         f = parsers::_add_client_headers;
       }
 
-    parsers::scan_headers(csp);
+    //parsers::scan_headers(csp);
 
     while ((err == SP_ERR_OK) && (v->_str != NULL))
       {
@@ -2414,9 +2413,29 @@ namespace sp
 #endif
         if (SP_ERR_OK != parse_header_time(header_time, &last_modified))
           {
-            errlog::log_error(LOG_LEVEL_HEADER, "Couldn't parse: %s in %s (crunching!)", header_time, *header);
+            errlog::log_error(LOG_LEVEL_INFO, "Couldn't parse: %s in %s (probably a tracking header)", header_time, *header);
+            /*freez(*header);
+            *header = NULL;*/
+            /*
+             * Setting Last-Modified Header to now.
+             */
+            cgi::get_http_time(0, buf, sizeof(buf));
             freez(*header);
-            *header = NULL;
+            *header = strdup("Last-Modified: ");
+            miscutil::string_append(header, buf);
+
+            if (*header == NULL)
+              {
+                errlog::log_error(LOG_LEVEL_HEADER, "Insufficient memory. Last-Modified header got lost, boohoo.");
+              }
+            else
+              {
+                errlog::log_error(LOG_LEVEL_HEADER, "Reset to present time: %s", *header);
+              }
+
+            // don't cache this page.
+            miscutil::enlist_unique_header(&csp->_headers,"cache-control","no-cache");
+            errlog::log_error(LOG_LEVEL_HEADER, "Reset Cache-Control to no-cache");
           }
         else
           {

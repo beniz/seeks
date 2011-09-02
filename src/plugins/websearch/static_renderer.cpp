@@ -437,6 +437,21 @@ namespace seeks_plugins
           case WIKI:
             html_content += "Wiki";
             break;
+          case POST:
+            html_content += "Post";
+            break;
+          case BUG:
+            html_content += "Bug";
+            break;
+          case ISSUE:
+            html_content += "Issue";
+            break;
+          case REVISION:
+            html_content += "Revision";
+            break;
+          case COMMENT:
+            html_content += "Comment";
+            break;
           case REJECTED:
             break;
           }

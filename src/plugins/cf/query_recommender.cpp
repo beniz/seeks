@@ -66,10 +66,10 @@ namespace seeks_plugins
   {
     // fetch queries from user DB.
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
-        //peer pe(host,port,"",""); //TODO: missing peer and rsc.
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,pe);
+        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,pe);
       }
     catch(sp_exception &e)
       {
@@ -80,6 +80,7 @@ namespace seeks_plugins
 
     // destroy query data.
     rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   void query_recommender::recommend_queries(const std::string &query,

@@ -144,6 +144,11 @@ namespace seeks_plugins
       void add_to_unordered_cache_title(search_snippet *sr);
 
       /**
+       * \brief removes a snippet from the unordered cache set.
+       */
+      void remove_from_unordered_cache_title(search_snippet *sr);
+
+      /**
        * \brief returns a cached snippet if it knows it, NULL otherwise.
        * @param lctitle lower-case title.
        */

@@ -150,10 +150,24 @@ namespace seeks_plugins
 
     if (!parameters->empty())
       {
+        std::string url,query,lang;
+        try
+          {
+            websearch::preprocess_parameters(parameters,csp);
+          }
+        catch(sp_exception &e)
+          {
+            return e.code();
+          }
+
         sp_err err = cf::tbd(parameters,url,query);
         if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
           {
             errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
+            return err;
+          }
+        else if (err == DB_ERR_NO_REC)
+          {
             return err;
           }
 
@@ -494,11 +508,14 @@ namespace seeks_plugins
                                          records);
     std::string query,lang;
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
-    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,records,qdata);
+    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
+    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,
+                                    records,qdata,inv_qdata);
     if (!qdata.empty())
       dbr = new db_query_record(qdata); // no copy.
     else dbr = NULL;
     rank_estimator::destroy_records(records);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   std::string cf::select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)

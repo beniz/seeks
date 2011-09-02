@@ -31,7 +31,7 @@ namespace seeks_plugins
 
   se_parser_bing::se_parser_bing(const std::string &url)
     :se_parser(url),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
-    _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
+     _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
   {
   }
 
@@ -40,8 +40,8 @@ namespace seeks_plugins
   }
 
   void se_parser_bing::start_element(parser_context *pc,
-  const xmlChar *name,
-  const xmlChar **attributes)
+                                     const xmlChar *name,
+                                     const xmlChar **attributes)
   {
     const char *tag = (const char*)name;
 
@@ -62,9 +62,9 @@ namespace seeks_plugins
             if (pc->_current_snippet)
               {
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-                || pc->_current_snippet->_url.empty()
-                || pc->_current_snippet->_summary.empty()
-                || pc->_current_snippet->_cite.empty())
+                    || pc->_current_snippet->_url.empty()
+                    || pc->_current_snippet->_summary.empty()
+                    || pc->_current_snippet->_cite.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
@@ -82,6 +82,10 @@ namespace seeks_plugins
 
             _cached_flag = false; // in case previous snippet did not close the cached flag.
           }
+      }
+    else if (_results_flag && strcasecmp(tag,"h2") == 0)
+      {
+        _results_flag = false;
       }
     else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"h3") == 0)
       {
@@ -113,22 +117,22 @@ namespace seeks_plugins
   }
 
   void se_parser_bing::characters(parser_context *pc,
-  const xmlChar *chars,
-  int length)
+                                  const xmlChar *chars,
+                                  int length)
   {
     handle_characters(pc, chars, length);
   }
 
   void se_parser_bing::cdata(parser_context *pc,
-  const xmlChar *chars,
-  int length)
+                             const xmlChar *chars,
+                             int length)
   {
     handle_characters(pc, chars, length);
   }
 
   void se_parser_bing::handle_characters(parser_context *pc,
-  const xmlChar *chars,
-  int length)
+                                         const xmlChar *chars,
+                                         int length)
   {
     if (_p_flag)
       {
@@ -160,7 +164,7 @@ namespace seeks_plugins
   }
 
   void se_parser_bing::end_element(parser_context *pc,
-  const xmlChar *name)
+                                   const xmlChar *name)
   {
     const char *tag = (const char*) name;
 

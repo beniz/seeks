@@ -105,11 +105,14 @@ TEST_F(WBTest,perform_websearch_bad_param_new)
 {
   client_state csp;
   http_response rsp;
-  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"prs",1,"off",1);
   bool render = false;
-  sp_err err = websearch::perform_websearch(&csp,&rsp,&parameters,render);
+  sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(SP_ERR_CGI_PARAMS,err);
   se_handler::cleanup_handlers();
+  miscutil::free_map(parameters);
   sweeper::sweep_all();
 }
 
@@ -122,6 +125,7 @@ TEST_F(WBTest,perform_websearch_no_engine_fail_new)
   miscutil::add_map_entry(parameters,"q",1,"test",1);
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
   miscutil::add_map_entry(parameters,"engines",1,"",1);
+  miscutil::add_map_entry(parameters,"prs",1,"off",1);
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_NO_ENGINE,err);

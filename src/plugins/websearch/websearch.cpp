@@ -1164,11 +1164,11 @@ namespace seeks_plugins
               }
           }
 
-        // do not return if perso + err != no engine
+        // do not return if personalization on.
         // instead signal all personalization threads that results may have
         // arrived.
         mutex_unlock(&qc->_feeds_ack_mutex);
-        if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
+        if (persf)
           {
           }
         else if (err != SP_ERR_OK)

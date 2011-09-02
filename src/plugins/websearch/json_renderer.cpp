@@ -120,6 +120,9 @@ namespace seeks_plugins
             std::string sugg = (*mit).second;
             miscutil::replace_in_string(sugg,"\\","\\\\");
             miscutil::replace_in_string(sugg,"\"","\\\"");
+            miscutil::replace_in_string(sugg,"\t","");
+            miscutil::replace_in_string(sugg,"\r","");
+            miscutil::replace_in_string(sugg,"\n","");
             suggs.push_back("\"" + sugg + "\"");
             if (k >= nsuggs-1)
               break;
@@ -233,8 +236,9 @@ namespace seeks_plugins
           {
             std::string escaped_query = qc->_query;
             miscutil::replace_in_string(escaped_query,"\"","\\\"");
-            miscutil::replace_in_string(escaped_query,"\\t","");
-            miscutil::replace_in_string(escaped_query,"\\r","");
+            miscutil::replace_in_string(escaped_query,"\t","");
+            miscutil::replace_in_string(escaped_query,"\r","");
+            miscutil::replace_in_string(escaped_query,"\n","");
             suggs.push_back("\"" + escaped_query + "\"");
           }
         mutex_unlock(&qc->_qc_mutex);

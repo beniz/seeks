@@ -429,6 +429,19 @@ namespace seeks_plugins
     else _unordered_snippets_title.insert(std::pair<const char*,search_snippet*>(strdup(lctitle.c_str()),sr));
   }
 
+  void query_context::remove_from_unordered_cache_title(search_snippet *sr)
+  {
+    std::string lctitle = sr->_title;
+    std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+    hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
+    if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
+      {
+        const char *key = (*hit).first;
+        _unordered_snippets_title.erase(hit);
+        free_const(key);
+      }
+  }
+
   search_snippet* query_context::get_cached_snippet_title(const char *lctitle)
   {
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
@@ -741,6 +754,7 @@ namespace seeks_plugins
                 && (*vit)->_engine.has_feed("seeks"))
               {
                 remove_from_unordered_cache((*vit)->_id);
+                remove_from_unordered_cache_title((*vit));
                 delete (*vit);
                 vit = _cached_snippets.erase(vit);
                 continue;

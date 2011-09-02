@@ -49,6 +49,11 @@ namespace seeks_plugins
     NEWS,
     TWEET,
     WIKI,
+    POST,
+    BUG,
+    ISSUE,
+    REVISION,
+    COMMENT,
     REJECTED /* user reject, for now by matching a regexp. */
   };
 
@@ -123,7 +128,6 @@ namespace seeks_plugins
       void set_cite_no_decode(const std::string &cite);
 
       void set_summary(const std::string &summary);
-      void set_summary(const char *summary);
 
       void set_date(const std::string &date);
 

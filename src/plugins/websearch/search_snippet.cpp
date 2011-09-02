@@ -198,6 +198,7 @@ namespace seeks_plugins
     return output;
   }
 
+
   bool search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     if (_personalized && _engine.has_feed("seeks"))
@@ -278,32 +279,6 @@ namespace seeks_plugins
             // do nothing.
           }
       }
-  }
-
-  void search_snippet::set_summary(const char *summary)
-  {
-    static size_t summary_max_size = 240; // characters.
-    _summary_noenc = std::string(summary);
-
-    // clear escaped characters for unencoded output.
-    miscutil::replace_in_string(_summary_noenc,"\\","");
-
-    // encode html so tags are not interpreted.
-    char* str = encode::html_encode(summary);
-    if (strlen(str)<summary_max_size)
-      _summary = std::string(str);
-    else
-      {
-        try
-          {
-            _summary = std::string(str).substr(0,summary_max_size-3) + "...";
-          }
-        catch (std::exception &e)
-          {
-            _summary = "";
-          }
-      }
-    free(str);
   }
 
   void search_snippet::set_summary(const std::string &summary)
