@@ -105,7 +105,8 @@ namespace seeks_plugins
         && query_capture_configuration::_config
         && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
-        url = base_url_str + "/qc_redir?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc;
+        url = base_url_str + "/qc_redir?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc
+              + "&amp;lang=" + sp->_qc->_auto_lang;
         /*url = "<form method=\"post\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
         + "\"><input type=\"submit\" class=\"no_button\" value=\"" + sp->_title + "\"/></form>";*/
       }
