@@ -416,7 +416,7 @@ namespace seeks_plugins
 
     // store query.
     std::string host,path;
-    urlmatch::parse_url_host_and_path(url,host,path);
+    query_capture::process_url(url,host,path);
     int err = SP_ERR_OK;
     try
       {
