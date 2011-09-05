@@ -446,7 +446,6 @@ namespace seeks_plugins
     miscutil::add_map_entry(parameters,"lang",1,qlang.c_str(),1);
     query_context *qc = websearch::lookup_qc(parameters);
     miscutil::free_map(parameters);
-    std::cerr << "features size: " << features.size() << std::endl;
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
     while (hit!=features.end())
       {

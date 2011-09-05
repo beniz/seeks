@@ -18,6 +18,7 @@
 
 #include "cf.h"
 #include "websearch.h"
+#include "sort_rank.h"
 #include "json_renderer.h"
 #include "json_renderer_private.h"
 #include "cf_configuration.h"
@@ -273,6 +274,11 @@ namespace seeks_plugins
         return e.code();
       }
 
+    // check on parameters.
+    const char *peers = miscutil::lookup(parameters,"peers");
+    if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"p2p")!=0)
+      return SP_ERR_CGI_PARAMS;
+
     // ask all peers.
     mutex_lock(&websearch::_context_mutex);
     query_context *qc = websearch::lookup_qc(parameters);
@@ -284,6 +290,7 @@ namespace seeks_plugins
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
     cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+    sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // in case the context is already in memory.
     clock_t end_time = times(&en_cpu);
     double qtime = (end_time-start_time)/websearch::_cl_sec;
     sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime);
@@ -365,6 +372,7 @@ namespace seeks_plugins
       {
         has_qc = false;
         qc = new query_context(parameters,csp->_headers); // empty context.
+        qc->register_qc();
       }
     mutex_lock(&qc->_qc_mutex);
 
@@ -398,6 +406,14 @@ namespace seeks_plugins
     else if (url_check)
       title = title.empty() ? check_title : title;
 
+    // create snippet.
+    search_snippet *sp = new search_snippet(); // XXX: no rank given, temporary snippet.
+    sp->set_url(url);
+    sp->set_title(title);
+    qc->_cached_snippets.push_back(sp);
+    qc->add_to_unordered_cache(sp);
+    qc->add_to_unordered_cache_title(sp);
+
     // store query.
     std::string host,path;
     urlmatch::parse_url_host_and_path(url,host,path);
@@ -412,12 +428,13 @@ namespace seeks_plugins
       }
 
     // remove query_context as needed (so to not 'flood' the node).
+    mutex_unlock(&qc->_qc_mutex);
     if (!has_qc)
       {
-        mutex_unlock(&qc->_qc_mutex);
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
+    qc = websearch::lookup_qc(parameters);
     return err;
   }
 
