@@ -334,9 +334,9 @@ namespace seeks_plugins
     else json_str += "no";
     json_str += "\"";
     if (sp->_npeers > 0)
-      json_str += ",\"snpeers\":\"" + miscutil::to_string(sp->_npeers) + "\"";
+      json_str += ",\"snpeers\":" + miscutil::to_string(sp->_npeers);
     if (sp->_hits > 0)
-      json_str += ",\"hits\":\"" + miscutil::to_string(sp->_hits) + "\"";
+      json_str += ",\"hits\":" + miscutil::to_string(sp->_hits);
     if (!sp->_date.empty())
       json_str += ",\"date\":\"" + sp->_date + "\"";
 
