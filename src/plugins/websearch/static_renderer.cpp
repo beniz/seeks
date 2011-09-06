@@ -122,7 +122,6 @@ namespace seeks_plugins
       has_thumbs = true;
     if (sp->_doc_type != TWEET && sp->_doc_type != VIDEO_THUMB && has_thumbs)
       {
-        //TODO: new API.
         html_content += "<a href=\"" + url + "\">";
         html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
         html_content += sp->_url;
@@ -130,13 +129,11 @@ namespace seeks_plugins
       }
     if (sp->_doc_type == TWEET)
       {
-        //TODO: new API.
         html_content += "<a href=\"" + sp->_cite + "\">";
         html_content += "<img class=\"tweet_profile\" src=\"" + sp->_cached + "\" ></a>"; // _cached contains the profile's image.
       }
     if (sp->_doc_type == VIDEO_THUMB)
       {
-        //TODO: new API.
         html_content += "<a href=\"";
         html_content += url + "\"><img class=\"video_profile\" src=\"";
         html_content += sp->_cached;
@@ -378,7 +375,7 @@ namespace seeks_plugins
         else html_content += "\">Back</a>";
       }
 
-    if (sp->_cached_content) //TODO: new API.
+    if (sp->_cached_content)
       {
         html_content += "<a class=\"search_cache\" href=\"";
         html_content += base_url_str + "/search_cache?url="
@@ -390,7 +387,6 @@ namespace seeks_plugins
     const char *engines = miscutil::lookup(parameters,"engines");
     if (sp->_doc_type != REJECTED)
       {
-        //TODO: new API.
         html_content += "<a class=\"search_cache\" href=\"";
         html_content += base_url_str + "/cluster/types/" + sp->_qc->_url_enc_query
                         + "?expansion=xxexp&amp;ui=stat&amp;engines=";
@@ -463,9 +459,6 @@ namespace seeks_plugins
     // snippet thumb down rendering
     if (sp->_personalized)
       {
-        //TODO: DELETE is not supported by 'form'
-        /*html_content += "<form method=\"delete\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/"
-        + miscutil::to_string(sp->_id) + "\"><input type=\"submit\" class=\"no_button\" value=\"\"/></form>";*/
         html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
                         + sp->_qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
         if (engines)
@@ -479,10 +472,6 @@ namespace seeks_plugins
 #endif
 
     html_content += "</div></li>\n";
-
-    /* std::cout << "html_content:\n";
-     std::cout << html_content << std::endl; */
-
     return html_content;
   }
 
