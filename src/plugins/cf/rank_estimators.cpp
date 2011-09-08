@@ -60,13 +60,14 @@ namespace seeks_plugins
   // threaded call to personalization.
   void rank_estimator::peers_personalize(query_context *qc,
                                          const bool &wait_external_sources,
-                                         const std::string &peers)
+                                         const std::string &peers,
+                                         const int &radius)
   {
     std::vector<pthread_t> perso_threads;
     std::vector<perso_thread_arg*> perso_args;
 
     // thread for local db.
-    threaded_personalize(perso_args,perso_threads,NULL,qc,wait_external_sources);
+    threaded_personalize(perso_args,perso_threads,NULL,qc,wait_external_sources,radius);
 
     // one thread per remote peer, to handle the IO.
     if (peers == "p2p")
@@ -78,7 +79,7 @@ namespace seeks_plugins
             // connect to living peers only.
             if ((*hit).second->get_status() == PEER_OK)
               threaded_personalize(perso_args,perso_threads,
-                                   (*hit).second,qc,wait_external_sources);
+                                   (*hit).second,qc,wait_external_sources,radius);
             else
               {
                 perso_args.push_back(NULL);
@@ -112,7 +113,8 @@ namespace seeks_plugins
       std::vector<pthread_t> &perso_threads,
       peer *pe,
       query_context *qc,
-      const bool &wait_external_sources)
+      const bool &wait_external_sources,
+      const int &radius)
   {
     perso_thread_arg *args  = new perso_thread_arg();
     args->_query = qc->_query;
@@ -122,7 +124,9 @@ namespace seeks_plugins
     args->_estimator = this;
     args->_qc = qc;
     args->_pe = pe;
-    args->_expansion = qc->_page_expansion > 0 ? qc->_page_expansion : 1;
+    if (radius == -1) // if no radius specified, use the search query expansion value.
+      args->_expansion = qc->_page_expansion > 0 ? qc->_page_expansion : 1;
+    else args->_expansion = radius;
     args->_wait = wait_external_sources;
     args->_err = SP_ERR_OK;
 
@@ -664,29 +668,18 @@ namespace seeks_plugins
                       - strc_query.intersect_size(strc_rquery);
         if (nradius > (expansion==0 ? 0 : expansion-1))
           {
-            if (qd->_visited_urls)
-              {
-                hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator mit
-                = qd->_visited_urls->begin();
-                hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::iterator mit2;
-                while(mit!=qd->_visited_urls->end())
-                  {
-                    mit2 = mit;
-                    ++mit;
-                    vurl_data *vd = (*mit2).second;
-                    qd->_visited_urls->erase(mit2);
-                    delete vd;
-                  }
-                delete qd->_visited_urls;
-                qd->_visited_urls = NULL;
-              }
+            chit = hit;
+            ++hit;
+            qdata.erase(chit);
+            delete qd;
+            continue;
           }
         else
           {
             qd->_radius = nradius;
             rank_estimator::fillup_inv_qdata(qd,inv_qdata);
+            ++hit;
           }
-        ++hit;
       }
   }
 
