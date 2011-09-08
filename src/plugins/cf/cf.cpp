@@ -291,7 +291,6 @@ namespace seeks_plugins
           }
         else radius = tmp;
       }
-    std::cerr << "radius: " << radius << std::endl;
 
     // ask all peers.
     mutex_lock(&websearch::_context_mutex);
@@ -307,7 +306,7 @@ namespace seeks_plugins
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // in case the context is already in memory.
     clock_t end_time = times(&en_cpu);
     double qtime = (end_time-start_time)/websearch::_cl_sec;
-    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime);
+    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius);
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }
@@ -468,35 +467,14 @@ namespace seeks_plugins
 
   void cf::estimate_ranks(const std::string &query,
                           const std::string &lang,
-                          const uint32_t &expansion,
+                          const int &radius,
                           std::vector<search_snippet*> &snippets,
                           const std::string &host,
                           const int &port) throw (sp_exception)
   {
     simple_re sre; // estimator.
-    sre.estimate_ranks(query,lang,expansion,snippets,host,port);
+    sre.estimate_ranks(query,lang,radius,snippets,host,port);
   }
-
-  /*void cf::get_related_queries(const std::string &query,
-                               const std::string &lang,
-                               const uint32_t &expansion,
-                               std::multimap<double,std::string,std::less<double> > &related_queries,
-                               const std::string &host,
-                               const int &port) throw (sp_exception)
-  {
-    query_recommender::recommend_queries(query,lang,expansion,related_queries,host,port);
-  }
-
-  void cf::get_recommended_urls(const std::string &query,
-                                const std::string &lang,
-                                const uint32_t &expansion,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
-                                const std::string &host,
-                                const int &port) throw (sp_exception)
-  {
-    simple_re sre; // estimator.
-    sre.recommend_urls(query,lang,expansion,snippets,host,port);
-    }*/
 
   void cf::thumb_down_url(const std::string &query,
                           const std::string &lang,
@@ -507,7 +485,7 @@ namespace seeks_plugins
   }
 
   void cf::find_bqc_cb(const std::vector<std::string> &qhashes,
-                       const uint32_t &expansion,
+                       const int &radius,
                        db_query_record *&dbr)
   {
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
@@ -517,7 +495,7 @@ namespace seeks_plugins
     std::string query,lang;
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,
+    rank_estimator::extract_queries(query,lang,radius,seeks_proxy::_user_db,
                                     records,qdata,inv_qdata);
     if (!qdata.empty())
       dbr = new db_query_record(qdata); // no copy.

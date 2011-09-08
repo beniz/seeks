@@ -57,13 +57,13 @@ namespace seeks_plugins
 
   search_snippet::search_snippet()
     :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0)
+     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0),_radius(0)
   {
   }
 
   search_snippet::search_snippet(const short &rank)
     :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0)
+     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0),_radius(0)
   {
   }
 
@@ -76,7 +76,7 @@ namespace seeks_plugins
      _seeks_rank(s->_seeks_rank),_engine(s->_engine),_doc_type(s->_doc_type),
      _forum_thread_info(s->_forum_thread_info),_cached_content(NULL),
      _features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(s->_safe),_personalized(s->_personalized),
-     _npeers(s->_npeers),_hits(s->_hits)
+     _npeers(s->_npeers),_hits(s->_hits),_radius(s->_radius)
   {
     if (s->_cached_content)
       _cached_content = new std::string(*s->_cached_content);
@@ -545,16 +545,9 @@ namespace seeks_plugins
         s1->_meta_rank = s1->_engine.size();
         s1->bing_yahoo_us_merge();
       }
-  }
 
-  void search_snippet::merge_peer_data(search_snippet *s1,
-                                       const search_snippet *s2)
-  {
-    // hits.
-    s1->_hits += s2->_hits;
-
-    // peers.
-    s1->_npeers += s2->_npeers;
+    // radius.
+    s1->_radius = std::min(s1->_radius,s2->_radius);
   }
 
   void search_snippet::bing_yahoo_us_merge()

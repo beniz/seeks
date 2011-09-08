@@ -124,9 +124,9 @@ namespace seeks_plugins
     args->_estimator = this;
     args->_qc = qc;
     args->_pe = pe;
-    if (radius == -1) // if no radius specified, use the search query expansion value.
-      args->_expansion = qc->_page_expansion > 0 ? qc->_page_expansion : 1;
-    else args->_expansion = radius;
+    if (radius == -1) // should not happen in normal operations.
+      args->_radius = 0;
+    else args->_radius = radius;
     args->_wait = wait_external_sources;
     args->_err = SP_ERR_OK;
 
@@ -155,7 +155,7 @@ namespace seeks_plugins
             peer pe;
             pe.set_status_ok();
             args->_estimator->personalize(args->_query,args->_lang,
-                                          args->_expansion,
+                                          args->_radius,
                                           *args->_snippets,
                                           *args->_related_queries,
                                           &pe,
@@ -164,7 +164,7 @@ namespace seeks_plugins
           }
         else
           args->_estimator->personalize(args->_query,args->_lang,
-                                        args->_expansion,
+                                        args->_radius,
                                         *args->_snippets,
                                         *args->_related_queries,
                                         args->_pe,
@@ -198,7 +198,7 @@ namespace seeks_plugins
 
   void rank_estimator::fetch_query_data(const std::string &query,
                                         const std::string &lang,
-                                        const uint32_t &expansion,
+                                        const int &radius,
                                         hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
                                         hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata,
                                         peer *pe) throw (sp_exception)
@@ -240,7 +240,7 @@ namespace seeks_plugins
         rank_estimator::fetch_user_db_record(query,udb,records);
 
         // extract queries.
-        rank_estimator::extract_queries(query,lang,expansion,udb,records,qdata,inv_qdata);
+        rank_estimator::extract_queries(query,lang,radius,udb,records,qdata,inv_qdata);
 
         errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                           host.c_str(),path.c_str(),qdata.size());
@@ -258,14 +258,14 @@ namespace seeks_plugins
     else // remote batch seeks node operations.
       {
         std::string squery = query_capture_element::no_command_query(query);
-        db_record *dbr = rank_estimator::find_bqc(host,port,path,query,expansion);
+        db_record *dbr = rank_estimator::find_bqc(host,port,path,query,radius);
         if (dbr)
           {
             db_query_record *dbqr = static_cast<db_query_record*>(dbr);
             db_query_record::copy_related_queries(dbqr->_related_queries,qdata);
             if (cf_configuration::_config->_record_cache_timeout == 0)
               delete dbqr;
-            rank_estimator::filter_extracted_queries(squery,lang,expansion,qdata,inv_qdata);
+            rank_estimator::filter_extracted_queries(squery,lang,radius,qdata,inv_qdata);
             errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                               host.c_str(),path.c_str(),qdata.size());
           }
@@ -317,7 +317,7 @@ namespace seeks_plugins
 
   void rank_estimator::extract_queries(const std::string &query,
                                        const std::string &lang,
-                                       const uint32_t &expansion,
+                                       const int &radius,
                                        user_db *udb,
                                        const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
                                        hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
@@ -380,7 +380,7 @@ namespace seeks_plugins
                     qdata.insert(std::pair<const char*,query_data*>(nqd->_query.c_str(),nqd));
                     rank_estimator::fillup_inv_qdata(nqd,inv_qdata);
                   }
-                else if (query.empty() || nradius <= (expansion==0 ? 0 : expansion-1)) //TODO: check on max radius here.
+                else if (query.empty() || nradius <= radius)
                   {
                     // data are in lower radius records.
                     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
@@ -446,7 +446,7 @@ namespace seeks_plugins
                           delete dbqr_data;
                       }
                   }
-                else // radius is below requested expansion, keep queries for recommendation.
+                else // radius is below requested radius, keep queries for recommendation.
                   {
                     query_data *dbqrc = new query_data(*qd);
                     if (!strc_query.empty())
@@ -594,7 +594,7 @@ namespace seeks_plugins
 
   db_record* rank_estimator::find_bqc(const std::string &host, const int &port,
                                       const std::string &path, const std::string &query,
-                                      const int &expansion, const bool &use_store) throw (sp_exception)
+                                      const int &radius, const bool &use_store) throw (sp_exception)
   {
     db_record *dbr = NULL;
     std::string squery = query_capture_element::no_command_query(query);
@@ -618,7 +618,7 @@ namespace seeks_plugins
         udb_client udbc;
         try
           {
-            dbr = udbc.find_bqc(host,port,path,squery,expansion);
+            dbr = udbc.find_bqc(host,port,path,squery,radius);
           }
         catch (sp_exception &e)
           {
@@ -638,7 +638,7 @@ namespace seeks_plugins
 
   void rank_estimator::filter_extracted_queries(const std::string &query,
       const std::string &lang,
-      const uint32_t &expansion,
+      const int &radius,
       hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
       hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata)
   {
@@ -666,7 +666,7 @@ namespace seeks_plugins
         str_chain strc_rquery(qd->_query,0,true);
         int nradius = std::max(strc_rquery.size(),strc_query.size())
                       - strc_query.intersect_size(strc_rquery);
-        if (nradius > (expansion==0 ? 0 : expansion-1))
+        if (nradius > radius)
           {
             chit = hit;
             ++hit;
@@ -695,7 +695,7 @@ namespace seeks_plugins
 
   void simple_re::personalize(const std::string &query,
                               const std::string &lang,
-                              const uint32_t &expansion,
+                              const int &radius,
                               std::vector<search_snippet*> &snippets,
                               std::multimap<double,std::string,std::less<double> > &related_queries,
                               peer *pe,
@@ -707,7 +707,7 @@ namespace seeks_plugins
     hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,pe);
+        rank_estimator::fetch_query_data(query,lang,radius,qdata,inv_qdata,pe);
       }
     catch(sp_exception &e)
       {
@@ -739,7 +739,7 @@ namespace seeks_plugins
             try
               {
                 peer pel;
-                rank_estimator::fetch_query_data(query,lang,expansion,lqdata,inv_lqdata,&pel);
+                rank_estimator::fetch_query_data(query,lang,radius,lqdata,inv_lqdata,&pel);
               }
             catch(sp_exception &e)
               {
@@ -770,7 +770,6 @@ namespace seeks_plugins
         recommend_urls(query,lang,reco_snippets,&qdata,&filter);
         select_recommended_urls(reco_snippets,snippets,qc);
         estimate_ranks(query,lang,snippets,&qdata,&inv_qdata,&filter,pe->_rsc);
-
         query_recommender::recommend_queries(query,lang,related_queries,&qdata);
         mutex_unlock(&_est_mutex);
 
@@ -783,7 +782,7 @@ namespace seeks_plugins
   // DEPRECATED: unit testing only.
   void simple_re::estimate_ranks(const std::string &query,
                                  const std::string &lang,
-                                 const uint32_t &expansion,
+                                 const int &radius,
                                  std::vector<search_snippet*> &snippets,
                                  const std::string &host,
                                  const int &port,
@@ -795,7 +794,7 @@ namespace seeks_plugins
     try
       {
         peer pe(host,port,"",rsc);
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,&pe);
+        rank_estimator::fetch_query_data(query,lang,radius,qdata,inv_qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -1139,7 +1138,7 @@ namespace seeks_plugins
   // DEPRECATED
   void simple_re::recommend_urls(const std::string &query,
                                  const std::string &lang,
-                                 const uint32_t &expansion,
+                                 const int &radius,
                                  hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                  const std::string &host,
                                  const int &port) throw (sp_exception)
@@ -1150,7 +1149,7 @@ namespace seeks_plugins
     try
       {
         peer pe(host,port,"","");
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,&pe);
+        rank_estimator::fetch_query_data(query,lang,radius,qdata,inv_qdata,&pe);
       }
     catch(sp_exception &e)
       {
@@ -1217,6 +1216,7 @@ namespace seeks_plugins
                     sp->set_summary(vd->_summary);
                     sp->_meta_rank = 1;
                     sp->_engine.add_feed("seeks","s.s");
+                    sp->_radius = qd->_radius;
                     snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
                   }
               }

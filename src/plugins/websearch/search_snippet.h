@@ -172,9 +172,6 @@ namespace seeks_plugins
       // merging of snippets (merge s2 into s2, according to certain rules).
       static void merge_snippets(search_snippet *s1, const search_snippet *s2);
 
-      // merging of snippets peer-related data.
-      static void merge_peer_data(search_snippet *s1, const search_snippet *s2);
-
       // hack for correcting meta rank after Bing and Yahoo merged their results in
       // the US.
       void bing_yahoo_us_merge();
@@ -241,6 +238,9 @@ namespace seeks_plugins
 
       // number of collaborative 'hits' for this snippet.
       uint32_t _hits;
+
+      // radius from the original query.
+      int _radius;
   };
 
 } /* end of namespace. */

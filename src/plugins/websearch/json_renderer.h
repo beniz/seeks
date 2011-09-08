@@ -41,12 +41,14 @@ namespace seeks_plugins
 
       static std::string render_recommendations(const query_context *qc,
           const int &nreco,
-          const double &qtime);
+          const double &qtime,
+          const uint32_t &radius);
 
       static sp_err render_json_recommendations(const query_context *qc,
           http_response *rsp,
           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-          const double &qtime);
+          const double &qtime,
+          const int &radius);
 
       static std::string render_cached_queries(const std::string &query,
           const int &nq);

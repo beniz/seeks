@@ -75,7 +75,7 @@ namespace seeks_plugins
 
       static void estimate_ranks(const std::string &query,
                                  const std::string &lang,
-                                 const uint32_t &expansion,
+                                 const int &radius,
                                  std::vector<search_snippet*> &snippets,
                                  const std::string &host="",
                                  const int &port=-1) throw (sp_exception);
@@ -85,7 +85,7 @@ namespace seeks_plugins
                                  const std::string &url) throw (sp_exception);
 
       static void find_bqc_cb(const std::vector<std::string> &qhashes,
-                              const uint32_t &expansion,
+                              const int &radius,
                               db_query_record *&dbr);
 
       static std::string select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);

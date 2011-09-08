@@ -334,8 +334,14 @@ namespace seeks_plugins
   {
     if (!websearch::_cf_plugin)
       return;
+    int expansion = 1;
+    const char *expansion_str = miscutil::lookup(parameters,"expansion");
+    if (expansion_str) // should never be otherwise
+      expansion = atoi(expansion_str);
+    if (expansion == 0) // should never happen.
+      expansion = 1;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters));
+    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters),expansion-1);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }
