@@ -278,6 +278,20 @@ namespace seeks_plugins
     const char *peers = miscutil::lookup(parameters,"peers");
     if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"p2p")!=0)
       return SP_ERR_CGI_PARAMS;
+    int radius = -1;
+    const char *radius_str = miscutil::lookup(parameters,"radius");
+    if (radius_str)
+      {
+        char *endptr;
+        int tmp = strtol(radius_str,&endptr,0);
+        if (*endptr)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"wrong radius parameter");
+            return SP_ERR_CGI_PARAMS;
+          }
+        else radius = tmp;
+      }
+    std::cerr << "radius: " << radius << std::endl;
 
     // ask all peers.
     mutex_lock(&websearch::_context_mutex);
@@ -289,7 +303,7 @@ namespace seeks_plugins
       }
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
-    cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // in case the context is already in memory.
     clock_t end_time = times(&en_cpu);
     double qtime = (end_time-start_time)/websearch::_cl_sec;
@@ -440,14 +454,15 @@ namespace seeks_plugins
 
   void cf::personalize(query_context *qc,
                        const bool &wait_external_sources,
-                       const std::string &peers)
+                       const std::string &peers,
+                       const int &radius)
   {
     // check on config file, in case it did change.
     cf_configuration::_config->load_config();
     pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
 
     simple_re sre;
-    sre.peers_personalize(qc,wait_external_sources,peers);
+    sre.peers_personalize(qc,wait_external_sources,peers,radius);
     pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
   }
 

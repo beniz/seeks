@@ -70,7 +70,8 @@ namespace seeks_plugins
 
       static void personalize(query_context *qc,
                               const bool &wait_external_sources=true,
-                              const std::string &peers="p2p");
+                              const std::string &peers="p2p",
+                              const int &radius=-1);
 
       static void estimate_ranks(const std::string &query,
                                  const std::string &lang,
@@ -78,20 +79,6 @@ namespace seeks_plugins
                                  std::vector<search_snippet*> &snippets,
                                  const std::string &host="",
                                  const int &port=-1) throw (sp_exception);
-
-      /*void get_related_queries(const std::string &query,
-                               const std::string &lang,
-                               const uint32_t &expansion,
-                               std::multimap<double,std::string,std::less<double> > &related_queries,
-                               const std::string &host="",
-                               const int &port=-1) throw (sp_exception);
-
-      void get_recommended_urls(const std::string &query,
-                                const std::string &lang,
-                                const uint32_t &expansion,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
-                                const std::string &host="",
-                                const int &port=-1) throw (sp_exception);*/
 
       static void thumb_down_url(const std::string &query,
                                  const std::string &lang,

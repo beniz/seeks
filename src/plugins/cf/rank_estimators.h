@@ -66,13 +66,15 @@ namespace seeks_plugins
 
       void peers_personalize(query_context *qc,
                              const bool &wait_external_sources,
-                             const std::string &peers);
+                             const std::string &peers,
+                             const int &radius);
 
       void threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
                                 std::vector<pthread_t> &perso_threads,
                                 peer *pe = NULL,
                                 query_context *qc = NULL,
-                                const bool &wait_external_sources=true);
+                                const bool &wait_external_sources=true,
+                                const int &radius=-1);
 
       static void personalize_cb(perso_thread_arg *args);
 
