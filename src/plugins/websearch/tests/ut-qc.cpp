@@ -23,6 +23,7 @@
 #include "query_context.h"
 #include "websearch.h"
 #include "websearch_configuration.h"
+#include "se_handler.h"
 #include "errlog.h"
 
 using namespace seeks_plugins;
@@ -52,18 +53,20 @@ TEST_F(QCTest,expand_no_engine_fail)
   query_context qc;
   client_state csp;
   http_response rsp;
-  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   feeds engines;
   int code = SP_ERR_OK;
   try
     {
-      qc.expand(&csp,&rsp,&parameters,0,1,engines);
+      qc.expand(&csp,&rsp,parameters,0,1,engines);
     }
   catch (sp_exception &e)
     {
       code = e.code();
     }
   ASSERT_EQ(WB_ERR_NO_ENGINE,code);
+  miscutil::free_map(parameters);
 }
 
 TEST_F(QCTest,expand_no_engine_output_fail)
@@ -71,20 +74,22 @@ TEST_F(QCTest,expand_no_engine_output_fail)
   query_context qc;
   client_state csp;
   http_response rsp;
-  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
-  miscutil::add_map_entry(&parameters,"q",1,"test",1);
-  miscutil::add_map_entry(&parameters,"expansion",1,"",1);
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,"test",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"",1);
   feeds engines("dummy","URL1");
   int code = SP_ERR_OK;
   try
     {
-      qc.expand(&csp,&rsp,&parameters,0,1,engines);
+      qc.expand(&csp,&rsp,parameters,0,1,engines);
     }
   catch (sp_exception &e)
     {
       code = e.code();
     }
   ASSERT_EQ(WB_ERR_NO_ENGINE_OUTPUT,code);
+  miscutil::free_map(parameters);
 }
 
 TEST_F(QCTest,generate_expansion_param_fail)
@@ -92,18 +97,20 @@ TEST_F(QCTest,generate_expansion_param_fail)
   query_context qc;
   client_state csp;
   http_response rsp;
-  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   bool expanded = false;
   int code = SP_ERR_OK;
   try
     {
-      qc.generate(&csp,&rsp,&parameters,expanded);
+      qc.generate(&csp,&rsp,parameters,expanded);
     }
   catch (sp_exception &e)
     {
       code = e.code();
     }
   ASSERT_EQ(SP_ERR_CGI_PARAMS,code);
+  miscutil::free_map(parameters);
 }
 
 TEST_F(QCTest,generate_wrong_expansion_fail)
@@ -174,6 +181,7 @@ TEST_F(QCTest,generate_no_engine_output_fail)
       code = e.code();
     }
   ASSERT_EQ(WB_ERR_NO_ENGINE_OUTPUT,code);
+  se_handler::cleanup_handlers();
   miscutil::free_map(parameters);
 }
 

@@ -337,8 +337,10 @@ namespace seeks_plugins
       }
 
     // setup the language region.
-    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                            "lreg",1,qlang_reg.c_str(),1);
+    const char *lreg = miscutil::lookup(parameters,"lreg");
+    if (!lreg)
+      miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                              "lreg",1,qlang_reg.c_str(),1);
 
     // set action to expand and expansion to 1 if q is specified but not action.
     const char *action = miscutil::lookup(parameters,"action");
