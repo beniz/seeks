@@ -1318,11 +1318,8 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
 
         // destroy query data.
-        if (cf_configuration::_config->_record_cache_timeout == 0)
-          {
-            rank_estimator::destroy_query_data(qdata);
-            rank_estimator::destroy_inv_qdata_key(inv_qdata);
-          }
+        rank_estimator::destroy_query_data(qdata);
+        rank_estimator::destroy_inv_qdata_key(inv_qdata);
 
         // exception.
         throw sp_exception(DB_ERR_NO_REC,msg);
@@ -1337,11 +1334,8 @@ namespace seeks_plugins
       }
 
     // destroy query data.
-    if (cf_configuration::_config->_record_cache_timeout == 0)
-      {
-        rank_estimator::destroy_query_data(qdata);
-        rank_estimator::destroy_inv_qdata_key(inv_qdata);
-      }
+    rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   uint32_t simple_re::damerau_levenshtein_distance(const std::string &s1, const std::string &s2,
