@@ -353,6 +353,7 @@ namespace seeks_plugins
                 continue;
               }
 
+            // if not already in set.
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
                 str_chain strc_rquery(qd->_query,0,true);
