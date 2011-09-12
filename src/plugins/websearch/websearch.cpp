@@ -158,10 +158,6 @@ namespace seeks_plugins
                                      http_response *rsp,
                                      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     // redirection to local file is forbidden by most browsers. Let's read the file instead.
     sp_err err = static_renderer::render_hp(csp,rsp);
 
@@ -172,10 +168,6 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     std::string seeks_search_css_str = "websearch/templates/themes/"
                                        + websearch::_wconfig->_ui_theme + "/css/seeks_hp_search.css";
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
@@ -200,10 +192,6 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     std::string seeks_search_css_str = "websearch/templates/themes/"
                                        + websearch::_wconfig->_ui_theme + "/css/seeks_search.css";
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
@@ -228,10 +216,6 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     std::string seeks_opensearch_xml_str = "websearch/templates/opensearch.xml";
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
     = static_renderer::websearch_exports(csp);
@@ -323,8 +307,6 @@ namespace seeks_plugins
       {
         // detection from HTTP headers.
         query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
-        assert(!qlang.empty());
-        assert(!qlang_reg.empty());
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
       }
@@ -923,7 +905,8 @@ namespace seeks_plugins
                   case WB_ERR_NO_ENGINE:
                     break;
                   case WB_ERR_NO_ENGINE_OUTPUT:
-                    websearch::failed_ses_connect(csp,rsp);
+                    if (!persf)
+                      websearch::failed_ses_connect(csp,rsp);
                     err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
                     break;
                   default:
@@ -935,7 +918,7 @@ namespace seeks_plugins
             // instead signal all personalization threads that results may have
             // arrived.
             mutex_unlock(&qc->_feeds_ack_mutex);
-            if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
+            if (persf && err != SP_ERR_CGI_PARAMS)
               {
               }
             else if (err != SP_ERR_OK)
@@ -1005,7 +988,8 @@ namespace seeks_plugins
               case WB_ERR_NO_ENGINE:
                 break;
               case WB_ERR_NO_ENGINE_OUTPUT:
-                websearch::failed_ses_connect(csp,rsp);
+                if (!persf)
+                  websearch::failed_ses_connect(csp,rsp);
                 err = WB_ERR_SE_CONNECT;
                 break;
               default:
@@ -1017,7 +1001,7 @@ namespace seeks_plugins
         // instead signal all personalization threads that results may have
         // arrived.
         mutex_unlock(&qc->_feeds_ack_mutex);
-        if (persf)
+        if (persf && err != SP_ERR_CGI_PARAMS)
           {
           }
         else if (err != SP_ERR_OK)
