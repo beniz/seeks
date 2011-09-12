@@ -380,7 +380,7 @@ namespace seeks_plugins
         const char *query = miscutil::lookup(parameters,"q");
         if (!query)
           {
-            delete parameters;
+            miscutil::free_map(parameters);
             return NULL;
           }
         std::string query_str = query_capture_element::no_command_query(query);
@@ -393,7 +393,7 @@ namespace seeks_plugins
           {
             errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
                               query_str.c_str());
-            delete parameters;
+            miscutil::free_map(parameters);
             return NULL;
           }
 
@@ -411,7 +411,7 @@ namespace seeks_plugins
           {
             errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
           }
-        delete parameters;
+        miscutil::free_map(parameters);
       }
 
     return NULL; // no response, so the proxy does not crunch this HTTP request.
