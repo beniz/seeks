@@ -259,7 +259,7 @@ namespace seeks_plugins
                                             accept,get,connect);
 
     /**
-     * URI domain name is store in two cases:
+     * URI domain name is stored in two cases:
      * - there is no referer in the HTTP request headers.
      * - the host domain is different than the referer, indicating a move
      *   to a different website.
