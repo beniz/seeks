@@ -377,6 +377,7 @@ TEST(JsonRendererTest, render_node_options)
   EXPECT_NE(std::string::npos, json_opts.find("\"thumbs\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"content-analysis\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"clustering\""));
+  EXPECT_NE(std::string::npos, json_opts.find("\"txt-parsers\""));
   delete csp->_config;
   delete csp;
 

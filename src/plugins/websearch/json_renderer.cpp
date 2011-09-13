@@ -103,6 +103,36 @@ namespace seeks_plugins
     websearch::_wconfig->_clustering ? opt += "\"on\"" : opt += "\"off\"";
     opts.push_back(opt);
 
+    /* feeds options */
+    std::list<std::string> se_options;
+    hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
+    std::set<feed_parser,feed_parser::lxn>::const_iterator fit
+    = websearch::_wconfig->_se_enabled._feedset.begin();
+    while(fit!=websearch::_wconfig->_se_enabled._feedset.end())
+      {
+        std::string fp_name = (*fit)._name;
+        opt = "\"" + fp_name + "\":{";
+        std::list<std::string> se_urls;
+        std::set<std::string>::const_iterator sit
+        = (*fit)._urls.begin();
+        while(sit!=(*fit)._urls.end())
+          {
+            std::string url = (*sit);
+            if ((hit=websearch::_wconfig->_se_options.find(url.c_str()))
+                !=websearch::_wconfig->_se_options.end())
+              {
+                std::string opt_url = "\"" + (*hit).second._id + "\":{\"default\":"
+                                      + "\"" + ((*hit).second._default ? "true" : "false") + "\"}";
+                se_urls.push_back(opt_url);
+              }
+            ++sit;
+          }
+        opt += miscutil::join_string_list(",",se_urls) + "}";
+        se_options.push_back(opt);
+        ++fit;
+      }
+    opts.push_back("\"txt-parsers\":{" + miscutil::join_string_list(",",se_options) + "}");
+
     return SP_ERR_OK;
   }
 
