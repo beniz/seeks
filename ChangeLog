@@ -1,3 +1,13 @@
+* Bodie-0.3.5a-HIPPY-stable
+
+This sub-release mainly fixes several memory leaks.
+
+- Fixes leak in P2P client batch query call.
+
+- Various comments and error logs improvements.
+
+- Various unit tests cleanups.
+
 * Bodie-0.3.5-HIPPY-stable
 
 This release brings  improvements to the peer-to-peer search, fixes
