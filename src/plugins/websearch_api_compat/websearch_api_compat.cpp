@@ -67,6 +67,7 @@ namespace seeks_plugins
         if (!query_str || strlen(query_str) == 0)
           return SP_ERR_CGI_PARAMS;
         std::string query = query_str;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
 
         // check for action.
         const char *action = miscutil::lookup(parameters,"action");
@@ -119,6 +120,7 @@ namespace seeks_plugins
         if (!query_str || strlen(query_str) == 0)
           return SP_ERR_CGI_PARAMS;
         std::string query = query_str;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
@@ -129,6 +131,7 @@ namespace seeks_plugins
         std::string surl = urlmatch::strip_url(url);
         uint32_t id = mrf::mrf_single_feature(surl);
         std::string sid = miscutil::to_string(id);
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
 
         // route to /cache
         free(csp->_http._path);
@@ -150,6 +153,7 @@ namespace seeks_plugins
         if (!query_str || strlen(query_str) == 0)
           return SP_ERR_CGI_PARAMS;
         std::string query = query_str;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
 
         // redirection.
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>\
@@ -164,6 +168,7 @@ namespace seeks_plugins
         std::string surl = urlmatch::strip_url(url);
         uint32_t id = mrf::mrf_single_feature(surl);
         std::string sid = miscutil::to_string(id);
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
 
         // route to POST /search/txt
         free(csp->_http._path);
@@ -187,6 +192,7 @@ namespace seeks_plugins
         if (!query_str || strlen(query_str) == 0)
           return SP_ERR_CGI_PARAMS;
         std::string query = query_str;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
@@ -197,6 +203,7 @@ namespace seeks_plugins
         std::string surl = urlmatch::strip_url(url);
         uint32_t id = mrf::mrf_single_feature(surl);
         std::string sid = miscutil::to_string(id);
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
 
         // route to DELETE /search/txt
         free(csp->_http._path);
