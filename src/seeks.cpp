@@ -627,6 +627,10 @@ int main(int argc, const char *argv[])
     seeks_proxy::listen_loop();
   else
     {
+      if (!seeks_proxy::_httpserv_thread)
+        {
+          errlog::log_error(LOG_LEVEL_FATAL,"Can't find HTTP server thread.");
+        }
       pthread_join(*seeks_proxy::_httpserv_thread,NULL);
     }
 
