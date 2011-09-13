@@ -353,6 +353,7 @@ namespace seeks_plugins
                 continue;
               }
 
+            // if not already in set.
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
                 str_chain strc_rquery(qd->_query,0,true);
@@ -389,8 +390,8 @@ namespace seeks_plugins
                     db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str,in_store);
                     if (!dbr_data) // this should in general not happen unless the query has been pruned away.
                       {
-                        errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
-                                          key_str.c_str());
+                        errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s and query %s in user db",
+                                          key_str.c_str(),qd->_query.c_str());
                         ++qit;
                         continue;
                       }
