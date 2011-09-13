@@ -80,6 +80,8 @@ class SRETest : public testing::Test
       plugin_manager::_plugin_repository = basedir + "/plugins/";
       seeks_proxy::_config = new proxy_configuration(seeks_proxy::_configfile);
       seeks_proxy::_lsh_config = new lsh_configuration(seeks_proxy::_lshconfigfile);
+      cf_configuration::_config = new cf_configuration("");
+      cf_configuration::_config->_record_cache_timeout = 0;
 
       seeks_proxy::_user_db = new user_db(dbfile);
       seeks_proxy::_user_db->open_db();
@@ -124,6 +126,7 @@ class SRETest : public testing::Test
     virtual void TearDown()
     {
       plugin_manager::close_all_plugins();
+      delete cf_configuration::_config;
       delete seeks_proxy::_user_db;
       delete seeks_proxy::_lsh_config;
       delete seeks_proxy::_config;
@@ -162,6 +165,7 @@ TEST_F(SRETest,extract_queries)
 
   rank_estimator::destroy_records(records);
   rank_estimator::destroy_query_data(qdata);
+  rank_estimator::destroy_inv_qdata_key(inv_qdata);
 }
 
 TEST(SREAPITest,damerau_levenshtein_distance)

@@ -179,6 +179,7 @@ TEST_F(WBExistTest,perform_websearch_no_engine_fail_new)
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
   //miscutil::add_map_entry(parameters,"action",1,"expand",1);
   miscutil::add_map_entry(parameters,"engines",1,"",1);
+  miscutil::add_map_entry(parameters,"prs",1,"off",1);
   bool render = false;
   sp_err err = websearch::perform_websearch(&csp,&rsp,parameters,render);
   ASSERT_EQ(WB_ERR_NO_ENGINE,err);

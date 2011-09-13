@@ -341,8 +341,10 @@ namespace seeks_plugins
       }
 
     // setup the language region.
-    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                            "lreg",1,qlang_reg.c_str(),1);
+    const char *lreg = miscutil::lookup(parameters,"lreg");
+    if (!lreg)
+      miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
+                              "lreg",1,qlang_reg.c_str(),1);
 
     // set action to expand and expansion to 1 if q is specified but not action.
     /*const char *action = miscutil::lookup(parameters,"action");
@@ -1063,6 +1065,65 @@ namespace seeks_plugins
         mutex_lock(&qc->_qc_mutex);
         mutex_lock(&qc->_feeds_ack_mutex);
         try
+          /*=======
+              // check whether search is expanding or the user is leafing through pages.
+              const char *action = miscutil::lookup(parameters,"action");
+
+              if (strcmp(action,"expand") == 0)
+                {
+                  expanded = true;
+                  mutex_lock(&qc->_qc_mutex);
+                  mutex_lock(&qc->_feeds_ack_mutex);
+                  try
+                    {
+          #if defined(PROTOBUF) && defined(TC)
+                      if (persf)
+                        {
+                          int perr = pthread_create(&pers_thread,NULL,
+                                                    (void *(*)(void *))&sort_rank::personalize,qc);
+                          if (perr != 0)
+                            {
+                              errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
+                              mutex_unlock(&qc->_qc_mutex);
+                              mutex_unlock(&qc->_feeds_ack_mutex);
+                              return WB_ERR_THREAD;
+                            }
+                        }
+          #endif
+                      qc->generate(csp,rsp,parameters,expanded);
+                    }
+                  catch (sp_exception &e)
+                    {
+                      err = e.code();
+                      switch(err)
+                        {
+                        case SP_ERR_CGI_PARAMS:
+                        case WB_ERR_NO_ENGINE:
+                          break;
+                        case WB_ERR_NO_ENGINE_OUTPUT:
+                          if (!persf)
+                            websearch::failed_ses_connect(csp,rsp);
+                          err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
+                          break;
+                        default:
+                          break;
+                        }
+                    }
+
+                  // do not return if perso + err != no engine
+                  // instead signal all personalization threads that results may have
+                  // arrived.
+                  mutex_unlock(&qc->_feeds_ack_mutex);
+                  if (persf && err != SP_ERR_CGI_PARAMS)
+                    {
+                    }
+                  else if (err != SP_ERR_OK)
+                    {
+                      return err;
+                    }
+                }
+              else if (miscutil::strcmpic(action,"page") == 0)
+          >>>>>>> experimental*/
           {
 #if defined(PROTOBUF) && defined(TC)
             if (persf)
@@ -1090,7 +1151,8 @@ namespace seeks_plugins
               case WB_ERR_NO_ENGINE:
                 break;
               case WB_ERR_NO_ENGINE_OUTPUT:
-                websearch::failed_ses_connect(csp,rsp);
+                if (!persf)
+                  websearch::failed_ses_connect(csp,rsp);
                 err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
                 break;
               default:
@@ -1102,7 +1164,7 @@ namespace seeks_plugins
         // instead signal all personalization threads that results may have
         // arrived.
         mutex_unlock(&qc->_feeds_ack_mutex);
-        if (persf && err != WB_ERR_NO_ENGINE && err != SP_ERR_CGI_PARAMS)
+        if (persf && err != SP_ERR_CGI_PARAMS)
           {
           }
         else if (err != SP_ERR_OK)
@@ -1155,7 +1217,8 @@ namespace seeks_plugins
               case WB_ERR_NO_ENGINE:
                 break;
               case WB_ERR_NO_ENGINE_OUTPUT:
-                websearch::failed_ses_connect(csp,rsp);
+                if (!persf)
+                  websearch::failed_ses_connect(csp,rsp);
                 err = WB_ERR_SE_CONNECT;
                 break;
               default:
@@ -1167,7 +1230,7 @@ namespace seeks_plugins
         // instead signal all personalization threads that results may have
         // arrived.
         mutex_unlock(&qc->_feeds_ack_mutex);
-        if (persf)
+        if (persf && err != SP_ERR_CGI_PARAMS)
           {
           }
         else if (err != SP_ERR_OK)

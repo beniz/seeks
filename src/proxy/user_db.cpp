@@ -245,7 +245,7 @@ namespace sp
     if (!_hdb->dbput(keyc,strlen(keyc),&v,sizeof(double)))
       {
         int ecode = _hdb->dbecode();
-        errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
+        errlog::log_error(LOG_LEVEL_ERROR,"user db adding version record error: %s",_hdb->dberrmsg(ecode));
         mutex_unlock(&_db_mutex);
         return DB_ERR_PUT;
       }

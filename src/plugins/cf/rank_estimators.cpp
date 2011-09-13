@@ -364,6 +364,7 @@ namespace seeks_plugins
                 continue;
               }
 
+            // if not already in set.
             if ((hit=qdata.find(qd->_query.c_str()))==qdata.end())
               {
                 str_chain strc_rquery(qd->_query,0,true);
@@ -400,8 +401,8 @@ namespace seeks_plugins
                     db_record *dbr_data = rank_estimator::find_dbr(udb,key_str,qc_str,in_store);
                     if (!dbr_data) // this should in general not happen unless the query has been pruned away.
                       {
-                        errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s in user db",
-                                          key_str.c_str());
+                        errlog::log_error(LOG_LEVEL_ERROR, "cannot find query data for key %s and query %s in user db",
+                                          key_str.c_str(),qd->_query.c_str());
                         ++qit;
                         continue;
                       }
@@ -1325,11 +1326,8 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
 
         // destroy query data.
-        if (cf_configuration::_config->_record_cache_timeout == 0)
-          {
-            rank_estimator::destroy_query_data(qdata);
-            rank_estimator::destroy_inv_qdata_key(inv_qdata);
-          }
+        rank_estimator::destroy_query_data(qdata);
+        rank_estimator::destroy_inv_qdata_key(inv_qdata);
 
         // exception.
         throw sp_exception(DB_ERR_NO_REC,msg);
@@ -1344,11 +1342,8 @@ namespace seeks_plugins
       }
 
     // destroy query data.
-    if (cf_configuration::_config->_record_cache_timeout == 0)
-      {
-        rank_estimator::destroy_query_data(qdata);
-        rank_estimator::destroy_inv_qdata_key(inv_qdata);
-      }
+    rank_estimator::destroy_query_data(qdata);
+    rank_estimator::destroy_inv_qdata_key(inv_qdata);
   }
 
   uint32_t simple_re::damerau_levenshtein_distance(const std::string &s1, const std::string &s2,

@@ -83,6 +83,7 @@ namespace seeks_plugins
         return NULL;
       }
     db_record *dbr = udb_client::deserialize_found_record(*cmg._outputs[0],pn);
+    delete cmg._outputs[0];
     delete[] cmg._outputs;
     if (!dbr)
       {
@@ -149,6 +150,7 @@ namespace seeks_plugins
         return NULL;
       }
     db_record *dbr = udb_client::deserialize_found_record(*cmg._outputs[0],"query-capture");
+    delete cmg._outputs[0];
     delete[] cmg._outputs;
     if (!dbr)
       {
