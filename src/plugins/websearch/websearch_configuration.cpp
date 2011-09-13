@@ -153,14 +153,13 @@ namespace seeks_plugins
             _se_enabled = feeds();
             _se_options.clear();
             _default_engines = false;
+            _se_default = feeds();
           }
 
         fed = feed_parser(vec[0]);
         def_fed = feed_parser(vec[0]);
-        //std::cerr << "config: adding feed: " << fed._name << std::endl;
         for (i=1; i<vec_count; i+=3)
           {
-            //std::cerr << "config: adding url: " << vec[i] << std::endl;
             fed.add_url(vec[i]);
             std::string fu_name = vec[i+1];
             def = false;
