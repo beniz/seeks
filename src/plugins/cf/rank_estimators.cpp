@@ -479,16 +479,19 @@ namespace seeks_plugins
         while(mit!=qd->_visited_urls->end())
           {
             vurl_data *vd = (*mit).second;
-            std::string surl = urlmatch::strip_url(vd->_url);
-            if ((qit = inv_qdata.find(surl.c_str()))!=inv_qdata.end())
+            if (!vd->_title.empty() && vd->_url.find("http")!=std::string::npos) // avoid recommended hosts.
               {
-                (*qit).second.push_back(qd);
-              }
-            else
-              {
-                std::vector<query_data*> vec;
-                vec.push_back(qd);
-                inv_qdata.insert(std::pair<const char*,std::vector<query_data*> >(strdup(surl.c_str()),vec));
+                std::string surl = urlmatch::strip_url(vd->_url);
+                if ((qit = inv_qdata.find(surl.c_str()))!=inv_qdata.end())
+                  {
+                    (*qit).second.push_back(qd);
+                  }
+                else
+                  {
+                    std::vector<query_data*> vec;
+                    vec.push_back(qd);
+                    inv_qdata.insert(std::pair<const char*,std::vector<query_data*> >(strdup(surl.c_str()),vec));
+                  }
               }
             ++mit;
           }
@@ -876,6 +879,8 @@ namespace seeks_plugins
         query_capture::process_url(url,host,path);
         std::string surl = urlmatch::strip_url(url);
 
+        // if snippets is already tagged as a seeks result,
+        // do not apply prior based on host information.
         if ((*vit)->_engine.has_feed("seeks"))
           host = "";
 
@@ -1123,11 +1128,9 @@ namespace seeks_plugins
 
         if (s && !hfiltered)
           {
-            //db_uri_record *uc_dbr = static_cast<db_uri_record*>(dbr);
             if (s->_meta_rank <= s->_engine.size())
               s->_meta_rank++;
             s->_personalized = true;
-            //s->_hits += uc_dbr->_hits;
           }
       }
     if (dbr)
@@ -1201,7 +1204,8 @@ namespace seeks_plugins
             vurl_data *vd = (*vit).second;
 
             // we do not recommend hosts.
-            if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0) // we do not consider https URLs for now, also avoids pure hosts.
+            if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0
+                || miscutil::strncmpic(vd->_url.c_str(),"https://",8) == 0) // avoids pure hosts stored for statistical computations.
               {
                 // update or create snippet.
                 search_snippet *sp = new search_snippet();
