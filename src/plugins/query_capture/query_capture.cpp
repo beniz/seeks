@@ -546,7 +546,7 @@ namespace seeks_plugins
     db_err err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
     if (err != SP_ERR_OK)
       {
-        std::string msg = "failed storage of captured query fragment" + key_str + " for query " + query + " with error "
+        std::string msg = "failed storage of captured query fragment " + key_str + " for query " + query + " with error "
                           + miscutil::to_string(err);
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(err,msg);
