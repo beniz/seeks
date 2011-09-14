@@ -170,6 +170,8 @@ namespace seeks_plugins
 
       int fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries, uint32_t &removed_urls);
 
+      std::string fix_issue_575(uint32_t &fixed_queries);
+
       void fetch_url_titles(uint32_t &fetched_urls,
                             const long &timeout,
                             const std::vector<std::list<const char*>*> *headers);

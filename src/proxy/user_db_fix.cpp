@@ -616,4 +616,125 @@ namespace sp
     return err;
   }
 
+  int user_db_fix::fix_issue_575()
+  {
+    user_db udb; // existing user db.
+    db_obj_local *dol = static_cast<db_obj_local*>(udb._hdb); // must be a local db, ensured from call in seeks.cpp
+
+    std::string bak_db = dol->get_name() + ".bak575";
+    int fdo = open(dol->get_name().c_str(),O_RDONLY);
+    if (fdo < 0)
+      {
+        // handle error.
+        errlog::log_error(LOG_LEVEL_ERROR,"Could not open the user db %s for fixing it",
+                          dol->get_name().c_str());
+        return -1;
+      }
+    struct stat sb;
+    stat(dol->get_name().c_str(),&sb);
+    int fdn = open(bak_db.c_str(),O_RDWR | O_TRUNC | O_CREAT,sb.st_mode);
+    if (fdn < 0)
+      {
+        // handle error.
+        errlog::log_error(LOG_LEVEL_ERROR,"Could not backup the user db %s into %s for fixing it: %s",
+                          dol->get_name().c_str(),bak_db.c_str(),strerror(errno));
+        return -1;
+      }
+    int bufsize = 65535;
+    char buf[bufsize];
+    int nbytes;
+    while((nbytes=read(fdo,&buf,bufsize))>0)
+      write(fdn,&buf,nbytes);
+    close(fdo);
+    close(fdn);
+    errlog::log_error(LOG_LEVEL_INFO,"user db %s successful backup in %s",
+                      dol->get_name().c_str(),bak_db.c_str());
+
+    int err = udb.open_db();
+    if (err != 0)
+      {
+        // handle error.
+        errlog::log_error(LOG_LEVEL_ERROR,"Could not open the user db for fixing it");
+        return -1;
+      }
+
+    errlog::log_error(LOG_LEVEL_INFO, "Applying fix 575 to user db");
+
+    // traverse records.
+    size_t frec = 0;
+    size_t fque = 0;
+    size_t ffque = 0;
+    std::map<std::string,db_record*> to_add;
+    void *rkey = NULL;
+    int rkey_size;
+    std::vector<std::string> to_remove;
+    udb._hdb->dbiterinit();
+    while ((rkey = udb._hdb->dbiternext(&rkey_size)) != NULL)
+      {
+        int value_size;
+        void *value = udb._hdb->dbget(rkey, rkey_size, &value_size);
+        if (value)
+          {
+            std::string str = std::string((char*)value,value_size);
+            free(value);
+            std::string key, plugin_name;
+            std::string rkey_str = std::string((char*)rkey);
+            if (rkey_str != user_db::_db_version_key
+                && user_db::extract_plugin_and_key(rkey_str,
+                                                   plugin_name,key) != 0)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,"Fix 575: could not extract record plugin and key from internal user db key");
+              }
+            else if (plugin_name != "query-capture")
+              {
+              }
+            else if (rkey_str != user_db::_db_version_key)
+              {
+                // get a proper object based on plugin name, and call the virtual function for reading the record.
+                plugin *pl = plugin_manager::get_plugin(plugin_name);
+                db_record *dbr = NULL;
+                if (!pl)
+                  {
+                    // handle error.
+                    errlog::log_error(LOG_LEVEL_ERROR,"Fix 575: could not find plugin %s for pruning user db record",
+                                      plugin_name.c_str());
+                    dbr = new db_record();
+                  }
+                else
+                  {
+                    dbr = pl->create_db_record();
+                  }
+
+                if (dbr->deserialize(str) != 0)
+                  {
+                    // deserialization error.
+                  }
+                else
+                  {
+                    uint32_t fq = 0;
+                    std::string nkey = static_cast<db_query_record*>(dbr)->fix_issue_575(fq);
+                    if (nkey.empty())
+                      nkey = key;
+
+                    if (fq>0)
+                      {
+                        ffque += fq;
+                        fque++;
+                        frec++;
+                        udb.remove_dbr(rkey_str);
+                        udb.add_dbr(nkey,*dbr);
+                      }
+                  }
+                delete dbr;
+              }
+          }
+        free(rkey);
+      }
+
+    udb.close_db();
+    errlog::log_error(LOG_LEVEL_INFO,"Fix 5775: fixed %u records in user db, dumped %u queries, fixed %u queries",
+                      frec,fque,ffque);
+    return err;
+  }
+
 } /* end of namespace. */

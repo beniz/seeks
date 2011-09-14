@@ -59,9 +59,14 @@ namespace sp
                                     const std::vector<std::list<const char*>*> *headers);
 
       /**
-       * \brief merge db into
+       * \brief merge db into.
        */
       static int merge_with(const std::string &db_to_merge);
+
+      /**
+       * \brief fix case-sensitive queries.
+       */
+      static int fix_issue_575();
   };
 
 } /* end of namespace. */

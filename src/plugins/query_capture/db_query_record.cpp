@@ -496,7 +496,6 @@ namespace seeks_plugins
         std::string fixed_query = miscutil::chomp_cpp(query);
         if (fixed_query != qd->_query)
           {
-            //std::cerr << "fix 263: " << qd->_query << " -- " << fixed_query << std::endl;
             hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
             ++hit;
             _related_queries.erase(hit2);
@@ -672,6 +671,48 @@ namespace seeks_plugins
       } // end iterate related_queries.
 
     return dumped_queries;
+  }
+
+  std::string db_query_record::fix_issue_575(uint32_t &fixed_queries)
+  {
+    std::string nkey;
+    std::vector<query_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+        std::string lc_query = qd->_query;
+        miscutil::to_lower(lc_query);
+
+        if (lc_query != qd->_query)
+          {
+            if (qd->_radius == 0)
+              {
+                // generate new record key.
+                hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+                qprocess::generate_query_hashes(lc_query,0,0,features);
+                if (!features.empty())
+                  nkey = (*features.begin()).second.to_rstring();
+              }
+
+            hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
+            ++hit;
+            _related_queries.erase(hit2);
+            qd->_query = lc_query;
+            to_insert.push_back(qd);
+            fixed_queries++;
+          }
+        else ++hit;
+      } // end iterate related_queries.
+    size_t tis = to_insert.size();
+    if (tis > 0)
+      {
+        for (size_t i=0; i<tis; i++)
+          _related_queries.insert(std::pair<const char*,query_data*>(to_insert.at(i)->_query.c_str(),
+                                  to_insert.at(i)));
+      }
+    return nkey;
   }
 
   void db_query_record::fetch_url_titles(uint32_t &fetched_urls,
