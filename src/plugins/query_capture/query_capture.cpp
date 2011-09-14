@@ -302,10 +302,8 @@ namespace seeks_plugins
   }
 
   void query_capture_element::store_queries(const query_context *qc,
-      //const std::string &rquery,
       const std::string &url, const std::string &host,
       const std::string &plugin_name,
-      //const std::string &qlang,
       const int &radius) throw (sp_exception)
   {
     std::string query = qc->_lc_query;
