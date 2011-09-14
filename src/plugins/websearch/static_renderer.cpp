@@ -102,13 +102,10 @@ namespace seeks_plugins
 
 #if defined(PROTOBUF) && defined(TC)
     if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
-        && query_capture_configuration::_config
-        && query_capture_configuration::_config->_mode_intercept == "redirect")
+        && query_capture_configuration::_config)
       {
         url = base_url_str + "/qc_redir?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc
               + "&amp;lang=" + sp->_qc->_auto_lang;
-        /*url = "<form method=\"post\" action=\"/search/txt/" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
-        + "\"><input type=\"submit\" class=\"no_button\" value=\"" + sp->_title + "\"/></form>";*/
       }
 #endif
 
@@ -1319,7 +1316,7 @@ namespace seeks_plugins
         else if (mode == 1)
           {
             std::string lctitle = sp->_title;
-            std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+            miscutil::to_lower(lctitle);
             ulsh_ham.add(lctitle,lsh_ham->_Ld);
           }
       }
@@ -1350,7 +1347,7 @@ namespace seeks_plugins
         else if (mode == 1)
           {
             std::string lctitle = sp->_title;
-            std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+            miscutil::to_lower(lctitle);
             mres = ulsh_ham.getLEltsWithProbabilities(lctitle,lsh_ham->_Ld);
           }
         std::map<double,const std::string,std::greater<double> >::const_iterator mit = mres.begin();

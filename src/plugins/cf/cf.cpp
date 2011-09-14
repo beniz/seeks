@@ -149,15 +149,12 @@ namespace seeks_plugins
         return e.code();
       }
 
+    miscutil::to_lower(query); // lower case query for filtering operations.
     sp_err err = cf::tbd(parameters,url,query);
     if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
       {
         errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
       }
-    /*else if (err == DB_ERR_NO_REC)
-      {
-    return err;
-    }*/
     return err;
   }
 
@@ -245,7 +242,10 @@ namespace seeks_plugins
       }
     else
       {
-        //TODO: error.
+        // error.
+        errlog::log_error(LOG_LEVEL_ERROR,"wrong HTTP method %s for recommendation call",
+                          http_method.c_str());
+        return cgi::cgi_error_bad_param(csp,rsp,"json");
       }
   }
 
@@ -433,7 +433,7 @@ namespace seeks_plugins
     int err = SP_ERR_OK;
     try
       {
-        query_capture_element::store_queries(query,url,host,"query-capture",qc->_auto_lang,radius);
+        query_capture_element::store_queries(qc,url,host,"query-capture",radius);
       }
     catch (sp_exception &e)
       {

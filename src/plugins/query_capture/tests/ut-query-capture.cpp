@@ -23,6 +23,7 @@
 #include "db_query_record.h"
 #include "qprocess.h"
 #include "user_db.h"
+#include "query_context.h"
 #include "seeks_proxy.h"
 #include "plugin_manager.h"
 #include "proxy_configuration.h"
@@ -84,7 +85,7 @@ class QCTest : public testing::Test
       ASSERT_TRUE(NULL!=pl);
       qcpl = static_cast<query_capture*>(pl);
       ASSERT_TRUE(NULL!=qcpl);
-      qcelt = static_cast<query_capture_element*>(qcpl->_interceptor_plugin);
+      qcelt = qcpl->_qelt;
 
       // check that the db is empty.
       ASSERT_TRUE(seeks_proxy::_user_db!=NULL);
@@ -196,15 +197,21 @@ TEST_F(QCTest,store_queries_url)
   std::string url = uris[1];
   std::string host,path;
   query_capture::process_url(url,host,path);
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,queries[0].c_str(),1);
+  std::list<const char*> headers;
+  query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(queries[0],url,host,"query-capture");
+      qcelt->store_queries(&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
       ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
     }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
+  miscutil::free_map(parameters);
 
   hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
   qprocess::generate_query_hashes(queries[0],0,5,features);
@@ -228,21 +235,27 @@ TEST_F(QCTest,store_queries_url_merge)
   std::string url = uris[1];
   std::string host,path;
   query_capture::process_url(url,host,path);
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,queries[0].c_str(),1);
+  std::list<const char*> headers;
+  query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(queries[0],url,host,"query-capture");
+      qcelt->store_queries(&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
       ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
     }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
+  miscutil::free_map(parameters);
 
   std::string url2 = uris[2];
   query_capture::process_url(url2,host,path);
   try
     {
-      qcelt->store_queries(queries[0],url2,host,"query-capture");
+      qcelt->store_queries(&qc,url2,host,"query-capture");
     }
   catch (sp_exception &e)
     {
@@ -276,15 +289,21 @@ TEST_F(QCTest,remove_url)
   std::string url = uris[1];
   std::string host,path;
   query_capture::process_url(url,host,path);
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,queries[0].c_str(),1);
+  std::list<const char*> headers;
+  query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(queries[0],url,host,"query-capture");
+      qcelt->store_queries(&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
       ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
     }
   ASSERT_EQ(1,seeks_proxy::_user_db->number_records());
+  miscutil::free_map(parameters);
 
   hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
   qprocess::generate_query_hashes(queries[0],0,5,features);

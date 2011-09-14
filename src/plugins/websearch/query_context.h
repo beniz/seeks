@@ -231,8 +231,9 @@ namespace seeks_plugins
 
     public:
       std::string _query; /**< clean query, no commands in it. */
-      std::string _query_key; /**< query of the form ":lg query", used as a key for context retrieval. */
+      std::string _query_key; /**< query of the form ":lg query", where lg is the language code, used as a key for context retrieval. */
       std::string _url_enc_query;
+      std::string _lc_query; /**< lower case query, for storage and similarity operations. */
       uint32_t _query_hash; /**< hashed query_key. */
 
       /* expansion. */

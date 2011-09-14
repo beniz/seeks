@@ -94,7 +94,7 @@ namespace seeks_plugins
 
   /*- query_capture -*/
   query_capture::query_capture()
-    :plugin()
+    :plugin(),_qelt(NULL)
   {
     _name = "query-capture";
     _version_major = "0";
@@ -116,20 +116,13 @@ namespace seeks_plugins
     if (query_capture_configuration::_config == NULL)
       query_capture_configuration::_config = new query_capture_configuration(_config_filename);
     _configuration = query_capture_configuration::_config;
-
-    // cgi dispatchers.
-    /*_cgi_dispatchers.reserve(1);
-    cgi_dispatcher *cgid_qc_redir
-    = new cgi_dispatcher("qc_redir",&query_capture::cgi_qc_redir,NULL,TRUE);
-    _cgi_dispatchers.push_back(cgid_qc_redir);*/
-
-    if (query_capture_configuration::_config->_mode_intercept == "capture")
-      _interceptor_plugin = new query_capture_element(this);
+    _qelt = new query_capture_element();
   }
 
   query_capture::~query_capture()
   {
     query_capture_configuration::_config = NULL; // configuration is deleted in parent class.
+    delete _qelt;
   }
 
   void query_capture::start()
@@ -143,7 +136,7 @@ namespace seeks_plugins
     else if (seeks_proxy::_config->_user_db_startup_check)
       {
         // preventive sweep of records.
-        static_cast<query_capture_element*>(_interceptor_plugin)->_qds.sweep_records();
+        _qelt->_qds.sweep_records();
       }
 
     // get number of captured queries already in user_db.
@@ -218,6 +211,7 @@ namespace seeks_plugins
     // So we perform a basic test, discouraging many, not all.
     if (query_capture_configuration::_config->_protected_redirection)
       {
+        //TODO: new API.
         /* if (ref_host == base_url)
          {*/
         size_t p = ref_path.find("search?");
@@ -231,24 +225,14 @@ namespace seeks_plugins
 
     // capture queries and URL / HOST.
     // XXX: could be threaded and detached.
-    char *queryp = encode::url_decode(q);
-    std::string query = queryp;
     query_context *qc = websearch::lookup_qc(parameters);
-    std::string qlang;
-    if (qc)
-      qlang = qc->_auto_lang;
-    else if (!query_context::has_query_lang(query,qlang))
-      qlang = query_context::_default_alang;
-    query = query_capture_element::no_command_query(query);
-    free(queryp);
-
     std::string host,path;
     std::string url = std::string(urlp);
     query_capture::process_url(url,host,path);
 
     try
       {
-        query_capture::store_queries(query,url,host,qlang);
+        query_capture::store_queries(qc,url,host);
       }
     catch (sp_exception &e)
       {
@@ -289,31 +273,15 @@ namespace seeks_plugins
     return seeks_proxy::_user_db->prune_db(_name);
   }
 
-  void query_capture::store_queries(const std::string &query,
-                                    const std::string &url, const std::string &host,
-                                    const std::string &qlang) throw (sp_exception)
+  void query_capture::store_queries(const query_context *qc,
+                                    const std::string &url, const std::string &host
+                                   ) throw (sp_exception)
   {
-    // check charset encoding.
-    std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
-    if (queryc.empty())
-      {
-        errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
-                          query.c_str());
-        return;
-      }
-    query_capture_element::store_queries(query,url,host,"query-capture",qlang);
+    query_capture_element::store_queries(qc,url,host,"query-capture");
   }
 
   void query_capture::store_queries(const std::string &query) const throw (sp_exception)
   {
-    // check charset encoding.
-    std::string queryc = charset_conv::charset_check_and_conversion(query,std::list<const char*>());
-    if (queryc.empty())
-      {
-        errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
-                          query.c_str());
-        return;
-      }
     pthread_rwlock_rdlock(&query_capture_configuration::_config->_conf_rwlock);
     query_capture_element::store_queries(query,get_name());
     pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
@@ -323,11 +291,7 @@ namespace seeks_plugins
   std::string query_capture_element::_capt_filename = "query_capture/query-patterns";
   std::string query_capture_element::_cgi_site_host = CGI_SITE_1_HOST;
 
-  query_capture_element::query_capture_element(plugin *parent)
-    : interceptor_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
-                          + query_capture_element::_capt_filename).c_str()
-                          : std::string(seeks_proxy::_datadir + "/plugins/" + query_capture_element::_capt_filename).c_str()),
-                         parent)
+  query_capture_element::query_capture_element()
   {
     if (seeks_proxy::_user_db)
       seeks_proxy::_user_db->register_sweeper(&_qds);
@@ -337,97 +301,15 @@ namespace seeks_plugins
   {
   }
 
-  http_response* query_capture_element::plugin_response(client_state *csp)
-  {
-    /* std::cerr << "[query_capture]: headers:\n";
-    std::copy(csp->_headers.begin(),csp->_headers.end(),
-    	  std::ostream_iterator<const char*>(std::cout,"\n"));
-    std::cerr << std::endl; */
-
-    /**
-     * Captures clicked URLs from search results, and store them along with
-     * the query fragments.
-     */
-    std::string host, referer, get, base_url;
-    query_capture_element::get_useful_headers(csp->_headers,
-        host,referer,get,
-        base_url);
-    if (base_url.empty())
-      base_url = query_capture_element::_cgi_site_host;
-
-    std::string ref_host, ref_path;
-    urlmatch::parse_url_host_and_path(referer,ref_host,ref_path);
-    if (ref_host == base_url)
-      {
-        // check that is not a query itself.
-        size_t p = get.find("search?");
-        if (p == std::string::npos)
-          {
-            p = get.find("search_img?");
-            if (p!=std::string::npos)
-              return NULL;
-          }
-        else return NULL;
-
-        // check that it comes from an API call to the websearch plugin.
-        p = referer.find("search?");
-        if (p == std::string::npos)
-          {
-            p = referer.find("search_img?");
-            if (p == std::string::npos)
-              return NULL;
-          }
-
-        char *argstring = strdup(ref_path.c_str());
-        hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-        = cgi::parse_cgi_parameters(argstring);
-        free(argstring);
-        const char *query = miscutil::lookup(parameters,"q");
-        if (!query)
-          {
-            miscutil::free_map(parameters);
-            return NULL;
-          }
-        std::string query_str = query_capture_element::no_command_query(query);
-
-        //std::cerr << "detected query: " << query_str << std::endl;
-
-        // check charset encoding.
-        std::string query_strc = charset_conv::charset_check_and_conversion(query_str,csp->_headers);
-        if (query_strc.empty())
-          {
-            errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for query to be captured %s",
-                              query_str.c_str());
-            miscutil::free_map(parameters);
-            return NULL;
-          }
-
-        query_capture::process_get(get);
-        host = urlmatch::strip_url(host);
-        std::string url = host + get;
-        query_capture::process_url(url,host);
-
-        // store queries and URL / HOST.
-        try
-          {
-            query_capture_element::store_queries(query_str,url,host,_parent->get_name());
-          }
-        catch (sp_exception &e)
-          {
-            errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
-          }
-        miscutil::free_map(parameters);
-      }
-
-    return NULL; // no response, so the proxy does not crunch this HTTP request.
-  }
-
-  void query_capture_element::store_queries(const std::string &query,
+  void query_capture_element::store_queries(const query_context *qc,
+      //const std::string &rquery,
       const std::string &url, const std::string &host,
       const std::string &plugin_name,
-      const std::string &qlang,
+      //const std::string &qlang,
       const int &radius) throw (sp_exception)
   {
+    std::string query = qc->_lc_query;
+
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
     qprocess::generate_query_hashes(query,0,
@@ -440,16 +322,10 @@ namespace seeks_plugins
     // for the recorded query of radius 0 that holds the URL counters.
     int uerr = 0;
     int qerr = 0;
-    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-    = new hash_map<const char*,const char*,hash<const char*>,eqstr>(2);
-    miscutil::add_map_entry(parameters,"q",1,query.c_str(),1);
-    miscutil::add_map_entry(parameters,"lang",1,qlang.c_str(),1);
-    query_context *qc = websearch::lookup_qc(parameters);
-    miscutil::free_map(parameters);
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
     while (hit!=features.end())
       {
-        if ((*hit).first == 0)
+        if ((*hit).first == 0) // radius == 0.
           {
             try
               {
@@ -477,7 +353,7 @@ namespace seeks_plugins
                 uerr++;
               }
           }
-        else
+        else  // store query alone.
           {
             try
               {
@@ -510,13 +386,9 @@ namespace seeks_plugins
   void query_capture_element::store_queries(const std::string &query,
       const std::string &plugin_name) throw (sp_exception)
   {
-    // strip query.
-    std::string q = query_capture_element::no_command_query(query);
-    q = miscutil::chomp_cpp(q);
-
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
-    qprocess::generate_query_hashes(q,0,
+    qprocess::generate_query_hashes(query,0,
                                     query_capture_configuration::_config->_max_radius,
                                     features);
 
@@ -527,7 +399,7 @@ namespace seeks_plugins
       {
         try
           {
-            query_capture_element::store_query((*hit).second,q,(*hit).first,plugin_name);
+            query_capture_element::store_query((*hit).second,query,(*hit).first,plugin_name);
           }
         catch(sp_exception &e)
           {

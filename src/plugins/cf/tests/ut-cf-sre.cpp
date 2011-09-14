@@ -26,6 +26,7 @@
 #include "rank_estimators.h"
 #include "query_capture.h"
 #include "user_db.h"
+#include "query_context.h"
 #include "seeks_proxy.h"
 #include "plugin_manager.h"
 #include "proxy_configuration.h"
@@ -53,6 +54,13 @@ static std::string uris[3] =
   "http://www.seeks-project.info/",
   "http://seeks-project.info/wiki/index.php/Documentation",
   "http://www.seeks-project.info/wiki/index.php/Download"
+};
+
+static std::string titles[3] =
+{
+  "Seeks Project",
+  "Seeks Project Documentation",
+  "Seeks Project Download"
 };
 
 class SRETest : public testing::Test
@@ -92,7 +100,7 @@ class SRETest : public testing::Test
       ASSERT_TRUE(NULL!=pl);
       qcpl = static_cast<query_capture*>(pl);
       ASSERT_TRUE(NULL!=qcpl);
-      qcelt = static_cast<query_capture_element*>(qcpl->_interceptor_plugin);
+      qcelt = qcpl->_qelt;
 
       // check that the db is empty.
       ASSERT_TRUE(seeks_proxy::_user_db!=NULL);
@@ -102,25 +110,45 @@ class SRETest : public testing::Test
       std::string url = uris[1];
       std::string host,path;
       query_capture::process_url(url,host,path);
+      hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+      = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+      miscutil::add_map_entry(parameters,"q",1,queries[0].c_str(),1);
+      std::list<const char*> headers;
+      query_context qc(parameters,headers);
+      search_snippet *sp = new search_snippet();
+      sp->set_url(url);
+      sp->set_title(titles[1]);
+      qc._cached_snippets.push_back(sp);
+      qc.add_to_unordered_cache(sp);
       try
         {
-          qcelt->store_queries(queries[0],url,host,"query-capture");
+          qcelt->store_queries(&qc,url,host,"query-capture");
         }
       catch (sp_exception &e)
         {
           ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
         }
+      miscutil::free_map(parameters);
       std::string url2 = uris[2];
       query_capture::process_url(url2,host,path);
+      parameters = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+      miscutil::add_map_entry(parameters,"q",1,queries[1].c_str(),1);
+      query_context qc2(parameters,headers);
+      sp = new search_snippet();
+      sp->set_url(url2);
+      sp->set_title(titles[2]);
+      qc2._cached_snippets.push_back(sp);
+      qc2.add_to_unordered_cache(sp);
       try
         {
-          qcelt->store_queries(queries[1],url2,host,"query-capture");
+          qcelt->store_queries(&qc2,url2,host,"query-capture");
         }
       catch (sp_exception &e)
         {
           ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
         }
       ASSERT_EQ(3,seeks_proxy::_user_db->number_records()); // seeks, seeks project, project.
+      miscutil::free_map(parameters);
     }
 
     virtual void TearDown()
@@ -356,16 +384,22 @@ TEST_F(SRETest,estimate_ranks)
   std::vector<search_snippet*> snippets;
   snippets.reserve(3);
   search_snippet s0;
-  s0.set_url(uris[0]);
+  s0.set_url(uris[0]);  // http://www.seeks-project.info/
+  s0.set_title(titles[0]);
   search_snippet s1;
-  s1.set_url(uris[1]);
+  s1.set_url(uris[1]);  // http://seeks-project.info/wiki/index.php/Documentation
+  s1.set_title(titles[1]);
   search_snippet s2;
-  s2.set_url(uris[2]);
+  s2.set_url(uris[2]);  // http://www.seeks-project.info/wiki/index.php/Download
+  s2.set_title(titles[2]);
   snippets.push_back(&s0);
   snippets.push_back(&s1);
   snippets.push_back(&s2);
   sre.estimate_ranks(queries[1],lang,1,snippets);
   ASSERT_EQ(3,snippets.size());
+
+  std::cerr << "ranks, s2: " << s2._seeks_rank << " -- s1: " << s1._seeks_rank << " -- s0: " << s0._seeks_rank << std::endl;
+
   ASSERT_TRUE(s2._seeks_rank > s1._seeks_rank);
   ASSERT_TRUE(s1._seeks_rank > s0._seeks_rank);
 }
@@ -377,14 +411,20 @@ TEST_F(SRETest, utf8)
   std::string url = uris[1];
   std::string host, path;
   query_capture::process_url(url,host,path);
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,q.c_str(),1);
+  std::list<const char*> headers;
+  query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(q,url,host,"query-capture");
+      qcelt->store_queries(&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
       ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
     }
+  miscutil::free_map(parameters);
 
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
   rank_estimator::fetch_user_db_record(q,seeks_proxy::_user_db,records);

@@ -70,9 +70,12 @@ namespace seeks_plugins
     if (!q)
       {
         // this should not happen.
+        errlog::log_error(LOG_LEVEL_ERROR,"creating context with empty query string");
         q = "";
       }
     _query = q;
+    _lc_query = _query;
+    miscutil::to_lower(_lc_query);
 
     // set timestamp.
     struct timeval tv_now;
@@ -97,7 +100,7 @@ namespace seeks_plugins
     _auto_lang_reg = alang_reg;
 
     // query hashing, with the language included.
-    _query_key = query_context::assemble_query(_query,_auto_lang);
+    _query_key = query_context::assemble_query(_lc_query,_auto_lang);
     _query_hash = query_context::hash_query_for_context(_query_key);
 
     // encoded query.
@@ -403,7 +406,7 @@ namespace seeks_plugins
   search_snippet* query_context::get_cached_snippet(const std::string &url) const
   {
     std::string url_lc(url);
-    std::transform(url.begin(),url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     uint32_t id = mrf::mrf_single_feature(surl);
     return get_cached_snippet(id);
@@ -420,7 +423,7 @@ namespace seeks_plugins
   void query_context::add_to_unordered_cache_title(search_snippet *sr)
   {
     std::string lctitle = sr->_title;
-    std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+    miscutil::to_lower(lctitle);
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
       {
@@ -432,7 +435,7 @@ namespace seeks_plugins
   void query_context::remove_from_unordered_cache_title(search_snippet *sr)
   {
     std::string lctitle = sr->_title;
-    std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+    miscutil::to_lower(lctitle);
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
       {
@@ -457,6 +460,7 @@ namespace seeks_plugins
     if (alang)
       {
         qlang = alang;
+        miscutil::to_lower(qlang);
         return true;
       }
     else return false;
@@ -473,6 +477,7 @@ namespace seeks_plugins
     try
       {
         qlang = query.substr(1,2); // : + 2 characters for the language.
+        miscutil::to_lower(qlang);
       }
     catch (std::exception &e)
       {

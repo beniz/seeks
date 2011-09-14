@@ -92,9 +92,9 @@ namespace seeks_plugins
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // clean query.
-    std::string qquery = query_capture_element::no_command_query(query);
+    /*std::string qquery = query_capture_element::no_command_query(query);
     qquery = miscutil::chomp_cpp(qquery);
-    std::transform(qquery.begin(),qquery.end(),qquery.begin(),tolower);
+    std::transform(qquery.begin(),qquery.end(),qquery.begin(),tolower);*/
 
     // rank related queries.
     hash_map<const char*,double,hash<const char*>,eqstr> update;
@@ -107,9 +107,9 @@ namespace seeks_plugins
         rquery = query_capture_element::no_command_query(rquery);
         std::transform(rquery.begin(),rquery.end(),rquery.begin(),tolower);
 
-        if (qquery != rquery)
+        if (query != rquery)
           {
-            //std::cerr << "rquery: " << rquery << " -- query: " << qquery << std::endl;
+            //std::cerr << "rquery: " << rquery << " -- query: " << query << std::endl;
             short radius = (*hit).second->_radius;
             double hits = (*hit).second->_hits;
             double score = 1.0 / simple_re::query_halo_weight(query,rquery,radius,swl) * 1.0 / hits; // max weight is best.

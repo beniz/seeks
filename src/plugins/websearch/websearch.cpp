@@ -284,6 +284,7 @@ namespace seeks_plugins
     char *dec_query = encode::url_decode(query); //TODO: was 'not_plus'.
     std::string query_str = std::string(dec_query);
     free(dec_query);
+    query_str = miscutil::chomp_cpp(query_str);
 
     // query charset check.
     query_str = charset_conv::charset_check_and_conversion(query_str,csp->_headers);
@@ -293,6 +294,7 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR, msg.c_str());
         throw sp_exception(WB_ERR_QUERY_ENCODING,msg);
       }
+    miscutil::to_lower(query_str);
 
     miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
 
@@ -387,7 +389,7 @@ namespace seeks_plugins
   {
     // check for HTTP method and route.
     std::string http_method = csp->_http._gpc;
-    std::transform(http_method.begin(),http_method.end(),http_method.begin(),tolower);
+    miscutil::to_lower(http_method);
 
     // check for query, part of path.
     std::string path = csp->_http._path;
@@ -451,9 +453,11 @@ namespace seeks_plugins
       }
     else
 #endif
-      if (http_method != "get" || http_method != "put")
+      // empty method is considered as GET, otherwise error.
+      if (!http_method.empty() && http_method != "get" && http_method != "put")
         {
-          //TODO: error.
+          errlog::log_error(LOG_LEVEL_ERROR,"wrong HTTP method %s",http_method.c_str());
+          return SP_ERR_MEMORY; // 500.
         }
 
     // setup action.
@@ -676,8 +680,8 @@ namespace seeks_plugins
         std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
         const char *output = miscutil::lookup(parameters,"output");
         std::string output_str = output ? std::string(output) : "html";
-        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        miscutil::to_lower(ui_str);
+        miscutil::to_lower(output_str);
 
         sp_err err = SP_ERR_OK;
         if (ui_str == "stat" && output_str == "html")
@@ -1245,7 +1249,7 @@ namespace seeks_plugins
           {
             try
               {
-                static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_query);
+                static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_lc_query);
               }
             catch (sp_exception &e)
               {
@@ -1287,8 +1291,8 @@ namespace seeks_plugins
         std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
         const char *output = miscutil::lookup(parameters,"output");
         std::string output_str = output ? std::string(output) : "html";
-        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        miscutil::to_lower(ui_str);
+        miscutil::to_lower(output_str);
 
         if (ui_str == "stat" && output_str == "html")
           err = static_renderer::render_result_page_static(qc->_cached_snippets,
@@ -1309,10 +1313,16 @@ namespace seeks_plugins
 
     if (strcasecmp(pers,"on") == 0)
       {
-        /*#if defined(PROTOBUF) && defined(TC)
-        //TODO: change this behavior, don't reset the cache ?
-              qc->reset_snippets_personalization_flags();
-        #endif*/
+#if defined(PROTOBUF) && defined(TC)
+        std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
+        while (vit!=qc->_cached_snippets.end())
+          {
+            (*vit)->_seeks_rank = 0;
+            (*vit)->_npeers = 0;
+            (*vit)->_hits = 0;
+            ++vit;
+          }
+#endif
       }
 
     // unlock or destroy the query context.
@@ -1457,15 +1467,18 @@ namespace seeks_plugins
     if (!has_lang)
       {
         // should not happen, parameters should have been preprocessed.
-        qlang = query_context::_default_alang.c_str();
+        qlang = query_context::_default_alang;
       }
-    const char *q = miscutil::lookup(parameters,"q");
-    if (!q)
+    const char *q_str = miscutil::lookup(parameters,"q");
+    if (!q_str)
       {
         // should never happen.
-        q = "";
+        errlog::log_error(LOG_LEVEL_ERROR,"trying to fetch context with empty query parameter");
+        q_str = "";
         return NULL;
       }
+    std::string q = q_str;
+    miscutil::to_lower(q);
     std::string query_key = query_context::assemble_query(q,qlang);
     uint32_t query_hash = query_context::hash_query_for_context(query_key);
     hash_map<uint32_t,query_context*,id_hash_uint >::iterator hit;

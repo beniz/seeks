@@ -230,7 +230,7 @@ namespace seeks_plugins
     _url = std::string(url_str);
     free(url_str);
     std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     _id = mrf::mrf_single_feature(surl);
   }
@@ -239,7 +239,7 @@ namespace seeks_plugins
   {
     _url = url;
     std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     _id = mrf::mrf_single_feature(surl);
   }
@@ -335,7 +335,7 @@ namespace seeks_plugins
   std::string search_snippet::get_stripped_url() const
   {
     std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     return surl;
   }

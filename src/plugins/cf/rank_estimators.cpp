@@ -117,7 +117,7 @@ namespace seeks_plugins
       const int &radius)
   {
     perso_thread_arg *args  = new perso_thread_arg();
-    args->_query = qc->_query;
+    args->_query = qc->_lc_query; // lower case query.
     args->_lang = qc->_auto_lang;
     args->_snippets = &qc->_cached_snippets;
     args->_related_queries = &qc->_suggestions;
@@ -242,8 +242,8 @@ namespace seeks_plugins
         // extract queries.
         rank_estimator::extract_queries(query,lang,radius,udb,records,qdata,inv_qdata);
 
-        errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
-                          host.c_str(),path.c_str(),qdata.size());
+        errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries over %d records",
+                          host.c_str(),path.c_str(),qdata.size(),records.size());
 
         // close db.
         if (udb != seeks_proxy::_user_db) // not the local db.
@@ -257,7 +257,6 @@ namespace seeks_plugins
       }
     else // remote batch seeks node operations.
       {
-        std::string squery = query_capture_element::no_command_query(query);
         db_record *dbr = rank_estimator::find_bqc(host,port,path,query,radius);
         if (dbr)
           {
@@ -265,7 +264,7 @@ namespace seeks_plugins
             db_query_record::copy_related_queries(dbqr->_related_queries,qdata);
             if (cf_configuration::_config->_record_cache_timeout == 0)
               delete dbqr;
-            rank_estimator::filter_extracted_queries(squery,lang,radius,qdata,inv_qdata);
+            rank_estimator::filter_extracted_queries(query,lang,radius,qdata,inv_qdata);
             errlog::log_error(LOG_LEVEL_DEBUG,"%s%s: fetched %d queries",
                               host.c_str(),path.c_str(),qdata.size());
           }
@@ -279,12 +278,9 @@ namespace seeks_plugins
   {
     static std::string qc_str = "query-capture";
 
-    // strip query.
-    std::string q = query_capture_element::no_command_query(query);
-
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
-    qprocess::generate_query_hashes(q,0,5,features); //TODO: from configuration (5).
+    qprocess::generate_query_hashes(query,0,5,features); //TODO: from configuration (5).
 
     // fetch records from the user DB.
     std::vector<std::string> qhashes;
@@ -331,7 +327,7 @@ namespace seeks_plugins
     /* check whether query is available (i.e. acting locally). */
     if (!query.empty())
       {
-        strc_query = str_chain(query_capture_element::no_command_query(query),0,true);
+        strc_query = str_chain(query,0,true);
         strc_query = strc_query.rank_alpha();
 
         mutex_lock(&_est_mutex);
@@ -601,17 +597,16 @@ namespace seeks_plugins
                                       const int &radius, const bool &use_store) throw (sp_exception)
   {
     db_record *dbr = NULL;
-    std::string squery = query_capture_element::no_command_query(query);
 
     // try out in the store.
     if (use_store && cf_configuration::_config->_record_cache_timeout > 0)
       {
         bool has_key = false;
-        dbr = rank_estimator::_store.find(host,port,path,squery,has_key);
+        dbr = rank_estimator::_store.find(host,port,path,query,has_key);
         if (dbr || has_key)
           {
             errlog::log_error(LOG_LEVEL_DEBUG,"found in store: bqc record %s from %s%s",
-                              squery.c_str(),host.c_str(),path.c_str());
+                              query.c_str(),host.c_str(),path.c_str());
             return dbr;
           }
       }
@@ -622,7 +617,7 @@ namespace seeks_plugins
         udb_client udbc;
         try
           {
-            dbr = udbc.find_bqc(host,port,path,squery,radius);
+            dbr = udbc.find_bqc(host,port,path,query,radius+1); // XXX: +1 is for compatibility.
           }
         catch (sp_exception &e)
           {
@@ -632,9 +627,9 @@ namespace seeks_plugins
           }
         if (use_store && cf_configuration::_config->_record_cache_timeout > 0)
           {
-            rank_estimator::_store.add(host,port,path,squery,dbr);
+            rank_estimator::_store.add(host,port,path,query,dbr);
             errlog::log_error(LOG_LEVEL_DEBUG,"storing: bqc record %s from %s%s",
-                              squery.c_str(),host.c_str(),path.c_str());
+                              query.c_str(),host.c_str(),path.c_str());
           }
       }
     return dbr;
@@ -646,7 +641,7 @@ namespace seeks_plugins
       hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
       hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata)
   {
-    str_chain strc_query = str_chain(query_capture_element::no_command_query(query),0,true);
+    str_chain strc_query = str_chain(query,0,true);
     strc_query = strc_query.rank_alpha();
 
     mutex_lock(&_est_mutex);
@@ -839,14 +834,12 @@ namespace seeks_plugins
         ++hit;
       }
 
+    // reset hits and weights.
     float sum_se_ranks = 0.0;
     std::vector<search_snippet*>::iterator vit = snippets.begin();
     while (vit!=snippets.end())
       {
         sum_se_ranks += (*vit)->_seeks_rank;
-        (*vit)->_seeks_rank = 0;
-        (*vit)->_npeers = 0;
-        (*vit)->_hits = 0;
         ++vit;
       }
 
@@ -925,9 +918,6 @@ namespace seeks_plugins
           prior = estimate_prior((*vit),filter->empty() ? NULL:filter,url,host,nuri);
         posteriors[j] *= prior;
         posteriors[j] *= (*vit)->_engine.size(); // accounts for multiple sources.
-
-        //std::cerr << "url: " << (*vit)->_url << " -- prior: " << prior << " -- posterior: " << posteriors[j] << std::endl;
-
         sum_posteriors += posteriors[j++];
 
         if (spers)
@@ -948,7 +938,6 @@ namespace seeks_plugins
           {
             //posteriors[k] /= sum_posteriors; // normalize.
             snippets.at(k)->_seeks_rank += posteriors[k]; // additive filter.
-            //std::cerr << "url: " << snippets.at(k)->_url << " -- seeks_rank: " << snippets.at(k)->_seeks_rank << std::endl;
           }
       }
   }
@@ -1210,8 +1199,11 @@ namespace seeks_plugins
                 // update or create snippet.
                 search_snippet *sp = new search_snippet();
                 sp->set_url(vd->_url);
+                sp->set_title(vd->_title);
                 if ((sit = snippets.find(sp->_id))!=snippets.end())
                   {
+                    if ((*sit).second->_title.empty())
+                      (*sit).second->_title = std::max((*sit).second->_title,sp->_title);
                     delete sp;
                   }
                 else
@@ -1291,10 +1283,9 @@ namespace seeks_plugins
     query_capture::process_url(purl,host,path);
 
     // get radius 0 record.
-    std::string query_clean = query_capture_element::no_command_query(query);
     DHTKey *rkey = NULL;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit;
-    if ((hit=qdata.find(query_clean.c_str()))!=qdata.end())
+    if ((hit=qdata.find(query.c_str()))!=qdata.end())
       {
         query_data *qd = (*hit).second;
         rkey = qd->_record_key;
@@ -1309,7 +1300,7 @@ namespace seeks_plugins
 
             if (rkey)
               {
-                query_capture_element::remove_url(*rkey,query_clean,purl,host,
+                query_capture_element::remove_url(*rkey,query,purl,host,
                                                   hits,qd->_radius,
                                                   qc_string);
               }
@@ -1318,7 +1309,7 @@ namespace seeks_plugins
           {
             if (rkey)
               {
-                query_capture_element::remove_url(*rkey,query_clean,purl,host,
+                query_capture_element::remove_url(*rkey,query,purl,host,
                                                   1,qd->_radius,
                                                   qc_string);
               }
@@ -1326,7 +1317,7 @@ namespace seeks_plugins
       }
     else // we should never reach here.
       {
-        std::string msg = "thumb_down_url " + purl + " failed: cannot find query " + query_clean + " in records";
+        std::string msg = "thumb_down_url " + purl + " failed: cannot find query " + query + " in records";
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
 
         // destroy query data.

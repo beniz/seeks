@@ -108,7 +108,7 @@ namespace seeks_plugins
                 std::map<double,const std::string,std::greater<double> > mres
                 = qc->_ulsh_ham->getLEltsWithProbabilities(surl,qc->_lsh_ham->_Ld); // url. we could treat host & path independently...
                 std::string lctitle = sp->_title;
-                std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+                miscutil::to_lower(lctitle);
                 std::map<double,const std::string,std::greater<double> > mres_tmp
                 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_Ld); // title.
 
@@ -170,7 +170,7 @@ namespace seeks_plugins
                 std::string surl = urlmatch::strip_url(sp->_url);
                 qc->_ulsh_ham->add(surl,qc->_lsh_ham->_Ld);
                 std::string lctitle = sp->_title;
-                std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+                miscutil::to_lower(lctitle);
                 qc->_ulsh_ham->add(lctitle,qc->_lsh_ham->_Ld);
               }
 
@@ -180,8 +180,6 @@ namespace seeks_plugins
       } // end while.
 
     // sort by rank.
-    /*std::stable_sort(snippets.begin(),snippets.end(),
-      search_snippet::max_meta_rank);*/
     std::stable_sort(snippets.begin(),snippets.end(),
                      search_snippet::max_seeks_rank);
 

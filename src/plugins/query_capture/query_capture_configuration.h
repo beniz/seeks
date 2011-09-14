@@ -43,7 +43,6 @@ namespace seeks_plugins
 
       // main options.
       short _max_radius; /**< query LSH generation max radius. */
-      std::string _mode_intercept; /**< interception mode, "capture" or "redirect". */
       time_t _sweep_cycle; /**< how long between two cycles of query db record sweeping. */
       time_t _retention;   /**< query db record retention, in seconds. */
       bool _protected_redirection; /**< whether URL redirection is protected against abuses. */

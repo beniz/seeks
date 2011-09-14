@@ -1022,6 +1022,11 @@ namespace sp
     return sc;
   }
 
+  void miscutil::to_lower(std::string &str)
+  {
+    std::transform(str.begin(),str.end(),str.begin(),tolower);
+  }
+
   size_t miscutil::replace_in_string(std::string &str, const std::string &pattern,
                                      const std::string &repl)
   {
