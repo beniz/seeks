@@ -211,15 +211,17 @@ namespace seeks_plugins
     // So we perform a basic test, discouraging many, not all.
     if (query_capture_configuration::_config->_protected_redirection)
       {
-        //TODO: new API.
-        /* if (ref_host == base_url)
-         {*/
-        size_t p = ref_path.find("search?");
+        size_t p = ref_path.find("search/txt");
         if (p == std::string::npos)
           {
-            p = ref_path.find("search_img?");
-            if (p==std::string::npos)
-              return SP_ERR_PARSE;
+            // old API.
+            p = ref_path.find("search?");
+            if (p == std::string::npos)
+              {
+                p = ref_path.find("search_img?");
+                if (p==std::string::npos)
+                  return SP_ERR_PARSE;
+              }
           }
       }
 
