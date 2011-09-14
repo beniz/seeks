@@ -431,7 +431,7 @@ namespace seeks_plugins
   std::string uri_capture_element::prepare_uri(const std::string &uri)
   {
     std::string prep_uri = urlmatch::strip_url(uri);
-    std::transform(prep_uri.begin(),prep_uri.end(),prep_uri.begin(),tolower);
+    miscutil::to_lower(prep_uri);
     return prep_uri;
   }
 
