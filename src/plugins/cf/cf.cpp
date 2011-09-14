@@ -31,6 +31,7 @@
 #include "plugin_manager.h"
 #include "cgi.h"
 #include "cgisimple.h"
+#include "qprocess.h"
 #include "encode.h"
 #include "urlmatch.h"
 #include "miscutil.h"
@@ -42,6 +43,7 @@
 #include <iostream>
 
 using namespace json_renderer_private;
+using lsh::qprocess;
 
 namespace seeks_plugins
 {
@@ -240,6 +242,10 @@ namespace seeks_plugins
       {
         return cf::recommendation_post(csp,rsp,parameters);
       }
+    else if (http_method == "delete")
+      {
+        return cf::recommendation_delete(csp,rsp,parameters);
+      }
     else
       {
         // error.
@@ -423,7 +429,9 @@ namespace seeks_plugins
     search_snippet *sp = new search_snippet(); // XXX: no rank given, temporary snippet.
     sp->set_url(url);
     sp->set_title(title);
-    qc->_cached_snippets.push_back(sp);
+    qc->add_to_cache(sp);
+    if (has_qc)
+      sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters);
     qc->add_to_unordered_cache(sp);
     qc->add_to_unordered_cache_title(sp);
 
@@ -447,8 +455,99 @@ namespace seeks_plugins
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
-    qc = websearch::lookup_qc(parameters);
     return err;
+  }
+
+  sp_err cf::recommendation_delete(client_state *csp,
+                                   http_response *rsp,
+                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string ref_path = csp->_http._path;
+    miscutil::replace_in_string(ref_path,"/recommendation/","");
+    std::string query = urlmatch::next_elt_from_path(ref_path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+    query = miscutil::lookup(parameters,"q");
+
+    // check for missing parameters.
+    const char *url_str = miscutil::lookup(parameters,"url");
+    if (!url_str)
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    std::string url = url_str;
+
+    const char *lang_str = miscutil::lookup(parameters,"lang");
+    if (!lang_str) // should never reach here, lang_str is ensured by preprocess.
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+
+    uint32_t hits = 0;
+    std::string host;
+    query_capture::process_url(url,host);
+
+    hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+    qprocess::generate_query_hashes(query,0,0,features);
+    DHTKey key = (*features.begin()).second;
+    std::string key_str = key.to_rstring();
+    db_record *dbr = seeks_proxy::_user_db->find_dbr(key_str,"query-capture");
+    db_query_record *dbqr = static_cast<db_query_record*>(dbr);
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit;
+    if ((hit=dbqr->_related_queries.find(query.c_str()))!=dbqr->_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+        hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::const_iterator vit;
+        if (qd->_visited_urls && (vit = qd->_visited_urls->find(url.c_str()))!=qd->_visited_urls->end())
+          {
+            hits = (*vit).second->_hits;
+          }
+        else
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"can't find url %s when trying to remove it",
+                              url.c_str());
+            delete dbqr;
+            return DB_ERR_NO_REC;
+          }
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"can't find query %s when trying to remove url %s",
+                          query.c_str(),url.c_str());
+        delete dbqr;
+        return DB_ERR_NO_REC;
+      }
+    delete dbqr;
+
+    try
+      {
+        query_capture_element::remove_url(key,query,url,"",hits,0,"query-capture");
+      }
+    catch(sp_exception &e)
+      {
+        return SP_ERR_MEMORY; // 500.
+      }
+
+    // remove from cache if applicable.
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (qc)
+      {
+        mutex_lock(&qc->_qc_mutex);
+        search_snippet sp;
+        sp.set_url(url);
+        qc->remove_from_unordered_cache(sp._id);
+        qc->remove_from_cache(&sp);
+        mutex_unlock(&qc->_qc_mutex);
+      }
+
+    return SP_ERR_OK;
   }
 
   void cf::personalize(query_context *qc,

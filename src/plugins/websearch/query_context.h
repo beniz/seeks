@@ -113,6 +113,16 @@ namespace seeks_plugins
       void reset_expansion_parameter(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       /**
+       * \brief adds a snippet to cache.
+       */
+      void add_to_cache(search_snippet *sr);
+
+      /**
+       * \brief removes snippet from cache.
+       */
+      void remove_from_cache(search_snippet *sr);
+
+      /**
        * \brief adds a snippet to the unordered cache set.
        */
       void add_to_unordered_cache(search_snippet *sr);
