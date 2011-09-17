@@ -195,7 +195,7 @@ namespace seeks_plugins
     results.push_back("\"query\":\"" + escaped_query + "\"");
 
     // peers.
-    results.push_back("\"npeers\":\"" + miscutil::to_string(qc->_npeers) + "\"");
+    results.push_back("\"npeers\":" + miscutil::to_string(qc->_npeers));
 
     // date.
     char datebuf[256];
