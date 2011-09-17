@@ -368,6 +368,23 @@ namespace seeks_plugins
       }
   }
 
+  void query_context::add_to_cache(search_snippet *sr)
+  {
+    _cached_snippets.push_back(sr);
+  }
+
+  void query_context::remove_from_cache(search_snippet *sr)
+  {
+    std::vector<search_snippet*>::iterator vit
+    = _cached_snippets.begin();
+    while(vit!=_cached_snippets.end())
+      {
+        if ((*vit)->_id == sr->_id)
+          vit = _cached_snippets.erase(vit);
+        else ++vit;
+      }
+  }
+
   void query_context::add_to_unordered_cache(search_snippet *sr)
   {
     hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
