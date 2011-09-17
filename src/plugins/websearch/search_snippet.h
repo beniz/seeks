@@ -131,6 +131,8 @@ namespace seeks_plugins
 
       void set_date(const std::string &date);
 
+      void set_lang(const std::string &lang);
+
       // returns stripped, lower case url for storage and comparisons.
       std::string get_stripped_url() const;
 

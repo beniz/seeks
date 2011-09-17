@@ -317,6 +317,11 @@ namespace seeks_plugins
     else _date = date;
   }
 
+  void search_snippet::set_lang(const std::string &lang)
+  {
+    _lang = lang;
+  }
+
   void search_snippet::set_archive_link()
   {
     _archive = "http://web.archive.org/web/*/" + _url;

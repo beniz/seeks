@@ -123,6 +123,7 @@ TEST_F(QCTest,store_url_sp)
   sp.set_title(title);
   std::string summary = "Seeks Project homepage";
   sp.set_summary(summary);
+  sp.set_lang("en");
   DHTKey key = DHTKey::from_rstring(keys[0]);
   std::string host;
   std::string url = uris[0];
@@ -156,6 +157,7 @@ TEST_F(QCTest,store_url_sp)
   ASSERT_EQ(url,vd->_url);
   ASSERT_EQ(title,vd->_title);
   ASSERT_EQ(summary,vd->_summary);
+  ASSERT_EQ("en",vd->_url_lang);
 }
 
 TEST_F(QCTest,store_queries)
@@ -362,7 +364,7 @@ TEST(DBRTest,serialize_deserialize_compressed_mix)
   ASSERT_EQ(0,err);
   ASSERT_FALSE(msg.empty());
   std::cerr << "msg length: " << msg.length() << std::endl;
-  err = dbr.deserialize_compressed(msg);
+  err = dbr.deserialize_compressed(msg); // fails on deserializing compressed msg, falls back on non compressed deserilization.
   ASSERT_EQ(0,err);
 }
 
