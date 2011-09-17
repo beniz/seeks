@@ -70,7 +70,7 @@ namespace seeks_plugins
     threaded_personalize(perso_args,perso_threads,NULL,qc,wait_external_sources,radius);
 
     // one thread per remote peer, to handle the IO.
-    if (peers == "p2p")
+    if (peers == "ring")
       {
         hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
         = cf_configuration::_config->_pl->_peers.begin();
@@ -87,7 +87,7 @@ namespace seeks_plugins
               }
             ++hit;
           }
-      } // end p2p.
+      } // end ring.
 
     // join.
     for (size_t i=0; i<perso_threads.size(); i++)
@@ -1203,7 +1203,7 @@ namespace seeks_plugins
                 if ((sit = snippets.find(sp->_id))!=snippets.end())
                   {
                     if ((*sit).second->_title.empty())
-                      (*sit).second->_title = std::max((*sit).second->_title,sp->_title);
+                      (*sit).second->_title = sp->_title;
                     delete sp;
                   }
                 else

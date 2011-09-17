@@ -74,7 +74,7 @@ namespace seeks_plugins
 
       static void personalize(query_context *qc,
                               const bool &wait_external_sources=true,
-                              const std::string &peers="p2p",
+                              const std::string &peers="ring",
                               const int &radius=-1);
 
       static void estimate_ranks(const std::string &query,

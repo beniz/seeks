@@ -282,7 +282,7 @@ namespace seeks_plugins
 
     // check on parameters.
     const char *peers = miscutil::lookup(parameters,"peers");
-    if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"p2p")!=0)
+    if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"ring")!=0)
       return SP_ERR_CGI_PARAMS;
     int radius = -1;
     const char *radius_str = miscutil::lookup(parameters,"radius");
@@ -605,7 +605,7 @@ namespace seeks_plugins
 
   std::string cf::select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    std::string str = "p2p"; // p2p is default.
+    std::string str = "ring"; // ring is default.
     const char *peers = miscutil::lookup(parameters,"peers");
     if (peers && strcasecmp(peers,"local")==0)
       str = "local";
