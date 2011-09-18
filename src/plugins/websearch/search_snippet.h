@@ -133,6 +133,8 @@ namespace seeks_plugins
 
       void set_lang(const std::string &lang);
 
+      void set_radius(const int &radius);
+
       // returns stripped, lower case url for storage and comparisons.
       std::string get_stripped_url() const;
 

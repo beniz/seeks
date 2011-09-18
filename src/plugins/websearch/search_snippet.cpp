@@ -322,6 +322,11 @@ namespace seeks_plugins
     _lang = lang;
   }
 
+  void search_snippet::set_radius(const int &radius)
+  {
+    _radius = radius;
+  }
+
   void search_snippet::set_archive_link()
   {
     _archive = "http://web.archive.org/web/*/" + _url;
