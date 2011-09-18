@@ -54,7 +54,7 @@ namespace sp
 
   /*- user_db -*/
   std::string user_db::_db_version_key = "db-version";
-  double user_db::_db_version = 0.5;
+  double user_db::_db_version = 0.6;
 
   user_db::user_db(const bool &local,
                    const std::string &haddr,
