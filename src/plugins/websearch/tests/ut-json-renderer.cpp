@@ -397,6 +397,52 @@ TEST(JsonRendererTest, render_suggested_queries)
   EXPECT_EQ(std::string::npos,json_str.find("\"seeks\""));
 }
 
+TEST(JsonRendererTest, render_recommendations)
+{
+  std::string url1 = "http://www.seeks.mx/";
+  std::string url2 = "http://www.seeks-project.info/";
+  query_context qc;
+  qc._query = "seeks project";
+  qc._npeers = 1;
+  search_snippet *sp1 = new search_snippet();
+  sp1->set_url(url1);
+  sp1->set_title("Seeks Search");
+  sp1->set_lang("es");
+  sp1->set_radius(1);
+  sp1->_engine.add_feed("seeks","s.s");
+  search_snippet *sp2 = new search_snippet();
+  sp2->set_url(url2);
+  sp2->set_title("Seeks Project");
+  sp2->set_radius(0);
+  sp2->_engine.add_feed("seeks","s.s");
+  qc.add_to_cache(sp1);
+  qc.add_to_cache(sp2);
+  int radius = 5;
+  std::string lang;
+  std::string json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_NE(std::string::npos,json_str.find("\"npeers\":1"));
+  EXPECT_NE(std::string::npos,json_str.find("\"query\":\"seeks project\""));
+  EXPECT_NE(std::string::npos,json_str.find("\"date\":"));
+  EXPECT_NE(std::string::npos,json_str.find("\"qtime\":0"));
+  EXPECT_NE(std::string::npos,json_str.find("\"snippets\":["));
+  EXPECT_NE(std::string::npos,json_str.find(url1));
+  EXPECT_NE(std::string::npos,json_str.find(url2));
+  lang = "es";
+  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_NE(std::string::npos,json_str.find(url1));
+  EXPECT_EQ(std::string::npos,json_str.find(url2));
+  lang = "";
+  radius = 0;
+  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_EQ(std::string::npos,json_str.find(url1));
+  EXPECT_NE(std::string::npos,json_str.find(url2));
+  radius = 0;
+  lang = "es";
+  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_EQ(std::string::npos,json_str.find(url1));
+  EXPECT_EQ(std::string::npos,json_str.find(url2));
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

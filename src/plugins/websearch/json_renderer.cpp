@@ -182,7 +182,8 @@ namespace seeks_plugins
   std::string json_renderer::render_recommendations(const query_context *qc,
       const int &nreco,
       const double &qtime,
-      const uint32_t &radius)
+      const uint32_t &radius,
+      const std::string &lang)
   {
     std::vector<std::string> query_words;
     miscutil::tokenize(qc->_query,query_words," "); // allows to extract most discriminative words not in query.
@@ -217,6 +218,8 @@ namespace seeks_plugins
         search_snippet *sp = qc->_cached_snippets.at(i);
         if (sp->_radius > radius)
           continue;
+        if (!lang.empty() && sp->_lang != lang)
+          continue;
         if (sp->_doc_type == REJECTED)
           continue;
         if (!sp->_engine.has_feed("seeks"))
@@ -239,13 +242,14 @@ namespace seeks_plugins
       http_response *rsp,
       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
       const double &qtime,
-      const int &radius)
+      const int &radius,
+      const std::string &lang)
   {
     int nreco = -1;
     const char *nreco_str = miscutil::lookup(parameters,"nreco");
     if (nreco_str)
       nreco = atoi(nreco_str);
-    std::string json_str = "{" + json_renderer::render_recommendations(qc,nreco,qtime,radius) + "}";
+    std::string json_str = "{" + json_renderer::render_recommendations(qc,nreco,qtime,radius,lang) + "}";
     const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
     response(rsp,body);
     return SP_ERR_OK;

@@ -277,7 +277,8 @@ namespace seeks_plugins
   }
 
   void websearch::preprocess_parameters(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-                                        client_state *csp) throw (sp_exception)
+                                        client_state *csp,
+                                        bool &has_lang) throw (sp_exception)
   {
     // decode query (URL encoded).
     const char *query = miscutil::lookup(parameters,"q");
@@ -321,11 +322,13 @@ namespace seeks_plugins
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
         qlang_reg = query_context::lang_forced_region(qlang);
+        has_lang = true;
       }
     else if (query_context::has_lang(parameters,qlang))
       {
         // language is specified, detect the region.
         qlang_reg = query_context::lang_forced_region(qlang);
+        has_lang = true;
       }
     else if (websearch::_wconfig->_lang == "auto") // no language was specified, we study HTTP headers.
       {
@@ -333,6 +336,7 @@ namespace seeks_plugins
         query_context::detect_query_lang_http(csp->_headers,qlang,qlang_reg);
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
+        has_lang = false;
       }
     else // use local settings.
       {
@@ -340,6 +344,7 @@ namespace seeks_plugins
         qlang_reg = query_context::lang_forced_region(qlang);
         miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                                 "lang",1,qlang.c_str(),1);
+        has_lang = false;
       }
 
     // setup the language region.
@@ -347,16 +352,6 @@ namespace seeks_plugins
     if (!lreg)
       miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
                               "lreg",1,qlang_reg.c_str(),1);
-
-    // set action to expand and expansion to 1 if q is specified but not action.
-    /*const char *action = miscutil::lookup(parameters,"action");
-    if (!action)
-      {
-        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                "action",1,"expand",1);
-        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                "expansion",1,"1",1);
-    		}*/
 
     // set action to expand if request is for a dynamic UI with html output (i.e. js UI bootstrap).
     const char *ui = miscutil::lookup(parameters,"ui");
@@ -410,7 +405,8 @@ namespace seeks_plugins
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
     catch(sp_exception &e)
       {
@@ -530,7 +526,8 @@ namespace seeks_plugins
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
     catch(sp_exception &e)
       {
@@ -567,7 +564,8 @@ namespace seeks_plugins
 
         try
           {
-            websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+            bool has_lang;
+            websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
           }
         catch(sp_exception &e)
           {
@@ -717,7 +715,8 @@ namespace seeks_plugins
                             ,"q",1,query.c_str(),1); // add query to parameters.
     try
       {
-        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
     catch(sp_exception &e)
       {
@@ -796,7 +795,8 @@ namespace seeks_plugins
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
     catch(sp_exception &e)
       {
@@ -879,7 +879,8 @@ namespace seeks_plugins
                             ,"q",1,query.c_str(),1); // add query to parameters.
     try
       {
-        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
     catch(sp_exception &e)
       {

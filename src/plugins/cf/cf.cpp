@@ -144,7 +144,8 @@ namespace seeks_plugins
       return SP_ERR_CGI_PARAMS; // 400 error.
     try
       {
-        websearch::preprocess_parameters(parameters,csp); // preprocess the parameters, includes language and query.
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
     catch(sp_exception &e)
       {
@@ -199,7 +200,8 @@ namespace seeks_plugins
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp);
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang);
       }
     catch(sp_exception &e)
       {
@@ -270,10 +272,11 @@ namespace seeks_plugins
     if (query.empty())
       return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+    bool has_lang;
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp);
+        websearch::preprocess_parameters(parameters,csp,has_lang);
       }
     catch(sp_exception &e)
       {
@@ -312,7 +315,14 @@ namespace seeks_plugins
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // in case the context is already in memory.
     clock_t end_time = times(&en_cpu);
     double qtime = (end_time-start_time)/websearch::_cl_sec;
-    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius);
+    std::string lang;
+    if (has_lang)
+      {
+        const char *lang_str = miscutil::lookup(parameters,"lang");
+        if (lang_str) // the opposite should never happen.
+          lang = lang_str;
+      }
+    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }
@@ -328,10 +338,11 @@ namespace seeks_plugins
     if (query.empty())
       return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+    bool has_lang;
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp);
+        websearch::preprocess_parameters(parameters,csp,has_lang);
       }
     catch(sp_exception &e)
       {
@@ -380,9 +391,6 @@ namespace seeks_plugins
             radius = tmp;
           }
       }
-    const char *lang_str = miscutil::lookup(parameters,"lang");
-    if (!lang_str) // should never reach here, lang_str is ensured by preprocess.
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
 
     // create a query_context.
     bool has_qc = true;
@@ -429,6 +437,11 @@ namespace seeks_plugins
     search_snippet *sp = new search_snippet(); // XXX: no rank given, temporary snippet.
     sp->set_url(url);
     sp->set_title(title);
+    if (has_lang)
+      {
+        const char *lang_str = miscutil::lookup(parameters,"lang");
+        sp->set_lang(lang_str);
+      }
     qc->add_to_cache(sp);
     if (has_qc)
       sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters);
@@ -469,10 +482,11 @@ namespace seeks_plugins
     if (query.empty())
       return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+    bool has_lang;
 
     try
       {
-        websearch::preprocess_parameters(parameters,csp);
+        websearch::preprocess_parameters(parameters,csp,has_lang);
       }
     catch(sp_exception &e)
       {
@@ -485,10 +499,6 @@ namespace seeks_plugins
     if (!url_str)
       return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
     std::string url = url_str;
-
-    const char *lang_str = miscutil::lookup(parameters,"lang");
-    if (!lang_str) // should never reach here, lang_str is ensured by preprocess.
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
 
     uint32_t hits = 0;
     std::string host;
@@ -507,11 +517,25 @@ namespace seeks_plugins
         hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::const_iterator vit;
         if (qd->_visited_urls && (vit = qd->_visited_urls->find(url.c_str()))!=qd->_visited_urls->end())
           {
-            hits = (*vit).second->_hits;
+            vurl_data *vd = (*vit).second;
+            if (has_lang)
+              {
+                const char *lang_str = miscutil::lookup(parameters,"lang");
+                if (lang_str && vd->_url_lang == std::string(lang_str))
+                  {
+                    hits = vd->_hits;
+                  }
+                else
+                  {
+                    delete dbqr;
+                    return DB_ERR_NO_REC;
+                  }
+              }
+            else hits = vd->_hits;
           }
         else
           {
-            errlog::log_error(LOG_LEVEL_ERROR,"can't find url %s when trying to remove it",
+            errlog::log_error(LOG_LEVEL_INFO,"can't find url %s when trying to remove it",
                               url.c_str());
             delete dbqr;
             return DB_ERR_NO_REC;
@@ -519,7 +543,7 @@ namespace seeks_plugins
       }
     else
       {
-        errlog::log_error(LOG_LEVEL_ERROR,"can't find query %s when trying to remove url %s",
+        errlog::log_error(LOG_LEVEL_INFO,"can't find query %s when trying to remove url %s",
                           query.c_str(),url.c_str());
         delete dbqr;
         return DB_ERR_NO_REC;

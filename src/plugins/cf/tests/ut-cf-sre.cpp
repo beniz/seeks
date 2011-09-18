@@ -453,7 +453,70 @@ TEST_F(SRETest,recommendation_post_ok)
   rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
   miscutil::free_map(parameters);
+  hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+  hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
+  rank_estimator::extract_queries("search engine","",0,seeks_proxy::_user_db,records,
+                                  qdata,inv_qdata);
+  ASSERT_EQ(1,inv_qdata.size());
+  std::vector<query_data*> vqd = (*inv_qdata.begin()).second;
+  ASSERT_EQ(1,vqd.size());
+  query_data *qd = vqd.at(0);
+  ASSERT_TRUE(qd!=NULL);
+  ASSERT_TRUE(qd->_visited_urls!=NULL);
+  ASSERT_EQ(2,qd->_visited_urls->size());
+  vurl_data *vd = (*qd->_visited_urls->begin()).second;
+  ASSERT_TRUE(vd!=NULL);
+  ASSERT_EQ("http://www.seeks.mx",vd->_url);
+  ASSERT_EQ("Seeks Search",vd->_title);
+  ASSERT_TRUE(vd->_url_lang.empty());
+  ASSERT_TRUE(0 < vd->_url_date);
   rank_estimator::destroy_records(records);
+  rank_estimator::destroy_query_data(qdata);
+  rank_estimator::destroy_inv_qdata_key(inv_qdata);
+}
+
+TEST_F(SRETest,recommendation_post_ok_lang)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_post_url_check = false; // disable URL checking.
+  client_state csp;
+  csp._config = seeks_proxy::_config;
+  csp._http._gpc = strdup("post");
+  csp._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.mx/",1);
+  miscutil::add_map_entry(parameters,"title",1,"Seeks Search",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"0",1);
+  miscutil::add_map_entry(parameters,"radius",1,"5",1);
+  miscutil::add_map_entry(parameters,"lang",1,"es",1);
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
+  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  ASSERT_EQ(3,records.size());
+  miscutil::free_map(parameters);
+  hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
+  hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
+  rank_estimator::extract_queries("search engine","",0,seeks_proxy::_user_db,records,
+                                  qdata,inv_qdata);
+  ASSERT_EQ(1,inv_qdata.size());
+  std::vector<query_data*> vqd = (*inv_qdata.begin()).second;
+  ASSERT_EQ(1,vqd.size());
+  query_data *qd = vqd.at(0);
+  ASSERT_TRUE(qd!=NULL);
+  ASSERT_TRUE(qd->_visited_urls!=NULL);
+  ASSERT_EQ(2,qd->_visited_urls->size());
+  vurl_data *vd = (*qd->_visited_urls->begin()).second;
+  ASSERT_TRUE(vd!=NULL);
+  ASSERT_EQ("http://www.seeks.mx",vd->_url);
+  ASSERT_EQ("Seeks Search",vd->_title);
+  ASSERT_EQ("es",vd->_url_lang);
+  ASSERT_TRUE(0 < vd->_url_date);
+  rank_estimator::destroy_records(records);
+  rank_estimator::destroy_query_data(qdata);
+  rank_estimator::destroy_inv_qdata_key(inv_qdata);
 }
 
 TEST_F(SRETest,recommendation_post_url_check_fail_400)
@@ -529,6 +592,7 @@ TEST_F(SRETest,recommendation_get_ok)
   miscutil::unmap(parameters,"title");
   miscutil::unmap(parameters,"url-check");
   miscutil::unmap(parameters,"radius");
+  miscutil::unmap(parameters,"lang");
   miscutil::add_map_entry(parameters,"peers",1,"local",1);
   client_state csp2;
   csp2._http._gpc = strdup("get");
@@ -537,10 +601,46 @@ TEST_F(SRETest,recommendation_get_ok)
   err = cf::cgi_recommendation(&csp2,&rsp2,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   std::string body = std::string(rsp2._body,rsp2._content_length);
-  //std::cerr << "body: " << body << std::endl;
+  std::cerr << "body: " << body << std::endl;
   EXPECT_NE(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_NE(std::string::npos,body.find("Seeks Search"));
   EXPECT_NE(std::string::npos,body.find("\"hits\":1"));
+  miscutil::free_map(parameters);
+}
+
+TEST_F(SRETest,recommendation_get_ok_lang)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_post_url_check = false; // disable URL checking.
+  client_state csp;
+  csp._config = seeks_proxy::_config;
+  csp._http._gpc = strdup("post");
+  csp._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.mx/",1);
+  miscutil::add_map_entry(parameters,"title",1,"Seeks Search",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"0",1);
+  miscutil::add_map_entry(parameters,"radius",1,"5",1);
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  miscutil::unmap(parameters,"title");
+  miscutil::unmap(parameters,"url-check");
+  miscutil::unmap(parameters,"radius");
+  miscutil::add_map_entry(parameters,"peers",1,"local",1);
+  miscutil::add_map_entry(parameters,"lang",1,"es",1);
+  client_state csp2;
+  csp2._http._gpc = strdup("get");
+  csp2._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp2;
+  err = cf::cgi_recommendation(&csp2,&rsp2,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp2._body,rsp2._content_length);
+  //std::cerr << "body: " << body << std::endl;
+  EXPECT_EQ(std::string::npos,body.find("http://www.seeks.mx"));
+  EXPECT_EQ(std::string::npos,body.find("Seeks Search"));
+  EXPECT_EQ(std::string::npos,body.find("\"hits\":1"));
   miscutil::free_map(parameters);
 }
 
@@ -564,6 +664,7 @@ TEST_F(SRETest,recommendation_delete_ok)
   miscutil::unmap(parameters,"title");
   miscutil::unmap(parameters,"url-check");
   miscutil::unmap(parameters,"radius");
+  miscutil::unmap(parameters,"lang");
   client_state csp2;
   csp2._http._gpc = strdup("delete");
   csp2._http._path = strdup("/recommendation/search%20engine");
@@ -582,6 +683,50 @@ TEST_F(SRETest,recommendation_delete_ok)
   EXPECT_EQ(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_EQ(std::string::npos,body.find("Seeks Search"));
   EXPECT_EQ(std::string::npos,body.find("\"hits\""));
+  miscutil::free_map(parameters);
+}
+
+TEST_F(SRETest,recommendation_delete_ok_lang)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_post_url_check = false; // disable URL checking.
+  client_state csp;
+  csp._config = seeks_proxy::_config;
+  csp._http._gpc = strdup("post");
+  csp._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.mx/",1);
+  miscutil::add_map_entry(parameters,"title",1,"Seeks Search",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"0",1);
+  miscutil::add_map_entry(parameters,"radius",1,"5",1);
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  miscutil::unmap(parameters,"title");
+  miscutil::unmap(parameters,"url-check");
+  miscutil::unmap(parameters,"radius");
+  miscutil::unmap(parameters,"lang");
+  miscutil::add_map_entry(parameters,"lang",1,"es",1);
+  client_state csp2;
+  csp2._http._gpc = strdup("delete");
+  csp2._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp2;
+  err = cf::cgi_recommendation(&csp2,&rsp2,parameters);
+  ASSERT_EQ(DB_ERR_NO_REC,err);
+  miscutil::unmap(parameters,"url");
+  miscutil::unmap(parameters,"lang");
+  miscutil::add_map_entry(parameters,"peers",1,"local",1);
+  client_state csp3;
+  csp3._http._gpc = strdup("get");
+  csp3._http._path = strdup("/recommendation/search%20engine");
+  http_response rsp3;
+  err = cf::cgi_recommendation(&csp3,&rsp3,parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp3._body,rsp3._content_length);
+  EXPECT_NE(std::string::npos,body.find("http://www.seeks.mx"));
+  EXPECT_NE(std::string::npos,body.find("Seeks Search"));
+  EXPECT_NE(std::string::npos,body.find("\"hits\""));
   miscutil::free_map(parameters);
 }
 

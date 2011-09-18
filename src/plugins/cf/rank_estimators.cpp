@@ -1208,9 +1208,11 @@ namespace seeks_plugins
                   }
                 else
                   {
+                    // XXX: could use a constructor in search_snippet.
                     sp->_personalized = true;
                     sp->set_title(vd->_title);
                     sp->set_summary(vd->_summary);
+                    sp->set_lang(vd->_url_lang);
                     sp->_meta_rank = 1;
                     sp->_engine.add_feed("seeks","s.s");
                     sp->_radius = qd->_radius;

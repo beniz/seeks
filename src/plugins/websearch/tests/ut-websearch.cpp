@@ -197,7 +197,6 @@ TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"q",1,"test",1);
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
-  //miscutil::add_map_entry(parameters,"action",1,"expand",1);
   miscutil::add_map_entry(parameters,"engines",1,"dummy1",1);
   miscutil::add_map_entry(parameters,"prs",1,"off",1); // no personalization, otherwise connection failure is bypassed as results may come from local db.
   bool render = false;
@@ -205,7 +204,6 @@ TEST_F(WBExistTest,perform_websearch_no_engine_output_fail_new)
   ASSERT_EQ(WB_ERR_SE_CONNECT,err);
   miscutil::free_map(parameters);
   se_handler::cleanup_handlers();
-  //sweeper::sweep_all();
 }
 
 TEST_F(WBTest,preprocess_parameters_ok)
@@ -215,17 +213,40 @@ TEST_F(WBTest,preprocess_parameters_ok)
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"q",1,"test",1);
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
-  //miscutil::add_map_entry(parameters,"action",1,"expand",1);
   int code = SP_ERR_OK;
+  bool has_lang = true;
   try
     {
-      websearch::preprocess_parameters(parameters,&csp);
+      websearch::preprocess_parameters(parameters,&csp,has_lang);
     }
   catch(sp_exception &e)
     {
       code = e.code();
     }
   ASSERT_EQ(SP_ERR_OK,code);
+  ASSERT_FALSE(has_lang);
+  miscutil::free_map(parameters);
+}
+
+TEST_F(WBTest,preprocess_parameters_ok_lang)
+{
+  client_state csp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,":es test",1);
+  miscutil::add_map_entry(parameters,"expansion",1,"1",1);
+  int code = SP_ERR_OK;
+  bool has_lang = false;
+  try
+    {
+      websearch::preprocess_parameters(parameters,&csp,has_lang);
+    }
+  catch(sp_exception &e)
+    {
+      code = e.code();
+    }
+  ASSERT_EQ(SP_ERR_OK,code);
+  ASSERT_FALSE(has_lang);
   miscutil::free_map(parameters);
 }
 
@@ -236,11 +257,11 @@ TEST_F(WBTest,preprocess_parameters_bad_charset)
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"q",1,"a\x80\xe0\xa0\xc0\xaf\xed\xa0\x80z",1);
   miscutil::add_map_entry(parameters,"expansion",1,"1",1);
-  //miscutil::add_map_entry(parameters,"action",1,"expand",1);
   int code = SP_ERR_OK;
   try
     {
-      websearch::preprocess_parameters(parameters,&csp);
+      bool has_lang;
+      websearch::preprocess_parameters(parameters,&csp,has_lang);
     }
   catch(sp_exception &e)
     {
