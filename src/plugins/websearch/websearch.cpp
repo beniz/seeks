@@ -424,7 +424,13 @@ namespace seeks_plugins
             query_context *qc = websearch::lookup_qc(parameters);
             if (!qc)
               {
-                return cgisimple::cgi_error_404(csp,rsp,parameters);
+                // no cache, (re)do the websearch first.
+                sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+                if (err != SP_ERR_OK)
+                  return err;
+                qc = websearch::lookup_qc(parameters);
+                if (!qc) // should never happen.
+                  return SP_ERR_MEMORY; // 500.
               }
             uint32_t sid = (uint32_t)strtod(id_str.c_str(),NULL);
             mutex_lock(&qc->_qc_mutex);
@@ -455,6 +461,13 @@ namespace seeks_plugins
           errlog::log_error(LOG_LEVEL_ERROR,"wrong HTTP method %s",http_method.c_str());
           return SP_ERR_MEMORY; // 500.
         }
+    if (http_method.empty())
+      {
+        http_method = "get";
+        if (csp->_http._gpc)
+          free(csp->_http._gpc);
+        csp->_http._gpc = strdup("get");
+      }
 
     // setup action.
     /*miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters)
@@ -1248,13 +1261,18 @@ namespace seeks_plugins
         // query_capture if plugin is available and activated.
         if (_qc_plugin && _qc_plugin_activated)
           {
-            try
+            std::string http_method = csp->_http._gpc;
+            miscutil::to_lower(http_method);
+            if (http_method == "put")
               {
-                static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_lc_query);
-              }
-            catch (sp_exception &e)
-              {
-                errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
+                try
+                  {
+                    static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_lc_query);
+                  }
+                catch (sp_exception &e)
+                  {
+                    errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
+                  }
               }
           }
 #endif
