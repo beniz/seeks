@@ -399,6 +399,7 @@ TEST(JsonRendererTest, render_suggested_queries)
 
 TEST(JsonRendererTest, render_recommendations)
 {
+  websearch::_wconfig = new websearch_configuration("../websearch-config");
   std::string url1 = "http://www.seeks.mx/";
   std::string url2 = "http://www.seeks-project.info/";
   query_context qc;
@@ -441,6 +442,7 @@ TEST(JsonRendererTest, render_recommendations)
   json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
   EXPECT_EQ(std::string::npos,json_str.find(url1));
   EXPECT_EQ(std::string::npos,json_str.find(url2));
+  delete websearch::_wconfig;
 }
 
 int main(int argc, char **argv)
