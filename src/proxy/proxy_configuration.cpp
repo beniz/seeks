@@ -723,18 +723,14 @@ namespace sp
       case hash_logfile :
         if (!seeks_proxy::_no_daemon)
           {
-            // TODO: check on seeks_proxy daemon flag.
-            if (!seeks_proxy::_no_daemon)
+            _logfile = seeks_proxy::make_path(_logdir, arg);
+            if (NULL == _logfile)
               {
-                _logfile = seeks_proxy::make_path(_logdir, arg);
-                if (NULL == _logfile)
-                  {
-                    errlog::log_error(LOG_LEVEL_FATAL, "Out of memory while creating logfile path");
-                  }
-                errlog::init_error_log(seeks_proxy::_Argv[0], _logfile);
+                errlog::log_error(LOG_LEVEL_FATAL, "Out of memory while creating logfile path");
               }
-            else errlog::disable_logging();
+            errlog::init_error_log(seeks_proxy::_Argv[0], _logfile);
           }
+        else errlog::disable_logging();
         break;
 
         /*************************************************************************
