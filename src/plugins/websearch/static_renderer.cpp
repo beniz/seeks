@@ -1021,7 +1021,7 @@ namespace seeks_plugins
         if (!prs)
           prs = websearch::_wconfig->_personalization ? "on" : "off";
         std::string ca_s = content_analysis ? "on" : "off";
-        std::string pp_link = "<a href=\"" + base_url_str + "?q=" + cgi_base + url_encoded_query
+        std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "?q=" + url_encoded_query
                               + "?page=" + pp_str + "&amp;action=page&amp;expansion=" + expansion + "&amp;engines="
                               + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
                               + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
