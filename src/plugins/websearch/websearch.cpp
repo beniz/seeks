@@ -508,14 +508,14 @@ namespace seeks_plugins
     // perform websearch or other requested action.
     //return websearch::perform_action(csp,rsp,parameters);
 
-    // possibly a new search: check on config file in cast it did change.
+    // possibly a new search: check on config file in case it did change.
     websearch::_wconfig->load_config();
     pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
     sp_err err = SP_ERR_OK;
     if (id_str.empty())
       err = websearch::perform_websearch(csp,rsp,parameters);
     else err = websearch::fetch_snippet(csp,rsp,parameters);
-    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock); // unlock config file.
     return err;
   }
 
@@ -990,13 +990,13 @@ namespace seeks_plugins
   }
 
   /*- internal functions. -*/
-  void websearch::perform_action_threaded(wo_thread_arg *args)
+  /*void websearch::perform_action_threaded(wo_thread_arg *args)
   {
     perform_action(args->_csp,args->_rsp,args->_parameters,args->_render);
     delete args;
-  }
+    }*/
 
-  sp_err websearch::perform_action(client_state *csp, http_response *rsp,
+  /*sp_err websearch::perform_action(client_state *csp, http_response *rsp,
                                    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                    bool render)
   {
@@ -1007,43 +1007,44 @@ namespace seeks_plugins
     // possibly a new search: check on config file in cast it did change.
     websearch::_wconfig->load_config();
     pthread_rwlock_rdlock(&websearch::_wconfig->_conf_rwlock); // lock config file.
+  */
 
-    /**
-     * Action can be of type:
-     * - "expand": requests an expansion of the search results, expansion horizon is
-     *           specified by parameter "expansion".
-     * - "page": requests a result page, already in cache.
-     * - "similarity": requests a reordering of results, in decreasing order from the
-     *                 specified search result, identified by parameter "id".
-     * - "clusterize": requests the forming of a cluster of results, the number of specified
-     *                 clusters is given by parameter "clusters".
-     * - "urls": requests a grouping by url.
-     * - "titles": requests a grouping by title.
-     */
-    sp_err err = SP_ERR_OK;
-    if (miscutil::strcmpic(action,"expand") == 0 || miscutil::strcmpic(action,"page") == 0)
-      err = websearch::perform_websearch(csp,rsp,parameters);
-    else if (miscutil::strcmpic(action,"similarity") == 0)
-      err = websearch::cgi_websearch_similarity(csp,rsp,parameters);
-    else if (miscutil::strcmpic(action,"clusterize") == 0)
-      err = websearch::cgi_websearch_clusterize(csp,rsp,parameters);
-    else if (miscutil::strcmpic(action,"urls") == 0)
-      err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
-    else if (miscutil::strcmpic(action,"titles") == 0)
-      err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
-    else if (miscutil::strcmpic(action,"types") == 0)
-      err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
-    else
-      {
-        pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
-        return SP_ERR_CGI_PARAMS;
-      }
+  /**
+   * Action can be of type:
+   * - "expand": requests an expansion of the search results, expansion horizon is
+   *           specified by parameter "expansion".
+   * - "page": requests a result page, already in cache.
+   * - "similarity": requests a reordering of results, in decreasing order from the
+   *                 specified search result, identified by parameter "id".
+   * - "clusterize": requests the forming of a cluster of results, the number of specified
+   *                 clusters is given by parameter "clusters".
+   * - "urls": requests a grouping by url.
+   * - "titles": requests a grouping by title.
+   */
+  /*sp_err err = SP_ERR_OK;
+  if (miscutil::strcmpic(action,"expand") == 0 || miscutil::strcmpic(action,"page") == 0)
+    err = websearch::perform_websearch(csp,rsp,parameters);
+  else if (miscutil::strcmpic(action,"similarity") == 0)
+    err = websearch::cgi_websearch_similarity(csp,rsp,parameters);
+  else if (miscutil::strcmpic(action,"clusterize") == 0)
+    err = websearch::cgi_websearch_clusterize(csp,rsp,parameters);
+  else if (miscutil::strcmpic(action,"urls") == 0)
+    err = websearch::cgi_websearch_neighbors_url(csp,rsp,parameters);
+  else if (miscutil::strcmpic(action,"titles") == 0)
+    err = websearch::cgi_websearch_neighbors_title(csp,rsp,parameters);
+  else if (miscutil::strcmpic(action,"types") == 0)
+    err = websearch::cgi_websearch_clustered_types(csp,rsp,parameters);
+  else
+    {
+      pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+      return SP_ERR_CGI_PARAMS;
+    }
 
-    errlog::log_error(LOG_LEVEL_INFO,"query: %s",cgi::build_url_from_parameters(parameters).c_str());
+  errlog::log_error(LOG_LEVEL_INFO,"query: %s",cgi::build_url_from_parameters(parameters).c_str());
 
-    pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
-    return err;
-  }
+  pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
+  return err;
+  }*/
 
   sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
@@ -1196,8 +1197,6 @@ namespace seeks_plugins
           {
             page = "1";
           }
-        // XXX: update other parameters, as needed, qc vs parameters.
-        //qc->update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
       }
     else
       {
@@ -1259,7 +1258,7 @@ namespace seeks_plugins
 
 #if defined(PROTOBUF) && defined(TC)
         // query_capture if plugin is available and activated.
-        if (_qc_plugin && _qc_plugin_activated)
+        if (websearch::_qc_plugin && websearch::_qc_plugin_activated)
           {
             std::string http_method = csp->_http._gpc;
             miscutil::to_lower(http_method);
@@ -1267,7 +1266,7 @@ namespace seeks_plugins
               {
                 try
                   {
-                    static_cast<query_capture*>(_qc_plugin)->store_queries(qc->_lc_query);
+                    static_cast<query_capture*>(websearch::_qc_plugin)->store_queries(qc->_lc_query);
                   }
                 catch (sp_exception &e)
                   {

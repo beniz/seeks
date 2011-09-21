@@ -122,12 +122,12 @@ namespace seeks_plugins
                                              const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
       /* websearch. */
-      static void perform_action_threaded(wo_thread_arg *args);
+      /*static void perform_action_threaded(wo_thread_arg *args);
 
       static sp_err perform_action(client_state *csp,
                                    http_response *rsp,
                                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                                   bool render = true);
+                                   bool render = true);*/
 
       static sp_err perform_websearch(client_state *csp,
                                       http_response *rsp,
