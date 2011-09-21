@@ -112,12 +112,14 @@ namespace seeks_plugins
     std::string html_content = "<li class=\"search_snippet";
     if (sp->_doc_type == VIDEO_THUMB)
       html_content += " search_snippet_vid";
+    else if (sp->_doc_type == IMAGE)
+      html_content += " search_snippet_img";
     html_content += "\">";
     const char *thumbs = miscutil::lookup(parameters,"thumbs");
     bool has_thumbs = websearch::_wconfig->_thumbs;
     if (thumbs && strcasecmp(thumbs,"on") == 0)
       has_thumbs = true;
-    if (sp->_doc_type != TWEET && sp->_doc_type != VIDEO_THUMB && has_thumbs)
+    if (sp->_doc_type != TWEET && sp->_doc_type != IMAGE && sp->_doc_type != VIDEO_THUMB && has_thumbs)
       {
         html_content += "<a href=\"" + url + "\">";
         html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
@@ -133,6 +135,13 @@ namespace seeks_plugins
       {
         html_content += "<a href=\"";
         html_content += url + "\"><img class=\"video_profile\" src=\"";
+        html_content += sp->_cached;
+        html_content += "\"></a><div>";
+      }
+    else if (sp->_doc_type == IMAGE)
+      {
+        html_content += "<a href=\"";
+        html_content += url + "\"><img src=\"";
         html_content += sp->_cached;
         html_content += "\"></a><div>";
       }
@@ -346,10 +355,13 @@ namespace seeks_plugins
         const char *engines = miscutil::lookup(parameters,"engines");
         if (!sp->_sim_back)
           {
-            sim_link = "/similar/txt/" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
-                       + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
-                       + "&amp;lang=" + sp->_qc->_auto_lang
-                       + "&amp;ui=stat";
+            sim_link = "/search";
+            if (sp->_doc_type == IMAGE)
+              sim_link += "_img";
+            sim_link += "?" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
+                        + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
+                        + "&amp;lang=" + sp->_qc->_auto_lang
+                        + "&amp;ui=stat";
             if (engines)
               sim_link += "&amp;engines=" + std::string(engines);
             sp->set_similarity_link(parameters);
@@ -357,10 +369,13 @@ namespace seeks_plugins
           }
         else
           {
-            sim_link = "/search?q=" + sp->_qc->_url_enc_query
-                       + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
-                       + "&amp;lang=" + sp->_qc->_auto_lang
-                       + "&amp;ui=stat";
+            sim_link = "/search";
+            if (sp->_doc_type == IMAGE)
+              sim_link += "_img";
+            sim_link += "?q=" + sp->_qc->_url_enc_query
+                        + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
+                        + "&amp;lang=" + sp->_qc->_auto_lang
+                        + "&amp;ui=stat";
             if (engines)
               sim_link += "&amp;engines=" + std::string(engines);
             sp->set_back_similarity_link(parameters);

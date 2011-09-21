@@ -191,14 +191,6 @@ namespace seeks_plugins
               _exp_safesearch_on = horizon;
             else _exp_safesearch_off = horizon;
           }
-
-        // seeks button used as a back button.
-        if (_page_expansion > 0 && horizon <= (int)_page_expansion)
-          {
-            // reset expansion parameter.
-            query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
-            return;// SP_ERR_OK;
-          }
       }
 
     // perform requested expansion.
