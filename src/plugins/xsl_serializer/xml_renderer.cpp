@@ -35,7 +35,8 @@ using sp::cgi;
 using sp::proxy_configuration;
 using sp::seeks_proxy;
 using sp::encode;
-using namespace xsl_serializer_private;
+
+using namespace xml_serializer_private;
 
 namespace seeks_plugins
 {
@@ -267,7 +268,7 @@ namespace seeks_plugins
     return err;
   }
 
-  std::string xml_renderer::render_cached_queries(const std::string &query,
+  sp_err xml_renderer::render_cached_queries(const std::string &query,
 						  const int &nq,
 						  xmlNodePtr parent)
   {
@@ -300,7 +301,7 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  sp_err json_renderer::render_img_engines(const query_context *qc
+  sp_err xml_renderer::render_img_engines(const query_context *qc
 						xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
@@ -555,7 +556,7 @@ namespace seeks_plugins
     return err;
   }
 
-  sp_err xml_renderer::render_cached_queries(http_response *rsp,
+  sp_err xml_renderer::render_xml_cached_queries(http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
       const std::string &query,
       const int &nq)
@@ -569,7 +570,7 @@ namespace seeks_plugins
     return err;
   }
 
-  sp_err xml_renderer::render_clustered_xml_results(cluster *clusters,
+  sp_err xml_renderer::render_xml_clustered_results(cluster *clusters,
       const short &K,
       client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
