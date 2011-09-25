@@ -62,11 +62,12 @@ namespace seeks_plugins
                          const std::string &title,
                          const std::string &summary,
                          const uint32_t &url_date,
+                         const uint32_t &rec_date,
                          const std::string &url_lang)
     :_query(query),_radius(radius),_hits(hits),_record_key(NULL)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
-    vurl_data *vd = new vurl_data(url,url_hits,title,summary,url_date,url_lang);
+    vurl_data *vd = new vurl_data(url,url_hits,title,summary,url_date,rec_date,url_lang);
     add_vurl(vd);
   }
 
@@ -219,10 +220,11 @@ namespace seeks_plugins
                                    const std::string &title,
                                    const std::string &summary,
                                    const uint32_t &url_date,
+                                   const uint32_t &rec_date,
                                    const std::string &url_lang)
     :db_record(plugin_name)
   {
-    query_data *qd = new query_data(query,radius,url,hits,url_hits,title,summary,url_date,url_lang);
+    query_data *qd = new query_data(query,radius,url,hits,url_hits,title,summary,url_date,rec_date,url_lang);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
@@ -378,6 +380,7 @@ namespace seeks_plugins
                         rq_vurl->set_title(vd->_title);
                         rq_vurl->set_summary(vd->_summary);
                         rq_vurl->set_url_date(vd->_url_date);
+                        rq_vurl->set_rec_date(vd->_rec_date);
                         rq_vurl->set_url_lang(vd->_url_lang);
                       }
                   }
@@ -412,9 +415,10 @@ namespace seeks_plugins
             short uhits = rq_vurl->hits();
             std::string title = rq_vurl->title();
             std::string summary = rq_vurl->summary();
-            uint32_t date = rq_vurl->url_date();
+            uint32_t url_date = rq_vurl->url_date();
+            uint32_t rec_date = rq_vurl->rec_date();
             std::string lang = rq_vurl->url_lang();
-            vurl_data *vd = new vurl_data(url,uhits,title,summary,date,lang);
+            vurl_data *vd = new vurl_data(url,uhits,title,summary,url_date,rec_date,lang);
             rd->_visited_urls->insert(std::pair<const char*,vurl_data*>(vd->_url.c_str(),vd));
           }
         _related_queries.insert(std::pair<const char*,query_data*>(rd->_query.c_str(),rd));

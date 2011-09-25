@@ -47,14 +47,16 @@ namespace seeks_plugins
                 const std::string &title="",
                 const std::string &summary="",
                 const uint32_t &url_date=0,
+                const uint32_t &rec_date=0,
                 const std::string &url_lang="")
         :_url(url),_hits(hits),_title(title),
-         _summary(summary),_url_date(url_date),_url_lang(url_lang)
+         _summary(summary),_url_date(url_date),_rec_date(rec_date),_url_lang(url_lang)
       {};
 
       vurl_data(const vurl_data *vd)
         :_url(vd->_url),_hits(vd->_hits),_title(vd->_title),
-         _summary(vd->_summary),_url_date(vd->_url_date),_url_lang(vd->_url_lang)
+         _summary(vd->_summary),_url_date(vd->_url_date),
+         _rec_date(vd->_rec_date),_url_lang(vd->_url_lang)
       {};
 
       ~vurl_data() {};
@@ -77,13 +79,21 @@ namespace seeks_plugins
             _summary = vd->_summary;
           }
         // do not merge language.
+
+        // set the earlier non zero record date.
+        if (vd->_rec_date != 0)
+          {
+            if (_rec_date > vd->_rec_date)
+              _rec_date = vd->_rec_date;
+          }
       };
 
       std::string _url;
       short _hits;
       std::string _title;
       std::string _summary;
-      uint32_t _url_date;
+      uint32_t _url_date; /**< content time stamp. */
+      uint32_t _rec_date; /**< record activity time stamp. */
       std::string _url_lang;
   };
 
@@ -101,6 +111,7 @@ namespace seeks_plugins
                  const std::string &title="",
                  const std::string &summary="",
                  const uint32_t &url_date=0,
+                 const uint32_t &rec_date=0,
                  const std::string &url_lang="");
 
       query_data(const query_data *qd);
@@ -143,6 +154,7 @@ namespace seeks_plugins
                       const std::string &title="",
                       const std::string &summary="",
                       const uint32_t &url_date=0,
+                      const uint32_t &rec_date=0,
                       const std::string &url_lang="");
 
       db_query_record(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
