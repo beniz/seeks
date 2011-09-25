@@ -1,36 +1,42 @@
-#automake for udb_service plugin.
+#automake for xsl_serializer plugin.
 
-udbservicepluginlibdir = $(libdir)/seeks/plugins/udb_service
-udbserviceplugindatadir = $(datadir)/seeks/plugins/udb_service
+xslserializerpluginlibdir = $(libdir)/seeks/plugins/xsl_serializer
+xslserializerplugindatadir = $(datadir)/seeks/plugins/xsl_serializer
 
-AM_CXXFLAGS=-Wall -g -pipe
-AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh -I${srcdir}/../../dht \
-            -I${srcdir}/../websearch -I${srcdir}/../query_capture -I${srcdir}/../uri_capture -I${srcdir}/../cf \
-            -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
-            @PCRE_CFLAGS@ -I../../proxy/
+AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
+	    -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy \
+	    -I${srcdir}/../../dht 
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../img_websearch
+endif
+if HAVE_PROTOBUF
+AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf -I../../proxy \
+               `pkg-config --cflags protobuf`
+if HAVE_TC
+AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`
+endif
+
+if HAVE_TT
+AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
+endif
+endif
 
 ACLOCAL_AMFLAGS=-I m4
 
-if HAVE_PROTOBUF
-protoc_inputs=halo_msg.proto
-protoc_outputs=halo_msg.pb.h halo_msg.pb.cc
+xslserializerpluginlib_LTLIBRARIES=libseeksxslserializerplugin.la
+libseeksxslserializerplugin_la_SOURCES=xml_renderer.cpp xsl_serializer.cpp \
+				       xml_renderer.h   xsl_serializer.h 
 
-$(protoc_outputs): $(protoc_inputs)
-	protoc -I$(srcdir) --cpp_out=. $<
-nodist_libudbserviceplugin_la_SOURCES=$(protoc_outputs)
+libseeksxslserializerplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ @XSLT_FLAGS@ @LCOV_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+
+if USE_PERL
+libseeksxslserializerplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
-xslserializerpluginlib_LTLIBRARIES=libxslserializerplugin.la
-libxslserializerplugin_la_SOURCES=xml_renderer.cpp xsl_serializer.cpp \
-				  xml_renderer.cpp xsl_serializer.cpp 
+SUBDIRS=. tests
 
-udbdir = $(sysconfdir)/seeks
+xslserializerconfigdir=$(sysconfdir)/seeks
+dist_xslserializerconfig_DATA=xslserializer-config
 
-BUILT_SOURCES = $(protoc_outputs)
-
-clean-local:
-	rm -f $(protoc_outputs)
-
-EXTRA_DIST = $(protoc_inputs)
-
-#SUBDIRS=. tests
+nobase_dist_xslserializerplugindata_DATA= \
+			  xml/stylesheets/opensearch-result.xsl
