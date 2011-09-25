@@ -1084,65 +1084,6 @@ namespace seeks_plugins
         mutex_lock(&qc->_qc_mutex);
         mutex_lock(&qc->_feeds_ack_mutex);
         try
-          /*=======
-              // check whether search is expanding or the user is leafing through pages.
-              const char *action = miscutil::lookup(parameters,"action");
-
-              if (strcmp(action,"expand") == 0)
-                {
-                  expanded = true;
-                  mutex_lock(&qc->_qc_mutex);
-                  mutex_lock(&qc->_feeds_ack_mutex);
-                  try
-                    {
-          #if defined(PROTOBUF) && defined(TC)
-                      if (persf)
-                        {
-                          int perr = pthread_create(&pers_thread,NULL,
-                                                    (void *(*)(void *))&sort_rank::personalize,qc);
-                          if (perr != 0)
-                            {
-                              errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
-                              mutex_unlock(&qc->_qc_mutex);
-                              mutex_unlock(&qc->_feeds_ack_mutex);
-                              return WB_ERR_THREAD;
-                            }
-                        }
-          #endif
-                      qc->generate(csp,rsp,parameters,expanded);
-                    }
-                  catch (sp_exception &e)
-                    {
-                      err = e.code();
-                      switch(err)
-                        {
-                        case SP_ERR_CGI_PARAMS:
-                        case WB_ERR_NO_ENGINE:
-                          break;
-                        case WB_ERR_NO_ENGINE_OUTPUT:
-                          if (!persf)
-                            websearch::failed_ses_connect(csp,rsp);
-                          err = WB_ERR_SE_CONNECT;  //TODO: a 408 code error.
-                          break;
-                        default:
-                          break;
-                        }
-                    }
-
-                  // do not return if perso + err != no engine
-                  // instead signal all personalization threads that results may have
-                  // arrived.
-                  mutex_unlock(&qc->_feeds_ack_mutex);
-                  if (persf && err != SP_ERR_CGI_PARAMS)
-                    {
-                    }
-                  else if (err != SP_ERR_OK)
-                    {
-                      return err;
-                    }
-                }
-              else if (miscutil::strcmpic(action,"page") == 0)
-          >>>>>>> experimental*/
           {
 #if defined(PROTOBUF) && defined(TC)
             if (persf)
@@ -1277,7 +1218,7 @@ namespace seeks_plugins
 #endif
       }
 
-    // sort and rank search snippets.
+    // signal personalization thread that we're done with external data sources.
     if (persf && pers_thread)
       {
         while(pthread_tryjoin_np(pers_thread,NULL))
@@ -1285,6 +1226,8 @@ namespace seeks_plugins
             cond_broadcast(&qc->_feeds_ack_cond);
           }
       }
+
+    // sort and merge snippets.
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
                                             parameters);
 
