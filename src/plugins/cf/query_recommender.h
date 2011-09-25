@@ -23,6 +23,7 @@
 #include <map>
 
 #include "stl_hash.h"
+#include "peer_list.h"
 #include "query_context.h"
 #include "db_query_record.h"
 #include "stopwordlist.h"
@@ -41,12 +42,12 @@ namespace seeks_plugins
                                const std::string &query,
                                stopwordlist *swl);
 
+      //DEPRECATED ?
       static void recommend_queries(const std::string &query,
                                     const std::string &lang,
                                     const uint32_t &expansion,
                                     std::multimap<double,std::string,std::less<double> > &related_queries,
-                                    const std::string &host="",
-                                    const int &port=-1) throw (sp_exception);
+                                    peer *pe) throw (sp_exception);
 
       static void recommend_queries(const std::string &query,
                                     const std::string &lang,

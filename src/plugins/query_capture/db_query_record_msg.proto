@@ -9,6 +9,7 @@ message visited_url
  optional string title = 3; /* url title. */
  optional string summary = 4; /* snippet summary. */
  optional uint32 url_date = 5; /* URL data date. */
+ optional string url_lang = 6; /* URL language. */
 }
 
 message visited_urls

@@ -474,6 +474,9 @@ namespace seeks_plugins
       miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
 
     /* perform websearch. */
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "html";
     sp_err serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
@@ -487,7 +490,7 @@ namespace seeks_plugins
             || serr == WB_ERR_NO_ENGINE
             || serr == WB_ERR_QUERY_ENCODING)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -577,6 +580,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
 
     /* perform websearch. */
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "html";
     sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
@@ -590,7 +596,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
             || serr == WB_ERR_NO_ENGINE
             || serr == WB_ERR_QUERY_ENCODING)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -765,6 +771,9 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"host",host);
 
     // call for capture callback.
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "html";
     sp_err serr = cf::cgi_tbd(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
@@ -776,7 +785,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -862,7 +871,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,"html");
             err_msg = "Bad Parameter";
             code = 400;
           }
@@ -1000,7 +1009,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,"html");
             err_msg = "Bad Parameter";
             code = 400;
           }

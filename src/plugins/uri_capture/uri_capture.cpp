@@ -194,8 +194,11 @@ namespace seeks_plugins
             errlog::log_error(LOG_LEVEL_ERROR,"Failed fetching or parsing title of uri %s",uris.at(i).c_str());
             err++;
           }
-        else if (title.find("404")!=std::string::npos
-                 ||title.find("400")!=std::string::npos)
+        else if (title.find("404")!=std::string::npos)
+          {
+            titles.push_back("404");
+          }
+        else if (title.find("400")!=std::string::npos)
           {
             titles.push_back("");
           }
@@ -256,7 +259,7 @@ namespace seeks_plugins
                                             accept,get,connect);
 
     /**
-     * URI domain name is store in two cases:
+     * URI domain name is stored in two cases:
      * - there is no referer in the HTTP request headers.
      * - the host domain is different than the referer, indicating a move
      *   to a different website.
@@ -428,7 +431,7 @@ namespace seeks_plugins
   std::string uri_capture_element::prepare_uri(const std::string &uri)
   {
     std::string prep_uri = urlmatch::strip_url(uri);
-    std::transform(prep_uri.begin(),prep_uri.end(),prep_uri.begin(),tolower);
+    miscutil::to_lower(prep_uri);
     return prep_uri;
   }
 

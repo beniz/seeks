@@ -19,7 +19,7 @@ if($_SERVER['HTTPS']) $scheme = 'https://';
 else $scheme= 'http://';
 
 $seeks_uri = 'http://s.s';
-proxy = 'localhost:8250';
+$proxy = 'localhost:8250';
 $base_script = $_SERVER['SCRIPT_NAME'];
 $base_url = $scheme.$_SERVER['HTTP_HOST'].$base_script;
 

@@ -54,7 +54,7 @@ namespace sp
 
   /*- user_db -*/
   std::string user_db::_db_version_key = "db-version";
-  double user_db::_db_version = 0.5;
+  double user_db::_db_version = 0.6;
 
   user_db::user_db(const bool &local,
                    const std::string &haddr,
@@ -245,7 +245,7 @@ namespace sp
     if (!_hdb->dbput(keyc,strlen(keyc),&v,sizeof(double)))
       {
         int ecode = _hdb->dbecode();
-        errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
+        errlog::log_error(LOG_LEVEL_ERROR,"user db adding version record error: %s",_hdb->dberrmsg(ecode));
         mutex_unlock(&_db_mutex);
         return DB_ERR_PUT;
       }

@@ -131,6 +131,10 @@ namespace seeks_plugins
 
       void set_date(const std::string &date);
 
+      void set_lang(const std::string &lang);
+
+      void set_radius(const int &radius);
+
       // returns stripped, lower case url for storage and comparisons.
       std::string get_stripped_url() const;
 
@@ -143,16 +147,6 @@ namespace seeks_plugins
       // sets a back link when similarity is engaged.
       virtual void set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
-      // json output.
-      virtual std::string to_json(const bool &thumbs,
-                                  const std::vector<std::string> &query_words);
-
-      // html output for inclusion in search result template page.
-      std::string to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-      virtual std::string to_html_with_highlight(std::vector<std::string> &words,
-          const std::string &base_url,
-          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-
       // whether this snippet's engine(s) is(are) enabled.
       // used in result page rendering.
       virtual bool is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
@@ -164,11 +158,7 @@ namespace seeks_plugins
 
       // selects most discriminative terms in the snippet's vocabulary.
       void discr_words(const std::vector<std::string> &query_words,
-                       std::vector<std::string> &words);
-
-      // highlights the most discriminative terms (for this snippet among all snippets).
-      void highlight_discr(std::string &str, const std::string &base_url_str,
-                           const std::vector<std::string> &query_words);
+                       std::set<std::string> &words) const;
 
       // tag snippet, i.e. detect its type if not already done by the parsers.
       void tag();
@@ -185,9 +175,6 @@ namespace seeks_plugins
 
       // merging of snippets (merge s2 into s2, according to certain rules).
       static void merge_snippets(search_snippet *s1, const search_snippet *s2);
-
-      // merging of snippets peer-related data.
-      static void merge_peer_data(search_snippet *s1, const search_snippet *s2);
 
       // hack for correcting meta rank after Bing and Yahoo merged their results in
       // the US.
@@ -214,7 +201,6 @@ namespace seeks_plugins
       std::string _date;
       std::string _lang;
       std::string _archive; // a link to archive.org
-      std::string _sim_link; // call to similarity sorting.
       bool _sim_back; // whether the back 'button' to similarity is present.
 
       double _rank;  // search engine rank.
@@ -256,6 +242,9 @@ namespace seeks_plugins
 
       // number of collaborative 'hits' for this snippet.
       uint32_t _hits;
+
+      // radius from the original query.
+      int _radius;
   };
 
 } /* end of namespace. */

@@ -605,7 +605,7 @@ namespace sp
   int seeks_proxy::crunch_response_triggered(client_state *csp, const cruncher crunchers[])
   {
     http_response *rsp = NULL;
-    const cruncher *c;
+    //const cruncher *c;
 
     /*
      * If CGI request crunching is disabled,
@@ -623,36 +623,36 @@ namespace sp
     /* std::cout << "looking for a cruncher\n";
      std::cout << "csp flags: " << csp->_flags << std::endl; */
 
-    size_t count = 0;
+    /*size_t count = 0;
     for (c = crunchers; c->_cruncher != NULL; c++)
+    { */
+    /*
+     * Check the cruncher if either Seeks proxy is toggled
+     * on and the request isn't forced, or if the cruncher
+     * applies to forced requests as well.
+     */
+    /*if (((csp->_flags & CSP_FLAG_TOGGLED_ON) &&
+         !(csp->_flags & CSP_FLAG_FORCED)) ||
+        (c->_flags & CF_IGNORE_FORCE))
       {
-        /*
-         * Check the cruncher if either Seeks proxy is toggled
-         * on and the request isn't forced, or if the cruncher
-         * applies to forced requests as well.
-         */
-        if (((csp->_flags & CSP_FLAG_TOGGLED_ON) &&
-             !(csp->_flags & CSP_FLAG_FORCED)) ||
-            (c->_flags & CF_IGNORE_FORCE))
-          {
-            rsp = c->_cruncher(csp);
-            if (NULL != rsp)
-              {
-                //std::cout << "found cruncher: " << count << std::endl;
+        rsp = c->_cruncher(csp);
+        if (NULL != rsp)
+    { */
+    //std::cout << "found cruncher: " << count << std::endl;
 
-                /* Deliver, log and free the interception response. */
-                seeks_proxy::send_crunch_response(csp, rsp);
-#ifdef FEATURE_STATISTICS
-                if (c->_flags & CF_COUNT_AS_REJECT)
-                  {
-                    csp->_flags |= CSP_FLAG_REJECTED;
-                  }
-#endif /* def FEATURE_STATISTICS */
-                return TRUE;
+    /* Deliver, log and free the interception response. */
+    /*seeks_proxy::send_crunch_response(csp, rsp);
+    #ifdef FEATURE_STATISTICS
+    if (c->_flags & CF_COUNT_AS_REJECT)
+      {
+        csp->_flags |= CSP_FLAG_REJECTED;
+      }
+    #endif */ /* def FEATURE_STATISTICS */
+    /*return TRUE;
               }
           }
         count++;
-      }
+    } */
     return FALSE;
   }
 

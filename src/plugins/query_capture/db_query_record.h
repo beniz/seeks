@@ -46,14 +46,15 @@ namespace seeks_plugins
                 const short &hits,
                 const std::string &title="",
                 const std::string &summary="",
-                const uint32_t &url_date=0)
+                const uint32_t &url_date=0,
+                const std::string &url_lang="")
         :_url(url),_hits(hits),_title(title),
-         _summary(summary),_url_date(url_date)
+         _summary(summary),_url_date(url_date),_url_lang(url_lang)
       {};
 
       vurl_data(const vurl_data *vd)
         :_url(vd->_url),_hits(vd->_hits),_title(vd->_title),
-         _summary(vd->_summary),_url_date(vd->_url_date)
+         _summary(vd->_summary),_url_date(vd->_url_date),_url_lang(vd->_url_lang)
       {};
 
       ~vurl_data() {};
@@ -75,6 +76,7 @@ namespace seeks_plugins
             _title = vd->_title;
             _summary = vd->_summary;
           }
+        // do not merge language.
       };
 
       std::string _url;
@@ -82,6 +84,7 @@ namespace seeks_plugins
       std::string _title;
       std::string _summary;
       uint32_t _url_date;
+      std::string _url_lang;
   };
 
   class query_data
@@ -97,7 +100,8 @@ namespace seeks_plugins
                  const short &url_hits=1,
                  const std::string &title="",
                  const std::string &summary="",
-                 const uint32_t &url_date=0);
+                 const uint32_t &url_date=0,
+                 const std::string &url_lang="");
 
       query_data(const query_data *qd);
 
@@ -138,7 +142,8 @@ namespace seeks_plugins
                       const short &url_hits=1,
                       const std::string &title="",
                       const std::string &summary="",
-                      const uint32_t &url_date=0);
+                      const uint32_t &url_date=0,
+                      const std::string &url_lang="");
 
       db_query_record(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
 
@@ -169,6 +174,8 @@ namespace seeks_plugins
       int fix_issue_281(uint32_t &fixed_urls);
 
       int fix_issue_154(uint32_t &fixed_urls, uint32_t &fixed_queries, uint32_t &removed_urls);
+
+      std::string fix_issue_575(uint32_t &fixed_queries);
 
       void fetch_url_titles(uint32_t &fetched_urls,
                             const long &timeout,

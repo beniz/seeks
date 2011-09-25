@@ -70,9 +70,12 @@ namespace seeks_plugins
     if (!q)
       {
         // this should not happen.
+        errlog::log_error(LOG_LEVEL_ERROR,"creating context with empty query string");
         q = "";
       }
     _query = q;
+    _lc_query = _query;
+    miscutil::to_lower(_lc_query);
 
     // set timestamp.
     struct timeval tv_now;
@@ -97,7 +100,7 @@ namespace seeks_plugins
     _auto_lang_reg = alang_reg;
 
     // query hashing, with the language included.
-    _query_key = query_context::assemble_query(_query,_auto_lang);
+    _query_key = query_context::assemble_query(_lc_query,_auto_lang);
     _query_hash = query_context::hash_query_for_context(_query_key);
 
     // encoded query.
@@ -132,16 +135,6 @@ namespace seeks_plugins
     std::for_each(_cached_snippets.begin(),_cached_snippets.end(),
                   delete_object());
 
-    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator idhit1, idhit2;
-    idhit1 = _recommended_snippets.begin();
-    while(idhit1!=_recommended_snippets.end())
-      {
-        idhit2 = idhit1;
-        ++idhit1;
-        delete (*idhit2).second;
-        _recommended_snippets.erase(idhit2);
-      }
-
     // clears the LSH hashtable.
     if (_ulsh_ham)
       delete _ulsh_ham;
@@ -175,7 +168,7 @@ namespace seeks_plugins
     return mrf::mrf_single_feature(sorted_query);
   }
 
-  void query_context::update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  void query_context::reset_expansion_parameter(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     // reset expansion parameter.
     miscutil::unmap(parameters,"expansion");
@@ -307,13 +300,13 @@ namespace seeks_plugins
         if (_page_expansion > 0 && horizon <= (int)_page_expansion)
           {
             // reset expansion parameter.
-            query_context::update_parameters(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+            query_context::reset_expansion_parameter(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
             return;
           }
       }
 
     // perform requested expansion.
-    if (_engines.size() > 1 || !_engines.has_feed("seeks"))
+    if (_engines.size() > 1 || (!_engines.has_feed("seeks") && !_engines.has_feed("dummy")))
       {
         try
           {
@@ -375,6 +368,23 @@ namespace seeks_plugins
       }
   }
 
+  void query_context::add_to_cache(search_snippet *sr)
+  {
+    _cached_snippets.push_back(sr);
+  }
+
+  void query_context::remove_from_cache(search_snippet *sr)
+  {
+    std::vector<search_snippet*>::iterator vit
+    = _cached_snippets.begin();
+    while(vit!=_cached_snippets.end())
+      {
+        if ((*vit)->_id == sr->_id)
+          vit = _cached_snippets.erase(vit);
+        else ++vit;
+      }
+  }
+
   void query_context::add_to_unordered_cache(search_snippet *sr)
   {
     hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit;
@@ -413,7 +423,7 @@ namespace seeks_plugins
   search_snippet* query_context::get_cached_snippet(const std::string &url) const
   {
     std::string url_lc(url);
-    std::transform(url.begin(),url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     uint32_t id = mrf::mrf_single_feature(surl);
     return get_cached_snippet(id);
@@ -430,7 +440,7 @@ namespace seeks_plugins
   void query_context::add_to_unordered_cache_title(search_snippet *sr)
   {
     std::string lctitle = sr->_title;
-    std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+    miscutil::to_lower(lctitle);
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
       {
@@ -442,7 +452,7 @@ namespace seeks_plugins
   void query_context::remove_from_unordered_cache_title(search_snippet *sr)
   {
     std::string lctitle = sr->_title;
-    std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+    miscutil::to_lower(lctitle);
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
       {
@@ -467,6 +477,7 @@ namespace seeks_plugins
     if (alang)
       {
         qlang = alang;
+        miscutil::to_lower(qlang);
         return true;
       }
     else return false;
@@ -483,6 +494,7 @@ namespace seeks_plugins
     try
       {
         qlang = query.substr(1,2); // : + 2 characters for the language.
+        miscutil::to_lower(qlang);
       }
     catch (std::exception &e)
       {
@@ -755,9 +767,10 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        //std::cerr << "reviewing URL: " << (*vit)->_url << std::endl;
         if ((*vit)->_personalized)
           {
+            // XXX: change of behavior.
+            // may want to remove seeks results when using a user db.
             (*vit)->_personalized = false;
             if ((*vit)->_engine.count() == 1
                 && (*vit)->_engine.has_feed("seeks"))
@@ -771,6 +784,8 @@ namespace seeks_plugins
             else if ((*vit)->_engine.has_feed("seeks"))
               (*vit)->_engine.remove_feed("seeks");
             (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
+
+            //TODO: don't reset in cache.
             (*vit)->_seeks_rank = 0;
             (*vit)->bing_yahoo_us_merge();
             (*vit)->_npeers = 0;
@@ -780,39 +795,6 @@ namespace seeks_plugins
         ++vit;
       }
     _npeers = 0; // reset query context peers.
-  }
-
-  bool query_context::update_recommended_urls()
-  {
-    bool cache_changed = false;
-    hash_map<uint32_t,search_snippet*,id_hash_uint>::iterator hit, hit2, cit;
-    hit = _recommended_snippets.begin();
-    while(hit!=_recommended_snippets.end())
-      {
-        cit = _unordered_snippets.find((*hit).first);
-        if (cit != _unordered_snippets.end())
-          {
-            hit2 = hit;
-            ++hit;
-            delete (*hit2).second;
-            _recommended_snippets.erase(hit2);
-          }
-        else if (!(*hit).second->_title.empty())
-          {
-            (*hit).second->_qc = this;
-            (*hit).second->_personalized = true;
-            (*hit).second->_engine.add_feed("seeks","s.s");
-            (*hit).second->_meta_rank++;
-            _cached_snippets.push_back((*hit).second);
-            //add_to_unordered_cache((*hit).second);
-            cache_changed = true;
-            hit2 = hit;
-            ++hit;
-            _recommended_snippets.erase(hit2);
-          }
-        else ++hit;
-      }
-    return cache_changed;
   }
 
 } /* end of namespace. */

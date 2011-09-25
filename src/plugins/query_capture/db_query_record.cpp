@@ -61,11 +61,12 @@ namespace seeks_plugins
                          const short &url_hits,
                          const std::string &title,
                          const std::string &summary,
-                         const uint32_t &url_date)
+                         const uint32_t &url_date,
+                         const std::string &url_lang)
     :_query(query),_radius(radius),_hits(hits),_record_key(NULL)
   {
     _visited_urls = new hash_map<const char*,vurl_data*,hash<const char*>,eqstr>(1);
-    vurl_data *vd = new vurl_data(url,url_hits,title,summary,url_date);
+    vurl_data *vd = new vurl_data(url,url_hits,title,summary,url_date,url_lang);
     add_vurl(vd);
   }
 
@@ -217,10 +218,11 @@ namespace seeks_plugins
                                    const short &url_hits,
                                    const std::string &title,
                                    const std::string &summary,
-                                   const uint32_t &url_date)
+                                   const uint32_t &url_date,
+                                   const std::string &url_lang)
     :db_record(plugin_name)
   {
-    query_data *qd = new query_data(query,radius,url,hits,url_hits,title,summary,url_date);
+    query_data *qd = new query_data(query,radius,url,hits,url_hits,title,summary,url_date,url_lang);
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
@@ -376,9 +378,10 @@ namespace seeks_plugins
                         rq_vurl->set_title(vd->_title);
                         rq_vurl->set_summary(vd->_summary);
                         rq_vurl->set_url_date(vd->_url_date);
+                        rq_vurl->set_url_lang(vd->_url_lang);
                       }
                   }
-                else std::cerr << "[Debug]: null vurl_data element in visited_urls...\n";
+                else errlog::log_error(LOG_LEVEL_DEBUG,"null vurl_data element in visited_urls when creating db_query_record");
                 ++vhit;
               }
           }
@@ -410,7 +413,8 @@ namespace seeks_plugins
             std::string title = rq_vurl->title();
             std::string summary = rq_vurl->summary();
             uint32_t date = rq_vurl->url_date();
-            vurl_data *vd = new vurl_data(url,uhits,title,summary,date);
+            std::string lang = rq_vurl->url_lang();
+            vurl_data *vd = new vurl_data(url,uhits,title,summary,date,lang);
             rd->_visited_urls->insert(std::pair<const char*,vurl_data*>(vd->_url.c_str(),vd));
           }
         _related_queries.insert(std::pair<const char*,query_data*>(rd->_query.c_str(),rd));
@@ -496,7 +500,6 @@ namespace seeks_plugins
         std::string fixed_query = miscutil::chomp_cpp(query);
         if (fixed_query != qd->_query)
           {
-            //std::cerr << "fix 263: " << qd->_query << " -- " << fixed_query << std::endl;
             hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
             ++hit;
             _related_queries.erase(hit2);
@@ -674,6 +677,48 @@ namespace seeks_plugins
     return dumped_queries;
   }
 
+  std::string db_query_record::fix_issue_575(uint32_t &fixed_queries)
+  {
+    std::string nkey;
+    std::vector<query_data*> to_insert;
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
+    = _related_queries.begin();
+    while (hit!=_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+        std::string lc_query = qd->_query;
+        miscutil::to_lower(lc_query);
+
+        if (lc_query != qd->_query)
+          {
+            if (qd->_radius == 0)
+              {
+                // generate new record key.
+                hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+                qprocess::generate_query_hashes(lc_query,0,0,features);
+                if (!features.empty())
+                  nkey = (*features.begin()).second.to_rstring();
+              }
+
+            hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit2 = hit;
+            ++hit;
+            _related_queries.erase(hit2);
+            qd->_query = lc_query;
+            to_insert.push_back(qd);
+            fixed_queries++;
+          }
+        else ++hit;
+      } // end iterate related_queries.
+    size_t tis = to_insert.size();
+    if (tis > 0)
+      {
+        for (size_t i=0; i<tis; i++)
+          _related_queries.insert(std::pair<const char*,query_data*>(to_insert.at(i)->_query.c_str(),
+                                  to_insert.at(i)));
+      }
+    return nkey;
+  }
+
   void db_query_record::fetch_url_titles(uint32_t &fetched_urls,
                                          const long &timeout,
                                          const std::vector<std::list<const char*>*> *headers)
@@ -706,7 +751,8 @@ namespace seeks_plugins
                 if (ferr == SP_ERR_OK)
                   {
                     fetched_urls++;
-                    vd->_title = titles.at(0);
+                    if (titles.at(0) != "404")
+                      vd->_title = titles.at(0);
                   }
               }
             ++vit;

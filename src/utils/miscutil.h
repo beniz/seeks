@@ -36,6 +36,8 @@
 #include "stl_hash.h"
 #include <inttypes.h>
 #include <list>
+#include <vector>
+#include <set>
 #include <string>
 #include <sstream>
 
@@ -90,8 +92,8 @@ namespace sp
       static int list_remove_list(std::list<const char*> *dest, const std::list<const char*> *src);
       static void list_remove_all(std::list<const char*> *the_list);
       static char* list_to_text(const std::list<const char*> *the_list);
-      static int list_contains_item(const std::list<const char*> *the_list,
-                                    const char *str);
+      static bool list_contains_item(const std::list<const char*> *the_list,
+                                     const char *str);
       static int list_duplicate(std::list<const char*> *dest,
                                 const std::list<const char*> *src);
       static int list_append_list_unique(std::list<const char*> *dest,
@@ -120,6 +122,8 @@ namespace sp
 
       static std::string chomp_cpp(const std::string &s);
 
+      static void to_lower(std::string &str);
+
       /**
        * \brief replaces pattern in str with repl.
        * returns a positive value if changes were made to the argument string.
@@ -145,7 +149,9 @@ namespace sp
 
       /* others. */
       static uint32_t hash_string(const char *data, uint32_t len);
-      static std::string join_string_list(const std::string& delim, const std::list<std::string>& l);
+      static std::string join_string_list(const std::string &delim, const std::list<std::string>& l);
+      static std::string join_string_list(const std::string &delim, const std::vector<std::string> &v);
+      static std::string join_string_list(const std::string &delim, const std::set<std::string> &s);
   };
 
 } /* end of namespace. */

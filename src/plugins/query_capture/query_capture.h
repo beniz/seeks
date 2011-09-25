@@ -48,6 +48,8 @@ namespace seeks_plugins
       time_t _last_sweep;
   };
 
+  class query_capture_element;
+
   class query_capture : public plugin
   {
     public:
@@ -72,9 +74,9 @@ namespace seeks_plugins
 
       int remove_all_query_records();
 
-      static void store_queries(const std::string &query,
-                                const std::string &url, const std::string &host,
-                                const std::string &qlang="") throw (sp_exception);
+      static void store_queries(const query_context *qc,
+                                const std::string &url, const std::string &host
+                               ) throw (sp_exception);
 
       // store_query called from websearch plugin.
       void store_queries(const std::string &query) const throw (sp_exception);
@@ -84,21 +86,21 @@ namespace seeks_plugins
       static void process_url(std::string &url, std::string &host, std::string &path);
 
       static void process_get(std::string &get);
+
+      query_capture_element *_qelt;
   };
 
-  class query_capture_element : public interceptor_plugin
+  class query_capture_element
   {
     public:
-      query_capture_element(plugin *parent);
+      query_capture_element();
 
-      virtual ~query_capture_element();
+      ~query_capture_element();
 
-      virtual http_response* plugin_response(client_state *csp);
-
-      static void store_queries(const std::string &query,
+      static void store_queries(const query_context *qc,
                                 const std::string &url, const std::string &host,
                                 const std::string &plugin_name,
-                                const std::string &qlang="") throw (sp_exception);
+                                const int &radius=-1) throw (sp_exception);
 
       static void store_queries(const std::string &query,
                                 const std::string &plugin_name) throw (sp_exception);

@@ -93,6 +93,8 @@ namespace sp
       static int port_matches(const int port, const char *port_list);
       static int host_matches(const http_request *http, const url_spec *pattern);
       static int path_matches(const char *path, const url_spec *pattern);
+
+      static std::string next_elt_from_path(std::string &path);
   };
 
 } /* end of namespace. */

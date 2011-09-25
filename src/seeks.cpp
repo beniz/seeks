@@ -612,7 +612,17 @@ int main(int argc, const char *argv[])
           ferr = user_db_fix::fix_issue_154();
           seeks_proxy::_user_db->open_db();
         }
-      else errlog::log_error(LOG_LEVEL_ERROR, "cannot apply fix 154 to remote database, skipping");
+      else errlog::log_error(LOG_LEVEL_INFO, "cannot apply fix 154 to remote database, skipping");
+    }
+  if (db_version < 0.6 && !miscutil::compare_d(0.6,db_version,1e-3))
+    {
+      if (!seeks_proxy::_user_db->is_remote())
+        {
+          seeks_proxy::_user_db->close_db();
+          ferr = user_db_fix::fix_issue_575();
+          seeks_proxy::_user_db->open_db();
+        }
+      else errlog::log_error(LOG_LEVEL_INFO, "cannot apply fix 575 to remote database, skipping");
     }
   if (ferr == 0 && !miscutil::compare_d(db_version,user_db::_db_version,1e-3))
     {
@@ -627,6 +637,10 @@ int main(int argc, const char *argv[])
     seeks_proxy::listen_loop();
   else
     {
+      if (!seeks_proxy::_httpserv_thread)
+        {
+          errlog::log_error(LOG_LEVEL_FATAL,"Can't find HTTP server thread.");
+        }
       pthread_join(*seeks_proxy::_httpserv_thread,NULL);
     }
 

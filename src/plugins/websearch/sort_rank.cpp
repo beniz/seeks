@@ -108,7 +108,7 @@ namespace seeks_plugins
                 std::map<double,const std::string,std::greater<double> > mres
                 = qc->_ulsh_ham->getLEltsWithProbabilities(surl,qc->_lsh_ham->_Ld); // url. we could treat host & path independently...
                 std::string lctitle = sp->_title;
-                std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+                miscutil::to_lower(lctitle);
                 std::map<double,const std::string,std::greater<double> > mres_tmp
                 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_Ld); // title.
 
@@ -170,7 +170,7 @@ namespace seeks_plugins
                 std::string surl = urlmatch::strip_url(sp->_url);
                 qc->_ulsh_ham->add(surl,qc->_lsh_ham->_Ld);
                 std::string lctitle = sp->_title;
-                std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+                miscutil::to_lower(lctitle);
                 qc->_ulsh_ham->add(lctitle,qc->_lsh_ham->_Ld);
               }
 
@@ -180,8 +180,6 @@ namespace seeks_plugins
       } // end while.
 
     // sort by rank.
-    /*std::stable_sort(snippets.begin(),snippets.end(),
-      search_snippet::max_meta_rank);*/
     std::stable_sort(snippets.begin(),snippets.end(),
                      search_snippet::max_seeks_rank);
 
@@ -324,17 +322,29 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalize(query_context *qc)
+  void sort_rank::th_personalize(pers_arg *arg)
+  {
+    sort_rank::personalize(arg->_qc,arg->_parameters);
+    delete arg;
+  }
+  void sort_rank::personalize(query_context *qc,
+                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     if (!websearch::_cf_plugin)
       return;
+    int expansion = 1;
+    const char *expansion_str = miscutil::lookup(parameters,"expansion");
+    if (expansion_str) // should never be otherwise
+      expansion = atoi(expansion_str);
+    if (expansion == 0) // should never happen.
+      expansion = 1;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc);
+    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters),expansion-1);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }
 
-  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
+  /*void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
   {
     if (!websearch::_cf_plugin)
       return;
@@ -360,7 +370,7 @@ namespace seeks_plugins
         qc->_page_expansion,
         qc->_recommended_snippets);
     qc->update_recommended_urls();
-  }
+    }*/
 #endif
 
 } /* end of namespace. */

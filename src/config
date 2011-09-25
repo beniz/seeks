@@ -300,6 +300,7 @@ logfile logfile
 #	last is the one remaining available under that name.
 #
 activated-plugin websearch
+activated-plugin websearch-api-compat
 activated-plugin blocker
 #activated-plugin no-tracking
 activated-plugin img_websearch
