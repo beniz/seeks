@@ -1216,6 +1216,8 @@ namespace seeks_plugins
                     sp->_meta_rank = 1;
                     sp->_engine.add_feed("seeks","s.s");
                     sp->_radius = qd->_radius;
+                    sp->_content_date = vd->_url_date;
+                    sp->_record_date = vd->_rec_date;
                     snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
                   }
               }

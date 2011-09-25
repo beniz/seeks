@@ -21,6 +21,7 @@
 #include "content_handler.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "cf.h"
@@ -180,8 +181,38 @@ namespace seeks_plugins
       } // end while.
 
     // sort by rank.
-    std::stable_sort(snippets.begin(),snippets.end(),
-                     search_snippet::max_seeks_rank);
+    const char *order = miscutil::lookup(parameters,"order");
+    if (!order || strcmpic(order,"rank")==0)
+      std::stable_sort(snippets.begin(),snippets.end(),
+                       search_snippet::max_seeks_rank);
+    else if (strcmpic(order,"new-date")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::new_date);
+      }
+    else if (strcmpic(order,"old-date")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::old_date);
+      }
+    else if (strcmpic(order,"new-activity")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::new_activity);
+      }
+    else if (strcmpic(order,"old-activity")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::old_activity);
+      }
+    else
+      {
+        // log error, and default to max seeks rank ordering.
+        errlog::log_error(LOG_LEVEL_ERROR,"wrong search result order parameter %s, ordering by seeks rank as default",
+                          order);
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::max_seeks_rank);
+      }
 
     //debug
     /* std::cerr << "[Debug]: sorted result snippets:\n";
@@ -343,34 +374,6 @@ namespace seeks_plugins
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }
-
-  /*void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
-  {
-    if (!websearch::_cf_plugin)
-      return;
-    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,snippets);
-    std::stable_sort(snippets.begin(),snippets.end(),
-                     search_snippet::max_seeks_rank);
-  }
-
-  void sort_rank::get_related_queries(query_context *qc) throw (sp_exception)
-  {
-    if (!websearch::_cf_plugin)
-      return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,qc->_suggestions);
-  }
-
-  void sort_rank::get_recommended_urls(query_context *qc) throw (sp_exception)
-  {
-    if (!websearch::_cf_plugin)
-      return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,
-        qc->_recommended_snippets);
-    qc->update_recommended_urls();
-    }*/
 #endif
 
 } /* end of namespace. */

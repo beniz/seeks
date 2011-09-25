@@ -111,6 +111,34 @@ namespace seeks_plugins
         else return s1->_seeks_rank > s2->_seeks_rank;
       };
 
+      static bool new_date(const search_snippet *s1, const search_snippet *s2)
+      {
+        if (s1->_content_date == s2->_content_date)
+          return max_seeks_rank(s1,s2);
+        else return s1->_content_date < s2->_content_date;
+      };
+
+      static bool old_date(const search_snippet *s1, const search_snippet *s2)
+      {
+        if (s1->_content_date == s2->_content_date)
+          return max_seeks_rank(s1,s2);
+        else return s1->_content_date > s2->_content_date;
+      };
+
+      static bool new_activity(const search_snippet *s1, const search_snippet *s2)
+      {
+        if (s1->_record_date == s2->_record_date)
+          return max_seeks_rank(s1,s2);
+        else return s1->_record_date < s2->_record_date;
+      };
+
+      static bool old_activity(const search_snippet *s1, const search_snippet *s2)
+      {
+        if (s1->_record_date == s2->_record_date)
+          return max_seeks_rank(s1,s2);
+        else return s1->_record_date > s2->_record_date;
+      };
+
       // constructors.
     public:
       search_snippet();
@@ -207,6 +235,9 @@ namespace seeks_plugins
       double _seeks_ir; // IR score computed locally.
       double _meta_rank; // rank computed locally by the meta-search engine.
       double _seeks_rank; // rank computed locally, mostly for personalized ranking.
+
+      uint32_t _content_date; // content date, since Epoch.
+      uint32_t _record_date; // record date, since Epoch.
 
       feeds _engine;  // engines from which it was created (if not directly published).
       enum DOC_TYPE _doc_type;
