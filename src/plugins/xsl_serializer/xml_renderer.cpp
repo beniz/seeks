@@ -17,11 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "xsl_renderer.h"
+#include "xml_renderer.h"
 #include "cgisimple.h"
 #include "miscutil.h"
 #include "cgi.h"
-#include "xsl_renderer_private.h"
+#include "query_context.h"
+#include "xml_renderer_private.h"
+
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
 #include "img_query_context.h"
 #endif
@@ -36,7 +38,7 @@ using sp::proxy_configuration;
 using sp::seeks_proxy;
 using sp::encode;
 
-using namespace xml_serializer_private;
+using namespace xml_renderer_private;
 
 namespace seeks_plugins
 {
@@ -54,8 +56,8 @@ namespace seeks_plugins
             if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
                 != websearch::_wconfig->_se_options.end())
 	      {
-		eng=xmlNewNode(NULL,"engine");
-		xmlNewProp(eng,"value",(*hit).second._id);
+		eng=xmlNewNode(NULL,BAD_CAST "engine");
+		xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
 		xmlAddChild(parent,eng);
 	      }
 	    ++sit;
@@ -68,31 +70,34 @@ namespace seeks_plugins
   sp_err xml_renderer::render_node_options(client_state *csp,
       xmlNodePtr parent)
   {
+
+    xmlNodePtr feed;
+
     // system options.
     hash_map<const char*, const char*, hash<const char*>, eqstr> *exports
     = cgi::default_exports(csp,"");
     const char *value = miscutil::lookup(exports,"version");
     if (value)
-      xmlNewProp(parent,"version",value);
+      xmlNewProp(parent,BAD_CAST "version",BAD_CAST value);
     if (websearch::_wconfig->_show_node_ip)
       {
         value = miscutil::lookup(exports,"my-ip-address");
         if (value)
           {
-	    xmlNewProp(parent,"my-ip-adress",value);
+	    xmlNewProp(parent,BAD_CAST "my-ip-adress",BAD_CAST value);
           }
       }
     value = miscutil::lookup(exports,"code-status");
     if (value)
       {
-	xmlNewProp(parent,"code-status",value);
+	xmlNewProp(parent,BAD_CAST "code-status",BAD_CAST value);
       }
     value = miscutil::lookup(exports,"admin-address");
     if (value)
       {
-	xmlNewProp(parent,"admin-address",value);
+	xmlNewProp(parent,BAD_CAST "admin-address",BAD_CAST value);
       }
-    xmlNewProp(parent,"url-source-code",csp->_config->_url_source_code);
+    xmlNewProp(parent,BAD_CAST "url-source-code",BAD_CAST csp->_config->_url_source_code.c_str());
 
     miscutil::free_map(exports);
 
@@ -100,12 +105,12 @@ namespace seeks_plugins
     // thumbs.
     
     std::string thumbs;
-    xmlNewProp(parent,"thumbs",
-	       websearch::_wconfig->_thumbs ? "on" :"off");
-    xmlNewProp(parent,"content-analysis",
-	       websearch::_wconfig->_content_analysis ? "on" : "off");
-    xmlNewProp(parent,"clustering",
-	       websearch::_wconfig->_clustering ? "on" : "off");
+    xmlNewProp(parent,BAD_CAST "thumbs",
+	       BAD_CAST (websearch::_wconfig->_thumbs ? "on" :"off"));
+    xmlNewProp(parent,BAD_CAST "content-analysis",
+	       BAD_CAST (websearch::_wconfig->_content_analysis ? "on" : "off"));
+    xmlNewProp(parent,BAD_CAST "clustering",
+	       BAD_CAST (websearch::_wconfig->_clustering ? "on" : "off"));
 
     /* feeds options */
     std::list<std::string> se_options;
@@ -114,21 +119,21 @@ namespace seeks_plugins
     = websearch::_wconfig->_se_enabled._feedset.begin();
     while(fit!=websearch::_wconfig->_se_enabled._feedset.end())
       {
-	feed=xmlNewNode(NULL,"feed");
-	xmlNewProp(feed,"name",(*fit)._name);
+	feed=xmlNewNode(NULL,BAD_CAST "feed");
+	xmlNewProp(feed,BAD_CAST "name",BAD_CAST (*fit)._name.c_str());
         std::list<std::string> se_urls;
         std::set<std::string>::const_iterator sit
         = (*fit)._urls.begin();
         while(sit!=(*fit)._urls.end())
           {
-	    feed_url=xmlNewNode(NULL,"url");
+	    feed_url=xmlNewNode(NULL,BAD_CAST "url");
             std::string url = (*sit);
             if ((hit=websearch::_wconfig->_se_options.find(url.c_str()))
                 !=websearch::_wconfig->_se_options.end())
               {
-		xmlNewProp(feedurl,"value",(*hit).second._id);
+		xmlNewProp(feed_url,"value",(*hit).second._id);
 		if ((*hit).second._default)
-		  xmlNewProp(feed,"default","yes");
+		  xmlNewProp(feed_url,"default","yes");
               }
 	    xmlAddChild(feed,feed_url);
             ++sit;

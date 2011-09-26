@@ -19,6 +19,12 @@
 #ifndef XML_RENDERER_H
 #define XML_RENDERER_H
 
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include "websearch.h"
+#include "clustering.h"
+
+
 namespace seeks_plugins
 {
   class xml_renderer
