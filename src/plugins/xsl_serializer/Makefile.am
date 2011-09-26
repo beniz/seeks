@@ -5,7 +5,7 @@ xslserializerplugindatadir = $(datadir)/seeks/plugins/xsl_serializer
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy \
-	    -I${srcdir}/../../dht 
+	    -I${srcdir}/../../dht -I${srcdir}/../websearch 
 if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_CPPFLAGS += -I${srcdir}/../img_websearch
 endif
@@ -27,7 +27,7 @@ xslserializerpluginlib_LTLIBRARIES=libseeksxslserializerplugin.la
 libseeksxslserializerplugin_la_SOURCES=xml_renderer.cpp xsl_serializer.cpp \
 				       xml_renderer.h   xsl_serializer.h 
 
-libseeksxslserializerplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ @XSLT_FLAGS@ @LCOV_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+libseeksxslserializerplugin_la_CXXFLAGS = -Wall -g -I${srcdir}/../../ @PCRE_CFLAGS@ @CURL_CFLAGS@ @XML2_CFLAGS@ @XSLT_CFLAGS@ @LCOV_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
 
 if USE_PERL
 libseeksxslserializerplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
