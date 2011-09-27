@@ -1117,8 +1117,8 @@ namespace seeks_plugins
 
         if (s && !hfiltered)
           {
-            if (s->_meta_rank <= s->_engine.size())
-              s->_meta_rank++;
+            /*if (s->_meta_rank <= s->_engine.size())
+              s->_meta_rank++;*/
             s->_personalized = true;
           }
       }

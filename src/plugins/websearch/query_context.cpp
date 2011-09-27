@@ -176,6 +176,16 @@ namespace seeks_plugins
     miscutil::add_map_entry(parameters,"expansion",1,exp_str.c_str(),1);
   }
 
+  void query_context::reset_p2p_data()
+  {
+    std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
+    while (vit!=_cached_snippets.end())
+      {
+        (*vit)->reset_p2p_data();
+        ++vit;
+      }
+  }
+
   bool query_context::sweep_me()
   {
     // check last_time_of_use + delay against current time.

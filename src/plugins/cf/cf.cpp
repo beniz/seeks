@@ -323,6 +323,7 @@ namespace seeks_plugins
           lang = lang_str;
       }
     sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+    qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }

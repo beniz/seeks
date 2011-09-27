@@ -208,6 +208,9 @@ namespace seeks_plugins
       // the US.
       void bing_yahoo_us_merge();
 
+      // reset p2p data.
+      void reset_p2p_data();
+
       // get doc type in a string form.
       std::string get_doc_type_str() const;
 

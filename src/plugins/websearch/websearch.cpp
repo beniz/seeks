@@ -1276,17 +1276,7 @@ namespace seeks_plugins
     if (persf)
       {
 #if defined(PROTOBUF) && defined(TC)
-        std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
-        while (vit!=qc->_cached_snippets.end())
-          {
-            if ((*vit)->_engine.has_feed("seeks"))
-              (*vit)->_engine.remove_feed("seeks");
-            (*vit)->_meta_rank = (*vit)->_engine.size();
-            (*vit)->_seeks_rank = 0;
-            (*vit)->_npeers = 0;
-            (*vit)->_hits = 0;
-            ++vit;
-          }
+        qc->reset_p2p_data();
 #endif
       }
 

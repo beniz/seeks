@@ -239,6 +239,11 @@ namespace seeks_plugins
        */
       void reset_snippets_personalization_flags();
 
+      /**
+       * \brief reset p2p snippet data.
+       */
+      void reset_p2p_data();
+
     public:
       std::string _query; /**< clean query, no commands in it. */
       std::string _query_key; /**< query of the form ":lg query", where lg is the language code, used as a key for context retrieval. */

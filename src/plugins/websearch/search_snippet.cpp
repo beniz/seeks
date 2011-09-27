@@ -75,8 +75,8 @@ namespace seeks_plugins
      _file_format(s->_file_format),_date(s->_date),_lang(s->_lang),
      _archive(s->_archive),
      _sim_back(s->_sim_back),_rank(s->_rank),_meta_rank(s->_meta_rank),
-     _seeks_rank(s->_seeks_rank),_engine(s->_engine),
-     _content_date(s->_content_date),_record_date(s->_record_date),_doc_type(s->_doc_type),
+     _seeks_rank(s->_seeks_rank),_content_date(s->_content_date),_record_date(s->_record_date),
+     _engine(s->_engine),_doc_type(s->_doc_type),
      _forum_thread_info(s->_forum_thread_info),_cached_content(NULL),
      _features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(s->_safe),_personalized(s->_personalized),
      _npeers(s->_npeers),_hits(s->_hits),_radius(s->_radius)
@@ -571,6 +571,16 @@ namespace seeks_plugins
         && _engine.has_feed("yahoo")
         && _engine.has_feed("bing"))
       _meta_rank--;
+  }
+
+  void search_snippet::reset_p2p_data()
+  {
+    if (_engine.has_feed("seeks"))
+      _engine.remove_feed("seeks");
+    _meta_rank = _engine.size();
+    _seeks_rank = 0;
+    _npeers = 0;
+    _hits = 0;
   }
 
   std::string search_snippet::get_doc_type_str() const
