@@ -358,10 +358,10 @@ namespace seeks_plugins
             sim_link = "/search";
             if (sp->_doc_type == IMAGE)
               sim_link += "_img";
-            sim_link += "?" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
+            sim_link += "?q=" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
                         + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
                         + "&amp;lang=" + sp->_qc->_auto_lang
-                        + "&amp;ui=stat";
+                        + "&amp;ui=stat&amp;action=similarity";
             if (engines)
               sim_link += "&amp;engines=" + std::string(engines);
             sp->set_similarity_link(parameters);
@@ -375,7 +375,7 @@ namespace seeks_plugins
             sim_link += "?q=" + sp->_qc->_url_enc_query
                         + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
                         + "&amp;lang=" + sp->_qc->_auto_lang
-                        + "&amp;ui=stat";
+                        + "&amp;ui=stat&amp;action=expand";
             if (engines)
               sim_link += "&amp;engines=" + std::string(engines);
             sp->set_back_similarity_link(parameters);
