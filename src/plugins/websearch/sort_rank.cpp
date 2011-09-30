@@ -180,7 +180,25 @@ namespace seeks_plugins
         ++it;
       } // end while.
 
-    // sort by rank.
+    // sort by rank, date or activiy.
+    sort_rank::sort_snippets(snippets,parameters);
+
+    //debug
+    /* std::cerr << "[Debug]: sorted result snippets:\n";
+    it = snippets.begin();
+          while(it!=snippets.end())
+      {
+         (*it)->print(std::cerr);
+         it++;
+           i++;
+      } */
+    //debug
+  }
+
+  void sort_rank::sort_snippets(std::vector<search_snippet*> &snippets,
+                                const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  {
+    // sort by rank, date or activiy.
     const char *order = miscutil::lookup(parameters,"order");
     if (!order || strcmpic(order,"rank")==0)
       std::stable_sort(snippets.begin(),snippets.end(),
@@ -213,17 +231,6 @@ namespace seeks_plugins
         std::stable_sort(snippets.begin(),snippets.end(),
                          search_snippet::max_seeks_rank);
       }
-
-    //debug
-    /* std::cerr << "[Debug]: sorted result snippets:\n";
-    it = snippets.begin();
-          while(it!=snippets.end())
-      {
-         (*it)->print(std::cerr);
-         it++;
-           i++;
-      } */
-    //debug
   }
 
   void sort_rank::score_and_sort_by_similarity(query_context *qc, const char *id_str,

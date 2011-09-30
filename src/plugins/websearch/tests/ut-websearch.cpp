@@ -26,6 +26,7 @@
 #include "se_handler.h"
 #include "proxy_configuration.h"
 #include "content_handler.h"
+#include "sort_rank.h"
 #include "sweeper.h"
 #include "errlog.h"
 
@@ -496,6 +497,51 @@ TEST_F(WBExistTest,cgi_websearch_recent_queries)
   EXPECT_NE(std::string::npos,body.find("\"queries\":"));
   EXPECT_NE(std::string::npos,body.find("\"test\""));
   EXPECT_NE(std::string::npos,body.find("\"seeks\""));
+  miscutil::free_map(parameters);
+}
+
+TEST(SRTest,sort_snippets)
+{
+  search_snippet sp1;
+  sp1.set_url("url1");
+  sp1.set_title("title1");
+  sp1._seeks_rank = 2;
+  search_snippet sp2;
+  sp2.set_url("url2");
+  sp2.set_title("title2");
+  sp2._seeks_rank = 1;
+  std::vector<search_snippet*> snippets;
+  snippets.push_back(&sp2);
+  snippets.push_back(&sp1);
+
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"order",1,"rank",1);
+  sort_rank::sort_snippets(snippets,parameters);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
+
+  sp1._content_date = 100000000;
+  sp2._content_date = 10000000;
+  miscutil::unmap(parameters,"order");
+  miscutil::add_map_entry(parameters,"order",1,"new-date",1);
+  sort_rank::sort_snippets(snippets,parameters);
+  ASSERT_EQ("url2",(*snippets.begin())->_url);
+  miscutil::unmap(parameters,"order");
+  miscutil::add_map_entry(parameters,"order",1,"old-date",1);
+  sort_rank::sort_snippets(snippets,parameters);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
+
+  sp1._record_date = 100000000;
+  sp2._record_date = 10000000;
+  miscutil::unmap(parameters,"order");
+  miscutil::add_map_entry(parameters,"order",1,"new-activity",1);
+  sort_rank::sort_snippets(snippets,parameters);
+  ASSERT_EQ("url2",(*snippets.begin())->_url);
+  miscutil::unmap(parameters,"order");
+  miscutil::add_map_entry(parameters,"order",1,"old-activity",1);
+  sort_rank::sort_snippets(snippets,parameters);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
+
   miscutil::free_map(parameters);
 }
 

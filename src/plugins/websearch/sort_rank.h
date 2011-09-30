@@ -51,6 +51,9 @@ namespace seeks_plugins
       static void sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
+      static void sort_snippets(std::vector<search_snippet*> &snippets,
+                                const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
       static void score_and_sort_by_similarity(query_context *qc, const char *id_str,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
           search_snippet *&ref_sp,
