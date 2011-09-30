@@ -18,7 +18,7 @@ search-engine bing http://www.bing.com/search?q=%query&first=%start&mkt=%lang bi
 search-engine yahoo http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs= yahoo nodefault
 search-engine blekko http://blekko.com/ws/%query/rss?ps=100 blekko default
 search-engine exalead http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start exalead nodefault
-search-engine delicious http://www.delicious.com/search?p=%query&page=%start delicious default
+#search-engine delicious http://www.delicious.com/search?p=%query&page=%start delicious default
 search-engine youtube http://gdata.youtube.com/feeds/base/videos?q=%query&client=ytapi-youtube-search&alt=rss&v=2&start-index=%start&max-results=%num youtube nodefault
 search-engine dailymotion http://www.dailymotion.com/rss/relevance/search/%query/%start dailymotion nodefault
 search-engine twitter http://search.twitter.com/search.atom?q=%query&page=%start&rpp=%num twitter nodefault http://identi.ca/api/search.atom?q=%query&page=%start&rpp=%num identica nodefault
@@ -127,3 +127,7 @@ ui-theme compact
 # Maximum number of recommended queries in results.
 # default: 13
 num-recommended-queries 13
+
+# Maximum number of recent queries in results.
+# default: 20
+num-recent-queries 20

@@ -62,6 +62,10 @@ namespace seeks_plugins
                                           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                           bool render=true);
 
+      static sp_err fetch_snippet(client_state *csp,
+                                  http_response *rsp,
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static std::vector<std::pair<std::string,std::string> >* safesearch_exports(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
     public:

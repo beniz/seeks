@@ -108,9 +108,19 @@ namespace seeks_plugins
       static uint32_t hash_query_for_context(const std::string &query_key);
 
       /**
-       * \brief synchronizes qc's parameters with parameters.
+       * \brief resets expansion parameter to 1.
        */
-      void update_parameters(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      void reset_expansion_parameter(hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      /**
+       * \brief adds a snippet to cache.
+       */
+      void add_to_cache(search_snippet *sr);
+
+      /**
+       * \brief removes snippet from cache.
+       */
+      void remove_from_cache(search_snippet *sr);
 
       /**
        * \brief adds a snippet to the unordered cache set.
@@ -230,15 +240,15 @@ namespace seeks_plugins
       void reset_snippets_personalization_flags();
 
       /**
-       * \brief update recommended URLs.
-       * @return true if cached_snippets has changed, false otherwise.
+       * \brief reset p2p snippet data.
        */
-      bool update_recommended_urls();
+      void reset_p2p_data();
 
     public:
       std::string _query; /**< clean query, no commands in it. */
-      std::string _query_key; /**< query of the form ":lg query", used as a key for context retrieval. */
+      std::string _query_key; /**< query of the form ":lg query", where lg is the language code, used as a key for context retrieval. */
       std::string _url_enc_query;
+      std::string _lc_query; /**< lower case query, for storage and similarity operations. */
       uint32_t _query_hash; /**< hashed query_key. */
 
       /* expansion. */
@@ -259,9 +269,6 @@ namespace seeks_plugins
 
       /* suggested queries. */
       std::multimap<double,std::string,std::less<double> > _suggestions;
-
-      /* recomended urls from user profile(s). */
-      hash_map<uint32_t,search_snippet*,id_hash_uint> _recommended_snippets;
 
       /* LSH subsystem for regrouping textual elements. */
       LSHSystemHamming *_lsh_ham;

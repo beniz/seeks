@@ -42,9 +42,6 @@
 #include <algorithm>
 #include <iostream>
 
-#define TRUE 1
-#define FALSE 0
-
 #ifndef HAVE_STRNDUP
 char *strndup(char *str, size_t len)
 {
@@ -538,8 +535,8 @@ namespace sp
     return text;
   }
 
-  int miscutil::list_contains_item(const std::list<const char*> *the_list,
-                                   const char *str)
+  bool miscutil::list_contains_item(const std::list<const char*> *the_list,
+                                    const char *str)
   {
     assert(the_list);
     assert(str);
@@ -558,16 +555,16 @@ namespace sp
             continue;
           }
 
-        if (0 == strcmp(str, (*lit)))
+        if (0 == strcasecmp(str, (*lit)))
           {
             /* Item found */
-            return TRUE;
+            return true;
           }
 
         ++lit;
       }
 
-    return FALSE;
+    return false;
   }
 
   int miscutil::list_duplicate(std::list<const char*> *dest,
@@ -1025,6 +1022,11 @@ namespace sp
     return sc;
   }
 
+  void miscutil::to_lower(std::string &str)
+  {
+    std::transform(str.begin(),str.end(),str.begin(),tolower);
+  }
+
   size_t miscutil::replace_in_string(std::string &str, const std::string &pattern,
                                      const std::string &repl)
   {
@@ -1062,15 +1064,9 @@ namespace sp
     while ((p2 = miscutil::ci_find(str,pattern,it)) != std::string::npos)
       {
         str.replace(p1+p2,pattern.size(),repl);
-
-        //std::cout << "str: " << str << std::endl;
-
         it = str.begin();
         it += p1+p2 + repl.size();
-
         p1 += p2 + repl.size();
-
-        //std::cout << "it: " << (*it) << std::endl;
       }
     return p1;
   }
@@ -1175,6 +1171,30 @@ namespace sp
     for (std::list<std::string>::const_iterator i = l.begin (), e = l.end (); i != e; ++i)
       {
         if (i != l.begin())
+          result.append(delim);
+        result.append(i->c_str());
+      }
+    return result;
+  }
+
+  std::string miscutil::join_string_list(const std::string& delim, const std::vector<std::string>& v)
+  {
+    std::string result;
+    for (std::vector<std::string>::const_iterator i = v.begin (), e = v.end (); i != e; ++i)
+      {
+        if (i != v.begin())
+          result.append(delim);
+        result.append(i->c_str());
+      }
+    return result;
+  }
+
+  std::string miscutil::join_string_list(const std::string& delim, const std::set<std::string>& s)
+  {
+    std::string result;
+    for (std::set<std::string>::const_iterator i = s.begin (), e = s.end (); i != e; ++i)
+      {
+        if (i != s.begin())
           result.append(delim);
         result.append(i->c_str());
       }

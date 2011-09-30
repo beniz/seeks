@@ -1,9 +1,9 @@
 /**
  * Purpose     :  Declares functions to intercept request, generate
- *                html or gif answers, and to compose HTTP resonses.
+ *                html or JSON answers, and to compose HTTP responses.
  *
  * Copyright   :  Modified by Emmanuel Benazera for the Seeks Project,
- *                2009.
+ *                2009 - 2011.
  *
  *                Written by and Copyright (C) 2001-2009 the SourceForge
  *                Privoxy team. http://www.privoxy.org/
@@ -111,7 +111,8 @@ namespace sp
                                           http_response *rsp,
                                           const char *template_name);
       static sp_err cgi_error_bad_param(const client_state *csp,
-                                        http_response *rsp);
+                                        http_response *rsp,
+                                        const std::string &output);
       static sp_err cgi_error_disabled(const client_state *csp,
                                        http_response *rsp);
       static sp_err cgi_error_plugin(const client_state *csp,

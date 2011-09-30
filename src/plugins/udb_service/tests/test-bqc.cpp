@@ -70,8 +70,7 @@ int main(int argc, char **argv)
     }
 
   udb_client udbc;
-  std::string squery = query_capture_element::no_command_query(query);
-  db_record *dbr = udbc.find_bqc(host,port,path,squery,1);
+  db_record *dbr = udbc.find_bqc(host,port,path,query,1);
   if (dbr)
     {
       db_query_record *dbqr = static_cast<db_query_record*>(dbr);

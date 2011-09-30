@@ -76,7 +76,7 @@ namespace seeks_plugins
 #endif
   }
 
-  std::string img_search_snippet::to_html_with_highlight(std::vector<std::string> &words,
+  /*  std::string img_search_snippet::to_html_with_highlight(std::vector<std::string> &words,
       const std::string &base_url_str,
       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
@@ -96,16 +96,15 @@ namespace seeks_plugins
 
     std::string url = _url;
 
-#if defined(PROTOBUF) && defined(TC)
+  #if defined(PROTOBUF) && defined(TC)
     if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
         && query_capture_configuration::_config
-        && query_capture_configuration::_config->_mode_intercept == "redirect")
       {
         char *url_enc = encode::url_encode(url.c_str());
         url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&amp;url=" + std::string(url_enc);
         free(url_enc);
       }
-#endif
+  #endif
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str + "/search_img?q=@query@&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=seeng&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
     std::string html_content = "<li class=\"search_snippet search_snippet_img\">";
@@ -165,12 +164,7 @@ namespace seeks_plugins
         html_content += yahoo_se_icon;
       }
 
-    // XXX: personalization icon kind of look ugly with image snippets...
-    /* if (_personalized)
-      {
-         html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
-      }
-    else */
+
     html_content += "</div></h3>";
     const char *cite_enc = NULL;
     if (!_cite.empty())
@@ -205,7 +199,7 @@ namespace seeks_plugins
         free_const(enc_cached);
       }
 
-#ifdef FEATURE_OPENCV2
+  #ifdef FEATURE_OPENCV2
     if (!_sim_back)
       {
         set_similarity_link(parameters);
@@ -221,12 +215,12 @@ namespace seeks_plugins
     if (!_sim_back)
       html_content += "\">Similar</a>";
     else html_content += "\">Back</a>";
-#endif
+  #endif
     html_content += "</li>\n";
     return html_content;
-  }
+    }*/
 
-  std::string img_search_snippet::to_json(const bool &thumbs,
+  /*  std::string img_search_snippet::to_json(const bool &thumbs,
                                           const std::vector<std::string> &query_words)
   {
     std::string json_str;
@@ -270,33 +264,6 @@ namespace seeks_plugins
       }
     json_str += "\"engines\":[";
     json_str += json_renderer::render_engines(_img_engine);
-    /*std::string json_str_eng = "";
-    if (_img_engine.to_ulong()&SE_GOOGLE_IMG)
-      json_str_eng += "\"google\"";
-    if (_img_engine.to_ulong()&SE_BING_IMG)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"bing\"";
-      }
-    if (_img_engine.to_ulong()&SE_FLICKR)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"flickr\"";
-      }
-    if (_img_engine.to_ulong()&SE_WCOMMONS)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"wcommons\"";
-      }
-    if (_img_engine.to_ulong()&SE_YAHOO_IMG)
-      {
-        if (!json_str_eng.empty())
-          json_str_eng += ",";
-        json_str_eng += "\"yahoo\"";
-    	}*/
     json_str += "]";
     json_str += ",\"type\":\"" + get_doc_type_str() + "\"";
     json_str += ",\"personalized\":\"";
@@ -308,7 +275,7 @@ namespace seeks_plugins
       json_str += ",\"date\":\"" + _date + "\"";
     json_str += "}";
     return json_str;
-  }
+    }*/
 
   bool img_search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
@@ -322,7 +289,7 @@ namespace seeks_plugins
 
   void img_search_snippet::set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    const char *engines = miscutil::lookup(parameters,"engines");
+    /*const char *engines = miscutil::lookup(parameters,"engines");
     std::string sfsearch = "on";
     if (!static_cast<img_query_context*>(_qc)->_safesearch)
       sfsearch = "off";
@@ -331,21 +298,21 @@ namespace seeks_plugins
                 + "&amp;action=similarity&amp;safesearch=" + sfsearch
                 + "&amp;id=" + miscutil::to_string(_id) + "&amp;engines=";
     if (engines)
-      _sim_link += std::string(engines);
+    _sim_link += std::string(engines);*/
     _sim_back = false;
   }
 
   void img_search_snippet::set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    const char *engines = miscutil::lookup(parameters,"engines");
+    /*const char *engines = miscutil::lookup(parameters,"engines");
     std::string sfsearch = "on";
     if (!static_cast<img_query_context*>(_qc)->_safesearch)
       sfsearch = "off";
     _sim_link = "/search_img?q=" + _qc->_url_enc_query
-                + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
+      + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
                 + "&amp;action=expand&amp;safesearch=" + sfsearch + "&amp;engines=";
     if (engines)
-      _sim_link += std::string(engines);
+    _sim_link += std::string(engines);*/
     _sim_back = true;
   }
 

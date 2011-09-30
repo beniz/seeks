@@ -27,10 +27,6 @@
 #include "seeks_proxy.h" // for _datadir.
 #include "json_renderer.h"
 
-#if defined(PROTOBUF) && defined(TC)
-#include "query_capture_configuration.h"
-#endif
-
 #ifndef FEATURE_EXTENDED_HOST_PATTERNS
 #include "proxy_dts.h" // for http_request.
 #endif
@@ -60,14 +56,16 @@ namespace seeks_plugins
   std::vector<url_spec*> search_snippet::_reject_pos_patterns = std::vector<url_spec*>();
 
   search_snippet::search_snippet()
-    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0)
+    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),
+     _content_date(0),_record_date(0),_doc_type(WEBPAGE),
+     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0),_radius(0)
   {
   }
 
   search_snippet::search_snippet(const short &rank)
-    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
-     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0)
+    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),
+     _content_date(0),_record_date(0),_doc_type(WEBPAGE),
+     _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0),_radius(0)
   {
   }
 
@@ -75,12 +73,13 @@ namespace seeks_plugins
     :_qc(s->_qc),_new(s->_new),_id(s->_id),_title(s->_title),_url(s->_url),_cite(s->_cite),
      _cached(s->_cached),_summary(s->_summary),_summary_noenc(s->_summary_noenc),
      _file_format(s->_file_format),_date(s->_date),_lang(s->_lang),
-     _archive(s->_archive),_sim_link(s->_sim_link),
+     _archive(s->_archive),
      _sim_back(s->_sim_back),_rank(s->_rank),_meta_rank(s->_meta_rank),
-     _seeks_rank(s->_seeks_rank),_engine(s->_engine),_doc_type(s->_doc_type),
+     _seeks_rank(s->_seeks_rank),_content_date(s->_content_date),_record_date(s->_record_date),
+     _engine(s->_engine),_doc_type(s->_doc_type),
      _forum_thread_info(s->_forum_thread_info),_cached_content(NULL),
      _features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(s->_safe),_personalized(s->_personalized),
-     _npeers(s->_npeers),_hits(s->_hits)
+     _npeers(s->_npeers),_hits(s->_hits),_radius(s->_radius)
   {
     if (s->_cached_content)
       _cached_content = new std::string(*s->_cached_content);
@@ -127,14 +126,13 @@ namespace seeks_plugins
   }
 
   void search_snippet::discr_words(const std::vector<std::string> &query_words,
-                                   std::vector<std::string> &words)
+                                   std::set<std::string> &words) const
   {
     static int max_highlights = 3; // ad-hoc default.
 
     if (!_features_tfidf)
       return;
 
-    words.reserve(max_highlights);
     std::map<float,uint32_t,std::greater<float> > f_tfidf;
 
     // sort features in decreasing tf-idf order.
@@ -167,7 +165,7 @@ namespace seeks_plugins
                       break;
                     }
                 if (add)
-                  words.push_back((*bit).second);
+                  words.insert((*bit).second);
                 i++;
               }
             if (i>=max_highlights)
@@ -180,29 +178,7 @@ namespace seeks_plugins
       return;
 
     // sort words by size.
-    std::sort(words.begin(),words.end(),std::greater<std::string>());
-  }
-
-  void search_snippet::highlight_discr(std::string &str, const std::string &base_url_str,
-                                       const std::vector<std::string> &query_words)
-  {
-    // select discriminant words.
-    std::vector<std::string> words;
-    discr_words(query_words,words);
-
-    // highlighting.
-    for (size_t i=0; i<words.size(); i++)
-      {
-        if (words.at(i).length() > 2)
-          {
-            char *wenc = encode::url_encode(words.at(i).c_str());
-            std::string rword = " " + words.at(i) + " ";
-            std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + _qc->_url_enc_query
-                                   + "+" + std::string(wenc) + "&amp;page=1&amp;expansion=1&amp;action=expand&amp;lang=" + _qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
-            free(wenc);
-            miscutil::ci_replace_in_string(str,rword,bold_str);
-          }
-      }
+    //std::sort(words.begin(),words.end(),std::greater<std::string>());
   }
 
   std::ostream& search_snippet::print(std::ostream &output)
@@ -225,494 +201,6 @@ namespace seeks_plugins
     return output;
   }
 
-  std::string search_snippet::to_json(const bool &thumbs,
-                                      const std::vector<std::string> &query_words)
-  {
-    std::string json_str;
-    json_str += "{";
-    json_str += "\"id\":" + miscutil::to_string(_id) + ",";
-    char *title_enc = encode::html_encode(_title.c_str());
-    std::string title = std::string(title_enc);
-    free(title_enc);
-    miscutil::replace_in_string(title,"\\","\\\\");
-    miscutil::replace_in_string(title,"\"","\\\"");
-    json_str += "\"title\":\"" + title + "\",";
-    std::string url = _url;
-    miscutil::replace_in_string(url,"\"","\\\"");
-    miscutil::replace_in_string(url,"\n","");
-    json_str += "\"url\":\"" + url + "\",";
-    std::string summary = _summary;
-    miscutil::replace_in_string(summary,"\\","\\\\");
-    miscutil::replace_in_string(summary,"\"","\\\"");
-    json_str += "\"summary\":\"" + summary + "\",";
-    json_str += "\"seeks_meta\":" + miscutil::to_string(_meta_rank) + ",";
-    json_str += "\"seeks_score\":" + miscutil::to_string(_seeks_rank) + ",";
-    double rank = 0.0;
-    if (_engine.size() > 0)
-      rank = _rank / static_cast<double>(_engine.size());
-    json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
-    json_str += "\"cite\":\"";
-    if (!_cite.empty())
-      {
-        std::string cite = _cite;
-        miscutil::replace_in_string(cite,"\"","\\\"");
-        miscutil::replace_in_string(cite,"\n","");
-        json_str += cite + "\",";
-      }
-    else json_str += url + "\",";
-    if (!_cached.empty())
-      {
-        std::string cached = _cached;
-        miscutil::replace_in_string(cached,"\"","\\\"");
-        json_str += "\"cached\":\"" + cached + "\","; // XXX: cached might be malformed without preprocessing.
-      }
-    if (_archive.empty())
-      set_archive_link();
-    std::string archive = _archive;
-    miscutil::replace_in_string(archive,"\"","\\\"");
-    miscutil::replace_in_string(archive,"\n","");
-    json_str += "\"archive\":\"" + archive + "\",";
-    json_str += "\"engines\":[";
-    json_str += json_renderer::render_engines(_engine);
-    json_str += "]";
-    if (thumbs)
-      json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
-    std::vector<std::string> words;
-    discr_words(query_words,words);
-    if (!words.empty())
-      {
-        json_str += ",\"words\":[";
-        for (size_t w=0; w<words.size(); w++)
-          {
-            json_str += "\"" + words.at(w) + "\"";
-            if (w != words.size()-1)
-              json_str += ",";
-          }
-        json_str += "]";
-      }
-    json_str += ",\"type\":\"" + get_doc_type_str() + "\"";
-    json_str += ",\"personalized\":\"";
-    if (_personalized)
-      json_str += "yes";
-    else json_str += "no";
-    json_str += "\"";
-    if (_npeers > 0)
-      json_str += ",\"snpeers\":\"" + miscutil::to_string(_npeers) + "\"";
-    if (_hits > 0)
-      json_str += ",\"hits\":\"" + miscutil::to_string(_hits) + "\"";
-    if (!_date.empty())
-      json_str += ",\"date\":\"" + _date + "\"";
-
-    json_str += "}";
-    return json_str;
-  }
-
-  std::string search_snippet::to_html(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-  {
-    std::vector<std::string> words;
-    std::string base_url_str;
-    return to_html_with_highlight(words,base_url_str,parameters);
-  }
-
-  std::string search_snippet::to_html_with_highlight(std::vector<std::string> &words,
-      const std::string &base_url_str,
-      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
-  {
-    // check for URL redirection for capture & personalization of results.
-    bool prs = true;
-    const char *pers = miscutil::lookup(parameters,"prs");
-    if (!pers)
-      prs = websearch::_wconfig->_personalization;
-    else
-      {
-        if (strcasecmp(pers,"on") == 0)
-          prs = true;
-        else if (strcasecmp(pers,"off") == 0)
-          prs = false;
-        else prs = websearch::_wconfig->_personalization;
-      }
-
-    std::string url = _url;
-    char *url_encp = encode::url_encode(url.c_str());
-    std::string url_enc = std::string(url_encp);
-    free(url_encp);
-
-#if defined(PROTOBUF) && defined(TC)
-    if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
-        && query_capture_configuration::_config
-        && query_capture_configuration::_config->_mode_intercept == "redirect")
-      {
-        url = base_url_str + "/qc_redir?q=" + _qc->_url_enc_query + "&amp;url=" + url_enc;
-      }
-#endif
-
-    std::string html_content = "<li class=\"search_snippet";
-    if (_doc_type == VIDEO_THUMB)
-      html_content += " search_snippet_vid";
-    html_content += "\"";
-    /* if ( websearch::_wconfig->_thumbs )
-     html_content += " onmouseover=\"snippet_focus(this, 'on');\" onmouseout=\"snippet_focus(this, 'off');\""; */
-    html_content += ">";
-    const char *thumbs = miscutil::lookup(parameters,"thumbs");
-    bool has_thumbs = websearch::_wconfig->_thumbs;
-    if (thumbs && strcasecmp(thumbs,"on") == 0)
-      has_thumbs = true;
-    if (_doc_type != TWEET && _doc_type != VIDEO_THUMB && has_thumbs)
-      {
-        html_content += "<a href=\"" + url + "\">";
-        html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
-        html_content += _url;
-        html_content += "\" /></a>";
-      }
-    if (_doc_type == TWEET)
-      {
-        html_content += "<a href=\"" + _cite + "\">";
-        html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" ></a>"; // _cached contains the profile's image.
-      }
-    if (_doc_type == VIDEO_THUMB)
-      {
-        html_content += "<a href=\"";
-        html_content += url + "\"><img class=\"video_profile\" src=\"";
-        html_content += _cached;
-        html_content += "\"></a><div>";
-      }
-
-    if (prs && _personalized && !_engine.has_feed("seeks"))
-      {
-        html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
-      }
-    else html_content += "<h3>";
-    html_content += "<a href=\"";
-    html_content += url;
-    html_content += "\">";
-
-    char *title_enc = encode::html_encode(_title.c_str());
-    html_content += title_enc;
-    free(title_enc);
-    html_content += "</a>";
-
-    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
-                          + "/search?q=@query@&amp;page=1&amp;expansion=1&amp;action=expand&amp;engines=seeng&amp;lang="
-                          + _qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
-    if (_engine.has_feed("google"))
-      {
-        std::string ggle_se_icon = se_icon;
-        miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
-        miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
-        miscutil::replace_in_string(ggle_se_icon,"seeng","google");
-        miscutil::replace_in_string(ggle_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += ggle_se_icon;
-      }
-    if (_engine.has_feed("bing"))
-      {
-        std::string bing_se_icon = se_icon;
-        miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
-        miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
-        miscutil::replace_in_string(bing_se_icon,"seeng","bing");
-        miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += bing_se_icon;
-      }
-    if (_engine.has_feed("blekko"))
-      {
-        std::string blekko_se_icon = se_icon;
-        miscutil::replace_in_string(blekko_se_icon,"icon","search_engine_blekko");
-        miscutil::replace_in_string(blekko_se_icon,"setitle","blekko!");
-        miscutil::replace_in_string(blekko_se_icon,"seeng","blekko");
-        miscutil::replace_in_string(blekko_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += blekko_se_icon;
-      }
-    if (_engine.has_feed("yauba"))
-      {
-        std::string yauba_se_icon = se_icon;
-        miscutil::replace_in_string(yauba_se_icon,"icon","search_engine_yauba");
-        miscutil::replace_in_string(yauba_se_icon,"setitle","yauba!");
-        miscutil::replace_in_string(yauba_se_icon,"seeng","yauba");
-        miscutil::replace_in_string(yauba_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += yauba_se_icon;
-      }
-    if (_engine.has_feed("yahoo"))
-      {
-        std::string yahoo_se_icon = se_icon;
-        miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
-        miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
-        miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
-        miscutil::replace_in_string(yahoo_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += yahoo_se_icon;
-      }
-    if (_engine.has_feed("exalead"))
-      {
-        std::string exalead_se_icon = se_icon;
-        miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
-        miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
-        miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
-        miscutil::replace_in_string(exalead_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += exalead_se_icon;
-      }
-    if (_engine.has_feed("delicious"))
-      {
-        std::string del_se_icon = se_icon;
-        miscutil::replace_in_string(del_se_icon,"icon","search_engine_delicious");
-        miscutil::replace_in_string(del_se_icon,"setitle","Delicious");
-        miscutil::replace_in_string(del_se_icon,"seeng","delicious");
-        miscutil::replace_in_string(del_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += del_se_icon;
-      }
-    if (_engine.has_feed("wordpress"))
-      {
-        std::string wd_se_icon = se_icon;
-        miscutil::replace_in_string(wd_se_icon,"icon","search_engine_wordpress");
-        miscutil::replace_in_string(wd_se_icon,"setitle","Wordpress");
-        miscutil::replace_in_string(wd_se_icon,"seeng","wordpress");
-        miscutil::replace_in_string(wd_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += wd_se_icon;
-      }
-    if (_engine.has_feed("redmine"))
-      {
-        std::string red_se_icon = se_icon;
-        miscutil::replace_in_string(red_se_icon,"icon","search_engine_redmine");
-        miscutil::replace_in_string(red_se_icon,"setitle","Redmine");
-        miscutil::replace_in_string(red_se_icon,"seeng","redmine");
-        miscutil::replace_in_string(red_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += red_se_icon;
-      }
-    if (_engine.has_feed("twitter"))
-      {
-        std::string twitter_se_icon = se_icon;
-        miscutil::replace_in_string(twitter_se_icon,"icon","search_engine_twitter");
-        miscutil::replace_in_string(twitter_se_icon,"setitle","Twitter");
-        miscutil::replace_in_string(twitter_se_icon,"seeng","twitter");
-        miscutil::replace_in_string(twitter_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += twitter_se_icon;
-      }
-    if (_engine.has_feed("dailymotion"))
-      {
-        std::string yt_se_icon = se_icon;
-        miscutil::replace_in_string(yt_se_icon,"icon","search_engine_dailymotion");
-        miscutil::replace_in_string(yt_se_icon,"setitle","Dailymotion");
-        miscutil::replace_in_string(yt_se_icon,"seeng","Dailymotion");
-        miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += yt_se_icon;
-      }
-    if (_engine.has_feed("youtube"))
-      {
-        std::string yt_se_icon = se_icon;
-        miscutil::replace_in_string(yt_se_icon,"icon","search_engine_youtube");
-        miscutil::replace_in_string(yt_se_icon,"setitle","Youtube");
-        miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
-        miscutil::replace_in_string(yt_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += yt_se_icon;
-      }
-    if (_engine.has_feed("dokuwiki"))
-      {
-        std::string dk_se_icon = se_icon;
-        miscutil::replace_in_string(dk_se_icon,"icon","search_engine_dokuwiki");
-        miscutil::replace_in_string(dk_se_icon,"setitle","Dokuwiki");
-        miscutil::replace_in_string(dk_se_icon,"seeng","dokuwiki");
-        miscutil::replace_in_string(dk_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += dk_se_icon;
-      }
-    if (_engine.has_feed("mediawiki"))
-      {
-        std::string md_se_icon = se_icon;
-        miscutil::replace_in_string(md_se_icon,"icon","search_engine_mediawiki");
-        miscutil::replace_in_string(md_se_icon,"setitle","Mediawiki");
-        miscutil::replace_in_string(md_se_icon,"seeng","mediawiki");
-        miscutil::replace_in_string(md_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += md_se_icon;
-      }
-    if (_engine.has_feed("opensearch_rss") || _engine.has_feed("opensearch_atom"))
-      {
-        std::string md_se_icon = se_icon;
-        miscutil::replace_in_string(md_se_icon,"icon","search_engine_opensearch");
-        miscutil::replace_in_string(md_se_icon,"setitle","Opensearch");
-        miscutil::replace_in_string(md_se_icon,"seeng","opensearch");
-        miscutil::replace_in_string(md_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += md_se_icon;
-      }
-    if (_engine.has_feed("seeks"))
-      {
-        std::string sk_se_icon = se_icon;
-        miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
-        miscutil::replace_in_string(sk_se_icon,"setitle","Seeks");
-        miscutil::replace_in_string(sk_se_icon,"seeng","seeks");
-        miscutil::replace_in_string(sk_se_icon,"@query@",_qc->_url_enc_query);
-        html_content += sk_se_icon;
-      }
-
-    if (_doc_type == TWEET)
-      if (_meta_rank > 1)
-        html_content += " (" + miscutil::to_string(_meta_rank) + ")";
-
-    html_content += "</h3>";
-
-    if (!_summary.empty())
-      {
-        html_content += "<div>";
-        std::string summary = _summary;
-        search_snippet::highlight_query(words,summary);
-        if (websearch::_wconfig->_extended_highlight)
-          highlight_discr(summary,base_url_str,words);
-        html_content += summary;
-      }
-    else html_content += "<div>";
-
-    const char *cite_enc = NULL;
-    if (_doc_type != VIDEO_THUMB)
-      {
-        if (!_cite.empty())
-          {
-            cite_enc = encode::html_encode(_cite.c_str());
-          }
-        else
-          {
-            cite_enc = encode::html_encode(_url.c_str());
-          }
-      }
-    else
-      {
-        cite_enc = encode::html_encode(_date.c_str());
-      }
-    if (!_summary.empty())
-      html_content += "<br>";
-    html_content += "<a class=\"search_cite\" href=\"" + _url + "\">";
-    html_content += "<cite>";
-    html_content += cite_enc;
-    free_const(cite_enc);
-    html_content += "</cite></a>";
-
-    if (!_cached.empty() && _doc_type != TWEET && _doc_type != VIDEO_THUMB)
-      {
-        html_content += "\n";
-        char *enc_cached = encode::html_encode(_cached.c_str());
-        miscutil::chomp(enc_cached);
-        html_content += "<a class=\"search_cache\" href=\"";
-        html_content += enc_cached;
-        html_content += "\">Cached</a>";
-        free_const(enc_cached);
-      }
-    else if (_doc_type == TWEET)
-      {
-        char *date_enc = encode::html_encode(_date.c_str());
-        html_content += "<date> (";
-        html_content += date_enc;
-        free_const(date_enc);
-        html_content += ") </date>\n";
-      }
-    if (_doc_type != TWEET && _doc_type != VIDEO_THUMB)
-      {
-        if (_archive.empty())
-          {
-            set_archive_link();
-          }
-        html_content += "<a class=\"search_cache\" href=\"";
-        html_content += _archive;
-        html_content += "\">Archive</a>";
-      }
-
-    if (_doc_type != VIDEO_THUMB)
-      {
-        if (!_sim_back)
-          {
-            set_similarity_link(parameters);
-            html_content += "<a class=\"search_cache\" href=\"";
-          }
-        else
-          {
-            set_back_similarity_link(parameters);
-            html_content += "<a class=\"search_similarity\" href=\"";
-          }
-        html_content += base_url_str + _sim_link;
-        if (!_sim_back)
-          html_content += "\">Similar</a>";
-        else html_content += "\">Back</a>";
-      }
-
-    if (_cached_content)
-      {
-        html_content += "<a class=\"search_cache\" href=\"";
-        html_content += base_url_str + "/search_cache?url="
-                        + _url + "&amp;q=" + _qc->_query;
-        html_content += " \">Quick link</a>";
-      }
-
-    // snippet type rendering
-    const char *engines = miscutil::lookup(parameters,"engines");
-    if (_doc_type != REJECTED)
-      {
-        html_content += "<a class=\"search_cache\" href=\"";
-        html_content += base_url_str + "/search?q=" + _qc->_url_enc_query
-                        + "&amp;expansion=xxexp&amp;action=types&amp;ui=stat&amp;engines=";
-        if (engines)
-          html_content += std::string(engines);
-        html_content += " \"> ";
-        switch (_doc_type)
-          {
-          case UNKNOWN:
-            html_content += "";
-            break;
-          case WEBPAGE:
-            html_content += "Webpage";
-            break;
-          case FORUM:
-            html_content += "Forum";
-            break;
-          case FILE_DOC:
-            html_content += "Document file";
-            break;
-          case SOFTWARE:
-            html_content += "Software";
-            break;
-          case IMAGE:
-            html_content += "Image";
-            break;
-          case VIDEO:
-            html_content += "Video";
-            break;
-          case VIDEO_THUMB:
-            html_content += "Video";
-            break;
-          case AUDIO:
-            html_content += "Audio";
-            break;
-          case CODE:
-            html_content += "Code";
-            break;
-          case NEWS:
-            html_content += "News";
-            break;
-          case TWEET:
-            html_content += "Tweet";
-            break;
-          case WIKI:
-            html_content += "Wiki";
-            break;
-          case REJECTED:
-            break;
-          }
-        html_content += "</a>";
-      }
-
-    // snippet thumb down rendering
-    if (_personalized)
-      {
-        html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
-                        + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
-        if (engines)
-          html_content += std::string(engines);
-        html_content += "&lang=" + _qc->_auto_lang;
-        html_content += "\">&nbsp;</a>";
-        if (_hits > 0 && _npeers > 0)
-          html_content += "<br><div class=\"snippet_info\">" + miscutil::to_string(_hits)
-                          + " recommendation(s) by " + miscutil::to_string(_npeers) + " peer(s).</div>";
-      }
-
-    html_content += "</div></li>\n";
-
-    /* std::cout << "html_content:\n";
-     std::cout << html_content << std::endl; */
-
-    return html_content;
-  }
 
   bool search_snippet::is_se_enabled(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
@@ -745,7 +233,7 @@ namespace seeks_plugins
     _url = std::string(url_str);
     free(url_str);
     std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     _id = mrf::mrf_single_feature(surl);
   }
@@ -754,7 +242,7 @@ namespace seeks_plugins
   {
     _url = url;
     std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     _id = mrf::mrf_single_feature(surl);
   }
@@ -832,6 +320,16 @@ namespace seeks_plugins
     else _date = date;
   }
 
+  void search_snippet::set_lang(const std::string &lang)
+  {
+    _lang = lang;
+  }
+
+  void search_snippet::set_radius(const int &radius)
+  {
+    _radius = radius;
+  }
+
   void search_snippet::set_archive_link()
   {
     _archive = "http://web.archive.org/web/*/" + _url;
@@ -839,33 +337,18 @@ namespace seeks_plugins
 
   void search_snippet::set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    const char *engines = miscutil::lookup(parameters,"engines");
-    _sim_link = "/search?q=" + _qc->_url_enc_query
-                + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-                + "&amp;action=similarity&amp;id=" + miscutil::to_string(_id)
-                + "&amp;lang=" + _qc->_auto_lang
-                + "&amp;ui=stat";
-    if (engines)
-      _sim_link += "&amp;engines=" + std::string(engines);
     _sim_back = false;
   }
 
   void search_snippet::set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    const char *engines = miscutil::lookup(parameters,"engines");
-    _sim_link = "/search?q=" + _qc->_url_enc_query
-                + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
-                + "&amp;action=expand&amp;lang=" + _qc->_auto_lang
-                + "&amp;ui=stat";
-    if (engines)
-      _sim_link += "&amp;engines=" + std::string(engines);
     _sim_back = true;
   }
 
   std::string search_snippet::get_stripped_url() const
   {
     std::string url_lc(_url);
-    std::transform(_url.begin(),_url.end(),url_lc.begin(),tolower);
+    miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     return surl;
   }
@@ -1075,16 +558,9 @@ namespace seeks_plugins
         s1->_meta_rank = s1->_engine.size();
         s1->bing_yahoo_us_merge();
       }
-  }
 
-  void search_snippet::merge_peer_data(search_snippet *s1,
-                                       const search_snippet *s2)
-  {
-    // hits.
-    s1->_hits += s2->_hits;
-
-    // peers.
-    s1->_npeers += s2->_npeers;
+    // radius.
+    s1->_radius = std::min(s1->_radius,s2->_radius);
   }
 
   void search_snippet::bing_yahoo_us_merge()
@@ -1095,6 +571,16 @@ namespace seeks_plugins
         && _engine.has_feed("yahoo")
         && _engine.has_feed("bing"))
       _meta_rank--;
+  }
+
+  void search_snippet::reset_p2p_data()
+  {
+    if (_engine.has_feed("seeks"))
+      _engine.remove_feed("seeks");
+    _meta_rank = _engine.size();
+    _seeks_rank = 0;
+    _npeers = 0;
+    _hits = 0;
   }
 
   std::string search_snippet::get_doc_type_str() const

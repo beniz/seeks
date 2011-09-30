@@ -24,6 +24,21 @@
 
 namespace seeks_plugins
 {
+  class pers_arg
+  {
+    public:
+      pers_arg(query_context *qc,
+               const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+        :_qc(qc),_parameters(parameters)
+      {
+      }
+
+      ~pers_arg() {}
+
+      query_context *_qc;
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *_parameters;
+  };
+
   class sort_rank
   {
     public:
@@ -36,6 +51,9 @@ namespace seeks_plugins
       static void sort_merge_and_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
+      static void sort_snippets(std::vector<search_snippet*> &snippets,
+                                const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
       static void score_and_sort_by_similarity(query_context *qc, const char *id_str,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
           search_snippet *&ref_sp,
@@ -44,11 +62,13 @@ namespace seeks_plugins
       static void group_by_types(query_context *qc, cluster *&clusters, short &K);
 
 #if defined(PROTOBUF) && defined(TC)
-      static void personalize(query_context *qc);
-      static void personalized_rank_snippets(query_context *qc,
+      static void th_personalize(pers_arg *arg);
+      static void personalize(query_context *qc,
+                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      /*static void personalized_rank_snippets(query_context *qc,
                                              std::vector<search_snippet*> &snippets) throw (sp_exception);
       static void get_related_queries(query_context *qc) throw (sp_exception);
-      static void get_recommended_urls(query_context *qc) throw (sp_exception);
+      static void get_recommended_urls(query_context *qc) throw (sp_exception);*/
 #endif
   };
 

@@ -50,6 +50,10 @@ namespace seeks_plugins
       int _dead_peer_check; /**< interval of time between two dead peer checks. */
       short _dead_peer_retries; /**< number of retries before marking a peer as dead. */
 
+      bool _post_url_check; /**< whether to ping on posted URLs. */
+      std::string _post_url_ua; /**< default 'User-Agent' header for retrieving posted URLS. */
+      int _post_radius; /**< similarity impact radius of posted queries. */
+
       static cf_configuration *_config;
   };
 

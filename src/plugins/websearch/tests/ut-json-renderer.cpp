@@ -3,20 +3,19 @@
  * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
  *               2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
- **/
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
@@ -34,13 +33,17 @@ using sp::proxy_configuration;
 
 TEST(JsonRendererTest, render_engines)
 {
-  websearch::_wconfig = new websearch_configuration("");
+  websearch::_wconfig = new websearch_configuration(""); // default configuration.
+  std::string reng = json_renderer::render_engines(websearch::_wconfig->_se_default);
+  EXPECT_EQ("\"bing\",\"google\",\"yahoo\"",reng);
+
+  /*  websearch::_wconfig = new websearch_configuration("");
   feeds fd;
   fd.add_feed("google","http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding");
   fd.add_feed("bing","http://www.bing.com/search?q=%query&first=%start&mkt=%lang");
   fd.add_feed("yahoo","http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm\
-=p&fl=1&vl=lang_%lang&p=%query&vs=");
-  EXPECT_EQ("\"bing\",\"google\",\"yahoo\"", json_renderer::render_engines(fd));
+  =p&fl=1&vl=lang_%lang&p=%query&vs=");
+  EXPECT_EQ("\"bing\",\"google\",\"yahoo\"", json_renderer::render_engines(fd));*/
   delete websearch::_wconfig;
 }
 
@@ -339,7 +342,8 @@ TEST(JsonRendererTest, collect_json_results)
   EXPECT_NE(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
-  context._engines = feeds("yahoo","http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=");
+  context._engines = websearch::_wconfig->_se_default;
+  /*context._engines = feeds("yahoo","http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=");*/
   results.clear();
   EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
   result = miscutil::join_string_list(",", results);
@@ -373,9 +377,71 @@ TEST(JsonRendererTest, render_node_options)
   EXPECT_NE(std::string::npos, json_opts.find("\"thumbs\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"content-analysis\""));
   EXPECT_NE(std::string::npos, json_opts.find("\"clustering\""));
+  EXPECT_NE(std::string::npos, json_opts.find("\"txt-parsers\""));
   delete csp->_config;
   delete csp;
 
+  delete websearch::_wconfig;
+}
+
+TEST(JsonRendererTest, render_suggested_queries)
+{
+  query_context qc;
+  qc._suggestions.insert(std::pair<double,std::string>(1.0,"seeks"));
+  qc._suggestions.insert(std::pair<double,std::string>(0.5,"seeks project"));
+  std::string json_str = json_renderer::render_suggested_queries(&qc,3);
+  EXPECT_NE(std::string::npos,json_str.find("\"suggestions\":"));
+  EXPECT_NE(std::string::npos,json_str.find("\"seeks\""));
+  EXPECT_NE(std::string::npos,json_str.find("\"seeks project\""));
+  json_str = json_renderer::render_suggested_queries(&qc,1);
+  EXPECT_EQ(std::string::npos,json_str.find("\"seeks\""));
+}
+
+TEST(JsonRendererTest, render_recommendations)
+{
+  websearch::_wconfig = new websearch_configuration("../websearch-config");
+  std::string url1 = "http://www.seeks.mx/";
+  std::string url2 = "http://www.seeks-project.info/";
+  query_context qc;
+  qc._query = "seeks project";
+  qc._npeers = 1;
+  search_snippet *sp1 = new search_snippet();
+  sp1->set_url(url1);
+  sp1->set_title("Seeks Search");
+  sp1->set_lang("es");
+  sp1->set_radius(1);
+  sp1->_engine.add_feed("seeks","s.s");
+  search_snippet *sp2 = new search_snippet();
+  sp2->set_url(url2);
+  sp2->set_title("Seeks Project");
+  sp2->set_radius(0);
+  sp2->_engine.add_feed("seeks","s.s");
+  qc.add_to_cache(sp1);
+  qc.add_to_cache(sp2);
+  int radius = 5;
+  std::string lang;
+  std::string json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_NE(std::string::npos,json_str.find("\"npeers\":1"));
+  EXPECT_NE(std::string::npos,json_str.find("\"query\":\"seeks project\""));
+  EXPECT_NE(std::string::npos,json_str.find("\"date\":"));
+  EXPECT_NE(std::string::npos,json_str.find("\"qtime\":0"));
+  EXPECT_NE(std::string::npos,json_str.find("\"snippets\":["));
+  EXPECT_NE(std::string::npos,json_str.find(url1));
+  EXPECT_NE(std::string::npos,json_str.find(url2));
+  lang = "es";
+  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_NE(std::string::npos,json_str.find(url1));
+  EXPECT_EQ(std::string::npos,json_str.find(url2));
+  lang = "";
+  radius = 0;
+  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_EQ(std::string::npos,json_str.find(url1));
+  EXPECT_NE(std::string::npos,json_str.find(url2));
+  radius = 0;
+  lang = "es";
+  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  EXPECT_EQ(std::string::npos,json_str.find(url1));
+  EXPECT_EQ(std::string::npos,json_str.find(url2));
   delete websearch::_wconfig;
 }
 

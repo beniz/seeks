@@ -39,7 +39,7 @@ namespace seeks_plugins
   struct perso_thread_arg
   {
     perso_thread_arg()
-      :_snippets(NULL),_related_queries(NULL),_reco_snippets(NULL),_qc(NULL),_estimator(NULL),_pe(NULL),_expansion(1)
+      :_snippets(NULL),_related_queries(NULL),_qc(NULL),_estimator(NULL),_pe(NULL),_radius(0)
     {};
 
     ~perso_thread_arg()
@@ -49,11 +49,11 @@ namespace seeks_plugins
     std::string _lang;
     std::vector<search_snippet*> *_snippets;
     std::multimap<double,std::string,std::less<double> > *_related_queries;
-    hash_map<uint32_t,search_snippet*,id_hash_uint> *_reco_snippets;
     query_context *_qc;
     rank_estimator *_estimator;
     peer *_pe;
-    uint32_t _expansion;
+    int _radius;
+    bool _wait; // whether threads should wait for external data sources.
     sp_err _err; // error code.
   };
 
@@ -64,23 +64,28 @@ namespace seeks_plugins
 
       virtual ~rank_estimator() {};
 
-      void peers_personalize(query_context *qc);
+      void peers_personalize(query_context *qc,
+                             const bool &wait_external_sources,
+                             const std::string &peers,
+                             const int &radius);
 
       void threaded_personalize(std::vector<perso_thread_arg*> &perso_args,
                                 std::vector<pthread_t> &perso_threads,
                                 peer *pe = NULL,
-                                query_context *qc = NULL);
+                                query_context *qc = NULL,
+                                const bool &wait_external_sources=true,
+                                const int &radius=-1);
 
       static void personalize_cb(perso_thread_arg *args);
 
       virtual void personalize(const std::string &query,
                                const std::string &lang,
-                               const uint32_t &expansion,
+                               const int &radius,
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
-                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                peer *pe,
-                               query_context *qc = NULL) throw (sp_exception) {};
+                               query_context *qc = NULL,
+                               const bool &wait_external_sources=true) throw (sp_exception) {};
 
       // DEPRECATED
       virtual void estimate_ranks(const std::string &query,
@@ -93,7 +98,7 @@ namespace seeks_plugins
       // DEPRECATED
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
-                                  const uint32_t &expansion,
+                                  const int &radius,
                                   hash_map<uint32_t,search_snippet*,id_hash_uint> &snippet,
                                   const std::string &host="",
                                   const int &port=-1) throw (sp_exception) {};
@@ -104,7 +109,7 @@ namespace seeks_plugins
 
       static void fetch_query_data(const std::string &query,
                                    const std::string &lang,
-                                   const uint32_t &expansion,
+                                   const int &radius,
                                    hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
                                    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata,
                                    peer *pe) throw (sp_exception);
@@ -119,7 +124,7 @@ namespace seeks_plugins
 
       static void extract_queries(const std::string &query,
                                   const std::string &lang,
-                                  const uint32_t &expansion,
+                                  const int &radius,
                                   user_db *udb,
                                   const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
@@ -142,11 +147,11 @@ namespace seeks_plugins
 
       static db_record* find_bqc(const std::string &host, const int &port,
                                  const std::string &path, const std::string &query,
-                                 const int &expansion, const bool &use_store=true) throw (sp_exception);
+                                 const int &radius, const bool &use_store=true) throw (sp_exception);
 
       static void filter_extracted_queries(const std::string &query,
                                            const std::string &lang,
-                                           const uint32_t &expansion,
+                                           const int &radius,
                                            hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
                                            hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
 
@@ -164,16 +169,16 @@ namespace seeks_plugins
 
       virtual void personalize(const std::string &query,
                                const std::string &lang,
-                               const uint32_t &expansion,
+                               const int &radius,
                                std::vector<search_snippet*> &snippets,
                                std::multimap<double,std::string,std::less<double> > &related_queries,
-                               hash_map<uint32_t,search_snippet*,id_hash_uint> &reco_snippets,
                                peer *pe,
-                               query_context *qc = NULL) throw (sp_exception);
+                               query_context *qc = NULL,
+                               const bool &wait_external_sources=true) throw (sp_exception);
 
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
-                                  const uint32_t &expansion,
+                                  const int &radius,
                                   std::vector<search_snippet*> &snippets,
                                   const std::string &host="",
                                   const int &port=-1,
@@ -189,7 +194,7 @@ namespace seeks_plugins
 
       virtual void recommend_urls(const std::string &query,
                                   const std::string &lang,
-                                  const uint32_t &expansion,
+                                  const int &radius,
                                   hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
                                   const std::string &host="",
                                   const int &port=-1) throw (sp_exception);

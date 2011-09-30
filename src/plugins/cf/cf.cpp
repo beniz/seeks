@@ -18,19 +18,32 @@
 
 #include "cf.h"
 #include "websearch.h"
+#include "sort_rank.h"
+#include "json_renderer.h"
+#include "json_renderer_private.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
 #include "query_recommender.h"
+#include "uri_capture.h"
+#include "query_capture.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 #include "plugin_manager.h"
 #include "cgi.h"
+#include "cgisimple.h"
+#include "qprocess.h"
 #include "encode.h"
+#include "urlmatch.h"
 #include "miscutil.h"
+#include "charset_conv.h"
 #include "errlog.h"
 
 #include <sys/stat.h>
+#include <sys/times.h>
 #include <iostream>
+
+using namespace json_renderer_private;
+using lsh::qprocess;
 
 namespace seeks_plugins
 {
@@ -63,10 +76,17 @@ namespace seeks_plugins
     _configuration = cf_configuration::_config;
 
     // cgi dispatchers.
-    _cgi_dispatchers.reserve(1);
-    cgi_dispatcher *cgid_tbd
-    = new cgi_dispatcher("tbd",&cf::cgi_tbd,NULL,TRUE);
-    _cgi_dispatchers.push_back(cgid_tbd);
+    cgi_dispatcher *cgid_peers
+    = new cgi_dispatcher("peers",&cf::cgi_peers,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_peers);
+
+    cgi_dispatcher *cgid_suggestion
+    = new cgi_dispatcher("suggestion",&cf::cgi_suggestion,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_suggestion);
+
+    cgi_dispatcher *cgid_recommendation
+    = new cgi_dispatcher("recommendation",&cf::cgi_recommendation,NULL,TRUE);
+    _cgi_dispatchers.push_back(cgid_recommendation);
   }
 
   cf::~cf()
@@ -86,66 +106,74 @@ namespace seeks_plugins
   {
   }
 
+  sp_err cf::cgi_peers(client_state *csp,
+                       http_response *rsp,
+                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    std::list<std::string> l;
+    hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
+    = cf_configuration::_config->_pl->_peers.begin();
+    while(hit!=cf_configuration::_config->_pl->_peers.end())
+      {
+        peer *p = (*hit).second;
+        l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
+        ++hit;
+      }
+    const std::string json_str = "{\"peers\":" + miscutil::join_string_list(",",l) + "}";
+    const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
   sp_err cf::cgi_tbd(client_state *csp,
                      http_response *rsp,
                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    if (!parameters->empty())
+    // check for query and snippet id.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/search/txt/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1);
+    const char *url_str = miscutil::lookup(parameters,"url");
+    if (!url_str)
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    std::string url = url_str;
+    if (url.empty())
+      return SP_ERR_CGI_PARAMS; // 400 error.
+    try
       {
-        std::string url,query,lang;
-        try
-          {
-            websearch::preprocess_parameters(parameters,csp);
-          }
-        catch(sp_exception &e)
-          {
-            return e.code();
-          }
-
-        sp_err err = cf::tbd(parameters,url,query,lang);
-        if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
-          {
-            errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
-            return err;
-          }
-        else if (err == DB_ERR_NO_REC)
-          {
-            return err;
-          }
-
-        // redirect to current query url.
-        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-        std::string base_url = query_context::detect_base_url_http(csp);
-
-        const char *output = miscutil::lookup(parameters,"output");
-        std::string output_str = output ? std::string(output) : "html";
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
-        return websearch::cgi_websearch_search(csp,rsp,parameters);
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
       }
-    else return SP_ERR_CGI_PARAMS;
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    miscutil::to_lower(query); // lower case query for filtering operations.
+    sp_err err = cf::tbd(parameters,url,query);
+    if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"bad parameter to tbd callback");
+      }
+    return err;
   }
 
   sp_err cf::tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                 std::string &url, std::string &query, std::string &lang)
+                 const std::string &url, const std::string &query)
   {
-    const char *urlp = miscutil::lookup(parameters,"url");
-    if (!urlp)
-      return SP_ERR_CGI_PARAMS;
-    const char *queryp = miscutil::lookup(parameters,"q");
-    if (!queryp)
-      return SP_ERR_CGI_PARAMS;
-
-    char *dec_urlp = encode::url_decode_but_not_plus(urlp);
-    url = std::string(dec_urlp);
+    char *dec_urlp = encode::url_decode_but_not_plus(url.c_str());
+    std::string durl = std::string(dec_urlp);
     free(dec_urlp);
-    query = std::string(queryp);
     const char *langp = miscutil::lookup(parameters,"lang");
     if (!langp)
       {
         // XXX: this should not happen.
         return SP_ERR_CGI_PARAMS;
       }
-    lang = std::string(langp);
+    std::string lang = std::string(langp);
     try
       {
         cf::thumb_down_url(query,lang,url);
@@ -158,47 +186,418 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  void cf::personalize(query_context *qc)
+  sp_err cf::cgi_suggestion(client_state *csp,
+                            http_response *rsp,
+                            const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/suggestion/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+
+    try
+      {
+        bool has_lang;
+        websearch::preprocess_parameters(parameters,csp,has_lang);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    // ask all peers.
+    // cost is nearly the same to grab both queries and URLs from
+    // remote peers, and cache the requested data.
+    // for this reason, we call to 'personalize', that fetches both
+    // queries and URLs, rank and cache them into memory.
+    mutex_lock(&websearch::_context_mutex);
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        qc = new query_context(parameters,csp->_headers);
+        qc->register_qc();
+      }
+    mutex_unlock(&websearch::_context_mutex);
+    mutex_lock(&qc->_qc_mutex);
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+    sp_err err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+    mutex_unlock(&qc->_qc_mutex);
+    return err;
+  }
+
+  sp_err cf::cgi_recommendation(client_state *csp,
+                                http_response *rsp,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for HTTP method and route the call.
+    std::string http_method = csp->_http._gpc;
+    std::transform(http_method.begin(),http_method.end(),http_method.begin(),tolower);
+
+    if (http_method == "get")
+      {
+        return cf::recommendation_get(csp,rsp,parameters);
+      }
+    else if (http_method == "post")
+      {
+        return cf::recommendation_post(csp,rsp,parameters);
+      }
+    else if (http_method == "delete")
+      {
+        return cf::recommendation_delete(csp,rsp,parameters);
+      }
+    else
+      {
+        // error.
+        errlog::log_error(LOG_LEVEL_ERROR,"wrong HTTP method %s for recommendation call",
+                          http_method.c_str());
+        return cgi::cgi_error_bad_param(csp,rsp,"json");
+      }
+  }
+
+  sp_err cf::recommendation_get(client_state *csp,
+                                http_response *rsp,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    struct tms st_cpu;
+    struct tms en_cpu;
+    clock_t start_time = times(&st_cpu);
+
+    // check for query, part of path.
+    std::string path = csp->_http._path;
+    miscutil::replace_in_string(path,"/recommendation/","");
+    std::string query = urlmatch::next_elt_from_path(path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+    bool has_lang;
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp,has_lang);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+
+    // check on parameters.
+    const char *peers = miscutil::lookup(parameters,"peers");
+    if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"ring")!=0)
+      return SP_ERR_CGI_PARAMS;
+    int radius = -1;
+    const char *radius_str = miscutil::lookup(parameters,"radius");
+    if (radius_str)
+      {
+        char *endptr;
+        int tmp = strtol(radius_str,&endptr,0);
+        if (*endptr)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"wrong radius parameter");
+            return SP_ERR_CGI_PARAMS;
+          }
+        else radius = tmp;
+      }
+
+    // ask all peers.
+    mutex_lock(&websearch::_context_mutex);
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        qc = new query_context(parameters,csp->_headers);
+        qc->register_qc();
+      }
+    mutex_unlock(&websearch::_context_mutex);
+    mutex_lock(&qc->_qc_mutex);
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
+    sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // in case the context is already in memory.
+    clock_t end_time = times(&en_cpu);
+    double qtime = (end_time-start_time)/websearch::_cl_sec;
+    std::string lang;
+    if (has_lang)
+      {
+        const char *lang_str = miscutil::lookup(parameters,"lang");
+        if (lang_str) // the opposite should never happen.
+          lang = lang_str;
+      }
+    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+    qc->reset_p2p_data();
+    mutex_unlock(&qc->_qc_mutex);
+    return err;
+  }
+
+  sp_err cf::recommendation_post(client_state *csp,
+                                 http_response *rsp,
+                                 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string ref_path = csp->_http._path;
+    miscutil::replace_in_string(ref_path,"/recommendation/","");
+    std::string query = urlmatch::next_elt_from_path(ref_path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+    bool has_lang;
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp,has_lang);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+    query = miscutil::lookup(parameters,"q");
+
+    // check for missing parameters.
+    const char *url_str = miscutil::lookup(parameters,"url");
+    if (!url_str)
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    std::string url = url_str;
+
+    // check for optional parameters.
+    bool url_check = cf_configuration::_config->_post_url_check;
+    const char *url_check_str = miscutil::lookup(parameters,"url-check");
+    if (url_check_str) // forces positive check only.
+      {
+        char *endptr;
+        int tmp = strtol(url_check_str,&endptr,0);
+        if (!*endptr)
+          {
+            bool opt_url_check = static_cast<bool>(tmp); // XXX: beware.
+            if (!url_check && opt_url_check)
+              url_check = true;
+          }
+      }
+    std::string title;
+    const char *title_str = miscutil::lookup(parameters,"title");
+    if (title_str)
+      {
+        char *dec_title_str = encode::url_decode(title_str);
+        title = dec_title_str;
+        free(dec_title_str);
+      }
+    if (!title.empty())
+      title = charset_conv::charset_check_and_conversion(title,csp->_headers); // make title empty if bad charset.
+    int radius = cf_configuration::_config->_post_radius;
+    const char *radius_str = miscutil::lookup(parameters,"radius");
+    if (radius_str)
+      {
+        char *endptr;
+        int tmp = strtol(radius_str,&endptr,0);
+        if (!*endptr)
+          {
+            radius = tmp;
+          }
+      }
+
+    // create a query_context.
+    bool has_qc = true;
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (!qc)
+      {
+        has_qc = false;
+        qc = new query_context(parameters,csp->_headers); // empty context.
+        qc->register_qc();
+      }
+    mutex_lock(&qc->_qc_mutex);
+
+    // check on URL if needed.
+    bool check_success = true;
+    std::string check_title;
+    if (url_check)
+      {
+        std::vector<std::string> uris, titles;
+        uris.push_back(url);
+        std::vector<std::list<const char*>*> headers;
+        std::list<const char*> *lheaders = &qc->_useful_http_headers;
+        if (!miscutil::list_contains_item(lheaders,"user-agent"))
+          miscutil::enlist(lheaders,cf_configuration::_config->_post_url_ua.c_str());
+        headers.push_back(lheaders);
+        uri_capture::fetch_uri_html_title(uris,titles,5,&headers); // timeout: 5 sec.
+        if (titles.empty()
+            || (titles.at(0).empty() && title.empty()))
+          check_success = false;
+        else check_title = titles.at(0);
+      }
+    if (!check_success && !has_qc)
+      {
+        mutex_unlock(&qc->_qc_mutex);
+        sweeper::unregister_sweepable(qc);
+        delete qc;
+        if (check_title == "404")
+          return cgisimple::cgi_error_404(csp,rsp,parameters); // 404. TODO: JSON + message ?
+        else return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+      }
+    else if (url_check)
+      title = title.empty() ? check_title : title;
+
+    // create snippet.
+    search_snippet *sp = new search_snippet(); // XXX: no rank given, temporary snippet.
+    sp->set_url(url);
+    sp->set_title(title);
+    if (has_lang)
+      {
+        const char *lang_str = miscutil::lookup(parameters,"lang");
+        sp->set_lang(lang_str);
+      }
+    qc->add_to_cache(sp);
+    if (has_qc)
+      sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters);
+    qc->add_to_unordered_cache(sp);
+    qc->add_to_unordered_cache_title(sp);
+
+    // store query.
+    std::string host,path;
+    query_capture::process_url(url,host,path);
+    int err = SP_ERR_OK;
+    try
+      {
+        query_capture_element::store_queries(qc,url,host,"query-capture",radius);
+      }
+    catch (sp_exception &e)
+      {
+        err = e.code();
+      }
+
+    // remove query_context as needed (so to not 'flood' the node).
+    mutex_unlock(&qc->_qc_mutex);
+    if (!has_qc)
+      {
+        sweeper::unregister_sweepable(qc);
+        delete qc;
+      }
+    return err;
+  }
+
+  sp_err cf::recommendation_delete(client_state *csp,
+                                   http_response *rsp,
+                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    // check for query, part of path.
+    std::string ref_path = csp->_http._path;
+    miscutil::replace_in_string(ref_path,"/recommendation/","");
+    std::string query = urlmatch::next_elt_from_path(ref_path);
+    if (query.empty())
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
+    bool has_lang;
+
+    try
+      {
+        websearch::preprocess_parameters(parameters,csp,has_lang);
+      }
+    catch(sp_exception &e)
+      {
+        return e.code();
+      }
+    query = miscutil::lookup(parameters,"q");
+
+    // check for missing parameters.
+    const char *url_str = miscutil::lookup(parameters,"url");
+    if (!url_str)
+      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+    std::string url = url_str;
+
+    uint32_t hits = 0;
+    std::string host;
+    query_capture::process_url(url,host);
+
+    hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+    qprocess::generate_query_hashes(query,0,0,features);
+    DHTKey key = (*features.begin()).second;
+    std::string key_str = key.to_rstring();
+    db_record *dbr = seeks_proxy::_user_db->find_dbr(key_str,"query-capture");
+    db_query_record *dbqr = static_cast<db_query_record*>(dbr);
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit;
+    if ((hit=dbqr->_related_queries.find(query.c_str()))!=dbqr->_related_queries.end())
+      {
+        query_data *qd = (*hit).second;
+        hash_map<const char*,vurl_data*,hash<const char*>,eqstr>::const_iterator vit;
+        if (qd->_visited_urls && (vit = qd->_visited_urls->find(url.c_str()))!=qd->_visited_urls->end())
+          {
+            vurl_data *vd = (*vit).second;
+            if (has_lang)
+              {
+                const char *lang_str = miscutil::lookup(parameters,"lang");
+                if (lang_str && vd->_url_lang == std::string(lang_str))
+                  {
+                    hits = vd->_hits;
+                  }
+                else
+                  {
+                    delete dbqr;
+                    return DB_ERR_NO_REC;
+                  }
+              }
+            else hits = vd->_hits;
+          }
+        else
+          {
+            errlog::log_error(LOG_LEVEL_INFO,"can't find url %s when trying to remove it",
+                              url.c_str());
+            delete dbqr;
+            return DB_ERR_NO_REC;
+          }
+      }
+    else
+      {
+        errlog::log_error(LOG_LEVEL_INFO,"can't find query %s when trying to remove url %s",
+                          query.c_str(),url.c_str());
+        delete dbqr;
+        return DB_ERR_NO_REC;
+      }
+    delete dbqr;
+
+    try
+      {
+        query_capture_element::remove_url(key,query,url,"",hits,0,"query-capture");
+      }
+    catch(sp_exception &e)
+      {
+        return SP_ERR_MEMORY; // 500.
+      }
+
+    // remove from cache if applicable.
+    query_context *qc = websearch::lookup_qc(parameters);
+    if (qc)
+      {
+        mutex_lock(&qc->_qc_mutex);
+        search_snippet sp;
+        sp.set_url(url);
+        qc->remove_from_unordered_cache(sp._id);
+        qc->remove_from_cache(&sp);
+        mutex_unlock(&qc->_qc_mutex);
+      }
+
+    return SP_ERR_OK;
+  }
+
+  void cf::personalize(query_context *qc,
+                       const bool &wait_external_sources,
+                       const std::string &peers,
+                       const int &radius)
   {
     // check on config file, in case it did change.
     cf_configuration::_config->load_config();
     pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
 
     simple_re sre;
-    sre.peers_personalize(qc);
+    sre.peers_personalize(qc,wait_external_sources,peers,radius);
     pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
   }
 
   void cf::estimate_ranks(const std::string &query,
                           const std::string &lang,
-                          const uint32_t &expansion,
+                          const int &radius,
                           std::vector<search_snippet*> &snippets,
                           const std::string &host,
                           const int &port) throw (sp_exception)
   {
     simple_re sre; // estimator.
-    sre.estimate_ranks(query,lang,expansion,snippets,host,port);
-  }
-
-  void cf::get_related_queries(const std::string &query,
-                               const std::string &lang,
-                               const uint32_t &expansion,
-                               std::multimap<double,std::string,std::less<double> > &related_queries,
-                               const std::string &host,
-                               const int &port) throw (sp_exception)
-  {
-    query_recommender::recommend_queries(query,lang,expansion,related_queries,host,port);
-  }
-
-  void cf::get_recommended_urls(const std::string &query,
-                                const std::string &lang,
-                                const uint32_t &expansion,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
-                                const std::string &host,
-                                const int &port) throw (sp_exception)
-  {
-    simple_re sre; // estimator.
-    sre.recommend_urls(query,lang,expansion,snippets,host,port);
+    sre.estimate_ranks(query,lang,radius,snippets,host,port);
   }
 
   void cf::thumb_down_url(const std::string &query,
@@ -210,7 +609,7 @@ namespace seeks_plugins
   }
 
   void cf::find_bqc_cb(const std::vector<std::string> &qhashes,
-                       const uint32_t &expansion,
+                       const int &radius,
                        db_query_record *&dbr)
   {
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
@@ -220,13 +619,22 @@ namespace seeks_plugins
     std::string query,lang;
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-    rank_estimator::extract_queries(query,lang,expansion,seeks_proxy::_user_db,
+    rank_estimator::extract_queries(query,lang,radius,seeks_proxy::_user_db,
                                     records,qdata,inv_qdata);
     if (!qdata.empty())
       dbr = new db_query_record(qdata); // no copy.
     else dbr = NULL;
     rank_estimator::destroy_records(records);
     rank_estimator::destroy_inv_qdata_key(inv_qdata);
+  }
+
+  std::string cf::select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    std::string str = "ring"; // ring is default.
+    const char *peers = miscutil::lookup(parameters,"peers");
+    if (peers && strcasecmp(peers,"local")==0)
+      str = "local";
+    return str;
   }
 
   /* plugin registration. */

@@ -37,7 +37,8 @@ std::string get_usage()
   usage += "remove_non_utf8\t\tRemoves non UTF8 queries and URLs\n";
   usage += "optimize\t\tOptimizes database, weeding out blank space\n";
   usage += "fetch_urls\t\tfetch URL titles for URLs captured along with queries\n";
-  usage += "merge\t\t\tmerge records with those of another DB\n\t\t\tUsage: <db_file> <seeks base dir> <command> <db to merge>";
+  usage += "merge\t\t\tmerge records with those of another DB\n\t\t\tUsage: <db_file> <seeks base dir> <command> <db to merge>\n";
+  usage += "fix_cs_queries\t\tfix case-sensitive queries in db";
   return usage;
 }
 
@@ -111,6 +112,11 @@ int main(int argc, char **argv)
       std::cout << "db to merge: " << dbtomerge << std::endl;
       //seeks_proxy::_user_db->close_db();
       user_db_fix::merge_with(dbtomerge.c_str());
+    }
+  else if (command == "fix_cs_queries")
+    {
+      seeks_proxy::_user_db->close_db();
+      user_db_fix::fix_issue_575();
     }
   else
     {
