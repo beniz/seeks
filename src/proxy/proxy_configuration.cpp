@@ -730,7 +730,7 @@ namespace sp
               }
             errlog::init_error_log(seeks_proxy::_Argv[0], _logfile);
           }
-        else errlog::disable_logging();
+        //else errlog::disable_logging();
         break;
 
         /*************************************************************************
