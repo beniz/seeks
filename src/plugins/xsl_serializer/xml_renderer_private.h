@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
+ * Copyright (c) 2011 Stéphane Bonhomme <stephane.bonhomme@seeks.pro>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -23,11 +23,13 @@
 #include <libxml/tree.h>
 #include "websearch.h"
 #include "clustering.h"
+#include "query_context.h"
+
+using seeks_plugins::query_context;
 
 namespace xml_renderer_private
 {
-  sp_err collect_xml_results(std::list<std::string> &results,
-			     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+  sp_err collect_xml_results(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			     const query_context *qc,
 			     const double &qtime,
 			     const bool &img,
@@ -35,4 +37,4 @@ namespace xml_renderer_private
 
 }
 
-#endif // JSON_RENDERER_PRIVATE_H
+#endif // XML_RENDERER_PRIVATE_H

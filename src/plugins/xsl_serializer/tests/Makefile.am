@@ -1,5 +1,5 @@
-check_PROGRAMS = ut_xml-renderer
-ut_xmlraw_SOURCES = ut-xml-renderer.cpp
+check_PROGRAMS = ut_xml_renderer
+ut_xml_renderer_SOURCES = ut-xml-renderer.cpp
 
 TESTS = $(check_PROGRAMS)
 

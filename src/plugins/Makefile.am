@@ -14,4 +14,7 @@ SUBDIRS+=img_websearch
 endif
 if HAVE_HTTPSERV_PLUGIN
 SUBDIRS+=httpserv
+if HAVE_XSLSERIALIZER_PLUGIN
+SUBDIRS+=xsl_serializer
+endif
 endif
