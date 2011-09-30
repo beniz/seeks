@@ -50,6 +50,12 @@ namespace seeks_plugins
       static sp_err cgi_tbd_compat(client_state *csp,
                                    http_response *rsp,
                                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+      static sp_err cgi_img_search_compat(client_state *csp,
+                                          http_response *rsp,
+                                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+#endif
   };
 
 } /* end of namespace. */
