@@ -22,11 +22,7 @@
 
 #include "plugin.h"
 #include "proxy_dts.h"
-
-#if defined(FEATURE_PTHREAD) || defined(_WIN32)
-#include "seeks_proxy.h" // thread mutexes.
-#endif
-
+#include "mutexes.h"
 #include "pcrs.h"
 
 #if defined(HAVE_PERL) && !defined(NO_PERL)

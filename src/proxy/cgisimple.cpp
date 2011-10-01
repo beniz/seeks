@@ -1250,12 +1250,6 @@ namespace sp
     /*   if (!err) err = cgi::map_conditional(exports, "FEATURE_NO_GIFS", 0);
     #endif */ /* ndef FEATURE_NO_GIFS */
 
-#ifdef FEATURE_PTHREAD
-    if (!err) err = cgi::map_conditional(exports, "FEATURE_PTHREAD", 1);
-#else /* ifndef FEATURE_PTHREAD */
-    if (!err) err = cgi::map_conditional(exports, "FEATURE_PTHREAD", 0);
-#endif /* ndef FEATURE_PTHREAD */
-
 #ifdef FEATURE_STATISTICS
     if (!err) err = cgi::map_conditional(exports, "FEATURE_STATISTICS", 1);
 #else /* ifndef FEATURE_STATISTICS */
