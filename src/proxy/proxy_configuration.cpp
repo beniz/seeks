@@ -191,6 +191,7 @@ namespace sp
 #ifdef FEATURE_ACL
     access_control_list *cur_acl;
 #endif  /* def FEATURE_ACL */
+    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit;
 
     switch (cmd_hash)
       {
@@ -198,7 +199,9 @@ namespace sp
          * activated_plugins
          * *************************************************************************/
       case hash_activated_plugins :
-        _activated_plugins.insert(std::pair<const char*,bool>(strdup(arg),true));
+        if ((hit=_activated_plugins.find(arg))==_activated_plugins.end())
+          _activated_plugins.insert(std::pair<const char*,bool>(strdup(arg),true));
+        else (*hit).second = true;
         configuration_spec::html_table_row(_config_args,cmd,arg,"Activated plugin");
         break;
 
