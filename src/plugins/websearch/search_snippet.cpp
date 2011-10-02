@@ -56,13 +56,15 @@ namespace seeks_plugins
   std::vector<url_spec*> search_snippet::_reject_pos_patterns = std::vector<url_spec*>();
 
   search_snippet::search_snippet()
-    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
+    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(0),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),
+     _content_date(0),_record_date(0),_doc_type(WEBPAGE),
      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0),_radius(0)
   {
   }
 
   search_snippet::search_snippet(const short &rank)
-    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),_doc_type(WEBPAGE),
+    :_qc(NULL),_new(true),_id(0),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),
+     _content_date(0),_record_date(0),_doc_type(WEBPAGE),
      _cached_content(NULL),_features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(true),_personalized(false),_npeers(0),_hits(0),_radius(0)
   {
   }
@@ -73,7 +75,8 @@ namespace seeks_plugins
      _file_format(s->_file_format),_date(s->_date),_lang(s->_lang),
      _archive(s->_archive),
      _sim_back(s->_sim_back),_rank(s->_rank),_meta_rank(s->_meta_rank),
-     _seeks_rank(s->_seeks_rank),_engine(s->_engine),_doc_type(s->_doc_type),
+     _seeks_rank(s->_seeks_rank),_content_date(s->_content_date),_record_date(s->_record_date),
+     _engine(s->_engine),_doc_type(s->_doc_type),
      _forum_thread_info(s->_forum_thread_info),_cached_content(NULL),
      _features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_safe(s->_safe),_personalized(s->_personalized),
      _npeers(s->_npeers),_hits(s->_hits),_radius(s->_radius)
@@ -568,6 +571,16 @@ namespace seeks_plugins
         && _engine.has_feed("yahoo")
         && _engine.has_feed("bing"))
       _meta_rank--;
+  }
+
+  void search_snippet::reset_p2p_data()
+  {
+    if (_engine.has_feed("seeks"))
+      _engine.remove_feed("seeks");
+    _meta_rank = _engine.size();
+    _seeks_rank = 0;
+    _npeers = 0;
+    _hits = 0;
   }
 
   std::string search_snippet::get_doc_type_str() const

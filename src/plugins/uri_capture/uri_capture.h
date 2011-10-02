@@ -26,6 +26,7 @@
 #include "plugin.h"
 #include "interceptor_plugin.h"
 #include "uc_err.h"
+#include "user_db.h"
 
 using namespace sp;
 

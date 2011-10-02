@@ -86,10 +86,7 @@
 #endif
 
 #include "proxy_dts.h"
-
-#ifdef FEATURE_PTHREAD
-#include "seeks_proxy.h" /* for mutex semapores only */
-#endif /* def FEATURE_PTHREAD */
+#include "mutexes.h"
 
 #include "errlog.h"
 #include "spsockets.h"

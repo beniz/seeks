@@ -208,7 +208,11 @@ namespace seeks_plugins
         return e.code();
       }
 
-    // ask all peers.
+    const char *peers = miscutil::lookup(parameters,"peers");
+    if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"ring")!=0)
+      return SP_ERR_CGI_PARAMS;
+
+    // ask all peers if 'ring' is specified.
     // cost is nearly the same to grab both queries and URLs from
     // remote peers, and cache the requested data.
     // for this reason, we call to 'personalize', that fetches both
@@ -323,6 +327,7 @@ namespace seeks_plugins
           lang = lang_str;
       }
     sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+    qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }

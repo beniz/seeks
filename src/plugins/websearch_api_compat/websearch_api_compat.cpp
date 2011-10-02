@@ -21,6 +21,10 @@
 #include "urlmatch.h"
 #include "mrf.h"
 
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch.h"
+#endif
+
 using namespace sp;
 using lsh::mrf;
 
@@ -50,6 +54,12 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_wb_tbd
     = new cgi_dispatcher("tbd",&websearch_api_compat::cgi_tbd_compat, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_wb_tbd);
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    cgi_dispatcher *cgid_iwb_search
+    = new cgi_dispatcher("search_img",&websearch_api_compat::cgi_img_search_compat, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_iwb_search);
+#endif
   }
 
   websearch_api_compat::~websearch_api_compat()
@@ -228,6 +238,45 @@ namespace seeks_plugins
       }
     else return SP_ERR_CGI_PARAMS;
   }
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+  sp_err websearch_api_compat::cgi_img_search_compat(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    if (!parameters->empty())
+      {
+        // check for query.
+        const char *query_str = miscutil::lookup(parameters,"q");
+        if (!query_str || strlen(query_str) == 0)
+          return SP_ERR_CGI_PARAMS;
+        std::string query = query_str;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
+
+        // check for action.
+        const char *action = miscutil::lookup(parameters,"action");
+        if (!action || strcasecmp(action,"expand")==0
+            || strcasecmp(action,"page")==0)
+          {
+            // route to /search/txt
+            free(csp->_http._path);
+            std::string path = "/search/img/" + query;
+            csp->_http._path = strdup(path.c_str());
+            return img_websearch::cgi_img_websearch_search(csp,rsp,parameters);
+          }
+        else if (strcasecmp(action,"similarity")==0)
+          {
+            // route to /similar/txt
+            free(csp->_http._path);
+            std::string path = "/similar/img/" + query;
+            csp->_http._path = strdup(path.c_str());
+            return img_websearch::cgi_img_websearch_similarity(csp,rsp,parameters);
+          }
+        else return SP_ERR_CGI_PARAMS;
+      }
+    else return SP_ERR_CGI_PARAMS;
+  }
+#endif
 
   /* plugin registration */
   extern "C"

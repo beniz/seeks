@@ -33,7 +33,7 @@ namespace sp
   plugin_element::plugin_element(const std::vector<url_spec*> &pos_patterns,
                                  const std::vector<url_spec*> &neg_patterns,
                                  plugin *parent)
-      : _pos_patterns(pos_patterns),_neg_patterns(neg_patterns),_parent(parent),
+    : _pos_patterns(pos_patterns),_neg_patterns(neg_patterns),_parent(parent),
       _pcrs(false),_perl(false),
       _joblist(NULL), _is_dynamic(false),
       _pattern_filename(NULL),
@@ -44,7 +44,7 @@ namespace sp
   plugin_element::plugin_element(const std::vector<std::string> &pos_patterns,
                                  const std::vector<std::string> &neg_patterns,
                                  plugin *parent)
-      : _parent(parent),
+    : _parent(parent),
       _pcrs(false), _perl(false),
       _joblist(NULL), _is_dynamic(false),
       _pattern_filename(NULL),_code_filename(NULL)
@@ -55,11 +55,11 @@ namespace sp
 
   plugin_element::plugin_element(const char *filename,
                                  plugin *parent)
-      :_parent(parent),
-      _pcrs(false), _perl(false),
-      _joblist(NULL), _is_dynamic(false),
-      _pattern_filename(strdup(filename)),
-      _code_filename(NULL)
+    :_parent(parent),
+     _pcrs(false), _perl(false),
+     _joblist(NULL), _is_dynamic(false),
+     _pattern_filename(strdup(filename)),
+     _code_filename(NULL)
   {
     // TODO: error handling !
     load_pattern_file();
@@ -70,7 +70,7 @@ namespace sp
                                  const char *code_filename,
                                  const bool &pcrs, const bool &perl,
                                  plugin *parent)
-      : _parent(parent),
+    : _parent(parent),
       _pcrs(pcrs),_perl(perl),
       _joblist(NULL), _is_dynamic(false),
       _pattern_filename(NULL),
@@ -85,11 +85,11 @@ namespace sp
                                  const char *code_filename,
                                  const bool &pcrs, const bool &perl,
                                  plugin *parent)
-      :_parent(parent),
-      _pcrs(pcrs),_perl(perl),
-      _joblist(NULL), _is_dynamic(false),
-      _pattern_filename(strdup(pattern_filename)),
-      _code_filename(strdup(code_filename))
+    :_parent(parent),
+     _pcrs(pcrs),_perl(perl),
+     _joblist(NULL), _is_dynamic(false),
+     _pattern_filename(strdup(pattern_filename)),
+     _code_filename(strdup(code_filename))
   {
     //TODO error handling !
     load_pattern_file();
@@ -439,8 +439,6 @@ namespace sp
   char** plugin_element::perl_execute_subroutine(const std::string &subr_name,
       char **str)
   {
-//	seeks_proxy::mutex_lock(&_ple_mutex);
-
     PerlInterpreter *my_perl = _perl_interpreter;
 
     dSP; // Perl macro to get access to the stack (of the interpreter pointed by 'my_perl').
@@ -473,9 +471,6 @@ namespace sp
 
     FREETMPS;
     LEAVE;
-
-//	seeks_proxy::mutex_unlock(&_ple_mutex);
-
     return output;
   }
 #endif

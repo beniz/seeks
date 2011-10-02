@@ -990,6 +990,8 @@ namespace seeks_plugins
           {
             posterior = 0.0; // if no snippet support, filtered out. XXX: this may change in the long term.
           }
+        if (s)
+          s->_engine.remove_feed("seeks");
       }
     else
       {
@@ -1117,8 +1119,8 @@ namespace seeks_plugins
 
         if (s && !hfiltered)
           {
-            if (s->_meta_rank <= s->_engine.size())
-              s->_meta_rank++;
+            /*if (s->_meta_rank <= s->_engine.size())
+              s->_meta_rank++;*/
             s->_personalized = true;
           }
       }
@@ -1216,6 +1218,8 @@ namespace seeks_plugins
                     sp->_meta_rank = 1;
                     sp->_engine.add_feed("seeks","s.s");
                     sp->_radius = qd->_radius;
+                    sp->_content_date = vd->_url_date;
+                    sp->_record_date = vd->_rec_date;
                     snippets.insert(std::pair<uint32_t,search_snippet*>(sp->_id,sp));
                   }
               }

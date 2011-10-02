@@ -70,9 +70,7 @@
 namespace sp
 {
 
-#if defined(FEATURE_PTHREAD) || defined(_WIN32)
   sp_mutex_t errlog::_log_mutex;
-#endif
 
   /*
    * LOG_LEVEL_FATAL cannot be turned off.  (There are
@@ -318,7 +316,6 @@ namespace sp
     long this_thread = 1;  /* was: pthread_t this_thread;*/
 
     /* FIXME get current thread id */
-#ifdef FEATURE_PTHREAD
     this_thread = (long)pthread_self();
 #ifdef __MACH__
     /*
@@ -329,9 +326,6 @@ namespace sp
      */
     this_thread = abs(this_thread % 1000);
 #endif /* def __MACH__ */
-#elif defined(_WIN32)
-    this_thread = GetCurrentThreadId();
-#endif /* def FEATURE_PTHREAD */
 
     return this_thread;
   }

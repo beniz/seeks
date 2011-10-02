@@ -36,28 +36,11 @@
 #define unix 1
 #endif
 
-#ifdef WITH_DHT
-#include "SGNode.h"
-#endif
+#include <pthread.h>
 
-#ifdef FEATURE_PTHREAD
-extern "C"
-{
-# include <pthread.h>
-}
-#endif
-
-#ifdef FEATURE_PTHREAD
 typedef pthread_mutex_t sp_mutex_t;
-#else
-typedef CRITICAL_SECTION sp_mutex_t;
-#endif
 
 using lsh::lsh_configuration;
-
-#ifdef WITH_DHT
-using dht::SGNode;
-#endif
 
 namespace sp
 {
@@ -116,7 +99,6 @@ namespace sp
       static int _g_terminate;
 #endif
 
-#if defined(FEATURE_PTHREAD) || defined(_WIN32)
 #define MUTEX_LOCKS_AVAILABLE
 
       //static sp_mutex_t _log_init_mutex;
@@ -137,8 +119,6 @@ namespace sp
 #ifndef HAVE_RANDOM
       static sp_mutex_t _rand_mutex;
 #endif /* ndef HAVE_RANDOM */
-
-#endif /* FEATURE_PTHREAD */
 
       static int _Argc;
       static const char **_Argv;

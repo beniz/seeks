@@ -10,6 +10,7 @@ message visited_url
  optional string summary = 4; /* snippet summary. */
  optional uint32 url_date = 5; /* URL data date. */
  optional string url_lang = 6; /* URL language. */
+ optional uint32 rec_date = 7; /* record date, for recording activity. */
 }
 
 message visited_urls

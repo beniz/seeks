@@ -62,6 +62,15 @@ int main(int argc, char **argv)
 
   for (size_t i=0; i<matching_keys.size(); i++)
     {
+      if (matching_keys.at(i) == "db-version")
+        {
+          const char *keyc = matching_keys.at(i).c_str();
+          int value_size;
+          void *value = seeks_proxy::_user_db->_hdb->dbget(keyc,strlen(keyc),&value_size);
+          std::cout << "db_record[db-version]: " << *((double*)value) << std::endl;
+          continue;
+        }
+
       std::string plugin_name, key;
       user_db::extract_plugin_and_key(matching_keys.at(i),
                                       plugin_name,key);

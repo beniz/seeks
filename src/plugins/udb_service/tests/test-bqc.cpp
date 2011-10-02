@@ -20,6 +20,7 @@
 #include "query_capture.h"
 #include "urlmatch.h"
 #include "db_query_record.h"
+#include "seeks_proxy.h"
 #include "proxy_configuration.h"
 #include "errlog.h"
 

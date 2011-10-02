@@ -469,7 +469,7 @@ TEST_F(SRETest,recommendation_post_ok)
   ASSERT_EQ("http://www.seeks.mx",vd->_url);
   ASSERT_EQ("Seeks Search",vd->_title);
   ASSERT_TRUE(vd->_url_lang.empty());
-  ASSERT_TRUE(0 < vd->_url_date);
+  ASSERT_TRUE(0 < vd->_rec_date);
   rank_estimator::destroy_records(records);
   rank_estimator::destroy_query_data(qdata);
   rank_estimator::destroy_inv_qdata_key(inv_qdata);
@@ -513,7 +513,7 @@ TEST_F(SRETest,recommendation_post_ok_lang)
   ASSERT_EQ("http://www.seeks.mx",vd->_url);
   ASSERT_EQ("Seeks Search",vd->_title);
   ASSERT_EQ("es",vd->_url_lang);
-  ASSERT_TRUE(0 < vd->_url_date);
+  ASSERT_TRUE(0 < vd->_rec_date);
   rank_estimator::destroy_records(records);
   rank_estimator::destroy_query_data(qdata);
   rank_estimator::destroy_inv_qdata_key(inv_qdata);

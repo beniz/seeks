@@ -27,6 +27,7 @@
 #include "query_capture_configuration.h"
 #include "DHTKey.h"
 #include "search_snippet.h"
+#include "user_db.h"
 
 using namespace sp;
 using dht::DHTKey;

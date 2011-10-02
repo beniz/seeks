@@ -448,12 +448,13 @@ namespace seeks_plugins
           }
         else
           {
-            // url_date.
+            // rec_date.
             struct timeval tv_now;
             gettimeofday(&tv_now, NULL);
-            uint32_t url_date = tv_now.tv_sec;
+            uint32_t rec_date = tv_now.tv_sec;
+            uint32_t url_date = sp->_content_date;
             db_query_record dbqr(plugin_name,query,radius,url,
-                                 1,1,sp->_title,sp->_summary,url_date,sp->_lang);
+                                 1,1,sp->_title,sp->_summary,url_date,rec_date,sp->_lang);
             err = seeks_proxy::_user_db->add_dbr(key_str,dbqr);
           }
         if (err != SP_ERR_OK)

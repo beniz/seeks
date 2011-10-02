@@ -46,47 +46,6 @@ AC_LANG(C++)
 AC_SEARCH_LIBS(accept, socket)
 AC_SEARCH_LIBS(gethostbyname, nsl)
 
-#=================================================================
-# Thread support.
-#=================================================================
-AC_CHECK_HEADER(pthread.h, [have_pthread=yes], [have_pthread=no])
-
-AC_ARG_ENABLE(pthread,
-[  --disable-pthread               Don't use POSIX threads (pthreads)],
-[if test $enableval = no; then
-  # Disable pthreads
-  if test $have_pthread = yes; then
-     AC_MSG_WARN([pthreads seem to be available but you are using --disable-pthread.])
-     AC_MSG_WARN([This is almost always a mistake and can render Seeks' proxy unacceptable slow.])
-  fi
-  have_pthread=no
-fi])
-
-if test $have_pthread = yes; then
-  PTHREAD_ONLY=
-  AC_DEFINE(FEATURE_PTHREAD,1,"pthreads")
-  echo Using POSIX threads
-  if test "$GCC" = "yes"; then
-    # Set a GCC specific switch:
-    if test "$target_type" = "unix"; then
-      ac_jgf_save_CFLAGS=$CFLAGS
-      CFLAGS="$CFLAGS -pthread"
-      AC_TRY_LINK([#include <pthread.h>],
-         [void *p = pthread_create;],
-        [
-	# This compiler switch makes GCC on Linux thread-safe
-        # However, it's not supported on most other OS.
-	  PTHREAD_LIB=
-          SPECIAL_CFLAGS="-pthread"
-        ])
-      CFLAGS=$ac_jgf_save_CFLAGS
-    fi
-  fi
-else
-  PTHREAD_ONLY=#
-  echo Using native threads
-fi
-
 # Checks for header files.
 AC_HEADER_STDC
 

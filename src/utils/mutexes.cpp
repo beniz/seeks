@@ -27,7 +27,6 @@ using sp::errlog;
 
 void mutex_lock(sp_mutex_t *mutex)
 {
-#ifdef FEATURE_PTHREAD
   int err = pthread_mutex_lock(mutex);
   if (err)
     {
@@ -38,14 +37,10 @@ void mutex_lock(sp_mutex_t *mutex)
         }
       exit(1);
     }
-#else
-  EnterCriticalSection(mutex);
-#endif /* def FEATURE_PTHREAD */
 }
 
 void mutex_unlock(sp_mutex_t *mutex)
 {
-#ifdef FEATURE_PTHREAD
   int err = pthread_mutex_unlock(mutex);
   if (err)
     {
@@ -56,14 +51,10 @@ void mutex_unlock(sp_mutex_t *mutex)
         }
       exit(1);
     }
-#else
-  LeaveCriticalSection(mutex);
-#endif /* def FEATURE_PTHREAD */
 }
 
 void mutex_init(sp_mutex_t *mutex)
 {
-#ifdef FEATURE_PTHREAD
   int err = pthread_mutex_init(mutex, 0);
   if (err)
     {
@@ -71,12 +62,8 @@ void mutex_init(sp_mutex_t *mutex)
              strerror(err));
       exit(1);
     }
-#else
-  InitializeCriticalSection(mutex);
-#endif /* def FEATURE_PTHREAD */
 }
 
-#ifdef FEATURE_PTHREAD
 void cond_init(sp_cond_t *cond)
 {
   int err = pthread_cond_init(cond,0);
@@ -120,4 +107,3 @@ void cond_broadcast(sp_cond_t *cond)
       exit(1); // in case fatal is turned into non exiting call.
     }
 }
-#endif
