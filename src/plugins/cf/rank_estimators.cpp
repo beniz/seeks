@@ -990,6 +990,8 @@ namespace seeks_plugins
           {
             posterior = 0.0; // if no snippet support, filtered out. XXX: this may change in the long term.
           }
+        if (s)
+          s->_engine.remove_feed("seeks");
       }
     else
       {
