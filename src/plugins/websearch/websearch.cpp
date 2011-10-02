@@ -1203,7 +1203,9 @@ namespace seeks_plugins
           {
             std::string http_method = csp->_http._gpc;
             miscutil::to_lower(http_method);
-            if (http_method == "put")
+            const char *output = miscutil::lookup(parameters,"output");
+            if (http_method == "put"
+                || !output || strcmpic(output,"html")==0) // when returning the static UI, we enforced storing queries because the GET / PUT control is not available.
               {
                 try
                   {
