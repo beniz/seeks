@@ -106,6 +106,7 @@ namespace seeks_plugins
             csp->_http._path = strdup(path.c_str());
             return websearch::cgi_websearch_clusterize(csp,rsp,parameters);
           }
+#ifdef FEATURE_OPENCV2
         else if (strcasecmp(action,"similarity")==0)
           {
             // route to /similar/txt
@@ -114,6 +115,7 @@ namespace seeks_plugins
             csp->_http._path = strdup(path.c_str());
             return websearch::cgi_websearch_similarity(csp,rsp,parameters);
           }
+#endif
         else return SP_ERR_CGI_PARAMS;
       }
     else return SP_ERR_CGI_PARAMS;
