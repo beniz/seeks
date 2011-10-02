@@ -450,6 +450,8 @@ namespace seeks_plugins
   void query_context::add_to_unordered_cache_title(search_snippet *sr)
   {
     std::string lctitle = sr->_title;
+    if (sr->_title.empty())
+      return; // do nothing.
     miscutil::to_lower(lctitle);
     hash_map<const char*,search_snippet*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=_unordered_snippets_title.find(lctitle.c_str()))!=_unordered_snippets_title.end())
