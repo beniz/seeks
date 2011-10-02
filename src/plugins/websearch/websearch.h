@@ -171,6 +171,8 @@ namespace seeks_plugins
       static bool _qc_plugin_activated;
       static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
       static bool _cf_plugin_activated;
+      static plugin *_xs_plugin; /**< xslt serialization plugin. */
+      static bool _xs_plugin_activated;
 
       /* multithreading. */
     public:

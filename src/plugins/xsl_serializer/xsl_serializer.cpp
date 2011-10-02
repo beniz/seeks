@@ -62,7 +62,7 @@ namespace seeks_plugins
   */
 
 
-  sp_err xsl_serializer::render_xml_cached_queries(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_cached_queries(client_state *csp, 
 						   http_response *rsp,
 						   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 						   const std::string &query,
@@ -78,12 +78,12 @@ namespace seeks_plugins
 
 
 
-  sp_err xsl_serializer::render_xml_clustered_results(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_clustered_results(client_state *csp, 
 						      http_response *rsp,
 						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+						      const query_context *qc,
 						      cluster *clusters,
 						      const short &K,
-						      client_state *csp, 
 						      const double &qtime)
   {
     sp_err res=SP_ERR_OK;
@@ -94,7 +94,7 @@ namespace seeks_plugins
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_engines(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_engines(client_state *csp, 
 					    http_response *rsp,
 					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					    const feeds &engines)
@@ -108,10 +108,9 @@ namespace seeks_plugins
   }
 
 
-  sp_err xsl_serializer::render_xsl_node_options(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_node_options(client_state *csp, 
 						 http_response *rsp,
-						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						 client_state *csp)						 
+						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
@@ -121,9 +120,10 @@ namespace seeks_plugins
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_recommendations(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_recommendations(const client_state *csp, 
 						    http_response *rsp,
 						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+						    const query_context *qc,
 						    const double &qtime,
 						    const int &radius,
 						    const std::string &lang)
@@ -136,10 +136,10 @@ namespace seeks_plugins
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_results(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_results(client_state *csp, 
 					    http_response *rsp,
 					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					    client_state *csp, 
+					    const query_context *qc,
 					    const std::vector<search_snippet*> &snippets,
 					    const double &qtime,
 					    const bool &img=false)
@@ -152,9 +152,10 @@ namespace seeks_plugins
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_snippet(query_context *qc,
+  sp_err xsl_serializer::render_xsl_snippet(client_state *csp, 
 					    http_response *rsp,
 					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					    query_context *qc,
 					    const search_snippet *sp)
   {
     sp_err res=SP_ERR_OK;
@@ -166,9 +167,10 @@ namespace seeks_plugins
   }
 
 
-  sp_err xsl_serializer::render_xsl_suggested_queries(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_suggested_queries(client_state *csp, 
 						      http_response *rsp,
-						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+						      const query_context *qc)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
@@ -178,7 +180,7 @@ namespace seeks_plugins
     return res;
   }
     
-  sp_err xsl_serializer::render_xsl_words(const query_context *qc,
+  sp_err xsl_serializer::render_xsl_words(client_state *csp, 
 					  http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					  const std::set<std::string> &words)
@@ -195,8 +197,8 @@ namespace seeks_plugins
   /* private */
   
   sp_err xsl_serializer::response(http_response *rsp,
-				const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				xmlDocPtr doc) {
+				  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				  xmlDocPtr doc) {
     
     sp_err res=SP_ERR_OK;
 

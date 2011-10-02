@@ -40,6 +40,7 @@
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
 
+using namespace sp;
 
 using sp::client_state;
 using sp::http_response;
@@ -59,69 +60,71 @@ namespace seeks_plugins
     virtual void start();
     virtual void stop();
     
-    static sp_err render_xml_cached_queries(const query_context *qc,
+    sp_err render_xsl_cached_queries(client_state *csp, 
 					    http_response *rsp,
 					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					    const std::string &query,
 					    const int &nq);
 
 
-    static sp_err render_xml_clustered_results(const query_context *qc,
+    sp_err render_xsl_clustered_results(client_state *csp, 
 					       http_response *rsp,
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					       const query_context *qc,
 					       cluster *clusters,
 					       const short &K,
-					       client_state *csp, 
 					       const double &qtime);
 
-    static sp_err render_xsl_engines(const query_context *qc,
+    sp_err render_xsl_engines(client_state *csp, 
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     const feeds &engines);
 
-    static sp_err render_xsl_node_options(const query_context *qc,
+    sp_err render_xsl_node_options(client_state *csp, 
 					  http_response *rsp,
-					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  client_state *csp);
+					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
-    static sp_err render_xsl_recommendations(const query_context *qc,
+    sp_err render_xsl_recommendations(const client_state *csp, 
 					     http_response *rsp,
 					     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					     const query_context *qc,
 					     const double &qtime,
 					     const int &radius,
 					     const std::string &lang);
 
-    static sp_err render_xsl_results(const query_context *qc,
+    sp_err render_xsl_results(client_state *csp, 
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				     client_state *csp, 
+				     const query_context *qc,
 				     const std::vector<search_snippet*> &snippets,
 				     const double &qtime,
 				     const bool &img);
 
-    static sp_err render_xsl_snippet(query_context *qc,
+    sp_err render_xsl_snippet(client_state *csp, 
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				     query_context *qc,
 				     const search_snippet *sp);
 
-    static sp_err render_xsl_suggested_queries(const query_context *qc,
+    sp_err render_xsl_suggested_queries(client_state *csp, 
 					       http_response *rsp,
-					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+					       const query_context *qc);
     
-    static sp_err render_xsl_words(const query_context *qc,
+    sp_err render_xsl_words(client_state *csp,
 				   http_response *rsp,
 				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				   const std::set<std::string> &words);
   /* private */
   private:
-    static sp_err response(http_response *rsp,
+    sp_err response(http_response *rsp,
 			 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			 xmlDocPtr doc);
-    static void transform(http_response *rsp, 
+    void transform(http_response *rsp, 
 			  xmlDocPtr doc, 
 			  const std::string stylesheet);
 
-    static xmlDocPtr get_stylesheet(const std::string stylesheet);
+    xmlDocPtr get_stylesheet(const std::string stylesheet);
 
 
     public:
