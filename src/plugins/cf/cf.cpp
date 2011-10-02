@@ -208,7 +208,11 @@ namespace seeks_plugins
         return e.code();
       }
 
-    // ask all peers.
+    const char *peers = miscutil::lookup(parameters,"peers");
+    if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"ring")!=0)
+      return SP_ERR_CGI_PARAMS;
+
+    // ask all peers if 'ring' is specified.
     // cost is nearly the same to grab both queries and URLs from
     // remote peers, and cache the requested data.
     // for this reason, we call to 'personalize', that fetches both
