@@ -46,6 +46,13 @@ namespace seeks_plugins
     xmlCleanupParser();
   }
 
+  void xsl_serializer::start()
+  {
+  }
+
+  void xsl_serializer::stop()
+  {
+  }
 
   /* public methods */
 
@@ -142,7 +149,7 @@ namespace seeks_plugins
 					    const query_context *qc,
 					    const std::vector<search_snippet*> &snippets,
 					    const double &qtime,
-					    const bool &img=false)
+					    const bool &img)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");

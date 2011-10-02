@@ -4,6 +4,9 @@ if HAVE_PROTOBUF
 SUBDIRS += query_capture uri_capture cf udb_service
 endif
 endif
+if HAVE_XSLSERIALIZER_PLUGIN
+SUBDIRS+=xsl_serializer
+endif
 SUBDIRS += websearch websearch_api_compat blocker no_tracking
 if HAVE_PROTOBUF
 SUBDIRS += query_capture/tests
@@ -14,7 +17,4 @@ SUBDIRS+=img_websearch
 endif
 if HAVE_HTTPSERV_PLUGIN
 SUBDIRS+=httpserv
-if HAVE_XSLSERIALIZER_PLUGIN
-SUBDIRS+=xsl_serializer
-endif
 endif

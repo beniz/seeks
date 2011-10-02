@@ -647,7 +647,7 @@ namespace seeks_plugins
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_cached_queries(csp,rsp,parameters,"",nq);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_cached_queries(csp,rsp,parameters,"",nq);
 #endif
     pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
     return err;
@@ -725,7 +725,7 @@ namespace seeks_plugins
           }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
-	  err = (websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
+	  err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
         mutex_unlock(&qc->_qc_mutex);
 
@@ -793,7 +793,7 @@ namespace seeks_plugins
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
-      err = (websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,clusters,K,qtime);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,clusters,K,qtime);
 #endif
     else
       {
@@ -883,7 +883,7 @@ namespace seeks_plugins
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
     else
       {
@@ -962,7 +962,7 @@ namespace seeks_plugins
                 csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
-	  err = (websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
+	  err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
 	else
 
@@ -997,7 +997,7 @@ namespace seeks_plugins
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,km._clusters,km._K,qtime);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,km._clusters,km._K,qtime);
 #endif
     else
       {
@@ -1030,7 +1030,7 @@ namespace seeks_plugins
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_node_options(csp,rsp,parameters);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_node_options(csp,rsp,parameters);
 #endif
     return err;
   }
@@ -1313,7 +1313,7 @@ namespace seeks_plugins
           }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-	  err = (websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,qtime);
+	  err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,qtime);
 #endif
 	else if (output_str == "json")
           {
@@ -1386,7 +1386,7 @@ namespace seeks_plugins
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
 #endif
     mutex_unlock(&qc->_qc_mutex);
     return err;
@@ -1425,7 +1425,7 @@ namespace seeks_plugins
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
 
     mutex_unlock(&qc->_qc_mutex);
 #endif
@@ -1481,7 +1481,7 @@ namespace seeks_plugins
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
-      err = (websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
 #endif
 
     mutex_unlock(&qc->_qc_mutex);

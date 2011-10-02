@@ -40,8 +40,6 @@
 #include <libxslt/transform.h>
 #include <libxslt/xsltutils.h>
 
-using namespace sp;
-
 using sp::client_state;
 using sp::http_response;
 using sp::plugin;
@@ -55,7 +53,7 @@ namespace seeks_plugins
   public:
     xsl_serializer();
     
-    ~xsl_serializer();
+    virtual ~xsl_serializer();
     
     virtual void start();
     virtual void stop();
@@ -98,7 +96,7 @@ namespace seeks_plugins
 				     const query_context *qc,
 				     const std::vector<search_snippet*> &snippets,
 				     const double &qtime,
-				     const bool &img);
+				     const bool &img=false);
 
     sp_err render_xsl_snippet(client_state *csp, 
 				     http_response *rsp,
