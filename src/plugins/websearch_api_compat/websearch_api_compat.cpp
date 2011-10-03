@@ -106,7 +106,6 @@ namespace seeks_plugins
             csp->_http._path = strdup(path.c_str());
             return websearch::cgi_websearch_clusterize(csp,rsp,parameters);
           }
-#ifdef FEATURE_OPENCV2
         else if (strcasecmp(action,"similarity")==0)
           {
             // route to /similar/txt
@@ -115,7 +114,6 @@ namespace seeks_plugins
             csp->_http._path = strdup(path.c_str());
             return websearch::cgi_websearch_similarity(csp,rsp,parameters);
           }
-#endif
         else return SP_ERR_CGI_PARAMS;
       }
     else return SP_ERR_CGI_PARAMS;
@@ -260,20 +258,22 @@ namespace seeks_plugins
         if (!action || strcasecmp(action,"expand")==0
             || strcasecmp(action,"page")==0)
           {
-            // route to /search/txt
+            // route to /search/img
             free(csp->_http._path);
             std::string path = "/search/img/" + query;
             csp->_http._path = strdup(path.c_str());
             return img_websearch::cgi_img_websearch_search(csp,rsp,parameters);
           }
+#ifdef FEATURE_OPENCV2
         else if (strcasecmp(action,"similarity")==0)
           {
-            // route to /similar/txt
+            // route to /similar/img
             free(csp->_http._path);
             std::string path = "/similar/img/" + query;
             csp->_http._path = strdup(path.c_str());
             return img_websearch::cgi_img_websearch_similarity(csp,rsp,parameters);
           }
+#endif
         else return SP_ERR_CGI_PARAMS;
       }
     else return SP_ERR_CGI_PARAMS;
