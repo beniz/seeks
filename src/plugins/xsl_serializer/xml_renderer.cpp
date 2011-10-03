@@ -388,12 +388,12 @@ namespace seeks_plugins
               continue;
             if (!safesearch_off && !snippets.at(i)->_safe)
               continue;
-	    snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
-	    xmlAddChild(parent, snippet_node);
             if (!similarity || snippets.at(i)->_seeks_ir > 0)
               {
                 if (count >= snistart)
                   {
+		    snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
+		    xmlAddChild(parent, snippet_node);
                     err = xml_renderer::render_snippet(snippets.at(i),has_thumbs,query_words, snippet_node);
                   }
                 count++;
