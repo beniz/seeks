@@ -268,7 +268,7 @@ namespace seeks_plugins
     free(buffer);
     xsltFreeStylesheet(cur);
     xmlFreeDoc(res_doc);
-    xmlFreeDoc(stylesheet_doc);
+    //xmlFreeDoc(stylesheet_doc);
   }
 
    
@@ -278,9 +278,9 @@ namespace seeks_plugins
     xmlDocPtr xslt;
     // TODO : manage a cache of stylesheets
     if (seeks_proxy::_datadir.empty())
-      stylesheet_path = plugin_manager::_plugin_repository + "websearch/stylesheets/" + stylesheet + ".xsl";
+      stylesheet_path = plugin_manager::_plugin_repository + "xsl_serializer/stylesheets/" + stylesheet + ".xsl";
     else
-      stylesheet_path = seeks_proxy::_datadir + "/plugins/websearch/stylesheets/" + stylesheet + ".xsl";
+      stylesheet_path = seeks_proxy::_datadir + "/plugins/xsl_serializer/stylesheets/" + stylesheet + ".xsl";
     xslt=xmlParseFile(stylesheet_path.c_str());
     return xslt;
   }
