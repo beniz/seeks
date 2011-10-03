@@ -24,6 +24,19 @@ LDADD += \
 endif
 endif
 
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_CPPFLAGS += \
+	-I$(top_srcdir)/src/plugins/img_websearch \
+	`pkg-config opencv --cflags`
+
+AM_LDFLAGS += \
+       -L$(top_builddir)/src/plugins/img_websearch \
+       `pkg-config opencv --libs`
+
+LDADD += \
+       -lseeksimgwebsearchplugin
+endif
+
 if HAVE_PROTOBUF
 AM_CPPFLAGS += \
 	`pkg-config --cflags protobuf`

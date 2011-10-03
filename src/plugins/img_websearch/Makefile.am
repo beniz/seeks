@@ -40,7 +40,7 @@ if USE_PERL
 libseeksimgwebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
-SUBDIRS=. tests
+#SUBDIRS=. tests
 
 imgwebsearchpluginconfigdir=$(sysconfdir)/seeks
 dist_imgwebsearchpluginconfig_DATA=img-websearch-config
