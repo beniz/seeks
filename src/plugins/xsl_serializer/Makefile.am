@@ -40,4 +40,4 @@ xslserializerconfigdir=$(sysconfdir)/seeks
 dist_xslserializerconfig_DATA=xslserializer-config
 
 nobase_dist_xslserializerplugindata_DATA= \
-			  xml/stylesheets/opensearch-result.xsl
+			  stylesheets/opensearch-result.xsl
