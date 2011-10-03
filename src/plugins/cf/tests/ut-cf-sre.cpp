@@ -33,6 +33,7 @@
 #include "lsh_configuration.h"
 #include "qprocess.h"
 #include "urlmatch.h"
+#include "websearch.h"
 #include "errlog.h"
 
 using namespace seeks_plugins;
@@ -434,7 +435,6 @@ TEST_F(SRETest, utf8)
 
 TEST_F(SRETest,recommendation_post_ok)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = false; // disable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -477,7 +477,6 @@ TEST_F(SRETest,recommendation_post_ok)
 
 TEST_F(SRETest,recommendation_post_ok_lang)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = false; // disable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -521,7 +520,6 @@ TEST_F(SRETest,recommendation_post_ok_lang)
 
 TEST_F(SRETest,recommendation_post_url_check_fail_400)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = true; // enable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -547,7 +545,6 @@ TEST_F(SRETest,recommendation_post_url_check_fail_400)
 
 TEST_F(SRETest,recommendation_post_url_check_retrieve)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = true; // enable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -574,7 +571,6 @@ TEST_F(SRETest,recommendation_post_url_check_retrieve)
 
 TEST_F(SRETest,recommendation_get_ok)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = false; // disable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -593,6 +589,7 @@ TEST_F(SRETest,recommendation_get_ok)
   miscutil::unmap(parameters,"url-check");
   miscutil::unmap(parameters,"radius");
   miscutil::unmap(parameters,"lang");
+  miscutil::unmap(parameters,"q");
   miscutil::add_map_entry(parameters,"peers",1,"local",1);
   client_state csp2;
   csp2._http._gpc = strdup("get");
@@ -605,12 +602,15 @@ TEST_F(SRETest,recommendation_get_ok)
   EXPECT_NE(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_NE(std::string::npos,body.find("Seeks Search"));
   EXPECT_NE(std::string::npos,body.find("\"hits\":1"));
+  query_context *qc = websearch::lookup_qc(parameters);
+  ASSERT_FALSE(qc==NULL);
+  sweeper::unregister_sweepable(qc);
+  delete qc;
   miscutil::free_map(parameters);
 }
 
 TEST_F(SRETest,recommendation_get_ok_lang)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = false; // disable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -628,6 +628,8 @@ TEST_F(SRETest,recommendation_get_ok_lang)
   miscutil::unmap(parameters,"title");
   miscutil::unmap(parameters,"url-check");
   miscutil::unmap(parameters,"radius");
+  miscutil::unmap(parameters,"lang");
+  miscutil::unmap(parameters,"q");
   miscutil::add_map_entry(parameters,"peers",1,"local",1);
   miscutil::add_map_entry(parameters,"lang",1,"es",1);
   client_state csp2;
@@ -641,12 +643,15 @@ TEST_F(SRETest,recommendation_get_ok_lang)
   EXPECT_EQ(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_EQ(std::string::npos,body.find("Seeks Search"));
   EXPECT_EQ(std::string::npos,body.find("\"hits\":1"));
+  query_context *qc = websearch::lookup_qc(parameters);
+  ASSERT_FALSE(qc==NULL);
+  sweeper::unregister_sweepable(qc);
+  delete qc;
   miscutil::free_map(parameters);
 }
 
 TEST_F(SRETest,recommendation_delete_ok)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = false; // disable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -665,6 +670,7 @@ TEST_F(SRETest,recommendation_delete_ok)
   miscutil::unmap(parameters,"url-check");
   miscutil::unmap(parameters,"radius");
   miscutil::unmap(parameters,"lang");
+  miscutil::unmap(parameters,"q");
   client_state csp2;
   csp2._http._gpc = strdup("delete");
   csp2._http._path = strdup("/recommendation/search%20engine");
@@ -672,6 +678,7 @@ TEST_F(SRETest,recommendation_delete_ok)
   err = cf::cgi_recommendation(&csp2,&rsp2,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   miscutil::unmap(parameters,"url");
+  miscutil::unmap(parameters,"q");
   miscutil::add_map_entry(parameters,"peers",1,"local",1);
   client_state csp3;
   csp3._http._gpc = strdup("get");
@@ -683,12 +690,15 @@ TEST_F(SRETest,recommendation_delete_ok)
   EXPECT_EQ(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_EQ(std::string::npos,body.find("Seeks Search"));
   EXPECT_EQ(std::string::npos,body.find("\"hits\""));
+  query_context *qc = websearch::lookup_qc(parameters);
+  ASSERT_FALSE(qc==NULL);
+  sweeper::unregister_sweepable(qc);
+  delete qc;
   miscutil::free_map(parameters);
 }
 
 TEST_F(SRETest,recommendation_delete_ok_lang)
 {
-  cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_post_url_check = false; // disable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
@@ -707,6 +717,7 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   miscutil::unmap(parameters,"url-check");
   miscutil::unmap(parameters,"radius");
   miscutil::unmap(parameters,"lang");
+  miscutil::unmap(parameters,"q");
   miscutil::add_map_entry(parameters,"lang",1,"es",1);
   client_state csp2;
   csp2._http._gpc = strdup("delete");
@@ -716,6 +727,7 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   ASSERT_EQ(DB_ERR_NO_REC,err);
   miscutil::unmap(parameters,"url");
   miscutil::unmap(parameters,"lang");
+  miscutil::unmap(parameters,"q");
   miscutil::add_map_entry(parameters,"peers",1,"local",1);
   client_state csp3;
   csp3._http._gpc = strdup("get");
@@ -727,6 +739,10 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   EXPECT_NE(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_NE(std::string::npos,body.find("Seeks Search"));
   EXPECT_NE(std::string::npos,body.find("\"hits\""));
+  query_context *qc = websearch::lookup_qc(parameters);
+  ASSERT_FALSE(qc==NULL);
+  sweeper::unregister_sweepable(qc);
+  delete qc;
   miscutil::free_map(parameters);
 }
 

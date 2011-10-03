@@ -58,6 +58,7 @@ AM_CPPFLAGS += \
 	     -I${top_srcdir}/src/proxy \
 	     -I${top_srcdir}/src/utils \
 	     -I$(top_srcdir)/src/plugins/websearch \
+	     -I$(top_srcdir)/src/plugins/websearch_api_compat \
 	     @PCRE_CFLAGS@ \
 	     @XML2_CFLAGS@ \
 	     @ICU_CFLAGS@ \
@@ -70,6 +71,7 @@ AM_LDFLAGS += \
 	-L$(top_builddir)/src/proxy \
 	-L$(top_builddir)/src/utils \
 	-L$(top_builddir)/src/plugins/websearch \
+	-L$(top_builddir)/src/plugins/websearch_api_compat \
 	$(GTEST_LDFLAGS)
 
 LDADD += \
@@ -79,6 +81,7 @@ LDADD += \
 	-lseeksplugins \
 	-lseeksutils \
 	-lseekswebsearchplugin \
+	-lseekswebsearchapicompatplugin \
 	-lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ -lpthread -lpcreposix -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
 
 if USE_PERL

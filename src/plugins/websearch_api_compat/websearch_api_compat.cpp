@@ -258,7 +258,7 @@ namespace seeks_plugins
         if (!action || strcasecmp(action,"expand")==0
             || strcasecmp(action,"page")==0)
           {
-            // route to /search/txt
+            // route to /search/img
             free(csp->_http._path);
             std::string path = "/search/img/" + query;
             csp->_http._path = strdup(path.c_str());
@@ -267,7 +267,7 @@ namespace seeks_plugins
 #ifdef FEATURE_OPENCV2
         else if (strcasecmp(action,"similarity")==0)
           {
-            // route to /similar/txt
+            // route to /similar/img
             free(csp->_http._path);
             std::string path = "/similar/img/" + query;
             csp->_http._path = strdup(path.c_str());
