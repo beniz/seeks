@@ -78,7 +78,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res = xml_renderer::render_xml_cached_queries(query,nq,doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);
     return res;
   }
@@ -96,7 +96,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res = xml_renderer::render_xml_clustered_results(qc, parameters,clusters,K,qtime, doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);
     return res;
   }
@@ -109,7 +109,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res = xml_renderer::render_xml_engines(engines, doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);
     return res;    
   }
@@ -122,7 +122,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_node_options(csp, doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);
     return res;
   }
@@ -138,7 +138,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_recommendations(qc,parameters,qtime,radius,lang,doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);    
     return res;
   }
@@ -154,7 +154,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_results(qc, parameters,snippets, qtime, img, doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);    
     return res;
   }
@@ -168,7 +168,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_snippet(qc,sp,doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);    
     return res; 
   }
@@ -182,7 +182,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_suggested_queries(qc,parameters,doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);    
     return res;
   }
@@ -195,7 +195,7 @@ namespace seeks_plugins
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_words(words,doc);
-    res = res && xsl_serializer::response(rsp,parameters,doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);    
     return res;
   }
