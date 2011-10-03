@@ -239,7 +239,8 @@ namespace seeks_plugins
       
     // parse the stylesheet as libxml2 Document
     stylesheet_doc=xsl_serializer::get_stylesheet(stylesheet);
-    
+    if (!stylesheet_doc) 
+      return;
     // get the content type
     // Get the root element node 
     root_element = xmlDocGetRootElement(stylesheet_doc);
