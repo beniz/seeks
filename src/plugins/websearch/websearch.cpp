@@ -175,8 +175,8 @@ namespace seeks_plugins
     _cf_plugin = plugin_manager::get_plugin("cf");
     _cf_plugin_activated = seeks_proxy::_config->is_plugin_activated("cf");
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
-    _xs_plugin = plugin_manager::get_plugin("xsl_serializer");
-    _xs_plugin_activated = seeks_proxy::_config->is_plugin_activated("xsl_serializer");
+    _xs_plugin = plugin_manager::get_plugin("xsl-serializer");
+    _xs_plugin_activated = seeks_proxy::_config->is_plugin_activated("xsl-serializer");
 #endif
   }
 

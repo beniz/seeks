@@ -58,14 +58,14 @@ namespace seeks_plugins
     virtual void start();
     virtual void stop();
     
-    sp_err render_xsl_cached_queries(client_state *csp, 
+    static sp_err render_xsl_cached_queries(client_state *csp, 
 					    http_response *rsp,
 					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					    const std::string &query,
 					    const int &nq);
 
 
-    sp_err render_xsl_clustered_results(client_state *csp, 
+    static sp_err render_xsl_clustered_results(client_state *csp, 
 					       http_response *rsp,
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					       const query_context *qc,
@@ -73,16 +73,16 @@ namespace seeks_plugins
 					       const short &K,
 					       const double &qtime);
 
-    sp_err render_xsl_engines(client_state *csp, 
+    static sp_err render_xsl_engines(client_state *csp, 
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     const feeds &engines);
 
-    sp_err render_xsl_node_options(client_state *csp, 
+    static sp_err render_xsl_node_options(client_state *csp, 
 					  http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
-    sp_err render_xsl_recommendations(const client_state *csp, 
+    static sp_err render_xsl_recommendations(const client_state *csp, 
 					     http_response *rsp,
 					     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					     const query_context *qc,
@@ -90,7 +90,7 @@ namespace seeks_plugins
 					     const int &radius,
 					     const std::string &lang);
 
-    sp_err render_xsl_results(client_state *csp, 
+    static sp_err render_xsl_results(client_state *csp, 
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     const query_context *qc,
@@ -98,48 +98,48 @@ namespace seeks_plugins
 				     const double &qtime,
 				     const bool &img=false);
 
-    sp_err render_xsl_snippet(client_state *csp, 
+    static sp_err render_xsl_snippet(client_state *csp, 
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     query_context *qc,
 				     const search_snippet *sp);
 
-    sp_err render_xsl_suggested_queries(client_state *csp, 
+    static sp_err render_xsl_suggested_queries(client_state *csp, 
 					       http_response *rsp,
 					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					       const query_context *qc);
     
-    sp_err render_xsl_words(client_state *csp,
+    static sp_err render_xsl_words(client_state *csp,
 				   http_response *rsp,
 				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				   const std::set<std::string> &words);
   /* private */
   private:
-    sp_err response(http_response *rsp,
+    static sp_err response(http_response *rsp,
 			 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			 xmlDocPtr doc);
-    void transform(http_response *rsp, 
+    static void transform(http_response *rsp, 
 			  xmlDocPtr doc, 
 			  const std::string stylesheet);
 
-    xmlDocPtr get_stylesheet(const std::string stylesheet);
+    static xmlDocPtr get_stylesheet(const std::string stylesheet);
 
 
-    public:
-      static xsl_serializer_configuration *_xslconfig;
-      static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
-      static double _cl_sec; // clock ticks per second.
+  public:
+    static xsl_serializer_configuration *_xslconfig;
+    static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
+    static double _cl_sec; // clock ticks per second.
 
-      /* dependent plugins. */
-    public:
-      static plugin *_qc_plugin; /**< query capture plugin. */
-      static bool _qc_plugin_activated;
-      static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
-      static bool _cf_plugin_activated;
+    /* dependent plugins. */
+  public:
+    static plugin *_qc_plugin; /**< query capture plugin. */
+    static bool _qc_plugin_activated;
+    static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
+    static bool _cf_plugin_activated;
       
-      /* multithreading. */
-    public:
-      static sp_mutex_t _context_mutex;
+    /* multithreading. */
+  public:
+    static sp_mutex_t _context_mutex;
   };
 
 } /* end of namespace. */
