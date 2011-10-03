@@ -45,7 +45,7 @@ if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
-SUBDIRS=. tests
+#SUBDIRS=. tests
 
 websearchconfigdir=$(sysconfdir)/seeks
 dist_websearchconfig_DATA=websearch-config
