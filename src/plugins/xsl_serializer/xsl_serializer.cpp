@@ -215,7 +215,7 @@ namespace seeks_plugins
 
     if (!stylesheet) {
       xmlChar *xmlbuff;
-      xmlDocDumpFormatMemory(doc, &xmlbuff, &buffersize, 1);
+      xmlDocDumpFormatMemory(doc, &xmlbuff, &buffersize, 0);
       miscutil::enlist(&rsp->_headers, "Content-Type: text/xml");
       rsp->_body = strdup((char *)xmlbuff);
       rsp->_content_length = buffersize;
