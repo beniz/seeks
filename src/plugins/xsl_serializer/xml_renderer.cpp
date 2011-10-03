@@ -628,6 +628,8 @@ namespace xml_renderer_private
   {
     xmlNodePtr context
       =xmlNewNode(NULL,BAD_CAST "query_context");
+    xmlAddChild(parent,context);
+    
     /*- query info. -*/
     // query.
 
