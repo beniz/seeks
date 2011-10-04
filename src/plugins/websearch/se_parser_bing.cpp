@@ -58,6 +58,17 @@ namespace seeks_plugins
             if (pc->_snippets->empty())
               _results_flag = true;
 
+            // create new snippet.
+            search_snippet *sp = new search_snippet(_count+1);
+            _count++;
+            sp->_engine = feeds("bing",_url);
+            pc->_current_snippet = sp;
+
+            _cached_flag = false; // in case previous snippet did not close the cached flag.
+          }
+        else if (_results_flag && a_class && (strcasecmp(a_class,"sa_cc")==0
+                                              || strcasecmp(a_class,"sb_pag")==0))
+          {
             // assert previous snippet if any.
             if (pc->_current_snippet)
               {
@@ -69,24 +80,15 @@ namespace seeks_plugins
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
                     _count--;
-                    pc->_snippets->pop_back();
                   }
+                else pc->_snippets->push_back(pc->_current_snippet);
               }
-
-            // create new snippet.
-            search_snippet *sp = new search_snippet(_count+1);
-            _count++;
-            sp->_engine = feeds("bing",_url);
-            pc->_current_snippet = sp;
-            pc->_snippets->push_back(pc->_current_snippet);
-
-            _cached_flag = false; // in case previous snippet did not close the cached flag.
           }
       }
-    else if (_results_flag && strcasecmp(tag,"h2") == 0)
+    /*else if (_results_flag && strcasecmp(tag,"h2") == 0)
       {
         _results_flag = false;
-      }
+    }*/
     else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"h3") == 0)
       {
         _h3_flag = true;

@@ -292,7 +292,7 @@ namespace seeks_plugins
   {
     // decode query (URL encoded).
     const char *query = miscutil::lookup(parameters,"q");
-    char *dec_query = encode::url_decode_but_not_plus(query);
+    char *dec_query = encode::url_decode(query); // XXX: was url_decode_but_not_plus
     std::string query_str = std::string(dec_query);
     free(dec_query);
     query_str = miscutil::chomp_cpp(query_str);

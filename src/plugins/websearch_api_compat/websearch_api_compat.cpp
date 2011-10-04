@@ -19,6 +19,7 @@
 #include "websearch_api_compat.h"
 #include "cgi.h"
 #include "urlmatch.h"
+#include "encode.h"
 #include "mrf.h"
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
@@ -76,7 +77,9 @@ namespace seeks_plugins
         const char *query_str = miscutil::lookup(parameters,"q");
         if (!query_str || strlen(query_str) == 0)
           return SP_ERR_CGI_PARAMS;
-        std::string query = query_str;
+        char *enc_query = encode::url_encode(query_str);
+        std::string query = enc_query;
+        free(enc_query);
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
 
         // check for action.
