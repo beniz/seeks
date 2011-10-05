@@ -89,11 +89,11 @@ namespace seeks_plugins
       {
         _results_flag = false;
     }*/
-    else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"h3") == 0)
+    else if (_results_flag && pc->_current_snippet && _h1_sr_flag && strcasecmp(tag,"h3") == 0)
       {
         _h3_flag = true;
       }
-    else if (_results_flag && _h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
+    else if (_results_flag && pc->_current_snippet && _h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
       {
         _link_flag = true;
         const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
@@ -101,7 +101,7 @@ namespace seeks_plugins
         if (a_link)
           _link = std::string(a_link);
       }
-    else if (_results_flag && _h1_sr_flag && strcasecmp(tag,"p") == 0)
+    else if (_results_flag && pc->_current_snippet && _h1_sr_flag && strcasecmp(tag,"p") == 0)
       {
         _p_flag = true;
       }
@@ -161,8 +161,6 @@ namespace seeks_plugins
         miscutil::replace_in_string(a_chars,"\r"," ");
         _h3 += a_chars;
       }
-
-
   }
 
   void se_parser_bing::end_element(parser_context *pc,
@@ -173,26 +171,26 @@ namespace seeks_plugins
     if (!_results_flag)
       return;
 
-    if (_h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
+    if (pc->_current_snippet && _h1_sr_flag && _h3_flag && strcasecmp(tag,"a") == 0)
       {
         _link_flag = false;
         pc->_current_snippet->set_url(_link);
         _link = "";
       }
-    else if (_p_flag && strcasecmp(tag,"p") == 0)
+    else if (pc->_current_snippet && _p_flag && strcasecmp(tag,"p") == 0)
       {
         _p_flag = false;
         pc->_current_snippet->set_summary(_summary);
         _summary = "";
       }
-    else if (_cite_flag && strcasecmp(tag,"cite") == 0)
+    else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
       {
         _cite_flag = false;
         pc->_current_snippet->set_cite(_cite);
         _cite = "";
         _cached_flag = true; // getting ready for the Cached link, if any.
       }
-    else if (_h3_flag && strcasecmp(tag,"h3") == 0)
+    else if (pc->_current_snippet && _h3_flag && strcasecmp(tag,"h3") == 0)
       {
         _h3_flag = false;
         pc->_current_snippet->set_title(_h3);
