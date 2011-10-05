@@ -184,6 +184,7 @@ namespace seeks_plugins
         (*vit)->reset_p2p_data();
         ++vit;
       }
+    _suggestions.clear();
   }
 
   bool query_context::sweep_me()

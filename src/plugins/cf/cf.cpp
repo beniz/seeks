@@ -208,9 +208,23 @@ namespace seeks_plugins
         return e.code();
       }
 
+    // check on parameters.
     const char *peers = miscutil::lookup(parameters,"peers");
     if (peers && strcasecmp(peers,"local")!=0 && strcasecmp(peers,"ring")!=0)
       return SP_ERR_CGI_PARAMS;
+    int radius = -1;
+    const char *radius_str = miscutil::lookup(parameters,"radius");
+    if (radius_str)
+      {
+        char *endptr;
+        int tmp = strtol(radius_str,&endptr,0);
+        if (*endptr)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR,"wrong radius parameter");
+            return SP_ERR_CGI_PARAMS;
+          }
+        else radius = tmp;
+      }
 
     // ask all peers if 'ring' is specified.
     // cost is nearly the same to grab both queries and URLs from
@@ -226,8 +240,9 @@ namespace seeks_plugins
       }
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
-    cf::personalize(qc,false,cf::select_p2p_or_local(parameters));
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
     sp_err err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+    qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }
