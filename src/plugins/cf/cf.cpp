@@ -457,6 +457,7 @@ namespace seeks_plugins
     search_snippet *sp = new search_snippet(); // XXX: no rank given, temporary snippet.
     sp->set_url(url);
     sp->set_title(title);
+    sp->_qc = qc;
     if (has_lang)
       {
         const char *lang_str = miscutil::lookup(parameters,"lang");
