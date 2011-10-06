@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009-2011 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,8 +17,6 @@
  */
 
 #include "curl_mget.h"
-#include "seeks_proxy.h"
-#include "proxy_configuration.h"
 #include "miscutil.h"
 #include "errlog.h"
 
@@ -96,18 +94,26 @@ namespace sp
 
     if (!arg->_proxy_addr.empty())
       {
-        std::string proxy_str = arg->_proxy_addr + ":" + miscutil::to_string(arg->_proxy_port);//+ miscutil::to_string(seeks_proxy::_config->_hport);
+        std::string proxy_str = arg->_proxy_addr + ":" + miscutil::to_string(arg->_proxy_port);
         curl_easy_setopt(curl, CURLOPT_PROXY, proxy_str.c_str());
       }
 
-    if (arg->_content) // POST request.
+    if (arg->_http_method == "POST") // POST request.
       {
-        curl_easy_setopt(curl, CURLOPT_POST, 1);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void*)arg->_content->c_str());
-        if (arg->_content_size >= 0)
-          curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, arg->_content_size);
-        /*std::cerr << "curl_mget POST size: " << arg->_content_size << std::endl
-          << "content: " << *arg->_content << std::endl;*/
+        if (arg->_content)
+          {
+            curl_easy_setopt(curl, CURLOPT_POST, 1);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void*)arg->_content->c_str());
+            if (arg->_content_size >= 0)
+              curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, arg->_content_size);
+            /*std::cerr << "curl_mget POST size: " << arg->_content_size << std::endl
+              << "content: " << *arg->_content << std::endl;*/
+          }
+        else curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+      }
+    else if (arg->_http_method == "PUT" || arg->_http_method == "DELETE")
+      {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, arg->_http_method.c_str());
       }
 
     struct curl_slist *slist=NULL;
@@ -182,7 +188,7 @@ namespace sp
                                     std::vector<int> &status,
                                     std::vector<CURL*> *chandlers,
                                     std::vector<std::string> *cookies,
-                                    const bool &post,
+                                    const std::string &http_method,
                                     std::string *content,
                                     const int &content_size,
                                     const std::string &content_type)
@@ -208,6 +214,7 @@ namespace sp
           arg_cbget->_handler = chandlers->at(i);
         if (cookies)
           arg_cbget->_cookies = cookies->at(i);
+        arg_cbget->_http_method = http_method;
         if (content)
           {
             arg_cbget->_content = content;
@@ -239,5 +246,43 @@ namespace sp
 
     return _outputs;
   }
+
+  std::string* curl_mget::www_simple(const std::string &url,
+                                     int &status,
+                                     const std::string &http_method,
+                                     std::string *content,
+                                     const int &content_size,
+                                     const std::string &content_type)
+  {
+    std::vector<std::string> urls;
+    urls.reserve(1);
+    urls.push_back(url);
+    std::vector<int> statuses;
+    www_mget(urls,1,NULL,"",0,statuses,NULL,NULL,http_method);
+    if (statuses[0] != 0)
+      {
+        // failed connection.
+        status = statuses[0];
+        delete[] _outputs;
+        std::string msg = "failed connection to " + url;
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        return NULL;
+      }
+    else if (statuses[0] == 0 && !_outputs)
+      {
+        // no result.
+        status = statuses[0];
+        std::string msg = "no output from " + url;
+        errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
+        delete _outputs[0];
+        delete[] _outputs;
+        return NULL;
+      }
+    status = statuses[0];
+    std::string *result = _outputs[0];
+    delete[] _outputs;
+    return result;
+  }
+
 
 } /* end of namespace. */

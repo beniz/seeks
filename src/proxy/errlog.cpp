@@ -64,8 +64,7 @@
 #endif /* def _MSC_VER */
 
 #include "errlog.h"
-#include "proxy_dts.h"
-#include "seeks_proxy.h"
+//#include "seeks_proxy.h"
 
 namespace sp
 {
@@ -119,12 +118,12 @@ namespace sp
         fputs(error_message, errlog::_logfp);
       }
 
-#if defined(unix)
+    /*#if defined(unix)
     if (seeks_proxy::_pidfile)
       {
         unlink(seeks_proxy::_pidfile);
       }
-#endif /* unix */
+      #endif*/ /* unix */
 
     exit(1);
   }
@@ -536,6 +535,7 @@ namespace sp
    * Returns     :  N/A
    *
    *********************************************************************/
+#define BUFFER_SIZE 5000
   void errlog::log_error(int loglevel, const char *fmt, ...)
   {
     va_list ap;

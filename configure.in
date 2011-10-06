@@ -779,6 +779,7 @@ src/plugins/cf/Makefile \
 src/plugins/cf/tests/Makefile \
 src/plugins/udb_service/Makefile \
 src/plugins/udb_service/tests/Makefile \
+src/cli/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)
 

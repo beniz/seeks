@@ -62,7 +62,7 @@ if !HAVE_BSD
 LDADD += -ldl
 endif
 
-SUBDIRS=utils proxy lsh dht plugins proxy/tests lsh/tests .
+SUBDIRS=utils proxy lsh dht plugins proxy/tests lsh/tests . cli
 
 configdir=$(sysconfdir)/seeks
 dist_config_DATA=config \
