@@ -19,10 +19,13 @@
 #include "udb_service.h"
 #include "udb_server.h"
 #include "udb_client.h"
+#include "udb_service_configuration.h"
 #include "seeks_proxy.h"
 #include "miscutil.h"
 
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <iostream>
 
 namespace seeks_plugins
@@ -34,6 +37,24 @@ namespace seeks_plugins
     _name = "udb-service";
     _version_major = "0";
     _version_minor = "1";
+
+    // configuration.
+    if (seeks_proxy::_datadir.empty())
+      _config_filename = plugin_manager::_plugin_repository + "udb_service/udb-service-config";
+    else
+      _config_filename = seeks_proxy::_datadir + "/plugins/udb_service/udb-service-config";
+
+#ifdef SEEKS_CONFIGDIR
+    struct stat stFileInfo;
+    if (!stat(_config_filename.c_str(), &stFileInfo)  == 0)
+      {
+        _config_filename = SEEKS_CONFIGDIR "/udb-service-config";
+      }
+#endif
+
+    if (udb_service_configuration::_config == NULL)
+      udb_service_configuration::_config = new udb_service_configuration(_config_filename);
+    _configuration = udb_service_configuration::_config;
 
     // cgi dispatchers.
     _cgi_dispatchers.reserve(2);

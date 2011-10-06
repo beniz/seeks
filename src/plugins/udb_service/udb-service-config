@@ -1,0 +1,3 @@
+# Timeout on P2P calls, in seconds.
+# default 3
+call-timeout 3

@@ -18,6 +18,7 @@
 
 #include "udb_client.h"
 #include "udbs_err.h"
+#include "udb_service_configuration.h"
 #include "DHTKey.h"
 #include "qprocess.h"
 #include "halo_msg_wrapper.h"
@@ -59,7 +60,8 @@ namespace seeks_plugins
     url += path + "/find_dbr?";
     url += "urkey=" + key;
     url += "&pn=" + pn;
-    curl_mget cmg(1,3,0,3,0); // timeouts: 3 seconds. TODO: in config.
+    curl_mget cmg(1,udb_service_configuration::_config->_call_timeout,0,
+                  udb_service_configuration::_config->_call_timeout,0);
     std::vector<std::string> urls;
     urls.reserve(1);
     urls.push_back(url);
@@ -123,7 +125,8 @@ namespace seeks_plugins
     if (port != -1)
       url += ":" + miscutil::to_string(port);
     url += path + "/find_bqc?";
-    curl_mget cmg(1,3,0,3,0); // timeouts: 3 seconds.
+    curl_mget cmg(1,udb_service_configuration::_config->_call_timeout,0,
+                  udb_service_configuration::_config->_call_timeout,0);
     std::vector<std::string> urls;
     urls.reserve(1);
     urls.push_back(url);
