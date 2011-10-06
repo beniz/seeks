@@ -256,7 +256,7 @@ namespace seekscli
     if (!lang.empty())
       url += "&lang=" + lang;
     if (!nclusters.empty())
-      url += "&nclusters=" + nclusters;
+      url += "&clusters=" + nclusters;
     int status = 0;
     cli::make_call(timeout,url,"GET",status,result);
     return status;
