@@ -203,25 +203,25 @@ namespace seeks_plugins
         break;
 
       case hash_se_transfer_timeout:
-        _se_transfer_timeout = atoi(arg);
+        _se_transfer_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the transfer timeout in seconds for connections to a search engine");
         break;
 
       case hash_se_connect_timeout:
-        _se_connect_timeout = atoi(arg);
+        _se_connect_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the connection timeout in seconds for connections to a search engine");
         break;
 
       case hash_ct_transfer_timeout:
-        _ct_transfer_timeout = atoi(arg);
+        _ct_transfer_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the transfer timeout in seconds when fetching content for analysis and caching");
         break;
 
       case hash_ct_connect_timeout:
-        _ct_connect_timeout = atoi(arg);
+        _ct_connect_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the connection timeout in seconds when fetching content for analysis and caching");
         break;
