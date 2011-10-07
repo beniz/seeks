@@ -133,7 +133,7 @@ namespace seeks_plugins
     errlog::log_error(LOG_LEVEL_DEBUG,"call: %s",url.c_str());
     std::vector<int> status;
     cmg.www_mget(urls,1,NULL,"",0,status,
-                 NULL,NULL,"post",&msg,msg.length()*sizeof(char),
+                 NULL,NULL,"POST",&msg,msg.length()*sizeof(char),
                  ctype); // not going through a proxy. TODO: support for external proxy.
     if (status[0] !=0)
       {
