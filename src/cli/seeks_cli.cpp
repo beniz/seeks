@@ -17,22 +17,25 @@
  */
 
 #include "cli.h"
+#include "miscutil.h"
 #include "errlog.h"
 
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/times.h>
 
+#include <vector>
 #include <map>
 #include <string>
 #include <iostream>
 
 using namespace seekscli;
+using sp::miscutil;
 using sp::errlog;
 
 void print_usage()
 {
-  std::cout << "usage: seeks_cli [--timeout <seconds>] [--output <html,json,xml> [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
+  std::cout << "usage: seeks_cli [--timeout <seconds>] [--proxy <addr:port>] [--output <html,json,xml> [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
   std::cout << "seeks_cli info <url>\n";
   std::cout << "seeks_cli peers <url>\n";
   std::cout << "seeks_cli [--x <get>] recommend <url> <query> [--nreco <nreco>] [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--order <rank|new-date|old-date|new-activity|old-activity>]\n";
@@ -65,6 +68,8 @@ int main(int argc, char **argv)
   int timeout = 5;
   std::string output = "json";
   std::string http_method = "get";
+  std::string proxy_addr = "";
+  short proxy_port = 0;
   int i = 0;
   while(++i < argc)
     {
@@ -119,6 +124,27 @@ int main(int argc, char **argv)
             {
               std::cout << "missing argument: --timeout\n";
               exit(-1);
+            }
+        }
+      else if (o == "--proxy")
+        {
+          const char *p = argv[++i];
+          if (p)
+            {
+              std::string params = p;
+              std::vector<std::string> vec;
+              miscutil::tokenize(params,vec,":");
+              if (vec.size()!=2)
+                {
+                  std::cout << "wrong argument: --proxy " + params << std::endl;
+                  exit(-1);
+                }
+              else
+                {
+                  proxy_addr = vec.at(0);
+                  proxy_port = atoi(vec.at(1).c_str());
+                  cli::set_proxy(proxy_addr,proxy_port);
+                }
             }
         }
     }

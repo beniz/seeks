@@ -40,6 +40,9 @@ namespace seekscli
 
       static std::string url_to_id(const std::string &url);
 
+      static void set_proxy(const std::string &proxy_addr,
+                            const short &proxy_port);
+
       /* info */
       static int get_info(const std::string &seeks_url,
                           const std::string &output,
@@ -260,6 +263,9 @@ namespace seekscli
                                 const std::string &title,
                                 const std::string &url_check,
                                 std::string *&result);
+
+      static std::string _proxy_addr;
+      static short _proxy_port;
   };
 
 } /* end of namespace. */

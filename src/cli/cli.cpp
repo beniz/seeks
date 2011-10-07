@@ -31,6 +31,9 @@ using sp::miscutil;
 
 namespace seekscli
 {
+  std::string cli::_proxy_addr = "";
+  short cli::_proxy_port = 0;
+
   void cli::make_call(const int &timeout,
                       const std::string &url,
                       const std::string &http_method,
@@ -38,7 +41,8 @@ namespace seekscli
                       std::string *&result)
   {
     curl_mget cmg(1,timeout,0,timeout,0);
-    result = cmg.www_simple(url,status,http_method);
+    result = cmg.www_simple(url,status,http_method,NULL,-1,"",
+                            cli::_proxy_addr,cli::_proxy_port);
   }
 
   std::string cli::url_encode(const std::string &str)
@@ -70,6 +74,13 @@ namespace seekscli
     url_lc = cli::strip_url(url_lc);
     uint32_t id = SuperFastHash(url_lc.c_str(),url_lc.size());
     return miscutil::to_string(id);
+  }
+
+  void cli::set_proxy(const std::string &proxy_addr,
+                      const short &proxy_port)
+  {
+    cli::_proxy_addr = proxy_addr;
+    cli::_proxy_port = proxy_port;
   }
 
   int cli::get_info(const std::string &seeks_url,
