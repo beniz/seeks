@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   db_record *dbr = NULL;
   try
     {
-      udbc.find_bqc(host,port,path,query,1);
+      dbr = udbc.find_bqc(host,port,path,query,1);
     }
   catch(sp_exception &e)
     {
