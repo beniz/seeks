@@ -32,8 +32,7 @@ using sp::errlog;
 
 void print_usage()
 {
-  //TODO: options before command.
-  std::cout << "usage: seeks_cli [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
+  std::cout << "usage: seeks_cli [--output <html,json,xml> [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
   std::cout << "seeks_cli info <url>\n";
   std::cout << "seeks_cli peers <url>\n";
   std::cout << "seeks_cli [--x <get>] recommend <url> <query> [--nreco <nreco>] [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--order <rank|new-date|old-date|new-activity|old-activity>]\n";
@@ -63,6 +62,7 @@ int main(int argc, char **argv)
   errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO | LOG_LEVEL_DEBUG);
 
   // catch options.
+  std::string output = "json";
   std::string http_method = "get";
   int i = 0;
   while(++i < argc)
@@ -86,6 +86,24 @@ int main(int argc, char **argv)
           else
             {
               std::cout << "missing argument: --x\n";
+              exit(-1);
+            }
+        }
+      else if (o == "--output")
+        {
+          const char *ou = argv[++i];
+          if (ou)
+            {
+              output = ou;
+              if (output != "json" && output != "html" && output != "xml")
+                {
+                  std::cout << "wrong argument: --output " + output << std::endl;
+                  exit(-1);
+                }
+            }
+          else
+            {
+              std::cout << "missing argument: --output\n";
               exit(-1);
             }
         }
@@ -132,11 +150,11 @@ int main(int argc, char **argv)
   int err = 0;
   if (command == "info")
     {
-      err = cli::get_info(node,true,timeout,result);
+      err = cli::get_info(node,output,timeout,result);
     }
   else if (command == "peers")
     {
-      err = cli::get_peers(node,true,timeout,result);
+      err = cli::get_peers(node,output,timeout,result);
     }
   else if (command == "recommend")
     {
@@ -158,13 +176,13 @@ int main(int argc, char **argv)
       if ((mit=params.find("--url_check"))!=params.end())
         url_check = (*mit).second;
       if (http_method == "get")
-        err = cli::get_recommendation(node,true,timeout,
+        err = cli::get_recommendation(node,output,timeout,
                                       query,nreco,radius,peers,lang,order,
                                       result);
       else if (http_method == "delete")
-        err = cli::delete_recommendation(node,true,timeout,query,purl,lang,result);
+        err = cli::delete_recommendation(node,output,timeout,query,purl,lang,result);
       else if (http_method == "post")
-        err = cli::post_recommendation(node,true,timeout,query,purl,title,
+        err = cli::post_recommendation(node,output,timeout,query,purl,title,
                                        radius,url_check,lang,result);
     }
   else if (command == "suggest")
@@ -176,7 +194,7 @@ int main(int argc, char **argv)
         nsugg = (*mit).second;
       if ((mit=params.find("--radius"))!=params.end())
         radius = (*mit).second;
-      err = cli::get_suggestion(node,true,timeout,
+      err = cli::get_suggestion(node,output,timeout,
                                 query,nsugg,radius,peers,result);
     }
   else if (command == "search")
@@ -212,26 +230,26 @@ int main(int argc, char **argv)
       if (http_method == "get")
         {
           if (sid.empty() && surl.empty())
-            err = cli::get_search_txt_query(node,true,timeout,
+            err = cli::get_search_txt_query(node,output,timeout,
                                             query,engines,rpp,page,lang,thumbs,
                                             expansion,peers,order,result);
-          else err = cli::get_search_txt_snippet(node,true,timeout,
+          else err = cli::get_search_txt_snippet(node,output,timeout,
                                                    query,sid,surl,lang,result);
         }
       else if (http_method == "put")
         {
-          err = cli::put_search_txt_query(node,true,timeout,
+          err = cli::put_search_txt_query(node,output,timeout,
                                           query,engines,rpp,page,lang,thumbs,
                                           expansion,peers,order,result);
         }
       else if (http_method == "post" && (!sid.empty() || !surl.empty()))
         {
-          err = cli::post_search_snippet(node,true,timeout,
+          err = cli::post_search_snippet(node,output,timeout,
                                          query,sid,surl,lang,redirect,cpost,result);
         }
       else if (http_method == "delete" && (!sid.empty() || !surl.empty()))
         {
-          err = cli::delete_search_snippet(node,true,timeout,
+          err = cli::delete_search_snippet(node,output,timeout,
                                            query,sid,surl,lang,result);
         }
       else
@@ -250,9 +268,9 @@ int main(int argc, char **argv)
       if ((mit=params.find("--lang"))!=params.end())
         lang = (*mit).second;
       if (sid.empty() && surl.empty())
-        err = cli::get_words_query(node,true,timeout,
+        err = cli::get_words_query(node,output,timeout,
                                    query,lang,result);
-      else err = cli::get_words_snippet(node,true,timeout,
+      else err = cli::get_words_snippet(node,output,timeout,
                                           query,sid,surl,lang,result);
     }
   else if (command == "recent_queries")
@@ -260,7 +278,7 @@ int main(int argc, char **argv)
       std::string nq;
       if ((mit=params.find("--nq"))!=params.end())
         nq = (*mit).second;
-      err = cli::get_recent_queries(node,true,timeout,
+      err = cli::get_recent_queries(node,output,timeout,
                                     nq,result);
     }
   else if (command == "cluster_types")
@@ -268,7 +286,7 @@ int main(int argc, char **argv)
       std::string lang;
       if ((mit=params.find("--lang"))!=params.end())
         lang = (*mit).second;
-      err = cli::get_cluster_types(node,true,timeout,
+      err = cli::get_cluster_types(node,output,timeout,
                                    query,lang,result);
     }
   else if (command == "cluster_auto")
@@ -278,7 +296,7 @@ int main(int argc, char **argv)
         lang = (*mit).second;
       if ((mit=params.find("--nclusters"))!=params.end())
         nclusters = (*mit).second;
-      err = cli::get_cluster_auto(node,true,timeout,
+      err = cli::get_cluster_auto(node,output,timeout,
                                   query,lang,nclusters,result);
     }
   else if (command == "similar")
@@ -290,7 +308,7 @@ int main(int argc, char **argv)
         sid = (*mit).second;
       if ((mit=params.find("--surl"))!=params.end())
         surl = (*mit).second;
-      err = cli::get_similar_txt_snippet(node,true,timeout,
+      err = cli::get_similar_txt_snippet(node,output,timeout,
                                          query,sid,surl,lang,result);
     }
   else if (command == "cache")
@@ -300,7 +318,7 @@ int main(int argc, char **argv)
         lang = (*mit).second;
       if ((mit=params.find("--url"))!=params.end())
         url = (*mit).second;
-      err = cli::get_cache_txt(node,true,timeout,
+      err = cli::get_cache_txt(node,output,timeout,
                                query,url,lang,result);
     }
   else

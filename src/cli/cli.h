@@ -42,14 +42,14 @@ namespace seekscli
 
       /* info */
       static int get_info(const std::string &seeks_url,
-                          const bool &output,
+                          const std::string &output,
                           const int &timeout,
                           std::string *&result);
 
       /* websearch */
     private:
       static int get_search_txt(const std::string &seeks_url,
-                                const bool &output,
+                                const std::string &output,
                                 const int &timeout,
                                 const std::string &http_method,
                                 const std::string &query,
@@ -69,7 +69,7 @@ namespace seekscli
 
     public:
       static int get_search_txt_query(const std::string &seeks_url,
-                                      const bool &output,
+                                      const std::string &output,
                                       const int &timeout,
                                       const std::string &query,
                                       const std::string &engines,
@@ -83,7 +83,7 @@ namespace seekscli
                                       std::string *&result);
 
       static int put_search_txt_query(const std::string &seeks_url,
-                                      const bool &output,
+                                      const std::string &output,
                                       const int &timeout,
                                       const std::string &query,
                                       const std::string &engines,
@@ -97,7 +97,7 @@ namespace seekscli
                                       std::string *&result);
 
       static int get_search_txt_snippet(const std::string &seeks_url,
-                                        const bool &output,
+                                        const std::string &output,
                                         const int &timeout,
                                         const std::string &query,
                                         const std::string &snippet_id,
@@ -106,7 +106,7 @@ namespace seekscli
                                         std::string *&result);
 
       static int post_search_snippet(const std::string &seeks_url,
-                                     const bool &output,
+                                     const std::string &output,
                                      const int &timeout,
                                      const std::string &query,
                                      const std::string &snippet_id,
@@ -117,7 +117,7 @@ namespace seekscli
                                      std::string *&result);
 
       static int delete_search_snippet(const std::string &seeks_url,
-                                       const bool &output,
+                                       const std::string &output,
                                        const int &timeout,
                                        const std::string &query,
                                        const std::string &snippet_id,
@@ -127,7 +127,7 @@ namespace seekscli
 
     private:
       static int get_words(const std::string &seeks_url,
-                           const bool &output,
+                           const std::string &output,
                            const int &timeout,
                            const std::string &query,
                            const std::string &snippet_id,
@@ -137,14 +137,14 @@ namespace seekscli
 
     public:
       static int get_words_query(const std::string &seeks_url,
-                                 const bool &output,
+                                 const std::string &output,
                                  const int &timeout,
                                  const std::string &query,
                                  const std::string &lang,
                                  std::string *&result);
 
       static int get_words_snippet(const std::string &seeks_url,
-                                   const bool &output,
+                                   const std::string &output,
                                    const int &timeout,
                                    const std::string &query,
                                    const std::string &snippet_id,
@@ -153,14 +153,14 @@ namespace seekscli
                                    std::string *&result);
 
       static int get_recent_queries(const std::string &seeks_url,
-                                    const bool &output,
+                                    const std::string &output,
                                     const int &timeout,
                                     const std::string &nq,
                                     std::string *&result);
 
     private:
       static int get_cluster(const std::string &seeks_url,
-                             const bool &output,
+                             const std::string &output,
                              const int &timeout,
                              const std::string &cluster_type,
                              const std::string &query,
@@ -170,14 +170,14 @@ namespace seekscli
 
     public:
       static int get_cluster_types(const std::string &seeks_url,
-                                   const bool &output,
+                                   const std::string &output,
                                    const int &timeout,
                                    const std::string &query,
                                    const std::string &lang,
                                    std::string *&result);
 
       static int get_cluster_auto(const std::string &seeks_url,
-                                  const bool &output,
+                                  const std::string &output,
                                   const int &timeout,
                                   const std::string &query,
                                   const std::string &lang,
@@ -185,7 +185,7 @@ namespace seekscli
                                   std::string *&result);
 
       static int get_similar_txt_snippet(const std::string &seeks_url,
-                                         const bool &output,
+                                         const std::string &output,
                                          const int &timeout,
                                          const std::string &query,
                                          const std::string &snippet_id,
@@ -194,7 +194,7 @@ namespace seekscli
                                          std::string *&result);
 
       static int get_cache_txt(const std::string &seeks_url,
-                               const bool &output,
+                               const std::string &output,
                                const int &timeout,
                                const std::string &query,
                                const std::string &url,
@@ -203,12 +203,12 @@ namespace seekscli
 
       /* collaborative filter */
       static int get_peers(const std::string &seeks_url,
-                           const bool &output,
+                           const std::string &output,
                            const int &timeout,
                            std::string *&result);
 
       static int get_suggestion(const std::string &seeks_url,
-                                const bool &output,
+                                const std::string &output,
                                 const int &timeout,
                                 const std::string &query,
                                 const std::string &nsugg,
@@ -217,7 +217,7 @@ namespace seekscli
                                 std::string *&result);
 
       static int get_recommendation(const std::string &seeks_url,
-                                    const bool &output,
+                                    const std::string &output,
                                     const int &timeout,
                                     const std::string &query,
                                     const std::string &nreco,
@@ -228,7 +228,7 @@ namespace seekscli
                                     std::string *&result);
 
       static int post_recommendation(const std::string &seeks_url,
-                                     const bool &output,
+                                     const std::string &output,
                                      const int &timeout,
                                      const std::string &query,
                                      const std::string &url,
@@ -239,7 +239,7 @@ namespace seekscli
                                      std::string *&result);
 
       static int delete_recommendation(const std::string &seeks_url,
-                                       const bool &output,
+                                       const std::string &output,
                                        const int &timeout,
                                        const std::string &query,
                                        const std::string &url,
@@ -247,7 +247,7 @@ namespace seekscli
                                        std::string *&result);
     private:
       static int recommendation(const std::string &seeks_url,
-                                const bool &output,
+                                const std::string &output,
                                 const int &timeout,
                                 const std::string &http_method,
                                 const std::string &query,
