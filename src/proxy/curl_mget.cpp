@@ -252,13 +252,15 @@ namespace sp
                                      const std::string &http_method,
                                      std::string *content,
                                      const int &content_size,
-                                     const std::string &content_type)
+                                     const std::string &content_type,
+                                     const std::string &proxy_addr,
+                                     const short &proxy_port)
   {
     std::vector<std::string> urls;
     urls.reserve(1);
     urls.push_back(url);
     std::vector<int> statuses;
-    www_mget(urls,1,NULL,"",0,statuses,NULL,NULL,http_method);
+    www_mget(urls,1,NULL,proxy_addr,proxy_port,statuses,NULL,NULL,http_method);
     if (statuses[0] != 0)
       {
         // failed connection.

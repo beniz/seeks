@@ -74,17 +74,19 @@ namespace sp
                              std::vector<int> &status,
                              std::vector<CURL*> *chandlers=NULL,
                              std::vector<std::string> *cookies=NULL,
-                             const std::string &http_method="get",
+                             const std::string &http_method="GET",
                              std::string *content=NULL,
                              const int &content_size=-1,
                              const std::string &content_type="");
 
       std::string* www_simple(const std::string &url,
                               int &status,
-                              const std::string &http_method="get",
+                              const std::string &http_method="GET",
                               std::string *content=NULL,
                               const int &content_size=-1,
-                              const std::string &content_type="");
+                              const std::string &content_type="",
+                              const std::string &proxy_addr="",
+                              const short &proxy_port=0);
     public:
       int _nrequests;
       long _connect_timeout_sec;
