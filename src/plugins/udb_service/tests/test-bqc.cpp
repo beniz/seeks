@@ -71,7 +71,16 @@ int main(int argc, char **argv)
     }
 
   udb_client udbc;
-  db_record *dbr = udbc.find_bqc(host,port,path,query,1);
+  db_record *dbr = NULL;
+  try
+    {
+      udbc.find_bqc(host,port,path,query,1);
+    }
+  catch(sp_exception &e)
+    {
+      std::cout << e.what() << std::endl;
+      exit(-1);
+    }
   if (dbr)
     {
       db_query_record *dbqr = static_cast<db_query_record*>(dbr);
