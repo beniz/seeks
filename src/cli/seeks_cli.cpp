@@ -32,7 +32,7 @@ using sp::errlog;
 
 void print_usage()
 {
-  std::cout << "usage: seeks_cli [--output <html,json,xml> [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
+  std::cout << "usage: seeks_cli [--timeout <seconds>] [--output <html,json,xml> [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
   std::cout << "seeks_cli info <url>\n";
   std::cout << "seeks_cli peers <url>\n";
   std::cout << "seeks_cli [--x <get>] recommend <url> <query> [--nreco <nreco>] [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--order <rank|new-date|old-date|new-activity|old-activity>]\n";
@@ -62,6 +62,7 @@ int main(int argc, char **argv)
   errlog::set_debug_level(LOG_LEVEL_FATAL | LOG_LEVEL_ERROR | LOG_LEVEL_INFO | LOG_LEVEL_DEBUG);
 
   // catch options.
+  int timeout = 5;
   std::string output = "json";
   std::string http_method = "get";
   int i = 0;
@@ -107,6 +108,19 @@ int main(int argc, char **argv)
               exit(-1);
             }
         }
+      else if (o == "--timeout")
+        {
+          const char *tm = argv[++i];
+          if (tm)
+            {
+              timeout = atoi(tm);
+            }
+          else
+            {
+              std::cout << "missing argument: --timeout\n";
+              exit(-1);
+            }
+        }
     }
 
   std::string command = argv[i];
@@ -144,7 +158,6 @@ int main(int argc, char **argv)
   struct tms en_cpu;
   clock_t start_time = times(&st_cpu);
 
-  int timeout = 5; // default.
   std::map<std::string,std::string>::const_iterator mit;
   std::string *result = NULL;
   int err = 0;
