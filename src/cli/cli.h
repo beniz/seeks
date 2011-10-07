@@ -36,6 +36,10 @@ namespace seekscli
 
       static std::string url_encode(const std::string &str);
 
+      static std::string strip_url(const std::string &url);
+
+      static std::string url_to_id(const std::string &url);
+
       /* info */
       static int get_info(const std::string &seeks_url,
                           const bool &output,
@@ -50,6 +54,7 @@ namespace seekscli
                                 const std::string &http_method,
                                 const std::string &query,
                                 const std::string &snippet_id,
+                                const std::string &snippet_url,
                                 const std::string &engines,
                                 const std::string &rpp,
                                 const std::string &page,
@@ -96,6 +101,7 @@ namespace seekscli
                                         const int &timeout,
                                         const std::string &query,
                                         const std::string &snippet_id,
+                                        const std::string &snippet_url,
                                         const std::string &lang,
                                         std::string *&result);
 
@@ -104,6 +110,7 @@ namespace seekscli
                                      const int &timeout,
                                      const std::string &query,
                                      const std::string &snippet_id,
+                                     const std::string &snippet_url,
                                      const std::string &lang,
                                      const std::string &redirect,
                                      const std::string &cpost,
@@ -114,6 +121,7 @@ namespace seekscli
                                        const int &timeout,
                                        const std::string &query,
                                        const std::string &snippet_id,
+                                       const std::string &snippet_url,
                                        const std::string &lang,
                                        std::string *&result);
 
@@ -123,6 +131,7 @@ namespace seekscli
                            const int &timeout,
                            const std::string &query,
                            const std::string &snippet_id,
+                           const std::string &snippet_url,
                            const std::string &lang,
                            std::string *&result);
 
@@ -139,6 +148,7 @@ namespace seekscli
                                    const int &timeout,
                                    const std::string &query,
                                    const std::string &snippet_id,
+                                   const std::string &snippet_url,
                                    const std::string &lang,
                                    std::string *&result);
 
@@ -179,6 +189,7 @@ namespace seekscli
                                          const int &timeout,
                                          const std::string &query,
                                          const std::string &snippet_id,
+                                         const std::string &snippet_url,
                                          const std::string &lang,
                                          std::string *&result);
 
