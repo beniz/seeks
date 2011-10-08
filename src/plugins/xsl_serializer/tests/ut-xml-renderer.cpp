@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
+ * Copyright (C) 2011 Stéphane Bonhomme <stephane.bonhomme@seeks.pro>
  *               2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,23 +20,48 @@
 #define _PCREPOSIX_H // avoid pcreposix.h conflict with regex.h used by gtest
 #include <gtest/gtest.h>
 
-#include "json_renderer.h"
-#include "json_renderer_private.h"
+#include "xml_renderer.h"
+#include "xml_renderer_private.h"
 
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 
 using namespace seeks_plugins;
-using namespace json_renderer_private;
+using namespace xml_renderer_private;
 using sp::seeks_proxy;
 using sp::proxy_configuration;
 
-TEST(JsonRendererTest, render_engines)
+xml_validate(xmlDocPtr doc, const char* schemaname)
+{
+  int res;
+  xmlParseFile(schemaname);
+  xmlSchemaPtr sch=xmlSchemaNewDocParserCtxt(sch);
+  xmlSchemaValidCtxtPtr  valctx=xmlSchemaNewValidCtxt(schctx);  
+  res=xmlSchemaValidateDoc(valctx,doc);
+  xmlSchemaFreeValidCtxt(valctx);
+  xmlSchemaFreeParserCtxt(schctx);
+  return res;
+}
+
+TEST(XmlRendererTest, validate_schemas)
+{
+  // read all schemas
+
+  // parse the schemas
+  EXPECT_EQ(0, schema)
+}
+
+
+TEST(XmlRendererTest, render_engines)
 {
   websearch::_wconfig = new websearch_configuration(""); // default configuration.
-  std::string reng = json_renderer::render_engines(websearch::_wconfig->_se_default);
-  EXPECT_EQ("\"bing\",\"google\",\"yahoo\"",reng);
+  xmlDocPtr doc=xmlNewDoc("1.0");
+  xmlNodePtr root=xmlDocGetRootElement(doc);
+  EXPECT_EQ(SP_ERR_OK,xml_renderer::render_xml_engines(websearch::_wconfig->_se_default, root);
+  
+  EXPECT_EQ(True,xmlDocValidate(doc,dtd));
 
+  xmlFree(doc);
   /*  websearch::_wconfig = new websearch_configuration("");
   feeds fd;
   fd.add_feed("google","http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding");
@@ -47,7 +72,7 @@ TEST(JsonRendererTest, render_engines)
   delete websearch::_wconfig;
 }
 
-TEST(JsonRendererTest, render_snippets)
+TEST(XmlRendererTest, render_snippets)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
   websearch::_wconfig->_se_enabled = feeds("dummy","URL1");
@@ -64,7 +89,7 @@ TEST(JsonRendererTest, render_snippets)
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
   // zero snippet
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  EXPECT_EQ(SP_ERR_OK, xml_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
   EXPECT_EQ("\"snippets\":[]", json_str);
 
   // 1 snippet, page 1
