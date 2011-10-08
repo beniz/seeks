@@ -10,14 +10,20 @@ Seeks code provides:
   based on consensus.
 - a plugin system and a set of default plugins, including websearch and
   ad blocking plugins.
+- a P2P collaborative filter that enables decentralized collaborative
+  searching and sharing.
 
 ----------------------------------------------------------------------------
 2. Installation
 
 Dependencies:
-- curl
+- libcurl
 - libxml2
 - libpcre
+- tokyo cabinet
+- protocol buffers
+- libevent (optional, 2.x preferred)
+- opencv (optional)
 - docbook2x-man (optionnal)
 
 From the root directory, run
@@ -43,11 +49,15 @@ to have it so, run ./seeks --daemon
 
 Other important options can be modified in the configuration file, src/config
 
-By default, seeks runs as proxy on the local machine (127.0.0.1) on port 8118.
+By default, seeks runs as proxy on the local machine (127.0.0.1) on port 8250.
 If you would like to change it, do it in the configuration file, src/config
 
 Once started, to use seeks, tell your web browser to connect to the Internet
 through seeks' web proxy.
+
+If you'd like to use your seeks node through the API, you'll find
+details here:
+http://seeks-project.info/wiki/index.php/API-0.4.0
 
 ----------------------------------------------------------------------------
 4. Troubleshooting
