@@ -557,6 +557,7 @@ if test $personalization = true ; then
        AC_SUBST(querycapture,false)
        AC_SUBST(cf,false)
        AC_SUBST(udbservice,false)
+       AC_SUBST(personalization,false)
     fi
 
  # check on tokyo cabinet.
@@ -580,6 +581,7 @@ if test $personalization = true ; then
       AC_SUBST(querycapture,false)
       AC_SUBST(cf,false)
       AC_SUBST(udbservice,false)
+      AC_SUBST(personalization,false)
    fi
  fi
 else
