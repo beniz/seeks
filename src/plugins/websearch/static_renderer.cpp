@@ -160,7 +160,7 @@ namespace seeks_plugins
     html_content += "</a>";
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
-                          + "/search/q=@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
+                          + "/search?q=@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
                           + sp->_qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
     if (sp->_engine.has_feed("google"))
       {

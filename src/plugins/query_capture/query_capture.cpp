@@ -32,6 +32,7 @@
 #include "cgi.h"
 #include "cgisimple.h"
 #include "qprocess.h"
+#include "curl_mget.h"
 #include "miscutil.h"
 #include "charset_conv.h"
 #include "errlog.h"
@@ -51,6 +52,7 @@ using sp::encode;
 using sp::cgi;
 using sp::cgisimple;
 using lsh::qprocess;
+using sp::curl_mget;
 using sp::miscutil;
 using sp::charset_conv;
 using sp::errlog;
@@ -229,7 +231,7 @@ namespace seeks_plugins
     // XXX: could be threaded and detached.
     query_context *qc = websearch::lookup_qc(parameters);
     std::string host,path;
-    std::string url = std::string(urlp);
+    std::string url = urlp;
     query_capture::process_url(url,host,path);
 
     try
@@ -240,6 +242,31 @@ namespace seeks_plugins
       {
         return e.code();
       }
+
+    // crossposting requested.
+    // XXX: could thread it and return.
+    const char *cpost = miscutil::lookup(parameters,"cpost");
+    if (!cpost && !query_capture_configuration::_config->_cross_post_url.empty())
+      cpost = query_capture_configuration::_config->_cross_post_url.c_str();
+    const char *sid = miscutil::lookup(parameters,"id"); // should always be non NULL at this point.
+    if (cpost && sid)
+      {
+        std::string chost = cpost;
+        errlog::log_error(LOG_LEVEL_DEBUG,"crossposting to %s",cpost);
+        std::string query = q;
+        char *enc_query = encode::url_encode(query.c_str());
+        query = enc_query;
+        free(enc_query);
+        chost += "/search/txt/" + query + "/" + std::string(sid);
+        const char *lang = miscutil::lookup(parameters,"lang"); // should always be non NULL at this point.
+        if (lang)
+          chost += "?lang=" + std::string(lang);
+        curl_mget cmg(1,3,0,3,0); // timeout is 3 seconds.
+        int status;
+        std::string *output = cmg.www_simple(chost,status,"POST");
+        delete output; // ignore output.
+      }
+
     return SP_ERR_OK;
   }
 

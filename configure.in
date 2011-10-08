@@ -586,6 +586,7 @@ if test $personalization = true ; then
        AC_SUBST(querycapture,false)
        AC_SUBST(cf,false)
        AC_SUBST(udbservice,false)
+       AC_SUBST(personalization,false)
     fi
 
  # check on tokyo cabinet.
@@ -609,6 +610,7 @@ if test $personalization = true ; then
       AC_SUBST(querycapture,false)
       AC_SUBST(cf,false)
       AC_SUBST(udbservice,false)
+      AC_SUBST(personalization,false)
    fi
  fi
 else
@@ -810,6 +812,7 @@ src/plugins/udb_service/Makefile \
 src/plugins/udb_service/tests/Makefile \
 src/plugins/xsl_serializer/Makefile \
 src/plugins/xsl_serializer/tests/Makefile \
+src/cli/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)
 

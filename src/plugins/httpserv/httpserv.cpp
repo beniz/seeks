@@ -350,13 +350,13 @@ namespace seeks_plugins
       httpserv::websearch(r,arg);
     else if (uri.substr(0,16)=="/recent/queries/")
       httpserv::websearch(r,arg);
-    else if (uri.substr(0,14)=="/cluster/type/")
+    else if (uri.substr(0,15)=="/cluster/types/")
       httpserv::websearch(r,arg);
     else if (uri.substr(0,14)=="/cluster/auto/")
       httpserv::websearch(r,arg);
     else if (uri.substr(0,13)=="/similar/txt/")
       httpserv::websearch(r,arg);
-    else if (uri.substr(0,7)=="/cache/")
+    else if (uri.substr(0,11)=="/cache/txt/")
       httpserv::websearch(r,arg);
     else if (uri.substr(0,12)=="/suggestion/")
       httpserv::suggestion(r,arg);
@@ -532,12 +532,14 @@ namespace seeks_plugins
       serr = websearch::cgi_websearch_words(&csp,&rsp,parameters);
     else if (uri.substr(0,16)=="/recent/queries/")
       serr = websearch::cgi_websearch_recent_queries(&csp,&rsp,parameters);
-    else if (uri.substr(0,14)=="/cluster/type/")
+    else if (uri.substr(0,15)=="/cluster/types/")
       serr = websearch::cgi_websearch_clustered_types(&csp,&rsp,parameters);
     else if (uri.substr(0,14)=="/cluster/auto/")
       serr = websearch::cgi_websearch_clusterize(&csp,&rsp,parameters);
     else if (uri.substr(0,13)=="/similar/txt/")
       serr = websearch::cgi_websearch_similarity(&csp,&rsp,parameters);
+    else if (uri.substr(0,11)=="/cache/txt/")
+      serr = websearch::cgi_websearch_search_cache(&csp,&rsp,parameters);
     else if (uri.substr(0,7)=="/search")
       serr = websearch_api_compat::cgi_search_compat(&csp,&rsp,parameters);
     miscutil::free_map(parameters);

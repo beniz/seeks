@@ -350,7 +350,7 @@ namespace seeks_plugins
             query_data *qd = (*qit).second;
 
             /*
-             * skipped if query is N/A. In this case, this means we're fetching
+             * skipped if query is N/A (swl = NULL). In this case, this means we're fetching
              * more than what we need, and results need to be filtered afterwards,
              * and query data radius recomputed.
              */
@@ -383,7 +383,7 @@ namespace seeks_plugins
                     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
                     qprocess::generate_query_hashes(qd->_query,0,0,features);
 
-                    // XXX: when the query contains > 8 words there are many features generated
+                    // XXX: when the query contains >~ 8 words there are many features generated
                     // for the same radius. The original query data can be fetched from any
                     // of the generated features, so we take the first one.
                     if (features.empty()) // this should never happen.
@@ -443,7 +443,7 @@ namespace seeks_plugins
                           delete dbqr_data;
                       }
                   }
-                else // radius is below requested radius, keep queries for recommendation.
+                /*else // radius is below requested radius, keep queries for recommendation.
                   {
                     query_data *dbqrc = new query_data(*qd);
                     if (!strc_query.empty())
@@ -456,7 +456,7 @@ namespace seeks_plugins
                                  dbqrc));
                     // fill up the inverse query data index.
                     rank_estimator::fillup_inv_qdata(dbqrc,inv_qdata);
-                  }
+                }*/
               }
             ++qit;
           }

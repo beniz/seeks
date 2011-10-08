@@ -116,6 +116,12 @@ Set the directories where the public data is to be loaded from.
     <para>
 	    /etc/seeks/config 
 	    /etc/seeks/websearch-config
+	    /etc/seeks/httpserv-config
+	    /etc/seeks/uri-capture-config
+	    /etc/seeks/img-websearch-config
+	    /etc/seeks/query-capture-config
+	    /etc/seeks/cf-config
+	    /etc/seeks/lsh-config
   </para>
   </refsect1>
   <refsect1>

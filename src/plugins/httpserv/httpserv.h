@@ -22,7 +22,11 @@
 #include "config.h"
 #include "plugin.h"
 
+#ifdef HAVE_LEVENT1
 #include <event.h>
+#else
+#include <event2/event.h>
+#endif
 #include <evhttp.h>
 #include <pthread.h>
 

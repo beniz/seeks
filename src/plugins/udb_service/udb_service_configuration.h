@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010, 2011 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2011 Emmanuel Benazera, ebenazer@seeks-project.info
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUERY_CAPTURE_CONFIGURATION_H
-#define QUERY_CAPTURE_CONFIGURATION_H
+#ifndef UDB_SERVICE_CONFIGURATION_H
+#define UDB_SERVICE_CONFIGURATION_H
 
 #include "configuration_spec.h"
 
@@ -26,12 +26,12 @@ using sp::configuration_spec;
 namespace seeks_plugins
 {
 
-  class query_capture_configuration : public configuration_spec
+  class udb_service_configuration : public configuration_spec
   {
     public:
-      query_capture_configuration(const std::string &filename);
+      udb_service_configuration(const std::string &filename);
 
-      ~query_capture_configuration();
+      ~udb_service_configuration();
 
       // virtual
       virtual void set_default_config();
@@ -41,15 +41,10 @@ namespace seeks_plugins
 
       virtual void finalize_configuration();
 
-      // main options.
-      short _max_radius; /**< query LSH generation max radius. */
-      time_t _sweep_cycle; /**< how long between two cycles of query db record sweeping. */
-      time_t _retention;   /**< query db record retention, in seconds. */
-      bool _protected_redirection; /**< whether URL redirection is protected against abuses. */
-      bool _save_url_data; /**< whether to save URL title & summary for reuse. */
-      std::string _cross_post_url; /**< default URL to which to cross-post recommendations. */
+      // main options
+      long _call_timeout; /**< timeout on connection and on data transfer for P2P calls. */
 
-      static query_capture_configuration *_config;
+      static udb_service_configuration *_config;
   };
 
 } /* end of namespace. */

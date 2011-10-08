@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -48,6 +48,7 @@ namespace sp
     int _status;
     CURL *_handler; // optional
     std::string _cookies; // optional
+    std::string _http_method; // optional
     std::string *_content; // optional
     int _content_size; // optional
     std::string _content_type; // optional.
@@ -73,11 +74,19 @@ namespace sp
                              std::vector<int> &status,
                              std::vector<CURL*> *chandlers=NULL,
                              std::vector<std::string> *cookies=NULL,
-                             const bool &post=false,
+                             const std::string &http_method="GET",
                              std::string *content=NULL,
                              const int &content_size=-1,
                              const std::string &content_type="");
 
+      std::string* www_simple(const std::string &url,
+                              int &status,
+                              const std::string &http_method="GET",
+                              std::string *content=NULL,
+                              const int &content_size=-1,
+                              const std::string &content_type="",
+                              const std::string &proxy_addr="",
+                              const short &proxy_port=0);
     public:
       int _nrequests;
       long _connect_timeout_sec;
