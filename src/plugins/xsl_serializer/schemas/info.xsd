@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+ * The Seeks proxy and plugin framework are part of the SEEKS project.
+ * Copyright (C) 2011 Stephane Bonhomme <stephane.bonhomme@seeks.pro>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!--
+xml schema for info results
+-->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:include schemaLocation="simple_types.xsd"/>
+
+  <xs:element name="options">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="feed"
+		    minOccurs="0"
+		    maxOccurs="unbounded">
+	  <xs:complexType>
+	    <xs:sequence>
+	      <xs:element name="url"
+			  minOccurs="0"
+			  maxOccurs="unbounded">
+		<xs:complexType>
+		  <xs:attribute name="value" type="xs:anyURI"/>
+		  <xs:attribute name="default" type="seeks_boolean"/>
+		</xs:complexType>
+	      </xs:element>
+</xs:sequence>
+	    <xs:attribute name="name" type="xs:string"/> 
+	  </xs:complexType>
+	</xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string"/> 
+      <xs:attribute name="code-status" type="seeks_codestatus"/> 
+      <xs:attribute name="url-source-code" type="xs:anyURI"/>
+      <xs:attribute name="thumbs" type="seeks_boolean"/>
+      <xs:attribute name="content-analysis" type="seeks_boolean"/>
+      <xs:attribute name="clustering" type="seeks_boolean"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

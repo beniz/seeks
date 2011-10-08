@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:complexType name="seeks_engine">
+    <xs:attribute name="value" type="xs:string"/>
+  </xs:complexType>
+
+  
+  <xs:complexType name="seeks_query_context">
+    <xs:sequence>
+      <xs:element name="engine" 
+		  type="seeks_engine" 
+		  minOccurs="0"
+		  maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="query" type="xs:string"/>
+    <xs:attribute name="lang" type="xs:string"/>
+    <xs:attribute name="pers" type="xs:string"/>
+    <xs:attribute name="expansion" type="xs:integer"/>
+    <xs:attribute name="npeers" type="xs:integer"/>
+    <xs:attribute name="date" type="xs:string"/>
+    <xs:attribute name="qtime" type="xs:float"/>
+  </xs:complexType>
+
+</xs:schema>

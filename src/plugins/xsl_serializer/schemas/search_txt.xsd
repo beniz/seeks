@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:include schemaLocation="snippet.xsd"/>
+  <xs:include schemaLocation="context.xsd"/>
+
+  <xs:element name="result">
+    <xs:complexType>
+      <xs:all>
+	<xs:element name="snippets" type="snippets"/>
+	<xs:element name="query_context" type="seeks_query_context"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="snippets">
+    <xs:sequence>
+      <xs:element name="snippet" 
+		  type="seeks_snippet"
+		  minOccurs="0"
+		  maxOccurs="unbounded"/>
+    </xs:sequence>      
+  </xs:complexType>
+</xs:schema>
