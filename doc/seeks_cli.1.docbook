@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<refentry>
+  <refentryinfo>
+    <author>
+      <firstname>Emmanuel</firstname>
+      <surname>Benazera</surname>
+      <email>ebenazer@seeks-project.info</email>
+    </author>
+    <copyright>
+      <year>2011</year>
+      <holder>Emmanuel Benazera</holder>
+    </copyright>
+    <date>2011-10-08</date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>seeks CLI</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>seeks_cli</refname>
+    <refpurpose>the Seeks command line interaction tool.</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+	<cmdsynopsis>
+		<command>seeks_cli</command>
+		<arg><option>--timeout <replaceable class="parameter">seconds</replaceable></option></arg>
+		<arg><option>--proxy <replaceable class="parameter">add:port</replaceable></option></arg>
+		<arg><option>--output <replaceable class="parameter">html,json,xml</replaceable></option></arg>
+		<arg><option>--x <replaceable class="parameter">get,put,delete,post</replaceable></option></arg>
+		<arg>command</arg>
+		<arg>url</arg>
+		<arg><option>query</option></arg>
+		<arg><option>args</option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">info</arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">peers</arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg><option>--x <replaceable class="parameter">get</replaceable></option></arg>
+	  <arg choice="plain">recommend</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--nreco <replaceable class="parameter">nreco</replaceable></option></arg>
+	  <arg><option>--radius <replaceable class="parameter">radius</replaceable></option></arg>
+	  <arg><option>--peers <replaceable class="parameter">local|ring</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	  <arg><option>--order <replaceable class="parameter">rank|new-date|old-date|new-activity|old-activity</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg><option>--x <replaceable class="parameter">post</replaceable></option></arg>
+	  <arg choice="plain">recommend</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg>--title title</arg>
+	  <arg><option>--radius <replaceable class="parameter">radius</replaceable></option></arg>
+	  <arg><option>--peers <replaceable class="parameter">local|ring</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	  <arg><option>--url-check <replaceable class="parameter">0|1</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg><option>--x <replaceable class="parameter">delete</replaceable></option></arg>
+	  <arg choice="plain">recommend</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--url <replaceable class="parameter">url</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">suggest</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--nsugg <replaceable class="parameter">nsugg</replaceable></option></arg>
+	  <arg><option>--radius <replaceable class="parameter">radius</replaceable></option></arg>
+	  <arg><option>--peers <replaceable class="parameter">local|ring</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg><option>--x <replaceable class="parameter">get,put,delete,post</replaceable></option></arg>
+	  <arg choice="plain">search</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--sid <replaceable class="parameter">snippet_id</replaceable></option></arg>
+	  <arg><option>--surl <replaceable class="parameter">url</replaceable></option></arg>
+	  <arg><option>--engines <replaceable class="parameter">engines</replaceable></option></arg>
+	  <arg><option>--rpp <replaceable class="parameter">rpp</replaceable></option></arg>
+	  <arg><option>--page <replaceable class="parameter">page</replaceable></option></arg>
+	  <arg><option>--prs <replaceable class="parameter">on|off</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	  <arg><option>--thumbs <replaceable class="parameter">on|off</replaceable></option></arg>
+	  <arg><option>--expansion <replaceable class="parameter">expansion</replaceable></option></arg>
+	  <arg><option>--peers <replaceable class="parameter">local|ring</replaceable></option></arg>
+	  <arg><option>--order <replaceable class="parameter">rank|new-date|old-date|new-activity|old-activity</replaceable></option></arg>
+	  <arg><option>--redirect <replaceable class="parameter">url</replaceable></option></arg>
+	  <arg><option>--cpost <replaceable class="parameter">url</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">words</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--sid <replaceable class="parameter">snippet_id</replaceable></option></arg>
+	  <arg><option>--surl <replaceable class="parameter">url</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">recent_queries</arg>
+	  <arg>url</arg>
+	  <arg><option>--nq <replaceable class="parameter">nq</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">cluster_types</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">cluster_auto</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--nclusters <replaceable class="parameter">nclusters</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">similar</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--sid <replaceable class="parameter">snippet_id</replaceable></option></arg>
+	  <arg><option>--surl <replaceable class="parameter">url</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>seeks_cli</command>
+	  <arg choice="plain">cache</arg>
+	  <arg>url</arg>
+	  <arg>query</arg>
+	  <arg><option>--url <replaceable class="parameter">url</replaceable></option></arg>
+	  <arg><option>--lang <replaceable class="parameter">lang</replaceable></option></arg>
+	</cmdsynopsis>
+</refsynopsisdiv>
+
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para>
+       Seeks CLI is a command line client for controlling remote seeks
+       servers through Seeks API.
+
+       Seeks is an open source:
+  </para>
+  <para>* websearch proxy and meta-search engine,</para>
+  <para>* real-time p2p pattern matching network for social websearch. </para>
+  <para> The Seeks CLI uses the Seeks API to interact with remote
+  Seeks servers. The API can be found here:
+    http://seeks-project.info/wiki/index.php/API-0.4.0
+  </para>
+  </refsect1>
+  <refsect1>
+    <title>COMMANDS</title>
+    Every command interacts with different resources on the remote
+    Seeks server.
+    <variablelist>
+      <varlistentry><term>info</term>
+	<listitem>
+	  <para>
+	   Requests server general information.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>peers</term>
+	<listitem>
+	  <para>
+	    Requests the list of configured peers that form the P2P ring
+	    of the remote server.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>recommend</term>
+	<listitem>
+	  <para>
+	    Get, post or delete a search result from / to the remote server.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>suggest</term>
+	<listitem>
+	  <para>
+	    Request a set of query suggestions from the remote
+	    server's P2P ring.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>search</term>
+	<listitem>
+	  <para>
+	    Get, post or delete queries and search results from the
+	    remote server's data feeds and its P2P ring.
+	    The remote server's feeds can range from search engines to
+	    websites, wikis, ...
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>words</term>
+	<listitem>
+	  <para>
+	    Requests a list of most discriminating words for a given query.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>recent_queries</term>
+	<listitem>
+	  <para>
+	    Requests the set of recent queries that were issued on the
+	    remote server.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>cluster_types</term>
+	<listitem>
+	  <para>
+	    Requests a grouping of search results by type (webpages,
+	    wikis, files, videos, ...).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>cluster_auto</term>
+	<listitem>
+	  <para>
+	    Requests an automatic grouping and labeling of results. Experimental.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>similar</term>
+	<listitem>
+	  <para>
+	    Requests an ordered selection of search results that are
+	    the most similar to a given search result.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>cache
+	</term>
+	<listitem>
+	  <para>
+	    Requests a full Web page if it is available from the
+	    remote server's cache.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>ARGUMENTS</title>
+    <variablelist>
+      <varlistentry><term>url</term>
+	<listitem>
+	  <para>
+	    The URL of the remote Seeks server to interact with.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry><term>query</term>
+	<listitem>
+	  <para>
+	    The query string to the remote Seeks server.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+    <variablelist>
+<varlistentry><term>--help             </term>
+<listitem>
+<para>
+show this help message and exit.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--timeout <replaceable class="parameter">timeout</replaceable></term>
+<listitem> 
+<para>
+Sets the timeout of server call, in seconds.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--proxy <replaceable class="parameter">add:port</replaceable>        </term>
+<listitem>
+<para>
+Specifies a proxy through which to connect to the remote
+server. Format is host address and port separated with ':'.
+
+To connect to a remote proxy Seeks server, use http://s.s/ as the
+remote url
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--output <replaceable class="parameter">html,json,xml</replaceable>           </term>
+<listitem>
+<para>
+Specifies the output format, HTML, JSON or XML.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--x <replaceable class="parameter">get,put,delete,post</replaceable>              </term>
+<listitem>
+<para>
+Specifies the HTTP method used to interact with the remote Seeks server.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--nreco <replaceable class="parameter">nreco</replaceable>          </term>
+<listitem>
+<para>
+Specifies the number of recommendations (aka search results) requested.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--radius <replaceable class="parameter">radius</replaceable>        </term>
+<listitem>
+<para>
+Specifies the similarity radius that is applied around the requested
+queries, and used to generate the recommended set of results. The
+higher the radius, the lower the precision, the higher the number of
+returned results.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--peers <replaceable class="parameter">local|ring</replaceable>        </term>
+<listitem>
+<para>
+Specifies whether to get results from the remote Seeks server only,
+with the 'local' parameter, or from the P2P 'ring'. 'ring' is the default.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--lang <replaceable class="parameter">lang</replaceable>        </term>
+<listitem>
+<para>
+Specifies an ISO-639 language code, e.g. en, fr, es, ...
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--order <replaceable class="parameter">rank|new-date|old-date|new-activity|old-activity</replaceable>        </term>
+<listitem>
+<para>
+Specifies the ranking applied to the returned set of search
+results. <term>rank</term> ranks according to Seeks internal
+collaborative filter. new-date ranks newly posted results
+first, the opposite returned
+by old-date. new-activity ranks most
+recently accessed results first, the opposited returned by old-activity.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--title <replaceable class="parameter">title</replaceable>        </term>
+<listitem>
+<para>
+Specifies the title of a search result URL when posting it on the remote
+Seeks server.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--url-check <replaceable class="parameter">0|1</replaceable>        </term>
+<listitem>
+<para>
+When posting a search result URL, requests that the remote Seeks
+server checks on the URL by retrieving its content and title (1), or not (0).
+Note: the server can choose to ignore the --url-check 0 option.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--url <replaceable class="parameter">url</replaceable>        </term>
+<listitem>
+<para>
+Specifies a URL to post, using the <term>recommend</term> command, or to retrieve, using the 'cache' command.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--nsugg <replaceable class="parameter">nsugg</replaceable>        </term>
+<listitem>
+<para>
+Specifies the maximum number of requested query suggestions.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--sid <replaceable class="parameter">snippet_id</replaceable>        </term>
+<listitem>
+<para>
+Specifies a search result id. The id is a unique identifier attributed
+by the Seeks server to every search result.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--surl <replaceable class="parameter">url</replaceable>        </term>
+<listitem>
+<para>
+Specifies a search result URL. The CLI automatically computes the
+search snippet id (see <term>--sid</term>) and passes it to the server.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--engines <replaceable class="parameter">engines</replaceable>        </term>
+<listitem>
+<para>
+A list of comma separated data feed and engine names to select results
+from. To know which engines are active on a remote Seeks server, use
+the <term>info</term> command.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--rpp <replaceable class="parameter">rpp</replaceable>        </term>
+<listitem>
+<para>
+Specifies the number of search results returned per page.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--page <replaceable class="parameter">page</replaceable>        </term>
+<listitem>
+<para>
+Specifies which (virtual) page of results to return. Along with (--rpp)
+this option is useful when dealing with large number of search results.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--prs <replaceable class="parameter">on | off</replaceable>        </term>
+<listitem>
+<para>
+Specifies whether or not to apply the P2P (or local) collaborative
+filter to the selection and ranking of results. Using 'off' turns the
+remote Seeks server into a meta-search engine (if configured that
+way). To select among the P2P and local collaborative filter, use the
+(--peers) option.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--thumbs <replaceable class="parameter">thumbs</replaceable>        </term>
+<listitem>
+<para>
+Specifies whether to include a link to a search result thumbnails, for
+every returned result.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--expansion <replaceable class="parameter">expansion</replaceable>        </term>
+<listitem>
+<para>
+Using the <term>search</term> command, specifies the depth of the
+search. Technically, it asks the remote server to retrieve more
+results from the data feeds and engines it is connected to, and to
+enlarge the similarity radius of the query search accordingly. (see
+--radius for the equivalent parameter targeted at the P2P ring only).
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--redirect <replaceable class="parameter">url</replaceable>        </term>
+<listitem>
+<para>
+TODO
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--cpost <replaceable class="parameter">url</replaceable>        </term>
+<listitem>
+<para>
+Specifies a Seeks remote server different than the one being called to
+which cross-post the posted search result. Apply to the <term>recommend</term>
+command, along with '--x post'.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--nq <replaceable class="parameter">nq</replaceable>        </term>
+<listitem>
+<para>
+Specifies the maximum number of requested recent queries.
+</para>
+</listitem>
+</varlistentry>
+<varlistentry><term>--nclusters <replaceable class="parameter">nclusters</replaceable>        </term>
+<listitem>
+<para>
+Specifies the maximum number of groups (aka. clusters) when issuing a call
+with the <term>cluster_auto</term> command.
+</para>
+</listitem>
+</varlistentry>
+
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>COPYRIGHT</title>
+    <para>
+      This manual page was written by Emmanuel Benazera
+    </para>
+  </refsect1>
+</refentry>
