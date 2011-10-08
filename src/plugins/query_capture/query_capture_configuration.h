@@ -47,6 +47,7 @@ namespace seeks_plugins
       time_t _retention;   /**< query db record retention, in seconds. */
       bool _protected_redirection; /**< whether URL redirection is protected against abuses. */
       bool _save_url_data; /**< whether to save URL title & summary for reuse. */
+      std::string _cross_post_url; /**< default URL to which to cross-post recommendations. */
 
       static query_capture_configuration *_config;
   };

@@ -29,6 +29,7 @@ namespace seeks_plugins
 #define hash_query_retention               1932741391ul  /* "query-retention" */
 #define hash_query_protect_redir            645686780ul  /* "protected-redirection" */
 #define hash_save_url_data                 3465855637ul  /* "save-url-data" */
+#define hash_cross_post_url                4153795065ul  /* "cross-post-url" */
 
   query_capture_configuration* query_capture_configuration::_config = NULL;
 
@@ -52,6 +53,7 @@ namespace seeks_plugins
     _retention = 31104000;   // one year, in seconds.
     _protected_redirection = false; // should be activated on public nodes.
     _save_url_data = true;
+    _cross_post_url = ""; // no cross-posting is default.
   }
 
   void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -87,6 +89,12 @@ namespace seeks_plugins
         _save_url_data = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to save URL snippet's title and summary.");
+        break;
+
+      case hash_cross_post_url:
+        _cross_post_url = arg;
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "URL to which to cross-post recommendations.");
         break;
 
       default:

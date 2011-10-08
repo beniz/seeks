@@ -246,6 +246,8 @@ namespace seeks_plugins
     // crossposting requested.
     // XXX: could thread it and return.
     const char *cpost = miscutil::lookup(parameters,"cpost");
+    if (!cpost && !query_capture_configuration::_config->_cross_post_url.empty())
+      cpost = query_capture_configuration::_config->_cross_post_url.c_str();
     const char *sid = miscutil::lookup(parameters,"id"); // should always be non NULL at this point.
     if (cpost && sid)
       {

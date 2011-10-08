@@ -37,3 +37,7 @@ query-retention 31104000
 # Saves URL snippet's title and summary for reuse.
 # default: 1
 save-url-data 1
+
+# Seeks node URL to which to cross-post recommended results.
+# default: none
+#cross-post-url http://www.seeks-project.info/search.php
