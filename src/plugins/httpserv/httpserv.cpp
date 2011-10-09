@@ -348,7 +348,7 @@ namespace seeks_plugins
     // is unknown.
     else if (uri.substr(0,7)=="/words/")
       httpserv::websearch(r,arg);
-    else if (uri.substr(0,16)=="/recent/queries/")
+    else if (uri.substr(0,15)=="/recent/queries")
       httpserv::websearch(r,arg);
     else if (uri.substr(0,15)=="/cluster/types/")
       httpserv::websearch(r,arg);
@@ -530,7 +530,7 @@ namespace seeks_plugins
       serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
     else if (uri.substr(0,7)=="/words/")
       serr = websearch::cgi_websearch_words(&csp,&rsp,parameters);
-    else if (uri.substr(0,16)=="/recent/queries/")
+    else if (uri.substr(0,15)=="/recent/queries")
       serr = websearch::cgi_websearch_recent_queries(&csp,&rsp,parameters);
     else if (uri.substr(0,15)=="/cluster/types/")
       serr = websearch::cgi_websearch_clustered_types(&csp,&rsp,parameters);
