@@ -130,29 +130,16 @@ namespace seeks_plugins
                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     // check for query and snippet id.
-    std::string path = csp->_http._path;
-    miscutil::replace_in_string(path,"/search/txt/","");
-    std::string query = urlmatch::next_elt_from_path(path);
-    if (query.empty())
+    const char *query = miscutil::lookup(parameters,"q");
+    if (!query)
       return SP_ERR_CGI_PARAMS; // 400 error.
-    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1);
     const char *url_str = miscutil::lookup(parameters,"url");
     if (!url_str)
       return SP_ERR_CGI_PARAMS; // 400 error.
     std::string url = url_str;
     if (url.empty())
       return SP_ERR_CGI_PARAMS; // 400 error.
-    try
-      {
-        bool has_lang;
-        websearch::preprocess_parameters(parameters,csp,has_lang); // preprocess the parameters, includes language and query.
-      }
-    catch(sp_exception &e)
-      {
-        return e.code();
-      }
 
-    miscutil::to_lower(query); // lower case query for filtering operations.
     sp_err err = cf::tbd(parameters,url,query);
     if (err != SP_ERR_OK && err == SP_ERR_CGI_PARAMS)
       {
