@@ -24,6 +24,10 @@ AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
 ACLOCAL_AMFLAGS=-I m4
 
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../xsl_serializer @XML2_CFLAGS@
+endif
+
 imgwebsearchpluginlib_LTLIBRARIES=libseeksimgwebsearchplugin.la
 libseeksimgwebsearchplugin_la_SOURCES=img_websearch.cpp se_handler_img.cpp img_query_context.cpp img_websearch_configuration.cpp \
                                       img_search_snippet.cpp se_parser_bing_img.cpp se_parser_ggle_img.cpp se_parser_flickr.cpp \
