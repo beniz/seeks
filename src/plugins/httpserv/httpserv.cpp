@@ -168,8 +168,8 @@ namespace seeks_plugins
                                   const std::string &error_message)
   {
     /* error output. */
-    errlog::log_error(LOG_LEVEL_ERROR,"httpserv error: code %d %s",
-                      http_code,error_message.c_str());
+    errlog::log_error(LOG_LEVEL_ERROR,"httpserv error: code %d",
+                      http_code);
 
     // body.
     struct evbuffer *buffer;
@@ -773,14 +773,23 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     if (referer)
       miscutil::enlist_unique_header(&csp._headers,"referer",referer);
 
+    // query must be URL-re-encoded before being passed to the
+    // API compatibility plugin. The HTTP server should remain invisible
+    // to the underlying layers.
+    const char *q = miscutil::lookup(parameters,"q");
+    if (!q)
+      {
+        miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+    char *q_enc = encode::url_encode(q);
+    miscutil::unmap(parameters,"q");
+    miscutil::add_map_entry(parameters,"q",1,q_enc,0);
+
     // call for capture callback.
-    //char *urlp = NULL;
-    //sp_err err = query_capture::qc_redir(&csp,&rsp,parameters,urlp);
     sp_err err = websearch_api_compat::cgi_qc_redir_compat(&csp,&rsp,parameters);
     miscutil::list_remove_all(&csp._headers);
-
-    const char *urlp = miscutil::lookup(parameters,"url");
-    char *urlp_dec = encode::url_decode(urlp);
 
     // error catching.
     if (err != SP_ERR_OK)
@@ -797,16 +806,29 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           code = 403;
         httpserv::reply_with_error(r,code,"ERROR",content);
         miscutil::free_map(parameters);
-        free(urlp_dec);
 
         /* run the sweeper, for timed out query contexts. */
         sweeper::sweep();
         return;
       }
-
-    httpserv::reply_with_redirect_302(r,urlp_dec);
     miscutil::free_map(parameters);
-    free(urlp_dec);
+
+    std::string ct = "text/html"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body); // XXX: beware of length.
+    httpserv::reply_with_body(r,200,"OK",content,ct);
 
     /* run the sweeper, for timed out elements. */
     sweeper::sweep();
@@ -846,11 +868,24 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
 
+    // query must be URL-re-encoded before being passed to the
+    // API compatibility plugin. The HTTP server should remain invisible
+    // to the underlying layers.
+    const char *q = miscutil::lookup(parameters,"q");
+    if (!q)
+      {
+        miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+    char *q_enc = encode::url_encode(q);
+    miscutil::unmap(parameters,"q");
+    miscutil::add_map_entry(parameters,"q",1,q_enc,0);
+
     // call for capture callback.
     const char *output = miscutil::lookup(parameters,"output");
     if (!output)
       output = "html";
-    //sp_err serr = cf::cgi_tbd(&csp,&rsp,parameters);
     sp_err serr = websearch_api_compat::cgi_tbd_compat(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
