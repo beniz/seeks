@@ -811,24 +811,20 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         sweeper::sweep();
         return;
       }
-    miscutil::free_map(parameters);
 
-    std::string ct = "text/html"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    const char *urlp = miscutil::lookup(parameters,"url");
+    if (!urlp)
       {
-        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
-          {
-            ct = std::string((*lit));
-            ct = ct.substr(14);
-            break;
-          }
-        ++lit;
+        miscutil::free_map(parameters);
+        cgi::cgi_error_unknown(&csp,&rsp,err);
+        std::string content;
+        if (rsp._body)
+          content = std::string(rsp._body); // XXX: beware of length.
+        httpserv::reply_with_error(r,500,"ERROR",content);
+        return;
       }
-    std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
-    httpserv::reply_with_body(r,200,"OK",content,ct);
+    httpserv::reply_with_redirect_302(r,urlp);
+    miscutil::free_map(parameters);
 
     /* run the sweeper, for timed out elements. */
     sweeper::sweep();
