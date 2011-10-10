@@ -82,6 +82,12 @@ namespace seeks_plugins
 					  http_response *rsp,
 					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
+    static sp_err render_xsl_peers(client_state *csp, 
+				   http_response *rsp,
+				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+				   std::list<std::string> *peers);
+
+
     static sp_err render_xsl_recommendations(const client_state *csp, 
 					     http_response *rsp,
 					     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
@@ -113,8 +119,8 @@ namespace seeks_plugins
 				   http_response *rsp,
 				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				   const std::set<std::string> &words);
-  /* private */
-  private:
+  /* private: */
+
     static sp_err response(http_response *rsp,
 			 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			 xmlDocPtr doc);

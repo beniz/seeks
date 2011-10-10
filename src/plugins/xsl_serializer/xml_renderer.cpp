@@ -453,7 +453,7 @@ namespace seeks_plugins
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "cached_queries");
+      =xmlNewNode(NULL,BAD_CAST "queries");
     xmlDocSetRootElement(doc, root);
     err=xml_renderer::render_cached_queries(query,nq,root);
     return err;
@@ -499,6 +499,23 @@ namespace seeks_plugins
       =xmlNewNode(NULL,BAD_CAST "options");
     xmlDocSetRootElement(doc, root);
     err = xml_renderer::render_node_options(csp,root);
+    return err;
+  }
+
+
+  sp_err xml_renderer::render_xml_peers(std::list<std::string> *peers,
+				 xmlDocPtr doc)
+  {
+    std::string peer;
+    sp_err err=SP_ERR_OK;
+    xmlNodePtr root
+      =xmlNewNode(NULL,BAD_CAST "peers");
+    xmlDocSetRootElement(doc,root);
+    std::list<std::string>::iterator lit = peers->begin();
+    while (lit!=peers->end()) {
+      xmlNewTextChild(root, NULL, BAD_CAST "peer", BAD_CAST (*lit).c_str());
+      ++lit;
+    }
     return err;
   }
 
@@ -610,16 +627,7 @@ using namespace seeks_plugins;
 namespace xml_renderer_private
 {
 
-  /* move to xsl_serializer */
-  /*
-    void xsl_response(http_response *rsp, const std::string& json_str)
-  {
-    rsp->_body = strdup(json_str.c_str());
-    rsp->_content_length = json_str.size();
-    miscutil::enlist(&rsp->_headers, "Content-Type: application/json");
-    rsp->_is_static = 1;
-  }
-  */
+
   sp_err collect_xml_results(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 			     const query_context *qc,
 			     const double &qtime,
@@ -671,4 +679,4 @@ namespace xml_renderer_private
     return SP_ERR_OK;
   }
 
-} /* end of namespace json_renderer_private */
+} /* end of namespace xml_renderer_private */

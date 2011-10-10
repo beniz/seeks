@@ -90,6 +90,9 @@ namespace seeks_plugins
     static sp_err render_xml_node_options(client_state *csp, 
 					  xmlDocPtr doc);
 
+    static sp_err render_xml_peers(std::list<std::string> *peers,
+				   xmlDocPtr doc);
+
     static sp_err render_xml_recommendations(const query_context *qc,
 							   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
 							   const double &qtime,

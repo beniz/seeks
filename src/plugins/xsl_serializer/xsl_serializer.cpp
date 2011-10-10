@@ -127,6 +127,20 @@ namespace seeks_plugins
     return res;
   }
 
+  sp_err xsl_serializer::render_xsl_peers(client_state *csp, 
+			  http_response *rsp,
+			  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			  std::list<std::string> *peers)
+  {
+    sp_err res=SP_ERR_OK;
+    xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
+    res=xml_renderer::render_xml_peers(peers, doc);
+    res = res || xsl_serializer::response(rsp,parameters,doc);
+    xmlFreeDoc(doc);
+    return res;
+  }
+
+
   sp_err xsl_serializer::render_xsl_recommendations(const client_state *csp, 
 						    http_response *rsp,
 						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
