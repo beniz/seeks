@@ -114,7 +114,7 @@ TEST(CRTest,find_dbr)
   query_context *qc = new query_context(parameters,headers);
   try
     {
-      qcelt->store_queries(qc,url,host,"query-capture");
+      qcelt->store_queries(qc->_lc_query,qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {

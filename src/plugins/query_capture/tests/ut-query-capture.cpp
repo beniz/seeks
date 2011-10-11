@@ -206,7 +206,7 @@ TEST_F(QCTest,store_queries_url)
   query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(&qc,url,host,"query-capture");
+      qcelt->store_queries(qc._lc_query,&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
@@ -244,7 +244,7 @@ TEST_F(QCTest,store_queries_url_merge)
   query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(&qc,url,host,"query-capture");
+      qcelt->store_queries(qc._lc_query,&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
@@ -257,7 +257,7 @@ TEST_F(QCTest,store_queries_url_merge)
   query_capture::process_url(url2,host,path);
   try
     {
-      qcelt->store_queries(&qc,url2,host,"query-capture");
+      qcelt->store_queries(qc._lc_query,&qc,url2,host,"query-capture");
     }
   catch (sp_exception &e)
     {
@@ -298,7 +298,7 @@ TEST_F(QCTest,remove_url)
   query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(&qc,url,host,"query-capture");
+      qcelt->store_queries(qc._lc_query,&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
