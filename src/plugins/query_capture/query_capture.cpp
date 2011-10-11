@@ -236,7 +236,7 @@ namespace seeks_plugins
 
     try
       {
-        query_capture::store_queries(qc,url,host);
+        query_capture::store_queries(q,qc,url,host);
       }
     catch (sp_exception &e)
       {
@@ -302,11 +302,12 @@ namespace seeks_plugins
     return seeks_proxy::_user_db->prune_db(_name);
   }
 
-  void query_capture::store_queries(const query_context *qc,
+  void query_capture::store_queries(const std::string &q,
+                                    const query_context *qc,
                                     const std::string &url, const std::string &host
                                    ) throw (sp_exception)
   {
-    query_capture_element::store_queries(qc,url,host,"query-capture");
+    query_capture_element::store_queries(q,qc,url,host,"query-capture");
   }
 
   void query_capture::store_queries(const std::string &query) const throw (sp_exception)
@@ -330,12 +331,15 @@ namespace seeks_plugins
   {
   }
 
-  void query_capture_element::store_queries(const query_context *qc,
+  void query_capture_element::store_queries(const std::string &q,
+      const query_context *qc,
       const std::string &url, const std::string &host,
       const std::string &plugin_name,
       const int &radius) throw (sp_exception)
   {
-    std::string query = qc->_lc_query;
+    std::string query = q;
+    if (qc)
+      query = qc->_lc_query;
 
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;

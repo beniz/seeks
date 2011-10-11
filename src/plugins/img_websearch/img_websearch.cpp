@@ -181,7 +181,7 @@ namespace seeks_plugins
             query_context *qc = dynamic_cast<img_query_context*>(vqc);
             uint32_t sid = (uint32_t)strtod(id_str.c_str(),NULL);
             mutex_lock(&qc->_qc_mutex);
-            search_snippet *sp = qc->get_cached_snippet(sid);
+            search_snippet *sp = vqc->get_cached_snippet(sid);
             mutex_unlock(&qc->_qc_mutex);
             if (!sp)
               {
