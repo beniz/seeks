@@ -69,6 +69,7 @@ namespace seeks_plugins
 
   udb_service::~udb_service()
   {
+    udb_service_configuration::_config = NULL;
   }
 
   db_err udb_service::cgi_find_dbr(client_state *csp,

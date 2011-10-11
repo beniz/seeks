@@ -104,6 +104,7 @@ namespace seeks_plugins
 
   img_websearch::~img_websearch()
   {
+    img_websearch::_iwconfig = NULL;
   }
 
   void img_websearch::start()
