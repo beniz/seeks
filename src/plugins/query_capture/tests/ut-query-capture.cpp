@@ -158,6 +158,7 @@ TEST_F(QCTest,store_url_sp)
   ASSERT_EQ(title,vd->_title);
   ASSERT_EQ(summary,vd->_summary);
   ASSERT_EQ("en",vd->_url_lang);
+  delete dbqr;
 }
 
 TEST_F(QCTest,store_queries)
@@ -329,43 +330,52 @@ TEST_F(QCTest,remove_url)
 
 TEST(DBRTest,serialize_deserialize)
 {
-  db_query_record dbr("query-capture",queries[0],0,
-                      uris[1],1,1,"Seeks Project Documentation",
-                      "Seeks project documentation",0);
+  db_query_record *dbr = new db_query_record("query-capture",queries[0],0,
+      uris[1],1,1,"Seeks Project Documentation",
+      "Seeks project documentation",0);
   std::string msg;
-  int err = dbr.serialize(msg);
+  int err = dbr->serialize(msg);
   ASSERT_EQ(0,err);
+  delete dbr;
   std::cerr << "msg length: " << msg.length() << std::endl;
-  err = dbr.deserialize(msg);
+  dbr = new db_query_record("query-capture","project",0);
+  err = dbr->deserialize(msg);
   ASSERT_EQ(0,err);
+  delete dbr;
 }
 
 TEST(DBRTest,serialize_deserialize_compressed)
 {
-  db_query_record dbr("query-capture",queries[0],0,
-                      uris[1],1,1,"Seeks Project Documentation",
-                      "Seeks project documentation",0);
+  db_query_record *dbr = new db_query_record("query-capture",queries[0],0,
+      uris[1],1,1,"Seeks Project Documentation",
+      "Seeks project documentation",0);
   std::string msg;
-  int err = dbr.serialize_compressed(msg);
+  int err = dbr->serialize_compressed(msg);
   ASSERT_EQ(0,err);
+  delete dbr;
   ASSERT_FALSE(msg.empty());
   std::cerr << "msg length: " << msg.length() << std::endl;
-  err = dbr.deserialize_compressed(msg);
+  dbr = new db_query_record("query-capture","project",0);
+  err = dbr->deserialize_compressed(msg);
   ASSERT_EQ(0,err);
+  delete dbr;
 }
 
 TEST(DBRTest,serialize_deserialize_compressed_mix)
 {
-  db_query_record dbr("query-capture",queries[0],0,
-                      uris[1],1,1,"Seeks Project Documentation",
-                      "Seeks project documentation",0);
+  db_query_record *dbr = new db_query_record("query-capture",queries[0],0,
+      uris[1],1,1,"Seeks Project Documentation",
+      "Seeks project documentation",0);
   std::string msg;
-  int err = dbr.serialize(msg);
+  int err = dbr->serialize(msg);
   ASSERT_EQ(0,err);
+  delete dbr;
   ASSERT_FALSE(msg.empty());
   std::cerr << "msg length: " << msg.length() << std::endl;
-  err = dbr.deserialize_compressed(msg); // fails on deserializing compressed msg, falls back on non compressed deserilization.
+  dbr = new db_query_record("query-capture","project",0);
+  err = dbr->deserialize_compressed(msg); // fails on deserializing compressed msg, falls back on non compressed deserilization.
   ASSERT_EQ(0,err);
+  delete dbr;
 }
 
 int main(int argc, char **argv)
