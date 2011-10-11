@@ -74,8 +74,7 @@ namespace seeks_plugins
               {
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
                     || pc->_current_snippet->_url.empty()
-                    || pc->_current_snippet->_summary.empty()
-                    || pc->_current_snippet->_cite.empty())
+                    || pc->_current_snippet->_summary.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
@@ -186,7 +185,7 @@ namespace seeks_plugins
     else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
       {
         _cite_flag = false;
-        pc->_current_snippet->set_cite(_cite);
+        //pc->_current_snippet->set_cite(_cite);
         _cite = "";
         _cached_flag = true; // getting ready for the Cached link, if any.
       }
