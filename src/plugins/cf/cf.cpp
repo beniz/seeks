@@ -462,7 +462,7 @@ namespace seeks_plugins
     int err = SP_ERR_OK;
     try
       {
-        query_capture_element::store_queries(qc,url,host,"query-capture",radius);
+        query_capture_element::store_queries(query,qc,url,host,"query-capture",radius);
       }
     catch (sp_exception &e)
       {
