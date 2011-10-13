@@ -227,6 +227,15 @@ namespace seeks_plugins
     miscutil::replace_in_string(_title,"\r"," ");
   }
 
+  void search_snippet::set_title_no_html_decode(const std::string &title)
+  {
+    _title = title;
+    miscutil::replace_in_string(_title,"\\","");
+    miscutil::replace_in_string(_title,"\t"," ");
+    miscutil::replace_in_string(_title,"\n"," ");
+    miscutil::replace_in_string(_title,"\r"," ");
+  }
+
   void search_snippet::set_url(const std::string &url)
   {
     char *url_str = encode::url_decode_but_not_plus(url.c_str());
