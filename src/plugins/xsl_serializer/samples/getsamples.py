@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
 # test script for Seeks API 0.4
 # Stéphane Bonhomme <stephane.bonhomme@seeks-project.info>
 
@@ -9,10 +9,11 @@ import json
 import urllib2
 
 
-#SERVER="http://localhost:8080"
-SERVER="http://s.s"
-#PROXY={}
-PROXY={'http':'http://127.0.0.1:8250'}
+SERVER="http://localhost:8080"
+
+#SERVER="http://s.s"
+PROXY={}
+#PROXY={'http':'http://127.0.0.1:8250'}
 FMT="json"
 QUERIES=["search engines"]
 
