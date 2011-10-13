@@ -356,7 +356,16 @@ namespace seeks_plugins
         if (lang_str) // the opposite should never happen.
           lang = lang_str;
       }
-    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+    sp_err err = SP_ERR_OK;
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    const char *output_str = miscutil::lookup(parameters,"output");
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+      err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_recommendations(csp,rsp,parameters,qc,qtime,radius,lang);
+    else
+#endif
+      err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+
+
     qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
