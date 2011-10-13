@@ -25,7 +25,9 @@
 #include "xml_renderer_private.h"
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch.h"
 #include "img_query_context.h"
+#include "img_search_snippet.h"
 #endif
 #include "proxy_configuration.h"
 #include "seeks_proxy.h" // for sweepables.
@@ -292,7 +294,7 @@ namespace seeks_plugins
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     const img_query_context *iqc = static_cast<const img_query_context*>(qc);
     feeds engines = iqc->_img_engines;
-    err=xml_renderer::render_engines(engines, parent);
+    err=xml_renderer::render_engines(engines, false, parent);
 #endif
     return err;
   }
@@ -328,7 +330,7 @@ namespace seeks_plugins
       err=xml_renderer::render_engines(sp->_engine,true,parent);
     else
 #endif    
-      err=xml_renderer::render_engines(sp->_engine,parent);
+      err=xml_renderer::render_engines(sp->_engine,false, parent);
 
     if (thumbs)
       xmlSetProp(parent,BAD_CAST "thumb",BAD_CAST sprintf(NULL,"http://open.thumbshots.org/image.pxf?url=%s",sp->_url.c_str()));
@@ -500,7 +502,7 @@ namespace seeks_plugins
     xmlNodePtr root
       =xmlNewNode(NULL,BAD_CAST "engines");
     xmlDocSetRootElement(doc, root);
-    err=xml_renderer::render_engines(engines,root);
+    err=xml_renderer::render_engines(engines,false,root);
     return err;
   }
 
@@ -678,7 +680,7 @@ namespace xml_renderer_private
 	if (img) 
 	  xml_renderer::render_img_engines(qc, context);
 	else
-	  xml_renderer::render_engines(qc->_engines, context);
+	  xml_renderer::render_engines(qc->_engines, false, context);
       }
 
     // render date & exec time.

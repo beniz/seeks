@@ -25,7 +25,7 @@ endif
 ACLOCAL_AMFLAGS=-I m4
 
 if HAVE_XSLSERIALIZER_PLUGIN
-AM_CPPFLAGS += -I${srcdir}/../xsl_serializer @XML2_CFLAGS@
+AM_CPPFLAGS += -I${srcdir}/../xsl_serializer
 endif
 
 imgwebsearchpluginlib_LTLIBRARIES=libseeksimgwebsearchplugin.la

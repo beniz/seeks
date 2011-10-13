@@ -32,7 +32,7 @@ namespace seeks_plugins
   {
   public:
     static sp_err render_engines(const feeds &engines, 
-				 const bool &img=false,
+				 const bool &img,
 				 xmlNodePtr parent);
 
     static sp_err render_node_options(client_state *csp,

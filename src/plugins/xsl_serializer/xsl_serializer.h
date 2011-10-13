@@ -108,7 +108,7 @@ namespace seeks_plugins
 				     http_response *rsp,
 				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 				     query_context *qc,
-				     const search_snippet *sp);
+				     search_snippet *sp);
 
     static sp_err render_xsl_suggested_queries(client_state *csp, 
 					       http_response *rsp,

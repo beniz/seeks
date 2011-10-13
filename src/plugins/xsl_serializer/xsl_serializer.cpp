@@ -177,7 +177,7 @@ namespace seeks_plugins
 					    http_response *rsp,
 					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
 					    query_context *qc,
-					    const search_snippet *sp)
+					    search_snippet *sp)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
