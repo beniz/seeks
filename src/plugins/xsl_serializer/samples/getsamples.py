@@ -14,7 +14,7 @@ SERVER="http://localhost:8080"
 #SERVER="http://s.s"
 PROXY={}
 #PROXY={'http':'http://127.0.0.1:8250'}
-FMT="json"
+FMT="xml"
 QUERIES=["search engines"]
 
 # get api wiki page, for prototypes 
