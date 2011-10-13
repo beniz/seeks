@@ -32,6 +32,7 @@ namespace seeks_plugins
   {
   public:
     static sp_err render_engines(const feeds &engines, 
+				 const bool &img=false,
 				 xmlNodePtr parent);
 
     static sp_err render_node_options(client_state *csp,
@@ -55,7 +56,7 @@ namespace seeks_plugins
     static sp_err render_img_engines(const query_context *qc,
 				     xmlNodePtr parent);
 
-    static sp_err render_snippet(const search_snippet *sp,
+    static sp_err render_snippet(search_snippet *sp,
 				 const bool &thumbs,
 				 const std::vector<std::string> &query_words,
 				 xmlNodePtr parent);
@@ -108,8 +109,8 @@ namespace seeks_plugins
 				     xmlDocPtr doc);
 
     static sp_err render_xml_snippet(query_context *qc,
-						   const search_snippet *sp,
-						   xmlDocPtr doc);
+				     search_snippet *sp,
+				     xmlDocPtr doc);
 
     static sp_err render_xml_suggested_queries(const query_context *qc,
 					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,

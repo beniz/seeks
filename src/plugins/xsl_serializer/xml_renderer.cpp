@@ -43,6 +43,7 @@ using namespace xml_renderer_private;
 namespace seeks_plugins
 {
   sp_err xml_renderer::render_engines(const feeds &engines, 
+				      const bool &img,
 				      xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
@@ -55,13 +56,28 @@ namespace seeks_plugins
         std::set<std::string>::const_iterator sit = (*it)._urls.begin();
         while(sit!=(*it)._urls.end())
           {
-            if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
-                != websearch::_wconfig->_se_options.end())
+	    if (!img)
 	      {
-		eng=xmlNewNode(NULL,BAD_CAST "engine");
-		xmlAddChild(parent,eng);
-		xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
+		if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
+		    != websearch::_wconfig->_se_options.end())
+		  {
+		    eng=xmlNewNode(NULL,BAD_CAST "engine");
+		    xmlAddChild(parent,eng);
+		    xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
+		  }
 	      }
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            else
+              {
+		if ((hit = img_websearch::_iwconfig->_se_options.find((*sit).c_str()))
+                    != img_websearch::_iwconfig->_se_options.end())
+		  {
+		    eng=xmlNewNode(NULL,BAD_CAST "engine");
+		    xmlAddChild(parent,eng);
+		    xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
+		  }
+	      }
+#endif
 	    ++sit;
           }
         ++it;
@@ -186,9 +202,6 @@ namespace seeks_plugins
 						   xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
-    std::vector<std::string> query_words;
-    miscutil::tokenize(qc->_query,query_words," "); // allows to extract most discriminative words not in query.
-
     std::list<std::string> results;
 
     // query.
@@ -225,7 +238,7 @@ namespace seeks_plugins
           continue;
 	snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
 
-        err = xml_renderer::render_snippet(sp,false,query_words,snippet_node);
+        err = xml_renderer::render_snippet(sp,false,qc->_query_words,snippet_node);
         count++;
 
         if (nreco > 0 && count == nreco)
@@ -285,7 +298,7 @@ namespace seeks_plugins
   }
 
 
-  sp_err xml_renderer::render_snippet(const search_snippet *sp,
+  sp_err xml_renderer::render_snippet(search_snippet *sp,
 				      const bool &thumbs,
 				      const std::vector<std::string> &query_words,
 				      xmlNodePtr parent)
@@ -306,11 +319,16 @@ namespace seeks_plugins
       {
 	xmlSetProp(parent,BAD_CAST "cached",BAD_CAST (sp->_cached).c_str());
       }
-    /*if (_archive.empty())
-      set_archive_link();
-      xmlSetProp(parent,"archive",archive);*/
-    
-    err=xml_renderer::render_engines(sp->_engine,parent);
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    img_search_snippet *isp = NULL;
+    if (sp->_doc_type == IMAGE)
+      isp = dynamic_cast<img_search_snippet*>(sp);
+    if (isp)
+      err=xml_renderer::render_engines(sp->_engine,true,parent);
+    else
+#endif    
+      err=xml_renderer::render_engines(sp->_engine,parent);
 
     if (thumbs)
       xmlSetProp(parent,BAD_CAST "thumb",BAD_CAST sprintf(NULL,"http://open.thumbshots.org/image.pxf?url=%s",sp->_url.c_str()));
@@ -357,10 +375,6 @@ namespace seeks_plugins
         if (snippets.at(0)->_seeks_ir > 0)
           similarity = true;
 
-        // grab query words.
-        std::vector<std::string> query_words;
-        miscutil::tokenize(query_clean,query_words," "); // allows to extract most discriminative words not in query.
-
         // checks for safe snippets (for now, only used for images).
         const char* safesearch_p = miscutil::lookup(parameters,"safesearch");
         bool safesearch_off = false;
@@ -394,7 +408,7 @@ namespace seeks_plugins
                   {
 		    snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
 		    xmlAddChild(parent, snippet_node);
-                    err = xml_renderer::render_snippet(snippets.at(i),has_thumbs,query_words, snippet_node);
+                    err = xml_renderer::render_snippet(snippets.at(i),has_thumbs,snippets.at(i)->_qc->_query_words, snippet_node);
                   }
                 count++;
               }
@@ -570,7 +584,7 @@ namespace seeks_plugins
   }
 
   sp_err xml_renderer::render_xml_snippet(query_context *qc,
-					  const search_snippet *sp,
+					  search_snippet *sp,
 					  xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
@@ -578,10 +592,7 @@ namespace seeks_plugins
       =xmlNewNode(NULL,BAD_CAST "snippet");
     xmlDocSetRootElement(doc, root);
     std::string query = qc->_query;
-    // grab query words.
-    std::vector<std::string> query_words;
-    miscutil::tokenize(query,query_words," "); // allows to extract most discriminative words not in query.
-    err = xml_renderer::render_snippet(sp,false,query_words,root);
+    err = xml_renderer::render_snippet(sp,false,qc->_query_words,root);
     return err;
   }
 
