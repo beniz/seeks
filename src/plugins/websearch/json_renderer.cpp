@@ -23,7 +23,9 @@
 #include "cgi.h"
 #include "json_renderer_private.h"
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch.h"
 #include "img_query_context.h"
+#include "img_search_snippet.h"
 #endif
 #include "proxy_configuration.h"
 #include "seeks_proxy.h" // for sweepables.
@@ -39,7 +41,8 @@ using namespace json_renderer_private;
 
 namespace seeks_plugins
 {
-  std::string json_renderer::render_engines(const feeds &engines)
+  std::string json_renderer::render_engines(const feeds &engines,
+      const bool &img)
   {
     hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
     std::list<std::string> engs;
@@ -50,9 +53,20 @@ namespace seeks_plugins
         std::set<std::string>::const_iterator sit = (*it)._urls.begin();
         while(sit!=(*it)._urls.end())
           {
-            if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
-                != websearch::_wconfig->_se_options.end())
-              engs.push_back("\"" + (*hit).second._id + "\"");
+            if (!img)
+              {
+                if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
+                    != websearch::_wconfig->_se_options.end())
+                  engs.push_back("\"" + (*hit).second._id + "\"");
+              }
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            else
+              {
+                if ((hit = img_websearch::_iwconfig->_se_options.find((*sit).c_str()))
+                    != img_websearch::_iwconfig->_se_options.end())
+                  engs.push_back("\"" + (*hit).second._id + "\"");
+              }
+#endif
             ++sit;
           }
         ++it;
@@ -293,7 +307,7 @@ namespace seeks_plugins
     return json_str_eng;
   }
 
-  std::string json_renderer::render_snippet(const search_snippet *sp,
+  std::string json_renderer::render_snippet(search_snippet *sp,
       const bool &thumbs,
       const std::vector<std::string> &query_words)
   {
@@ -334,7 +348,15 @@ namespace seeks_plugins
         json_str += "\"cached\":\"" + cached + "\","; // XXX: cached might be malformed without preprocessing.
       }
     json_str += "\"engines\":[";
-    json_str += json_renderer::render_engines(sp->_engine);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    img_search_snippet *isp = NULL;
+    if (sp->_doc_type == IMAGE)
+      isp = dynamic_cast<img_search_snippet*>(sp);
+    if (isp)
+      json_str += json_renderer::render_engines(isp->_img_engine,true);
+    else
+#endif
+      json_str += json_renderer::render_engines(sp->_engine);
     json_str += "]";
     if (thumbs)
       json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
@@ -510,7 +532,7 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  sp_err json_renderer::render_json_snippet(const search_snippet *sp,
+  sp_err json_renderer::render_json_snippet(search_snippet *sp,
       http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
       query_context *qc)

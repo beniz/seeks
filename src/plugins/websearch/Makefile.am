@@ -21,6 +21,10 @@ AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
 endif
 endif
 
+if HAVE_OPENCV2
+AM_CPPFLAGS += `pkg-config opencv --cflags`
+endif
+
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
 libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
