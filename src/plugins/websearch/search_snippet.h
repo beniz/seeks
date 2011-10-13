@@ -148,6 +148,7 @@ namespace seeks_plugins
       virtual ~search_snippet();
 
       void set_title(const std::string &title);
+      void set_title_no_html_decode(const std::string &title);
 
       void set_url(const std::string &url);
       void set_url_no_decode(const std::string &url);

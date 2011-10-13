@@ -27,7 +27,8 @@ namespace seeks_plugins
   class json_renderer
   {
     public:
-      static std::string render_engines(const feeds &engines);
+      static std::string render_engines(const feeds &engines,
+                                        const bool &img=false);
 
       static sp_err render_node_options(client_state *csp,
                                         std::list<std::string> &opts);
@@ -57,7 +58,7 @@ namespace seeks_plugins
 
       static std::string render_img_engines(const query_context *qc);
 
-      static std::string render_snippet(const search_snippet *sp,
+      static std::string render_snippet(search_snippet *sp,
                                         const bool &thumbs,
                                         const std::vector<std::string> &query_words);
 
@@ -84,7 +85,7 @@ namespace seeks_plugins
                                         const double &qtime,
                                         const bool &img=false);
 
-      static sp_err render_json_snippet(const search_snippet *sp,
+      static sp_err render_json_snippet(search_snippet *sp,
                                         http_response *rsp,
                                         const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                         query_context *qc);

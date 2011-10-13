@@ -1403,11 +1403,9 @@ namespace seeks_plugins
 
     mutex_lock(&qc->_qc_mutex);
     std::set<std::string> words;
-    std::vector<std::string> query_words;
-    miscutil::tokenize(qc->_query,query_words," ");
     for (size_t i=0; i<qc->_cached_snippets.size(); i++)
       {
-        qc->_cached_snippets.at(i)->discr_words(query_words,words);
+        qc->_cached_snippets.at(i)->discr_words(qc->_query_words,words);
       }
     const char *output = miscutil::lookup(parameters,"output");
     sp_err err = SP_ERR_OK;
@@ -1460,9 +1458,7 @@ namespace seeks_plugins
 
     // get most discriminant words.
     std::set<std::string> words;
-    std::vector<std::string> query_words;
-    miscutil::tokenize(qc->_query,query_words," ");
-    sp->discr_words(query_words,words);
+    sp->discr_words(qc->_query_words,words);
 
     // render result page.
     const char *output = miscutil::lookup(parameters,"output");

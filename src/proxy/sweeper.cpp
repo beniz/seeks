@@ -167,8 +167,8 @@ namespace sp
     while (vit!=seeks_proxy::_memory_dust.end())
       {
         sweepable *spable = (*vit);
-        delete spable;
         vit = seeks_proxy::_memory_dust.erase(vit);
+        delete spable;
       }
     errlog::log_error(LOG_LEVEL_INFO, "sweep_all: destroyed %u elements",nm);
     return nm;
