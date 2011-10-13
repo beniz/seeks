@@ -103,6 +103,9 @@ namespace seeks_plugins
     _query_key = query_context::assemble_query(_lc_query,_auto_lang);
     _query_hash = query_context::hash_query_for_context(_query_key);
 
+    // tokenize query.
+    miscutil::tokenize(_query,_query_words," ");
+
     // encoded query.
     char *url_enc_query_str = encode::url_encode(_query.c_str());
     _url_enc_query = url_enc_query_str;

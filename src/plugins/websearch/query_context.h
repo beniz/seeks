@@ -250,6 +250,7 @@ namespace seeks_plugins
       std::string _url_enc_query;
       std::string _lc_query; /**< lower case query, for storage and similarity operations. */
       uint32_t _query_hash; /**< hashed query_key. */
+      std::vector<std::string> _query_words; /* tokenized query words. */
 
       /* expansion. */
       uint32_t _page_expansion; /**< expansion as fetched pages from the search engines. */

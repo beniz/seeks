@@ -637,9 +637,6 @@ namespace seeks_plugins
     if (base_url)
       base_url_str = std::string(base_url);
 
-    std::vector<std::string> words;
-    miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
-
     cgi::map_block_killer(exports,"have-clustered-results-head");
     cgi::map_block_killer(exports,"have-clustered-results-body");
 
@@ -684,7 +681,8 @@ namespace seeks_plugins
             if (!similarity || snippets.at(i)->_seeks_ir > 0)
               {
                 if (count >= snistart)
-                  snippets_str += static_renderer::render_snippet(snippets.at(i),words,base_url_str,
+                  snippets_str += static_renderer::render_snippet(snippets.at(i),
+                                  snippets.at(i)->_qc->_query_words,base_url_str,
                                   parameters);
                 count++;
               }
@@ -749,9 +747,6 @@ namespace seeks_plugins
     std::string base_url_str = "";
     if (base_url)
       base_url_str = std::string(base_url);
-
-    std::vector<std::string> words;
-    miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 
     // lookup activated engines.
     feeds se_enabled;
@@ -847,7 +842,9 @@ namespace seeks_plugins
                                  clusters[c],exports);
             size_t nsps = snippets.size();
             for (size_t i=0; i<nsps; i++)
-              cluster_str += static_renderer::render_snippet(snippets.at(i),words,base_url,parameters);
+              cluster_str += static_renderer::render_snippet(snippets.at(i),
+                             snippets.at(i)->_qc->_query_words,
+                             base_url,parameters);
             cluster_str += "</ol><div class=\"clear\"></div>";
 
             std::string cl = rplcnt;

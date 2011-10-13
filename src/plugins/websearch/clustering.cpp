@@ -99,9 +99,7 @@ namespace seeks_plugins
     f_totals.clear();
 
     // we need query words and a stopword list for rejecting labels.
-    std::vector<std::string> words;
-    miscutil::tokenize(qc->_query,words," ");
-    size_t nwords = words.size();
+    size_t nwords = qc->_query_words.size();
     stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(qc->_auto_lang);
 
     // turn features into word labels.
@@ -131,7 +129,7 @@ namespace seeks_plugins
                     bool reject = false;
                     for (size_t i=0; i<nwords; i++)
                       {
-                        if (words.at(i) == (*bit).second) // check against query word.
+                        if (qc->_query_words.at(i) == (*bit).second) // check against query word.
                           {
                             reject = true;
                             break;
