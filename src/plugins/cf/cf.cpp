@@ -256,7 +256,15 @@ namespace seeks_plugins
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
     cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
-    sp_err err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+    sp_err err=SP_ERR_OK;
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    const char *output_str = miscutil::lookup(parameters,"output");
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+      err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_suggested_queries(csp,rsp,parameters,qc);
+    else
+#endif
+      err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+
     qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
