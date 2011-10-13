@@ -75,7 +75,8 @@ namespace seeks_plugins
 
       int remove_all_query_records();
 
-      static void store_queries(const query_context *qc,
+      static void store_queries(const std::string &query,
+                                const query_context *qc,
                                 const std::string &url, const std::string &host
                                ) throw (sp_exception);
 
@@ -98,7 +99,8 @@ namespace seeks_plugins
 
       ~query_capture_element();
 
-      static void store_queries(const query_context *qc,
+      static void store_queries(const std::string &query,
+                                const query_context *qc,
                                 const std::string &url, const std::string &host,
                                 const std::string &plugin_name,
                                 const int &radius=-1) throw (sp_exception);

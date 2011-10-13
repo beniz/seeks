@@ -140,6 +140,7 @@ namespace seeks_plugins
     evhttp_set_cb(_srv,"/info",&httpserv::node_info,NULL);
 #if defined(PROTOBUF) && defined(TC)
     evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL); // compatibility API.
+    evhttp_set_cb(_srv,"/qc_redir_img",&httpserv::qc_redir,NULL); // compatibility API.
     evhttp_set_cb(_srv,"/tbd",&httpserv::tbd,NULL); // compatibility API.
     evhttp_set_cb(_srv,"/find_dbr",&httpserv::find_dbr,NULL);
     evhttp_set_cb(_srv,"/find_bqc",&httpserv::find_bqc,NULL);
@@ -754,9 +755,12 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
     /* parse query. */
     const char *uri_str = r->uri;
+    bool img = false;
     if (uri_str)
       {
         std::string uri = std::string(r->uri);
+        if (uri.find("qc_redir_img?")!=std::string::npos)
+          img = true;
         parameters = httpserv::parse_query(uri);
       }
     if (!parameters || !uri_str)
@@ -788,7 +792,12 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     miscutil::add_map_entry(parameters,"q",1,q_enc,0);
 
     // call for capture callback.
-    sp_err err = websearch_api_compat::cgi_qc_redir_compat(&csp,&rsp,parameters);
+    sp_err err = SP_ERR_OK;
+    if (!img)
+      err = websearch_api_compat::cgi_qc_redir_compat(&csp,&rsp,parameters);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    else err = websearch_api_compat::cgi_img_qc_redir_compat(&csp,&rsp,parameters);
+#endif
     miscutil::list_remove_all(&csp._headers);
 
     // error catching.

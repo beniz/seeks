@@ -60,6 +60,10 @@ namespace seeks_plugins
     cgi_dispatcher *cgid_iwb_search
     = new cgi_dispatcher("search_img",&websearch_api_compat::cgi_img_search_compat, NULL, TRUE);
     _cgi_dispatchers.push_back(cgid_iwb_search);
+
+    cgi_dispatcher *cgid_iwb_qc_redir
+    = new cgi_dispatcher("qc_redir_img",&websearch_api_compat::cgi_img_qc_redir_compat, NULL, TRUE);
+    _cgi_dispatchers.push_back(cgid_iwb_qc_redir);
 #endif
   }
 
@@ -278,6 +282,45 @@ namespace seeks_plugins
           }
 #endif
         else return SP_ERR_CGI_PARAMS;
+      }
+    else return SP_ERR_CGI_PARAMS;
+  }
+
+  sp_err websearch_api_compat::cgi_img_qc_redir_compat(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    if (!parameters->empty())
+      {
+        // check for query.
+        const char *query_str = miscutil::lookup(parameters,"q");
+        if (!query_str || strlen(query_str) == 0)
+          return SP_ERR_CGI_PARAMS;
+        std::string query = query_str;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
+
+        // redirection.
+        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>\
+                                (parameters),"redirect",1,"1",1);
+
+        // check for url.
+        const char *url_str = miscutil::lookup(parameters,"url");
+        if (!url_str)
+          return SP_ERR_CGI_PARAMS;
+        std::string url = url_str;
+        std::transform(url.begin(),url.end(),url.begin(),tolower);
+        std::string surl = urlmatch::strip_url(url);
+        uint32_t id = mrf::mrf_single_feature(surl);
+        std::string sid = miscutil::to_string(id);
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
+
+        // route to POST /search/txt
+        free(csp->_http._path);
+        std::string path = "/search/img/" + query + "/" + sid;
+        csp->_http._path = strdup(path.c_str());
+        free(csp->_http._gpc);
+        csp->_http._gpc = strdup("post");
+        return img_websearch::cgi_img_websearch_search(csp,rsp,parameters);
       }
     else return SP_ERR_CGI_PARAMS;
   }

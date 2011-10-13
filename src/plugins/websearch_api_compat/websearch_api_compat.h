@@ -55,6 +55,10 @@ namespace seeks_plugins
       static sp_err cgi_img_search_compat(client_state *csp,
                                           http_response *rsp,
                                           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err cgi_img_qc_redir_compat(client_state *csp,
+                                            http_response *rsp,
+                                            const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 #endif
   };
 

@@ -112,7 +112,7 @@ namespace seeks_plugins
                 url_str = std::string(url_dec_str);
                 free_const(url_dec_str);
                 pc->_current_snippet->set_url(url_str);
-                pc->_current_snippet->set_cite(url_str);
+                //pc->_current_snippet->set_cite(url_str);
               }
             else if (_begin_results && pc->_current_snippet)
               pc->_current_snippet->_cached = std::string(a_link);

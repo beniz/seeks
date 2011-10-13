@@ -123,7 +123,7 @@ class SRETest : public testing::Test
       qc.add_to_unordered_cache(sp);
       try
         {
-          qcelt->store_queries(&qc,url,host,"query-capture");
+          qcelt->store_queries(qc._lc_query,&qc,url,host,"query-capture");
         }
       catch (sp_exception &e)
         {
@@ -142,7 +142,7 @@ class SRETest : public testing::Test
       qc2.add_to_unordered_cache(sp);
       try
         {
-          qcelt->store_queries(&qc2,url2,host,"query-capture");
+          qcelt->store_queries(qc2._lc_query,&qc2,url2,host,"query-capture");
         }
       catch (sp_exception &e)
         {
@@ -155,7 +155,7 @@ class SRETest : public testing::Test
     virtual void TearDown()
     {
       plugin_manager::close_all_plugins();
-      delete cf_configuration::_config;
+      //delete cf_configuration::_config;
       delete seeks_proxy::_user_db;
       delete seeks_proxy::_lsh_config;
       delete seeks_proxy::_config;
@@ -419,7 +419,7 @@ TEST_F(SRETest, utf8)
   query_context qc(parameters,headers);
   try
     {
-      qcelt->store_queries(&qc,url,host,"query-capture");
+      qcelt->store_queries(qc._lc_query,&qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {

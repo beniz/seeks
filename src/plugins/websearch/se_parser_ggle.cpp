@@ -321,8 +321,8 @@ namespace seeks_plugins
     else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
       {
         _cite_flag = false;
-        if (pc->_current_snippet->_cite.empty())
-          pc->_current_snippet->set_cite_no_decode(_cite);
+        //if (pc->_current_snippet->_cite.empty())
+        //pc->_current_snippet->set_cite_no_decode(_cite);
         _cite = "";
         _new_link_flag = false;
       }

@@ -104,7 +104,10 @@ namespace seeks_plugins
     if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
         && query_capture_configuration::_config)
       {
-        url = base_url_str + "/qc_redir?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc
+        std::string redir = "/qc_redir";
+        if (sp->_doc_type == IMAGE)
+          redir += "_img";
+        url = base_url_str + redir + "?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc
               + "&amp;lang=" + sp->_qc->_auto_lang;
       }
 #endif

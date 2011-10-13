@@ -103,7 +103,7 @@ class UDBSTest : public testing::Test
       query_context qc(parameters,headers);
       try
         {
-          qcelt->store_queries(&qc,url,host,"query-capture");
+          qcelt->store_queries(qc._lc_query,&qc,url,host,"query-capture");
         }
       catch (sp_exception &e)
         {
