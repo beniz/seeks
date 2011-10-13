@@ -300,9 +300,7 @@ namespace seeks_plugins
     std::string json_str;
     json_str += "{";
     json_str += "\"id\":" + miscutil::to_string(sp->_id) + ",";
-    char *title_enc = encode::html_encode(sp->_title.c_str());
-    std::string title = std::string(title_enc);
-    free(title_enc);
+    std::string title = sp->_title;
     miscutil::replace_in_string(title,"\\","\\\\");
     miscutil::replace_in_string(title,"\"","\\\"");
     json_str += "\"title\":\"" + title + "\",";
