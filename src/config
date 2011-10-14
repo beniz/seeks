@@ -309,6 +309,7 @@ activated-plugin query-capture
 activated-plugin cf
 activated-plugin udb-service
 #activated-plugin httpserv
+#activated-plugin xsl-serializer
 #
 #
 # 2.7. datadir
