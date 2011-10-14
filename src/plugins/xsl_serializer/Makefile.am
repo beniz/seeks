@@ -39,5 +39,4 @@ SUBDIRS=.
 xslserializerconfigdir=$(sysconfdir)/seeks
 dist_xslserializerconfig_DATA=xslserializer-config
 
-nobase_dist_xslserializerplugindata_DATA= \
-			  stylesheets/opensearch-result.xsl
+nobase_dist_xslserializerplugindata_DATA=
