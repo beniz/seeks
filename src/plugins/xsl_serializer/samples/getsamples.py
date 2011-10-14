@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # test script for Seeks API 0.4
-# Stéphane Bonhomme <stephane.bonhomme@seeks-project.info>
+# Stéphane Bonhomme <stephane.bonhomme@seeks.pro>
 
 import os
 from lxml import etree as ET
