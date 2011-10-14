@@ -40,7 +40,7 @@ namespace seeks_plugins
 #define hash_ct_transfer_timeout    3371661146ul /* "ct-transfer-timeout" */
 #define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
 #define hash_clustering             2382120344ul /* "enable-clustering" */
-#define hash_max_expansions         3838821776ul /* "max-expansions" */
+#define hash_max_expansions         504882570ul /* "max-expansions" */
 #define hash_extended_highlight     2722091897ul /* "extended-highlight" */
 #define hash_background_proxy        682905808ul /* "background-proxy" */
 #define hash_show_node_ip           4288369354ul /* "show-node-ip" */
@@ -49,6 +49,7 @@ namespace seeks_plugins
 #define hash_dyn_ui                 3475528514ul /* "dynamic-ui" */
 #define hash_ui_theme                860616402ul /* "ui-theme" */
 #define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
+#define hash_num_recent_queries     2898954524ul /* num-recent-queries */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
     :configuration_spec(filename),_default_engines(false)
@@ -84,20 +85,27 @@ namespace seeks_plugins
     _dyn_ui = false; // default is static user interface.
     _ui_theme = "compact";
     _num_reco_queries = 20;
+    _num_recent_queries = 20;
   }
 
   void websearch_configuration::set_default_engines()
   {
     std::string url = "http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding";
-    _se_enabled.add_feed("google",url);
+    feed_parser fed("google",url);
+    _se_enabled.add_feed(fed);
+    _se_default.add_feed(fed);
     feed_url_options fuo(url,"google",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://www.bing.com/search?q=%query&first=%start&mkt=%lang";
-    _se_enabled.add_feed("bing",url);
+    fed = feed_parser("bing",url);
+    _se_enabled.add_feed(fed);
+    _se_default.add_feed(fed);
     fuo = feed_url_options(url,"bing",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     url = "http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=";
-    _se_enabled.add_feed("yahoo",url);
+    fed = feed_parser("yahoo",url);
+    _se_enabled.add_feed(fed);
+    _se_default.add_feed(fed);
     fuo = feed_url_options(url,"yahoo",true);
     _se_options.insert(std::pair<const char*,feed_url_options>(fuo._url.c_str(),fuo));
     _default_engines = true;
@@ -145,14 +153,13 @@ namespace seeks_plugins
             _se_enabled = feeds();
             _se_options.clear();
             _default_engines = false;
+            _se_default = feeds();
           }
 
         fed = feed_parser(vec[0]);
         def_fed = feed_parser(vec[0]);
-        //std::cerr << "config: adding feed: " << fed._name << std::endl;
         for (i=1; i<vec_count; i+=3)
           {
-            //std::cerr << "config: adding url: " << vec[i] << std::endl;
             fed.add_url(vec[i]);
             std::string fu_name = vec[i+1];
             def = false;
@@ -196,25 +203,25 @@ namespace seeks_plugins
         break;
 
       case hash_se_transfer_timeout:
-        _se_transfer_timeout = atoi(arg);
+        _se_transfer_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the transfer timeout in seconds for connections to a search engine");
         break;
 
       case hash_se_connect_timeout:
-        _se_connect_timeout = atoi(arg);
+        _se_connect_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the connection timeout in seconds for connections to a search engine");
         break;
 
       case hash_ct_transfer_timeout:
-        _ct_transfer_timeout = atoi(arg);
+        _ct_transfer_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the transfer timeout in seconds when fetching content for analysis and caching");
         break;
 
       case hash_ct_connect_timeout:
-        _ct_connect_timeout = atoi(arg);
+        _ct_connect_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the connection timeout in seconds when fetching content for analysis and caching");
         break;
@@ -290,6 +297,12 @@ namespace seeks_plugins
         _num_reco_queries = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Max number of recommended queries");
+        break;
+
+      case hash_num_recent_queries:
+        _num_recent_queries = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Max number of recent queries");
         break;
 
       default:

@@ -34,6 +34,9 @@ namespace seeks_plugins
 #define hash_cf_peer                  1520012134ul  /* "cf-peer" */
 #define hash_dead_peer_check          1043267473ul  /* "dead-peer-check" */
 #define hash_dead_peer_retries         681362871ul  /* "dead-peer-retries" */
+#define hash_post_url_check           3323226172ul  /* "post-url-check" */
+#define hash_post_radius              2436628877ul  /* "post-radius" */
+#define hash_post_ua                  1442804836ul  /* "post-ua" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -64,6 +67,9 @@ namespace seeks_plugins
     _record_cache_timeout = 600; // 10 mins.
     _dead_peer_check = 300; // 5 mins.
     _dead_peer_retries = 3;
+    _post_url_check = true;
+    _post_radius = 5;
+    _post_url_ua = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"; // default.
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -127,6 +133,24 @@ namespace seeks_plugins
         _dead_peer_retries = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Number of retries before marking a peer as dead");
+        break;
+
+      case hash_post_url_check:
+        _post_url_check = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to ping and check on posted URLs");
+        break;
+
+      case hash_post_radius:
+        _post_radius = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Query similarity impact radius of posted URLs");
+        break;
+
+      case hash_post_ua:
+        _post_url_ua = std::string(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "default 'user-agent' header used to retrieve posted URLs");
         break;
 
       default:

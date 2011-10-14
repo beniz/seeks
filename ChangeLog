@@ -1,3 +1,27 @@
+* Bodie-0.4.0-HIPPY-stable
+
+This release is a milestone, bringing a new API and the ability to
+post search results directly onto a P2P ring of seeks machines.
+
+- Introduces a new HTTP REST API,
+  http://seeks-project.info/wiki/index.php/API-0.4.0
+  Compatibility is ensured with earlier API.
+
+- Ability to post search results to a set of queries. This allows to
+  attach any result to any query, not relying on any underlying search
+  engine.
+
+- Introduces a seeks CLI to interact from the command line with a
+  remote seeks node.
+
+- Adds the ability for a local node to cross-post its recommended
+  results to a public Seeks node, so that they are made available to
+  others.
+
+- 'hot reload' of configuration changes.
+
+- Many bug fixes and improvements.
+
 * Bodie-0.3.5a-HIPPY-stable
 
 This sub-release mainly fixes several memory leaks.
@@ -7,7 +31,7 @@ This sub-release mainly fixes several memory leaks.
 - Various comments and error logs improvements.
 
 - Various unit tests cleanups.
-
+	
 * Bodie-0.3.5-HIPPY-stable
 
 This release brings  improvements to the peer-to-peer search, fixes

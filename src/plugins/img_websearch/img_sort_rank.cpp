@@ -50,6 +50,12 @@ namespace seeks_plugins
     img_search_snippet *c_sp = NULL;
     while (it != snippets.end())
       {
+        if ((*it)->_doc_type != IMAGE)
+          {
+            ++it;
+            continue;
+          }
+
         img_search_snippet *sp = static_cast<img_search_snippet*>((*it));
         if (sp->_new)
           {

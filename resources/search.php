@@ -44,6 +44,7 @@ if ($qc_redir[0] == "qc_redir"
 {
  curl_setopt($curl, CURLOPT_HEADER, true);
 }
+curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
 if ($bqc[0] == "find_bqc")
 {
  $postdata = file_get_contents("php://input");

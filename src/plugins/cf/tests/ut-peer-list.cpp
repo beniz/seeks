@@ -20,6 +20,8 @@
 #include <gtest/gtest.h>
 
 #include "peer_list.h"
+#include "cf.h"
+#include "cf_configuration.h"
 #include "seeks_proxy.h"
 #include "rank_estimators.h"
 #include "query_capture.h"
@@ -72,6 +74,25 @@ TEST(DPTest,sweep)
   peer *tpe = (*dead_peer::_pl->_peers.begin()).second;
   ASSERT_TRUE(NULL!=tpe);
   ASSERT_TRUE(PEER_OK==pe->get_status());
+}
+
+TEST(WCFTest,cgi_peers)
+{
+  cf_configuration::_config = new cf_configuration("");
+  cf_configuration::_config->_pl->add("seeks.fr",-1,"","bsn");
+  cf_configuration::_config->_pl->add("seeks-project.info",-1,"/search.php","bsn");
+  cf_configuration::_config->_pl->add("seeks-project.info",-1,"/search_exp.php","bsn");
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = cf::cgi_peers(&csp,&rsp,&parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  std::string body = std::string(rsp._body,rsp._content_length);
+  EXPECT_NE(std::string::npos,body.find(("\"peers\":")));
+  EXPECT_NE(std::string::npos,body.find(("\"seeks.fr\"")));
+  EXPECT_NE(std::string::npos,body.find(("\"seeks-project.info/search.php\"")));
+  EXPECT_NE(std::string::npos,body.find(("\"seeks-project.info/search_exp.php\"")));
+  delete cf_configuration::_config;
 }
 
 int main(int argc, char **argv)

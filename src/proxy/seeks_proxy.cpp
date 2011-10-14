@@ -65,9 +65,7 @@ namespace sp
   client_state seeks_proxy::_clients = client_state();
   std::vector<sweepable*> seeks_proxy::_memory_dust = std::vector<sweepable*>();
 
-#if defined(FEATURE_PTHREAD) || defined(_WIN32)
 #ifdef MUTEX_LOCKS_AVAILABLE
-  //sp_mutex_t seeks_proxy::_log_init_mutex;
   sp_mutex_t seeks_proxy::_connection_reuse_mutex;
 #ifndef HAVE_GMTIME_R
   sp_mutex_t seeks_proxy::_gmtime_mutex;
@@ -84,7 +82,6 @@ namespace sp
 #ifndef HAVE_RANDOM
   sp_mutex_t seeks_proxy::_rand_mutex;
 #endif /* ndef HAVE_RANDOM */
-#endif
 
 #if defined(PROTOBUF) && defined(TC)
   user_db* seeks_proxy::_user_db = NULL;
@@ -605,7 +602,7 @@ namespace sp
   int seeks_proxy::crunch_response_triggered(client_state *csp, const cruncher crunchers[])
   {
     http_response *rsp = NULL;
-    const cruncher *c;
+    //const cruncher *c;
 
     /*
      * If CGI request crunching is disabled,
@@ -623,36 +620,36 @@ namespace sp
     /* std::cout << "looking for a cruncher\n";
      std::cout << "csp flags: " << csp->_flags << std::endl; */
 
-    size_t count = 0;
+    /*size_t count = 0;
     for (c = crunchers; c->_cruncher != NULL; c++)
+    { */
+    /*
+     * Check the cruncher if either Seeks proxy is toggled
+     * on and the request isn't forced, or if the cruncher
+     * applies to forced requests as well.
+     */
+    /*if (((csp->_flags & CSP_FLAG_TOGGLED_ON) &&
+         !(csp->_flags & CSP_FLAG_FORCED)) ||
+        (c->_flags & CF_IGNORE_FORCE))
       {
-        /*
-         * Check the cruncher if either Seeks proxy is toggled
-         * on and the request isn't forced, or if the cruncher
-         * applies to forced requests as well.
-         */
-        if (((csp->_flags & CSP_FLAG_TOGGLED_ON) &&
-             !(csp->_flags & CSP_FLAG_FORCED)) ||
-            (c->_flags & CF_IGNORE_FORCE))
-          {
-            rsp = c->_cruncher(csp);
-            if (NULL != rsp)
-              {
-                //std::cout << "found cruncher: " << count << std::endl;
+        rsp = c->_cruncher(csp);
+        if (NULL != rsp)
+    { */
+    //std::cout << "found cruncher: " << count << std::endl;
 
-                /* Deliver, log and free the interception response. */
-                seeks_proxy::send_crunch_response(csp, rsp);
-#ifdef FEATURE_STATISTICS
-                if (c->_flags & CF_COUNT_AS_REJECT)
-                  {
-                    csp->_flags |= CSP_FLAG_REJECTED;
-                  }
-#endif /* def FEATURE_STATISTICS */
-                return TRUE;
+    /* Deliver, log and free the interception response. */
+    /*seeks_proxy::send_crunch_response(csp, rsp);
+    #ifdef FEATURE_STATISTICS
+    if (c->_flags & CF_COUNT_AS_REJECT)
+      {
+        csp->_flags |= CSP_FLAG_REJECTED;
+      }
+    #endif */ /* def FEATURE_STATISTICS */
+    /*return TRUE;
               }
           }
         count++;
-      }
+    } */
     return FALSE;
   }
 
@@ -2444,13 +2441,6 @@ reading_done:
     for (;;)
 #endif
       {
-#if !defined(FEATURE_PTHREAD) && !defined(_WIN32)
-        while (waitpid(-1, NULL, WNOHANG) > 0)
-          {
-            /* zombie children */
-          }
-#endif /* !defined(FEATURE_PTHREAD) && !defined(_WIN32) */
-
         /*
         * Free data that was used by died threads
         */
@@ -2556,7 +2546,7 @@ reading_done:
 #undef SELECTED_ONE_OPTION
 
             /* Use Pthreads in preference to native code */
-#if defined(FEATURE_PTHREAD) && !defined(SELECTED_ONE_OPTION)
+#if !defined(SELECTED_ONE_OPTION)
 # define SELECTED_ONE_OPTION
             {
               pthread_t the_thread;
@@ -2569,14 +2559,6 @@ reading_done:
               child_id = errno ? -1 : 0;
               pthread_attr_destroy(&attrs);
             }
-#endif
-
-#if defined(_WIN32) && !defined(_CYGWIN) && !defined(SELECTED_ONE_OPTION)
-#define SELECTED_ONE_OPTION
-            child_id = _beginthread(
-                         (void (*)(void *))serve,
-                         64 * 1024,
-                         csp);
 #endif
 
 #if !defined(SELECTED_ONE_OPTION)

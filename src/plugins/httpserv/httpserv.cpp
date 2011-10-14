@@ -21,9 +21,11 @@
 #include "seeks_proxy.h"
 #include "plugin_manager.h"
 #include "websearch.h"
+#include "websearch_api_compat.h"
 #include "cgisimple.h"
 #include "sweeper.h"
 #include "miscutil.h"
+#include "encode.h"
 #include "errlog.h"
 #include "cgi.h"
 
@@ -124,9 +126,10 @@ namespace seeks_plugins
 
   void httpserv::init_callbacks()
   {
-    evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL);
+    evhttp_set_cb(_srv,"/search/txt",&httpserv::websearch,NULL);
+    evhttp_set_cb(_srv,"/search",&httpserv::websearch,NULL); // compatibility API.
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
-    evhttp_set_cb(_srv,"/search_img",&httpserv::img_websearch,NULL);
+    evhttp_set_cb(_srv,"/search_img",&httpserv::img_websearch,NULL); // compatibility API.
     evhttp_set_cb(_srv,"/seeks_img_search.css",&httpserv::seeks_img_search_css,NULL);
 #endif
     evhttp_set_cb(_srv,"/",&httpserv::websearch_hp,NULL);
@@ -136,14 +139,16 @@ namespace seeks_plugins
     evhttp_set_cb(_srv,"/opensearch.xml",&httpserv::opensearch_xml,NULL);
     evhttp_set_cb(_srv,"/info",&httpserv::node_info,NULL);
 #if defined(PROTOBUF) && defined(TC)
-    evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL);
-    evhttp_set_cb(_srv,"/tbd",&httpserv::tbd,NULL);
+    evhttp_set_cb(_srv,"/qc_redir",&httpserv::qc_redir,NULL); // compatibility API.
+    evhttp_set_cb(_srv,"/qc_redir_img",&httpserv::qc_redir,NULL); // compatibility API.
+    evhttp_set_cb(_srv,"/tbd",&httpserv::tbd,NULL); // compatibility API.
     evhttp_set_cb(_srv,"/find_dbr",&httpserv::find_dbr,NULL);
     evhttp_set_cb(_srv,"/find_bqc",&httpserv::find_bqc,NULL);
+    evhttp_set_cb(_srv,"/peers",&httpserv::peers,NULL);
 #endif
 
     //evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
-    evhttp_set_gencb(_srv,&httpserv::file_service,NULL);
+    evhttp_set_gencb(_srv,&httpserv::api_route,NULL);
   }
 
   void httpserv::reply_with_redirect_302(struct evhttp_request *r,
@@ -164,8 +169,8 @@ namespace seeks_plugins
                                   const std::string &error_message)
   {
     /* error output. */
-    errlog::log_error(LOG_LEVEL_ERROR,"httpserv error: code %d %s",
-                      http_code,error_message.c_str());
+    errlog::log_error(LOG_LEVEL_ERROR,"httpserv error: code %d",
+                      http_code);
 
     // body.
     struct evbuffer *buffer;
@@ -323,6 +328,46 @@ namespace seeks_plugins
     httpserv::reply_with_body(r,200,"OK",content,"application/opensearchdescription+xml");
   }
 
+  void httpserv::api_route(struct evhttp_request *r, void *arg)
+  {
+    // route to API resources.
+    const char *uri_str = r->uri;
+    std::string uri;
+    if (uri_str)
+      {
+        uri = r->uri;
+      }
+    miscutil::to_lower(uri);
+    if (uri.substr(0,12)=="/search/txt/")
+      httpserv::websearch(r,arg);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    else if (uri.substr(0,12)=="/search/img/")
+      httpserv::img_websearch(r,arg);
+#endif
+    // XXX: all websearch plugin calls use the same callback,
+    // but we check here for fast error response, if resource
+    // is unknown.
+    else if (uri.substr(0,7)=="/words/")
+      httpserv::websearch(r,arg);
+    else if (uri.substr(0,15)=="/recent/queries")
+      httpserv::websearch(r,arg);
+    else if (uri.substr(0,15)=="/cluster/types/")
+      httpserv::websearch(r,arg);
+    else if (uri.substr(0,14)=="/cluster/auto/")
+      httpserv::websearch(r,arg);
+    else if (uri.substr(0,13)=="/similar/txt/")
+      httpserv::websearch(r,arg);
+    else if (uri.substr(0,11)=="/cache/txt/")
+      httpserv::websearch(r,arg);
+    else if (uri.substr(0,12)=="/suggestion/")
+      httpserv::suggestion(r,arg);
+    else if (uri.substr(0,16)=="/recommendation/")
+      httpserv::recommendation(r,arg);
+
+    // if unknown resource, trigger file service.
+    else httpserv::file_service(r,arg);
+  }
+
   void httpserv::node_info(struct evhttp_request *r, void *arg)
   {
     client_state csp;
@@ -444,9 +489,10 @@ namespace seeks_plugins
 
     /* parse query. */
     const char *uri_str = r->uri;
+    std::string uri;
     if (uri_str)
       {
-        std::string uri = std::string(r->uri);
+        uri = std::string(r->uri);
         parameters = httpserv::parse_query(uri);
       }
     if (!parameters || !uri_str)
@@ -474,7 +520,29 @@ namespace seeks_plugins
       miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
 
     /* perform websearch. */
-    sp_err serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "html";
+    sp_err serr = SP_ERR_OK;
+    csp._http._path = strdup(uri.c_str());
+    std::string http_method = httpserv::get_method(r);
+    csp._http._gpc = strdup(http_method.c_str());
+    if (uri.substr(0,12)=="/search/txt/")
+      serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
+    else if (uri.substr(0,7)=="/words/")
+      serr = websearch::cgi_websearch_words(&csp,&rsp,parameters);
+    else if (uri.substr(0,15)=="/recent/queries")
+      serr = websearch::cgi_websearch_recent_queries(&csp,&rsp,parameters);
+    else if (uri.substr(0,15)=="/cluster/types/")
+      serr = websearch::cgi_websearch_clustered_types(&csp,&rsp,parameters);
+    else if (uri.substr(0,14)=="/cluster/auto/")
+      serr = websearch::cgi_websearch_clusterize(&csp,&rsp,parameters);
+    else if (uri.substr(0,13)=="/similar/txt/")
+      serr = websearch::cgi_websearch_similarity(&csp,&rsp,parameters);
+    else if (uri.substr(0,11)=="/cache/txt/")
+      serr = websearch::cgi_websearch_search_cache(&csp,&rsp,parameters);
+    else if (uri.substr(0,7)=="/search")
+      serr = websearch_api_compat::cgi_search_compat(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -487,7 +555,7 @@ namespace seeks_plugins
             || serr == WB_ERR_NO_ENGINE
             || serr == WB_ERR_QUERY_ENCODING)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -547,9 +615,10 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
     /* parse query. */
     const char *uri_str = r->uri;
+    std::string uri;
     if (uri_str)
       {
-        std::string uri = std::string(r->uri);
+        uri = std::string(r->uri);
         parameters = httpserv::parse_query(uri);
       }
     if (!parameters || !uri_str)
@@ -577,7 +646,15 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
 
     /* perform websearch. */
-    sp_err serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "html";
+    sp_err serr = SP_ERR_OK;
+    csp._http._path = strdup(uri.c_str());
+    csp._http._gpc = strdup(httpserv::get_method(r).c_str());
+    if (uri.substr(0,12)=="/search/img/")
+      serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
+    else serr = websearch_api_compat::cgi_img_search_compat(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -590,7 +667,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
             || serr == WB_ERR_NO_ENGINE
             || serr == WB_ERR_QUERY_ENCODING)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -678,9 +755,12 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
     /* parse query. */
     const char *uri_str = r->uri;
+    bool img = false;
     if (uri_str)
       {
         std::string uri = std::string(r->uri);
+        if (uri.find("qc_redir_img?")!=std::string::npos)
+          img = true;
         parameters = httpserv::parse_query(uri);
       }
     if (!parameters || !uri_str)
@@ -697,9 +777,27 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     if (referer)
       miscutil::enlist_unique_header(&csp._headers,"referer",referer);
 
+    // query must be URL-re-encoded before being passed to the
+    // API compatibility plugin. The HTTP server should remain invisible
+    // to the underlying layers.
+    const char *q = miscutil::lookup(parameters,"q");
+    if (!q)
+      {
+        miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+    char *q_enc = encode::url_encode(q);
+    miscutil::unmap(parameters,"q");
+    miscutil::add_map_entry(parameters,"q",1,q_enc,0);
+
     // call for capture callback.
-    char *urlp = NULL;
-    sp_err err = query_capture::qc_redir(&csp,&rsp,parameters,urlp);
+    sp_err err = SP_ERR_OK;
+    if (!img)
+      err = websearch_api_compat::cgi_qc_redir_compat(&csp,&rsp,parameters);
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    else err = websearch_api_compat::cgi_img_qc_redir_compat(&csp,&rsp,parameters);
+#endif
     miscutil::list_remove_all(&csp._headers);
 
     // error catching.
@@ -723,6 +821,17 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         return;
       }
 
+    const char *urlp = miscutil::lookup(parameters,"url");
+    if (!urlp)
+      {
+        miscutil::free_map(parameters);
+        cgi::cgi_error_unknown(&csp,&rsp,err);
+        std::string content;
+        if (rsp._body)
+          content = std::string(rsp._body); // XXX: beware of length.
+        httpserv::reply_with_error(r,500,"ERROR",content);
+        return;
+      }
     httpserv::reply_with_redirect_302(r,urlp);
     miscutil::free_map(parameters);
 
@@ -764,8 +873,25 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     if (host)
       miscutil::enlist_unique_header(&csp._headers,"host",host);
 
+    // query must be URL-re-encoded before being passed to the
+    // API compatibility plugin. The HTTP server should remain invisible
+    // to the underlying layers.
+    const char *q = miscutil::lookup(parameters,"q");
+    if (!q)
+      {
+        miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+    char *q_enc = encode::url_encode(q);
+    miscutil::unmap(parameters,"q");
+    miscutil::add_map_entry(parameters,"q",1,q_enc,0);
+
     // call for capture callback.
-    sp_err serr = cf::cgi_tbd(&csp,&rsp,parameters);
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "html";
+    sp_err serr = websearch_api_compat::cgi_tbd_compat(&csp,&rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -776,7 +902,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
             code = 400;
           }
         else if (serr == SP_ERR_MEMORY)
@@ -862,7 +988,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,"html");
             err_msg = "Bad Parameter";
             code = 400;
           }
@@ -1000,7 +1126,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp);
+            cgi::cgi_error_bad_param(&csp,&rsp,"html");
             err_msg = "Bad Parameter";
             code = 400;
           }
@@ -1046,6 +1172,306 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
 #endif
 
+#if defined(PROTOBUF) && defined(TC)
+  void httpserv::peers(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    //csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+
+    /* parse query. */
+    const char *uri_str = r->uri;
+    std::string uri;
+    if (uri_str)
+      {
+        uri = std::string(r->uri);
+        parameters = httpserv::parse_query(uri);
+      }
+    if (!parameters || !uri_str)
+      {
+        // send 400 error response.
+        if (parameters)
+          miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+
+    /* fill up csp headers. */
+    const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
+    if (rheader)
+      miscutil::enlist_unique_header(&csp._headers,"accept-language",rheader);
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+    const char *ua = evhttp_find_header(r->input_headers, "user-agent");
+    if (ua)
+      miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
+
+    /* ask for peer list */
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "json";
+    csp._http._path = strdup(uri.c_str());
+    std::string http_method = httpserv::get_method(r);
+    csp._http._gpc = strdup(http_method.c_str());
+    sp_err serr = cf::cgi_peers(&csp,&rsp,parameters);
+    miscutil::free_map(parameters);
+    miscutil::list_remove_all(&csp._headers);
+
+    int code = 200;
+    std::string status = "OK";
+    if (serr != SP_ERR_OK)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
+      }
+
+    /* fill up response. */
+    std::string ct = "application/json"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body); // XXX: beware of length.
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
+
+    /* run the sweeper, for timed out query contexts. */
+    sweeper::sweep();
+  }
+
+  void httpserv::suggestion(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+
+    /* parse query. */
+    const char *uri_str = r->uri;
+    std::string uri;
+    if (uri_str)
+      {
+        uri = std::string(r->uri);
+        parameters = httpserv::parse_query(uri);
+      }
+    if (!parameters || !uri_str)
+      {
+        // send 400 error response.
+        if (parameters)
+          miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+
+    /* fill up csp headers. */
+    const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
+    if (rheader)
+      miscutil::enlist_unique_header(&csp._headers,"accept-language",rheader);
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+    const char *ua = evhttp_find_header(r->input_headers, "user-agent");
+    if (ua)
+      miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
+
+    /* ask for peer list */
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "json";
+    csp._http._path = strdup(uri.c_str());
+    std::string http_method = httpserv::get_method(r);
+    csp._http._gpc = strdup(http_method.c_str());
+    sp_err serr = cf::cgi_suggestion(&csp,&rsp,parameters);
+    miscutil::free_map(parameters);
+    miscutil::list_remove_all(&csp._headers);
+
+    int code = 200;
+    std::string status = "OK";
+    if (serr != SP_ERR_OK)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
+      }
+
+    /* fill up response. */
+    std::string ct = "application/json"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body); // XXX: beware of length.
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
+
+    /* run the sweeper, for timed out query contexts. */
+    sweeper::sweep();
+  }
+
+  void httpserv::recommendation(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+
+    /* parse query. */
+    const char *uri_str = r->uri;
+    std::string uri;
+    if (uri_str)
+      {
+        uri = std::string(r->uri);
+        parameters = httpserv::parse_query(uri);
+      }
+    if (!parameters || !uri_str)
+      {
+        // send 400 error response.
+        if (parameters)
+          miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        return;
+      }
+
+    /* fill up csp headers. */
+    const char *rheader = evhttp_find_header(r->input_headers, "accept-language");
+    if (rheader)
+      miscutil::enlist_unique_header(&csp._headers,"accept-language",rheader);
+
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+    const char *ua = evhttp_find_header(r->input_headers, "user-agent");
+    if (ua)
+      miscutil::enlist_unique_header(&csp._headers,"user-agent",ua);
+
+    /* ask for peer list */
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output)
+      output = "json";
+    csp._http._path = strdup(uri.c_str());
+    std::string http_method = httpserv::get_method(r);
+    csp._http._gpc = strdup(http_method.c_str());
+    sp_err serr = cf::cgi_recommendation(&csp,&rsp,parameters);
+    miscutil::free_map(parameters);
+    miscutil::list_remove_all(&csp._headers);
+
+    int code = 200;
+    std::string status = "OK";
+    if (serr != SP_ERR_OK)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,&rsp,output);
+            code = 400;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            rsp = *crsp;
+            delete crsp;
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,&rsp,serr);
+            code = 500;
+          }
+      }
+
+    /* fill up response. */
+    std::string ct = "application/json"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp._headers.begin();
+    while (lit!=rsp._headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body); // XXX: beware of length.
+
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
+
+    /* run the sweeper, for timed out query contexts. */
+    sweeper::sweep();
+  }
+
+#endif
+
   void httpserv::unknown_path(struct evhttp_request *r, void *arg)
   {
     httpserv::reply_with_empty_body(r,404,"ERROR");
@@ -1063,6 +1489,24 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters =  cgi::parse_cgi_parameters(argstring);
     free(argstring);
     return parameters;
+  }
+
+  std::string httpserv::get_method(struct evhttp_request *r)
+  {
+    std::string http_method = "get";
+#ifdef HAVE_LEVENT1
+    if (r->type == EVHTTP_REQ_POST)
+      http_method = "post";
+    // XXX: PUT and DELETE are not supported by libevent-1.x
+#else
+    if (evhttp_request_get_command(r) == EVHTTP_REQ_POST)
+      http_method ="post";
+    else if (evhttp_request_get_command(r) == EVHTTP_REQ_PUT)
+      http_method = "put";
+    else if (evhttp_request_get_command(r) == EVHTTP_REQ_DELETE)
+      http_method = "delete";
+#endif
+    return http_method;
   }
 
   /* plugin registration */

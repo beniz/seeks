@@ -25,3 +25,21 @@ dead-peer-check 300
 
 # Number of retries before marking a peer as dead.
 dead-peer-retries 3
+
+# Posted URL check.
+# checks whether a posted URL exists, and tries to retrieve the page
+# and its title.
+# default: 1
+post-url-check 1
+
+# 'user-agent' header for checking URL.
+# when the above option is enabled, and no 'user-agent' header is
+# passed to Seeks, this is the default header to be used.
+# default: Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1
+post-ua Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1
+
+# Posted query similarity radius.
+# defines the similarity radius of the query to which the posted URL
+# is to be attached.
+# default: 5
+post-radius 5

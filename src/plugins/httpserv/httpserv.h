@@ -22,7 +22,11 @@
 #include "config.h"
 #include "plugin.h"
 
+#ifdef HAVE_LEVENT1
 #include <event.h>
+#else
+#include <event2/event.h>
+#endif
 #include <evhttp.h>
 #include <pthread.h>
 
@@ -73,6 +77,7 @@ namespace seeks_plugins
       static void seeks_hp_css(struct evhttp_request *r, void *arg);
       static void seeks_search_css(struct evhttp_request *r, void *arg);
       static void opensearch_xml(struct evhttp_request *r, void *arg);
+      static void api_route(struct evhttp_request *r, void *arg);
       static void node_info(struct evhttp_request *r, void *arg);
       static void file_service(struct evhttp_request *r, void *arg);
       static void websearch(struct evhttp_request *r, void *arg);
@@ -85,11 +90,16 @@ namespace seeks_plugins
       static void tbd(struct evhttp_request *r, void *arg);
       static void find_dbr(struct evhttp_request *r, void *arg);
       static void find_bqc(struct evhttp_request *r, void *arg);
+      static void peers(struct evhttp_request *r, void *arg);
+      static void suggestion(struct evhttp_request *r, void *arg);
+      static void recommendation(struct evhttp_request *r, void *arg);
 #endif
       static void unknown_path(struct evhttp_request *r, void *arg);
 
       /* utils. */
       static hash_map<const char*,const char*,hash<const char*>,eqstr>* parse_query(const std::string &str);
+
+      static std::string get_method(struct evhttp_request *r);
 
     public:
       std::string _address;

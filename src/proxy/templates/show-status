@@ -214,11 +214,6 @@
               </td>
             </tr>
             <tr>
-              <td><code>FEATURE_PTHREAD</code></td>
-              <td>@if-FEATURE_PTHREAD-then@ Yes @else-not-FEATURE_PTHREAD@ No @endif-FEATURE_PTHREAD@</td>
-              <td>Use POSIX threads rather than native threads</td>
-            </tr>
-            <tr>
               <td><code>FEATURE_STATISTICS</code></td>
               <td>@if-FEATURE_STATISTICS-then@ Yes @else-not-FEATURE_STATISTICS@ No @endif-FEATURE_STATISTICS@</td>
               <td>Enables the statistics function.</td>

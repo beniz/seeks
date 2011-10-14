@@ -40,43 +40,59 @@ namespace seeks_plugins
 
       virtual void stop();
 
+      static sp_err cgi_peers(client_state *csp,
+                              http_response *rsp,
+                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static sp_err cgi_tbd(client_state *csp,
                             http_response *rsp,
                             const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
+      static sp_err cgi_suggestion(client_state *csp,
+                                   http_response *rsp,
+                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err cgi_recommendation(client_state *csp,
+                                       http_response *rsp,
+                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      // recommendation post & get.
+      static sp_err recommendation_get(client_state *csp,
+                                       http_response *rsp,
+                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err recommendation_post(client_state *csp,
+                                        http_response *rsp,
+                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      static sp_err recommendation_delete(client_state *csp,
+                                          http_response *rsp,
+                                          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static sp_err tbd(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-                        std::string &url, std::string &query, std::string &lang);
+                        const std::string &url, const std::string &query);
 
-      void personalize(query_context *qc);
+      static void personalize(query_context *qc,
+                              const bool &wait_external_sources=true,
+                              const std::string &peers="ring",
+                              const int &radius=-1);
 
-      void estimate_ranks(const std::string &query,
-                          const std::string &lang,
-                          const uint32_t &expansion,
-                          std::vector<search_snippet*> &snippets,
-                          const std::string &host="",
-                          const int &port=-1) throw (sp_exception);
-
-      void get_related_queries(const std::string &query,
-                               const std::string &lang,
-                               const uint32_t &expansion,
-                               std::multimap<double,std::string,std::less<double> > &related_queries,
-                               const std::string &host="",
-                               const int &port=-1) throw (sp_exception);
-
-      void get_recommended_urls(const std::string &query,
-                                const std::string &lang,
-                                const uint32_t &expansion,
-                                hash_map<uint32_t,search_snippet*,id_hash_uint> &snippets,
-                                const std::string &host="",
-                                const int &port=-1) throw (sp_exception);
+      static void estimate_ranks(const std::string &query,
+                                 const std::string &lang,
+                                 const int &radius,
+                                 std::vector<search_snippet*> &snippets,
+                                 const std::string &host="",
+                                 const int &port=-1) throw (sp_exception);
 
       static void thumb_down_url(const std::string &query,
                                  const std::string &lang,
                                  const std::string &url) throw (sp_exception);
 
       static void find_bqc_cb(const std::vector<std::string> &qhashes,
-                              const uint32_t &expansion,
+                              const int &radius,
                               db_query_record *&dbr);
+
+      static std::string select_p2p_or_local(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
     public:
       static plugin *_uc_plugin;

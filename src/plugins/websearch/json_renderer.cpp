@@ -23,21 +23,26 @@
 #include "cgi.h"
 #include "json_renderer_private.h"
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_websearch.h"
 #include "img_query_context.h"
+#include "img_search_snippet.h"
 #endif
 #include "proxy_configuration.h"
 #include "seeks_proxy.h" // for sweepables.
+#include "encode.h"
 
 using sp::cgisimple;
 using sp::miscutil;
 using sp::cgi;
 using sp::proxy_configuration;
 using sp::seeks_proxy;
+using sp::encode;
 using namespace json_renderer_private;
 
 namespace seeks_plugins
 {
-  std::string json_renderer::render_engines(const feeds &engines)
+  std::string json_renderer::render_engines(const feeds &engines,
+      const bool &img)
   {
     hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
     std::list<std::string> engs;
@@ -48,9 +53,20 @@ namespace seeks_plugins
         std::set<std::string>::const_iterator sit = (*it)._urls.begin();
         while(sit!=(*it)._urls.end())
           {
-            if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
-                != websearch::_wconfig->_se_options.end())
-              engs.push_back("\"" + (*hit).second._id + "\"");
+            if (!img)
+              {
+                if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
+                    != websearch::_wconfig->_se_options.end())
+                  engs.push_back("\"" + (*hit).second._id + "\"");
+              }
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            else
+              {
+                if ((hit = img_websearch::_iwconfig->_se_options.find((*sit).c_str()))
+                    != img_websearch::_iwconfig->_se_options.end())
+                  engs.push_back("\"" + (*hit).second._id + "\"");
+              }
+#endif
             ++sit;
           }
         ++it;
@@ -101,10 +117,41 @@ namespace seeks_plugins
     websearch::_wconfig->_clustering ? opt += "\"on\"" : opt += "\"off\"";
     opts.push_back(opt);
 
+    /* feeds options */
+    std::list<std::string> se_options;
+    hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
+    std::set<feed_parser,feed_parser::lxn>::const_iterator fit
+    = websearch::_wconfig->_se_enabled._feedset.begin();
+    while(fit!=websearch::_wconfig->_se_enabled._feedset.end())
+      {
+        std::string fp_name = (*fit)._name;
+        opt = "\"" + fp_name + "\":{";
+        std::list<std::string> se_urls;
+        std::set<std::string>::const_iterator sit
+        = (*fit)._urls.begin();
+        while(sit!=(*fit)._urls.end())
+          {
+            std::string url = (*sit);
+            if ((hit=websearch::_wconfig->_se_options.find(url.c_str()))
+                !=websearch::_wconfig->_se_options.end())
+              {
+                std::string opt_url = "\"" + (*hit).second._id + "\":{\"default\":"
+                                      + "\"" + ((*hit).second._default ? "true" : "false") + "\"}";
+                se_urls.push_back(opt_url);
+              }
+            ++sit;
+          }
+        opt += miscutil::join_string_list(",",se_urls) + "}";
+        se_options.push_back(opt);
+        ++fit;
+      }
+    opts.push_back("\"txt-parsers\":{" + miscutil::join_string_list(",",se_options) + "}");
+
     return SP_ERR_OK;
   }
 
-  std::string json_renderer::render_related_queries(const query_context *qc)
+  std::string json_renderer::render_suggested_queries(const query_context *qc,
+      const int &nsuggs)
   {
     if (!qc->_suggestions.empty())
       {
@@ -121,48 +168,111 @@ namespace seeks_plugins
             miscutil::replace_in_string(sugg,"\r","");
             miscutil::replace_in_string(sugg,"\n","");
             suggs.push_back("\"" + sugg + "\"");
-            if (k > websearch::_wconfig->_num_reco_queries)
+            if (k >= nsuggs-1)
               break;
             ++k;
             ++mit;
           }
-        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]"
-               + ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size()); // XXX: rqueries seem useless.
+        return "\"suggestions\":[" + miscutil::join_string_list(",",suggs) + "]";
+        //+ ",\"rqueries\":" + miscutil::to_string(qc->_suggestions.size()); // XXX: rqueries seem useless.
       }
     return "";
   }
 
-  std::string json_renderer::render_recommendations(const std::string &query_clean,
-      const query_context *qc)
+  sp_err json_renderer::render_json_suggested_queries(const query_context *qc,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    if (!qc->_recommended_snippets.empty())
+    int nsuggs = websearch::_wconfig->_num_reco_queries;
+    const char *nsugg_str = miscutil::lookup(parameters,"nsugg");
+    if (nsugg_str)
+      nsuggs = atoi(nsugg_str);
+    std::string json_str = "{" + json_renderer::render_suggested_queries(qc,nsuggs) + "}";
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
+  std::string json_renderer::render_recommendations(const query_context *qc,
+      const int &nreco,
+      const double &qtime,
+      const uint32_t &radius,
+      const std::string &lang)
+  {
+    std::list<std::string> results;
+
+    // query.
+    std::string escaped_query = qc->_query;
+    miscutil::replace_in_string(escaped_query,"\"","\\\"");
+    results.push_back("\"query\":\"" + escaped_query + "\"");
+
+    // peers.
+    results.push_back("\"npeers\":" + miscutil::to_string(qc->_npeers));
+
+    // date.
+    char datebuf[256];
+    cgi::get_http_time(0,datebuf,sizeof(datebuf));
+    results.push_back("\"date\":\"" + std::string(datebuf) + "\"");
+
+    // processing time.
+    results.push_back("\"qtime\":" + miscutil::to_string(qtime));
+
+    // header wrapup.
+    std::string json_str = miscutil::join_string_list(",",results);
+
+    //snippets.
+    json_str += ",\"snippets\":[";
+    size_t ssize = qc->_cached_snippets.size();
+    int count = 0;
+    for (size_t i=0; i<ssize; i++)
       {
-        std::list<std::string> suggs;
+        search_snippet *sp = qc->_cached_snippets.at(i);
+        if (sp->_radius > radius)
+          continue;
+        if (!lang.empty() && sp->_lang != lang)
+          continue;
+        if (sp->_doc_type == REJECTED)
+          continue;
+        if (!sp->_engine.has_feed("seeks"))
+          continue;
+        if (i!=0 && i!=ssize)
+          json_str += ",";
+        json_str += json_renderer::render_snippet(sp,false,qc->_query_words);
+        count++;
 
-        std::vector<std::string> query_words;
-        miscutil::tokenize(query_clean,query_words," ");
-
-        int k = 0;
-        hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
-        = qc->_recommended_snippets.begin();
-        while(hit!=qc->_recommended_snippets.end())
+        if (nreco > 0 && count == nreco)
           {
-            suggs.push_back((*hit).second->to_json(false,query_words));
-            if (k > websearch::_wconfig->_num_reco_queries)
-              break;
-            ++k;
-            ++hit;
+            break; // end here.
           }
-        return "\"recommendations\":[" + miscutil::join_string_list(",",suggs) + "]";
       }
-    return "";
+    json_str += "]";
+    return json_str;
   }
 
-  std::string json_renderer::render_cached_queries(const std::string &query)
+  sp_err json_renderer::render_json_recommendations(const query_context *qc,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+      const double &qtime,
+      const int &radius,
+      const std::string &lang)
   {
+    int nreco = -1;
+    const char *nreco_str = miscutil::lookup(parameters,"nreco");
+    if (nreco_str)
+      nreco = atoi(nreco_str);
+    std::string json_str = "{" + json_renderer::render_recommendations(qc,nreco,qtime,radius,lang) + "}";
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
+  std::string json_renderer::render_cached_queries(const std::string &query,
+      const int &nq)
+  {
+    int i = 0;
     std::list<std::string> suggs;
     std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
-    while(sit!=seeks_proxy::_memory_dust.end())
+    while(sit!=seeks_proxy::_memory_dust.end() && i++<nq)
       {
         query_context *qc = dynamic_cast<query_context*>((*sit));
         if (!qc)
@@ -170,6 +280,7 @@ namespace seeks_plugins
             ++sit;
             continue;
           }
+        mutex_lock(&qc->_qc_mutex);
         if (qc->_query != query)
           {
             std::string escaped_query = qc->_query;
@@ -179,11 +290,10 @@ namespace seeks_plugins
             miscutil::replace_in_string(escaped_query,"\n","");
             suggs.push_back("\"" + escaped_query + "\"");
           }
+        mutex_unlock(&qc->_qc_mutex);
         ++sit;
       }
-    if (!suggs.empty())
-      return "\"queries\":[" + miscutil::join_string_list(",",suggs) + "]";
-    else return "";
+    return "\"queries\":[" + miscutil::join_string_list(",",suggs) + "]";
   }
 
   std::string json_renderer::render_img_engines(const query_context *qc)
@@ -195,6 +305,92 @@ namespace seeks_plugins
     json_str_eng += render_engines(engines);
 #endif
     return json_str_eng;
+  }
+
+  std::string json_renderer::render_snippet(search_snippet *sp,
+      const bool &thumbs,
+      const std::vector<std::string> &query_words)
+  {
+    std::string json_str;
+    json_str += "{";
+    json_str += "\"id\":" + miscutil::to_string(sp->_id) + ",";
+    std::string title = sp->_title;
+    miscutil::replace_in_string(title,"\\","\\\\");
+    miscutil::replace_in_string(title,"\"","\\\"");
+    json_str += "\"title\":\"" + title + "\",";
+    std::string url = sp->_url;
+    miscutil::replace_in_string(url,"\"","\\\"");
+    miscutil::replace_in_string(url,"\n","");
+    json_str += "\"url\":\"" + url + "\",";
+    std::string summary = sp->_summary;
+    miscutil::replace_in_string(summary,"\\","\\\\");
+    miscutil::replace_in_string(summary,"\"","\\\"");
+    json_str += "\"summary\":\"" + summary + "\",";
+    json_str += "\"seeks_meta\":" + miscutil::to_string(sp->_meta_rank) + ",";
+    json_str += "\"seeks_score\":" + miscutil::to_string(sp->_seeks_rank) + ",";
+    double rank = 0.0;
+    if (sp->_engine.size() > 0)
+      rank = sp->_rank / static_cast<double>(sp->_engine.size());
+    json_str += "\"rank\":" + miscutil::to_string(rank) + ",";
+    json_str += "\"cite\":\"";
+    if (!sp->_cite.empty())
+      {
+        std::string cite = sp->_cite;
+        miscutil::replace_in_string(cite,"\"","\\\"");
+        miscutil::replace_in_string(cite,"\n","");
+        json_str += cite + "\",";
+      }
+    else json_str += url + "\",";
+    if (!sp->_cached.empty())
+      {
+        std::string cached = sp->_cached;
+        miscutil::replace_in_string(cached,"\"","\\\"");
+        json_str += "\"cached\":\"" + cached + "\","; // XXX: cached might be malformed without preprocessing.
+      }
+    json_str += "\"engines\":[";
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    img_search_snippet *isp = NULL;
+    if (sp->_doc_type == IMAGE)
+      isp = dynamic_cast<img_search_snippet*>(sp);
+    if (isp)
+      json_str += json_renderer::render_engines(isp->_img_engine,true);
+    else
+#endif
+      json_str += json_renderer::render_engines(sp->_engine);
+    json_str += "]";
+    if (thumbs)
+      json_str += ",\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"";
+    std::set<std::string> words;
+    sp->discr_words(query_words,words);
+    if (!words.empty())
+      {
+        json_str += ",\"words\":[";
+        //json_str += miscutil::join_string_list(",",words);
+        std::set<std::string>::const_iterator sit = words.begin();
+        while(sit!=words.end())
+          {
+            json_str += "\"" + (*sit) + "\"";
+            if (sit != --words.end())
+              json_str += ",";
+            ++sit;
+          }
+        json_str += "]";
+      }
+    json_str += ",\"type\":\"" + sp->get_doc_type_str() + "\"";
+    json_str += ",\"personalized\":\"";
+    if (sp->_personalized)
+      json_str += "yes";
+    else json_str += "no";
+    json_str += "\"";
+    if (sp->_npeers > 0)
+      json_str += ",\"snpeers\":" + miscutil::to_string(sp->_npeers);
+    if (sp->_hits > 0)
+      json_str += ",\"hits\":" + miscutil::to_string(sp->_hits);
+    if (!sp->_date.empty())
+      json_str += ",\"date\":\"" + sp->_date + "\"";
+
+    json_str += "}";
+    return json_str;
   }
 
   sp_err json_renderer::render_snippets(const std::string &query_clean,
@@ -215,10 +411,6 @@ namespace seeks_plugins
         bool similarity = false;
         if (snippets.at(0)->_seeks_ir > 0)
           similarity = true;
-
-        // grab query words.
-        std::vector<std::string> query_words;
-        miscutil::tokenize(query_clean,query_words," "); // allows to extract most discriminative words not in query.
 
         // checks for safe snippets (for now, only used for images).
         const char* safesearch_p = miscutil::lookup(parameters,"safesearch");
@@ -253,7 +445,8 @@ namespace seeks_plugins
                   {
                     if (count > snistart && count<snisize)
                       json_str += ",";
-                    json_str += snippets.at(i)->to_json(has_thumbs,query_words);
+                    json_str += json_renderer::render_snippet(snippets.at(i),has_thumbs,
+                                snippets.at(i)->_qc->_query_words);
                   }
                 count++;
               }
@@ -339,6 +532,35 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
+  sp_err json_renderer::render_json_snippet(search_snippet *sp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      query_context *qc)
+  {
+    std::string query = qc->_query;
+    const std::string json_snippet = json_renderer::render_snippet(sp,false,qc->_query_words);
+    const std::string body = jsonp(json_snippet,miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
+  sp_err json_renderer::render_json_words(const std::set<std::string> &words,
+                                          http_response *rsp,
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  {
+    std::set<std::string> qwords;
+    std::set<std::string>::const_iterator sit = words.begin();
+    while(sit!=words.end())
+      {
+        qwords.insert("\"" + (*sit) + "\"");
+        ++sit;
+      }
+    const std::string body = "{\"words\":[" + jsonp(miscutil::join_string_list(",",qwords),
+                             miscutil::lookup(parameters,"callback")) + "]}";
+    response(rsp,body);
+    return SP_ERR_OK;
+  }
+
   sp_err json_renderer::render_json_node_options(client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
@@ -348,6 +570,17 @@ namespace seeks_plugins
     const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
     response(rsp,body);
     return err;
+  }
+
+  sp_err json_renderer::render_cached_queries(http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const std::string &query,
+      const int &nq)
+  {
+    std::string json_str = "{" + json_renderer::render_cached_queries(query,nq) + "}";
+    const std::string body = jsonp(json_str, miscutil::lookup(parameters,"callback"));
+    response(rsp,body);
+    return SP_ERR_OK;
   }
 
   sp_err json_renderer::render_clustered_json_results(cluster *clusters,
@@ -378,14 +611,6 @@ using namespace seeks_plugins;
 
 namespace json_renderer_private
 {
-  /*std::string query_clean(const std::string& q)
-  {
-    char *html_encoded_query_str = encode::html_encode(q.c_str());
-    std::string html_encoded_query = std::string(html_encoded_query_str);
-    free(html_encoded_query_str);
-    return se_handler::no_command_query(html_encoded_query);
-    }*/
-
   std::string jsonp(const std::string& input, const char* callback)
   {
     std::string output;
@@ -430,20 +655,10 @@ namespace json_renderer_private
     // peers.
     results.push_back("\"npeers\":\"" + miscutil::to_string(qc->_npeers) + "\"");
 
-    // related queries.
-    std::string related_queries = json_renderer::render_related_queries(qc);
-    if (!related_queries.empty())
-      results.push_back(related_queries);
-
-    // related URLs.
-    std::string reco = json_renderer::render_recommendations(qc->_query,qc);
-    if (!reco.empty())
-      results.push_back(reco);
-
-    // queries in cache.
-    std::string cached_queries = json_renderer::render_cached_queries(qc->_query);
-    if (!cached_queries.empty())
-      results.push_back(cached_queries);
+    // suggested queries.
+    std::string suggested_queries = json_renderer::render_suggested_queries(qc,websearch::_wconfig->_num_reco_queries);
+    if (!suggested_queries.empty())
+      results.push_back(suggested_queries);
 
     // engines.
     if (qc->_engines.size() > 0)

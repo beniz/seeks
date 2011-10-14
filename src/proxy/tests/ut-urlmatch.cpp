@@ -65,6 +65,23 @@ TEST(urlmatch,strip_url)
   ASSERT_EQ(url,"seeks-project.info");
 }
 
+TEST(urlmatch,next_elt_from_path)
+{
+  std::string path = "search/txt/seeks/7258314?p1=a";
+  std::string np = urlmatch::next_elt_from_path(path);
+  ASSERT_EQ("search",np);
+  ASSERT_EQ("txt/seeks/7258314?p1=a",path);
+  np = urlmatch::next_elt_from_path(path);
+  ASSERT_EQ("txt",np);
+  ASSERT_EQ("seeks/7258314?p1=a",path);
+  np = urlmatch::next_elt_from_path(path);
+  ASSERT_EQ("seeks",np);
+  ASSERT_EQ("7258314?p1=a",path);
+  np = urlmatch::next_elt_from_path(path);
+  ASSERT_EQ("7258314",np);
+  ASSERT_TRUE(path.empty());
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

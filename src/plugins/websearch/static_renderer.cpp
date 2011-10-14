@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,6 +25,12 @@
 #include "encode.h"
 #include "urlmatch.h"
 #include "proxy_configuration.h"
+#if defined(PROTOBUF) && defined(TC)
+#include "query_capture_configuration.h"
+#endif
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_search_snippet.h"
+#endif
 #include "seeks_proxy.h"
 #include "errlog.h"
 
@@ -48,6 +54,508 @@ using lsh::Bucket;
 
 namespace seeks_plugins
 {
+  void static_renderer::highlight_discr(const search_snippet *sp,
+                                        std::string &str, const std::string &base_url_str,
+                                        const std::vector<std::string> &query_words)
+  {
+    // select discriminant words.
+    std::set<std::string> words;
+    sp->discr_words(query_words,words);
+
+    // highlighting.
+    std::set<std::string>::const_iterator sit = words.begin();
+    while(sit!=words.end())
+      {
+        if ((*sit).length() > 2)
+          {
+            char *wenc = encode::url_encode((*sit).c_str());
+            std::string rword = " " + (*sit) + " ";
+            std::string bold_str = "<span class=\"highlight\"><a href=\"" + base_url_str + "/search?q=" + sp->_qc->_url_enc_query
+                                   + "+" + std::string(wenc) + "&amp;page=1&amp;expansion=1&amp;lang=" + sp->_qc->_auto_lang + "&amp;ui=stat\">" + rword + "</a></span>";
+            free(wenc);
+            miscutil::ci_replace_in_string(str,rword,bold_str);
+          }
+        ++sit;
+      }
+  }
+
+  std::string static_renderer::render_snippet(search_snippet *sp,
+      std::vector<std::string> &words,
+      const std::string &base_url_str,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    // image snippet cast.
+    img_search_snippet *isp = NULL;
+    if (sp->_doc_type == IMAGE)
+      {
+        isp = dynamic_cast<img_search_snippet*>(sp);
+      }
+#endif
+
+    // check for URL redirection for capture & personalization of results.
+    bool prs = true;
+    const char *pers = miscutil::lookup(parameters,"prs");
+    if (!pers)
+      prs = websearch::_wconfig->_personalization;
+    else
+      {
+        if (strcasecmp(pers,"on") == 0)
+          prs = true;
+        else if (strcasecmp(pers,"off") == 0)
+          prs = false;
+        else prs = websearch::_wconfig->_personalization;
+      }
+
+    std::string url = sp->_url;
+    char *url_encp = encode::url_encode(url.c_str());
+    std::string url_enc = std::string(url_encp);
+    free(url_encp);
+
+#if defined(PROTOBUF) && defined(TC)
+    if (prs && websearch::_qc_plugin && websearch::_qc_plugin_activated
+        && query_capture_configuration::_config)
+      {
+        std::string redir = "/qc_redir";
+        if (sp->_doc_type == IMAGE)
+          redir += "_img";
+        url = base_url_str + redir + "?q=" + sp->_qc->_url_enc_query + "&amp;url=" + url_enc
+              + "&amp;lang=" + sp->_qc->_auto_lang;
+      }
+#endif
+
+    std::string html_content = "<li class=\"search_snippet";
+    if (sp->_doc_type == VIDEO_THUMB)
+      html_content += " search_snippet_vid";
+    else if (sp->_doc_type == IMAGE)
+      html_content += " search_snippet_img";
+    html_content += "\">";
+    const char *thumbs = miscutil::lookup(parameters,"thumbs");
+    bool has_thumbs = websearch::_wconfig->_thumbs;
+    if (thumbs && strcasecmp(thumbs,"on") == 0)
+      has_thumbs = true;
+    if (sp->_doc_type != TWEET && sp->_doc_type != IMAGE && sp->_doc_type != VIDEO_THUMB && has_thumbs)
+      {
+        html_content += "<a href=\"" + url + "\">";
+        html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
+        html_content += sp->_url;
+        html_content += "\" /></a>";
+      }
+    if (sp->_doc_type == TWEET)
+      {
+        html_content += "<a href=\"" + sp->_cite + "\">";
+        html_content += "<img class=\"tweet_profile\" src=\"" + sp->_cached + "\" ></a>"; // _cached contains the profile's image.
+      }
+    if (sp->_doc_type == VIDEO_THUMB)
+      {
+        html_content += "<a href=\"";
+        html_content += url + "\"><img class=\"video_profile\" src=\"";
+        html_content += sp->_cached;
+        html_content += "\"></a><div>";
+      }
+    else if (sp->_doc_type == IMAGE)
+      {
+        html_content += "<a href=\"";
+        html_content += url + "\"><img src=\"";
+        html_content += sp->_cached;
+        html_content += "\"></a><div>";
+      }
+
+    if (prs && sp->_personalized && !sp->_engine.has_feed("seeks"))
+      {
+        html_content += "<h3 class=\"personalized_result personalized\" title=\"personalized result\">";
+      }
+    else html_content += "<h3>";
+    html_content += "<a href=\"";
+    html_content += url;
+    html_content += "\">";
+
+    char* title_enc = encode::html_encode(sp->_title.c_str());
+    html_content += std::string(title_enc);
+    free(title_enc);
+    html_content += "</a>";
+
+    std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
+                          + "/search";
+    if (sp->_doc_type == IMAGE)
+      se_icon += "_img";
+    se_icon += "?q=@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
+               + sp->_qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
+    if (sp->_engine.has_feed("google"))
+      {
+        std::string ggle_se_icon = se_icon;
+        miscutil::replace_in_string(ggle_se_icon,"icon","search_engine_google");
+        miscutil::replace_in_string(ggle_se_icon,"setitle","Google");
+        miscutil::replace_in_string(ggle_se_icon,"seeng","google");
+        miscutil::replace_in_string(ggle_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += ggle_se_icon;
+      }
+    if (sp->_engine.has_feed("bing"))
+      {
+        std::string bing_se_icon = se_icon;
+        miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing");
+        miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
+        miscutil::replace_in_string(bing_se_icon,"seeng","bing");
+        miscutil::replace_in_string(bing_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += bing_se_icon;
+      }
+    if (sp->_engine.has_feed("blekko"))
+      {
+        std::string blekko_se_icon = se_icon;
+        miscutil::replace_in_string(blekko_se_icon,"icon","search_engine_blekko");
+        miscutil::replace_in_string(blekko_se_icon,"setitle","blekko!");
+        miscutil::replace_in_string(blekko_se_icon,"seeng","blekko");
+        miscutil::replace_in_string(blekko_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += blekko_se_icon;
+      }
+    if (sp->_engine.has_feed("yauba"))
+      {
+        std::string yauba_se_icon = se_icon;
+        miscutil::replace_in_string(yauba_se_icon,"icon","search_engine_yauba");
+        miscutil::replace_in_string(yauba_se_icon,"setitle","yauba!");
+        miscutil::replace_in_string(yauba_se_icon,"seeng","yauba");
+        miscutil::replace_in_string(yauba_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += yauba_se_icon;
+      }
+    if (sp->_engine.has_feed("yahoo"))
+      {
+        std::string yahoo_se_icon = se_icon;
+        miscutil::replace_in_string(yahoo_se_icon,"icon","search_engine_yahoo");
+        miscutil::replace_in_string(yahoo_se_icon,"setitle","Yahoo!");
+        miscutil::replace_in_string(yahoo_se_icon,"seeng","yahoo");
+        miscutil::replace_in_string(yahoo_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += yahoo_se_icon;
+      }
+    if (sp->_engine.has_feed("exalead"))
+      {
+        std::string exalead_se_icon = se_icon;
+        miscutil::replace_in_string(exalead_se_icon,"icon","search_engine_exalead");
+        miscutil::replace_in_string(exalead_se_icon,"setitle","Exalead");
+        miscutil::replace_in_string(exalead_se_icon,"seeng","exalead");
+        miscutil::replace_in_string(exalead_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += exalead_se_icon;
+      }
+    if (sp->_engine.has_feed("twitter"))
+      {
+        std::string twitter_se_icon = se_icon;
+        miscutil::replace_in_string(twitter_se_icon,"icon","search_engine_twitter");
+        miscutil::replace_in_string(twitter_se_icon,"setitle","Twitter");
+        miscutil::replace_in_string(twitter_se_icon,"seeng","twitter");
+        miscutil::replace_in_string(twitter_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += twitter_se_icon;
+      }
+    if (sp->_engine.has_feed("dailymotion"))
+      {
+        std::string yt_se_icon = se_icon;
+        miscutil::replace_in_string(yt_se_icon,"icon","search_engine_dailymotion");
+        miscutil::replace_in_string(yt_se_icon,"setitle","Dailymotion");
+        miscutil::replace_in_string(yt_se_icon,"seeng","Dailymotion");
+        miscutil::replace_in_string(yt_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += yt_se_icon;
+      }
+    if (sp->_engine.has_feed("youtube"))
+      {
+        std::string yt_se_icon = se_icon;
+        miscutil::replace_in_string(yt_se_icon,"icon","search_engine_youtube");
+        miscutil::replace_in_string(yt_se_icon,"setitle","Youtube");
+        miscutil::replace_in_string(yt_se_icon,"seeng","youtube");
+        miscutil::replace_in_string(yt_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += yt_se_icon;
+      }
+    if (sp->_engine.has_feed("dokuwiki"))
+      {
+        std::string dk_se_icon = se_icon;
+        miscutil::replace_in_string(dk_se_icon,"icon","search_engine_dokuwiki");
+        miscutil::replace_in_string(dk_se_icon,"setitle","Dokuwiki");
+        miscutil::replace_in_string(dk_se_icon,"seeng","dokuwiki");
+        miscutil::replace_in_string(dk_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += dk_se_icon;
+      }
+    if (sp->_engine.has_feed("mediawiki"))
+      {
+        std::string md_se_icon = se_icon;
+        miscutil::replace_in_string(md_se_icon,"icon","search_engine_mediawiki");
+        miscutil::replace_in_string(md_se_icon,"setitle","Mediawiki");
+        miscutil::replace_in_string(md_se_icon,"seeng","mediawiki");
+        miscutil::replace_in_string(md_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += md_se_icon;
+      }
+    if (sp->_engine.has_feed("opensearch_rss") || sp->_engine.has_feed("opensearch_atom"))
+      {
+        std::string md_se_icon = se_icon;
+        miscutil::replace_in_string(md_se_icon,"icon","search_engine_opensearch");
+        miscutil::replace_in_string(md_se_icon,"setitle","Opensearch");
+        miscutil::replace_in_string(md_se_icon,"seeng","opensearch");
+        miscutil::replace_in_string(md_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += md_se_icon;
+      }
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    if (isp)
+      {
+        if (isp->_img_engine.has_feed("bing_img"))
+          {
+            std::string sk_se_icon = se_icon;
+            miscutil::replace_in_string(sk_se_icon,"icon","search_engine_bing");
+            miscutil::replace_in_string(sk_se_icon,"setitle","Bing");
+            miscutil::replace_in_string(sk_se_icon,"seeng","bing");
+            miscutil::replace_in_string(sk_se_icon,"@query@",sp->_qc->_url_enc_query);
+            html_content += sk_se_icon;
+          }
+        if (isp->_img_engine.has_feed("flickr"))
+          {
+            std::string sk_se_icon = se_icon;
+            miscutil::replace_in_string(sk_se_icon,"icon","search_engine_flickr");
+            miscutil::replace_in_string(sk_se_icon,"setitle","Flickr");
+            miscutil::replace_in_string(sk_se_icon,"seeng","flickr");
+            miscutil::replace_in_string(sk_se_icon,"@query@",sp->_qc->_url_enc_query);
+            html_content += sk_se_icon;
+          }
+        if (isp->_img_engine.has_feed("google_img"))
+          {
+            std::string sk_se_icon = se_icon;
+            miscutil::replace_in_string(sk_se_icon,"icon","search_engine_ggle");
+            miscutil::replace_in_string(sk_se_icon,"setitle","Google");
+            miscutil::replace_in_string(sk_se_icon,"seeng","google");
+            miscutil::replace_in_string(sk_se_icon,"@query@",sp->_qc->_url_enc_query);
+            html_content += sk_se_icon;
+          }
+        if (isp->_img_engine.has_feed("wcommons"))
+          {
+            std::string sk_se_icon = se_icon;
+            miscutil::replace_in_string(sk_se_icon,"icon","search_engine_wcommons");
+            miscutil::replace_in_string(sk_se_icon,"setitle","WikiCommons");
+            miscutil::replace_in_string(sk_se_icon,"seeng","wiki commons");
+            miscutil::replace_in_string(sk_se_icon,"@query@",sp->_qc->_url_enc_query);
+            html_content += sk_se_icon;
+          }
+        if (isp->_img_engine.has_feed("yahoo_img"))
+          {
+            std::string sk_se_icon = se_icon;
+            miscutil::replace_in_string(sk_se_icon,"icon","search_engine_yahoo");
+            miscutil::replace_in_string(sk_se_icon,"setitle","Yahoo");
+            miscutil::replace_in_string(sk_se_icon,"seeng","yahoo");
+            miscutil::replace_in_string(sk_se_icon,"@query@",sp->_qc->_url_enc_query);
+            html_content += sk_se_icon;
+          }
+      } // end image sp.
+#endif
+    if (sp->_engine.has_feed("seeks"))
+      {
+        std::string sk_se_icon = se_icon;
+        miscutil::replace_in_string(sk_se_icon,"icon","search_engine_seeks");
+        miscutil::replace_in_string(sk_se_icon,"setitle","Seeks");
+        miscutil::replace_in_string(sk_se_icon,"seeng","seeks");
+        miscutil::replace_in_string(sk_se_icon,"@query@",sp->_qc->_url_enc_query);
+        html_content += sk_se_icon;
+      }
+
+    if (sp->_doc_type == TWEET)
+      if (sp->_meta_rank > 1)
+        html_content += " (" + miscutil::to_string(sp->_meta_rank) + ")";
+    html_content += "</h3>";
+
+    if (!sp->_summary.empty())
+      {
+        html_content += "<div>";
+        std::string summary = sp->_summary;
+        search_snippet::highlight_query(words,summary);
+        if (websearch::_wconfig->_extended_highlight)
+          static_renderer::highlight_discr(sp,summary,base_url_str,words);
+        html_content += summary;
+      }
+    else html_content += "<div>";
+
+    const char *cite_enc = NULL;
+    if (sp->_doc_type != VIDEO_THUMB)
+      {
+        if (!sp->_cite.empty())
+          {
+            cite_enc = encode::html_encode(sp->_cite.c_str());
+          }
+        else
+          {
+            cite_enc = encode::html_encode(sp->_url.c_str());
+          }
+      }
+    else
+      {
+        cite_enc = encode::html_encode(sp->_date.c_str());
+      }
+    if (!sp->_summary.empty())
+      html_content += "<br>";
+    html_content += "<a class=\"search_cite\" href=\"" + sp->_url + "\">";
+    html_content += "<cite>";
+    html_content += cite_enc;
+    free_const(cite_enc);
+    html_content += "</cite></a>";
+
+    if (!sp->_cached.empty() && sp->_doc_type != TWEET && sp->_doc_type != VIDEO_THUMB)
+      {
+        html_content += "\n";
+        char *enc_cached = encode::html_encode(sp->_cached.c_str());
+        miscutil::chomp(enc_cached);
+        html_content += "<a class=\"search_cache\" href=\"";
+        html_content += enc_cached;
+        html_content += "\">Cached</a>";
+        free_const(enc_cached);
+      }
+    else if (sp->_doc_type == TWEET)
+      {
+        char *date_enc = encode::html_encode(sp->_date.c_str());
+        html_content += "<date> (";
+        html_content += date_enc;
+        free_const(date_enc);
+        html_content += ") </date>\n";
+      }
+    if (sp->_doc_type != TWEET && sp->_doc_type != VIDEO_THUMB)
+      {
+        if (sp->_archive.empty())
+          {
+            sp->set_archive_link();
+          }
+        html_content += "<a class=\"search_cache\" href=\"";
+        html_content += sp->_archive;
+        html_content += "\">Archive</a>";
+      }
+
+    if (sp->_doc_type != VIDEO_THUMB)
+      {
+        std::string sim_link;
+        const char *engines = miscutil::lookup(parameters,"engines");
+        if (!sp->_sim_back)
+          {
+            sim_link = "/search";
+            if (sp->_doc_type == IMAGE)
+              sim_link += "_img";
+            sim_link += "?q=" + sp->_qc->_url_enc_query + "/" + miscutil::to_string(sp->_id)
+                        + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
+                        + "&amp;lang=" + sp->_qc->_auto_lang
+                        + "&amp;ui=stat&amp;action=similarity";
+            if (engines)
+              sim_link += "&amp;engines=" + std::string(engines);
+            sp->set_similarity_link(parameters);
+            html_content += "<a class=\"search_cache\" href=\"";
+          }
+        else
+          {
+            sim_link = "/search";
+            if (sp->_doc_type == IMAGE)
+              sim_link += "_img";
+            sim_link += "?q=" + sp->_qc->_url_enc_query
+                        + "?page=1&amp;expansion=" + miscutil::to_string(sp->_qc->_page_expansion)
+                        + "&amp;lang=" + sp->_qc->_auto_lang
+                        + "&amp;ui=stat&amp;action=expand";
+            if (engines)
+              sim_link += "&amp;engines=" + std::string(engines);
+            sp->set_back_similarity_link(parameters);
+            html_content += "<a class=\"search_similarity\" href=\"";
+          }
+        html_content += base_url_str + sim_link;
+        if (!sp->_sim_back)
+          html_content += "\">Similar</a>";
+        else html_content += "\">Back</a>";
+      }
+
+    if (sp->_cached_content)
+      {
+        html_content += "<a class=\"search_cache\" href=\"";
+        html_content += base_url_str + "/search_cache?url="
+                        + sp->_url + "&amp;q=" + sp->_qc->_query;
+        html_content += " \">Quick link</a>";
+      }
+
+    // snippet type rendering
+    const char *engines = miscutil::lookup(parameters,"engines");
+    if (sp->_doc_type != REJECTED)
+      {
+        html_content += "<a class=\"search_cache\" href=\"";
+        html_content += base_url_str + "/cluster/types/" + sp->_qc->_url_enc_query
+                        + "?expansion=xxexp&amp;ui=stat&amp;engines=";
+        if (engines)
+          html_content += std::string(engines);
+        html_content += " \"> ";
+        switch (sp->_doc_type)
+          {
+          case UNKNOWN:
+            html_content += "";
+            break;
+          case WEBPAGE:
+            html_content += "Webpage";
+            break;
+          case FORUM:
+            html_content += "Forum";
+            break;
+          case FILE_DOC:
+            html_content += "Document file";
+            break;
+          case SOFTWARE:
+            html_content += "Software";
+            break;
+          case IMAGE:
+            html_content += "Image";
+            break;
+          case VIDEO:
+            html_content += "Video";
+            break;
+          case VIDEO_THUMB:
+            html_content += "Video";
+            break;
+          case AUDIO:
+            html_content += "Audio";
+            break;
+          case CODE:
+            html_content += "Code";
+            break;
+          case NEWS:
+            html_content += "News";
+            break;
+          case TWEET:
+            html_content += "Tweet";
+            break;
+          case WIKI:
+            html_content += "Wiki";
+            break;
+          case POST:
+            html_content += "Post";
+            break;
+          case BUG:
+            html_content += "Bug";
+            break;
+          case ISSUE:
+            html_content += "Issue";
+            break;
+          case REVISION:
+            html_content += "Revision";
+            break;
+          case COMMENT:
+            html_content += "Comment";
+            break;
+          case REJECTED:
+            break;
+          }
+        html_content += "</a>";
+      }
+
+#if defined(PROTOBUF) && defined(TC)
+    // snippet thumb down rendering
+    if (sp->_personalized)
+      {
+        html_content += "<a class=\"search_tbd\" title=\"reject personalized result\" href=\"" + base_url_str + "/tbd?q="
+                        + sp->_qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
+        if (engines)
+          html_content += std::string(engines);
+        html_content += "&lang=" + sp->_qc->_auto_lang;
+        html_content += "\">&nbsp;</a>";
+        if (sp->_hits > 0 && sp->_npeers > 0)
+          html_content += "<br><div class=\"snippet_info\">" + miscutil::to_string(sp->_hits)
+                          + " recommendation(s) by " + miscutil::to_string(sp->_npeers) + " peer(s).</div>";
+      }
+#endif
+
+    html_content += "</div></li>\n";
+    return html_content;
+  }
+
   void static_renderer::render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                      std::string &html_encoded_query,
@@ -96,10 +604,10 @@ namespace seeks_plugins
             char *sugg_url_enc = encode::url_encode(suggested_q_str.c_str());
             std::string sugg_url_enc_str = std::string(sugg_url_enc);
             free(sugg_url_enc);
-            suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "q=";
-            suggestion_str += sugg_url_enc_str + "&amp;";
+            suggestion_str += "<br><a href=\"" + base_url_str + cgi_base + "?q=";
+            suggestion_str += sugg_url_enc_str + "?";
             suggestion_str += "lang=" + qc->_auto_lang + "&amp;";
-            suggestion_str += "expansion=1&amp;action=expand&amp;ui=stat";
+            suggestion_str += "expansion=1&amp;ui=stat";
             suggestion_str += "\">";
             suggestion_str += sugg_html_enc_str;
             suggestion_str += "</a>";
@@ -117,49 +625,6 @@ namespace seeks_plugins
         miscutil::add_map_entry(exports,"$xxrqueries",1,strdup("0"),0);
       }
     miscutil::add_map_entry(exports,"$xxnpeers",1,miscutil::to_string(qc->_npeers).c_str(),1);
-  }
-
-  void static_renderer::render_recommendations(const query_context *qc,
-      hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-      const std::string &cgi_base)
-  {
-    if (!qc->_recommended_snippets.empty())
-      {
-        const char *base_url = miscutil::lookup(exports,"base-url");
-        std::string base_url_str = "";
-        if (base_url)
-          base_url_str = std::string(base_url);
-        std::string reco_str = "Related results:";
-
-        std::vector<search_snippet*> sorted_reco;
-        hash_map<uint32_t,search_snippet*,id_hash_uint>::const_iterator hit
-        = qc->_recommended_snippets.begin();
-        while(hit!=qc->_recommended_snippets.end())
-          {
-            sorted_reco.push_back((*hit).second);
-            ++hit;
-          }
-        std::sort(sorted_reco.begin(),sorted_reco.end(),search_snippet::max_seeks_rank);
-
-        int k=0;
-        std::vector<search_snippet*>::const_iterator vit = sorted_reco.begin();
-        while(vit!=sorted_reco.end())
-          {
-            search_snippet *rs = (*vit);
-            char *url_enc = encode::url_encode(rs->_url.c_str());
-            char *url_html_enc = encode::html_encode(rs->_url.c_str());
-            reco_str += "<br><a href=\"" + base_url_str + "/qc_redir?q=" + qc->_url_enc_query + "&url="
-                        + std::string(url_enc) + "\">" + std::string(url_html_enc) + "</a>";
-            free(url_enc);
-            free(url_html_enc);
-            ++vit;
-            ++k;
-            if (k > websearch::_wconfig->_num_reco_queries)
-              break;
-          }
-        miscutil::add_map_entry(exports,"$xxreco",1,reco_str.c_str(),1);
-      }
-    else miscutil::add_map_entry(exports,"$xxreco",1,strdup(""),0);
   }
 
   void static_renderer::render_cached_queries(const std::string &query,
@@ -187,8 +652,8 @@ namespace seeks_plugins
           {
             char *html_enc_query = encode::html_encode(qc->_query.c_str());
             char *url_enc_query = encode::url_encode(qc->_query.c_str());
-            cqueries_str += "<br><a href=\"" + base_url_str + cgi_base + "q="
-                            + std::string(url_enc_query) +"&amp;expansion=1&amp;action=expand&amp;ui=stat\">"
+            cqueries_str += "<br><a href=\"" + base_url_str + cgi_base
+                            + "?q=" + std::string(url_enc_query) +"?expansion=1&amp;ui=stat\">"
                             + std::string(html_enc_query) + "</a>";
             free(html_enc_query);
             free(url_enc_query);
@@ -231,15 +696,13 @@ namespace seeks_plugins
                                         const std::vector<search_snippet*> &snippets,
                                         const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                         hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-                                        bool &not_end)
+                                        bool &not_end,
+                                        const bool &img)
   {
     const char *base_url = miscutil::lookup(exports,"base-url");
     std::string base_url_str = "";
     if (base_url)
       base_url_str = std::string(base_url);
-
-    std::vector<std::string> words;
-    miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 
     cgi::map_block_killer(exports,"have-clustered-results-head");
     cgi::map_block_killer(exports,"have-clustered-results-body");
@@ -275,6 +738,8 @@ namespace seeks_plugins
           {
             if (snippets.at(i)->_doc_type == REJECTED)
               continue;
+            if (img && snippets.at(i)->_doc_type != IMAGE)
+              continue;
             if (!snippets.at(i)->is_se_enabled(parameters))
               continue;
             if (!safesearch_off && !snippets.at(i)->_safe)
@@ -285,7 +750,8 @@ namespace seeks_plugins
             if (!similarity || snippets.at(i)->_seeks_ir > 0)
               {
                 if (count >= snistart)
-                  snippets_str += snippets.at(i)->to_html_with_highlight(words,base_url_str,
+                  snippets_str += static_renderer::render_snippet(snippets.at(i),
+                                  snippets.at(i)->_qc->_query_words,base_url_str,
                                   parameters);
                 count++;
               }
@@ -350,9 +816,6 @@ namespace seeks_plugins
     std::string base_url_str = "";
     if (base_url)
       base_url_str = std::string(base_url);
-
-    std::vector<std::string> words;
-    miscutil::tokenize(query_clean,words," "); // tokenize query before highlighting keywords.
 
     // lookup activated engines.
     feeds se_enabled;
@@ -448,7 +911,9 @@ namespace seeks_plugins
                                  clusters[c],exports);
             size_t nsps = snippets.size();
             for (size_t i=0; i<nsps; i++)
-              cluster_str += snippets.at(i)->to_html_with_highlight(words,base_url,parameters);
+              cluster_str += static_renderer::render_snippet(snippets.at(i),
+                             snippets.at(i)->_qc->_query_words,
+                             base_url,parameters);
             cluster_str += "</ol><div class=\"clear\"></div>";
 
             std::string cl = rplcnt;
@@ -467,7 +932,7 @@ namespace seeks_plugins
             cgi::map_block_killer(exports,hcl.c_str());
           }
       }
-    else miscutil::add_map_entry(exports,rplcnt.c_str(),1,"",1);
+    //else miscutil::add_map_entry(exports,rplcnt.c_str(),1,"",1);
 
     const char *rpp_str = miscutil::lookup(parameters,"rpp");
     if (rpp_str)
@@ -528,8 +993,8 @@ namespace seeks_plugins
     free(slabel_html_enc);
 
     std::string label_query = url_encoded_query + "+" + clabel_url_enc_str;
-    std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + cgi_base + "q=" + label_query
-                             + "&amp;page=1&amp;expansion=1&amp;action=expand&amp;ui=stat\">" + clabel_html_enc_str
+    std::string html_label = "<h2><a class=\"label\" href=\"" + base_url_str + cgi_base + "?q=" + label_query
+                             + "?page=1&amp;expansion=1&amp;ui=stat\">" + clabel_html_enc_str
                              + "</a><font size=\"2\"> " + slabel_html_enc_str + "</font></h2><br><ol>";
     return html_label;
   }
@@ -601,9 +1066,9 @@ namespace seeks_plugins
         const char *prs = miscutil::lookup(parameters,"prs");
         if (!prs)
           prs = websearch::_wconfig->_personalization ? "on" : "off";
-        std::string np_link = "<a href=\"" + base_url_str + cgi_base + "page=" + np_str + "&amp;q="
-                              + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
-                              + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
+        std::string np_link = "<a href=\"" + base_url_str + cgi_base + "?q="
+                              + url_encoded_query + "?page=" + np_str + "&amp;expansion=" + expansion + "&amp;engines="
+                              + engines + "&amp;rpp=" + rpp_s + "&amp;action=page&amp;content_analysis=" + ca_s
                               + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
                               + "&amp;ui=stat\"  id=\"search_page_next\" title=\"Next (ctrl+&gt;)\">&nbsp;</a>";
         miscutil::add_map_entry(exports,"$xxnext",1,np_link.c_str(),1);
@@ -640,8 +1105,8 @@ namespace seeks_plugins
         if (!prs)
           prs = websearch::_wconfig->_personalization ? "on" : "off";
         std::string ca_s = content_analysis ? "on" : "off";
-        std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "page=" + pp_str + "&amp;q="
-                              + url_encoded_query + "&amp;expansion=" + expansion + "&amp;action=page&amp;engines="
+        std::string pp_link = "<a href=\"" + base_url_str + cgi_base + "?q=" + url_encoded_query
+                              + "?page=" + pp_str + "&amp;action=page&amp;expansion=" + expansion + "&amp;engines="
                               + engines + "&amp;rpp=" + rpp_s + "&amp;content_analysis=" + ca_s
                               + "&amp;prs=" + std::string(prs) + "&amp;lang=" + qc->_auto_lang
                               + "&amp;ui=stat\"  id=\"search_page_prev\" title=\"Previous (ctrl+&lt;)\">&nbsp;</a>";
@@ -762,7 +1227,8 @@ namespace seeks_plugins
       const query_context *qc,
       const std::string &result_tmpl_name,
       const std::string &cgi_base,
-      const std::vector<std::pair<std::string,std::string> > *param_exports)
+      const std::vector<std::pair<std::string,std::string> > *param_exports,
+      const bool &img)
   {
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
     = static_renderer::websearch_exports(csp,param_exports);
@@ -784,7 +1250,7 @@ namespace seeks_plugins
     static_renderer::render_suggestions(qc,exports,cgi_base);
 
     // recommended URLs.
-    static_renderer::render_recommendations(qc,exports,cgi_base);
+    //static_renderer::render_recommendations(qc,exports,cgi_base);
 
     // queries in cache.
     static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
@@ -806,7 +1272,7 @@ namespace seeks_plugins
 
     // search snippets.
     bool not_end = false;
-    static_renderer::render_snippets(html_encoded_query,current_page,snippets,parameters,exports,not_end);
+    static_renderer::render_snippets(html_encoded_query,current_page,snippets,parameters,exports,not_end,img);
 
     // expand button.
     std::string expansion;
@@ -864,7 +1330,7 @@ namespace seeks_plugins
     static_renderer::render_suggestions(qc,exports,cgi_base);
 
     // recommended URLs.
-    static_renderer::render_recommendations(qc,exports,cgi_base);
+    //static_renderer::render_recommendations(qc,exports,cgi_base);
 
     // queries in cache.
     static_renderer::render_cached_queries(html_encoded_query,exports,cgi_base);
@@ -935,7 +1401,7 @@ namespace seeks_plugins
         else if (mode == 1)
           {
             std::string lctitle = sp->_title;
-            std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+            miscutil::to_lower(lctitle);
             ulsh_ham.add(lctitle,lsh_ham->_Ld);
           }
       }
@@ -966,7 +1432,7 @@ namespace seeks_plugins
         else if (mode == 1)
           {
             std::string lctitle = sp->_title;
-            std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+            miscutil::to_lower(lctitle);
             mres = ulsh_ham.getLEltsWithProbabilities(lctitle,lsh_ham->_Ld);
           }
         std::map<double,const std::string,std::greater<double> >::const_iterator mit = mres.begin();

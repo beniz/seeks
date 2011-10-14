@@ -25,11 +25,11 @@ namespace seeks_plugins
 {
 
 #define hash_max_radius                    1988906041ul  /* "query-max-radius" */
-#define hash_mode_intercept                1971845008ul  /* "mode-intercept" */
 #define hash_query_sweep_cycle             2195388340ul  /* "query-sweep-cycle" */
 #define hash_query_retention               1932741391ul  /* "query-retention" */
 #define hash_query_protect_redir            645686780ul  /* "protected-redirection" */
 #define hash_save_url_data                 3465855637ul  /* "save-url-data" */
+#define hash_cross_post_url                4153795065ul  /* "cross-post-url" */
 
   query_capture_configuration* query_capture_configuration::_config = NULL;
 
@@ -49,11 +49,11 @@ namespace seeks_plugins
   void query_capture_configuration::set_default_config()
   {
     _max_radius = 5;
-    _mode_intercept = "redirect";
     _sweep_cycle = 2592000;  // one month, in seconds.
     _retention = 31104000;   // one year, in seconds.
     _protected_redirection = false; // should be activated on public nodes.
     _save_url_data = true;
+    _cross_post_url = ""; // no cross-posting is default.
   }
 
   void query_capture_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -65,15 +65,6 @@ namespace seeks_plugins
         _max_radius = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Maximum radius of the query generation halo");
-        break;
-
-      case hash_mode_intercept :
-        if (strcasecmp(arg,"capture")==0 || strcasecmp(arg,"redirect")==0)
-          _mode_intercept = std::string(arg);
-        else errlog::log_error(LOG_LEVEL_ERROR,"bad value to query_capture plugin option mode-intercept: %",
-                                 arg);
-        configuration_spec::html_table_row(_config_args,cmd,arg,
-                                           "Whether to silently capture queries and clicks or to use a redirection from the result page to the proxy instead");
         break;
 
       case hash_query_sweep_cycle :
@@ -98,6 +89,12 @@ namespace seeks_plugins
         _save_url_data = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to save URL snippet's title and summary.");
+        break;
+
+      case hash_cross_post_url:
+        _cross_post_url = arg;
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "URL to which to cross-post recommendations.");
         break;
 
       default:

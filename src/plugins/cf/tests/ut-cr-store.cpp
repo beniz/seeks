@@ -23,6 +23,7 @@
 #include "seeks_proxy.h"
 #include "rank_estimators.h"
 #include "query_capture.h"
+#include "query_context.h"
 #include "user_db.h"
 #include "plugin_manager.h"
 #include "proxy_configuration.h"
@@ -99,21 +100,27 @@ TEST(CRTest,find_dbr)
   ASSERT_TRUE(NULL!=pl);
   query_capture *qcpl = static_cast<query_capture*>(pl);
   ASSERT_TRUE(NULL!=qcpl);
-  query_capture_element *qcelt = static_cast<query_capture_element*>(qcpl->_interceptor_plugin);
+  query_capture_element *qcelt = qcpl->_qelt;
 
   // add a record to the db.
   std::string query = "seeks";
   std::string url = "http://www.seeks-project.info/";
   std::string host,path;
   query_capture::process_url(url,host,path);
+  hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
+  = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+  miscutil::add_map_entry(parameters,"q",1,query.c_str(),1);
+  std::list<const char*> headers;
+  query_context *qc = new query_context(parameters,headers);
   try
     {
-      qcelt->store_queries(query,url,host,"query-capture");
+      qcelt->store_queries(qc->_lc_query,qc,url,host,"query-capture");
     }
   catch (sp_exception &e)
     {
       ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
     }
+  miscutil::free_map(parameters);
 
   // test find_dbr based on cr_store.
   std::string key = "1645a6897e62417931f26bcbdf4687c9c026b626";

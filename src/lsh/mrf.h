@@ -51,8 +51,6 @@ namespace lsh
       int _radius;
   };
 
-  uint32_t SuperFastHash(const char *data, uint32_t len);
-
   template<typename feat>
   void mrf_hash_m(const char *data, uint32_t len, feat &f)
   { };

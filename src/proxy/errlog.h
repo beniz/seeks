@@ -103,10 +103,7 @@ namespace sp
 #endif
       static FILE *_logfp;
       static int _debug;
-#if defined(FEATURE_PTHREAD) || defined(_WIN32)
       static sp_mutex_t _log_mutex;
-#endif
-
   };
 } /* end of namespace. */
 

@@ -126,15 +126,20 @@ namespace sp
   {
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
 
-    assert(csp);
-    assert(rsp);
-    assert(parameters);
-
     if (NULL == (exports = cgi::default_exports(csp, NULL)))
       {
         return SP_ERR_MEMORY;
       }
 
+    const char *output = miscutil::lookup(parameters,"output");
+    if (output && strcmp(output,"json")==0)
+      {
+        rsp->_status = strdup("404");
+        rsp->_body = strdup("{\"error\":\"not found\"}");
+        rsp->_content_length = strlen(rsp->_body);
+        miscutil::free_map(exports);
+        return SP_ERR_OK;
+      }
     rsp->_status = strdup("404 Seeks proxy page not found");
     if (rsp->_status == NULL)
       {
@@ -1244,12 +1249,6 @@ namespace sp
     #else */ /* ifndef FEATURE_NO_GIFS */
     /*   if (!err) err = cgi::map_conditional(exports, "FEATURE_NO_GIFS", 0);
     #endif */ /* ndef FEATURE_NO_GIFS */
-
-#ifdef FEATURE_PTHREAD
-    if (!err) err = cgi::map_conditional(exports, "FEATURE_PTHREAD", 1);
-#else /* ifndef FEATURE_PTHREAD */
-    if (!err) err = cgi::map_conditional(exports, "FEATURE_PTHREAD", 0);
-#endif /* ndef FEATURE_PTHREAD */
 
 #ifdef FEATURE_STATISTICS
     if (!err) err = cgi::map_conditional(exports, "FEATURE_STATISTICS", 1);

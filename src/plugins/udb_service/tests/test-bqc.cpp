@@ -20,6 +20,7 @@
 #include "query_capture.h"
 #include "urlmatch.h"
 #include "db_query_record.h"
+#include "seeks_proxy.h"
 #include "proxy_configuration.h"
 #include "errlog.h"
 
@@ -70,8 +71,16 @@ int main(int argc, char **argv)
     }
 
   udb_client udbc;
-  std::string squery = query_capture_element::no_command_query(query);
-  db_record *dbr = udbc.find_bqc(host,port,path,squery,1);
+  db_record *dbr = NULL;
+  try
+    {
+      dbr = udbc.find_bqc(host,port,path,query,1);
+    }
+  catch(sp_exception &e)
+    {
+      std::cout << e.what() << std::endl;
+      exit(-1);
+    }
   if (dbr)
     {
       db_query_record *dbqr = static_cast<db_query_record*>(dbr);

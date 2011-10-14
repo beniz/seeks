@@ -21,6 +21,7 @@
 #include "content_handler.h"
 #include "urlmatch.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "cf.h"
@@ -108,7 +109,7 @@ namespace seeks_plugins
                 std::map<double,const std::string,std::greater<double> > mres
                 = qc->_ulsh_ham->getLEltsWithProbabilities(surl,qc->_lsh_ham->_Ld); // url. we could treat host & path independently...
                 std::string lctitle = sp->_title;
-                std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+                miscutil::to_lower(lctitle);
                 std::map<double,const std::string,std::greater<double> > mres_tmp
                 = qc->_ulsh_ham->getLEltsWithProbabilities(lctitle,qc->_lsh_ham->_Ld); // title.
 
@@ -170,7 +171,7 @@ namespace seeks_plugins
                 std::string surl = urlmatch::strip_url(sp->_url);
                 qc->_ulsh_ham->add(surl,qc->_lsh_ham->_Ld);
                 std::string lctitle = sp->_title;
-                std::transform(lctitle.begin(),lctitle.end(),lctitle.begin(),tolower);
+                miscutil::to_lower(lctitle);
                 qc->_ulsh_ham->add(lctitle,qc->_lsh_ham->_Ld);
               }
 
@@ -179,11 +180,8 @@ namespace seeks_plugins
         ++it;
       } // end while.
 
-    // sort by rank.
-    /*std::stable_sort(snippets.begin(),snippets.end(),
-      search_snippet::max_meta_rank);*/
-    std::stable_sort(snippets.begin(),snippets.end(),
-                     search_snippet::max_seeks_rank);
+    // sort by rank, date or activiy.
+    sort_rank::sort_snippets(snippets,parameters);
 
     //debug
     /* std::cerr << "[Debug]: sorted result snippets:\n";
@@ -195,6 +193,44 @@ namespace seeks_plugins
            i++;
       } */
     //debug
+  }
+
+  void sort_rank::sort_snippets(std::vector<search_snippet*> &snippets,
+                                const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  {
+    // sort by rank, date or activiy.
+    const char *order = miscutil::lookup(parameters,"order");
+    if (!order || strcmpic(order,"rank")==0)
+      std::stable_sort(snippets.begin(),snippets.end(),
+                       search_snippet::max_seeks_rank);
+    else if (strcmpic(order,"new-date")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::new_date);
+      }
+    else if (strcmpic(order,"old-date")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::old_date);
+      }
+    else if (strcmpic(order,"new-activity")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::new_activity);
+      }
+    else if (strcmpic(order,"old-activity")==0)
+      {
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::old_activity);
+      }
+    else
+      {
+        // log error, and default to max seeks rank ordering.
+        errlog::log_error(LOG_LEVEL_ERROR,"wrong search result order parameter %s, ordering by seeks rank as default",
+                          order);
+        std::stable_sort(snippets.begin(),snippets.end(),
+                         search_snippet::max_seeks_rank);
+      }
   }
 
   void sort_rank::score_and_sort_by_similarity(query_context *qc, const char *id_str,
@@ -324,42 +360,26 @@ namespace seeks_plugins
   }
 
 #if defined(PROTOBUF) && defined(TC)
-  void sort_rank::personalize(query_context *qc)
+  void sort_rank::th_personalize(pers_arg *arg)
+  {
+    sort_rank::personalize(arg->_qc,arg->_parameters);
+    delete arg;
+  }
+  void sort_rank::personalize(query_context *qc,
+                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
     if (!websearch::_cf_plugin)
       return;
+    int expansion = 1;
+    const char *expansion_str = miscutil::lookup(parameters,"expansion");
+    if (expansion_str) // should never be otherwise
+      expansion = atoi(expansion_str);
+    if (expansion == 0) // should never happen.
+      expansion = 1;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc);
+    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters),expansion-1);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
-  }
-
-  void sort_rank::personalized_rank_snippets(query_context *qc, std::vector<search_snippet*> &snippets) throw (sp_exception)
-  {
-    if (!websearch::_cf_plugin)
-      return;
-    static_cast<cf*>(websearch::_cf_plugin)->estimate_ranks(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,snippets);
-    std::stable_sort(snippets.begin(),snippets.end(),
-                     search_snippet::max_seeks_rank);
-  }
-
-  void sort_rank::get_related_queries(query_context *qc) throw (sp_exception)
-  {
-    if (!websearch::_cf_plugin)
-      return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_related_queries(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,qc->_suggestions);
-  }
-
-  void sort_rank::get_recommended_urls(query_context *qc) throw (sp_exception)
-  {
-    if (!websearch::_cf_plugin)
-      return;
-    static_cast<cf*>(websearch::_cf_plugin)->get_recommended_urls(qc->_query,qc->_auto_lang,
-        qc->_page_expansion,
-        qc->_recommended_snippets);
-    qc->update_recommended_urls();
   }
 #endif
 

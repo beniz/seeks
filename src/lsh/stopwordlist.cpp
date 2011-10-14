@@ -63,12 +63,17 @@ namespace lsh
     if (infile.fail())
       return 1;
 
+    hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
     while (infile.good())
       {
         char word[256];
         infile.getline(word,256);
-        if (strlen(word) > 0)
-          _swlist.insert(std::pair<const char*,bool>(strndup(word,strlen(word)-1),true));
+        if (strlen(word)>0)
+          {
+            std::string word_str = std::string(word,strlen(word)-1);
+            if ((hit=_swlist.find(word_str.c_str()))==_swlist.end())
+              _swlist.insert(std::pair<const char*,bool>(strdup(word_str.c_str()),true));//strndup(word,strlen(word)-1),true));
+          }
       }
     infile.close();
 

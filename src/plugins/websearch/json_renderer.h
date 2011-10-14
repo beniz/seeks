@@ -27,19 +27,40 @@ namespace seeks_plugins
   class json_renderer
   {
     public:
-      static std::string render_engines(const feeds &engines);
+      static std::string render_engines(const feeds &engines,
+                                        const bool &img=false);
 
       static sp_err render_node_options(client_state *csp,
                                         std::list<std::string> &opts);
 
-      static std::string render_related_queries(const query_context *qc);
+      static std::string render_suggested_queries(const query_context *qc,
+          const int &nsuggs);
 
-      static std::string render_recommendations(const std::string &query_clean,
-          const query_context *qc);
+      static sp_err render_json_suggested_queries(const query_context *qc,
+          http_response *rsp,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
-      static std::string render_cached_queries(const std::string &query);
+      static std::string render_recommendations(const query_context *qc,
+          const int &nreco,
+          const double &qtime,
+          const uint32_t &radius,
+          const std::string &lang);
+
+      static sp_err render_json_recommendations(const query_context *qc,
+          http_response *rsp,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+          const double &qtime,
+          const int &radius,
+          const std::string &lang);
+
+      static std::string render_cached_queries(const std::string &query,
+          const int &nq);
 
       static std::string render_img_engines(const query_context *qc);
+
+      static std::string render_snippet(search_snippet *sp,
+                                        const bool &thumbs,
+                                        const std::vector<std::string> &query_words);
 
       static sp_err render_snippets(const std::string &query_clean,
                                     const int &current_page,
@@ -63,6 +84,20 @@ namespace seeks_plugins
                                         const query_context *qc,
                                         const double &qtime,
                                         const bool &img=false);
+
+      static sp_err render_json_snippet(search_snippet *sp,
+                                        http_response *rsp,
+                                        const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                        query_context *qc);
+
+      static sp_err render_json_words(const std::set<std::string> &words,
+                                      http_response *rsp,
+                                      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+
+      static sp_err render_cached_queries(http_response *rsp,
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                          const std::string &query,
+                                          const int &nq);
 
       static sp_err render_clustered_json_results(cluster *clusters,
           const short &K,

@@ -79,6 +79,7 @@ namespace seeks_plugins
       bool _dyn_ui; /**< user interface default, dynamic or static. */
       std::string _ui_theme; /**< User Interface theme. */
       short _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
+      int _num_recent_queries; /**< Max number of recent queries returned / rendered. */
   };
 
 } /* end of namespace. */

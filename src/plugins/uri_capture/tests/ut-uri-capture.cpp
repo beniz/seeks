@@ -81,7 +81,7 @@ class URICaptureTest : public testing::Test
     virtual void TearDown()
     {
       plugin_manager::close_all_plugins(); // XXX: beware, not very clean.
-      seeks_proxy::_user_db->close_db();
+      //seeks_proxy::_user_db->close_db();
       delete seeks_proxy::_user_db;
       delete seeks_proxy::_config;
       unlink(dbfile.c_str());
@@ -202,6 +202,7 @@ TEST(URIAPITest,parse_uri_html_title)
   ASSERT_EQ(UC_ERR_CONNECT,err);
   ASSERT_EQ(1,titles.size());
   ASSERT_TRUE(titles.at(0).empty());
+  delete[] outputs;
 }
 
 int main(int argc, char **argv)

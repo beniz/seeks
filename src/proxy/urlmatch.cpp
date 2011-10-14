@@ -1364,4 +1364,20 @@ namespace sp
     return SP_ERR_OK;
   }
 
+  std::string urlmatch::next_elt_from_path(std::string &path)
+  {
+    bool end_path = false;
+    size_t pos = path.find("/");
+    if (pos == std::string::npos)
+      {
+        pos = path.find("?");
+        end_path = true;
+      }
+    std::string query = (pos == std::string::npos) ? path : path.substr(0,pos);
+    if (end_path) // ends resource path.
+      path = "";
+    else  path =  (pos ==std::string::npos) ? "" : path.substr(pos+1);
+    return query;
+  }
+
 } /* end of namespace. */
