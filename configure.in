@@ -811,7 +811,6 @@ src/plugins/cf/tests/Makefile \
 src/plugins/udb_service/Makefile \
 src/plugins/udb_service/tests/Makefile \
 src/plugins/xsl_serializer/Makefile \
-src/plugins/xsl_serializer/tests/Makefile \
 src/cli/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)
