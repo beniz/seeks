@@ -621,6 +621,8 @@ namespace sp
     user_db udb; // existing user db.
     db_obj_local *dol = static_cast<db_obj_local*>(udb._hdb); // must be a local db, ensured from call in seeks.cpp
 
+    errlog::log_error(LOG_LEVEL_INFO,"Fixing up database, please wait as this can take a few minutes...");
+
     std::string bak_db = dol->get_name() + ".bak575";
     int fdo = open(dol->get_name().c_str(),O_RDONLY);
     if (fdo < 0)
