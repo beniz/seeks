@@ -13,4 +13,4 @@ libseekslsh_la_SOURCES=mrf.cpp LSHSystemHamming.cpp LSHFunction.cpp \
 		       Bucket.h BucketOperations.h lsh_configuration.h \
 		       LSHFunction.h LSHSystem.h LSHSystemHamming.h \
 		       LSHUniformHashTable.h LSHUniformHashTableHamming.h \
-		       mrf.h Random.h stopwordlist.h qprocess.h
+		       mrf.h Random.h stopwordlist.h qprocess.h superfasthash.h
