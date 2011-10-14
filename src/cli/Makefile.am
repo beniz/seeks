@@ -8,7 +8,7 @@ AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../proxy -I${srcdir}/../utils -I${srcdir}/..
             @CURL_CFLAGS@
 
 seeksclilib_LIBRARIES=libseekscli.a
-libseekscli_a_SOURCES=cli.cpp ../proxy/encode.cpp ../utils/miscutil.cpp
+libseekscli_a_SOURCES=cli.cpp ../proxy/encode.cpp ../utils/miscutil.cpp cli.h
 
 bin_PROGRAMS = seeks_cli
 seeks_cli_SOURCES = seeks_cli.cpp ../proxy/curl_mget.cpp ../proxy/errlog.cpp
