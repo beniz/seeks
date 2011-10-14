@@ -929,7 +929,7 @@ namespace seeks_plugins
             cgi::map_block_killer(exports,hcl.c_str());
           }
       }
-    else miscutil::add_map_entry(exports,rplcnt.c_str(),1,"",1);
+    //else miscutil::add_map_entry(exports,rplcnt.c_str(),1,"",1);
 
     const char *rpp_str = miscutil::lookup(parameters,"rpp");
     if (rpp_str)
