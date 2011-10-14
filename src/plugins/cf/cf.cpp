@@ -37,6 +37,9 @@
 #include "miscutil.h"
 #include "charset_conv.h"
 #include "errlog.h"
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+#include "xsl_serializer.h"
+#endif
 
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -49,6 +52,8 @@ namespace seeks_plugins
 {
 
   plugin* cf::_uc_plugin = NULL;
+  plugin* cf::_xs_plugin = NULL;
+  bool cf::_xs_plugin_activated = false;
 
   cf::cf()
     :plugin()
@@ -100,6 +105,11 @@ namespace seeks_plugins
 
     // look for dependent plugins.
     cf::_uc_plugin = plugin_manager::get_plugin("uri-capture");
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    _xs_plugin = plugin_manager::get_plugin("xsl-serializer");
+    _xs_plugin_activated = seeks_proxy::_config->is_plugin_activated("xsl-serializer");
+#endif
+
   }
 
   void cf::stop()
@@ -113,16 +123,34 @@ namespace seeks_plugins
     std::list<std::string> l;
     hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
     = cf_configuration::_config->_pl->_peers.begin();
-    while(hit!=cf_configuration::_config->_pl->_peers.end())
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    const char *output_str = miscutil::lookup(parameters,"output");
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
       {
-        peer *p = (*hit).second;
-        l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
-        ++hit;
+	while(hit!=cf_configuration::_config->_pl->_peers.end())
+	  {
+	    peer *p = (*hit).second;
+	    l.push_back(p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path);
+	    ++hit;
+	  }
+	return (static_cast<xsl_serializer*>(cf::_xs_plugin))->render_xsl_peers(csp,rsp,parameters, &l);
+      } 
+    else
+      {
+#endif
+	while(hit!=cf_configuration::_config->_pl->_peers.end())
+	  {
+	    peer *p = (*hit).second;
+	    l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
+	    ++hit;
+	  }
+	const std::string json_str = "{\"peers\":" + miscutil::join_string_list(",",l) + "}";
+	const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
+	response(rsp,body);
+	return SP_ERR_OK;
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
       }
-    const std::string json_str = "{\"peers\":" + miscutil::join_string_list(",",l) + "}";
-    const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
-    response(rsp,body);
-    return SP_ERR_OK;
+#endif
   }
 
   sp_err cf::cgi_tbd(client_state *csp,
@@ -228,7 +256,15 @@ namespace seeks_plugins
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
     cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
-    sp_err err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+    sp_err err=SP_ERR_OK;
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    const char *output_str = miscutil::lookup(parameters,"output");
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+      err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_suggested_queries(csp,rsp,parameters,qc);
+    else
+#endif
+      err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+
     qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
@@ -328,7 +364,16 @@ namespace seeks_plugins
         if (lang_str) // the opposite should never happen.
           lang = lang_str;
       }
-    sp_err err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+    sp_err err = SP_ERR_OK;
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    const char *output_str = miscutil::lookup(parameters,"output");
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+      err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_recommendations(csp,rsp,parameters,qc,qtime,radius,lang);
+    else
+#endif
+      err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+
+
     qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;

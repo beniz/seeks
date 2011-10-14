@@ -100,3 +100,13 @@ LDADD += \
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
+
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += -I${top_srcdir}/src/plugins/xsl_serializer \
+     @XSLT_CFLAGS@ 
+AM_LDFLAGS += \
+	-L$(top_builddir)/src/plugins/xsl_serializer 
+LDADD += \
+      -lseeksxslserializerplugin \
+      @XSLT_LDADD@
+endif

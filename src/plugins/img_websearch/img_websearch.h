@@ -38,7 +38,7 @@ namespace seeks_plugins
 
       ~img_websearch();
 
-      virtual void start() {};
+      virtual void start();
       virtual void stop() {};
 
       /* cgi calls. */
@@ -71,6 +71,8 @@ namespace seeks_plugins
     public:
       static img_websearch_configuration *_iwconfig;
       static hash_map<uint32_t,query_context*,id_hash_uint> _active_img_qcontexts;
+      static plugin* _xs_plugin;
+      static bool _xs_plugin_activated;
   };
 
 } /* end of namespace. */

@@ -32,6 +32,11 @@ endif
 if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif
+
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += @XSLT_CFLAGS@
+endif
+
 AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websearch -L../../../dht 
 if HAVE_PROTOBUF
 AM_LDFLAGS += -L../../query_capture -L../../uri_capture -L../../cf -L../../udb_service \
@@ -49,10 +54,18 @@ endif
 if HAVE_OPENCV2
 AM_LDFLAGS += `pkg-config opencv --libs`
 endif
+
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_LDFLAGS += -L../../xsl_serializer
+endif
+
 LDADD=-lseeksimgwebsearchplugin -lseekswebsearchplugin 
 if HAVE_PROTOBUF
 if HAVE_TC
 LDADD += -lquerycaptureplugin -luricaptureplugin -lseeksuserdb -lcfplugin -ludbserviceplugin
 endif
+endif
+if HAVE_XSLSERIALIZER_PLUGIN
+LDADD += -lseeksxslserializerplugin @XSLT_LDADD@
 endif
 LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ -lpthread -lpcreposix -lpcre -lz

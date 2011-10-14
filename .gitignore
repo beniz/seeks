@@ -60,6 +60,7 @@ Makefile.in
 */*/*/tests/test_*
 */*/*/tests/ut_*
 
-
-
+# xml test generated files
+src/plugins/xsl_serializer/samples/_*.xml
+src/plugins/xsl_serializer/samples/samples_index
 

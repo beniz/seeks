@@ -96,6 +96,9 @@ namespace seeks_plugins
 
     public:
       static plugin *_uc_plugin;
+      static plugin* _xs_plugin;
+      static bool _xs_plugin_activated;
+    
   };
 
 } /* end of namespace. */
