@@ -52,7 +52,7 @@ namespace seeks_plugins
       {
         if ((*it)->_doc_type != IMAGE)
           {
-            it = snippets.erase(it);
+            ++it;
             continue;
           }
 

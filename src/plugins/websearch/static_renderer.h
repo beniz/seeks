@@ -65,7 +65,8 @@ namespace seeks_plugins
                                   const std::vector<search_snippet*> &snippets,
                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                   hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-                                  bool &not_end);
+                                  bool &not_end,
+                                  const bool &img=false);
 
       static void render_clustered_snippets(const std::string &query_clean,
                                             const std::string &url_encoded_query,
@@ -132,7 +133,8 @@ namespace seeks_plugins
                                               const query_context *qc,
                                               const std::string &result_tmpl_name,
                                               const std::string &cgi_base="/search",
-                                              const std::vector<std::pair<std::string,std::string> > *param_exports=NULL);
+                                              const std::vector<std::pair<std::string,std::string> > *param_exports=NULL,
+                                              const bool &img=false);
 
       static sp_err render_clustered_result_page_static(cluster *clusters,
           const short &K,

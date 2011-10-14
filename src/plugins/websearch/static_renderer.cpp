@@ -696,7 +696,8 @@ namespace seeks_plugins
                                         const std::vector<search_snippet*> &snippets,
                                         const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                         hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
-                                        bool &not_end)
+                                        bool &not_end,
+                                        const bool &img)
   {
     const char *base_url = miscutil::lookup(exports,"base-url");
     std::string base_url_str = "";
@@ -736,6 +737,8 @@ namespace seeks_plugins
         for (int i=0; i<ssize; i++)
           {
             if (snippets.at(i)->_doc_type == REJECTED)
+              continue;
+            if (img && snippets.at(i)->_doc_type != IMAGE)
               continue;
             if (!snippets.at(i)->is_se_enabled(parameters))
               continue;
@@ -1224,7 +1227,8 @@ namespace seeks_plugins
       const query_context *qc,
       const std::string &result_tmpl_name,
       const std::string &cgi_base,
-      const std::vector<std::pair<std::string,std::string> > *param_exports)
+      const std::vector<std::pair<std::string,std::string> > *param_exports,
+      const bool &img)
   {
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports
     = static_renderer::websearch_exports(csp,param_exports);
@@ -1268,7 +1272,7 @@ namespace seeks_plugins
 
     // search snippets.
     bool not_end = false;
-    static_renderer::render_snippets(html_encoded_query,current_page,snippets,parameters,exports,not_end);
+    static_renderer::render_snippets(html_encoded_query,current_page,snippets,parameters,exports,not_end,img);
 
     // expand button.
     std::string expansion;

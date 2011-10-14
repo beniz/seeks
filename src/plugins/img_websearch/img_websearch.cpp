@@ -595,7 +595,8 @@ namespace seeks_plugins
             cond_broadcast(&qc->_feeds_ack_cond);
           }
       }
-    img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets);
+    sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // to merge P2P non image results.
+    img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets); // to merge image results only.
 
     // rendering.
     // time measured before rendering, since we need to write it down.
@@ -628,7 +629,7 @@ namespace seeks_plugins
                   csp,rsp,parameters,qc,
                   (seeks_proxy::_datadir.empty() ? plugin_manager::_plugin_repository + tmpl_name
                    : std::string(seeks_proxy::_datadir) + "plugins/img_websearch/" + tmpl_name),
-                  "/search_img?",param_exports);
+                  "/search_img?",param_exports,true);
             if (param_exports)
               delete param_exports;
           }
