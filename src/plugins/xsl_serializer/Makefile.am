@@ -34,7 +34,7 @@ if USE_PERL
 libseeksxslserializerplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
-SUBDIRS=. tests
+SUBDIRS=. 
 
 xslserializerconfigdir=$(sysconfdir)/seeks
 dist_xslserializerconfig_DATA=xslserializer-config
