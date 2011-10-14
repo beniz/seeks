@@ -67,7 +67,7 @@ for q in QUERIES:
                 print "error parsing xml result"
             if rx is not None:
                 try:
-                    snippets=rx.xpath('//snippet/@id')[0]
+                    current_snippet=rx.xpath('//snippet/@id')[0]
                 except:
                     pass
                 
