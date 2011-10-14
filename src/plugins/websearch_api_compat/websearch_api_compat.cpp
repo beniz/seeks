@@ -232,8 +232,12 @@ namespace seeks_plugins
         if (err != SP_ERR_OK)
           return err;
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action",1,"expand",1);
-        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"output",1,"html",1);
+        const char *action = miscutil::lookup(parameters,"action");
+        if (!action)
+          miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action",1,"expand",1);
+        const char *output = miscutil::lookup(parameters,"output");
+        if (!output)
+          miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"output",1,"html",1);
 
         //return websearch_api_compat::cgi_search_compat(csp,rsp,parameters);
         free(csp->_http._gpc);
