@@ -63,7 +63,9 @@ namespace sp
               const std::string &haddr="",
               const int &hport=-1,
               const std::string &hpath="",
-              const std::string &rsc="");
+              const std::string &rsc="",
+              const int64_t &bnum=-1,
+              const bool &large=false);
 
       /**
        * \brief db constructor, for opening a existing db by its name.

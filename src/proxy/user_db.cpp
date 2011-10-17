@@ -61,7 +61,9 @@ namespace sp
                    const std::string &haddr,
                    const int &hport,
                    const std::string &hpath,
-                   const std::string &rsc)
+                   const std::string &rsc,
+                   const int64_t &bnum,
+                   const bool &large)
     :_opened(false),_rsc(rsc)
   {
     // init the mutex;
@@ -81,8 +83,13 @@ namespace sp
                                    seeks_proxy::_config->_user_db_hport);
         else _hdb = new db_obj_remote(haddr.c_str(),hport,hpath);
       }
-    /*_hdb->dbsetmutex();
-      static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);*/
+    //_hdb->dbsetmutex();
+    if (bnum != -1 || large)
+      {
+        if (!large)
+          static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,0);
+        else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE);
+      }
 
     // db location.
     if (local && seeks_proxy::_config->_user_db_file.empty())
