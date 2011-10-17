@@ -59,6 +59,7 @@ namespace sp
        * @param hport the host port of the remote db.
        */
       user_db(const bool &local=true,
+              const std::string &dbname="",
               const std::string &haddr="",
               const int &hport=-1,
               const std::string &hpath="",
