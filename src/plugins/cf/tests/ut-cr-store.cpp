@@ -136,7 +136,7 @@ TEST(CRTest,find_dbr)
   ASSERT_EQ(2,qd->_visited_urls->size());
   std::string rkey = user_db::generate_rkey(key,"query-capture");
   rank_estimator::_store.add(host,-1,"",rkey,dbr);
-  user_db udbr(false,host,-1,"","sn");
+  user_db udbr(false,"",host,-1,"","sn");
   db_record *dbr2 = rank_estimator::find_dbr(&udbr,key,"query-capture",in_store);
   ASSERT_EQ(dbr,dbr2);
   ASSERT_EQ(1,rank_estimator::_store._store.size());
