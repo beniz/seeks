@@ -125,29 +125,29 @@ namespace seeks_plugins
     = cf_configuration::_config->_pl->_peers.begin();
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     const char *output_str = miscutil::lookup(parameters,"output");
-    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml"))
       {
-	while(hit!=cf_configuration::_config->_pl->_peers.end())
-	  {
-	    peer *p = (*hit).second;
-	    l.push_back(p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path);
-	    ++hit;
-	  }
-	return (static_cast<xsl_serializer*>(cf::_xs_plugin))->render_xsl_peers(csp,rsp,parameters, &l);
-      } 
+        while(hit!=cf_configuration::_config->_pl->_peers.end())
+          {
+            peer *p = (*hit).second;
+            l.push_back(p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path);
+            ++hit;
+          }
+        return (static_cast<xsl_serializer*>(cf::_xs_plugin))->render_xsl_peers(csp,rsp,parameters, &l);
+      }
     else
       {
 #endif
-	while(hit!=cf_configuration::_config->_pl->_peers.end())
-	  {
-	    peer *p = (*hit).second;
-	    l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
-	    ++hit;
-	  }
-	const std::string json_str = "{\"peers\":" + miscutil::join_string_list(",",l) + "}";
-	const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
-	response(rsp,body);
-	return SP_ERR_OK;
+        while(hit!=cf_configuration::_config->_pl->_peers.end())
+          {
+            peer *p = (*hit).second;
+            l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
+            ++hit;
+          }
+        const std::string json_str = "{\"peers\":[" + miscutil::join_string_list(",",l) + "]}";
+        const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
+        response(rsp,body);
+        return SP_ERR_OK;
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
       }
 #endif
@@ -259,7 +259,7 @@ namespace seeks_plugins
     sp_err err=SP_ERR_OK;
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     const char *output_str = miscutil::lookup(parameters,"output");
-    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml"))
       err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_suggested_queries(csp,rsp,parameters,qc);
     else
 #endif
@@ -367,7 +367,7 @@ namespace seeks_plugins
     sp_err err = SP_ERR_OK;
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     const char *output_str = miscutil::lookup(parameters,"output");
-    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml")) 
+    if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml"))
       err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_recommendations(csp,rsp,parameters,qc,qtime,radius,lang);
     else
 #endif
