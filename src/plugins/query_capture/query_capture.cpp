@@ -415,12 +415,13 @@ namespace seeks_plugins
   }
 
   void query_capture_element::store_queries(const std::string &query,
-      const std::string &plugin_name) throw (sp_exception)
+      const std::string &plugin_name,
+      const int &radius) throw (sp_exception)
   {
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
     qprocess::generate_query_hashes(query,0,
-                                    query_capture_configuration::_config->_max_radius,
+                                    radius == -1 ? query_capture_configuration::_config->_max_radius : radius,
                                     features);
 
     // store query with hash fragment as key.
@@ -445,6 +446,38 @@ namespace seeks_plugins
       }
   }
 
+  void query_capture_element::remove_queries(const std::string &query,
+      const std::string &plugin_name,
+      const int &radius) throw (sp_exception)
+  {
+    // generate query fragments.
+    hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
+    qprocess::generate_query_hashes(query,0,
+                                    radius,
+                                    features);
+
+    // remove queries.
+    int err = 0;
+    hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = features.begin();
+    while (hit!=features.end())
+      {
+        try
+          {
+            query_capture_element::remove_query((*hit).second,query,(*hit).first,plugin_name);
+          }
+        catch(sp_exception &e)
+          {
+            err++;
+          }
+        ++hit;
+      }
+    if (err != 0)
+      {
+        std::string msg = "failed removing some or all query fragments for query " + query;
+        throw sp_exception(QC_ERR_REMOVE_QUERY,msg);
+      }
+  }
+
   void query_capture_element::store_query(const DHTKey &key,
                                           const std::string &query,
                                           const uint32_t &radius,
@@ -460,6 +493,31 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(err,msg);
       }
+  }
+
+  void query_capture_element::remove_query(const DHTKey &key,
+      const std::string &query,
+      const uint32_t &radius,
+      const std::string &plugin_name) throw (sp_exception)
+  {
+    std::string key_str = key.to_rstring();
+    db_record *dbr = seeks_proxy::_user_db->find_dbr(key_str,plugin_name);
+    if (!dbr)
+      return;
+    db_query_record *dbqr = static_cast<db_query_record*>(dbr);
+    hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit;
+    if ((hit=dbqr->_related_queries.find(query.c_str()))!=dbqr->_related_queries.end())
+      {
+        // erase the query from the list, then rewrite the
+        // record.
+        query_data *qdata = (*hit).second;
+        dbqr->_related_queries.erase(hit);
+        delete qdata;
+        seeks_proxy::_user_db->remove_dbr(key_str,plugin_name);
+        if (!dbqr->_related_queries.empty())
+          seeks_proxy::_user_db->add_dbr(key_str,*dbqr);
+      }
+    delete dbr;
   }
 
   void query_capture_element::store_url(const DHTKey &key, const std::string &query,

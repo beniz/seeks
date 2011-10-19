@@ -36,9 +36,10 @@ using namespace lsh;
 const std::string dbfile = "seeks_test.db";
 const std::string basedir = "../../../";
 
-static std::string queries[1] =
+static std::string queries[2] =
 {
-  "seeks"
+  "seeks",
+  "seeks project"
 };
 
 static std::string keys[1] =
@@ -326,6 +327,47 @@ TEST_F(QCTest,remove_url)
   = dbqr->_related_queries.find(queries[0].c_str());
   ASSERT_TRUE((*hit).second->_visited_urls==NULL); // protobuffers read no urls in record.
   delete dbqr;
+}
+
+TEST_F(QCTest,remove_queries)
+{
+  try
+    {
+      qcelt->store_queries(queries[1],"query-capture",5);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+  ASSERT_EQ(3,seeks_proxy::_user_db->number_records());
+  try
+    {
+      qcelt->remove_queries(queries[1],"query-capture",5);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+  ASSERT_EQ(0,seeks_proxy::_user_db->number_records());
+
+  try
+    {
+      qcelt->store_queries(queries[1],"query-capture",5);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+  ASSERT_EQ(3,seeks_proxy::_user_db->number_records());
+  try
+    {
+      qcelt->remove_queries(queries[1],"query-capture",0);
+    }
+  catch (sp_exception &e)
+    {
+      ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
+    }
+  ASSERT_EQ(2,seeks_proxy::_user_db->number_records());
 }
 
 TEST(DBRTest,serialize_deserialize)

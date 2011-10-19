@@ -25,5 +25,6 @@ typedef int qc_err;
 #define QC_ERR_STORE_QUERY           2001 /**< error while storing query. */
 #define QC_ERR_STORE_URL             2002 /**< error while storing URL. */
 #define QC_ERR_STORE                 2003 /**< generic storing error (URL + query). */
+#define QC_ERR_REMOVE_QUERY          2004 /**< error while removing query. */
 
 #endif

@@ -549,13 +549,44 @@ namespace seeks_plugins
 
     // check for missing parameters.
     const char *url_str = miscutil::lookup(parameters,"url");
-    if (!url_str)
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
     std::string url = url_str;
 
     uint32_t hits = 0;
     std::string host;
     query_capture::process_url(url,host);
+
+    if (!url_str) // remove query with all attached urls.
+      {
+        int radius = cf_configuration::_config->_post_radius;
+        const char *radius_str = miscutil::lookup(parameters,"radius");
+        if (radius_str)
+          {
+            char *endptr;
+            int tmp = strtol(radius_str,&endptr,0);
+            if (!*endptr)
+              {
+                radius = tmp;
+              }
+          }
+
+        try
+          {
+            query_capture_element::remove_queries(query,"query-capture",radius);
+          }
+        catch(sp_exception &e)
+          {
+            return SP_ERR_MEMORY; // 500.
+          }
+
+        // remove query from cache if applicable.
+        query_context *qc = websearch::lookup_qc(parameters);
+        if (qc)
+          {
+            sweeper::unregister_sweepable(qc);
+            delete qc;
+          }
+        return SP_ERR_OK;
+      }
 
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
     qprocess::generate_query_hashes(query,0,0,features);
