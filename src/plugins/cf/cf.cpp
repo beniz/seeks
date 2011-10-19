@@ -548,8 +548,10 @@ namespace seeks_plugins
     query = miscutil::lookup(parameters,"q");
 
     // check for missing parameters.
+    std::string url;
     const char *url_str = miscutil::lookup(parameters,"url");
-    std::string url = url_str;
+    if (url_str)
+      url = url_str;
 
     uint32_t hits = 0;
     std::string host;
