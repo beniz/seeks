@@ -32,7 +32,12 @@ endif
 if HAVE_TT
 AM_LDFLAGS += `pkg-config --libs tokyotyrant`
 endif
+endif
 
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CXXFLAGS += -I${top_srcdir}/src/plugins/xsl_serializer \
+	@XSLT_CFLAGS@
+AM_LDFLAGS += -Lplugins/xsl_serializer
 endif
 
 if USE_PERL
@@ -55,6 +60,11 @@ LDADD += -lseeksutils -lseeksproxy -lseeksplugins
 if HAVE_PROTOBUF
 if HAVE_TC
 LDADD += -lseeksuserdb -lseeksuserdbfix
+endif
+if HAVE_XSLSERIALIZER_PLUGIN
+LDADD += \
+	-lseeksxslserializerplugin \
+	@XSLT_LDADD@
 endif
 endif
 LDADD += -lpcre -lpcreposix -lseekslsh -lseeksdht -lrmd160 -lpthread -lz @CURL_LDADD@

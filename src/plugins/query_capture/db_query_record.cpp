@@ -228,7 +228,9 @@ namespace seeks_plugins
     _related_queries.insert(std::pair<const char*,query_data*>(qd->_query.c_str(),qd));
   }
 
-  db_query_record::db_query_record(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &rq)
+  db_query_record::db_query_record(const std::string &plugin_name,
+                                   const hash_map<const char*,query_data*,hash<const char*>,eqstr> &rq)
+    :db_record(plugin_name)
   {
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
     = rq.begin();
@@ -240,6 +242,7 @@ namespace seeks_plugins
   }
 
   db_query_record::db_query_record(const db_query_record &dbr)
+    :db_record(dbr._plugin_name)
   {
     db_query_record::copy_related_queries(dbr._related_queries,_related_queries);
   }

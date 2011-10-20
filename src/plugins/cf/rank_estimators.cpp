@@ -213,11 +213,11 @@ namespace seeks_plugins
       udb = seeks_proxy::_user_db;
     else if (rsc == "sn")
       {
-        udb = new user_db(false,host,port,path,rsc);
+        udb = new user_db(false,"",host,port,path,rsc);
       }
     else if (rsc == "tt")
       {
-        udb = new user_db(false,host,port); // remote db.
+        udb = new user_db(false,"",host,port); // remote db.
         int err = udb->open_db();
         if (err != SP_ERR_OK)
           {

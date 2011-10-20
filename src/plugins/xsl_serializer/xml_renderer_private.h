@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2011 Emmanuel Benazera, <ebenazer@seeks-project.info>
+ * Copyright (c) 2011 Stéphane Bonhomme <stephane.bonhomme@seeks.pro>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -16,15 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QC_ERR_H
-#define QC_ERR_H
+#ifndef XML_RENDERER_PRIVATE_H
+#define XML_RENDERER_PRIVATE_H
 
-#include "sp_err.h"
-typedef int qc_err;
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include "websearch.h"
+#include "clustering.h"
+#include "query_context.h"
 
-#define QC_ERR_STORE_QUERY           2001 /**< error while storing query. */
-#define QC_ERR_STORE_URL             2002 /**< error while storing URL. */
-#define QC_ERR_STORE                 2003 /**< generic storing error (URL + query). */
-#define QC_ERR_REMOVE_QUERY          2004 /**< error while removing query. */
+using seeks_plugins::query_context;
 
-#endif
+namespace xml_renderer_private
+{
+  sp_err collect_xml_results(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+			     const query_context *qc,
+			     const double &qtime,
+			     const bool &img,
+			     xmlNodePtr parent);
+
+}
+
+#endif // XML_RENDERER_PRIVATE_H

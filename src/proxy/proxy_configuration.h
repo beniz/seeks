@@ -3,7 +3,7 @@
  * It is based on Privoxy (http://www.privoxy.org), developped
  * by the Privoxy team.
  *
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -171,6 +171,9 @@ namespace sp
 
       /* user db optimization. */
       bool _user_db_optimize;
+
+      /* user db flag for db > 2Gb. */
+      bool _user_db_large;
 
       /* pointer to source code. */
       std::string _url_source_code;

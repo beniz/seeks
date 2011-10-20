@@ -99,26 +99,57 @@ namespace seeks_plugins
 
       ~query_capture_element();
 
+      /**
+       * \brief stores queries halo along with a URL.
+       */
       static void store_queries(const std::string &query,
                                 const query_context *qc,
                                 const std::string &url, const std::string &host,
                                 const std::string &plugin_name,
                                 const int &radius=-1) throw (sp_exception);
 
+      /**
+       * \brief stores queries halo alone.
+       */
       static void store_queries(const std::string &query,
-                                const std::string &plugin_name) throw (sp_exception);
+                                const std::string &plugin_name,
+                                const int &radius=-1) throw (sp_exception);
 
+      /**
+       * \brief removes a queries halo and all attached URLs.
+       */
+      static void remove_queries(const std::string &query,
+                                 const std::string &plugin_name,
+                                 const int &radius) throw (sp_exception);
+
+      /**
+       * \brief store query alone.
+       */
       static void store_query(const DHTKey &key,
                               const std::string &query,
                               const uint32_t &radius,
                               const std::string &plugin_name) throw (sp_exception);
 
+      /**
+       * \brief removes query and attached URLs.
+       */
+      static void remove_query(const DHTKey &key,
+                               const std::string &query,
+                               const uint32_t &radius,
+                               const std::string &plugin_name) throw (sp_exception);
+
+      /**
+       * \brief store query and URL.
+       */
       static void store_url(const DHTKey &key, const std::string &query,
                             const std::string &url, const std::string &host,
                             const uint32_t &radius,
                             const std::string &plugin_name,
                             const search_snippet *sp=NULL) throw (sp_exception);
 
+      /**
+       * \brief removes a URL attached to a query.
+       */
       static void remove_url(const DHTKey &key, const std::string &query,
                              const std::string &url, const std::string &host,
                              const short &url_hits, const uint32_t &radius,

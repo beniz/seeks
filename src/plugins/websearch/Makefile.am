@@ -21,6 +21,9 @@ AM_CPPFLAGS += `pkg-config --cflags tokyotyrant`
 endif
 endif
 
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../xsl_serializer
+endif
 if HAVE_OPENCV2
 AM_CPPFLAGS += `pkg-config opencv --cflags`
 endif

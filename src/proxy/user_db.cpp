@@ -57,25 +57,25 @@ namespace sp
   double user_db::_db_version = 0.6;
 
   user_db::user_db(const bool &local,
+                   const std::string &dbname,
                    const std::string &haddr,
                    const int &hport,
                    const std::string &hpath,
-                   const std::string &rsc)
+                   const std::string &rsc,
+                   const int64_t &bnum,
+                   const bool &large)
     :_opened(false),_rsc(rsc)
   {
     // init the mutex;
     mutex_init(&_db_mutex);
 
     // create the db.
-    //#if defined(TT)
     if (local)
-      //#endif
       {
         _hdb = new db_obj_local();
         _hdb->dbsetmutex();
         static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
       }
-    //#if defined(TT)
     else
       {
         if (haddr.empty())
@@ -83,9 +83,13 @@ namespace sp
                                    seeks_proxy::_config->_user_db_hport);
         else _hdb = new db_obj_remote(haddr.c_str(),hport,hpath);
       }
-    //#endif
-    /*_hdb->dbsetmutex();
-      static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);*/
+    //_hdb->dbsetmutex();
+    if (bnum != -1 || large)
+      {
+        if (!large)
+          static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,0);
+        else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE);
+      }
 
     // db location.
     if (local && seeks_proxy::_config->_user_db_file.empty())
@@ -107,7 +111,12 @@ namespace sp
                                       name.c_str(),strerror(errno));
                     name = "";
                   }
-                else name += db_obj_local::_db_name;
+                else
+                  {
+                    if (dbname.empty())
+                      name += db_obj_local::_db_name; // default db name.
+                    else name += dbname;
+                  }
                 dol->set_name(name);
               }
           }
@@ -115,8 +124,17 @@ namespace sp
           {
             // try datadir, beware, we may not have permission to write.
             if (seeks_proxy::_datadir.empty())
-              dol->set_name(db_obj_local::_db_name); // write it down locally.
-            else dol->set_name(seeks_proxy::_datadir + db_obj_local::_db_name);
+              {
+                if (dbname.empty())
+                  dol->set_name(db_obj_local::_db_name); // write it down locally.
+                else dol->set_name(dbname);
+              }
+            else
+              {
+                if (dbname.empty())
+                  dol->set_name(seeks_proxy::_datadir + db_obj_local::_db_name);
+                else dol->set_name(seeks_proxy::_datadir + dbname);
+              }
           }
       }
     else if (local) // custom db file.
@@ -269,11 +287,9 @@ namespace sp
 
   bool user_db::is_remote() const
   {
-    //#if defined(TT)
     db_obj_remote *dbojr = dynamic_cast<db_obj_remote*>(_hdb);
     if (dbojr)
       return true;
-    //#endif
     return false;
   }
 

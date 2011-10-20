@@ -426,6 +426,35 @@ else
 fi
 
 #====================================================
+# XML/XSL serialization  plugin activation.
+#====================================================
+AC_ARG_ENABLE(xslserializer-plugin,
+AC_HELP_STRING([--enable-xslserializer-plugin],[Enable the Seeks XML/XSLT serializer (default is NO)]),
+[case "${enableval}" in
+        yes) xslserializerplugin=true ;;
+	        no) xslserializerplugin=false ;;
+                        *) AC_MSG_ERROR(bad_value ${enableval} for
+--enable-xslserializer-plugin) ;;
+esac],[xslserializerplugin=false])
+AM_CONDITIONAL(HAVE_XSLSERIALIZER_PLUGIN,test x$xslserializerplugin = xtrue)
+if test x$xslserializerplugin = xtrue; then
+   #check for libxslt 
+   # First, check for the xsl-config tool
+   AC_PATH_PROGS(XSLT_CONFIG, xslt-config, no)
+   if test x$XSLT_CONFIG = xno; then
+      AC_MSG_ERROR(xslt-config not found; verify that libxslt is installed on your system)
+   fi
+
+   XSLT_LDADD=`$XSLT_CONFIG --libs`
+   AC_SUBST(XSLT_LDADD)
+
+   XSLT_CFLAGS=`$XSLT_CONFIG --cflags`
+   AC_SUBST(XSLT_CFLAGS)
+   
+   AC_DEFINE(FEATURE_XSLSERIALIZER_PLUGIN,1,"XSL serializer plugin available")
+fi
+
+#====================================================
 # libevent detection.
 #====================================================
 trylibeventdir=""
@@ -781,6 +810,7 @@ src/plugins/cf/Makefile \
 src/plugins/cf/tests/Makefile \
 src/plugins/udb_service/Makefile \
 src/plugins/udb_service/tests/Makefile \
+src/plugins/xsl_serializer/Makefile \
 src/cli/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)
@@ -814,4 +844,5 @@ AC_MSG_NOTICE([Configured to build seeks:
  URI capture:		  ${uricapture}
  Personalization:	  ${cf}
  User DB service:         ${udbservice}
+ XSL serializer:          ${xslserializerplugin}
 ])

@@ -29,10 +29,15 @@
 #include "static_renderer.h"
 #include "dynamic_renderer.h"
 #include "seeks_proxy.h"
+#include "proxy_configuration.h"
+#include "plugin_manager.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h" // dependent plugin.
 #include "cf.h"
+#endif
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+#include "xsl_serializer.h"
 #endif
 
 #include <unistd.h>
@@ -50,6 +55,10 @@ namespace seeks_plugins
   img_websearch_configuration* img_websearch::_iwconfig = NULL;
   hash_map<uint32_t,query_context*,id_hash_uint> img_websearch::_active_img_qcontexts
   = hash_map<uint32_t,query_context*,id_hash_uint>();
+
+  plugin* img_websearch::_xs_plugin = NULL;
+  bool img_websearch::_xs_plugin_activated = false;
+
 
   img_websearch::img_websearch()
     : plugin()
@@ -96,6 +105,15 @@ namespace seeks_plugins
   img_websearch::~img_websearch()
   {
     img_websearch::_iwconfig = NULL;
+  }
+
+  void img_websearch::start()
+  {
+    // look for dependent plugins.
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    _xs_plugin = plugin_manager::get_plugin("xsl-serializer");
+    _xs_plugin_activated = seeks_proxy::_config->is_plugin_activated("xsl-serializer");
+#endif
   }
 
   // CGI calls.
@@ -292,7 +310,23 @@ namespace seeks_plugins
       }
 
     // render result page.
-    sp_err err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
+    sp_err err = SP_ERR_OK;
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    const char *output = miscutil::lookup(parameters,"output");
+    if (!output || miscutil::strcmpic(output,"json")==0)
+      {
+#endif
+
+	err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+      }
+    else if(img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
+      {
+	err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
+      }
+#endif
 
     mutex_unlock(&qc->_qc_mutex);
 
@@ -386,6 +420,11 @@ namespace seeks_plugins
         if (param_exports)
           delete param_exports;
       }
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+    else if(img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) {
+      err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0,true);
+    }
+#endif
     else
       {
         csp->_content_type = CT_JSON;
@@ -638,6 +677,13 @@ namespace seeks_plugins
             // XXX: the template is filled up and returned earlier.
             // dynamic UI uses JSON calls to fill up results.
           }
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+	else if (img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml")) 
+	  {
+	    err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,
+											  qc->_cached_snippets,qtime,true);
+	  }
+#endif
         else if (output_str == "json")
           {
             csp->_content_type = CT_JSON;

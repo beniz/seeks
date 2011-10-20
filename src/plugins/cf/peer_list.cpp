@@ -169,7 +169,7 @@ namespace seeks_plugins
         db_record *dbr = NULL;
         try
           {
-            user_db udb(false,_host,_port,_path,_rsc);
+            user_db udb(false,"",_host,_port,_path,_rsc);
 
             // not using the store.
             dbr = rank_estimator::find_dbr(&udb,test_key,"query-capture",in_store,false);

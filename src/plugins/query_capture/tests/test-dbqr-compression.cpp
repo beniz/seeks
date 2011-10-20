@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
   rank_estimator::extract_queries(query,lang,1,seeks_proxy::_user_db,records,qdata,inv_qdata);
   if (!qdata.empty())
-    dbr = new db_query_record(qdata); // no copy.
+    dbr = new db_query_record("query-capture",qdata); // no copy.
   else dbr = NULL;
 
   if (!dbr)

@@ -84,12 +84,11 @@ namespace seeks_plugins
 
     // build up query to seeks proxy.
     char *q = strdup(CGI_PREFIX);
-    miscutil::string_append(&q,"search?q=");
+    miscutil::string_append(&q,"search/txt/");
     miscutil::string_append(&q,intercepted_query_enc);
     free(intercepted_query_enc);
-    miscutil::string_append(&q,"&page=1");
+    miscutil::string_append(&q,"?page=1");
     miscutil::string_append(&q,"&expansion=1");
-    miscutil::string_append(&q,"&action=expand");
     cgi::cgi_redirect(rsp,q);
 
     free(q);

@@ -157,7 +157,8 @@ namespace seeks_plugins
                       const uint32_t &rec_date=0,
                       const std::string &url_lang="");
 
-      db_query_record(const hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
+      db_query_record(const std::string &plugin_name,
+                      const hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata);
 
       db_query_record(const db_query_record &dbr);
 
