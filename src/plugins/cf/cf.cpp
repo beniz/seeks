@@ -707,7 +707,7 @@ namespace seeks_plugins
     rank_estimator::extract_queries(query,lang,radius,seeks_proxy::_user_db,
                                     records,qdata,inv_qdata);
     if (!qdata.empty())
-      dbr = new db_query_record(qdata); // no copy.
+      dbr = new db_query_record("query-capture",qdata); // no copy.
     else dbr = NULL;
     rank_estimator::destroy_records(records);
     rank_estimator::destroy_inv_qdata_key(inv_qdata);
