@@ -18,8 +18,13 @@ post search results directly onto a P2P ring of seeks machines.
   results to a public Seeks node, so that they are made available to
   others.
 
+- Adds an XSL-serializer plugin that allows to craft XML output formats
+  from XSL templates.
+	
 - 'hot reload' of configuration changes.
 
+- added configurable support for large (> 2Gb) size user databases.
+	
 - Many bug fixes and improvements.
 
 * Bodie-0.3.5-HIPPY-stable
