@@ -453,7 +453,7 @@ namespace seeks_plugins
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
     qprocess::generate_query_hashes(query,0,
-                                    radius,
+                                    radius == -1 ? query_capture_configuration::_config->_max_radius : radius,
                                     features);
 
     // remove queries.
