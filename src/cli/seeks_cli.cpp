@@ -39,7 +39,7 @@ void print_usage()
   std::cout << "seeks_cli info <url>\n";
   std::cout << "seeks_cli peers <url>\n";
   std::cout << "seeks_cli [--x <get>] recommend <url> <query> [--nreco <nreco>] [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--order <rank|new-date|old-date|new-activity|old-activity>]\n";
-  std::cout << "seeks_cli --x <post> recommend <url> <query> --title <title> [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--url-check <0|1>]\n";
+  std::cout << "seeks_cli --x <post> recommend <url> <query> --title <title> --url <url> [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--url-check <0|1>]\n";
   std::cout << "seeks_cli --x <delete> recommend <url> <query> --url <url> [--lang <lang>]\n";
   std::cout << "seeks_cli suggest <url> <query> [--nsugg <nsugg>] [--radius <radius>] [--peers <local|ring>]\n";
   std::cout << "seeks_cli [--x <get,put,delete,post>] search <url> <query> [--sid <snippet_id> | --surl <url>] [--engines <list of comma separated engines>] [--rpp <rpp>] [--page <page>] [--prs <on|off>] [--lang <lang>] [--thumbs <on|off>] [--expansion <expansion>] [--peers <local|ring>] [--order <rank|new-date|old-date|new-activity|old-activity>] [--redirect <url>] [--cpost <url>]\n";
