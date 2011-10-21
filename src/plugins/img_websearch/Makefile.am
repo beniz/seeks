@@ -5,9 +5,9 @@ imgwebsearchplugindatadir = $(datadir)/seeks/plugins/img_websearch
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy -I${srcdir}/../websearch \
-	    -I${srcdir}/../../dht -I${srcdir}/../cf -I${srcdir}/..//query_capture
+	    -I${srcdir}/../../dht -I${srcdir}/../../proxy
 if HAVE_PROTOBUF
-AM_CPPFLAGS += -I${srcdir}/../query_capture -I../../proxy \
+AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf
 	       `pkg-config --cflags protobuf`
 
 if HAVE_TC
