@@ -232,7 +232,7 @@ namespace sp
           }
         else
           {
-            errlog::log_error(LOG_LEVEL_INFO, "registering CGI dispatcher %s", cgid->_name);
+            errlog::log_error(LOG_LEVEL_INFO, "%s: registering CGI dispatcher %s", p->get_name_cstr(),cgid->_name);
 
             cgid->_plugin_name = p->get_name();
             plugin_manager::_cgi_dispatchers.insert(std::pair<const char*,cgi_dispatcher*>(cgid->_name,cgid));
