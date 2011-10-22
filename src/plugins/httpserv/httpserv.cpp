@@ -787,9 +787,6 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         httpserv::reply_with_error_400(r);
         return;
       }
-    char *q_enc = encode::url_encode(q);
-    miscutil::unmap(parameters,"q");
-    miscutil::add_map_entry(parameters,"q",1,q_enc,0);
 
     // call for capture callback.
     sp_err err = SP_ERR_OK;
@@ -883,9 +880,6 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         httpserv::reply_with_error_400(r);
         return;
       }
-    char *q_enc = encode::url_encode(q);
-    miscutil::unmap(parameters,"q");
-    miscutil::add_map_entry(parameters,"q",1,q_enc,0);
 
     // call for capture callback.
     const char *output = miscutil::lookup(parameters,"output");
@@ -1479,11 +1473,6 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
   hash_map<const char*,const char*,hash<const char*>,eqstr>* httpserv::parse_query(const std::string &uri)
   {
-    /* decode uri. */
-    char *dec_uri_str = evhttp_decode_uri(uri.c_str());
-    std::string dec_uri = std::string(dec_uri_str);
-    free(dec_uri_str);
-
     /* parse query. */
     char *argstring = strdup(uri.c_str());
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters =  cgi::parse_cgi_parameters(argstring);
