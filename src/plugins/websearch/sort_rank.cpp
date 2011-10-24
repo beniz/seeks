@@ -37,6 +37,7 @@
 
 using sp::urlmatch;
 using sp::miscutil;
+using sp::errlog;
 
 namespace seeks_plugins
 {
