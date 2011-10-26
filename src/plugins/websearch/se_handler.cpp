@@ -782,13 +782,16 @@ namespace seeks_plugins
       {
         std::string url = se.get_url(i);
         if (se._name == "google")
-          _ggle.query_to_se(parameters,url,qc);
+          {
+            _ggle.query_to_se(parameters,url,qc);
+            miscutil::list_remove_all(lheaders); // browser header does modify the output.
+          }
         else if (se._name == "bing")
           _bing.query_to_se(parameters,url,qc);
         else if (se._name == "yahoo")
           {
             _yahoo.query_to_se(parameters,url,qc);
-            miscutil::list_remove_all(lheaders); // browser header modify the output.
+            miscutil::list_remove_all(lheaders); // browser header does modify the output.
           }
         else if (se._name == "exalead")
           _exalead.query_to_se(parameters,url,qc);
