@@ -121,7 +121,7 @@ namespace sp
                   ),
     cgi_dispatcher( "send-stylesheet",
     &cgisimple::cgi_send_stylesheet,
-    NULL, FALSE /* Send templates/cgi-style.css */
+    NULL, TRUE /* Send templates/cgi-style.css */
                   ),
     cgi_dispatcher( "t",
     &cgisimple::cgi_transparent_image,
@@ -546,11 +546,14 @@ namespace sp
       }
 
     freez(path_copy);
-    miscutil::free_map(param_list);
 
     if (err == SP_ERR_CGI_PARAMS)
       {
-        err = cgi::cgi_error_bad_param(csp, rsp, "html");
+        err = cgi::cgi_error_bad_param(csp, rsp, param_list);
+      }
+    else if (err == SP_ERR_NOT_FOUND)
+      {
+        err = cgisimple::cgi_error_404(csp, rsp, param_list);
       }
     else if (err && !d->_plugin_name.empty())
       {
@@ -560,6 +563,7 @@ namespace sp
           {
             /* let's assume that it worked. */
             rsp->_reason = RSP_REASON_CGI_CALL;
+            miscutil::free_map(param_list);
             return cgi::finish_http_response(csp, rsp);
           }
         else
@@ -577,8 +581,9 @@ namespace sp
         /* Unexpected error error. */
         errlog::log_error(LOG_LEVEL_ERROR,
                           "Unexpected CGI error %d in top-level handler", err);
-        err = cgi::cgi_error_unknown(csp, rsp, err);
+        err = cgi::cgi_error_unknown(csp, rsp, err, param_list);
       }
+    miscutil::free_map(param_list);
 
     if (!err)
       {
@@ -1253,6 +1258,8 @@ namespace sp
    *          1  :  csp = Current client state (buffers, headers, etc...)
    *          2  :  rsp = http_response data structure for output
    *          3  :  error_to_report = Error code to report.
+   *          4  :  param_list = list of parameters.
+   *          5  :  def = default output format ("json" or "html").
    *
    * Returns     :  SP_ERR_OK on success
    *                SP_ERR_MEMORY on out-of-memory error.
@@ -1260,8 +1267,27 @@ namespace sp
    *********************************************************************/
   sp_err cgi::cgi_error_unknown(const client_state *csp,
                                 http_response *rsp,
-                                sp_err error_to_report)
+                                sp_err error_to_report,
+                                const hash_map<const char*,const char*,hash<const char*>,eqstr> *param_list,
+                                const std::string &def)
   {
+    std::string output = "html";
+    if (!def.empty())
+      output = def;
+    else if (param_list)
+      {
+        const char *output_str = miscutil::lookup(param_list,"output");
+        if (output_str)
+          output = output_str;
+      }
+    if (output == "json")
+      {
+        rsp->_status = strdup("500");
+        rsp->_body = strdup("{\"error\":\"internal error\"}");
+        rsp->_content_length = strlen(rsp->_body);
+        return SP_ERR_OK;
+      }
+
     static const char status[] =
       "500 Internal Seeks proxy Error";
     static const char body_prefix[] =
@@ -1287,8 +1313,6 @@ namespace sp
      * bigger than necessary but it doesn't really matter.
      */
     const size_t body_size = strlen(body_prefix) + sizeof(errnumbuf) + strlen(body_suffix) + 1;
-    assert(csp);
-    assert(rsp);
 
     rsp->reset();
     rsp->_reason = RSP_REASON_INTERNAL_ERROR;
@@ -1324,6 +1348,8 @@ namespace sp
    * Parameters  :
    *          1  :  csp = Current client state (buffers, headers, etc...)
    *          2  :  rsp = http_response data structure for output
+   *          3  :  parameters = map of parameters
+   *          4  :  def = default output format ("json" or "html").
    *
    * CGI Parameters : none
    *
@@ -1333,7 +1359,8 @@ namespace sp
    *********************************************************************/
   sp_err cgi::cgi_error_bad_param(const client_state *csp,
                                   http_response *rsp,
-                                  const std::string &output)
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *param_list,
+                                  const std::string &def)
   {
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
 
@@ -1342,6 +1369,15 @@ namespace sp
         return SP_ERR_MEMORY;
       }
 
+    std::string output = "html";
+    if (!def.empty())
+      output = def;
+    else if (param_list)
+      {
+        const char *output_str = miscutil::lookup(param_list,"output");
+        if (output_str)
+          output = output_str;
+      }
     if (output == "json")
       {
         rsp->_status = strdup("400");

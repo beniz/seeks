@@ -528,7 +528,7 @@ namespace sp
          * Not supposed to happen. If it does
          * anyway, treat it as an unknown error.
          */
-        cgi::cgi_error_unknown(csp, rsp, RSP_REASON_INTERNAL_ERROR);
+        cgi::cgi_error_unknown(csp, rsp, RSP_REASON_INTERNAL_ERROR, NULL, "html");
         /* return code doesn't matter */
       }
 

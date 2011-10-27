@@ -3,7 +3,7 @@
  * It is based on Privoxy (http://www.privoxy.org), developped
  * by the Privoxy team.
  *
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public
@@ -38,5 +38,6 @@ typedef int sp_err;
 #define SP_ERR_MODIFIED   5 /**< File has been modified outside of the
 CGI actions editor.                      */
 #define SP_ERR_COMPRESS   6 /**< Error on decompression                   */
+#define SP_ERR_NOT_FOUND  7 /**< Error resource not found                 */
 
 #endif

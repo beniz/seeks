@@ -210,7 +210,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(path,"/suggestion/","");
     std::string query = urlmatch::next_elt_from_path(path);
     if (query.empty())
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+      return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
 
     try
@@ -295,7 +295,7 @@ namespace seeks_plugins
         // error.
         errlog::log_error(LOG_LEVEL_ERROR,"wrong HTTP method %s for recommendation call",
                           http_method.c_str());
-        return cgi::cgi_error_bad_param(csp,rsp,"json");
+        return cgi::cgi_error_bad_param(csp,rsp,parameters,"json");
       }
   }
 
@@ -312,7 +312,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(path,"/recommendation/","");
     std::string query = urlmatch::next_elt_from_path(path);
     if (query.empty())
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+      return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
     bool has_lang;
 
@@ -388,7 +388,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(ref_path,"/recommendation/","");
     std::string query = urlmatch::next_elt_from_path(ref_path);
     if (query.empty())
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+      return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
     bool has_lang;
 
@@ -405,7 +405,7 @@ namespace seeks_plugins
     // check for missing parameters.
     const char *url_str = miscutil::lookup(parameters,"url");
     if (!url_str)
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+      return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
     std::string url = url_str;
 
     // check for optional parameters.
@@ -480,7 +480,7 @@ namespace seeks_plugins
         delete qc;
         if (check_title == "404")
           return cgisimple::cgi_error_404(csp,rsp,parameters); // 404. TODO: JSON + message ?
-        else return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+        else return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
       }
     else if (url_check)
       title = title.empty() ? check_title : title;
@@ -533,7 +533,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(ref_path,"/recommendation/","");
     std::string query = urlmatch::next_elt_from_path(ref_path);
     if (query.empty())
-      return cgi::cgi_error_bad_param(csp,rsp,"json"); // 400 error.
+      return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
     miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q",1,query.c_str(),1); // add query to parameters.
     bool has_lang;
 

@@ -448,7 +448,7 @@ namespace seeks_plugins
             mutex_unlock(&qc->_qc_mutex);
             if (!sp)
               {
-                return cgisimple::cgi_error_404(csp,rsp,parameters);
+                return SP_ERR_NOT_FOUND;
               }
             else miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url",1,sp->_url.c_str(),1);
           }
@@ -597,7 +597,7 @@ namespace seeks_plugins
 
     if (!qc)
       {
-        return cgisimple::cgi_error_404(csp,rsp,parameters); // no local resource.
+        return SP_ERR_NOT_FOUND; // no local resource.
       }
 
     mutex_lock(&qc->_qc_mutex);
@@ -616,7 +616,7 @@ namespace seeks_plugins
       }
     else
       {
-        return cgisimple::cgi_error_404(csp,rsp,parameters); // no local resource.
+        return SP_ERR_NOT_FOUND; // no local resource.
         return SP_ERR_OK;
       }
   }
@@ -865,7 +865,7 @@ namespace seeks_plugins
         mutex_unlock(&qc->_qc_mutex);
         pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
         if (e.code() == WB_ERR_NO_REF_SIM)
-          return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
+          return SP_ERR_NOT_FOUND; // XXX: error is intercepted.
         else return e.code();
       }
 
@@ -1365,7 +1365,7 @@ namespace seeks_plugins
     if (!sp)
       {
         mutex_unlock(&qc->_qc_mutex);
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+        return SP_ERR_NOT_FOUND;
       }
 
     // render result page.
@@ -1451,7 +1451,7 @@ namespace seeks_plugins
     if (!sp)
       {
         mutex_unlock(&qc->_qc_mutex);
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+        return SP_ERR_NOT_FOUND;
       }
 
     // get most discriminant words.
