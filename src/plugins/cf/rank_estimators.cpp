@@ -325,7 +325,7 @@ namespace seeks_plugins
     stopwordlist *swl = NULL;
 
     /* check whether query is available (i.e. acting locally). */
-    if (!query.empty())
+    if (!query.empty() && cf_configuration::_config->_stop_words_filtering)
       {
         strc_query = str_chain(query,0,true);
         strc_query = strc_query.rank_alpha();
@@ -644,9 +644,13 @@ namespace seeks_plugins
     str_chain strc_query = str_chain(query,0,true);
     strc_query = strc_query.rank_alpha();
 
-    mutex_lock(&_est_mutex);
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-    mutex_unlock(&_est_mutex);
+    stopwordlist *swl = NULL;
+    if (cf_configuration::_config->_stop_words_filtering)
+      {
+        mutex_lock(&_est_mutex);
+        seeks_proxy::_lsh_config->get_wordlist(lang);
+        mutex_unlock(&_est_mutex);
+      }
 
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
@@ -821,7 +825,9 @@ namespace seeks_plugins
                                  const std::string &rsc)
   {
     // get stop word list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+    stopwordlist *swl = NULL;
+    if (cf_configuration::_config->_stop_words_filtering)
+      swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // gather normalizing values.
     float cumul_halo_weights = 0.0;
