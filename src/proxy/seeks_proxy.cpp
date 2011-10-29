@@ -26,6 +26,7 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/select.h>
 #include <assert.h>
 #include <errno.h>
 
