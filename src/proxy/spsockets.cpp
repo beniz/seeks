@@ -338,8 +338,8 @@ namespace sp
       }
 
 #ifdef FEATURE_ACL
-    dst->addr = ntohl(addr);
-    dst->port = portnum;
+    dst->_addr = ntohl(addr);
+    dst->_port = portnum;
 
     if (block_acl(dst, csp))
       {
