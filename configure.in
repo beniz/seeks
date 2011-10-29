@@ -522,6 +522,7 @@ fi
 fi
 ])
 #LIBS="$LIBS -levent"
+if test "$le_found" = yes; then
 if test "$ac_cv_libevent_dir" != "(system)"; then
    if test -d "$ac_cv_libevent_dir/lib" ; then
       LDFLAGS="-L$ac_cv_libevent_dir/lib $LDFLAGS"
@@ -534,6 +535,7 @@ if test -d "$ac_cv_libevent_dir/include" ; then
  CPPFLAGS="-I$ac_cv_libevent_dir/include $CPPFLAGS"
 else
  CPPFLAGS="-I$ac_cv_libevent_dir $CPPFLAGS"
+fi
 fi
 fi
 
