@@ -1258,6 +1258,7 @@ namespace seeks_plugins
 #endif
       }
 
+#if defined(PROTOBUF) && defined(TC)
     // signal personalization thread that we're done with external data sources.
     if (persf && pers_thread)
       {
@@ -1266,6 +1267,7 @@ namespace seeks_plugins
             cond_broadcast(&qc->_feeds_ack_cond);
           }
       }
+#endif
 
     // sort and merge snippets.
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
