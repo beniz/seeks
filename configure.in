@@ -289,11 +289,11 @@ AC_SUBST(PCRE_CFLAGS)
 #==========================================================================
 # Finding docbook2x-man
 #==========================================================================
-AC_CHECK_PROG(docbook,docbook2x-man,yes,no)
-if test $docbook = "yes"; then
-   AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
-else
+AC_CHECK_PROGS(DOCBOOK,[docbook2x-man db2x_docbook2man])
+if test "${DOCBOOK}x" = "x"; then
    AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
+else
+   AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
 fi
 
 #==========================================================================
