@@ -176,6 +176,7 @@ TEST_F(SRETest,fetch_user_db_record)
 
 TEST_F(SRETest,extract_queries)
 {
+  cf_configuration::_config->_stop_words_filtering = 1;
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
   rank_estimator::fetch_user_db_record(queries[2],seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
@@ -379,6 +380,7 @@ TEST_F(SRETest,thumb_down_url)
 TEST_F(SRETest,estimate_ranks)
 {
   static std::string lang = "en";
+  cf_configuration::_config->_stop_words_filtering = 1;
   simple_re sre;
   sre.thumb_down_url(queries[0],lang,uris[2]); // thumb down download.
 
