@@ -43,8 +43,8 @@ AC_PROG_LIBTOOL
 AC_LANG(C++)
 
 # Checks for libraries.
-AC_SEARCH_LIBS(accept, socket)
-AC_SEARCH_LIBS(gethostbyname, nsl)
+AC_SEARCH_LIBS(accept, socket network)
+AC_SEARCH_LIBS(gethostbyname, nsl network)
 
 # Checks for header files.
 AC_HEADER_STDC
