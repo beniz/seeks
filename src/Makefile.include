@@ -95,7 +95,7 @@ LDADD += \
 	-lseeksutils \
 	-lseekswebsearchplugin \
 	-lseekswebsearchapicompatplugin \
-	-lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ -lpthread -lpcreposix -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
+	-lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ @PTHREAD_LDADD@ -lpcreposix -lpcre -lz @LCOV_LIBS@ $(GTEST_LIBS)
 
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`

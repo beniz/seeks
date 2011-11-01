@@ -14,4 +14,4 @@ bin_PROGRAMS = seeks_cli
 seeks_cli_SOURCES = seeks_cli.cpp ../proxy/curl_mget.cpp ../proxy/errlog.cpp
 
 AM_LDFLAGS=-L${srcdir} -L${srcdir}/../proxy -L${srcdir}/../utils
-LDADD=-lseekscli -lseeksutils -lpthread @CURL_LDADD@
+LDADD=-lseekscli -lseeksutils @PTHREAD_LDADD@ @CURL_LDADD@

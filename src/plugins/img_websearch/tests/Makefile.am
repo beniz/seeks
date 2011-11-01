@@ -68,4 +68,4 @@ endif
 if HAVE_XSLSERIALIZER_PLUGIN
 LDADD += -lseeksxslserializerplugin @XSLT_LDADD@
 endif
-LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ -lpthread -lpcreposix -lpcre -lz
+LDADD += -lseekslsh -lseeksutils -lseeksproxy -lseeksplugins -lseeksdht -lrmd160 @XML2_LDADD@ @CURL_LDADD@ @ICU_LDADD@ @PTHREAD_LDADD@ -lpcreposix -lpcre -lz

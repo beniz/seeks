@@ -67,7 +67,7 @@ LDADD += \
 	@XSLT_LDADD@
 endif
 endif
-LDADD += -lpcre -lpcreposix -lseekslsh -lseeksdht -lrmd160 -lpthread -lz @CURL_LDADD@
+LDADD += -lpcre -lpcreposix -lseekslsh -lseeksdht -lrmd160 @PTHREAD_LDADD@ -lz @CURL_LDADD@
 if !HAVE_BSD
 LDADD += -ldl
 endif
