@@ -483,6 +483,7 @@ namespace seeks_plugins
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
     pthread_t pers_thread = 0;
+    ws_thread_arg *pers_thread_arg = NULL;
 
     // expansion: we fetch more pages from every search engine.
     sp_err err = SP_ERR_OK;
@@ -497,14 +498,16 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -561,14 +564,16 @@ namespace seeks_plugins
             // personalization in parallel to feeds fetching.
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -603,6 +608,7 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
+            delete pers_thread_arg;
             return err;
           }
 
@@ -628,12 +634,13 @@ namespace seeks_plugins
       }
 
     // sort and rank search snippets.
-    if (persf && pers_thread)
+    if (persf && pers_thread && pers_thread_arg)
       {
-        while(pthread_tryjoin_np(pers_thread,NULL))
+        while(!pers_thread_arg->_done)
           {
             cond_broadcast(&qc->_feeds_ack_cond);
           }
+        delete pers_thread_arg;
       }
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // to merge P2P non image results.
     img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets); // to merge image results only.

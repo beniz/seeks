@@ -24,6 +24,7 @@
 #include "wb_err.h"
 #include "plugin.h"
 #include "search_snippet.h"
+#include "sort_rank.h"
 #include "query_context.h"
 #include "websearch_configuration.h"
 #include "miscutil.h"
@@ -58,6 +59,17 @@ namespace seeks_plugins
     http_response *_rsp;
     hash_map<const char*,const char*,hash<const char*>,eqstr> *_parameters;
     bool _render;
+  };
+
+  struct ws_thread_arg
+  {
+    ws_thread_arg(pers_arg *arg)
+      :_arg(arg),_done(false)
+    {
+    };
+
+    pers_arg *_arg;
+    bool _done;
   };
 
   class websearch : public plugin
@@ -128,6 +140,10 @@ namespace seeks_plugins
                                    http_response *rsp,
                                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                    bool render = true);*/
+
+#if defined(PROTOBUF) && defined(TC)
+      static void *perform_websearch_threaded(ws_thread_arg *args);
+#endif
 
       static sp_err perform_websearch(client_state *csp,
                                       http_response *rsp,

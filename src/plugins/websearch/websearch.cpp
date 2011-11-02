@@ -1084,6 +1084,16 @@ namespace seeks_plugins
   return err;
   }*/
 
+#if defined(PROTOBUF) && defined(TC)
+  /*- internal functions. -*/
+  void *websearch::perform_websearch_threaded(ws_thread_arg *args)
+  {
+    sort_rank::th_personalize(args->_arg);
+    args->_done = true;
+    return NULL;
+  }
+#endif
+
   sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                       bool render)
@@ -1112,6 +1122,7 @@ namespace seeks_plugins
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
     pthread_t pers_thread = 0;
+    ws_thread_arg *pers_thread_arg = NULL;
 
     // expansion: we fetch more pages from every search engine.
     sp_err err = SP_ERR_OK;
@@ -1126,14 +1137,16 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -1168,6 +1181,7 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
+            delete pers_thread_arg;
             return err;
           }
 
@@ -1190,14 +1204,16 @@ namespace seeks_plugins
             // personalization in parallel to feeds fetching.
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -1232,6 +1248,7 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
+            delete pers_thread_arg;
             return err;
           }
 
@@ -1260,12 +1277,14 @@ namespace seeks_plugins
 
 #if defined(PROTOBUF) && defined(TC)
     // signal personalization thread that we're done with external data sources.
-    if (persf && pers_thread)
+    if (persf && pers_thread && pers_thread_arg)
       {
-        while(pthread_tryjoin_np(pers_thread,NULL))
+        while(!pers_thread_arg->_done)
           {
             cond_broadcast(&qc->_feeds_ack_cond);
           }
+        delete pers_thread_arg;
+        pthread_join(pers_thread,NULL);
       }
 #endif
 
