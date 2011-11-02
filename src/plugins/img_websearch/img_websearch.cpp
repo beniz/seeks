@@ -633,7 +633,8 @@ namespace seeks_plugins
 #endif
       }
 
-    // sort and rank search snippets.
+#if defined(PROTOBUF) && defined(TC)
+    // signal personalization thread that we're done with external data sources.
     if (persf && pers_thread && pers_thread_arg)
       {
         while(!pers_thread_arg->_done)
@@ -641,7 +642,10 @@ namespace seeks_plugins
             cond_broadcast(&qc->_feeds_ack_cond);
           }
         delete pers_thread_arg;
+        pthread_join(pers_thread,NULL);
       }
+#endif
+
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // to merge P2P non image results.
     img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets); // to merge image results only.
 
