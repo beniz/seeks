@@ -4,5 +4,5 @@ import "db_record_msg.proto";
 
 extend sp.db.record
 {
- optional uint32 hits = 3  [default = 1]; /* URI hits */
+ optional uint32 hits = 10  [default = 1]; /* URI hits */
 }
