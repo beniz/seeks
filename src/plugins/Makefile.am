@@ -19,6 +19,7 @@ if HAVE_IMG_WEBSEARCH_PLUGIN
 SUBDIRS += img_websearch/tests
 endif
 if HAVE_PROTOBUF
+SUBDIRS += uri_capture/tests
 SUBDIRS += query_capture/tests
 SUBDIRS += udb_service/tests
 endif
