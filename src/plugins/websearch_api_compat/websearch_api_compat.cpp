@@ -81,6 +81,7 @@ namespace seeks_plugins
         const char *query_str = miscutil::lookup(parameters,"q");
         if (!query_str || strlen(query_str) == 0)
           return SP_ERR_CGI_PARAMS;
+        // cgi decodes the parameters, need to re-encode before passing it to websearch plugin.
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -237,15 +238,13 @@ namespace seeks_plugins
         sp_err err = websearch::cgi_websearch_search(csp,rsp,parameters);
         if (err != SP_ERR_OK)
           return err;
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
-        const char *action = miscutil::lookup(parameters,"action");
-        if (!action)
-          miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action",1,"expand",1);
+        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action");
         const char *output = miscutil::lookup(parameters,"output");
         if (!output)
           miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"output",1,"html",1);
 
-        //return websearch_api_compat::cgi_search_compat(csp,rsp,parameters);
         free(csp->_http._gpc);
         csp->_http._gpc = strdup("get");
         free(csp->_http._path);
