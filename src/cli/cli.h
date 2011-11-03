@@ -68,6 +68,7 @@ namespace seekscli
                                 const std::string &order,
                                 const std::string &redirect,
                                 const std::string &cpost,
+                                const std::string &swords,
                                 std::string *&result);
 
     public:
@@ -83,6 +84,7 @@ namespace seekscli
                                       const std::string &expansion,
                                       const std::string &peers,
                                       const std::string &order,
+                                      const std::string &swords,
                                       std::string *&result);
 
       static int put_search_txt_query(const std::string &seeks_url,
@@ -106,6 +108,7 @@ namespace seekscli
                                         const std::string &snippet_id,
                                         const std::string &snippet_url,
                                         const std::string &lang,
+                                        const std::string &swords,
                                         std::string *&result);
 
       static int post_search_snippet(const std::string &seeks_url,
@@ -217,6 +220,7 @@ namespace seekscli
                                 const std::string &nsugg,
                                 const std::string &radius,
                                 const std::string &peers,
+                                const std::string &swords,
                                 std::string *&result);
 
       static int get_recommendation(const std::string &seeks_url,
@@ -228,6 +232,7 @@ namespace seekscli
                                     const std::string &peers,
                                     const std::string &lang,
                                     const std::string &order,
+                                    const std::string &swords,
                                     std::string *&result);
 
       static int post_recommendation(const std::string &seeks_url,
@@ -262,6 +267,7 @@ namespace seekscli
                                 const std::string &url,
                                 const std::string &title,
                                 const std::string &url_check,
+                                const std::string &swords,
                                 std::string *&result);
 
       static std::string _proxy_addr;

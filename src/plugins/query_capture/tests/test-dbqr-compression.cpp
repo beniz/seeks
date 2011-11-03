@@ -66,13 +66,14 @@ int main(int argc, char **argv)
   plugin_manager::start_plugins();
 
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(query,seeks_proxy::_user_db,
-                                       records);
+  rank_estimator re;
+  re.fetch_user_db_record(query,seeks_proxy::_user_db,
+                          records);
   db_query_record *dbr = NULL;
   std::string lang;
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-  rank_estimator::extract_queries(query,lang,1,seeks_proxy::_user_db,records,qdata,inv_qdata);
+  re.extract_queries(query,lang,1,seeks_proxy::_user_db,records,qdata,inv_qdata);
   if (!qdata.empty())
     dbr = new db_query_record("query-capture",qdata); // no copy.
   else dbr = NULL;

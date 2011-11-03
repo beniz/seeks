@@ -75,7 +75,8 @@ namespace seeks_plugins
       static void personalize(query_context *qc,
                               const bool &wait_external_sources=true,
                               const std::string &peers="ring",
-                              const int &radius=-1);
+                              const int &radius=-1,
+                              const bool &swf=false);
 
       static void estimate_ranks(const std::string &query,
                                  const std::string &lang,
@@ -98,7 +99,7 @@ namespace seeks_plugins
       static plugin *_uc_plugin;
       static plugin* _xs_plugin;
       static bool _xs_plugin_activated;
-    
+
   };
 
 } /* end of namespace. */

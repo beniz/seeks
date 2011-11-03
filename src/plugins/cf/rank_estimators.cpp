@@ -52,7 +52,8 @@ namespace seeks_plugins
   cr_store rank_estimator::_store;
   sp_mutex_t rank_estimator::_est_mutex;
 
-  rank_estimator::rank_estimator()
+  rank_estimator::rank_estimator(const bool &swf)
+    :_swf(swf)
   {
     mutex_init(&_est_mutex);
   }
@@ -325,7 +326,7 @@ namespace seeks_plugins
     stopwordlist *swl = NULL;
 
     /* check whether query is available (i.e. acting locally). */
-    if (!query.empty() && cf_configuration::_config->_stop_words_filtering)
+    if (!query.empty() && _swf)
       {
         strc_query = str_chain(query,0,true);
         strc_query = strc_query.rank_alpha();
@@ -645,7 +646,7 @@ namespace seeks_plugins
     strc_query = strc_query.rank_alpha();
 
     stopwordlist *swl = NULL;
-    if (cf_configuration::_config->_stop_words_filtering)
+    if (_swf)
       {
         mutex_lock(&_est_mutex);
         seeks_proxy::_lsh_config->get_wordlist(lang);
@@ -687,8 +688,8 @@ namespace seeks_plugins
   }
 
   /*- simple_re -*/
-  simple_re::simple_re()
-    :rank_estimator()
+  simple_re::simple_re(const bool &swf)
+    :rank_estimator(swf)
   {
   }
 
@@ -826,7 +827,7 @@ namespace seeks_plugins
   {
     // get stop word list.
     stopwordlist *swl = NULL;
-    if (cf_configuration::_config->_stop_words_filtering)
+    if (_swf)
       swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // gather normalizing values.

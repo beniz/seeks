@@ -43,11 +43,11 @@ namespace seeks_plugins
                                stopwordlist *swl);
 
       //DEPRECATED ?
-      static void recommend_queries(const std::string &query,
-                                    const std::string &lang,
-                                    const uint32_t &expansion,
-                                    std::multimap<double,std::string,std::less<double> > &related_queries,
-                                    peer *pe) throw (sp_exception);
+      void recommend_queries(const std::string &query,
+                             const std::string &lang,
+                             const uint32_t &expansion,
+                             std::multimap<double,std::string,std::less<double> > &related_queries,
+                             peer *pe) throw (sp_exception);
 
       static void recommend_queries(const std::string &query,
                                     const std::string &lang,

@@ -240,6 +240,15 @@ namespace seeks_plugins
           }
         else radius = tmp;
       }
+    bool swf = cf_configuration::_config->_stop_words_filtering;
+    const char *swf_str = miscutil::lookup(parameters,"swords");
+    if (swf_str)
+      {
+        if (strcasecmp(swf_str,"yes")==0)
+          swf = true;
+        else if (strcasecmp(swf_str,"no")==0)
+          swf = false;
+      }
 
     // ask all peers if 'ring' is specified.
     // cost is nearly the same to grab both queries and URLs from
@@ -255,7 +264,7 @@ namespace seeks_plugins
       }
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
-    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius,swf);
     sp_err err=SP_ERR_OK;
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     const char *output_str = miscutil::lookup(parameters,"output");
@@ -342,6 +351,15 @@ namespace seeks_plugins
           }
         else radius = tmp;
       }
+    bool swf = cf_configuration::_config->_stop_words_filtering;
+    const char *swf_str = miscutil::lookup(parameters,"swords");
+    if (swf_str)
+      {
+        if (strcasecmp(swf_str,"yes")==0)
+          swf = true;
+        else if (strcasecmp(swf_str,"no")==0)
+          swf = false;
+      }
 
     // ask all peers.
     mutex_lock(&websearch::_context_mutex);
@@ -353,7 +371,7 @@ namespace seeks_plugins
       }
     mutex_unlock(&websearch::_context_mutex);
     mutex_lock(&qc->_qc_mutex);
-    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius);
+    cf::personalize(qc,false,cf::select_p2p_or_local(parameters),radius,swf);
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // in case the context is already in memory.
     clock_t end_time = times(&en_cpu);
     double qtime = (end_time-start_time)/websearch::_cl_sec;
@@ -663,13 +681,14 @@ namespace seeks_plugins
   void cf::personalize(query_context *qc,
                        const bool &wait_external_sources,
                        const std::string &peers,
-                       const int &radius)
+                       const int &radius,
+                       const bool &swf)
   {
     // check on config file, in case it did change.
     cf_configuration::_config->load_config();
     pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
 
-    simple_re sre;
+    simple_re sre(swf);
     sre.peers_personalize(qc,wait_external_sources,peers,radius);
     pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
   }
@@ -681,7 +700,7 @@ namespace seeks_plugins
                           const std::string &host,
                           const int &port) throw (sp_exception)
   {
-    simple_re sre; // estimator.
+    simple_re sre(cf_configuration::_config->_stop_words_filtering); // estimator.
     sre.estimate_ranks(query,lang,radius,snippets,host,port);
   }
 
@@ -689,7 +708,7 @@ namespace seeks_plugins
                           const std::string &lang,
                           const std::string &url) throw (sp_exception)
   {
-    simple_re sre; // estimator.
+    simple_re sre(cf_configuration::_config->_stop_words_filtering); // estimator.
     sre.thumb_down_url(query,lang,url);
   }
 
@@ -697,6 +716,7 @@ namespace seeks_plugins
                        const int &radius,
                        db_query_record *&dbr)
   {
+    rank_estimator re(cf_configuration::_config->_stop_words_filtering);
     hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
     rank_estimator::fetch_user_db_record(qhashes,
                                          seeks_proxy::_user_db,
@@ -704,8 +724,8 @@ namespace seeks_plugins
     std::string query,lang;
     hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
     hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-    rank_estimator::extract_queries(query,lang,radius,seeks_proxy::_user_db,
-                                    records,qdata,inv_qdata);
+    re.extract_queries(query,lang,radius,seeks_proxy::_user_db,
+                       records,qdata,inv_qdata);
     if (!qdata.empty())
       dbr = new db_query_record("query-capture",qdata); // no copy.
     else dbr = NULL;
