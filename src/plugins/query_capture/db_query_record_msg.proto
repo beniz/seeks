@@ -33,5 +33,5 @@ message related_query
 
 extend sp.db.record
 {
- required related_queries queries = 4; /* original queries */
+ required related_queries queries = 20; /* original queries */
 }

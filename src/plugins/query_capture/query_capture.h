@@ -120,7 +120,7 @@ namespace seeks_plugins
        */
       static void remove_queries(const std::string &query,
                                  const std::string &plugin_name,
-                                 const int &radius) throw (sp_exception);
+                                 const int &radius=-1) throw (sp_exception);
 
       /**
        * \brief store query alone.

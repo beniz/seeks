@@ -448,7 +448,7 @@ namespace seeks_plugins
             mutex_unlock(&qc->_qc_mutex);
             if (!sp)
               {
-                return cgisimple::cgi_error_404(csp,rsp,parameters);
+                return SP_ERR_NOT_FOUND;
               }
             else miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url",1,sp->_url.c_str(),1);
           }
@@ -597,7 +597,7 @@ namespace seeks_plugins
 
     if (!qc)
       {
-        return cgisimple::cgi_error_404(csp,rsp,parameters); // no local resource.
+        return SP_ERR_NOT_FOUND; // no local resource.
       }
 
     mutex_lock(&qc->_qc_mutex);
@@ -616,7 +616,7 @@ namespace seeks_plugins
       }
     else
       {
-        return cgisimple::cgi_error_404(csp,rsp,parameters); // no local resource.
+        return SP_ERR_NOT_FOUND; // no local resource.
         return SP_ERR_OK;
       }
   }
@@ -865,7 +865,7 @@ namespace seeks_plugins
         mutex_unlock(&qc->_qc_mutex);
         pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
         if (e.code() == WB_ERR_NO_REF_SIM)
-          return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
+          return SP_ERR_NOT_FOUND; // XXX: error is intercepted.
         else return e.code();
       }
 
@@ -946,10 +946,10 @@ namespace seeks_plugins
       content_handler::fetch_all_snippets_content_and_features(qc);
     else content_handler::fetch_all_snippets_summary_and_features(qc);
 
+    sp_err err = SP_ERR_OK;
     if (qc->_cached_snippets.empty())
       {
         const char *output = miscutil::lookup(parameters,"output");
-        sp_err err = SP_ERR_OK;
         if (!output || miscutil::strcmpic(output,"html")==0)
           err = static_renderer::render_result_page_static(qc->_cached_snippets,
                 csp,rsp,parameters,qc);
@@ -984,7 +984,6 @@ namespace seeks_plugins
 
     // rendering.
     const char *output = miscutil::lookup(parameters,"output");
-    sp_err err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"html")==0)
       err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
             csp,rsp,parameters,qc);
@@ -1085,6 +1084,16 @@ namespace seeks_plugins
   return err;
   }*/
 
+#if defined(PROTOBUF) && defined(TC)
+  /*- internal functions. -*/
+  void *websearch::perform_websearch_threaded(ws_thread_arg *args)
+  {
+    sort_rank::th_personalize(args->_arg);
+    args->_done = true;
+    return NULL;
+  }
+#endif
+
   sp_err websearch::perform_websearch(client_state *csp, http_response *rsp,
                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                       bool render)
@@ -1113,6 +1122,7 @@ namespace seeks_plugins
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
     pthread_t pers_thread = 0;
+    ws_thread_arg *pers_thread_arg = NULL;
 
     // expansion: we fetch more pages from every search engine.
     sp_err err = SP_ERR_OK;
@@ -1127,14 +1137,16 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -1169,6 +1181,7 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
+            delete pers_thread_arg;
             return err;
           }
 
@@ -1191,14 +1204,16 @@ namespace seeks_plugins
             // personalization in parallel to feeds fetching.
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -1233,6 +1248,7 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
+            delete pers_thread_arg;
             return err;
           }
 
@@ -1259,14 +1275,18 @@ namespace seeks_plugins
 #endif
       }
 
+#if defined(PROTOBUF) && defined(TC)
     // signal personalization thread that we're done with external data sources.
-    if (persf && pers_thread)
+    if (persf && pers_thread && pers_thread_arg)
       {
-        while(pthread_tryjoin_np(pers_thread,NULL))
+        while(!pers_thread_arg->_done)
           {
             cond_broadcast(&qc->_feeds_ack_cond);
           }
+        delete pers_thread_arg;
+        pthread_join(pers_thread,NULL);
       }
+#endif
 
     // sort and merge snippets.
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,
@@ -1366,7 +1386,7 @@ namespace seeks_plugins
     if (!sp)
       {
         mutex_unlock(&qc->_qc_mutex);
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+        return SP_ERR_NOT_FOUND;
       }
 
     // render result page.
@@ -1412,7 +1432,7 @@ namespace seeks_plugins
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        sp_err err = json_renderer::render_json_words(words,rsp,parameters);
+        err = json_renderer::render_json_words(words,rsp,parameters);
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
@@ -1452,7 +1472,7 @@ namespace seeks_plugins
     if (!sp)
       {
         mutex_unlock(&qc->_qc_mutex);
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+        return SP_ERR_NOT_FOUND;
       }
 
     // get most discriminant words.
@@ -1465,7 +1485,7 @@ namespace seeks_plugins
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        sp_err err = json_renderer::render_json_words(words,rsp,parameters);
+        err = json_renderer::render_json_words(words,rsp,parameters);
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))

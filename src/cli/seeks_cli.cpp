@@ -38,11 +38,11 @@ void print_usage()
   std::cout << "usage: seeks_cli [--timeout <seconds>] [--proxy <addr:port>] [--output <html,json,xml> [--x <get,put,delete,post>] <command> <url> [<query>] [<args>]\n";
   std::cout << "seeks_cli info <url>\n";
   std::cout << "seeks_cli peers <url>\n";
-  std::cout << "seeks_cli [--x <get>] recommend <url> <query> [--nreco <nreco>] [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--order <rank|new-date|old-date|new-activity|old-activity>]\n";
-  std::cout << "seeks_cli --x <post> recommend <url> <query> --title <title> [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--url-check <0|1>]\n";
+  std::cout << "seeks_cli [--x <get>] recommend <url> <query> [--nreco <nreco>] [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--order <rank|new-date|old-date|new-activity|old-activity>] [--swords <yes|no>]\n";
+  std::cout << "seeks_cli --x <post> recommend <url> <query> --title <title> --url <url> [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--url-check <0|1>]\n";
   std::cout << "seeks_cli --x <delete> recommend <url> <query> --url <url> [--lang <lang>]\n";
   std::cout << "seeks_cli suggest <url> <query> [--nsugg <nsugg>] [--radius <radius>] [--peers <local|ring>]\n";
-  std::cout << "seeks_cli [--x <get,put,delete,post>] search <url> <query> [--sid <snippet_id> | --surl <url>] [--engines <list of comma separated engines>] [--rpp <rpp>] [--page <page>] [--prs <on|off>] [--lang <lang>] [--thumbs <on|off>] [--expansion <expansion>] [--peers <local|ring>] [--order <rank|new-date|old-date|new-activity|old-activity>] [--redirect <url>] [--cpost <url>]\n";
+  std::cout << "seeks_cli [--x <get,put,delete,post>] search <url> <query> [--sid <snippet_id> | --surl <url>] [--engines <list of comma separated engines>] [--rpp <rpp>] [--page <page>] [--prs <on|off>] [--lang <lang>] [--thumbs <on|off>] [--expansion <expansion>] [--peers <local|ring>] [--order <rank|new-date|old-date|new-activity|old-activity>] [--redirect <url>] [--cpost <url>] [--swords <yes|no>]\n";
   std::cout << "seeks_cli words <url> <query> [--sid <snippet_id> | --surl <url>] [--lang <lang>]\n";
   std::cout << "seeks_cli recent_queries <url> [--nq <nq>]\n";
   std::cout << "seeks_cli cluster_types <url> <query> [--lang <lang>]\n";
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
           || p == "--nclusters" || p == "--sid" || p == "--engines"
           || p == "--rpp" || p == "--page" || p == "--prs"
           || p == "--thumbs" || p == "--nq" || p == "--redirect"
-          || p == "--cpost" || p == "--surl")
+          || p == "--cpost" || p == "--surl" || p == "--swords")
         {
           std::string v = argv[++i];
           params.insert(std::pair<std::string,std::string>(p,v));
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
     }
   else if (command == "recommend")
     {
-      std::string nreco,radius,peers,lang,order,purl,title,url_check;
+      std::string nreco,radius,peers,lang,order,purl,title,url_check,swords;
       if ((mit=params.find("--nreco"))!=params.end())
         nreco = (*mit).second;
       if ((mit=params.find("--radius"))!=params.end())
@@ -216,9 +216,11 @@ int main(int argc, char **argv)
         title = (*mit).second;
       if ((mit=params.find("--url_check"))!=params.end())
         url_check = (*mit).second;
+      if ((mit=params.find("--swords"))!=params.end())
+        swords = (*mit).second;
       if (http_method == "get")
         err = cli::get_recommendation(node,output,timeout,
-                                      query,nreco,radius,peers,lang,order,
+                                      query,nreco,radius,peers,lang,order,swords,
                                       result);
       else if (http_method == "delete")
         err = cli::delete_recommendation(node,output,timeout,query,purl,lang,result);
@@ -228,20 +230,22 @@ int main(int argc, char **argv)
     }
   else if (command == "suggest")
     {
-      std::string nsugg,peers,radius;
+      std::string nsugg,peers,radius,swords;
       if ((mit=params.find("--peers"))!=params.end())
         peers = (*mit).second;
       if ((mit=params.find("--nsugg"))!=params.end())
         nsugg = (*mit).second;
       if ((mit=params.find("--radius"))!=params.end())
         radius = (*mit).second;
+      if ((mit=params.find("--swords"))!=params.end())
+        swords = (*mit).second;
       err = cli::get_suggestion(node,output,timeout,
-                                query,nsugg,radius,peers,result);
+                                query,nsugg,radius,peers,swords,result);
     }
   else if (command == "search")
     {
       std::string sid,rpp,peers,expansion,engines,page,prs,
-          lang,thumbs,order,redirect,cpost,surl;
+          lang,thumbs,order,redirect,cpost,surl,swords;
       if ((mit=params.find("--sid"))!=params.end())
         sid = (*mit).second;
       else if ((mit=params.find("--surl"))!=params.end())
@@ -268,14 +272,16 @@ int main(int argc, char **argv)
         redirect = (*mit).second;
       if ((mit=params.find("--cpost"))!=params.end())
         cpost = (*mit).second;
+      if ((mit=params.find("--swords"))!=params.end())
+        swords = (*mit).second;
       if (http_method == "get")
         {
           if (sid.empty() && surl.empty())
             err = cli::get_search_txt_query(node,output,timeout,
                                             query,engines,rpp,page,lang,thumbs,
-                                            expansion,peers,order,result);
+                                            expansion,peers,order,swords,result);
           else err = cli::get_search_txt_snippet(node,output,timeout,
-                                                   query,sid,surl,lang,result);
+                                                   query,sid,surl,lang,swords,result);
         }
       else if (http_method == "put")
         {

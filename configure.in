@@ -43,8 +43,8 @@ AC_PROG_LIBTOOL
 AC_LANG(C++)
 
 # Checks for libraries.
-AC_SEARCH_LIBS(accept, socket)
-AC_SEARCH_LIBS(gethostbyname, nsl)
+AC_SEARCH_LIBS(accept, socket network)
+AC_SEARCH_LIBS(gethostbyname, nsl network)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -186,16 +186,6 @@ case "$host" in
 ;;
 esac
 
-# Checks for RFC 2553 resolver and socket functions
-
-AC_CHECK_FUNC([getaddrinfo],
-   [AC_CHECK_FUNC([getnameinfo],
-      [AC_DEFINE([HAVE_RFC2553], [1],
-         [Define if RFC 2553 resolver functions like getaddrinfo(3) and
-          getnameinfo(3) present])
-      ])
-])
-
 #=================================================================
 # NetBSD specific
 #=================================================================
@@ -207,7 +197,6 @@ case "$host" in
 esac
 
 # Checks for RFC 2553 resolver and socket functions
-
 AC_CHECK_FUNC([getaddrinfo],
 [AC_CHECK_FUNC([getnameinfo],
 [AC_DEFINE([HAVE_RFC2553], [1],
@@ -252,6 +241,13 @@ AS_IF([test -n "$PERL"],[
 else
   AM_CONDITIONAL(USE_PERL,false)
 fi
+
+#==========================================================================
+# Finding pthreads
+#==========================================================================
+AC_CHECK_LIB(pthread, pthread_join, [PTHREAD_LDADD=-lpthread], [PTHREAD_LDADD=''])
+
+AC_SUBST(PTHREAD_LDADD)
 
 #==========================================================================
 # Finding curl
@@ -300,11 +296,11 @@ AC_SUBST(PCRE_CFLAGS)
 #==========================================================================
 # Finding docbook2x-man
 #==========================================================================
-AC_CHECK_PROG(docbook,docbook2x-man,yes,no)
-if test $docbook = "yes"; then
-   AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
-else
+AC_CHECK_PROGS(DOCBOOK,[docbook2x-man db2x_docbook2man])
+if test "${DOCBOOK}x" = "x"; then
    AM_CONDITIONAL(HAVE_DOCBOOK2X,false)
+else
+   AM_CONDITIONAL(HAVE_DOCBOOK2X,true)
 fi
 
 #==========================================================================
@@ -522,6 +518,7 @@ fi
 fi
 ])
 #LIBS="$LIBS -levent"
+if test "$le_found" = yes; then
 if test "$ac_cv_libevent_dir" != "(system)"; then
    if test -d "$ac_cv_libevent_dir/lib" ; then
       LDFLAGS="-L$ac_cv_libevent_dir/lib $LDFLAGS"
@@ -534,6 +531,7 @@ if test -d "$ac_cv_libevent_dir/include" ; then
  CPPFLAGS="-I$ac_cv_libevent_dir/include $CPPFLAGS"
 else
  CPPFLAGS="-I$ac_cv_libevent_dir $CPPFLAGS"
+fi
 fi
 fi
 

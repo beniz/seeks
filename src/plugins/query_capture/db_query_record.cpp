@@ -387,7 +387,7 @@ namespace seeks_plugins
                         rq_vurl->set_url_lang(vd->_url_lang);
                       }
                   }
-                else errlog::log_error(LOG_LEVEL_DEBUG,"null vurl_data element in visited_urls when creating db_query_record");
+                else errlog::log_error(LOG_LEVEL_ERROR,"null vurl_data element in visited_urls when creating db_query_record");
                 ++vhit;
               }
           }

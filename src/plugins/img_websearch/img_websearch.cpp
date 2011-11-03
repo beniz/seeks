@@ -204,7 +204,7 @@ namespace seeks_plugins
             mutex_unlock(&qc->_qc_mutex);
             if (!sp)
               {
-                return cgisimple::cgi_error_404(csp,rsp,parameters);
+                return SP_ERR_NOT_FOUND;
               }
             else miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url",1,sp->_url.c_str(),1);
           }
@@ -306,7 +306,7 @@ namespace seeks_plugins
     if (!sp)
       {
         mutex_unlock(&qc->_qc_mutex);
-        return cgisimple::cgi_error_404(csp,rsp,parameters);
+        return SP_ERR_NOT_FOUND;
       }
 
     // render result page.
@@ -318,13 +318,13 @@ namespace seeks_plugins
       {
 #endif
 
-	err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
+        err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
 
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
       }
-    else if(img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) 
+    else if(img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       {
-	err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
+        err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
       }
 #endif
 
@@ -395,7 +395,7 @@ namespace seeks_plugins
         mutex_unlock(&qc->_qc_mutex);
         pthread_rwlock_unlock(&img_websearch_configuration::_img_wconfig->_conf_rwlock);
         if (e.code() == WB_ERR_NO_REF_SIM)
-          return cgisimple::cgi_error_404(csp,rsp,parameters); // XXX: error is intercepted.
+          return SP_ERR_NOT_FOUND; // XXX: error is intercepted.
         else return e.code();
       }
 
@@ -421,9 +421,10 @@ namespace seeks_plugins
           delete param_exports;
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
-    else if(img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml")) {
-      err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0,true);
-    }
+    else if(img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
+      {
+        err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0,true);
+      }
 #endif
     else
       {
@@ -482,6 +483,7 @@ namespace seeks_plugins
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
     pthread_t pers_thread = 0;
+    ws_thread_arg *pers_thread_arg = NULL;
 
     // expansion: we fetch more pages from every search engine.
     sp_err err = SP_ERR_OK;
@@ -496,14 +498,16 @@ namespace seeks_plugins
 #if defined(PROTOBUF) && defined(TC)
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -560,14 +564,16 @@ namespace seeks_plugins
             // personalization in parallel to feeds fetching.
             if (persf)
               {
+                pers_thread_arg = new ws_thread_arg(new pers_arg(qc,parameters));
                 int perr = pthread_create(&pers_thread,NULL,
-                                          (void *(*)(void *))&sort_rank::th_personalize,
-                                          new pers_arg(qc,parameters));
+                                          (void *(*)(void *))&websearch::perform_websearch_threaded,
+                                          pers_thread_arg);
                 if (perr != 0)
                   {
                     errlog::log_error(LOG_LEVEL_ERROR,"Error creating main personalization thread.");
                     mutex_unlock(&qc->_qc_mutex);
                     mutex_unlock(&qc->_feeds_ack_mutex);
+                    delete pers_thread_arg;
                     return WB_ERR_THREAD;
                   }
               }
@@ -602,6 +608,7 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
+            delete pers_thread_arg;
             return err;
           }
 
@@ -626,14 +633,19 @@ namespace seeks_plugins
 #endif
       }
 
-    // sort and rank search snippets.
-    if (persf && pers_thread)
+#if defined(PROTOBUF) && defined(TC)
+    // signal personalization thread that we're done with external data sources.
+    if (persf && pers_thread && pers_thread_arg)
       {
-        while(pthread_tryjoin_np(pers_thread,NULL))
+        while(!pers_thread_arg->_done)
           {
             cond_broadcast(&qc->_feeds_ack_cond);
           }
+        delete pers_thread_arg;
+        pthread_join(pers_thread,NULL);
       }
+#endif
+
     sort_rank::sort_merge_and_rank_snippets(qc,qc->_cached_snippets,parameters); // to merge P2P non image results.
     img_sort_rank::sort_rank_and_merge_snippets(qc,qc->_cached_snippets); // to merge image results only.
 
@@ -678,11 +690,11 @@ namespace seeks_plugins
             // dynamic UI uses JSON calls to fill up results.
           }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
-	else if (img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml")) 
-	  {
-	    err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,
-											  qc->_cached_snippets,qtime,true);
-	  }
+        else if (img_websearch::_xs_plugin && img_websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
+          {
+            err = static_cast<xsl_serializer*>(img_websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,
+                  qc->_cached_snippets,qtime,true);
+          }
 #endif
         else if (output_str == "json")
           {

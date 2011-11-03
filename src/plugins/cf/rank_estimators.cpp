@@ -52,7 +52,8 @@ namespace seeks_plugins
   cr_store rank_estimator::_store;
   sp_mutex_t rank_estimator::_est_mutex;
 
-  rank_estimator::rank_estimator()
+  rank_estimator::rank_estimator(const bool &swf)
+    :_swf(swf)
   {
     mutex_init(&_est_mutex);
   }
@@ -325,7 +326,7 @@ namespace seeks_plugins
     stopwordlist *swl = NULL;
 
     /* check whether query is available (i.e. acting locally). */
-    if (!query.empty())
+    if (!query.empty() && _swf)
       {
         strc_query = str_chain(query,0,true);
         strc_query = strc_query.rank_alpha();
@@ -644,9 +645,13 @@ namespace seeks_plugins
     str_chain strc_query = str_chain(query,0,true);
     strc_query = strc_query.rank_alpha();
 
-    mutex_lock(&_est_mutex);
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
-    mutex_unlock(&_est_mutex);
+    stopwordlist *swl = NULL;
+    if (_swf)
+      {
+        mutex_lock(&_est_mutex);
+        seeks_proxy::_lsh_config->get_wordlist(lang);
+        mutex_unlock(&_est_mutex);
+      }
 
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator chit;
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit
@@ -683,8 +688,8 @@ namespace seeks_plugins
   }
 
   /*- simple_re -*/
-  simple_re::simple_re()
-    :rank_estimator()
+  simple_re::simple_re(const bool &swf)
+    :rank_estimator(swf)
   {
   }
 
@@ -821,7 +826,9 @@ namespace seeks_plugins
                                  const std::string &rsc)
   {
     // get stop word list.
-    stopwordlist *swl = seeks_proxy::_lsh_config->get_wordlist(lang);
+    stopwordlist *swl = NULL;
+    if (_swf)
+      swl = seeks_proxy::_lsh_config->get_wordlist(lang);
 
     // gather normalizing values.
     float cumul_halo_weights = 0.0;

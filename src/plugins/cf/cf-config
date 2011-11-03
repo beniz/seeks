@@ -43,3 +43,7 @@ post-ua Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1
 # is to be attached.
 # default: 5
 post-radius 5
+
+# Whether to filter queries with stop words.
+# default: 0
+stop-words-filtering 0

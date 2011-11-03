@@ -23,6 +23,10 @@ post search results directly onto a P2P ring of seeks machines.
 	
 - 'hot reload' of configuration changes.
 
+- Fixes for compiling under FreeBSD & Haiku.
+	
+- New API parameter to control stopwords filtering.
+
 - added configurable support for large (> 2Gb) size user databases.
 	
 - Many bug fixes and improvements.

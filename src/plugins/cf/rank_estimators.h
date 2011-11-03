@@ -60,7 +60,7 @@ namespace seeks_plugins
   class rank_estimator
   {
     public:
-      rank_estimator();
+      rank_estimator(const bool &swf=false);
 
       virtual ~rank_estimator() {};
 
@@ -107,28 +107,28 @@ namespace seeks_plugins
                                   const std::string &lang,
                                   const std::string &url) throw (sp_exception) {};
 
-      static void fetch_query_data(const std::string &query,
-                                   const std::string &lang,
-                                   const int &radius,
-                                   hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata,
-                                   peer *pe) throw (sp_exception);
+      void fetch_query_data(const std::string &query,
+                            const std::string &lang,
+                            const int &radius,
+                            hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                            hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata,
+                            peer *pe) throw (sp_exception);
 
-      static void fetch_user_db_record(const std::string &query,
-                                       user_db *udb,
-                                       hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
+      void fetch_user_db_record(const std::string &query,
+                                user_db *udb,
+                                hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
 
       static void fetch_user_db_record(const std::vector<std::string> &qhashes,
                                        user_db *udb,
                                        hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records);
 
-      static void extract_queries(const std::string &query,
-                                  const std::string &lang,
-                                  const int &radius,
-                                  user_db *udb,
-                                  const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
-                                  hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                  hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
+      void extract_queries(const std::string &query,
+                           const std::string &lang,
+                           const int &radius,
+                           user_db *udb,
+                           const hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> &records,
+                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                           hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
 
       static void fillup_inv_qdata(query_data *qd,
                                    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
@@ -149,21 +149,23 @@ namespace seeks_plugins
                                  const std::string &path, const std::string &query,
                                  const int &radius, const bool &use_store=true) throw (sp_exception);
 
-      static void filter_extracted_queries(const std::string &query,
-                                           const std::string &lang,
-                                           const int &radius,
-                                           hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
-                                           hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
+      void filter_extracted_queries(const std::string &query,
+                                    const std::string &lang,
+                                    const int &radius,
+                                    hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
+                                    hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
 
       static cr_store _store;
 
       static sp_mutex_t _est_mutex;
+
+      bool _swf; // stop words filtering on / off.
   };
 
   class simple_re : public rank_estimator
   {
     public:
-      simple_re();
+      simple_re(const bool &swf=false);
 
       virtual ~simple_re();
 

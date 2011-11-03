@@ -169,20 +169,23 @@ class SRETest : public testing::Test
 TEST_F(SRETest,fetch_user_db_record)
 {
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(queries[1],seeks_proxy::_user_db,records);
+  rank_estimator re;
+  re.fetch_user_db_record(queries[1],seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
   rank_estimator::destroy_records(records);
 }
 
 TEST_F(SRETest,extract_queries)
 {
+  cf_configuration::_config->_stop_words_filtering = 1;
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(queries[2],seeks_proxy::_user_db,records);
+  rank_estimator re(cf_configuration::_config->_stop_words_filtering);
+  re.fetch_user_db_record(queries[2],seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
 
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-  rank_estimator::extract_queries(queries[2],"en",1,seeks_proxy::_user_db,records,qdata,inv_qdata);
+  re.extract_queries(queries[2],"en",1,seeks_proxy::_user_db,records,qdata,inv_qdata);
   ASSERT_EQ(2,qdata.size());
   hash_map<const char*,query_data*,hash<const char*>,eqstr>::const_iterator hit
   = qdata.begin();
@@ -379,7 +382,8 @@ TEST_F(SRETest,thumb_down_url)
 TEST_F(SRETest,estimate_ranks)
 {
   static std::string lang = "en";
-  simple_re sre;
+  cf_configuration::_config->_stop_words_filtering = 1;
+  simple_re sre(cf_configuration::_config->_stop_words_filtering);
   sre.thumb_down_url(queries[0],lang,uris[2]); // thumb down download.
 
   std::vector<search_snippet*> snippets;
@@ -428,7 +432,8 @@ TEST_F(SRETest, utf8)
   miscutil::free_map(parameters);
 
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record(q,seeks_proxy::_user_db,records);
+  rank_estimator re;
+  re.fetch_user_db_record(q,seeks_proxy::_user_db,records);
   ASSERT_EQ(1,records.size());
   rank_estimator::destroy_records(records);
 }
@@ -450,13 +455,14 @@ TEST_F(SRETest,recommendation_post_ok)
   sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  rank_estimator re;
+  re.fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
   miscutil::free_map(parameters);
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-  rank_estimator::extract_queries("search engine","",0,seeks_proxy::_user_db,records,
-                                  qdata,inv_qdata);
+  re.extract_queries("search engine","",0,seeks_proxy::_user_db,records,
+                     qdata,inv_qdata);
   ASSERT_EQ(1,inv_qdata.size());
   std::vector<query_data*> vqd = (*inv_qdata.begin()).second;
   ASSERT_EQ(1,vqd.size());
@@ -493,13 +499,14 @@ TEST_F(SRETest,recommendation_post_ok_lang)
   sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  rank_estimator re;
+  re.fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
   miscutil::free_map(parameters);
   hash_map<const char*,query_data*,hash<const char*>,eqstr> qdata;
   hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
-  rank_estimator::extract_queries("search engine","",0,seeks_proxy::_user_db,records,
-                                  qdata,inv_qdata);
+  re.extract_queries("search engine","",0,seeks_proxy::_user_db,records,
+                     qdata,inv_qdata);
   ASSERT_EQ(1,inv_qdata.size());
   std::vector<query_data*> vqd = (*inv_qdata.begin()).second;
   ASSERT_EQ(1,vqd.size());
@@ -537,7 +544,8 @@ TEST_F(SRETest,recommendation_post_url_check_fail_400)
   //std::cerr << "body: " << body << std::endl;
   EXPECT_NE(std::string::npos,body.find("bad parameter"));
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  rank_estimator re;
+  re.fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
   ASSERT_EQ(0,records.size());
   miscutil::free_map(parameters);
   rank_estimator::destroy_records(records);
@@ -563,7 +571,8 @@ TEST_F(SRETest,recommendation_post_url_check_retrieve)
   //std::cerr << "body: " << body << std::endl;
   EXPECT_EQ(std::string::npos,body.find("not found"));
   hash_map<const DHTKey*,db_record*,hash<const DHTKey*>,eqdhtkey> records;
-  rank_estimator::fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
+  rank_estimator re;
+  re.fetch_user_db_record("search engine",seeks_proxy::_user_db,records);
   ASSERT_EQ(3,records.size());
   miscutil::free_map(parameters);
   rank_estimator::destroy_records(records);

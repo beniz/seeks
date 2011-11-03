@@ -1,6 +1,10 @@
 TESTS = $(check_PROGRAMS)
 
+if HAVE_PROTOBUF
+if HAVE_TC
 bin_PROGRAMS=user_db_ops
+endif
+endif
 noinst_PROGRAMS=test_curl_mget shash
 check_PROGRAMS=ut_plugin_manager
 if HAVE_PROTOBUF

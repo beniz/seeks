@@ -25,6 +25,7 @@
 
 #if defined(PROTOBUF) && defined(TC)
 #include "cf.h"
+#include "cf_configuration.h"
 #endif
 
 #include <ctype.h>
@@ -37,6 +38,7 @@
 
 using sp::urlmatch;
 using sp::miscutil;
+using sp::errlog;
 
 namespace seeks_plugins
 {
@@ -377,7 +379,16 @@ namespace seeks_plugins
     if (expansion == 0) // should never happen.
       expansion = 1;
     cf *cfp = static_cast<cf*>(websearch::_cf_plugin);
-    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters),expansion-1);
+    bool swf = cf_configuration::_config->_stop_words_filtering;
+    const char *swf_str = miscutil::lookup(parameters,"swords");
+    if (swf_str)
+      {
+        if (strcasecmp(swf_str,"yes")==0)
+          swf = true;
+        else if (strcasecmp(swf_str,"no")==0)
+          swf = false;
+      }
+    cfp->personalize(qc,true,cf::select_p2p_or_local(parameters),expansion-1,swf);
     std::stable_sort(qc->_cached_snippets.begin(),qc->_cached_snippets.end(),
                      search_snippet::max_seeks_rank);
   }

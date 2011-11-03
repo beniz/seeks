@@ -69,7 +69,8 @@ namespace seeks_plugins
     hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> inv_qdata;
     try
       {
-        rank_estimator::fetch_query_data(query,lang,expansion,qdata,inv_qdata,pe);
+        rank_estimator re;
+        re.fetch_query_data(query,lang,expansion,qdata,inv_qdata,pe);
       }
     catch(sp_exception &e)
       {

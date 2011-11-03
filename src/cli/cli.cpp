@@ -111,6 +111,7 @@ namespace seekscli
                           const std::string &order,
                           const std::string &redirect,
                           const std::string &cpost,
+                          const std::string &swords,
                           std::string *&result)
   {
     std::string enc_query = cli::url_encode(query);
@@ -143,6 +144,8 @@ namespace seekscli
         std::string enc_cpost = cli::url_encode(cpost);
         url += "&cpost=" + enc_cpost;
       }
+    if (!swords.empty())
+      url += "&swords=" + swords;
     int status = 0;
     cli::make_call(timeout,url,http_method,status,result);
     return status;
@@ -160,11 +163,12 @@ namespace seekscli
                                 const std::string &expansion,
                                 const std::string &peers,
                                 const std::string &order,
+                                const std::string &swords,
                                 std::string *&result)
   {
     return cli::get_search_txt(seeks_url,output,timeout,"GET",query,"","",engines,
                                rpp,page,lang,thumbs,expansion,peers,order,
-                               "","",result);
+                               "","",swords,result);
   }
 
   int cli::put_search_txt_query(const std::string &seeks_url,
@@ -183,7 +187,7 @@ namespace seekscli
   {
     return cli::get_search_txt(seeks_url,output,timeout,"PUT",query,"","",engines,
                                rpp,page,lang,thumbs,expansion,peers,order,
-                               "","",result);
+                               "","","",result);
   }
 
   int cli::get_search_txt_snippet(const std::string &seeks_url,
@@ -193,10 +197,11 @@ namespace seekscli
                                   const std::string &snippet_id,
                                   const std::string &snippet_url,
                                   const std::string &lang,
+                                  const std::string &swords,
                                   std::string *&result)
   {
     return cli::get_search_txt(seeks_url,output,timeout,"GET",query,snippet_id,
-                               snippet_url,"","","",lang,"","","","","","",result);
+                               snippet_url,"","","",lang,"","","","","","",swords,result);
   }
 
   int cli::post_search_snippet(const std::string &seeks_url,
@@ -211,7 +216,7 @@ namespace seekscli
                                std::string *&result)
   {
     return cli::get_search_txt(seeks_url,output,timeout,"POST",query,snippet_id,
-                               snippet_url,"","","",lang,"","","","",redirect,cpost,result);
+                               snippet_url,"","","",lang,"","","","",redirect,cpost,"",result);
   }
 
   int cli::delete_search_snippet(const std::string &seeks_url,
@@ -224,7 +229,7 @@ namespace seekscli
                                  std::string *&result)
   {
     return cli::get_search_txt(seeks_url,output,timeout,"DELETE",query,snippet_id,
-                               snippet_url,"","","",lang,"","","","","","",result);
+                               snippet_url,"","","",lang,"","","","","","","",result);
   }
 
   int cli::get_words(const std::string &seeks_url,
@@ -401,6 +406,7 @@ namespace seekscli
                           const std::string &url,
                           const std::string &title,
                           const std::string &url_check,
+                          const std::string &swords,
                           std::string *&result)
   {
     std::string enc_query = cli::url_encode(query);
@@ -427,6 +433,8 @@ namespace seekscli
       }
     if (!url_check.empty())
       rurl += "&url_check=" + url_check;
+    if (!swords.empty())
+      rurl += "&swords=" + swords;
     int status = 0;
     cli::make_call(timeout,rurl,http_method,status,result);
     return status;
@@ -441,10 +449,11 @@ namespace seekscli
                               const std::string &peers,
                               const std::string &lang,
                               const std::string &order,
+                              const std::string &swords,
                               std::string *&result)
   {
     return cli::recommendation(seeks_url,output,timeout,"GET",query,nreco,radius,peers,
-                               lang,order,"","","",result);
+                               lang,order,"","","",swords,result);
   }
 
   int cli::post_recommendation(const std::string &seeks_url,
@@ -459,7 +468,7 @@ namespace seekscli
                                std::string *&result)
   {
     return cli::recommendation(seeks_url,output,timeout,"POST",query,"",radius,"",
-                               lang,"",url,title,url_check,result);
+                               lang,"",url,title,url_check,"",result);
   }
 
   int cli::delete_recommendation(const std::string &seeks_url,
@@ -471,7 +480,7 @@ namespace seekscli
                                  std::string *&result)
   {
     return cli::recommendation(seeks_url,output,timeout,"DELETE",query,"","","",
-                               lang,"",url,"","",result);
+                               lang,"",url,"","","",result);
   }
 
   int cli::get_suggestion(const std::string &seeks_url,
@@ -481,6 +490,7 @@ namespace seekscli
                           const std::string &nsugg,
                           const std::string &radius,
                           const std::string &peers,
+                          const std::string &swords,
                           std::string *&result)
   {
     std::string enc_query = cli::url_encode(query);
@@ -491,6 +501,8 @@ namespace seekscli
       url += "&radius=" + radius;
     if (!peers.empty())
       url += "&peers=" + peers;
+    if (!swords.empty())
+      url += "&swords=" + swords;
     int status = 0;
     cli::make_call(timeout,url,"GET",status,result);
     return status;

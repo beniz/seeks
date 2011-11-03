@@ -37,8 +37,9 @@
 
 #include "proxy_dts.h"
 #include "configuration_spec.h"
-
 #include "stl_hash.h"
+
+#include <string>
 
 namespace sp
 {
@@ -112,7 +113,8 @@ namespace sp
                                           const char *template_name);
       static sp_err cgi_error_bad_param(const client_state *csp,
                                         http_response *rsp,
-                                        const std::string &output);
+                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *param_list,
+                                        const std::string &def="");
       static sp_err cgi_error_disabled(const client_state *csp,
                                        http_response *rsp);
       static sp_err cgi_error_plugin(const client_state *csp,
@@ -121,7 +123,9 @@ namespace sp
                                      const std::string &pname);
       static sp_err cgi_error_unknown(const client_state *csp,
                                       http_response *rsp,
-                                      sp_err error_to_report);
+                                      sp_err error_to_report,
+                                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *param_list,
+                                      const std::string &def="");
 
       static sp_err get_number_param(client_state *csp,
                                      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,

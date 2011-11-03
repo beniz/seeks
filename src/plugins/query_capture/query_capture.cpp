@@ -163,7 +163,7 @@ namespace seeks_plugins
 
         char *urlp = NULL;
         sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
-        if (err == SP_ERR_CGI_PARAMS)
+        /*if (err == SP_ERR_CGI_PARAMS)
           {
             const char *output_str = miscutil::lookup(parameters,"output");
             if (output_str && strcmp(output_str,"json")==0)
@@ -171,7 +171,12 @@ namespace seeks_plugins
             else return cgi::cgi_error_bad_param(csp,rsp,"html");
           }
         else if (err == SP_ERR_PARSE)
-          return cgi::cgi_error_disabled(csp,rsp); // wrong use of the resource.
+        return cgi::cgi_error_disabled(csp,rsp);*/ // wrong use of the resource.
+        if (err != SP_ERR_OK)
+          {
+            pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
+            return err;
+          }
 
         // redirect to requested url.
         urlp = encode::url_decode_but_not_plus(urlp);
@@ -181,7 +186,7 @@ namespace seeks_plugins
         pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
         return SP_ERR_OK;
       }
-    else return cgi::cgi_error_bad_param(csp,rsp,"html");
+    else return cgi::cgi_error_bad_param(csp,rsp,parameters,"html");
   }
 
   sp_err query_capture::qc_redir(client_state *csp,
@@ -240,6 +245,7 @@ namespace seeks_plugins
       }
     catch (sp_exception &e)
       {
+        errlog::log_error(LOG_LEVEL_ERROR,e.what().c_str());
         return e.code();
       }
 
@@ -453,7 +459,7 @@ namespace seeks_plugins
     // generate query fragments.
     hash_multimap<uint32_t,DHTKey,id_hash_uint> features;
     qprocess::generate_query_hashes(query,0,
-                                    radius,
+                                    radius == -1 ? query_capture_configuration::_config->_max_radius : radius,
                                     features);
 
     // remove queries.
