@@ -178,7 +178,7 @@ namespace seeks_plugins
       }
 
     // set peer status.
-    if (args->_pe && args->_err != SP_ERR_OK)
+    if (args->_pe && args->_err != SP_ERR_OK && args->_err != DB_ERR_NO_REC)
       {
         if (++args->_pe->_retries > cf_configuration::_config->_dead_peer_retries)
           {
