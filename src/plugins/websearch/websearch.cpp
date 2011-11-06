@@ -1121,7 +1121,6 @@ namespace seeks_plugins
     if (!pers)
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
-    std::cerr << "persf: " << persf << std::endl;
     pthread_t pers_thread = 0;
     ws_thread_arg *pers_thread_arg = NULL;
 
