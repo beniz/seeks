@@ -1121,6 +1121,7 @@ namespace seeks_plugins
     if (!pers)
       pers = websearch::_wconfig->_personalization ? "on" : "off";
     bool persf = (strcasecmp(pers,"on")==0);
+    std::cerr << "persf: " << persf << std::endl;
     pthread_t pers_thread = 0;
     ws_thread_arg *pers_thread_arg = NULL;
 
@@ -1181,7 +1182,17 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
-            delete pers_thread_arg;
+#if defined(PROTOBUF) && defined(TC)
+            if (persf)
+              {
+                while(!pers_thread_arg->_done)
+                  {
+                    cond_broadcast(&qc->_feeds_ack_cond);
+                  }
+                delete pers_thread_arg;
+                pthread_join(pers_thread,NULL);
+              }
+#endif
             return err;
           }
 
@@ -1248,7 +1259,17 @@ namespace seeks_plugins
         else if (err != SP_ERR_OK)
           {
             mutex_unlock(&qc->_qc_mutex);
-            delete pers_thread_arg;
+#if defined(PROTOBUF) && defined(TC)
+            if (persf)
+              {
+                while(!pers_thread_arg->_done)
+                  {
+                    cond_broadcast(&qc->_feeds_ack_cond);
+                  }
+                delete pers_thread_arg;
+                pthread_join(pers_thread,NULL);
+              }
+#endif
             return err;
           }
 

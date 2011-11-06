@@ -102,7 +102,7 @@ class WBExistTest : public testing::Test
 
 //TODO: check lookup_qc()
 
-TEST_F(WBTest,perform_websearch_bad_param_new)
+TEST_F(WBTest,perform_websearch_bad_param_new1)
 {
   client_state csp;
   http_response rsp;
@@ -155,7 +155,7 @@ TEST_F(WBTest,perform_websearch_no_engine_output_fail_new)
   //sweeper::sweep_all();
 }
 
-TEST_F(WBExistTest,perform_websearch_bad_param_new)
+TEST_F(WBExistTest,perform_websearch_bad_param_new2)
 {
   client_state csp;
   http_response rsp;
