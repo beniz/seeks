@@ -573,7 +573,7 @@ namespace sp
             errlog::log_error(LOG_LEVEL_ERROR,
                               "%d in plugin %s caught in top-level handler",
                               err, d->_plugin_name.c_str());
-            err = cgi::cgi_error_plugin(csp, rsp, err, d->_plugin_name);
+            err = cgi::cgi_error_plugin(csp, rsp, err, d->_plugin_name, param_list);
           }
       }
     else if (err && (err != SP_ERR_MEMORY))
@@ -1213,6 +1213,8 @@ namespace sp
    *          2  :  rsp = http_response data structure for output
    *          3  :  error_to_report = Error code to report
    *          4  :  pname = plugin name.
+   *          5  :  param_list = list of parameters.
+   *          6  :  def = default output format ("json" or "html").
    *
    * Returns     :  SP_ERR_OK on success
    *                SP_ERR_MEMORY on out-of-memory error.
@@ -1221,16 +1223,31 @@ namespace sp
   sp_err cgi::cgi_error_plugin(const client_state *csp,
                                http_response *rsp,
                                const sp_err &error_to_report,
-                               const std::string &pname)
+                               const std::string &pname,
+                               const hash_map<const char*,const char*,hash<const char*>,eqstr> *param_list,
+                               const std::string &def)
   {
     hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
-
-    assert(csp);
-    assert(rsp);
-
     if (NULL == (exports = cgi::default_exports(csp, NULL)))
       {
         return SP_ERR_MEMORY;
+      }
+
+    std::string output = "html";
+    if (!def.empty())
+      output = def;
+    else if (param_list)
+      {
+        const char *output_str = miscutil::lookup(param_list,"output");
+        if (output_str)
+          output = output_str;
+      }
+    if (output == "json")
+      {
+        rsp->_status = strdup("500");
+        rsp->_body = strdup("{\"error\":\"internal plugin error\"}");
+        rsp->_content_length = strlen(rsp->_body);
+        return SP_ERR_OK;
       }
 
     miscutil::add_map_entry(exports,"pname",1,pname.c_str(),1);
