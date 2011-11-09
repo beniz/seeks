@@ -360,10 +360,12 @@ namespace seeks_plugins
       httpserv::websearch(r,arg);
     else if (uri.substr(0,11)=="/cache/txt/")
       httpserv::websearch(r,arg);
+#if defined(PROTOBUF) && defined(TC)
     else if (uri.substr(0,12)=="/suggestion/")
       httpserv::suggestion(r,arg);
     else if (uri.substr(0,16)=="/recommendation/")
       httpserv::recommendation(r,arg);
+#endif
 
     // if unknown resource, trigger file service.
     else httpserv::file_service(r,arg);
