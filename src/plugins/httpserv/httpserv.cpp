@@ -487,7 +487,7 @@ namespace seeks_plugins
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -504,6 +504,7 @@ namespace seeks_plugins
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -528,21 +529,21 @@ namespace seeks_plugins
     std::string http_method = httpserv::get_method(r);
     csp._http._gpc = strdup(http_method.c_str());
     if (uri.substr(0,12)=="/search/txt/")
-      serr = websearch::cgi_websearch_search(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_search(&csp,rsp,parameters);
     else if (uri.substr(0,7)=="/words/")
-      serr = websearch::cgi_websearch_words(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_words(&csp,rsp,parameters);
     else if (uri.substr(0,15)=="/recent/queries")
-      serr = websearch::cgi_websearch_recent_queries(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_recent_queries(&csp,rsp,parameters);
     else if (uri.substr(0,15)=="/cluster/types/")
-      serr = websearch::cgi_websearch_clustered_types(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_clustered_types(&csp,rsp,parameters);
     else if (uri.substr(0,14)=="/cluster/auto/")
-      serr = websearch::cgi_websearch_clusterize(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_clusterize(&csp,rsp,parameters);
     else if (uri.substr(0,13)=="/similar/txt/")
-      serr = websearch::cgi_websearch_similarity(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_similarity(&csp,rsp,parameters);
     else if (uri.substr(0,11)=="/cache/txt/")
-      serr = websearch::cgi_websearch_search_cache(&csp,&rsp,parameters);
+      serr = websearch::cgi_websearch_search_cache(&csp,rsp,parameters);
     else if (uri.substr(0,7)=="/search")
-      serr = websearch_api_compat::cgi_search_compat(&csp,&rsp,parameters);
+      serr = websearch_api_compat::cgi_search_compat(&csp,rsp,parameters);
     miscutil::list_remove_all(&csp._headers);
 
     int code = 200;
@@ -554,32 +555,32 @@ namespace seeks_plugins
             || serr == WB_ERR_NO_ENGINE
             || serr == WB_ERR_QUERY_ENCODING)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             code = 500;
           }
         else if (serr == WB_ERR_SE_CONNECT)
           {
-            if (rsp._body)
-              free(rsp._body);
-            rsp._body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
+            if (rsp->_body)
+              free(rsp->_body);
+            rsp->_body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
 t.dtd\"><html><head><title>408 - Seeks fail connection to background search engines </title></head><body></body></html>");
             code = 408;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
@@ -587,8 +588,8 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
     /* fill up response. */
     std::string ct = "text/html"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -599,12 +600,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -615,7 +617,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -632,6 +634,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -655,8 +658,8 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     csp._http._path = strdup(uri.c_str());
     csp._http._gpc = strdup(httpserv::get_method(r).c_str());
     if (uri.substr(0,12)=="/search/img/")
-      serr = img_websearch::cgi_img_websearch_search(&csp,&rsp,parameters);
-    else serr = websearch_api_compat::cgi_img_search_compat(&csp,&rsp,parameters);
+      serr = img_websearch::cgi_img_websearch_search(&csp,rsp,parameters);
+    else serr = websearch_api_compat::cgi_img_search_compat(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -669,40 +672,40 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
             || serr == WB_ERR_NO_ENGINE
             || serr == WB_ERR_QUERY_ENCODING)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(crsp);
             code = 500;
           }
         else if (serr == WB_ERR_SE_CONNECT)
           {
-            if (rsp._body)
-              free(rsp._body);
-            rsp._body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
+            if (rsp->_body)
+              free(rsp->_body);
+            rsp->_body = strdup("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/stric\
 t.dtd\"><html><head><title>408 - Seeks fail connection to background search engines </title></head><body></body></html>");
             code = 408;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "text/html"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -713,12 +716,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -873,7 +877,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -889,6 +893,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -915,7 +920,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       }
 
     // call for capture callback.
-    sp_err serr = websearch_api_compat::cgi_tbd_compat(&csp,&rsp,parameters);
+    sp_err serr = websearch_api_compat::cgi_tbd_compat(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -926,32 +931,32 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             code = 500;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "text/html"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -962,12 +967,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -977,7 +983,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -993,6 +999,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -1005,7 +1012,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"host",host);
 
     // call to find_dbr callback.
-    sp_err serr = udb_service::cgi_find_dbr(&csp,&rsp,parameters);
+    sp_err serr = udb_service::cgi_find_dbr(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -1017,35 +1024,35 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             err_msg = "Bad Parameter";
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             err_msg = "Not Found";
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             err_msg = "Memory Error";
             code = 500;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "text/html"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -1056,12 +1063,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body && serr != DB_ERR_NO_REC)
-      content = std::string(rsp._body,rsp._content_length); // XXX: beware of length.
+    if (rsp->_body && serr != DB_ERR_NO_REC)
+      content = std::string(rsp->_body,rsp->_content_length); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,err_msg.c_str(),content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -1071,7 +1079,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* check that we're getting a proper POST request. */
@@ -1082,6 +1090,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 #endif
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.
+        delete rsp;
         return;
       }
 
@@ -1098,6 +1107,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -1110,6 +1120,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     if (!input_buffer)
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.
+        delete rsp;
         return;
       }
 
@@ -1130,6 +1141,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     if (post_content.empty())
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.
+        delete rsp;
         return;
       }
     size_t post_content_size = post_content.length() * sizeof(char);
@@ -1146,7 +1158,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"host",host);
 
     // call to find_bqc callback.
-    sp_err serr = udb_service::cgi_find_bqc(&csp,&rsp,parameters);
+    sp_err serr = udb_service::cgi_find_bqc(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
     delete[] csp._iob._cur;
@@ -1161,35 +1173,35 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             err_msg = "Bad Parameter";
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             err_msg = "Not Found";
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             err_msg = "Memory Error";
             code = 500;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "text/html"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -1200,12 +1212,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body && serr != DB_ERR_NO_REC)
-      content = std::string(rsp._body,rsp._content_length); // XXX: beware of length.
+    if (rsp->_body && serr != DB_ERR_NO_REC)
+      content = std::string(rsp->_body,rsp->_content_length); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,err_msg.c_str(),content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -1217,8 +1230,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   void httpserv::peers(struct evhttp_request *r, void *arg)
   {
     client_state csp;
-    //csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -1235,6 +1247,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -1257,7 +1270,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     csp._http._path = strdup(uri.c_str());
     std::string http_method = httpserv::get_method(r);
     csp._http._gpc = strdup(http_method.c_str());
-    sp_err serr = cf::cgi_peers(&csp,&rsp,parameters);
+    sp_err serr = cf::cgi_peers(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -1268,32 +1281,32 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             code = 500;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "application/json"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -1304,12 +1317,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -1319,7 +1333,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -1336,6 +1350,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -1358,7 +1373,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     csp._http._path = strdup(uri.c_str());
     std::string http_method = httpserv::get_method(r);
     csp._http._gpc = strdup(http_method.c_str());
-    sp_err serr = cf::cgi_suggestion(&csp,&rsp,parameters);
+    sp_err serr = cf::cgi_suggestion(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -1369,32 +1384,32 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             code = 500;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "application/json"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -1405,12 +1420,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
@@ -1420,7 +1436,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   {
     client_state csp;
     csp._config = seeks_proxy::_config;
-    http_response rsp;
+    http_response *rsp = new http_response();
     hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
 
     /* parse query. */
@@ -1437,6 +1453,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         if (parameters)
           miscutil::free_map(parameters);
         httpserv::reply_with_error_400(r);
+        delete rsp;
         return;
       }
 
@@ -1459,7 +1476,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
     csp._http._path = strdup(uri.c_str());
     std::string http_method = httpserv::get_method(r);
     csp._http._gpc = strdup(http_method.c_str());
-    sp_err serr = cf::cgi_recommendation(&csp,&rsp,parameters);
+    sp_err serr = cf::cgi_recommendation(&csp,rsp,parameters);
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
 
@@ -1470,32 +1487,32 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         status = "ERROR";
         if (serr == SP_ERR_CGI_PARAMS)
           {
-            cgi::cgi_error_bad_param(&csp,&rsp,parameters);
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
             code = 400;
           }
         else if (serr == SP_ERR_NOT_FOUND)
           {
-            cgisimple::cgi_error_404(&csp,&rsp,parameters);
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
             code = 404;
           }
         else if (serr == SP_ERR_MEMORY)
           {
             http_response *crsp = cgi::cgi_error_memory();
-            rsp = *crsp;
-            delete crsp;
+            delete rsp;
+            rsp = new http_response(*crsp);
             code = 500;
           }
         else
           {
-            cgi::cgi_error_unknown(&csp,&rsp,serr,parameters);
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
             code = 500;
           }
       }
 
     /* fill up response. */
     std::string ct = "application/json"; // default content-type.
-    std::list<const char*>::const_iterator lit = rsp._headers.begin();
-    while (lit!=rsp._headers.end())
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
       {
         if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
           {
@@ -1506,12 +1523,13 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         ++lit;
       }
     std::string content;
-    if (rsp._body)
-      content = std::string(rsp._body); // XXX: beware of length.
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
 
     if (status == "OK")
       httpserv::reply_with_body(r,code,"OK",content,ct);
     else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();

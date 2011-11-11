@@ -52,6 +52,24 @@ namespace sp
      _reason(0)
   {}
 
+  http_response::http_response(http_response *rsp)
+    :_status(NULL),_head(NULL),_head_length(0),_body(NULL),_content_length(0),
+     _is_static(rsp->_is_static),_reason(rsp->_reason)
+  {
+    if (rsp->_status)
+      _status = strdup(rsp->_status);
+    if (rsp->_head)
+      {
+        _head = strdup(rsp->_head);
+        _head_length = strlen(_head);
+      }
+    if (rsp->_body)
+      {
+        _body = strdup(rsp->_body);
+        _content_length = strlen(_body);
+      }
+  }
+
   http_response::~http_response()
   {
     if (this != &cgi::_cgi_error_memory_response)
