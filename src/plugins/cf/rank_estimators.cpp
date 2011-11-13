@@ -1359,17 +1359,18 @@ namespace seeks_plugins
   {
     const uint32_t len1 = s1.size(), len2 = s2.size();
     uint32_t inf = len1 + len2;
-    uint32_t H[len1+2][len2+2];
-    H[0][0] = inf;
+    //uint32_t H[len1+2][len2+2];
+    std::vector<std::vector<uint32_t> > He(len1+2,std::vector<uint32_t>(len2+2));
+    He[0][0] = inf;
     for(uint32_t i = 0; i<=len1; ++i)
       {
-        H[i+1][1] = i;
-        H[i+1][0] = inf;
+        He[i+1][1] = i;
+        He[i+1][0] = inf;
       }
     for(uint32_t j = 0; j<=len2; ++j)
       {
-        H[1][j+1] = j;
-        H[0][j+1] = inf;
+        He[1][j+1] = j;
+        He[0][j+1] = inf;
       }
     uint32_t DA[c];
     for(uint32_t d = 0; d<c; ++d) DA[d]=0;
@@ -1382,13 +1383,13 @@ namespace seeks_plugins
             uint32_t j1 = DB;
             uint32_t d = ((s1[i-1]==s2[j-1])?0:1);
             if(d==0) DB = j;
-            H[i+1][j+1] = std::min(std::min(H[i][j]+d, H[i+1][j] + 1),
-                                   std::min(H[i][j+1]+1,
-                                            H[i1][j1] + (i-i1-1) + 1 + (j-j1-1)));
+            He[i+1][j+1] = std::min(std::min(He[i][j]+d, He[i+1][j] + 1),
+                                    std::min(He[i][j+1]+1,
+                                             He[i1][j1] + (i-i1-1) + 1 + (j-j1-1)));
           }
         DA[(unsigned char)s1[i-1]] = i;
       }
-    return H[len1+1][len2+1];
+    return He[len1+1][len2+1];
   }
 
   uint32_t simple_re::query_distance(const std::string &s1, const std::string &s2,
