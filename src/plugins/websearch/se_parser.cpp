@@ -122,7 +122,7 @@ namespace seeks_plugins
       NULL
     };
 
-    mutex_lock(&se_parser::_se_parser_mutex);
+    //mutex_lock(&se_parser::_se_parser_mutex);
 
     int status = 0;
     try
@@ -136,12 +136,14 @@ namespace seeks_plugins
       {
         errlog::log_error(LOG_LEVEL_PARSER,"Error %s in xml/html parsing of search results.",
                           e.what());
+        //mutex_unlock(&se_parser::_se_parser_mutex);
         throw sp_exception(WB_ERR_PARSE,e.what());
       }
     catch (...) // catch everything else to avoid crashes.
       {
         std::string msg = "Unknown error in xml/html parsing of search results";
         errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
+        //mutex_unlock(&se_parser::_se_parser_mutex);
         throw sp_exception(WB_ERR_PARSE,msg);
       }
 
@@ -149,7 +151,7 @@ namespace seeks_plugins
       {
         if (ctxt)
           xmlFreeParserCtxt(ctxt);
-        mutex_unlock(&se_parser::_se_parser_mutex);
+        //mutex_unlock(&se_parser::_se_parser_mutex);
       }
     else // an error occurred.
       {
@@ -167,7 +169,7 @@ namespace seeks_plugins
                 errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
                 if (ctxt)
                   xmlFreeParserCtxt(ctxt);
-                mutex_unlock(&se_parser::_se_parser_mutex);
+                //mutex_unlock(&se_parser::_se_parser_mutex);
                 throw sp_exception(WB_ERR_PARSE,msg);
               }
             // XXX: too verbose, and confusing to users.
@@ -177,7 +179,7 @@ namespace seeks_plugins
                 errlog::log_error(LOG_LEVEL_DEBUG,msg.c_str());
                 if (ctxt)
                   xmlFreeParserCtxt(ctxt);
-                mutex_unlock(&se_parser::_se_parser_mutex);
+                //mutex_unlock(&se_parser::_se_parser_mutex);
                 //throw sp_exception(WB_ERR_PARSE,msg);
               }
           }
@@ -232,7 +234,7 @@ namespace seeks_plugins
       NULL
     };
 
-    mutex_lock(&se_parser::_se_parser_mutex);
+    //mutex_lock(&se_parser::_se_parser_mutex);
 
     int status = 0;
     try
@@ -260,7 +262,7 @@ namespace seeks_plugins
       {
         if (ctxt)
           xmlFreeParserCtxt(ctxt);
-        mutex_unlock(&se_parser::_se_parser_mutex);
+        //mutex_unlock(&se_parser::_se_parser_mutex);
       }
     else // an error occurred.
       {
@@ -278,7 +280,7 @@ namespace seeks_plugins
                 errlog::log_error(LOG_LEVEL_PARSER,msg.c_str());
                 if (ctxt)
                   xmlFreeParserCtxt(ctxt);
-                mutex_unlock(&se_parser::_se_parser_mutex);
+                //mutex_unlock(&se_parser::_se_parser_mutex);
                 throw sp_exception(WB_ERR_PARSE,msg);
               }
             // XXX: too verbose, and confusing to users.
@@ -288,7 +290,7 @@ namespace seeks_plugins
                 errlog::log_error(LOG_LEVEL_DEBUG,msg.c_str());
                 if (ctxt)
                   xmlFreeParserCtxt(ctxt);
-                mutex_unlock(&se_parser::_se_parser_mutex);
+                //mutex_unlock(&se_parser::_se_parser_mutex);
                 //throw sp_exception(WB_ERR_PARSE,msg);
               }
           }
@@ -316,6 +318,7 @@ namespace seeks_plugins
   void se_parser::libxml_init()
   {
     xmlInitParser();
+    mutex_init(&se_parser::_se_parser_mutex);
   }
 
 } /* end of namespace. */
