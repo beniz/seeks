@@ -473,11 +473,15 @@ namespace seeks_plugins
           }
         catch(sp_exception &e)
           {
-            err++;
+            if (e.code()==DB_ERR_NO_REC)
+              err = DB_ERR_NO_REC;
+            else err++;
           }
         ++hit;
       }
-    if (err != 0)
+    if (err == DB_ERR_NO_REC)
+      throw sp_exception(err,"");
+    if (err != 0 && err != DB_ERR_NO_REC)
       {
         std::string msg = "failed removing some or all query fragments for query " + query;
         throw sp_exception(QC_ERR_REMOVE_QUERY,msg);
@@ -509,7 +513,7 @@ namespace seeks_plugins
     std::string key_str = key.to_rstring();
     db_record *dbr = seeks_proxy::_user_db->find_dbr(key_str,plugin_name);
     if (!dbr)
-      return;
+      throw sp_exception(DB_ERR_NO_REC,"");
     db_query_record *dbqr = static_cast<db_query_record*>(dbr);
     hash_map<const char*,query_data*,hash<const char*>,eqstr>::iterator hit;
     if ((hit=dbqr->_related_queries.find(query.c_str()))!=dbqr->_related_queries.end())

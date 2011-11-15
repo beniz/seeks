@@ -755,6 +755,17 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   miscutil::free_map(parameters);
 }
 
+TEST_F(SRETest,recommendation_delete_no_record)
+{
+  client_state csp;
+  csp._http._gpc = strdup("delete");
+  csp._http._path = strdup("/recommendation/seeksy");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,&parameters);
+  ASSERT_EQ(DB_ERR_NO_REC,err);
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

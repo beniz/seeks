@@ -368,6 +368,18 @@ TEST_F(QCTest,remove_queries)
       ASSERT_EQ(SP_ERR_OK,e.code()); // would fail.
     }
   ASSERT_EQ(2,seeks_proxy::_user_db->number_records());
+  bool fail=false;
+  try
+    {
+      qcelt->remove_queries("seeksy","query-capture",0);
+    }
+  catch (sp_exception &e)
+    {
+      fail = true;
+      ASSERT_EQ(DB_ERR_NO_REC,e.code());
+    }
+  ASSERT_TRUE(fail);
+  ASSERT_EQ(2,seeks_proxy::_user_db->number_records());
 }
 
 TEST(DBRTest,serialize_deserialize)
