@@ -559,12 +559,9 @@ namespace sp
       {
         /* list of filtered errors at proxy level. */
 #if defined(PROTOBUF) && defined(TC)
-        if (err == DB_ERR_NO_REC) // XXX: other errors to be avoided come here.
+        if (err == DB_ERR_NO_REC) // XXX: other internal plugin errors to be converted come here.
           {
-            /* let's assume that it worked. */
-            rsp->_reason = RSP_REASON_CGI_CALL;
-            miscutil::free_map(param_list);
-            return cgi::finish_http_response(csp, rsp);
+            err = cgisimple::cgi_error_404(csp,rsp,param_list);
           }
         else
 #endif
@@ -1088,7 +1085,7 @@ namespace sp
                                             "</head>\r\n"
                                             "<body>\r\n"
                                             "<h1>500 Internal Seeks proxy Error</h1>\r\n"
-                                            "<p>Privoxy <b>ran out of memory</b> while processing your request.</p>\r\n"
+                                            "<p>Seeks <b>ran out of memory</b> while processing your request.</p>\r\n"
                                             "<p>Please contact your proxy administrator, or try again later</p>\r\n"
                                             "</body>\r\n"
                                             "</html>\r\n";
@@ -1116,7 +1113,7 @@ namespace sp
   http_response* cgi::cgi_error_memory()
   {
     /* assert that it's been initialized. */
-    assert(cgi::_cgi_error_memory_response._head);
+    //assert(cgi::_cgi_error_memory_response._head);
 
     return &cgi::_cgi_error_memory_response;
   }
