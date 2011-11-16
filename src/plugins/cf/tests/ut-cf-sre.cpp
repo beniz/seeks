@@ -766,6 +766,40 @@ TEST_F(SRETest,recommendation_delete_no_record)
   ASSERT_EQ(DB_ERR_NO_REC,err);
 }
 
+TEST_F(SRETest,recommendation_delete)
+{
+  // seeks comes from 'seeks' + 'seeks project', so test below
+  // removes a query within a record.
+  client_state csp;
+  csp._http._gpc = strdup("delete");
+  csp._http._path = strdup("/recommendation/seeks");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,&parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(3,seeks_proxy::_user_db->number_records());
+
+  // test below hits record 'project' but cannot find query
+  // 'project' so it leaves record unaffected.
+  client_state csp2;
+  csp2._http._gpc = strdup("delete");
+  csp2._http._path = strdup("/recommendation/project");
+  http_response rsp2;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters2;
+  err = cf::cgi_recommendation(&csp2,&rsp2,&parameters2);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(3,seeks_proxy::_user_db->number_records());
+
+  client_state csp3;
+  csp3._http._gpc = strdup("delete");
+  csp3._http._path = strdup("/recommendation/seeks%20project");
+  http_response rsp3;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters3;
+  err = cf::cgi_recommendation(&csp3,&rsp3,&parameters3);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(0,seeks_proxy::_user_db->number_records());
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
