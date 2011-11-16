@@ -419,8 +419,16 @@ namespace seeks_plugins
     client_state csp;
     csp._config = seeks_proxy::_config;
     http_response rsp;
-    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
-    = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+    const char *uri = r->uri;
+    if (uri)
+      parameters = httpserv::parse_query(uri);
+    else
+      {
+        httpserv::reply_with_empty_body(r,404,"ERROR");
+        return;
+      }
+    std::string uri_str = std::string(uri);
 
     const char *host = evhttp_find_header(r->input_headers, "host");
     if (host)
@@ -430,8 +438,6 @@ namespace seeks_plugins
       miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
 
     /* return requested file. */
-    std::string uri_str = std::string(r->uri);
-
     /* XXX: truely, this is a hack, we're routing websearch file service. */
     std::string ct;  // content-type.
     sp_err serr = SP_ERR_OK;
@@ -460,15 +466,17 @@ namespace seeks_plugins
         serr = cgisimple::cgi_file_server(&csp,&rsp,parameters);
         ct = "text/plain";
       }
+    else // wrong resource.
+      {
+        cgisimple::cgi_error_404(&csp,&rsp,parameters);
+        serr = SP_ERR_NOT_FOUND;
+      }
 
-    // XXX: other services can be routed here.
     miscutil::free_map(parameters);
     miscutil::list_remove_all(&csp._headers);
+    std::string status = "OK";
     if (serr != SP_ERR_OK)
-      {
-        httpserv::reply_with_empty_body(r,404,"ERROR");
-        return;
-      }
+      status = "ERROR";
 
     /* fill up response. */
     if (ct.empty())
@@ -485,8 +493,12 @@ namespace seeks_plugins
             ++lit;
           }
       }
-    std::string content = std::string(rsp._body,rsp._content_length);
-    httpserv::reply_with_body(r,200,"OK",content,ct);
+    std::string content;
+    if (rsp._body)
+      content = std::string(rsp._body);
+    if (status == "OK")
+      httpserv::reply_with_body(r,200,"OK",content,ct);
+    else httpserv::reply_with_error(r,404,"ERROR",content);
   }
 
   void httpserv::websearch(struct evhttp_request *r, void *arg)

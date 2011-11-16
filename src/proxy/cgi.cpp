@@ -504,10 +504,13 @@ namespace sp
         return cgi::dispatch(d, path_copy, csp, param_list, rsp);
       }
 
-    miscutil::free_map(param_list);
-    delete rsp;
+    //delete rsp;
     freez(path_copy);
-    return NULL; // beware.
+    //return NULL; // beware.
+    cgisimple::cgi_error_404(csp,rsp,param_list);
+    cgi::finish_http_response(csp,rsp);
+    miscutil::free_map(param_list);
+    return rsp;
   }
 
   /**
