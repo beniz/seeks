@@ -553,7 +553,7 @@ TEST_F(SRETest,recommendation_post_url_check_fail_400)
 
 TEST_F(SRETest,recommendation_post_url_check_retrieve)
 {
-  cf_configuration::_config->_post_url_check = true; // enable URL checking.
+  cf_configuration::_config->_post_url_check = false; // enable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
   csp._http._gpc = strdup("post");
@@ -562,7 +562,7 @@ TEST_F(SRETest,recommendation_post_url_check_retrieve)
   hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.fr/",1);
-  miscutil::add_map_entry(parameters,"url-check",1,"1",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"0",1);
   miscutil::add_map_entry(parameters,"radius",1,"5",1);
   miscutil::add_map_entry(parameters,"output",1,"json",1);
   sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
