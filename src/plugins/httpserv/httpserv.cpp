@@ -157,11 +157,13 @@ namespace seeks_plugins
   {
     evhttp_add_header(r->output_headers,"Location",url);
     evhttp_send_reply(r, HTTP_MOVETEMP, "OK", NULL);
+    errlog::log_error(LOG_LEVEL_CRUNCH,"HTTP Call: %s",r->uri);
   }
 
   void httpserv::reply_with_error_400(struct evhttp_request *r)
   {
     evhttp_send_reply(r, HTTP_BADREQUEST, "BAD REQUEST", NULL);
+    errlog::log_error(LOG_LEVEL_CRUNCH,"HTTP Call: %s",r->uri);
   }
 
   void httpserv::reply_with_error(struct evhttp_request *r,
@@ -184,6 +186,7 @@ namespace seeks_plugins
 
     evhttp_send_reply(r, http_code, message, buffer);
     evbuffer_free(buffer);
+    errlog::log_error(LOG_LEVEL_CRUNCH,"HTTP Call: %s",r->uri);
   }
 
   void httpserv::reply_with_empty_body(struct evhttp_request *r,
@@ -191,6 +194,7 @@ namespace seeks_plugins
                                        const char *message)
   {
     evhttp_send_reply(r, http_code, message, NULL);
+    errlog::log_error(LOG_LEVEL_CRUNCH,"HTTP Call: %s",r->uri);
   }
 
   void httpserv::reply_with_body(struct evhttp_request *r,
@@ -213,6 +217,8 @@ namespace seeks_plugins
 
     evhttp_send_reply(r, http_code, message, buffer);
     evbuffer_free(buffer);
+
+    errlog::log_error(LOG_LEVEL_CRUNCH,"HTTP Call: %s",r->uri);
   }
 
   void httpserv::websearch_hp(struct evhttp_request *r, void *arg)
