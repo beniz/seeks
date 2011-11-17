@@ -495,7 +495,7 @@ namespace seeks_plugins
       }
     std::string content;
     if (rsp._body)
-      content = std::string(rsp._body);
+      content = std::string(rsp._body,rsp._content_length);
     if (status == "OK")
       httpserv::reply_with_body(r,200,"OK",content,ct);
     else httpserv::reply_with_error(r,404,"ERROR",content);
