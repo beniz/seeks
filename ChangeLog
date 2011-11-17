@@ -23,6 +23,8 @@ post search results directly onto a P2P ring of seeks machines.
 	
 - 'hot reload' of configuration changes.
 
+- Improved logging of operations.
+	
 - Fixes for compiling under FreeBSD & Haiku.
 	
 - New API parameter to control stopwords filtering.
