@@ -464,7 +464,7 @@ namespace seeks_plugins
       {
         feed_parser fdo = f.find_feed((*it)._name);
         feed_parser diffd = (*it).diff(fdo);
-        if (!fds.add_feed(diffd))
+        if (!diffd.empty() && !fds.add_feed(diffd))
           {
             // should never happen ?
             fds.remove_feed((*it)._name);

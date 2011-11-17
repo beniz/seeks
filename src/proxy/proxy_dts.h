@@ -199,6 +199,8 @@ namespace sp
 
       http_response(char *head, char* body);
 
+      http_response(http_response *rsp);
+
       ~http_response();
 
       void reset();

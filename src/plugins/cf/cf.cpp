@@ -588,14 +588,13 @@ namespace seeks_plugins
                 radius = tmp;
               }
           }
-
         try
           {
             query_capture_element::remove_queries(query,"query-capture",radius);
           }
         catch(sp_exception &e)
           {
-            return SP_ERR_MEMORY; // 500.
+            return e.code();
           }
 
         // remove query from cache if applicable.

@@ -553,7 +553,7 @@ TEST_F(SRETest,recommendation_post_url_check_fail_400)
 
 TEST_F(SRETest,recommendation_post_url_check_retrieve)
 {
-  cf_configuration::_config->_post_url_check = true; // enable URL checking.
+  cf_configuration::_config->_post_url_check = false; // enable URL checking.
   client_state csp;
   csp._config = seeks_proxy::_config;
   csp._http._gpc = strdup("post");
@@ -562,7 +562,7 @@ TEST_F(SRETest,recommendation_post_url_check_retrieve)
   hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
   miscutil::add_map_entry(parameters,"url",1,"http://www.seeks.fr/",1);
-  miscutil::add_map_entry(parameters,"url-check",1,"1",1);
+  miscutil::add_map_entry(parameters,"url-check",1,"0",1);
   miscutil::add_map_entry(parameters,"radius",1,"5",1);
   miscutil::add_map_entry(parameters,"output",1,"json",1);
   sp_err err = cf::cgi_recommendation(&csp,&rsp,parameters);
@@ -753,6 +753,51 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   sweeper::unregister_sweepable(qc);
   delete qc;
   miscutil::free_map(parameters);
+}
+
+TEST_F(SRETest,recommendation_delete_no_record)
+{
+  client_state csp;
+  csp._http._gpc = strdup("delete");
+  csp._http._path = strdup("/recommendation/seeksy");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,&parameters);
+  ASSERT_EQ(DB_ERR_NO_REC,err);
+}
+
+TEST_F(SRETest,recommendation_delete)
+{
+  // seeks comes from 'seeks' + 'seeks project', so test below
+  // removes a query within a record.
+  client_state csp;
+  csp._http._gpc = strdup("delete");
+  csp._http._path = strdup("/recommendation/seeks");
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = cf::cgi_recommendation(&csp,&rsp,&parameters);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(3,seeks_proxy::_user_db->number_records());
+
+  // test below hits record 'project' but cannot find query
+  // 'project' so it leaves record unaffected.
+  client_state csp2;
+  csp2._http._gpc = strdup("delete");
+  csp2._http._path = strdup("/recommendation/project");
+  http_response rsp2;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters2;
+  err = cf::cgi_recommendation(&csp2,&rsp2,&parameters2);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(3,seeks_proxy::_user_db->number_records());
+
+  client_state csp3;
+  csp3._http._gpc = strdup("delete");
+  csp3._http._path = strdup("/recommendation/seeks%20project");
+  http_response rsp3;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters3;
+  err = cf::cgi_recommendation(&csp3,&rsp3,&parameters3);
+  ASSERT_EQ(SP_ERR_OK,err);
+  ASSERT_EQ(0,seeks_proxy::_user_db->number_records());
 }
 
 int main(int argc, char **argv)

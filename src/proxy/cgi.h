@@ -120,7 +120,9 @@ namespace sp
       static sp_err cgi_error_plugin(const client_state *csp,
                                      http_response *rsp,
                                      const sp_err &error_to_report,
-                                     const std::string &pname);
+                                     const std::string &pname,
+                                     const hash_map<const char*,const char*,hash<const char*>,eqstr> *param_list,
+                                     const std::string &def="");
       static sp_err cgi_error_unknown(const client_state *csp,
                                       http_response *rsp,
                                       sp_err error_to_report,
