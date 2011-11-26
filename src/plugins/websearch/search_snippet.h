@@ -216,7 +216,7 @@ namespace seeks_plugins
       std::string get_doc_type_str() const;
 
       // printing output.
-      std::ostream& print(std::ostream &output);
+      virtual std::ostream& print(std::ostream &output);
 
     public:
       query_context *_qc; // query context the snippet belongs to.
