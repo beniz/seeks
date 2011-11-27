@@ -589,7 +589,7 @@ namespace seeks_plugins
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else if (serr == WB_ERR_SE_CONNECT)
@@ -968,7 +968,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1063,7 +1063,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             err_msg = "Memory Error";
             code = 500;
           }
@@ -1212,7 +1212,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             err_msg = "Memory Error";
             code = 500;
           }
@@ -1318,7 +1318,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1421,7 +1421,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1524,7 +1524,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
