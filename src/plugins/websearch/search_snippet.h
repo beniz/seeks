@@ -190,7 +190,7 @@ namespace seeks_plugins
                        std::set<std::string> &words) const;
 
       // tag snippet, i.e. detect its type if not already done by the parsers.
-      void tag();
+      virtual void tag();
 
       // load tagging patterns from files.
       static sp_err load_patterns();
