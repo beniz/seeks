@@ -66,15 +66,6 @@ libseeksuserdbfix_la_CXXFLAGS+=`pkg-config --cflags tokyotyrant`
 endif
 endif
 
-libseeksproxy_la_LIBADD = -lpcre -lpcreposix
-libseeksplugins_la_LIBADD = -L. -lseeksproxy -lseeksuserdb -L../plugins/udb_service -ludbserviceplugin -lpcre -lpcreposix @CURL_LDADD@
-if HAVE_PROTOBUF
-if HAVE_TC
-libseeksproxy_la_LIBADD += -L. -lprotobuf -ltokyocabinet
-libseeksuserdbfix_la_LIBADD = -L. -lseeksuserdb -L../plugins/query_capture -lquerycaptureplugin -L../plugins/websearch -lseekswebsearchplugin  -L../plugins/uri_capture -luricaptureplugin @ICU_LDADD@
-endif
-endif
-
 BUILT_SOURCES = $(protoc_outputs)
 
 clean-local:

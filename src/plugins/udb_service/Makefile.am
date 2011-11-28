@@ -26,13 +26,6 @@ libudbserviceplugin_la_SOURCES=udb_service.cpp udb_server.cpp udb_client.cpp \
 	                       udb_service.h udb_server.h udb_client.h \
 	                       halo_msg_wrapper.h udbs_err.h udb_service_configuration.h
 
-libudbserviceplugin_la_LIBADD = -L../../utils -lrmd160
-if HAVE_PROTOBUF
-if HAVE_TC
-libudbserviceplugin_la_LIBADD += -L../uri_capture -luricaptureplugin -L../cf -lcfplugin -L../websearch -lseekswebsearchplugin @ICU_LDADD@
-endif
-endif
-
 udbservicepluginconfigdir = $(sysconfdir)/seeks
 dist_udbservicepluginconfig_DATA=udb-service-config
 

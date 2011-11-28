@@ -52,18 +52,6 @@ if USE_PERL
 libseekswebsearchplugin_la_CXXFLAGS += `perl -MExtUtils::Embed -e ccopts`
 endif
 
-libseekswebsearchplugin_la_LIBADD = -L../../proxy -lseeksproxy -lseeksuserdb -lseeksplugins -L../../utils -lseeksutils -lrmd160 -L../../lsh -lseekslsh -L../../dht -lseeksdht -lpcre -lpcreposix -lxml2
-
-if HAVE_IMG_WEBSEARCH_PLUGIN
-libseekswebsearchplugin_la_LIBADD += -L../img_websearch -lseeksimgwebsearchplugin -lcvaux -lhighgui -lcv -lcxcore
-endif
-
-if HAVE_PROTOBUF
-if HAVE_TC
-libseekswebsearchplugin_la_LIBADD += -L../uri_capture -luricaptureplugin -L../cf -lcfplugin -L../udb_service -ludbserviceplugin -L../query_capture -lquerycaptureplugin -lprotobuf -ltokyocabinet
-endif
-endif
-
 #SUBDIRS=. tests
 
 websearchconfigdir=$(sysconfdir)/seeks
