@@ -655,7 +655,7 @@ namespace seeks_plugins
                         + _qc->_url_enc_query + "&amp;url=" + url_enc + "&amp;action=expand&amp;expansion=xxexp&amp;ui=stat&amp;engines=";
         if (engines)
           html_content += std::string(engines);
-        html_content += "&lang=" + _qc->_auto_lang;
+        html_content += "&amp;lang=" + _qc->_auto_lang;
         html_content += "\">&nbsp;</a>";
         if (_hits > 0 && _npeers > 0)
           html_content += "<br><div class=\"snippet_info\">" + miscutil::to_string(_hits)
