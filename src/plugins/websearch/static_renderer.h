@@ -32,11 +32,6 @@ namespace seeks_plugins
                                   std::string &str, const std::string &base_url_str,
                                   const std::vector<std::string> &query_words);
 
-      static std::string render_snippet(search_snippet *sp,
-                                        std::vector<std::string> &words,
-                                        const std::string &base_url_str,
-                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
-
       static void render_query(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
                                hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
                                std::string &html_encoded_query,
