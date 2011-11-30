@@ -66,6 +66,10 @@ namespace sp
       static sp_err cgi_error_404    (client_state *csp,
                                       http_response *rsp,
                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      static sp_err cgi_error_unauthorized(client_state *csp,
+                                           http_response *rsp,
+                                           const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
       static sp_err cgi_send_banner  (client_state *csp,
                                       http_response *rsp,
                                       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
