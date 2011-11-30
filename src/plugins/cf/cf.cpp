@@ -293,7 +293,9 @@ namespace seeks_plugins
       }
     else if (http_method == "post")
       {
-        return cf::recommendation_post(csp,rsp,parameters);
+        if (cf_configuration::_config->_remote_post)
+          return cf::recommendation_post(csp,rsp,parameters);
+        else return cgisimple::cgi_error_unauthorized(csp,rsp,parameters);
       }
     else if (http_method == "delete")
       {

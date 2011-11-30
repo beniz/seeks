@@ -38,6 +38,7 @@ namespace seeks_plugins
 #define hash_post_radius              2436628877ul  /* "post-radius" */
 #define hash_post_ua                  1442804836ul  /* "post-ua" */
 #define hash_stop_words_filtering     4002206625ul  /* "stop-words-filtering" */
+#define hash_remote_post              4059800377ul  /* "remote-post" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -72,6 +73,7 @@ namespace seeks_plugins
     _post_radius = 5;
     _post_url_ua = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"; // default.
     _stop_words_filtering = false;
+    _remote_post = true;
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -159,6 +161,12 @@ namespace seeks_plugins
         _stop_words_filtering = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to filter similar queries with stop words");
+        break;
+
+      case hash_remote_post:
+        _remote_post = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to allow remote posting of results");
         break;
 
       default:

@@ -47,3 +47,7 @@ post-radius 5
 # Whether to filter queries with stop words.
 # default: 0
 stop-words-filtering 0
+
+# Whether to allow (1) / disallow (0) the remote posting of results.
+# default: 1 # allow
+remote-post 1
