@@ -131,6 +131,7 @@ EXTRA_DIST = \
 	    $(protoc_inputs) \
 	    templates/blocked \
 	    templates/cgi-error-404 \
+	    templates/cgi-error-unauthorized \
 	    templates/cgi-error-bad-param \
 	    templates/cgi-error-disabled \
 	    templates/cgi-error-file \
