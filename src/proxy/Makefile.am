@@ -138,6 +138,7 @@ EXTRA_DIST = \
 	    templates/cgi-error-file-read-only \
 	    templates/cgi-error-modified \
 	    templates/cgi-error-parse \
+	    templates/cgi-error-plugin \
 	    templates/cgi-style.css \
 	    templates/connect-failed \
 	    templates/connection-timeout \
