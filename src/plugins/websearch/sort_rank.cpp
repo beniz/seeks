@@ -156,6 +156,15 @@ namespace seeks_plugins
                 if (!sp)
                   continue;
               }
+            // if we do not accept cross query insertion, just discard those results.
+            if (!websearch::_wconfig->_cross_query_ri
+                && sp->_engine.has_feed("seeks") && sp->_engine.count()==1)
+              {
+                it = snippets.erase(it);
+                delete sp;
+                sp = NULL;
+                continue;
+              }
 
             //debug
             //std::cerr << "new url scanned: " << sp->_url << std::endl;

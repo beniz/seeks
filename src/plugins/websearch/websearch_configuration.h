@@ -80,6 +80,7 @@ namespace seeks_plugins
       std::string _ui_theme; /**< User Interface theme. */
       short _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
       int _num_recent_queries; /**< Max number of recent queries returned / rendered. */
+      bool _cross_query_ri; /**< cross-query result insertion. */
   };
 
 } /* end of namespace. */

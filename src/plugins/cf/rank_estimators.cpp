@@ -887,7 +887,7 @@ namespace seeks_plugins
         posteriors[j] = 0.0;
 
         float qpost = 0.0;
-        if ((iit = inv_qdata->find(surl.c_str())) == inv_qdata->end())
+        if ((iit = inv_qdata->find(surl.c_str())) == inv_qdata->end())  // there's nothing known about this snippet for personnalizing it.
           {
             qpost = base_weight;
             if (qpost > 0.0)
@@ -896,7 +896,7 @@ namespace seeks_plugins
                 posteriors[j] = qpost; // boosting over similar queries.
               }
           }
-        else
+        else // this snippet is known.
           {
             float effect_weights = 0.0;
             std::vector<query_data*> vqd = (*iit).second;
@@ -941,7 +941,7 @@ namespace seeks_plugins
     // wrapup.
     if (sum_posteriors > 0.0)
       {
-        for (size_t k=0; k<ns; k++)
+        for (size_t k=0; k<snippets.size(); k++)
           {
             //posteriors[k] /= sum_posteriors; // normalize.
             snippets.at(k)->_seeks_rank += posteriors[k]; // additive filter.

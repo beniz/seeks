@@ -184,8 +184,19 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        (*vit)->reset_p2p_data();
-        ++vit;
+        search_snippet *sp = (*vit);
+        if (sp->_engine.has_feed("seeks") && sp->_engine.count()==1)
+          {
+            vit = _cached_snippets.erase(vit);
+            remove_from_unordered_cache(sp->_id);
+            delete sp;
+            continue;
+          }
+        else
+          {
+            sp->reset_p2p_data();
+            ++vit;
+          }
       }
     _suggestions.clear();
   }
