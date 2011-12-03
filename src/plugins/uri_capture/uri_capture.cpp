@@ -76,8 +76,12 @@ namespace seeks_plugins
   {
     struct timeval tv_now;
     gettimeofday(&tv_now,NULL);
-    time_t sweep_date = tv_now.tv_sec - uc_configuration::_config->_retention;
-    return seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
+    if (uc_configuration::_config->_retention > 0)
+      {
+        time_t sweep_date = tv_now.tv_sec - uc_configuration::_config->_retention;
+        return seeks_proxy::_user_db->prune_db("uri-capture",sweep_date);
+      }
+    return SP_ERR_OK;
   }
 
   /*- uri_capture -*/
@@ -88,7 +92,6 @@ namespace seeks_plugins
     _version_major = "0";
     _version_minor = "1";
     _configuration = NULL;
-    _interceptor_plugin = new uri_capture_element(this);
 
     if (seeks_proxy::_datadir.empty())
       _config_filename = plugin_manager::_plugin_repository + "uri_capture/uri-capture-config";
@@ -106,6 +109,8 @@ namespace seeks_plugins
     if (uc_configuration::_config == NULL)
       uc_configuration::_config = new uc_configuration(_config_filename);
     _configuration = uc_configuration::_config;
+
+    _interceptor_plugin = new uri_capture_element(this);
   }
 
   uri_capture::~uri_capture()
@@ -236,7 +241,7 @@ namespace seeks_plugins
                           : std::string(seeks_proxy::_datadir + "/plugins/" + uri_capture_element::_capt_filename).c_str()),
                          parent)
   {
-    if (seeks_proxy::_user_db)
+    if (seeks_proxy::_user_db && uc_configuration::_config->_sweep_cycle > 0)
       seeks_proxy::_user_db->register_sweeper(&_uds);
   }
 
