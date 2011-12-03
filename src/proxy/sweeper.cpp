@@ -145,8 +145,8 @@ namespace sp
         sweepable *spable = (*vit);
         if (spable->sweep_me())
           {
-            delete spable;
             vit = seeks_proxy::_memory_dust.erase(vit);
+            delete spable;
           }
         else ++vit;
       }
