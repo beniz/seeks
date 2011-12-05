@@ -1059,7 +1059,9 @@ namespace seeks_plugins
     float prior = 0.0;
     float furi = static_cast<float>(nuri);
     std::string purl = uri_capture_element::prepare_uri(surl);
-    std::string phost = uri_capture_element::prepare_uri(host);
+    std::string phost;
+    if (!host.empty())
+      phost = uri_capture_element::prepare_uri(host);
 
     if (filter)
       {
@@ -1089,7 +1091,7 @@ namespace seeks_plugins
     if (dbr)
       delete dbr;
     dbr = NULL;
-    if (s)
+    if (s && !phost.empty())
       dbr = seeks_proxy::_user_db->find_dbr(phost,uc_str);
 
     // XXX: code below is too aggressive and pushes other results too quickly
