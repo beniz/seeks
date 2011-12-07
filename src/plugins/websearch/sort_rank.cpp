@@ -17,6 +17,7 @@
  */
 
 #include "sort_rank.h"
+#include "seeks_snippet.h"
 #include "websearch.h"
 #include "content_handler.h"
 #include "urlmatch.h"
@@ -90,7 +91,7 @@ namespace seeks_plugins
       {
         search_snippet *sp = (*it);
 
-        if (!ccheck && sp->_doc_type == TWEET)
+        if (!ccheck && sp->_doc_type == seeks_doc_type::TWEET)
           sp->_meta_rank = -1; // reset the rank because it includes retweets.
 
         if (sp->_new)
@@ -98,7 +99,7 @@ namespace seeks_plugins
             if ((c_sp = qc->get_cached_snippet(sp->_id))!=NULL)
               {
                 // merging snippets.
-                search_snippet::merge_snippets(c_sp,sp);
+                c_sp->merge_snippets(sp);
                 it = snippets.erase(it);
                 delete sp;
                 sp = NULL;
@@ -143,7 +144,7 @@ namespace seeks_plugins
 
                         if (same)
                           {
-                            search_snippet::merge_snippets(comp_sp,sp);
+                            comp_sp->merge_snippets(sp);
                             it = snippets.erase(it);
                             delete sp;
                             sp = NULL;
@@ -307,59 +308,59 @@ namespace seeks_plugins
       {
         search_snippet *se = qc->_cached_snippets.at(i);
 
-        if (se->_doc_type == WEBPAGE)
+        if (se->_doc_type == seeks_doc_type::WEBPAGE)
           {
             clusters[0].add_point(se->_id,NULL);
             clusters[0]._label = "Webpages";  // TODO: languages...
           }
-        else if (se->_doc_type == WIKI)
+        else if (se->_doc_type == seeks_doc_type::WIKI)
           {
             clusters[1].add_point(se->_id,NULL);
             clusters[1]._label = "Wikis";
           }
-        else if (se->_doc_type == FILE_DOC
-                 && se->_file_format == "pdf")
+        else if (se->_doc_type == seeks_doc_type::FILE_DOC
+                 && static_cast<seeks_snippet*>(se)->_file_format == "pdf") //XXX: hack.
           {
             clusters[2].add_point(se->_id,NULL);
             clusters[2]._label = "PDFs";
           }
-        else if (se->_doc_type == FILE_DOC)
+        else if (se->_doc_type == seeks_doc_type::FILE_DOC)
           {
             clusters[3].add_point(se->_id,NULL);
             clusters[3]._label = "Other files";
           }
-        else if (se->_doc_type == FORUM)
+        else if (se->_doc_type == seeks_doc_type::FORUM)
           {
             clusters[4].add_point(se->_id,NULL);
             clusters[4]._label = "Forums";
           }
-        else if (se->_doc_type == VIDEO
-                 || se->_doc_type == VIDEO_THUMB)
+        else if (se->_doc_type == seeks_doc_type::VIDEO
+                 || se->_doc_type == seeks_doc_type::VIDEO_THUMB)
           {
             clusters[5].add_point(se->_id,NULL);
             clusters[5]._label = "Videos";
           }
-        else if (se->_doc_type == AUDIO)
+        else if (se->_doc_type == seeks_doc_type::AUDIO)
           {
             clusters[6].add_point(se->_id,NULL);
             clusters[6]._label = "Audio";
           }
-        else if (se->_doc_type == TWEET)
+        else if (se->_doc_type == seeks_doc_type::TWEET)
           {
             clusters[7].add_point(se->_id,NULL);
             clusters[7]._label = "Tweets";
           }
-        else if (se->_doc_type == POST)
+        else if (se->_doc_type == seeks_doc_type::POST)
           {
             clusters[8].add_point(se->_id,NULL);
             clusters[8]._label = "posts";
           }
-        else if (se->_doc_type == REVISION)
+        else if (se->_doc_type == seeks_doc_type::REVISION)
           {
             clusters[9].add_point(se->_id,NULL);
             clusters[9]._label = "Revisions";
           }
-        else if (se->_doc_type == ISSUE)
+        else if (se->_doc_type == seeks_doc_type::ISSUE)
           {
             clusters[10].add_point(se->_id,NULL);
             clusters[10]._label = "Issues";

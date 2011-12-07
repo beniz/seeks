@@ -20,6 +20,7 @@
 #define SE_PARSER_OSEARCH
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 
 namespace seeks_plugins
 {
@@ -45,6 +46,8 @@ namespace seeks_plugins
       std::string _entry_date;
       std::string _entry_content;
       std::string _gen_title;
+
+      seeks_snippet *_sn;
   };
 
   class se_parser_osearch_atom : public se_parser, public se_parser_osearch
@@ -76,6 +79,8 @@ namespace seeks_plugins
                              int length);
 
       virtual void validate_current_snippet(parser_context *pc);
+
+
   };
 
 

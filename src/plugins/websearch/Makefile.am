@@ -30,7 +30,8 @@ endif
 
 ACLOCAL_AMFLAGS=-I m4
 websearchpluginlib_LTLIBRARIES=libseekswebsearchplugin.la
-libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp static_renderer.cpp \
+libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.cpp seeks_snippet.cpp \
+				   static_renderer.cpp \
 				   se_parser.cpp se_parser_ggle.cpp se_parser_bing.cpp \
 				   se_parser_yahoo.cpp se_parser_exalead.cpp html_txt_parser.cpp \
 				   se_parser_twitter.cpp se_parser_osearch.cpp se_parser_youtube.cpp \
@@ -40,7 +41,7 @@ libseekswebsearchplugin_la_SOURCES=websearch.cpp se_handler.cpp search_snippet.c
 				   sort_rank.cpp query_context.cpp content_handler.cpp \
 				   clustering.cpp oskmeans.cpp json_renderer.cpp dynamic_renderer.cpp feeds.cpp \
 				   clustering.h content_handler.h html_txt_parser.h json_renderer.h json_renderer_private.h oskmeans.h \
-				   query_context.h query_interceptor.h search_snippet.h se_handler.h se_parser_bing.h \
+				   query_context.h query_interceptor.h search_snippet.h seeks_snippet.h se_handler.h se_parser_bing.h \
 				   se_parser_exalead.h se_parser_ggle.h se_parser.h se_parser_yahoo.h \
 	                           se_parser_youtube.h se_parser_dailymotion.h se_parser_yauba.h se_parser_twitter.h se_parser_osearch.h \
 				   se_parser_blekko.h se_parser_mediawiki.h se_parser_doku.h se_parser_delicious.h se_parser_wordpress.h se_parser_redmine.h \

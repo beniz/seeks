@@ -32,7 +32,7 @@ namespace seeks_plugins
   { "Document title", "Titre du document / Document title" };
 
   se_parser_doku::se_parser_doku(const std::string &url)
-    :se_parser(url),_results_flag(false),_link_flag(false),_search_div(false),_search_snippet(false)
+    :se_parser(url),_results_flag(false),_link_flag(false),_search_div(false),_search_snippet(false),_sn(NULL)
   {
     urlmatch::parse_url_host_and_path(url,_host,_path);
     if (miscutil::strncmpic(url.c_str(), "http://",7) == 0)
@@ -65,7 +65,7 @@ namespace seeks_plugins
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
                     || pc->_current_snippet->_url.empty()
                     || pc->_current_snippet->_summary.empty()
-                    || pc->_current_snippet->_cite.empty())
+                    || _sn->_cite.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
@@ -75,10 +75,10 @@ namespace seeks_plugins
               }
 
             // create new snippet.
-            search_snippet *sp = new search_snippet(_count+1);
+            _sn = new seeks_snippet(_count+1);
             _count++;
-            sp->_engine = feeds("dokuwiki",_url);
-            pc->_current_snippet = sp;
+            _sn->_engine = feeds("dokuwiki",_url);
+            pc->_current_snippet = _sn;
             _results_flag = true;
 
             //_cached_flag = false; // in case previous snippet did not close the cached flag.
@@ -164,7 +164,7 @@ namespace seeks_plugins
     if (strcasecmp(tag,"a") == 0)
       {
         _link_flag = false;
-        pc->_current_snippet->_cite = _host + _cite;
+        _sn->_cite = _host + _cite;
         pc->_current_snippet->set_url_no_decode(_host + _link);
         _link = "";
         _cite = "";

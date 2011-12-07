@@ -17,6 +17,7 @@
  */
 
 #include "content_handler.h"
+#include "seeks_snippet.h"
 #include "mem_utils.h"
 #include "curl_mget.h"
 #include "html_txt_parser.h"
@@ -106,8 +107,8 @@ namespace seeks_plugins
     for (size_t i=0; i<nsnippets; i++)
       {
         if (qc->_cached_snippets.at(i)->_summary.empty()
-            && qc->_cached_snippets.at(i)->_doc_type != TWEET
-            && qc->_cached_snippets.at(i)->_doc_type != VIDEO_THUMB)
+            && qc->_cached_snippets.at(i)->_doc_type != seeks_doc_type::TWEET
+            && qc->_cached_snippets.at(i)->_doc_type != seeks_doc_type::VIDEO_THUMB)
           {
             std::string *str = new std::string();
             txt_contents.push_back(str);
@@ -116,8 +117,8 @@ namespace seeks_plugins
 
         // decode html.
         std::string dec_sum = qc->_cached_snippets.at(i)->_summary;
-        if (qc->_cached_snippets.at(i)->_doc_type == TWEET
-            || qc->_cached_snippets.at(i)->_doc_type == VIDEO_THUMB)
+        if (qc->_cached_snippets.at(i)->_doc_type == seeks_doc_type::TWEET
+            || qc->_cached_snippets.at(i)->_doc_type == seeks_doc_type::VIDEO_THUMB)
           dec_sum = qc->_cached_snippets.at(i)->_title;
         dec_sum = encode::html_decode(dec_sum);
         std::string *str = new std::string(dec_sum);
@@ -496,10 +497,10 @@ namespace seeks_plugins
     urls.reserve(2);
 
     bool parsing = true;
-    if (sp1->_doc_type == TWEET && sp2->_doc_type == TWEET)
+    if (sp1->_doc_type == seeks_doc_type::TWEET && sp2->_doc_type == seeks_doc_type::TWEET)
       parsing = false;
-    std::string *content1 = (sp1->_doc_type == TWEET) ? &sp1->_title : sp1->_cached_content;
-    std::string *content2 = (sp2->_doc_type == TWEET) ? &sp2->_title : sp2->_cached_content;
+    std::string *content1 = (sp1->_doc_type == seeks_doc_type::TWEET) ? &sp1->_title : sp1->_cached_content;
+    std::string *content2 = (sp2->_doc_type == seeks_doc_type::TWEET) ? &sp2->_title : sp2->_cached_content;
 
     std::string **outputs = NULL;
     if (!content1 && !content2)

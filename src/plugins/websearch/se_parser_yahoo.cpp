@@ -31,7 +31,7 @@ namespace seeks_plugins
 {
   se_parser_yahoo::se_parser_yahoo(const std::string &url)
     :se_parser(url),_start_results(false),_begin_results(false),_title_flag(false),
-     _summary_flag(false)
+     _summary_flag(false),_sn(NULL)
   {
 
   }
@@ -71,9 +71,9 @@ namespace seeks_plugins
               }
 
             // create new snippet.
-            search_snippet *sp = new search_snippet(_count++);
-            sp->_engine = feeds("yahoo",_url);
-            pc->_current_snippet = sp;
+            _sn = new seeks_snippet(_count++);
+            _sn->_engine = feeds("yahoo",_url);
+            pc->_current_snippet = _sn;
             pc->_snippets->push_back(pc->_current_snippet);
           }
       }
@@ -115,7 +115,7 @@ namespace seeks_plugins
                 //pc->_current_snippet->set_cite(url_str);
               }
             else if (_begin_results && pc->_current_snippet)
-              pc->_current_snippet->_cached = std::string(a_link);
+              _sn->_cached = std::string(a_link);
           }
       }
   }

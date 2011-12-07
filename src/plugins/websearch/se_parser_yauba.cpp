@@ -27,7 +27,7 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   se_parser_yauba::se_parser_yauba(const std::string &url)
-    :se_parser(url),_in_item(false),_in_title(false),_in_result(false),_in_summary(false),_in_cite(false)
+    :se_parser(url),_in_item(false),_in_title(false),_in_result(false),_in_summary(false),_in_cite(false),_sn(NULL)
   {
   }
 
@@ -48,11 +48,10 @@ namespace seeks_plugins
           {
             _in_result = true;
             // create new snippet.
-            search_snippet *sp = new search_snippet(_count + 1);
+            _sn = new seeks_snippet(_count + 1);
             _count++;
-            //sp->_engine |= std::bitset<NSEs>(SE_YAUBA);
-            sp->_engine = feeds("yauba",_url);
-            pc->_current_snippet = sp;
+            _sn->_engine = feeds("yauba",_url);
+            pc->_current_snippet = _sn;
           }
       }
     if (_in_result && strcasecmp(tag, "h1") == 0)
@@ -136,7 +135,7 @@ namespace seeks_plugins
         if (pc->_current_snippet)
           {
             if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
-                || pc->_current_snippet->_cite.empty()
+                || _sn->_cite.empty()
                 || pc->_current_snippet->_url.empty())
               {
                 delete pc->_current_snippet;
@@ -162,7 +161,7 @@ namespace seeks_plugins
     if (_in_cite && strcasecmp(tag, "li") == 0)
       {
         _in_cite = false;
-        pc->_current_snippet->_cite = _cite;
+        _sn->_cite = _cite;
         _cite = "";
       }
   }

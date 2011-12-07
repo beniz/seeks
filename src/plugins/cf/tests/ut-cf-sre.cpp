@@ -34,6 +34,7 @@
 #include "qprocess.h"
 #include "urlmatch.h"
 #include "websearch.h"
+#include "seeks_snippet.h"
 #include "errlog.h"
 
 using namespace seeks_plugins;
@@ -116,7 +117,7 @@ class SRETest : public testing::Test
       miscutil::add_map_entry(parameters,"q",1,queries[0].c_str(),1);
       std::list<const char*> headers;
       query_context qc(parameters,headers);
-      search_snippet *sp = new search_snippet();
+      seeks_snippet *sp = new seeks_snippet();
       sp->set_url(url);
       sp->set_title(titles[1]);
       qc._cached_snippets.push_back(sp);
@@ -135,7 +136,7 @@ class SRETest : public testing::Test
       parameters = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
       miscutil::add_map_entry(parameters,"q",1,queries[1].c_str(),1);
       query_context qc2(parameters,headers);
-      sp = new search_snippet();
+      sp = new seeks_snippet();
       sp->set_url(url2);
       sp->set_title(titles[2]);
       qc2._cached_snippets.push_back(sp);
@@ -745,6 +746,7 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   err = cf::cgi_recommendation(&csp3,&rsp3,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   std::string body = std::string(rsp3._body,rsp3._content_length);
+  std::cerr << "body: " << body << std::endl;
   EXPECT_NE(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_NE(std::string::npos,body.find("Seeks Search"));
   EXPECT_NE(std::string::npos,body.find("\"hits\""));

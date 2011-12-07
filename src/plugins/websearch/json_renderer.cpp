@@ -231,7 +231,7 @@ namespace seeks_plugins
           continue;
         if (!lang.empty() && sp->_lang != lang)
           continue;
-        if (sp->_doc_type == REJECTED)
+        if (sp->_doc_type == doc_type::REJECTED)
           continue;
         if (!sp->_engine.has_feed("seeks"))
           continue;
@@ -347,7 +347,7 @@ namespace seeks_plugins
 
         for (size_t i=0; i<ssize; i++)
           {
-            if (snippets.at(i)->_doc_type == REJECTED)
+            if (snippets.at(i)->_doc_type == doc_type::REJECTED)
               continue;
             if (!snippets.at(i)->is_se_enabled(parameters))
               continue;

@@ -20,6 +20,7 @@
 #define SE_PARSER_YOUTUBE_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -62,6 +63,8 @@ namespace seeks_plugins
       std::string _link;
       std::string _date;
       std::string _description;
+
+      seeks_snippet *_sn;
   };
 
 };

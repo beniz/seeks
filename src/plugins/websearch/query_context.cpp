@@ -814,7 +814,7 @@ namespace seeks_plugins
 
             //TODO: don't reset in cache.
             (*vit)->_seeks_rank = 0;
-            (*vit)->bing_yahoo_us_merge();
+            //(*vit)->bing_yahoo_us_merge(); //BEWARE.
             (*vit)->_npeers = 0;
             (*vit)->_hits = 0;
           }

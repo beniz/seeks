@@ -17,6 +17,7 @@
  */
 
 #include "static_renderer.h"
+#include "seeks_snippet.h"
 #include "mem_utils.h"
 #include "plugin_manager.h"
 #include "cgi.h"
@@ -259,15 +260,15 @@ namespace seeks_plugins
 
         for (int i=0; i<ssize; i++)
           {
-            if (snippets.at(i)->_doc_type == REJECTED)
+            if (snippets.at(i)->_doc_type == doc_type::REJECTED)
               continue;
-            if (img && snippets.at(i)->_doc_type != IMAGE)
+            if (img && snippets.at(i)->_doc_type != seeks_doc_type::IMAGE)
               continue;
             if (!snippets.at(i)->is_se_enabled(parameters))
               continue;
             if (!safesearch_off && !snippets.at(i)->_safe)
               continue;
-            if (only_tweets && snippets.at(i)->_doc_type != TWEET)
+            if (only_tweets && snippets.at(i)->_doc_type != seeks_doc_type::TWEET)
               only_tweets = false;
 
             if (!similarity || snippets.at(i)->_seeks_ir > 0)
@@ -355,7 +356,7 @@ namespace seeks_plugins
             while (hit!=clusters[c]._cpoints.end())
               {
                 search_snippet *sp = qc->get_cached_snippet((*hit).first);
-                if (sp->_doc_type == REJECTED)
+                if (sp->_doc_type == doc_type::REJECTED)
                   {
                     ++hit;
                     continue;
@@ -406,7 +407,7 @@ namespace seeks_plugins
         while (hit!=clusters[c]._cpoints.end())
           {
             search_snippet *sp = qc->get_cached_snippet((*hit).first);
-            if (sp->_doc_type == REJECTED)
+            if (sp->_doc_type == doc_type::REJECTED)
               {
                 ++hit;
                 continue;

@@ -31,7 +31,7 @@ namespace seeks_plugins
 {
   se_parser_mediawiki::se_parser_mediawiki(const std::string &url,
       const std::string &lang)
-    :se_parser(url),_li_sr_flag(false),_a_sr_flag(false),_search_result(false),_end_search(true)
+    :se_parser(url),_li_sr_flag(false),_a_sr_flag(false),_search_result(false),_end_search(true),_sn(NULL)
   {
     urlmatch::parse_url_host_and_path(url,_host,_path);
     if (miscutil::strncmpic(url.c_str(), "http://",7) == 0)
@@ -64,10 +64,10 @@ namespace seeks_plugins
         _li_sr_flag = true;
 
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count + 1);
+        _sn = new seeks_snippet(_count + 1);
         _count++;
-        sp->_engine = feeds("mediawiki",_url);
-        pc->_current_snippet = sp;
+        _sn->_engine = feeds("mediawiki",_url);
+        pc->_current_snippet = _sn;
       }
     if (!_end_search && strcasecmp(tag, "a") == 0 && _li_sr_flag)
       {
@@ -145,7 +145,7 @@ namespace seeks_plugins
             if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
                 || pc->_current_snippet->_url.empty()
                 || pc->_current_snippet->_summary.empty()
-                || pc->_current_snippet->_cite.empty())
+                || _sn->_cite.empty())
               {
                 //std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << " summary: " << pc->_current_snippet->_summary.empty() << " cite de mes deux: " << pc->_current_snippet->_cite.empty() << std::endl;
                 delete pc->_current_snippet;
@@ -162,7 +162,7 @@ namespace seeks_plugins
         pc->_current_snippet->_title = _title;
         _title = "";
         pc->_current_snippet->set_url(_host + _link);
-        pc->_current_snippet->_cite = _host + _link;
+        _sn->_cite = _host + _link;
         _link = "";
         _a_sr_flag = false;
       }

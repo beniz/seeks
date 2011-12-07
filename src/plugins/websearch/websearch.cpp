@@ -17,6 +17,7 @@
  */
 
 #include "websearch.h"
+#include "seeks_snippet.h"
 #include "cgi.h"
 #include "cgisimple.h"
 #include "encode.h"
@@ -95,7 +96,7 @@ namespace seeks_plugins
     _configuration = websearch::_wconfig;
 
     // load tagging patterns.
-    search_snippet::load_patterns();
+    seeks_snippet::load_patterns();
 
     // cgi dispatchers.
     _cgi_dispatchers.reserve(6);
@@ -164,7 +165,7 @@ namespace seeks_plugins
   websearch::~websearch()
   {
     websearch::_wconfig = NULL; // configuration is destroyed in parent class.
-    search_snippet::destroy_patterns();
+    seeks_snippet::destroy_patterns();
   }
 
   void websearch::start()

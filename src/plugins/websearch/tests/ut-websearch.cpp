@@ -24,6 +24,7 @@
 #include "websearch.h"
 #include "websearch_configuration.h"
 #include "se_handler.h"
+#include "seeks_snippet.h"
 #include "proxy_configuration.h"
 #include "content_handler.h"
 #include "sort_rank.h"
@@ -334,7 +335,7 @@ TEST_F(WBExistTest,cgi_websearch_search_query)
 
 TEST_F(WBExistTest,cgi_websearch_search_snippet)
 {
-  search_snippet *sp = new search_snippet();
+  seeks_snippet *sp = new seeks_snippet();
   sp->set_url(seeks_url);
   uint32_t sid = sp->_id;
   _qc->_cached_snippets.push_back(sp);
