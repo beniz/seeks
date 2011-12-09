@@ -22,6 +22,11 @@
 #include "proxy_dts.h" // for url_spec.
 #include "feeds.h"
 
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <bitset>
@@ -179,6 +184,9 @@ namespace seeks_plugins
       // reset p2p data.
       void reset_p2p_data();
 
+      // get doc type in a string form.
+      virtual std::string get_doc_type_str() const;
+
       // HTML rendering.
       virtual std::string to_html(std::vector<std::string> &words,
                                   const std::string &base_url_str,
@@ -189,6 +197,13 @@ namespace seeks_plugins
                               const std::vector<std::string> &query_words);
       virtual std::string to_json(const bool &thumbs,
                                   const std::vector<std::string> &query_words);
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+      // XML rendering.
+      virtual sp_err to_xml(const bool &thumbs,
+                            const std::vector<std::string> &query_words,
+                            xmlNodePtr parent);
+#endif
 
       // printing output.
       virtual std::ostream& print(std::ostream &output);

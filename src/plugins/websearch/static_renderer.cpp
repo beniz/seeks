@@ -327,7 +327,7 @@ namespace seeks_plugins
   void static_renderer::render_clustered_snippets(const std::string &query_clean,
       const std::string &url_encoded_query,
       const int &current_page,
-      cluster *clusters,
+      hash_map<int,cluster*> *clusters,
       const short &K,
       const query_context *qc,
       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
@@ -346,14 +346,16 @@ namespace seeks_plugins
 
     // check for empty cluster, and determine which rendering to use.
     short k = 0;
-    for (short c=0; c<K; c++)
+    hash_map<int,cluster*>::const_iterator chit = clusters->begin();
+    while(chit!=clusters->end())
       {
         short cc = 0;
-        if (!clusters[c]._cpoints.empty())
+        if (!(*chit).second->_cpoints.empty())
           {
+            cluster *cl = (*chit).second;
             hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
-            = clusters[c]._cpoints.begin();
-            while (hit!=clusters[c]._cpoints.end())
+            = cl->_cpoints.begin();
+            while (hit!=cl->_cpoints.end())
               {
                 search_snippet *sp = qc->get_cached_snippet((*hit).first);
                 if (sp->_doc_type == doc_type::REJECTED)
@@ -374,6 +376,7 @@ namespace seeks_plugins
             if (cc > 0)
               k++;
           }
+        ++chit;
       }
 
     std::string rplcnt = "ccluster";
@@ -393,18 +396,21 @@ namespace seeks_plugins
 
     // renders every cluster and snippets within.
     int l = 0;
-    for (short c=0; c<K; c++)
+    chit = clusters->begin();
+    while(chit!=clusters->end())
       {
-        if (clusters[c]._cpoints.empty())
+        if ((*chit).second->_cpoints.empty())
           {
+            ++chit;
             continue;
           }
 
+        cluster *cl = (*chit).second;
         std::vector<search_snippet*> snippets;
-        snippets.reserve(clusters[c]._cpoints.size());
+        snippets.reserve(cl->_cpoints.size());
         hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
-        = clusters[c]._cpoints.begin();
-        while (hit!=clusters[c]._cpoints.end())
+        = cl->_cpoints.begin();
+        while (hit!=cl->_cpoints.end())
           {
             search_snippet *sp = qc->get_cached_snippet((*hit).first);
             if (sp->_doc_type == doc_type::REJECTED)
@@ -429,9 +435,9 @@ namespace seeks_plugins
           {
             std::string cluster_str;
             if (!clusterize)
-              cluster_str = static_renderer::render_cluster_label(clusters[c]);
+              cluster_str = static_renderer::render_cluster_label(cl);
             else cluster_str = static_renderer::render_cluster_label_query_link(url_encoded_query,
-                                 clusters[c],exports);
+                                 cl,exports);
             size_t nsps = snippets.size();
             for (size_t i=0; i<nsps; i++)
               cluster_str += snippets.at(i)->to_html(snippets.at(i)->_qc->_query_words,
@@ -443,6 +449,7 @@ namespace seeks_plugins
               cl += miscutil::to_string(l++);
             miscutil::add_map_entry(exports,cl.c_str(),1,cluster_str.c_str(),1);
           }
+        ++chit;
       }
 
     // kill remaining cluster slots.
@@ -481,10 +488,10 @@ namespace seeks_plugins
       }
   }
 
-  std::string static_renderer::render_cluster_label(const cluster &cl)
+  std::string static_renderer::render_cluster_label(const cluster *cl)
   {
-    const char *clabel_encoded = encode::html_encode(cl._label.c_str());
-    std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
+    const char *clabel_encoded = encode::html_encode(cl->_label.c_str());
+    std::string slabel = "(" + miscutil::to_string(cl->_cpoints.size()) + ")";
     const char *slabel_encoded = encode::html_encode(slabel.c_str());
     std::string html_label = "<h2>" + std::string(clabel_encoded)
                              + " <font size=\"2\">" + std::string(slabel_encoded) + "</font></h2><br><ol>";
@@ -494,7 +501,7 @@ namespace seeks_plugins
   }
 
   std::string static_renderer::render_cluster_label_query_link(const std::string &url_encoded_query,
-      const cluster &cl,
+      cluster *cl,
       const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
       const std::string &cgi_base)
   {
@@ -502,14 +509,14 @@ namespace seeks_plugins
     std::string base_url_str = "";
     if (base_url)
       base_url_str = std::string(base_url);
-    char *clabel_url_enc = encode::url_encode(cl._label.c_str());
-    char *clabel_html_enc = encode::html_encode(cl._label.c_str());
+    char *clabel_url_enc = encode::url_encode(cl->_label.c_str());
+    char *clabel_html_enc = encode::html_encode(cl->_label.c_str());
     std::string clabel_url_enc_str = std::string(clabel_url_enc);
     free(clabel_url_enc);
     std::string clabel_html_enc_str = std::string(clabel_html_enc);
     free(clabel_html_enc);
 
-    std::string slabel = "(" + miscutil::to_string(cl._cpoints.size()) + ")";
+    std::string slabel = "(" + miscutil::to_string(cl->_cpoints.size()) + ")";
     char *slabel_html_enc = encode::html_encode(slabel.c_str());
     std::string slabel_html_enc_str = std::string(slabel_html_enc);
     free(slabel_html_enc);
@@ -822,7 +829,7 @@ namespace seeks_plugins
     return err;
   }
 
-  sp_err static_renderer::render_clustered_result_page_static(cluster *clusters,
+  sp_err static_renderer::render_clustered_result_page_static(hash_map<int,cluster*> *clusters,
       const short &K,
       client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

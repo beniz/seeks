@@ -283,92 +283,26 @@ namespace seeks_plugins
     std::stable_sort(sorted_snippets.begin(),sorted_snippets.end(),search_snippet::max_seeks_ir);
   }
 
-  void sort_rank::group_by_types(query_context *qc, cluster *&clusters, short &K)
+  void sort_rank::group_by_types(query_context *qc,
+                                 hash_map<int,cluster*> *clusters)
   {
-    /**
-     * grouping is done per file type, the most common being:
-     * 0 - html / html aka webpages (but no wikis)
-     * 1 - wiki
-     * 2 - pdf
-     * 3 - .doc, .pps, & so on aka other types of documents.
-     * 4 - forums
-     * 5 - video file
-     * 6 - audio file
-     * 7 - tweets
-     * 8 - posts
-     * 9 - revisions
-     * 10 - issues
-     * So for now, K is set to 11.
-     */
-    K = 11;
-    clusters = new cluster[K];
-
+    hash_map<int,cluster*>::iterator hit;
     size_t nsnippets = qc->_cached_snippets.size();
     for (size_t i=0; i<nsnippets; i++)
       {
         search_snippet *se = qc->_cached_snippets.at(i);
-
-        if (se->_doc_type == seeks_doc_type::WEBPAGE)
+        if ((hit=clusters->find(se->_doc_type))==clusters->end())
           {
-            clusters[0].add_point(se->_id,NULL);
-            clusters[0]._label = "Webpages";  // TODO: languages...
+            cluster *cl = new cluster();
+            cl->_label = se->get_doc_type_str();
+            cl->add_point(se->_id,NULL);
+            clusters->insert(std::pair<int,cluster*>(se->_doc_type,cl));
           }
-        else if (se->_doc_type == seeks_doc_type::WIKI)
+        else
           {
-            clusters[1].add_point(se->_id,NULL);
-            clusters[1]._label = "Wikis";
-          }
-        else if (se->_doc_type == seeks_doc_type::FILE_DOC
-                 && static_cast<seeks_snippet*>(se)->_file_format == "pdf") //XXX: hack.
-          {
-            clusters[2].add_point(se->_id,NULL);
-            clusters[2]._label = "PDFs";
-          }
-        else if (se->_doc_type == seeks_doc_type::FILE_DOC)
-          {
-            clusters[3].add_point(se->_id,NULL);
-            clusters[3]._label = "Other files";
-          }
-        else if (se->_doc_type == seeks_doc_type::FORUM)
-          {
-            clusters[4].add_point(se->_id,NULL);
-            clusters[4]._label = "Forums";
-          }
-        else if (se->_doc_type == seeks_doc_type::VIDEO
-                 || se->_doc_type == seeks_doc_type::VIDEO_THUMB)
-          {
-            clusters[5].add_point(se->_id,NULL);
-            clusters[5]._label = "Videos";
-          }
-        else if (se->_doc_type == seeks_doc_type::AUDIO)
-          {
-            clusters[6].add_point(se->_id,NULL);
-            clusters[6]._label = "Audio";
-          }
-        else if (se->_doc_type == seeks_doc_type::TWEET)
-          {
-            clusters[7].add_point(se->_id,NULL);
-            clusters[7]._label = "Tweets";
-          }
-        else if (se->_doc_type == seeks_doc_type::POST)
-          {
-            clusters[8].add_point(se->_id,NULL);
-            clusters[8]._label = "posts";
-          }
-        else if (se->_doc_type == seeks_doc_type::REVISION)
-          {
-            clusters[9].add_point(se->_id,NULL);
-            clusters[9]._label = "Revisions";
-          }
-        else if (se->_doc_type == seeks_doc_type::ISSUE)
-          {
-            clusters[10].add_point(se->_id,NULL);
-            clusters[10]._label = "Issues";
+            (*hit).second->add_point(se->_id,NULL);
           }
       }
-
-    // sort groups by decreasing sizes.
-    std::stable_sort(clusters,clusters+K,cluster::max_size_cluster);
   }
 
 #if defined(PROTOBUF) && defined(TC)

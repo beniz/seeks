@@ -375,7 +375,7 @@ namespace seeks_plugins
   }
 
   sp_err json_renderer::render_clustered_snippets(const std::string &query_clean,
-      cluster *clusters, const short &K,
+      hash_map<int,cluster*> *clusters, const short &K,
       const query_context *qc,
       std::string &json_str,
       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
@@ -384,20 +384,26 @@ namespace seeks_plugins
 
     // render every cluster and snippets within.
     bool has_cluster = false;
-    for (int c=0; c<K; c++)
+    hash_map<int,cluster*>::const_iterator chit = clusters->begin();
+    while(chit!=clusters->end())
       {
-        if (clusters[c]._cpoints.empty())
-          continue;
+        if ((*chit).second->_cpoints.empty())
+          {
+            ++chit;
+            continue;
+          }
+
+        cluster *cl = (*chit).second;
 
         if (has_cluster)
           json_str += ",";
         has_cluster = true;
 
         std::vector<search_snippet*> snippets;
-        snippets.reserve(clusters[c]._cpoints.size());
+        snippets.reserve(cl->_cpoints.size());
         hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
-        = clusters[c]._cpoints.begin();
-        while (hit!=clusters[c]._cpoints.end())
+        = cl->_cpoints.begin();
+        while (hit!=cl->_cpoints.end())
           {
             search_snippet *sp = qc->get_cached_snippet((*hit).first);
             snippets.push_back(sp);
@@ -406,9 +412,10 @@ namespace seeks_plugins
         std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
 
         json_str += "{";
-        json_str += "\"label\":\"" + clusters[c]._label + "\",";
+        json_str += "\"label\":\"" + cl->_label + "\",";
         json_renderer::render_snippets(query_clean,0,snippets,json_str,parameters);
         json_str += "}";
+        ++chit;
       }
 
     json_str += "]";
@@ -497,7 +504,7 @@ namespace seeks_plugins
     return SP_ERR_OK;
   }
 
-  sp_err json_renderer::render_clustered_json_results(cluster *clusters,
+  sp_err json_renderer::render_clustered_json_results(hash_map<int,cluster*> *clusters,
       const short &K,
       client_state *csp, http_response *rsp,
       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

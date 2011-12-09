@@ -765,13 +765,12 @@ namespace seeks_plugins
           qc = new query_context(parameters,csp->_headers); // empty context.
       }
 
-    cluster *clusters = NULL;
-    short K = 0;
-
+    short K = 11;
     mutex_lock(&qc->_qc_mutex);
 
     // regroup search snippets by types.
-    sort_rank::group_by_types(qc,clusters,K);
+    hash_map<int,cluster*> clusters;
+    sort_rank::group_by_types(qc,&clusters);
 
     // time measured before rendering, since we need to write it down.
     clock_t end_time = times(&en_cpu);
@@ -783,21 +782,25 @@ namespace seeks_plugins
     const char *output =miscutil::lookup(parameters,"output");
     sp_err err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"html")==0)
-      err = static_renderer::render_clustered_result_page_static(clusters,K,
+      err = static_renderer::render_clustered_result_page_static(&clusters,K,
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
-      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,clusters,K,qtime);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,&clusters,K,qtime);
 #endif
     else
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_clustered_json_results(clusters,K,
+        err = json_renderer::render_clustered_json_results(&clusters,K,
               csp,rsp,parameters,qc,qtime);
       }
 
-    if (clusters)
-      delete[] clusters;
+    hash_map<int,cluster*>::iterator hit = clusters.begin();
+    while(hit!=clusters.end())
+      {
+        delete (*hit).second;
+        ++hit;
+      }
 
     mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
@@ -934,7 +937,7 @@ namespace seeks_plugins
           return err;
         qc = websearch::lookup_qc(parameters);
         if (!qc)
-          return SP_ERR_MEMORY;
+          qc = new query_context(parameters,csp->_headers); // empty context.
       }
 
     mutex_lock(&qc->_qc_mutex);
@@ -976,6 +979,9 @@ namespace seeks_plugins
     oskmeans km(qc,qc->_cached_snippets,nclust); // nclust clusters+ 1 garbage for now...
     km.clusterize();
     km.post_processing();
+    hash_map<int,cluster*> clusters;
+    for (int k=0; k<km._K; k++)
+      clusters.insert(std::pair<int,cluster*>(k,&km._clusters[k]));
 
     // time measured before rendering, since we need to write it down.
     clock_t end_time = times(&en_cpu);
@@ -986,16 +992,16 @@ namespace seeks_plugins
     // rendering.
     const char *output = miscutil::lookup(parameters,"output");
     if (!output || miscutil::strcmpic(output,"html")==0)
-      err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
+      err = static_renderer::render_clustered_result_page_static(&clusters,km._K,
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
-      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,km._clusters,km._K,qtime);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,&clusters,km._K,qtime);
 #endif
     else
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_clustered_json_results(km._clusters,km._K,csp,rsp,parameters,qc,qtime);
+        err = json_renderer::render_clustered_json_results(&clusters,km._K,csp,rsp,parameters,qc,qtime);
       }
 
     // reset scores.

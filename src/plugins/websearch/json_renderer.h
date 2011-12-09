@@ -65,7 +65,7 @@ namespace seeks_plugins
                                     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
       static sp_err render_clustered_snippets(const std::string &query_clean,
-                                              cluster *clusters, const short &K,
+                                              hash_map<int,cluster*> *clusters, const short &K,
                                               const query_context *qc,
                                               std::string &json_str,
                                               const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
@@ -95,7 +95,7 @@ namespace seeks_plugins
                                           const std::string &query,
                                           const int &nq);
 
-      static sp_err render_clustered_json_results(cluster *clusters,
+      static sp_err render_clustered_json_results(hash_map<int,cluster*> *clusters,
           const short &K,
           client_state *csp, http_response *rsp,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

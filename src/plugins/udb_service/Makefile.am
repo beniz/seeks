@@ -9,6 +9,10 @@ AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcd
             -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
             @PCRE_CFLAGS@ -I../../proxy/
 
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../xsl_serializer @XSLT_CFLAGS@
+endif
+
 ACLOCAL_AMFLAGS=-I m4
 
 if HAVE_PROTOBUF

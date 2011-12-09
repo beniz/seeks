@@ -36,6 +36,10 @@
 #endif
 #include "static_renderer.h"
 
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+#include "xml_renderer.h"
+#endif
+
 #include <ctype.h>
 #include <iostream>
 
@@ -360,7 +364,7 @@ namespace seeks_plugins
     discr_words(query_words,words);
     if (!words.empty())
       {
-        json_str = ",\"words\":[";
+        json_str = "\"words\":[";
         std::list<std::string> json_words;
         std::set<std::string>::const_iterator sit = words.begin();
         while(sit!=words.end())
@@ -370,9 +374,9 @@ namespace seeks_plugins
           }
         json_str += miscutil::join_string_list(",",json_words);
         json_str += "]";
+        json_elts.push_back(json_str);
       }
-    json_elts.push_back(json_str);
-    json_str = ",\"personalized\":\"";
+    json_str = "\"personalized\":\"";
     if (_personalized)
       json_str += "yes";
     else json_str += "no";
@@ -384,6 +388,42 @@ namespace seeks_plugins
       json_elts.push_back("\"hits\":" + miscutil::to_string(_hits));
     return miscutil::join_string_list(",",json_elts);
   }
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+  sp_err search_snippet::to_xml(const bool &thumbs,
+                                const std::vector<std::string> &query_words,
+                                xmlNodePtr parent)
+  {
+    sp_err err=SP_ERR_OK;
+    xmlSetProp(parent,BAD_CAST "id",        BAD_CAST (miscutil::to_string(_id).c_str()));
+    xmlSetProp(parent,BAD_CAST "title",     BAD_CAST (_title).c_str());
+    xmlSetProp(parent,BAD_CAST "url",       BAD_CAST (_url.c_str()));
+    xmlSetProp(parent,BAD_CAST "summary",   BAD_CAST (_summary).c_str());
+    xmlSetProp(parent,BAD_CAST "seeks_meta", BAD_CAST (miscutil::to_string(_meta_rank).c_str()));
+    xmlSetProp(parent,BAD_CAST "seeks_score",BAD_CAST (miscutil::to_string(_seeks_rank).c_str()));
+    double rank = 0.0;
+    if (_engine.size() > 0)
+      rank = _rank / static_cast<double>(_engine.size());
+    xmlSetProp(parent,BAD_CAST "rank", BAD_CAST (miscutil::to_string(rank).c_str()));
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    img_search_snippet *isp = NULL;
+    if (_doc_type == seeks_doc_type::IMAGE)
+      isp = dynamic_cast<img_search_snippet*>(sp);
+    if (isp)
+      err=xml_renderer::render_engines(_engine,true,parent);
+    else
+#endif
+      err=xml_renderer::render_engines(_engine,false,parent);
+    xmlSetProp(parent,BAD_CAST "type",BAD_CAST get_doc_type_str().c_str());
+    xmlSetProp(parent,BAD_CAST "personalized",BAD_CAST (_personalized?"yes":"no"));
+    if (_npeers > 0)
+      xmlSetProp(parent,BAD_CAST "snpeers", BAD_CAST miscutil::to_string(_npeers).c_str());
+    if (_hits > 0)
+      xmlSetProp(parent,BAD_CAST "hits", BAD_CAST miscutil::to_string(_hits).c_str());
+    return err;
+  }
+#endif
 
   std::ostream& search_snippet::print(std::ostream &output)
   {
@@ -504,6 +544,15 @@ namespace seeks_plugins
     miscutil::to_lower(url_lc);
     std::string surl = urlmatch::strip_url(url_lc);
     return surl;
+  }
+
+  std::string search_snippet::get_doc_type_str() const
+  {
+    if (_doc_type == doc_type::UNKNOWN)
+      return "Unknown";
+    else if (_doc_type == doc_type::REJECTED)
+      return "Rejected";
+    else return "";
   }
 
   bool search_snippet::match_tag(const std::string &url,

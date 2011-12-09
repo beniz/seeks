@@ -9,6 +9,10 @@ AM_CPPFLAGS= -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${src
             @PCRE_CFLAGS@ \
 	    -I../../proxy/
 
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../xsl_serializer @XSLT_CFLAGS@
+endif
+
 ACLOCAL_AMFLAGS=-I m4
 
 protoc_inputs=db_query_record_msg.proto

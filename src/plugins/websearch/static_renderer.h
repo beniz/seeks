@@ -66,16 +66,16 @@ namespace seeks_plugins
       static void render_clustered_snippets(const std::string &query_clean,
                                             const std::string &url_encoded_query,
                                             const int &current_page,
-                                            cluster *clusters,
+                                            hash_map<int,cluster*> *clusters,
                                             const short &K,
                                             const query_context *qc,
                                             const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
                                             hash_map<const char*,const char*,hash<const char*>,eqstr> *exports);
 
-      static std::string render_cluster_label(const cluster &cl);
+      static std::string render_cluster_label(const cluster *cl);
 
       static std::string render_cluster_label_query_link(const std::string &url_encoded_query,
-          const cluster &cl,
+          cluster *cl,
           const hash_map<const char*,const char*,hash<const char*>,eqstr> *exports,
           const std::string &cgi_base="/search");
 
@@ -131,7 +131,7 @@ namespace seeks_plugins
                                               const std::vector<std::pair<std::string,std::string> > *param_exports=NULL,
                                               const bool &img=false);
 
-      static sp_err render_clustered_result_page_static(cluster *clusters,
+      static sp_err render_clustered_result_page_static(hash_map<int,cluster*> *clusters,
           const short &K,
           client_state *csp, http_response *rsp,
           const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,

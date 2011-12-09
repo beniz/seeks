@@ -69,11 +69,11 @@ namespace seeks_plugins
   */
 
 
-  sp_err xsl_serializer::render_xsl_cached_queries(client_state *csp, 
-						   http_response *rsp,
-						   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						   const std::string &query,
-						   const int &nq)
+  sp_err xsl_serializer::render_xsl_cached_queries(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const std::string &query,
+      const int &nq)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
@@ -84,14 +84,13 @@ namespace seeks_plugins
   }
 
 
-
-  sp_err xsl_serializer::render_xsl_clustered_results(client_state *csp, 
-						      http_response *rsp,
-						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						      const query_context *qc,
-						      cluster *clusters,
-						      const short &K,
-						      const double &qtime)
+  sp_err xsl_serializer::render_xsl_clustered_results(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const query_context *qc,
+      hash_map<int,cluster*> *clusters,
+      const short &K,
+      const double &qtime)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
@@ -101,23 +100,23 @@ namespace seeks_plugins
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_engines(client_state *csp, 
-					    http_response *rsp,
-					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					    const feeds &engines)
+  sp_err xsl_serializer::render_xsl_engines(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const feeds &engines)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res = xml_renderer::render_xml_engines(engines, doc);
     res = res || xsl_serializer::response(rsp,parameters,doc);
     xmlFreeDoc(doc);
-    return res;    
+    return res;
   }
 
 
-  sp_err xsl_serializer::render_xsl_node_options(client_state *csp, 
-						 http_response *rsp,
-						 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
+  sp_err xsl_serializer::render_xsl_node_options(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
@@ -127,10 +126,10 @@ namespace seeks_plugins
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_peers(client_state *csp, 
-			  http_response *rsp,
-			  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			  std::list<std::string> *peers)
+  sp_err xsl_serializer::render_xsl_peers(client_state *csp,
+                                          http_response *rsp,
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                          std::list<std::string> *peers)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
@@ -141,134 +140,142 @@ namespace seeks_plugins
   }
 
 
-  sp_err xsl_serializer::render_xsl_recommendations(const client_state *csp, 
-						    http_response *rsp,
-						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						    const query_context *qc,
-						    const double &qtime,
-						    const int &radius,
-						    const std::string &lang)
+  sp_err xsl_serializer::render_xsl_recommendations(const client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const query_context *qc,
+      const double &qtime,
+      const int &radius,
+      const std::string &lang)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_recommendations(qc,parameters,qtime,radius,lang,doc);
     res = res || xsl_serializer::response(rsp,parameters,doc);
-    xmlFreeDoc(doc);    
+    xmlFreeDoc(doc);
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_results(client_state *csp, 
-					    http_response *rsp,
-					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					    const query_context *qc,
-					    const std::vector<search_snippet*> &snippets,
-					    const double &qtime,
-					    const bool &img)
+  sp_err xsl_serializer::render_xsl_results(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const query_context *qc,
+      const std::vector<search_snippet*> &snippets,
+      const double &qtime,
+      const bool &img)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_results(qc, parameters,snippets, qtime, img, doc);
     res = res || xsl_serializer::response(rsp,parameters,doc);
-    xmlFreeDoc(doc);    
+    xmlFreeDoc(doc);
     return res;
   }
 
-  sp_err xsl_serializer::render_xsl_snippet(client_state *csp, 
-					    http_response *rsp,
-					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					    query_context *qc,
-					    search_snippet *sp)
+  sp_err xsl_serializer::render_xsl_snippet(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      query_context *qc,
+      search_snippet *sp)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_snippet(qc,sp,doc);
     res = res || xsl_serializer::response(rsp,parameters,doc);
-    xmlFreeDoc(doc);    
-    return res; 
+    xmlFreeDoc(doc);
+    return res;
   }
 
 
-  sp_err xsl_serializer::render_xsl_suggested_queries(client_state *csp, 
-						      http_response *rsp,
-						      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						      const query_context *qc)
+  sp_err xsl_serializer::render_xsl_suggested_queries(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      const query_context *qc)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_suggested_queries(qc,parameters,doc);
     res = res || xsl_serializer::response(rsp,parameters,doc);
-    xmlFreeDoc(doc);    
+    xmlFreeDoc(doc);
     return res;
   }
-    
-  sp_err xsl_serializer::render_xsl_words(client_state *csp, 
-					  http_response *rsp,
-					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  const std::set<std::string> &words)
+
+  sp_err xsl_serializer::render_xsl_words(client_state *csp,
+                                          http_response *rsp,
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                          const std::set<std::string> &words)
   {
     sp_err res=SP_ERR_OK;
     xmlDocPtr doc=xmlNewDoc(BAD_CAST "1.0");
     res=xml_renderer::render_xml_words(words,doc);
     res = res || xsl_serializer::response(rsp,parameters,doc);
-    xmlFreeDoc(doc);    
+    xmlFreeDoc(doc);
     return res;
   }
-  
+
 
   /* private */
-  
+
   sp_err xsl_serializer::response(http_response *rsp,
-				  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				  xmlDocPtr doc) {
-    
+                                  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                  xmlDocPtr doc)
+  {
+
     sp_err res=SP_ERR_OK;
 
     // check for parameter stylesheet
     const char *stylesheet = miscutil::lookup(parameters,"stylesheet");
     int buffersize;
 
-    if (!stylesheet) {
-      xmlChar *xmlbuff;
-      xmlDocDumpFormatMemory(doc, &xmlbuff, &buffersize, 0);
-      miscutil::enlist(&rsp->_headers, "Content-Type: text/xml");
-      rsp->_body = strdup((char *)xmlbuff);
-      rsp->_content_length = buffersize;
-      xmlFree(xmlbuff);
-    } else {
-      xsl_serializer::transform(rsp,doc,stylesheet);
-    }
+    if (!stylesheet)
+      {
+        xmlChar *xmlbuff;
+        xmlDocDumpFormatMemory(doc, &xmlbuff, &buffersize, 0);
+        miscutil::enlist(&rsp->_headers, "Content-Type: text/xml");
+        rsp->_body = strdup((char *)xmlbuff);
+        rsp->_content_length = buffersize;
+        xmlFree(xmlbuff);
+      }
+    else
+      {
+        xsl_serializer::transform(rsp,doc,stylesheet);
+      }
     rsp->_is_static = 1;
     return res;
   }
 
-  void xsl_serializer::transform(http_response *rsp, 
-				 xmlDocPtr doc, 
-				 const std::string stylesheet) {
+  void xsl_serializer::transform(http_response *rsp,
+                                 xmlDocPtr doc,
+                                 const std::string stylesheet)
+  {
     xsltStylesheetPtr cur;
     xmlDocPtr stylesheet_doc,res_doc;
     xmlNodePtr root_element, cur_node;
     char *ct=NULL;
     xmlChar *buffer;
     int length;
-      
+
     // parse the stylesheet as libxml2 Document
     stylesheet_doc=xsl_serializer::get_stylesheet(stylesheet);
-    if (!stylesheet_doc) 
+    if (!stylesheet_doc)
       return;
     // get the content type
-    // Get the root element node 
+    // Get the root element node
     root_element = xmlDocGetRootElement(stylesheet_doc);
-    for (cur_node = root_element->children; cur_node; cur_node = cur_node->next) {
-      if (cur_node->type == XML_PI_NODE && !strcmp((char *)(cur_node->name), "Content-Type:")) {
-	ct=strdup( (char *)cur_node->name);
-	strcat(ct, (char *)cur_node->content);
-	miscutil::enlist(&rsp->_headers, ct);
+    for (cur_node = root_element->children; cur_node; cur_node = cur_node->next)
+      {
+        if (cur_node->type == XML_PI_NODE && !strcmp((char *)(cur_node->name), "Content-Type:"))
+          {
+            ct=strdup( (char *)cur_node->name);
+            strcat(ct, (char *)cur_node->content);
+            miscutil::enlist(&rsp->_headers, ct);
+          }
       }
-    }
-    
-    if (!ct) {
-      miscutil::enlist(&rsp->_headers, "Content-Type: text/xml");
-    }
+
+    if (!ct)
+      {
+        miscutil::enlist(&rsp->_headers, "Content-Type: text/xml");
+      }
 
     // prepare the xslt
     cur = xsltParseStylesheetDoc(stylesheet_doc);
@@ -285,7 +292,7 @@ namespace seeks_plugins
     //xmlFreeDoc(stylesheet_doc);
   }
 
-   
+
   xmlDocPtr xsl_serializer::get_stylesheet(const std::string stylesheet)
   {
     std::string stylesheet_path;

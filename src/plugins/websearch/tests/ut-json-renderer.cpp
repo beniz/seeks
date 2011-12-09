@@ -147,7 +147,9 @@ TEST(JsonRendererTest, render_clustered_snippets)
   websearch::_wconfig->_se_enabled.add_feed("dummy","URL3");
   websearch::_wconfig->_se_default.add_feed("dummy","URL3");
   query_context context;
-  cluster clusters[3];
+  hash_map<int,cluster*> clusters;
+  for (int i=0; i<3; i++)
+    clusters.insert(std::pair<int,cluster*>(i,new cluster()));
 
   std::string json_str;
 
@@ -155,37 +157,47 @@ TEST(JsonRendererTest, render_clustered_snippets)
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
+  hash_map<int,cluster*>::iterator chit = clusters.begin();
   seeks_snippet s1;
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
-  clusters[0].add_point(s1._id, NULL);
-  clusters[0]._label = "CLUSTER1";
+  (*chit).second->add_point(s1._id, NULL);
+  (*chit).second->_label = "CLUSTER1";
+  ++chit;
 
   seeks_snippet s2;
   s2._engine = feeds("dummy","URL2");
   s2.set_url("URL2");
   context.add_to_unordered_cache(&s2);
-  clusters[1].add_point(s2._id, NULL);
+  (*chit).second->add_point(s2._id, NULL);
   seeks_snippet s3;
   s3._engine = feeds("dummy","URL3");
   s3.set_url("URL3");
   context.add_to_unordered_cache(&s3);
-  clusters[1].add_point(s3._id, NULL);
-  clusters[1]._label = "CLUSTER2";
+  (*chit).second->add_point(s3._id, NULL);
+  (*chit).second->_label = "CLUSTER2";
+  ++chit;
 
-  clusters[2]._label = "CLUSTER3";
+  (*chit).second->_label = "CLUSTER3";
 
   //parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
 
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 3, &context, json_str, &parameters));
-  EXPECT_NE(std::string::npos, json_str.find(clusters[0]._label));
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, &clusters, 3, &context, json_str, &parameters));
+  int k = 0;
+  chit = clusters.begin();
+  while(chit!=clusters.end())
+    {
+      EXPECT_NE(std::string::npos, json_str.find((*chit).second->_label));
+      delete (*chit).second;
+      ++chit;
+      if (++k==2)
+        break;
+    }
+  EXPECT_EQ(std::string::npos, json_str.find((*chit).second->_label));
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
-  EXPECT_NE(std::string::npos, json_str.find(clusters[1]._label));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
-  EXPECT_EQ(std::string::npos, json_str.find(clusters[2]._label));
-
   delete websearch::_wconfig;
 }
 
@@ -246,7 +258,9 @@ TEST(JsonRendererTest, render_clustered_json_results)
   websearch::_wconfig->_se_enabled = feeds("dummy","URL1");
   websearch::_wconfig->_se_default = feeds("dummy","URL1");
 
-  cluster clusters[1];
+  hash_map<int,cluster*> clusters;
+  clusters.insert(std::pair<int,cluster*>(0,new cluster()));
+  hash_map<int,cluster*>::iterator chit = clusters.begin();
   http_response* rsp;
   query_context context;
   double qtime = 1234;
@@ -259,21 +273,22 @@ TEST(JsonRendererTest, render_clustered_json_results)
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
-  clusters[0].add_point(s1._id, NULL);
-  clusters[0]._label = "CLUSTER1";
+  (*chit).second->add_point(s1._id, NULL);
+  (*chit).second->_label = "CLUSTER1";
 
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
   context._query = "<QUERY>";
 
   rsp = new http_response();
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(clusters, 1, NULL, rsp, &parameters, &context, qtime));
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(&clusters, 1, NULL, rsp, &parameters, &context, qtime));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find((*chit).second->_label));
   //std::cerr << rsp->_body << std::endl;
   delete rsp;
+  delete (*chit).second;
 
   delete websearch::_wconfig;
 }
