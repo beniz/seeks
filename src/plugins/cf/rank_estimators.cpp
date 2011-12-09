@@ -1027,8 +1027,9 @@ namespace seeks_plugins
     hash_map<uint32_t,bool,id_hash_uint>::const_iterator hit;
     if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == seeks_doc_type::VIDEO_THUMB || s->_doc_type == seeks_doc_type::TWEET
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
-        || s->_doc_type == seeks_img_doc_type::IMAGE) // empty or type with not enough competition on domains.
+        || s->_doc_type == seeks_img_doc_type::IMAGE // empty or type with not enough competition on domains.
 #endif
+       )
       filtered = true;
     else if (filter && filtered)
       filtered = true;
