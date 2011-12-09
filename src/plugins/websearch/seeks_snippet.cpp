@@ -84,7 +84,7 @@ namespace seeks_plugins
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     // image snippet cast.
     img_search_snippet *isp = NULL;
-    if (_doc_type == seeks_doc_type::IMAGE)
+    if (_doc_type == seeks_img_doc_type::IMAGE)
       {
         isp = static_cast<img_search_snippet*>(this);
       }
@@ -114,8 +114,10 @@ namespace seeks_plugins
         && query_capture_configuration::_config)
       {
         std::string redir = "/qc_redir";
-        if (_doc_type == seeks_doc_type::IMAGE)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+        if (_doc_type == seeks_img_doc_type::IMAGE)
           redir += "_img";
+#endif
         url = base_url_str + redir + "?q=" + _qc->_url_enc_query + "&amp;url=" + url_enc
               + "&amp;lang=" + _qc->_auto_lang;
       }
@@ -124,14 +126,20 @@ namespace seeks_plugins
     std::string html_content = "<li class=\"search_snippet";
     if (_doc_type == seeks_doc_type::VIDEO_THUMB)
       html_content += " search_snippet_vid";
-    else if (_doc_type == seeks_doc_type::IMAGE)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    else if (_doc_type == seeks_img_doc_type::IMAGE)
       html_content += " search_snippet_img";
+#endif
     html_content += "\">";
     const char *thumbs = miscutil::lookup(parameters,"thumbs");
     bool has_thumbs = websearch::_wconfig->_thumbs;
     if (thumbs && strcasecmp(thumbs,"on") == 0)
       has_thumbs = true;
-    if (_doc_type != seeks_doc_type::TWEET && _doc_type != seeks_doc_type::IMAGE && _doc_type != seeks_doc_type::VIDEO_THUMB && has_thumbs)
+    if (_doc_type != seeks_doc_type::TWEET
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+        && _doc_type != seeks_img_doc_type::IMAGE
+#endif
+        && _doc_type != seeks_doc_type::VIDEO_THUMB && has_thumbs)
       {
         html_content += "<a href=\"" + url + "\">";
         html_content += "<img class=\"preview\" src=\"http://open.thumbshots.org/image.pxf?url=";
@@ -143,6 +151,7 @@ namespace seeks_plugins
         html_content += "<a href=\"" + _cite + "\">";
         html_content += "<img class=\"tweet_profile\" src=\"" + _cached + "\" ></a>"; // _cached contains the profile's image.
       }
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     if (_doc_type == seeks_doc_type::VIDEO_THUMB)
       {
         html_content += "<a href=\"";
@@ -150,13 +159,16 @@ namespace seeks_plugins
         html_content += _cached;
         html_content += "\"></a><div>";
       }
-    else if (_doc_type == seeks_doc_type::IMAGE)
+#endif
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    else if (_doc_type == seeks_img_doc_type::IMAGE)
       {
         html_content += "<a href=\"";
         html_content += url + "\"><img src=\"";
         html_content += _cached;
         html_content += "\"></a><div>";
       }
+#endif
 
     if (prs && _personalized && !_engine.has_feed("seeks"))
       {
@@ -174,8 +186,10 @@ namespace seeks_plugins
 
     std::string se_icon = "<span class=\"search_engine icon\" title=\"setitle\"><a href=\"" + base_url_str
                           + "/search";
-    if (_doc_type == seeks_doc_type::IMAGE)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+    if (_doc_type == seeks_img_doc_type::IMAGE)
       se_icon += "_img";
+#endif
     se_icon += "?q=@query@?page=1&amp;expansion=1&amp;engines=seeng&amp;lang="
                + _qc->_auto_lang + "&amp;ui=stat\">&nbsp;</a></span>";
     if (_engine.has_feed("google"))
@@ -422,8 +436,10 @@ namespace seeks_plugins
         if (!_sim_back)
           {
             sim_link = "/search";
-            if (_doc_type == seeks_doc_type::IMAGE)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            if (_doc_type == seeks_img_doc_type::IMAGE)
               sim_link += "_img";
+#endif
             sim_link += "?q=" + _qc->_url_enc_query + "&amp;id=" + miscutil::to_string(_id)
                         + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
                         + "&amp;lang=" + _qc->_auto_lang
@@ -436,8 +452,10 @@ namespace seeks_plugins
         else
           {
             sim_link = "/search";
-            if (_doc_type == seeks_doc_type::IMAGE)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            if (_doc_type == seeks_img_doc_type::IMAGE)
               sim_link += "_img";
+#endif
             sim_link += "?q=" + _qc->_url_enc_query
                         + "&amp;page=1&amp;expansion=" + miscutil::to_string(_qc->_page_expansion)
                         + "&amp;lang=" + _qc->_auto_lang
@@ -488,9 +506,11 @@ namespace seeks_plugins
           case seeks_doc_type::SOFTWARE:
             html_content += "Software";
             break;
-          case seeks_doc_type::IMAGE:
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+          case seeks_img_doc_type::IMAGE:
             html_content += "Image";
             break;
+#endif
           case seeks_doc_type::VIDEO:
             html_content += "Video";
             break;
@@ -589,9 +609,40 @@ namespace seeks_plugins
     json_elts.push_back("\"type\":\"" + get_doc_type_str() + "\"");
     if (!_date.empty())
       json_elts.push_back("\"date\":\"" + _date + "\"");
-    json_str += "," + miscutil::join_string_list(",",json_elts) + "}";
-    return json_str;
+    json_str += "," + miscutil::join_string_list(",",json_elts);
+    return "{" + json_str + "}";
   }
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+  sp_err seeks_snippet::to_xml(const bool &thumbs,
+                               const std::vector<std::string> &query_words,
+                               xmlNodePtr parent)
+  {
+    search_snippet::to_xml(thumbs,query_words,parent);
+    xmlSetProp(parent,BAD_CAST "cite", BAD_CAST (_cite.empty()?_url:_cite).c_str());
+    if (!_cached.empty())
+      {
+        xmlSetProp(parent,BAD_CAST "cached",BAD_CAST (_cached).c_str());
+      }
+    if (thumbs)
+      xmlSetProp(parent,BAD_CAST "thumb",BAD_CAST sprintf(NULL,"http://open.thumbshots.org/image.pxf?url=%s",_url.c_str()));
+
+    std::set<std::string> words;
+    discr_words(query_words,words);
+    if (!words.empty())
+      {
+        std::set<std::string>::const_iterator sit = words.begin();
+        while(sit!=words.end())
+          {
+            xmlNewTextChild(parent, NULL, BAD_CAST "word", BAD_CAST (*sit).c_str());
+            ++sit;
+          }
+      }
+    if (!_date.empty())
+      xmlSetProp(parent,BAD_CAST "date", BAD_CAST (_date).c_str());
+    return SP_ERR_OK;
+  }
+#endif
 
   std::ostream& seeks_snippet::print(std::ostream &output)
   {
@@ -835,9 +886,11 @@ namespace seeks_plugins
       case seeks_doc_type::SOFTWARE:
         output = "software";
         break;
-      case seeks_doc_type::IMAGE:
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+      case seeks_img_doc_type::IMAGE:
         output = "image";
         break;
+#endif
       case seeks_doc_type::VIDEO:
         output = "video";
         break;

@@ -9,6 +9,13 @@ AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcd
             -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
             @PCRE_CFLAGS@ -I../../proxy/
 
+if HAVE_IMG_WEBSEARCH_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../img_websearch
+endif
+if HAVE_OPENCV2
+AM_CPPFLAGS += `pkg-config opencv --cflags`
+endif
+
 ACLOCAL_AMFLAGS=-I m4
 
 if HAVE_XSLSERIALIZER_PLUGIN

@@ -59,7 +59,7 @@ namespace seeks_plugins
               {
                 if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
                     || pc->_current_snippet->_url.empty()
-                    || pc->_current_snippet->_cached.empty())
+                    || static_cast<img_search_snippet*>(pc->_current_snippet)->_cached.empty())
                   {
                     delete pc->_current_snippet;
                     pc->_current_snippet = NULL;
@@ -96,7 +96,7 @@ namespace seeks_plugins
             const char *a_src = se_parser::get_attribute((const char**)attributes,"src");
             if (a_src)
               {
-                pc->_current_snippet->_cached = std::string(a_src);
+                static_cast<img_search_snippet*>(pc->_current_snippet)->_cached = std::string(a_src);
               }
           }
       }

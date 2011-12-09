@@ -50,7 +50,7 @@ namespace seeks_plugins
     img_search_snippet *c_sp = NULL;
     while (it != snippets.end())
       {
-        if ((*it)->_doc_type != IMAGE)
+        if ((*it)->_doc_type != seeks_img_doc_type::IMAGE)
           {
             ++it;
             continue;

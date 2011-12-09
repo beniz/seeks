@@ -31,19 +31,18 @@ namespace seeks_plugins
       static const int FORUM = 3;
       static const int FILE_DOC = 4;
       static const int SOFTWARE = 5;
-      static const int IMAGE = 6;
-      static const int VIDEO = 7;
-      static const int VIDEO_THUMB = 8;
-      static const int AUDIO = 9;
-      static const int CODE = 10;
-      static const int NEWS = 11;
-      static const int TWEET = 12;
-      static const int WIKI = 13;
-      static const int POST = 14;
-      static const int BUG = 15;
-      static const int ISSUE = 16;
-      static const int REVISION = 17;
-      static const int COMMENT = 18;
+      static const int VIDEO = 6;
+      static const int VIDEO_THUMB = 7;
+      static const int AUDIO = 8;
+      static const int CODE = 9;
+      static const int NEWS = 10;
+      static const int TWEET = 11;
+      static const int WIKI = 12;
+      static const int POST = 13;
+      static const int BUG = 14;
+      static const int ISSUE = 15;
+      static const int REVISION = 16;
+      static const int COMMENT = 17;
   };
 
   class seeks_snippet : public search_snippet
@@ -63,6 +62,13 @@ namespace seeks_plugins
       // JSON rendering.
       virtual std::string to_json(const bool &thumbs,
                                   const std::vector<std::string> &query_words);
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+      // XML rendering.
+      virtual sp_err to_xml(const bool &thumbs,
+                            const std::vector<std::string> &query_words,
+                            xmlNodePtr parent);
+#endif
 
       // printing output.
       virtual std::ostream& print(std::ostream &output);
@@ -92,7 +98,7 @@ namespace seeks_plugins
       void bing_yahoo_us_merge();
 
       // get doc type in a string form.
-      std::string get_doc_type_str() const;
+      virtual std::string get_doc_type_str() const;
 
     public:
       std::string _cite;

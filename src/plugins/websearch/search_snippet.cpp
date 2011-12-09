@@ -36,6 +36,10 @@
 #endif
 #include "static_renderer.h"
 
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_search_snippet.h" // for seeks_img_doc_type.
+#endif
+
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
 #include "xml_renderer.h"
 #endif
@@ -349,7 +353,7 @@ namespace seeks_plugins
     std::string json_str = "\"engines\":[";
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     img_search_snippet *isp = NULL;
-    if (_doc_type == seeks_doc_type::IMAGE)
+    if (_doc_type == seeks_img_doc_type::IMAGE)
       isp = static_cast<img_search_snippet*>(this);
     if (isp)
       json_str += json_renderer::render_engines(isp->_img_engine,true);
@@ -408,8 +412,8 @@ namespace seeks_plugins
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     img_search_snippet *isp = NULL;
-    if (_doc_type == seeks_doc_type::IMAGE)
-      isp = dynamic_cast<img_search_snippet*>(sp);
+    if (_doc_type == seeks_img_doc_type::IMAGE)
+      isp = static_cast<img_search_snippet*>(this);
     if (isp)
       err=xml_renderer::render_engines(_engine,true,parent);
     else

@@ -262,8 +262,10 @@ namespace seeks_plugins
           {
             if (snippets.at(i)->_doc_type == doc_type::REJECTED)
               continue;
-            if (img && snippets.at(i)->_doc_type != seeks_doc_type::IMAGE)
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            if (img && snippets.at(i)->_doc_type != seeks_img_doc_type::IMAGE)
               continue;
+#endif
             if (!snippets.at(i)->is_se_enabled(parameters))
               continue;
             if (!safesearch_off && !snippets.at(i)->_safe)

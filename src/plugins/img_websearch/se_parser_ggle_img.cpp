@@ -70,7 +70,7 @@ namespace seeks_plugins
             std::string cached_link = std::string(a_src);
             miscutil::replace_in_string(cached_link,"\n","");
             miscutil::replace_in_string(cached_link,"\r","");
-            pc->_current_snippet->_cached = cached_link;
+            static_cast<img_search_snippet*>(pc->_current_snippet)->_cached = cached_link;
           }
       }
     else if (_results_flag && strcasecmp(tag,"a") == 0)
