@@ -928,8 +928,9 @@ namespace seeks_plugins
         if (rsc.empty() && nuri != 0 && (*vit)->_doc_type != seeks_doc_type::VIDEO_THUMB
             && (*vit)->_doc_type != seeks_doc_type::TWEET
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
-            && (*vit)->_doc_type != seeks_img_doc_type::IMAGE) // not empty or type with not enough competition on domains.
+            && (*vit)->_doc_type != seeks_img_doc_type::IMAGE // not empty or type with not enough competition on domains.
 #endif
+           )
           prior = estimate_prior((*vit),filter->empty() ? NULL:filter,url,host,nuri);
         posteriors[j] *= prior;
         posteriors[j] *= (*vit)->_engine.size(); // accounts for multiple sources.
