@@ -56,6 +56,7 @@ namespace seeks_plugins
 
       bool _stop_words_filtering; /**< filter similar queries with stop words. */
       bool _remote_post; /**< allow/disallow remote posting of results. */
+      bool _use_http_urls; /**< whether to use HTTP URLs filtering, with domain names weight. */
 
       static cf_configuration *_config;
   };

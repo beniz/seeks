@@ -404,7 +404,7 @@ TEST_F(SRETest,estimate_ranks)
   sre.estimate_ranks(queries[1],lang,1,snippets);
   ASSERT_EQ(3,snippets.size());
 
-  std::cerr << "ranks, s2: " << s2._seeks_rank << " -- s1: " << s1._seeks_rank << " -- s0: " << s0._seeks_rank << std::endl;
+  std::cerr << "ranks s2: " << s2._seeks_rank << " -- s1: " << s1._seeks_rank << " -- s0: " << s0._seeks_rank << std::endl;
 
   ASSERT_TRUE(s2._seeks_rank > s1._seeks_rank);
   ASSERT_TRUE(s1._seeks_rank > s0._seeks_rank);

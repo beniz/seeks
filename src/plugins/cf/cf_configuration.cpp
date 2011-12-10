@@ -39,6 +39,7 @@ namespace seeks_plugins
 #define hash_post_ua                  1442804836ul  /* "post-ua" */
 #define hash_stop_words_filtering     4002206625ul  /* "stop-words-filtering" */
 #define hash_remote_post              4059800377ul  /* "remote-post" */
+#define hash_use_http_url             1825269331ul  /* "use-http-urls-only" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -74,6 +75,7 @@ namespace seeks_plugins
     _post_url_ua = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"; // default.
     _stop_words_filtering = false;
     _remote_post = true;
+    _use_http_urls = true;
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -167,6 +169,12 @@ namespace seeks_plugins
         _remote_post = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to allow remote posting of results");
+        break;
+
+      case hash_use_http_url:
+        _use_http_urls = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to allow only HTTP URLs or to allow generic item UIDs");
         break;
 
       default:

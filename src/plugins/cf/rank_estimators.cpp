@@ -481,7 +481,9 @@ namespace seeks_plugins
         while(mit!=qd->_visited_urls->end())
           {
             vurl_data *vd = (*mit).second;
-            if (!vd->_title.empty() && vd->_url.find("http")!=std::string::npos) // avoid recommended hosts.
+            if (!vd->_title.empty()
+                && (!cf_configuration::_config->_use_http_urls
+                    || vd->_url.find("http")!=std::string::npos)) // avoid recommended hosts.
               {
                 std::string surl = urlmatch::strip_url(vd->_url);
                 if ((qit = inv_qdata.find(surl.c_str()))!=inv_qdata.end())
@@ -1216,8 +1218,9 @@ namespace seeks_plugins
             vurl_data *vd = (*vit).second;
 
             // we do not recommend hosts.
-            if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0
-                || miscutil::strncmpic(vd->_url.c_str(),"https://",8) == 0) // avoids pure hosts stored for statistical computations.
+            if (!cf_configuration::_config->_use_http_urls
+                || (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0
+                    || miscutil::strncmpic(vd->_url.c_str(),"https://",8) == 0)) // avoids pure hosts stored for statistical computations.
               {
                 // update or create snippet.
                 search_snippet *sp = new search_snippet();
@@ -1262,6 +1265,7 @@ namespace seeks_plugins
     while(hit!=rsnippets.end())
       {
         if (((*hit).second->_engine.has_feed("seeks")
+             && cf_configuration::_config->_use_http_urls
              && (*hit).second->_url.find("http") == std::string::npos)
             || (*hit).second->_title.empty())
           {
