@@ -185,18 +185,8 @@ namespace seeks_plugins
     while (vit!=_cached_snippets.end())
       {
         search_snippet *sp = (*vit);
-        if (sp->_engine.has_feed("seeks") && sp->_engine.count()==1)
-          {
-            vit = _cached_snippets.erase(vit);
-            remove_from_unordered_cache(sp->_id);
-            delete sp;
-            continue;
-          }
-        else
-          {
-            sp->reset_p2p_data();
-            ++vit;
-          }
+        sp->reset_p2p_data();
+        ++vit;
       }
     _suggestions.clear();
   }
