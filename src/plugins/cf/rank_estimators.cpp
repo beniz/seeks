@@ -326,11 +326,13 @@ namespace seeks_plugins
     stopwordlist *swl = NULL;
 
     /* check whether query is available (i.e. acting locally). */
-    if (!query.empty() && _swf)
+    if (!query.empty())
       {
         strc_query = str_chain(query,0,true);
         strc_query = strc_query.rank_alpha();
-
+      }
+    if (_swf)
+      {
         mutex_lock(&_est_mutex);
         swl = seeks_proxy::_lsh_config->get_wordlist(lang);
         mutex_unlock(&_est_mutex);
@@ -1451,8 +1453,7 @@ namespace seeks_plugins
                     if (vd->_hits < 0)
                       {
                         uint32_t id = mrf::mrf_single_feature(vd->_url);
-                        if (local
-                            || (mit = filter.find(id))!=filter.end())
+                        if (local || (mit = filter.find(id))!=filter.end())
                           {
                             filter.insert(std::pair<uint32_t,bool>(id,true));
                           }
