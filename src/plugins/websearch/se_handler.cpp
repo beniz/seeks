@@ -451,6 +451,11 @@ namespace seeks_plugins
     // query.
     miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
 
+    // lang.
+    if (websearch::_wconfig->_lang == "auto")
+      miscutil::replace_in_string(q_dm,"%lang",qc->_auto_lang);
+    else miscutil::replace_in_string(q_dm,"%lang",websearch::_wconfig->_lang);
+
     // log the query.
     errlog::log_error(LOG_LEVEL_DEBUG, "Querying opensearch rss: %s", q_dm.c_str());
 
@@ -473,6 +478,11 @@ namespace seeks_plugins
 
     // query.
     miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
+
+    // lang.
+    if (websearch::_wconfig->_lang == "auto")
+      miscutil::replace_in_string(q_dm,"%lang",qc->_auto_lang);
+    else miscutil::replace_in_string(q_dm,"%lang",websearch::_wconfig->_lang);
 
     // log the query.
     errlog::log_error(LOG_LEVEL_DEBUG, "Querying opensearch atom: %s", q_dm.c_str());
