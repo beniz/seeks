@@ -131,7 +131,7 @@ namespace seeks_plugins
       // constructors.
     public:
       search_snippet();
-      search_snippet(const short &rank);
+      search_snippet(const double &rank);
       search_snippet(const search_snippet *s);
 
       virtual ~search_snippet();

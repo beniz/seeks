@@ -65,7 +65,7 @@ namespace seeks_plugins
   {
   }
 
-  search_snippet::search_snippet(const short &rank)
+  search_snippet::search_snippet(const double &rank)
     :_qc(NULL),_new(true),_id(0),_doc_type(doc_type::UNKNOWN),_sim_back(false),_rank(rank),_seeks_ir(0.0),_meta_rank(0),_seeks_rank(0),
      _content_date(0),_record_date(0),_cached_content(NULL),
      _features(NULL),_features_tfidf(NULL),_bag_of_words(NULL),_personalized(false),_npeers(0),_hits(0),_radius(0),_safe(true)
