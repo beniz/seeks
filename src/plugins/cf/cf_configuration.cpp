@@ -40,6 +40,7 @@ namespace seeks_plugins
 #define hash_stop_words_filtering     4002206625ul  /* "stop-words-filtering" */
 #define hash_remote_post              4059800377ul  /* "remote-post" */
 #define hash_use_http_url             1825269331ul  /* "use-http-urls-only" */
+#define hash_cf_estimator             1689657696ul  /* "cf-estimator" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -76,6 +77,7 @@ namespace seeks_plugins
     _stop_words_filtering = false;
     _remote_post = true;
     _use_http_urls = true;
+    _estimator = "sre";
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -175,6 +177,12 @@ namespace seeks_plugins
         _use_http_urls = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to allow only HTTP URLs or to allow generic item UIDs");
+        break;
+
+      case hash_cf_estimator:
+        _estimator = arg;
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Estimator used by the collaborative filter");
         break;
 
       default:

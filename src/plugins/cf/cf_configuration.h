@@ -58,6 +58,8 @@ namespace seeks_plugins
       bool _remote_post; /**< allow/disallow remote posting of results. */
       bool _use_http_urls; /**< whether to use HTTP URLs filtering, with domain names weight. */
 
+      std::string _estimator; /**< estimator model to be used. */
+
       static cf_configuration *_config;
   };
 

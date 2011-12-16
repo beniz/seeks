@@ -58,3 +58,10 @@ remote-post 1
 # items or non HTTP UIDs.
 # default: 1 (0 for no).
 use-http-urls-only 1
+
+# Estimator to be used by the collaborative filter.
+# Default is an estimator targeted at Web search.
+# Other applications should use a different estimator, written as a
+# class derived from rank_estimator or simple_re
+# default: sre
+cf-estimator sre

@@ -696,6 +696,15 @@ namespace seeks_plugins
       }
   }
 
+  // factory.
+  rank_estimator* rank_estimator::create(const std::string &type,
+                                         const bool &swf)
+  {
+    if (type == "sre")
+      return new simple_re(swf);
+    return NULL; // beware.
+  }
+
   /*- simple_re -*/
   simple_re::simple_re(const bool &swf)
     :rank_estimator(swf)
