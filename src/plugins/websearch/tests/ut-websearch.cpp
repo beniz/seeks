@@ -340,6 +340,7 @@ TEST_F(WBExistTest,cgi_websearch_search_snippet)
   uint32_t sid = sp->_id;
   _qc->_cached_snippets.push_back(sp);
   _qc->add_to_unordered_cache(sp);
+  sp->_new = false;
 
   client_state csp;
   csp._config = _pconfig;
@@ -407,8 +408,10 @@ TEST_F(WBExistTest,cgi_websearch_words_query_snippet)
   sp2->set_summary("A large cat from the jungle");
   _qc->_cached_snippets.push_back(sp1);
   _qc->add_to_unordered_cache(sp1);
+  sp1->_new = false;
   _qc->_cached_snippets.push_back(sp2);
   _qc->add_to_unordered_cache(sp2);
+  sp2->_new = false;
 
   content_handler::fetch_all_snippets_summary_and_features(_qc);
 
@@ -445,8 +448,10 @@ TEST_F(WBExistTest,cgi_websearch_words_snippet)
   sp2->set_summary("A large cat from the jungle");
   _qc->_cached_snippets.push_back(sp1);
   _qc->add_to_unordered_cache(sp1);
+  sp1->_new = false;
   _qc->_cached_snippets.push_back(sp2);
   _qc->add_to_unordered_cache(sp2);
+  sp2->_new = false;
 
   content_handler::fetch_all_snippets_summary_and_features(_qc);
 
