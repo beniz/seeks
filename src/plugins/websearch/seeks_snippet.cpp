@@ -60,7 +60,7 @@ namespace seeks_plugins
     _doc_type = seeks_doc_type::WEBPAGE;
   }
 
-  seeks_snippet::seeks_snippet(const short &rank)
+  seeks_snippet::seeks_snippet(const double &rank)
     :search_snippet(rank)
   {
     _doc_type = seeks_doc_type::WEBPAGE;

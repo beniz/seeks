@@ -49,7 +49,7 @@ namespace seeks_plugins
   {
     public:
       seeks_snippet();
-      seeks_snippet(const short &rank);
+      seeks_snippet(const double &rank);
       seeks_snippet(const seeks_snippet *s);
 
       virtual ~seeks_snippet();
