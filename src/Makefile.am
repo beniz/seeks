@@ -43,7 +43,7 @@ endif
 if USE_PERL
 AM_LDFLAGS += `perl -MExtUtils::Embed -e ldopts`
 endif
-LDADD=-lseekswebsearchplugin -lseekswebsearchapicompatplugin -lreadable 
+LDADD=-lseekswebsearchplugin -lseekswebsearchapicompatplugin -lreadableplugin 
 if HAVE_PROTOBUF
 if HAVE_TC
 LDADD += -lquerycaptureplugin -luricaptureplugin -lcfplugin -ludbserviceplugin
