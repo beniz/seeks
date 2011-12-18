@@ -21,6 +21,8 @@
 #include "khash.h"
 #include "readable.h"
 
+//#define READABLE_DEBUG
+
 #define UNLIKELY_CANDIDATES_RE "combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|sponsor|ad-break|agegate|pagination|pager|popup|jobs|selector"
 #define OK_MAYBE_ITS_A_CANDIDATE_RE "and|article|body|column|main|shadow"
 #define POSITIVE_SCORE_RE "article|body|content|entry|hentry|main|page|pagination|post|text|blog|story"
@@ -1172,13 +1174,13 @@ readable(const char *html, const char *url, const char *encoding, int options)
     htmlNodePtr readable_node = NULL;
 
     if (!doc) {
-        return NULL;
+      return NULL;
     }
 
     htmlNodePtr root = xmlDocGetRootElement(doc);
     if (!xmlStrEqual(root->name, BAD_CAST "html")) {
         xmlFreeDoc(doc);
-        return NULL;
+	return NULL;
     }
     htmlNodePtr body = NULL;
     for(htmlNodePtr cur = root->children; cur; cur = cur->next) {
