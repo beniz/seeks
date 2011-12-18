@@ -47,7 +47,6 @@ namespace seeks_plugins
         // create new snippet.
         _sn = new seeks_snippet(_count + 1);
         _count++;
-        //sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
         _sn->_engine = feeds("youtube",_url);
         _sn->_doc_type = seeks_doc_type::VIDEO_THUMB;
         pc->_current_snippet = _sn;
