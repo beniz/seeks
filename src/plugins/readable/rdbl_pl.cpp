@@ -72,7 +72,9 @@ namespace seeks_plugins
   }
 
   sp_err rdbl_pl::fetch_url_call_readable(const std::string &url,
-                                          std::string &content)
+                                          std::string &content,
+                                          const std::string &encoding,
+                                          const int &options)
   {
 
     // fetch page.
@@ -89,7 +91,7 @@ namespace seeks_plugins
     // call on readable.
     try
       {
-        content = rdbl_pl::call_readable(*result,url);
+        content = rdbl_pl::call_readable(*result,url,encoding,options);
       }
     catch (sp_exception &e)
       {

@@ -43,7 +43,9 @@ namespace seeks_plugins
                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       static sp_err fetch_url_call_readable(const std::string &url,
-                                            std::string &content);
+                                            std::string &content,
+                                            const std::string &encoding="",
+                                            const int &options=READABLE_OPTIONS_DEFAULT);
 
       /**
        * \brief main extraction function.
