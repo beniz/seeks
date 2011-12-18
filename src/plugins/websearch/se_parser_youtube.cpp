@@ -43,36 +43,31 @@ namespace seeks_plugins
 
     if (strcasecmp(tag, "item") == 0)
       {
-        //std::cout << "<item>" << std::endl;
         _in_item = true;
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count + 1);
+        _sn = new seeks_snippet(_count + 1);
         _count++;
         //sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
-        sp->_engine = feeds("youtube",_url);
-        sp->_doc_type = seeks_doc_type::VIDEO_THUMB;
-        pc->_current_snippet = sp;
+        _sn->_engine = feeds("youtube",_url);
+        _sn->_doc_type = seeks_doc_type::VIDEO_THUMB;
+        pc->_current_snippet = _sn;
         //const char *a_link = se_parser::get_attribute((const char**)attributes, "rdf:about");
         //pc->_current_snippet->_url = std::string(a_link);
       }
     if (_in_item && strcasecmp(tag, "title") == 0)
       {
-        //std::cout << "  <title>" << std::endl;
         _in_title = true;
       }
     if (_in_item && strcasecmp(tag, "pubDate") == 0)
       {
-        //std::cout << "  <pubDate>" << std::endl;
         _in_date = true;
       }
     if (_in_item && strcasecmp(tag, "link") == 0)
       {
-        //std::cout << "  <link>" << std::endl;
         _in_link = true;
       }
     if (_in_item && strcasecmp(tag, "description") == 0)
       {
-        //std::cout << "  <description>" << std::endl;
         _in_description = true;
       }
   }
