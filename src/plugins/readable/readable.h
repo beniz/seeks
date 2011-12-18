@@ -1,7 +1,7 @@
 #ifndef readable_h
 #define readable_h
 
-#define READABLE_MIN_ARTICLE_LENGTH (250)
+#define READABLE_MIN_ARTICLE_LENGTH (25)
 
 #ifdef __cplusplus
 extern "C" {
