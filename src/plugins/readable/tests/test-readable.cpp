@@ -26,7 +26,7 @@ using namespace seeks_plugins;
 
 std::string get_usage()
 {
-  std::string usage = "Usage: <url>\n";
+  std::string usage = "Usage: <url> (<encoding>)\n";
   return usage;
 }
 
@@ -39,8 +39,11 @@ int main(int argc, char **argv)
     }
 
   std::string url = argv[1];
+  std::string encoding;
+  if (argc > 2)
+    encoding = argv[2];
   std::string content;
-  sp_err err = rdbl_pl::fetch_url_call_readable(url,content);
+  sp_err err = rdbl_pl::fetch_url_call_readable(url,content,encoding);
   if (err == SP_ERR_OK)
     std::cout << content;
   else std::cout << "Error: " << err << std::endl;
