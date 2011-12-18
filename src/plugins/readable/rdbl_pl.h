@@ -44,7 +44,7 @@ namespace seeks_plugins
 
       static sp_err fetch_url_call_readable(const std::string &url,
                                             std::string &content,
-                                            const std::string &encoding="",
+                                            const std::string &encoding="utf-8",
                                             const int &options=READABLE_OPTIONS_DEFAULT);
 
       /**
@@ -64,7 +64,7 @@ namespace seeks_plugins
        *   READABLE_OPTIONS_DEFAULT = (0xFFFF & ~(READABLE_OPTION_REMOVE_IMAGES | READABLE_OPTION_WRAP_CONTENT))
        */
       static std::string call_readable(const std::string &html, const std::string &url,
-                                       const std::string &encoding="",
+                                       const std::string &encoding="utf-8",
                                        const int &options=READABLE_OPTIONS_DEFAULT) throw (sp_exception);
   };
 
