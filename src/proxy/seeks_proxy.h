@@ -79,6 +79,8 @@ namespace sp
 
       static std::vector<sweepable*> _memory_dust; // sweepable elements (cache, etc...).
 
+      static std::vector<sweepable*> _recurrent; // for recurrent operations (updates, ...).
+
       static std::string _configfile; // proxy configuration file.
 
       static proxy_configuration *_config; // proxy configuration object.

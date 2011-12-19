@@ -39,6 +39,7 @@ namespace sp
   /*- sweeper. -*/
 
   sp_mutex_t sweeper::_mem_dust_mutex;
+  sp_mutex_t sweeper::_recur_mutex;
 
   void sweeper::register_sweepable(sweepable *spable)
   {
@@ -63,6 +64,31 @@ namespace sp
         ++vit;
       }
     mutex_unlock(&sweeper::_mem_dust_mutex);
+  }
+
+  void sweeper::register_recurrent(sweepable *spable)
+  {
+    mutex_lock(&sweeper::_recur_mutex);
+    seeks_proxy::_recurrent.push_back(spable);
+    mutex_unlock(&sweeper::_recur_mutex);
+  }
+
+  void sweeper::unregister_recurrent(sweepable *spable)
+  {
+    mutex_lock(&sweeper::_recur_mutex);
+    std::vector<sweepable*>::iterator vit
+    = seeks_proxy::_recurrent.begin();
+    while (vit!=seeks_proxy::_recurrent.end())
+      {
+        if ((*vit) == spable)
+          {
+            seeks_proxy::_recurrent.erase(vit);
+            mutex_unlock(&sweeper::_recur_mutex);
+            return;
+          }
+        ++vit;
+      }
+    mutex_unlock(&sweeper::_recur_mutex);
   }
 
   /*********************************************************************
@@ -157,6 +183,16 @@ namespace sp
     seeks_proxy::_user_db->sweep_db();
 #endif
 
+    mutex_lock(&sweeper::_recur_mutex);
+    vit = seeks_proxy::_recurrent.begin();
+    while (vit!=seeks_proxy::_recurrent.end())
+      {
+        sweepable *spable = (*vit);
+        spable->sweep_me();
+        ++vit;
+      }
+    mutex_unlock(&sweeper::_recur_mutex);
+
     return active_threads;
   }
 
@@ -171,6 +207,20 @@ namespace sp
         delete spable;
       }
     errlog::log_error(LOG_LEVEL_INFO, "sweep_all: destroyed %u elements",nm);
+    return nm;
+  }
+
+  unsigned int sweeper::sweep_all_recurrent()
+  {
+    unsigned int nm = seeks_proxy::_recurrent.size();
+    std::vector<sweepable*>::iterator vit = seeks_proxy::_recurrent.begin();
+    while (vit!=seeks_proxy::_recurrent.end())
+      {
+        sweepable *spable = (*vit);
+        vit = seeks_proxy::_recurrent.erase(vit);
+        delete spable;
+      }
+    errlog::log_error(LOG_LEVEL_INFO, "sweep_all: destroyed %u recurrent task elements",nm);
     return nm;
   }
 
@@ -209,7 +259,7 @@ namespace sp
 
   unsigned int sweeper::sweep_all()
   {
-    return sweeper::sweep_all_csps() + sweeper::sweep_all_memory_dust();
+    return sweeper::sweep_all_csps() + sweeper::sweep_all_memory_dust() + sweeper::sweep_all_recurrent();
   }
 
 } /* end of namespace. */
