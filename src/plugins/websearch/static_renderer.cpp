@@ -431,7 +431,7 @@ namespace seeks_plugins
             ++hit;
           }
 
-        std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
+        std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_rank);
 
         if (!snippets.empty())
           {

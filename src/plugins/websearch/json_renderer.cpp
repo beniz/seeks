@@ -409,7 +409,7 @@ namespace seeks_plugins
             snippets.push_back(sp);
             ++hit;
           }
-        std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
+        std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_rank);
 
         json_str += "{";
         json_str += "\"label\":\"" + cl->_label + "\",";
