@@ -68,7 +68,10 @@ namespace seeks_plugins
     gettimeofday(&tv_now,NULL);
     if ((tv_now.tv_sec - _last_sweep)
         > uc_configuration::_config->_sweep_cycle)
-      return true;
+      {
+        _last_sweep = tv_now.tv_sec;
+        return true;
+      }
     else return false;
   }
 
