@@ -50,6 +50,7 @@ namespace seeks_plugins
 #define hash_ui_theme                860616402ul /* "ui-theme" */
 #define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
 #define hash_num_recent_queries     2898954524ul /* num-recent-queries */
+#define hash_cross_query_ri          459677116ul /* cross-query-result-insertion */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
     :configuration_spec(filename),_default_engines(false)
@@ -86,6 +87,7 @@ namespace seeks_plugins
     _ui_theme = "compact";
     _num_reco_queries = 20;
     _num_recent_queries = 20;
+    _cross_query_ri = true;
   }
 
   void websearch_configuration::set_default_engines()
@@ -303,6 +305,12 @@ namespace seeks_plugins
         _num_recent_queries = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Max number of recent queries");
+        break;
+
+      case hash_cross_query_ri:
+        _cross_query_ri = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to inject results from one query into results of another");
         break;
 
       default:

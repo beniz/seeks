@@ -18,6 +18,11 @@ endif
 if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_CPPFLAGS+=-I${srcdir}/../img_websearch
 endif
+
+if HAVE_XSLSERIALIZER_PLUGIN
+AM_CPPFLAGS += -I${srcdir}/../xsl_serializer @XSLT_CFLAGS@
+endif
+
 ACLOCAL_AMFLAGS=-I m4
 httpservpluginlib_LTLIBRARIES=libseekshttpservplugin.la
 libseekshttpservplugin_la_SOURCES=httpserv_configuration.cpp httpserv.cpp httpserv.h httpserv_configuration.h

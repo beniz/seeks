@@ -173,6 +173,9 @@ namespace seeks_plugins
                                         client_state *csp,
                                         bool &has_lang) throw (sp_exception);
 
+      static void reset_p2p_data(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                 query_context *qc);
+
       /* error handling. */
       static sp_err failed_ses_connect(client_state *csp, http_response *rsp);
 

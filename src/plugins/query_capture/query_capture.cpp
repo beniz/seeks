@@ -81,7 +81,10 @@ namespace seeks_plugins
     gettimeofday(&tv_now,NULL);
     if ((tv_now.tv_sec - _last_sweep)
         > query_capture_configuration::_config->_sweep_cycle)
-      return true;
+      {
+        _last_sweep = tv_now.tv_sec;
+        return true;
+      }
     else return false;
   }
 
@@ -89,9 +92,13 @@ namespace seeks_plugins
   {
     struct timeval tv_now;
     gettimeofday(&tv_now,NULL);
-    time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
-    int err = seeks_proxy::_user_db->prune_db("query-capture",sweep_date);
-    return err;
+    if (query_capture_configuration::_config->_retention > 0)
+      {
+        time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
+        int err = seeks_proxy::_user_db->prune_db("query-capture",sweep_date);
+        return err;
+      }
+    else return SP_ERR_OK;
   }
 
   /*- query_capture -*/
@@ -329,7 +336,7 @@ namespace seeks_plugins
 
   query_capture_element::query_capture_element()
   {
-    if (seeks_proxy::_user_db)
+    if (seeks_proxy::_user_db && query_capture_configuration::_config->_sweep_cycle > 0)
       seeks_proxy::_user_db->register_sweeper(&_qds);
   }
 

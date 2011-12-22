@@ -65,6 +65,8 @@ namespace seeks_plugins
     if (!img) // failed loading image, usually from a broken transfer earlier...
       {
         unlink(tfname.c_str());
+        objectKeypoints = NULL;
+        objectDescriptors = NULL;
         return;
       }
 
@@ -82,6 +84,8 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,"Error extracting features from image loaded from %s: %s", tfname.c_str(),
                           e.err.c_str());
         cvReleaseImage(&img);
+        objectKeypoints = NULL;
+        objectDescriptors = NULL;
         return; // failure.
       }
 
@@ -273,7 +277,8 @@ namespace seeks_plugins
     CvMat *points1_ = points1;
     CvMat *points2_ = points2;
     if (!count)
-      { // no inliers
+      {
+        // no inliers
         points1 = NULL;
         points2 = NULL; // beware: leak ?
         return j;

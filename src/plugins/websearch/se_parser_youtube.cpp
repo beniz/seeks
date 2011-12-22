@@ -43,36 +43,30 @@ namespace seeks_plugins
 
     if (strcasecmp(tag, "item") == 0)
       {
-        //std::cout << "<item>" << std::endl;
         _in_item = true;
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count + 1);
+        _sn = new seeks_snippet(_count + 1);
         _count++;
-        //sp->_engine |= std::bitset<NSEs>(SE_YOUTUBE);
-        sp->_engine = feeds("youtube",_url);
-        sp->_doc_type = VIDEO_THUMB;
-        pc->_current_snippet = sp;
+        _sn->_engine = feeds("youtube",_url);
+        _sn->_doc_type = seeks_doc_type::VIDEO_THUMB;
+        pc->_current_snippet = _sn;
         //const char *a_link = se_parser::get_attribute((const char**)attributes, "rdf:about");
         //pc->_current_snippet->_url = std::string(a_link);
       }
     if (_in_item && strcasecmp(tag, "title") == 0)
       {
-        //std::cout << "  <title>" << std::endl;
         _in_title = true;
       }
     if (_in_item && strcasecmp(tag, "pubDate") == 0)
       {
-        //std::cout << "  <pubDate>" << std::endl;
         _in_date = true;
       }
     if (_in_item && strcasecmp(tag, "link") == 0)
       {
-        //std::cout << "  <link>" << std::endl;
         _in_link = true;
       }
     if (_in_item && strcasecmp(tag, "description") == 0)
       {
-        //std::cout << "  <description>" << std::endl;
         _in_description = true;
       }
   }
@@ -130,7 +124,7 @@ namespace seeks_plugins
         int end = _description.find(".jpg\"", start + 5);
         _description = _description.substr(start + 5, end - start - 1);
         _in_description = false;
-        pc->_current_snippet->_cached = _description;
+        _sn->_cached = _description;
         _description = "";
       }
     else if (_in_item && strcasecmp(tag, "item") == 0)
@@ -143,8 +137,8 @@ namespace seeks_plugins
           {
             if (pc->_current_snippet->_title.empty()  // consider the parsing did fail on the snippet.
                 || pc->_current_snippet->_url.empty()
-                || pc->_current_snippet->_cached.empty()
-                || pc->_current_snippet->_date.empty())
+                || _sn->_cached.empty()
+                || _sn->_date.empty())
               {
                 std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << std::endl;
                 delete pc->_current_snippet;
@@ -159,7 +153,7 @@ namespace seeks_plugins
         //std::cout << "    " << _date << std::endl;
         //std::cout << "  </pubDate>" << std::endl;
         _in_date = false;
-        pc->_current_snippet->set_date(_date);
+        _sn->set_date(_date);
         _date = "";
       }
     else if (_in_item && _in_title && strcasecmp(tag, "title") == 0)

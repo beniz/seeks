@@ -20,6 +20,7 @@
 #define SE_PARSER_YAHOO
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 
 namespace seeks_plugins
 {
@@ -61,6 +62,8 @@ namespace seeks_plugins
 
       std::string _title;
       std::string _summary;
+
+      seeks_snippet *_sn;
   };
 
 } /* end of namespace. */

@@ -21,6 +21,7 @@
 #define SE_PARSER_YAUBA_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -62,6 +63,8 @@ namespace seeks_plugins
       std::string _title;
       std::string _summary;
       std::string _cite;
+
+      seeks_snippet *_sn;
   };
 
 };

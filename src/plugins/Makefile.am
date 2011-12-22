@@ -14,7 +14,7 @@ endif
 if HAVE_HTTPSERV_PLUGIN
 SUBDIRS+=httpserv
 endif
-SUBDIRS += websearch/tests
+SUBDIRS += websearch/tests readable/tests
 if HAVE_IMG_WEBSEARCH_PLUGIN
 SUBDIRS += img_websearch/tests
 endif

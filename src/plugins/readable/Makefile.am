@@ -18,4 +18,4 @@ libreadableplugin_la_SOURCES=rdbl_pl.cpp readable.c rd_list.c rdbl_pl.h rd_list.
 #readablepluginconfigdir = $(sysconfdir)/seeks
 #dist_readablepluginconfig_DATA=readable-config
 
-SUBDIRS=. tests
+#SUBDIRS=. tests

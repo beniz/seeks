@@ -3,9 +3,11 @@
 # It is recommended to set sweeps every few days, weeks or 
 # months, not every seconds as every sweep requires a traversal
 # of the full DB.
+# if set to 0, not activated, no sweeping.
 # default: 2592000  # one month.
 uc-sweep-cycle 2592000
 
 # Sets the retention of records, in seconds.
+# if set to 0, unlimited retention.
 # default: 15552000  # six months.
 uc-retention 15552000

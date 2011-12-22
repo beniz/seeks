@@ -33,7 +33,8 @@ namespace seeks_plugins
   /*- se_parser_osearch -*/
   se_parser_osearch::se_parser_osearch()
     :_feed_flag(false),_entry_flag(false),_entry_title_flag(false),
-     _updated_flag(false),_content_flag(false),_gen_title_flag(false)
+     _updated_flag(false),_content_flag(false),_gen_title_flag(false),
+     _sn(NULL)
   {
   }
 
@@ -63,9 +64,9 @@ namespace seeks_plugins
     else if (_feed_flag && strcasecmp(tag,"entry") == 0)
       {
         // create new snippet.
-        search_snippet *sp = new search_snippet(++_count);
-        sp->_engine = feeds("opensearch_atom",_url);
-        pc->_current_snippet = sp;
+        _sn = new seeks_snippet(++_count);
+        _sn->_engine = feeds("opensearch_atom",_url);
+        pc->_current_snippet = _sn;
         pc->_snippets->push_back(pc->_current_snippet);
         _entry_flag = true;
       }
@@ -166,7 +167,7 @@ namespace seeks_plugins
       }
     else if (_updated_flag && strcasecmp(tag,"updated") == 0)
       {
-        pc->_current_snippet->set_date(_entry_date);
+        _sn->set_date(_entry_date);
         _updated_flag = false;
         _entry_date = "";
       }

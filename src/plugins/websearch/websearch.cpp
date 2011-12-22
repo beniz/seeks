@@ -17,6 +17,7 @@
  */
 
 #include "websearch.h"
+#include "seeks_snippet.h"
 #include "cgi.h"
 #include "cgisimple.h"
 #include "encode.h"
@@ -97,7 +98,7 @@ namespace seeks_plugins
     _configuration = websearch::_wconfig;
 
     // load tagging patterns.
-    search_snippet::load_patterns();
+    seeks_snippet::load_patterns();
 
     // cgi dispatchers.
     _cgi_dispatchers.reserve(6);
@@ -166,7 +167,7 @@ namespace seeks_plugins
   websearch::~websearch()
   {
     websearch::_wconfig = NULL; // configuration is destroyed in parent class.
-    search_snippet::destroy_patterns();
+    seeks_snippet::destroy_patterns();
   }
 
   void websearch::start()
@@ -445,6 +446,9 @@ namespace seeks_plugins
                 qc = websearch::lookup_qc(parameters);
                 if (!qc) // should never happen.
                   return SP_ERR_MEMORY; // 500.
+
+                // reset p2p data if needed.
+                websearch::reset_p2p_data(parameters,qc);
               }
             uint32_t sid = (uint32_t)strtod(id_str.c_str(),NULL);
             mutex_lock(&qc->_qc_mutex);
@@ -655,23 +659,21 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+        if (err != SP_ERR_OK)
+          return err;
         query_context *qc = websearch::lookup_qc(parameters);
-
         if (!qc)
-          {
-            // no cache, (re)do the websearch first.
-            sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            if (err != SP_ERR_OK)
-              return err;
-            qc = websearch::lookup_qc(parameters);
-            if (!qc)
-              qc = new query_context(parameters,csp->_headers); // empty context.
-          }
+          qc = new query_context(parameters,csp->_headers); // empty context.
 
         mutex_lock(&qc->_qc_mutex);
 
         // render result page.
-        sp_err err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,0); // 0: urls.
+        err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,0); // 0: urls.
+
+        // reset p2p data if needed.
+        websearch::reset_p2p_data(parameters,qc);
 
         mutex_unlock(&qc->_qc_mutex);
         if (qc->empty())
@@ -690,16 +692,11 @@ namespace seeks_plugins
   {
     if (!parameters->empty())
       {
+        // no cache, (re)do the websearch first.
+        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
         query_context *qc = websearch::lookup_qc(parameters);
-
-        if (!qc)
-          {
-            // no cache, (re)do the websearch first.
-            sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-            qc = websearch::lookup_qc(parameters);
-            if (err != SP_ERR_OK)
-              return err;
-          }
+        if (err != SP_ERR_OK)
+          return err;
         mutex_lock(&qc->_qc_mutex);
 
         // render result page.
@@ -710,7 +707,7 @@ namespace seeks_plugins
         miscutil::to_lower(ui_str);
         miscutil::to_lower(output_str);
 
-        sp_err err = SP_ERR_OK;
+        err = SP_ERR_OK;
         if (ui_str == "stat" && output_str == "html")
           err = static_renderer::render_neighbors_result_page(csp,rsp,parameters,qc,1); // 1: titles.
         else if (output_str == "json")
@@ -724,6 +721,10 @@ namespace seeks_plugins
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
           err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
+
+        // reset p2p data if needed.
+        websearch::reset_p2p_data(parameters,qc);
+
         mutex_unlock(&qc->_qc_mutex);
 
         return err;
@@ -756,25 +757,19 @@ namespace seeks_plugins
         return e.code();
       }
 
+    sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+    if (err != SP_ERR_OK)
+      return err;
     query_context *qc = websearch::lookup_qc(parameters);
     if (!qc)
-      {
-        // no cache, (re)do the websearch first.
-        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-        if (err != SP_ERR_OK)
-          return err;
-        qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          qc = new query_context(parameters,csp->_headers); // empty context.
-      }
+      qc = new query_context(parameters,csp->_headers); // empty context.
 
-    cluster *clusters = NULL;
-    short K = 0;
-
+    short K = 11;
     mutex_lock(&qc->_qc_mutex);
 
     // regroup search snippets by types.
-    sort_rank::group_by_types(qc,clusters,K);
+    hash_map<int,cluster*> clusters;
+    sort_rank::group_by_types(qc,&clusters);
 
     // time measured before rendering, since we need to write it down.
     clock_t end_time = times(&en_cpu);
@@ -784,23 +779,30 @@ namespace seeks_plugins
 
     // rendering.
     const char *output =miscutil::lookup(parameters,"output");
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"html")==0)
-      err = static_renderer::render_clustered_result_page_static(clusters,K,
+      err = static_renderer::render_clustered_result_page_static(&clusters,K,
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
-      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,clusters,K,qtime);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,&clusters,K,qtime);
 #endif
     else
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_clustered_json_results(clusters,K,
+        err = json_renderer::render_clustered_json_results(&clusters,K,
               csp,rsp,parameters,qc,qtime);
       }
 
-    if (clusters)
-      delete[] clusters;
+    hash_map<int,cluster*>::iterator hit = clusters.begin();
+    while(hit!=clusters.end())
+      {
+        delete (*hit).second;
+        ++hit;
+      }
+
+    // reset p2p data if needed.
+    websearch::reset_p2p_data(parameters,qc);
 
     mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
@@ -840,17 +842,13 @@ namespace seeks_plugins
         return e.code();
       }
 
+    sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+    if (err != SP_ERR_OK)
+      return err;
     query_context *qc = websearch::lookup_qc(parameters);
     if (!qc)
-      {
-        // no cache, (re)do the websearch first.
-        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-        if (err != SP_ERR_OK)
-          return err;
-        qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          return SP_ERR_MEMORY;
-      }
+      return SP_ERR_MEMORY;
+
     const char *id = miscutil::lookup(parameters,"id");
     if (!id)
       return SP_ERR_CGI_PARAMS;
@@ -866,6 +864,9 @@ namespace seeks_plugins
       }
     catch (sp_exception &e)
       {
+        // reset p2p data if needed.
+        websearch::reset_p2p_data(parameters,qc);
+
         mutex_unlock(&qc->_qc_mutex);
         pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
         if (e.code() == WB_ERR_NO_REF_SIM)
@@ -874,7 +875,7 @@ namespace seeks_plugins
       }
 
     const char *output = miscutil::lookup(parameters,"output");
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"html")==0)
       err = static_renderer::render_result_page_static(qc->_cached_snippets,
             csp,rsp,parameters,qc);
@@ -888,6 +889,9 @@ namespace seeks_plugins
         err = json_renderer::render_json_results(qc->_cached_snippets,
               csp,rsp,parameters,qc,0.0);
       }
+
+    // reset p2p data if needed.
+    websearch::reset_p2p_data(parameters,qc);
 
     // reset scores.
     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
@@ -928,17 +932,12 @@ namespace seeks_plugins
         return e.code();
       }
 
+    sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+    if (err != SP_ERR_OK)
+      return err;
     query_context *qc = websearch::lookup_qc(parameters);
     if (!qc)
-      {
-        // no cache, (re)do the websearch first.
-        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-        if (err != SP_ERR_OK)
-          return err;
-        qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          return SP_ERR_MEMORY;
-      }
+      qc = new query_context(parameters,csp->_headers); // empty context.
 
     mutex_lock(&qc->_qc_mutex);
 
@@ -950,7 +949,7 @@ namespace seeks_plugins
       content_handler::fetch_all_snippets_content_and_features(qc);
     else content_handler::fetch_all_snippets_summary_and_features(qc);
 
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (qc->_cached_snippets.empty())
       {
         const char *output = miscutil::lookup(parameters,"output");
@@ -979,6 +978,9 @@ namespace seeks_plugins
     oskmeans km(qc,qc->_cached_snippets,nclust); // nclust clusters+ 1 garbage for now...
     km.clusterize();
     km.post_processing();
+    hash_map<int,cluster*> clusters;
+    for (int k=0; k<km._K; k++)
+      clusters.insert(std::pair<int,cluster*>(k,&km._clusters[k]));
 
     // time measured before rendering, since we need to write it down.
     clock_t end_time = times(&en_cpu);
@@ -989,17 +991,20 @@ namespace seeks_plugins
     // rendering.
     const char *output = miscutil::lookup(parameters,"output");
     if (!output || miscutil::strcmpic(output,"html")==0)
-      err = static_renderer::render_clustered_result_page_static(km._clusters,km._K,
+      err = static_renderer::render_clustered_result_page_static(&clusters,km._K,
             csp,rsp,parameters,qc);
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
-      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,km._clusters,km._K,qtime);
+      err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,&clusters,km._K,qtime);
 #endif
     else
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_clustered_json_results(km._clusters,km._K,csp,rsp,parameters,qc,qtime);
+        err = json_renderer::render_clustered_json_results(&clusters,km._K,csp,rsp,parameters,qc,qtime);
       }
+
+    // reset p2p data if needed.
+    websearch::reset_p2p_data(parameters,qc);
 
     // reset scores.
     std::vector<search_snippet*>::iterator vit = qc->_cached_snippets.begin();
@@ -1362,7 +1367,9 @@ namespace seeks_plugins
       }
 
     // resets P2P data on snippets.
-    if (persf)
+    // if we're not rendering here, rendering will happen elsewhere,
+    // as will the reset of the p2p filter data.
+    if (persf && render)
       {
 #if defined(PROTOBUF) && defined(TC)
         qc->reset_p2p_data();
@@ -1383,30 +1390,25 @@ namespace seeks_plugins
   sp_err websearch::fetch_snippet(client_state *csp, http_response *rsp,
                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+    if (err != SP_ERR_OK)
+      return err;
     query_context *qc = websearch::lookup_qc(parameters);
-
-    if (!qc)
-      {
-        // no cache, (re)do the websearch first.
-        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-        if (err != SP_ERR_OK)
-          return err;
-        qc = websearch::lookup_qc(parameters);
-        if (!qc) // should never happen.
-          return SP_ERR_MEMORY; // 500.
-      }
-
+    if (!qc) // should never happen.
+      return SP_ERR_MEMORY; // 500.
     mutex_lock(&qc->_qc_mutex);
 
     // fetch snippet.
     const char *id = miscutil::lookup(parameters,"id");
     if (!id)
       {
+        websearch::reset_p2p_data(parameters,qc);
         mutex_unlock(&qc->_qc_mutex);
         return SP_ERR_CGI_PARAMS;
       }
     uint32_t sid = (uint32_t)strtod(id,NULL);
     search_snippet *sp = qc->get_cached_snippet(sid);
+    websearch::reset_p2p_data(parameters,qc);
     if (!sp)
       {
         mutex_unlock(&qc->_qc_mutex);
@@ -1415,7 +1417,7 @@ namespace seeks_plugins
 
     // render result page.
     const char *output = miscutil::lookup(parameters,"output");
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
@@ -1432,27 +1434,21 @@ namespace seeks_plugins
   sp_err websearch::words_query(client_state *csp, http_response *rsp,
                                 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+    if (err != SP_ERR_OK)
+      return err;
     query_context *qc = websearch::lookup_qc(parameters);
-
     if (!qc)
-      {
-        // no cache, (re)do the websearch first.
-        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-        if (err != SP_ERR_OK)
-          return err;
-        qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          return SP_ERR_MEMORY; // 500.
-      }
-
+      return SP_ERR_MEMORY; // 500.
     mutex_lock(&qc->_qc_mutex);
+
     std::set<std::string> words;
     for (size_t i=0; i<qc->_cached_snippets.size(); i++)
       {
         qc->_cached_snippets.at(i)->discr_words(qc->_query_words,words);
       }
     const char *output = miscutil::lookup(parameters,"output");
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
@@ -1462,6 +1458,7 @@ namespace seeks_plugins
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
 #endif
+    websearch::reset_p2p_data(parameters,qc);
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }
@@ -1469,19 +1466,12 @@ namespace seeks_plugins
   sp_err websearch::words_snippet(client_state *csp, http_response *rsp,
                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
+    if (err != SP_ERR_OK)
+      return err;
     query_context *qc = websearch::lookup_qc(parameters);
-
     if (!qc)
-      {
-        // no cache, (re)do the websearch first.
-        sp_err err = websearch::perform_websearch(csp,rsp,parameters,false);
-        if (err != SP_ERR_OK)
-          return err;
-        qc = websearch::lookup_qc(parameters);
-        if (!qc)
-          return SP_ERR_MEMORY; // 500.
-      }
-
+      return SP_ERR_MEMORY; // 500.
     mutex_lock(&qc->_qc_mutex);
 
     // fetch snippet.
@@ -1505,7 +1495,7 @@ namespace seeks_plugins
 
     // render result page.
     const char *output = miscutil::lookup(parameters,"output");
-    sp_err err = SP_ERR_OK;
+    err = SP_ERR_OK;
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
@@ -1515,7 +1505,7 @@ namespace seeks_plugins
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
 #endif
-
+    websearch::reset_p2p_data(parameters,qc);
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }
@@ -1558,6 +1548,24 @@ namespace seeks_plugins
         return (*hit).second;
       }
     else return NULL;
+  }
+
+  void websearch::reset_p2p_data(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                                 query_context *qc)
+  {
+    // check for personalization parameter.
+    const char *pers = miscutil::lookup(parameters,"prs");
+    if (!pers)
+      pers = websearch::_wconfig->_personalization ? "on" : "off";
+    bool persf = (strcasecmp(pers,"on")==0);
+
+    // resets P2P data on snippets.
+    if (persf)
+      {
+#if defined(PROTOBUF) && defined(TC)
+        qc->reset_p2p_data();
+#endif
+      }
   }
 
   /* error handling. */

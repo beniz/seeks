@@ -27,10 +27,12 @@ protected-redirection 0
 # It is recommended to set sweeps every few days, weeks or
 # months, not every seconds as every sweep requires a traversal
 # of the full DB.
+# if set to 0, not activated, no sweeping.
 # default: 2592000  # one month.
 query-sweep-cycle 2592000
  
 # Sets the retention of query records, in seconds.
+# if set to 0, unlimited retention.
 # default: 31104000  # one year
 query-retention 31104000
  

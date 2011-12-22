@@ -184,7 +184,8 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        (*vit)->reset_p2p_data();
+        search_snippet *sp = (*vit);
+        sp->reset_p2p_data();
         ++vit;
       }
     _suggestions.clear();
@@ -803,7 +804,7 @@ namespace seeks_plugins
 
             //TODO: don't reset in cache.
             (*vit)->_seeks_rank = 0;
-            (*vit)->bing_yahoo_us_merge();
+            //(*vit)->bing_yahoo_us_merge(); //BEWARE.
             (*vit)->_npeers = 0;
             (*vit)->_hits = 0;
           }

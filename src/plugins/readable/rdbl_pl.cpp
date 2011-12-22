@@ -117,13 +117,22 @@ namespace seeks_plugins
 
   /*- rdbl_elt -*/
   rdbl_elt::rdbl_elt(plugin *parent)
-    :interceptor_plugin(NULL,parent)
+    :interceptor_plugin(std::vector<std::string>(),std::vector<std::string>(),parent)
   {
   }
 
   http_response* rdbl_elt::plugin_response(client_state *csp)
   {
     //TODO.
+  }
+
+  /* auto-registration */
+  extern "C"
+  {
+    plugin* maker()
+    {
+      return new rdbl_pl;
+    }
   }
 
 } /* end of namespace. */

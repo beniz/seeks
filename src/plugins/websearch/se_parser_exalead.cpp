@@ -33,7 +33,7 @@ namespace seeks_plugins
   se_parser_exalead::se_parser_exalead(const std::string &url)
     :se_parser(url),_result_flag(false),_title_flag(false),_p_flag(false),
      _summary_flag(false),_cite_flag(false),_cached_flag(false),_b_title_flag(false),
-     _b_summary_flag(false),_ignore_flag(false)
+     _b_summary_flag(false),_ignore_flag(false),_sn(NULL)
   {
   }
 
@@ -65,10 +65,10 @@ namespace seeks_plugins
               }
 
             _result_flag = true;
-            search_snippet *sp = new search_snippet(_count+1);
+            _sn = new seeks_snippet(_count+1);
             _count++;
-            sp->_engine = feeds("exalead",_url);
-            pc->_current_snippet = sp;
+            _sn->_engine = feeds("exalead",_url);
+            pc->_current_snippet = _sn;
             pc->_snippets->push_back(pc->_current_snippet);
           }
       }
@@ -133,7 +133,7 @@ namespace seeks_plugins
                 if (a_cached)
                   {
                     _cached = std::string(a_cached);
-                    pc->_current_snippet->_cached = "http://www.exalead.com" + _cached; // beware: check on the host.
+                    _sn->_cached = "http://www.exalead.com" + _cached; // beware: check on the host.
                     _cached = "";
                   }
               }
@@ -255,7 +255,7 @@ namespace seeks_plugins
           }
         else if ( _cite_flag && strcasecmp(tag,"a") == 0)
           {
-            pc->_current_snippet->_cite = _cite;
+            _sn->_cite = _cite;
             _cite = "";
             _cite_flag = false;
           }

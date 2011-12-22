@@ -20,6 +20,7 @@
 #define SE_PARSER_REDMINE_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -63,6 +64,8 @@ namespace seeks_plugins
       std::string _date;
       std::string _title;
       std::string _summary;
+
+      seeks_snippet *_sn;
   };
 
 }

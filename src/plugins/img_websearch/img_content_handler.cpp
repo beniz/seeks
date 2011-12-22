@@ -105,8 +105,8 @@ namespace seeks_plugins
     // compute scores.
     for (size_t i=0; i<nsps; i++)
       {
-        img_search_snippet *sp = static_cast<img_search_snippet*>(sps[i]);
-        if (sp->_surf_keypoints)
+        img_search_snippet *sp = dynamic_cast<img_search_snippet*>(sps[i]);
+        if (sp && sp->_surf_keypoints && sp->_surf_descriptors)
           {
             /* if (sp->_surf_keypoints->total < 0.5*ref_isp->_surf_keypoints->total) // at least 50% as many feature as reference image.
               continue;

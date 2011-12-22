@@ -20,6 +20,7 @@
 #define SE_PARSER_DAILYMOTION_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -64,6 +65,8 @@ namespace seeks_plugins
       std::string _date;
       std::string _summary;
       std::string _keywords;
+
+      seeks_snippet *_sn;
   };
 
 };

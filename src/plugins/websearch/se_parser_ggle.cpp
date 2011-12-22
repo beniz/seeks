@@ -36,7 +36,7 @@ namespace seeks_plugins
      _link_flag(false),_cite_flag(false),
      _cached_flag(false),_span_cached_flag(false),
      _ff_flag(false),_new_link_flag(false),_spell_flag(false),_sgg_spell_flag(false),
-     _end_sgg_spell_flag(false),_rt_flag(false)
+     _end_sgg_spell_flag(false),_rt_flag(false),_sn(NULL)
   {
   }
 
@@ -142,11 +142,11 @@ namespace seeks_plugins
           }
 
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count+1);
+        _sn = new seeks_snippet(_count+1);
         _count++;
         //sp->_engine |= std::bitset<NSEs>(SE_GOOGLE);
-        sp->_engine = feeds("google",_url);
-        pc->_current_snippet = sp;
+        _sn->_engine = feeds("google",_url);
+        pc->_current_snippet = _sn;
 
         // reset some variables.
         _summary = "";
@@ -308,8 +308,8 @@ namespace seeks_plugins
         if (pc->_current_snippet && _div_flag_forum)
           {
             _div_flag_forum = false;
-            pc->_current_snippet->_forum_thread_info = _forum;
-            pc->_current_snippet->_doc_type = FORUM;
+            _sn->_forum_thread_info = _forum;
+            pc->_current_snippet->_doc_type = seeks_doc_type::FORUM;
             _forum = "";
           }
         else if (_div_flag_summary)
@@ -331,7 +331,7 @@ namespace seeks_plugins
         _span_cached_flag = false; // no need to catch the /span tag.
         _cached_flag = false;
         if (!_cached.empty())
-          pc->_current_snippet->_cached = _cached;
+          _sn->_cached = _cached;
         _cached = "";
       }
     else if (_sgg_spell_flag && strcasecmp(tag,"a") == 0)

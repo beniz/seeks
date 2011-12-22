@@ -160,7 +160,7 @@ namespace seeks_plugins
           {
             std::string err_msg = std::string(xep->message);
             miscutil::replace_in_string(err_msg,"\n","");
-            errlog::log_error(LOG_LEVEL_PARSER, "html level parsing error (libxml2): %s",
+            errlog::log_error(LOG_LEVEL_PARSER, "xml level parsing error (libxml2): %s",
                               err_msg.c_str());
             // check on error level.
             if (xep->level == 3) // fatal or recoverable error.

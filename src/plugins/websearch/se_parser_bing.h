@@ -20,6 +20,7 @@
 #define SE_PARSER_BING_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -65,6 +66,8 @@ namespace seeks_plugins
       std::string _summary;
       std::string _cite;
       std::string _cached;
+
+      seeks_snippet *_sn;
 
       static std::string _sr_string_en;
       static std::string _bing_stupid[2];

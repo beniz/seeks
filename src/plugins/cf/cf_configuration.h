@@ -54,7 +54,11 @@ namespace seeks_plugins
       std::string _post_url_ua; /**< default 'User-Agent' header for retrieving posted URLS. */
       int _post_radius; /**< similarity impact radius of posted queries. */
 
-      bool _stop_words_filtering; /** < filter similar queries with stop words. */
+      bool _stop_words_filtering; /**< filter similar queries with stop words. */
+      bool _remote_post; /**< allow/disallow remote posting of results. */
+      bool _use_http_urls; /**< whether to use HTTP URLs filtering, with domain names weight. */
+
+      std::string _estimator; /**< estimator model to be used. */
 
       static cf_configuration *_config;
   };

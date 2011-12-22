@@ -87,9 +87,9 @@ namespace seeks_plugins
                                query_context *qc = NULL,
                                const bool &wait_external_sources=true) throw (sp_exception) {};
 
-      // DEPRECATED
       virtual void estimate_ranks(const std::string &query,
                                   const std::string &lang,
+                                  const int &radius,
                                   std::vector<search_snippet*> &snippets,
                                   const std::string &host="",
                                   const int &port=-1,
@@ -154,6 +154,9 @@ namespace seeks_plugins
                                     const int &radius,
                                     hash_map<const char*,query_data*,hash<const char*>,eqstr> &qdata,
                                     hash_map<const char*,std::vector<query_data*>,hash<const char*>,eqstr> &inv_qdata);
+
+      static rank_estimator* create(const std::string &type,
+                                    const bool &swf=false);
 
       static cr_store _store;
 

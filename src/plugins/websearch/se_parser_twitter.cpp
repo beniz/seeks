@@ -27,7 +27,8 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   se_parser_twitter::se_parser_twitter(const std::string &url)
-    :se_parser(url),_in_entry(false),_in_title(false),_in_published(false),_in_uri(false)
+    :se_parser(url),_in_entry(false),_in_title(false),_in_published(false),_in_uri(false),
+     _sn(NULL)
   {
   }
 
@@ -46,11 +47,11 @@ namespace seeks_plugins
         _in_entry = true;
 
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count + 1);
+        _sn = new seeks_snippet(_count + 1);
         _count++;
-        sp->_engine = feeds("twitter",_url);
-        sp->_doc_type = TWEET;
-        pc->_current_snippet = sp;
+        _sn->_engine = feeds("twitter",_url);
+        _sn->_doc_type = seeks_doc_type::TWEET;
+        pc->_current_snippet = _sn;
       }
     else if (_in_entry && strcasecmp(tag, "title") == 0)
       {
@@ -61,7 +62,7 @@ namespace seeks_plugins
         const char *a_link = se_parser::get_attribute((const char**)attributes, "href");
         if (pc->_current_snippet->_url.empty())
           pc->_current_snippet->set_url(a_link);
-        else pc->_current_snippet->_cached = a_link;
+        else _sn->_cached = a_link;
       }
     else if (_in_entry && strcasecmp(tag, "published") == 0)
       {
@@ -147,13 +148,13 @@ namespace seeks_plugins
     else if (_in_entry && _in_published && strcasecmp(tag, "published") == 0)
       {
         _in_published = false;
-        pc->_current_snippet->set_date(_published);
+        _sn->set_date(_published);
         _published = "";
       }
     else if (_in_entry && _in_uri && strcasecmp(tag, "uri") ==0)
       {
         _in_uri = false;
-        pc->_current_snippet->_cite = _uri;
+        _sn->_cite = _uri;
         _uri = "";
       }
   }

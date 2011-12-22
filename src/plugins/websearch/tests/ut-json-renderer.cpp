@@ -23,6 +23,7 @@
 #include "json_renderer.h"
 #include "json_renderer_private.h"
 
+#include "seeks_snippet.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 
@@ -70,7 +71,7 @@ TEST(JsonRendererTest, render_snippets)
   // 1 snippet, page 1
   json_str = "";
   snippets.resize(1);
-  search_snippet s1;
+  seeks_snippet s1;
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   snippets[0] = &s1;
@@ -87,11 +88,11 @@ TEST(JsonRendererTest, render_snippets)
 
   // 3 snippets, page 2, 2 results per page, thumbs on
   snippets.resize(3);
-  search_snippet s2;
+  seeks_snippet s2;
   s2._engine = feeds("dummy","URL2");
   s2.set_url("URL2");
   snippets[1] = &s2;
-  search_snippet s3;
+  seeks_snippet s3;
   s3._engine = feeds("dummy","URL3");
   s3.set_url("URL3");
   snippets[2] = &s3;
@@ -114,13 +115,13 @@ TEST(JsonRendererTest, render_snippets)
 
   // 3 snippets, page 1, 2 result per page, second snippet rejected, thumbs on
   current_page = 1;
-  s1._doc_type = REJECTED;
+  s1._doc_type = seeks_doc_type::REJECTED;
   json_str = "";
   EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
   EXPECT_EQ(std::string::npos, json_str.find(s1._url));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
-  s1._doc_type = WEBPAGE;
+  s1._doc_type = seeks_doc_type::WEBPAGE;
 
   // 3 snippets, page 1, 2 result per page, similarity on, thumbs on
   current_page = 1;
@@ -146,7 +147,9 @@ TEST(JsonRendererTest, render_clustered_snippets)
   websearch::_wconfig->_se_enabled.add_feed("dummy","URL3");
   websearch::_wconfig->_se_default.add_feed("dummy","URL3");
   query_context context;
-  cluster clusters[3];
+  hash_map<int,cluster*> clusters;
+  for (int i=0; i<3; i++)
+    clusters.insert(std::pair<int,cluster*>(i,new cluster()));
 
   std::string json_str;
 
@@ -154,37 +157,47 @@ TEST(JsonRendererTest, render_clustered_snippets)
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
-  search_snippet s1;
+  hash_map<int,cluster*>::iterator chit = clusters.begin();
+  seeks_snippet s1;
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
-  clusters[0].add_point(s1._id, NULL);
-  clusters[0]._label = "CLUSTER1";
+  (*chit).second->add_point(s1._id, NULL);
+  (*chit).second->_label = "CLUSTER1";
+  ++chit;
 
-  search_snippet s2;
+  seeks_snippet s2;
   s2._engine = feeds("dummy","URL2");
   s2.set_url("URL2");
   context.add_to_unordered_cache(&s2);
-  clusters[1].add_point(s2._id, NULL);
-  search_snippet s3;
+  (*chit).second->add_point(s2._id, NULL);
+  seeks_snippet s3;
   s3._engine = feeds("dummy","URL3");
   s3.set_url("URL3");
   context.add_to_unordered_cache(&s3);
-  clusters[1].add_point(s3._id, NULL);
-  clusters[1]._label = "CLUSTER2";
+  (*chit).second->add_point(s3._id, NULL);
+  (*chit).second->_label = "CLUSTER2";
+  ++chit;
 
-  clusters[2]._label = "CLUSTER3";
+  (*chit).second->_label = "CLUSTER3";
 
   //parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
 
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, clusters, 3, &context, json_str, &parameters));
-  EXPECT_NE(std::string::npos, json_str.find(clusters[0]._label));
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, &clusters, 3, &context, json_str, &parameters));
+  int k = 0;
+  chit = clusters.begin();
+  while(chit!=clusters.end())
+    {
+      EXPECT_NE(std::string::npos, json_str.find((*chit).second->_label));
+      delete (*chit).second;
+      ++chit;
+      if (++k==2)
+        break;
+    }
+  EXPECT_EQ(std::string::npos, json_str.find((*chit).second->_label));
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
-  EXPECT_NE(std::string::npos, json_str.find(clusters[1]._label));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
-  EXPECT_EQ(std::string::npos, json_str.find(clusters[2]._label));
-
   delete websearch::_wconfig;
 }
 
@@ -204,12 +217,12 @@ TEST(JsonRendererTest, render_json_results)
 
   snippets.resize(2);
 
-  search_snippet s1;
+  seeks_snippet s1;
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   snippets[0] = &s1;
 
-  search_snippet s2;
+  seeks_snippet s2;
   s2._engine = feeds("dummy","URL2");
   s2.set_url("URL2");
   snippets[1] = &s2;
@@ -245,7 +258,9 @@ TEST(JsonRendererTest, render_clustered_json_results)
   websearch::_wconfig->_se_enabled = feeds("dummy","URL1");
   websearch::_wconfig->_se_default = feeds("dummy","URL1");
 
-  cluster clusters[1];
+  hash_map<int,cluster*> clusters;
+  clusters.insert(std::pair<int,cluster*>(0,new cluster()));
+  hash_map<int,cluster*>::iterator chit = clusters.begin();
   http_response* rsp;
   query_context context;
   double qtime = 1234;
@@ -254,25 +269,26 @@ TEST(JsonRendererTest, render_clustered_json_results)
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
-  search_snippet s1;
+  seeks_snippet s1;
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   context.add_to_unordered_cache(&s1);
-  clusters[0].add_point(s1._id, NULL);
-  clusters[0]._label = "CLUSTER1";
+  (*chit).second->add_point(s1._id, NULL);
+  (*chit).second->_label = "CLUSTER1";
 
   parameters.insert(std::pair<const char*,const char*>("callback", "JSONP"));
   context._query = "<QUERY>";
 
   rsp = new http_response();
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(clusters, 1, NULL, rsp, &parameters, &context, qtime));
+  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(&clusters, 1, NULL, rsp, &parameters, &context, qtime));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s1._url));
-  EXPECT_NE(std::string::npos, std::string(rsp->_body).find(clusters[0]._label));
+  EXPECT_NE(std::string::npos, std::string(rsp->_body).find((*chit).second->_label));
   //std::cerr << rsp->_body << std::endl;
   delete rsp;
+  delete (*chit).second;
 
   delete websearch::_wconfig;
 }
@@ -405,13 +421,13 @@ TEST(JsonRendererTest, render_recommendations)
   query_context qc;
   qc._query = "seeks project";
   qc._npeers = 1;
-  search_snippet *sp1 = new search_snippet();
+  seeks_snippet *sp1 = new seeks_snippet();
   sp1->set_url(url1);
   sp1->set_title("Seeks Search");
   sp1->set_lang("es");
   sp1->set_radius(1);
   sp1->_engine.add_feed("seeks","s.s");
-  search_snippet *sp2 = new search_snippet();
+  seeks_snippet *sp2 = new seeks_snippet();
   sp2->set_url(url2);
   sp2->set_title("Seeks Project");
   sp2->set_radius(0);

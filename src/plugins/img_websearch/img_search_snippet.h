@@ -20,6 +20,7 @@
 #define IMG_SEARCH_SNIPPET_H
 
 #include "config.h"
+#include "seeks_snippet.h"
 
 #ifdef FEATURE_OPENCV2
 #undef HAVE_CONFIG_H
@@ -28,13 +29,18 @@
 #define HAVE_CONFIG_H
 #endif
 
-#include "search_snippet.h" // from websearch plugin.
 #include "img_websearch_configuration.h"
 
 namespace seeks_plugins
 {
 
-  class img_search_snippet : public search_snippet
+  class seeks_img_doc_type : public seeks_doc_type
+  {
+    public:
+      static const int IMAGE = 19;
+  };
+
+  class img_search_snippet : public seeks_snippet
   {
     public:
       static bool max_seeks_rank(search_snippet *s1, search_snippet *s2)
