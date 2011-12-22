@@ -396,6 +396,10 @@ namespace seeks_plugins
       json_elts.push_back("\"snpeers\":" + miscutil::to_string(_npeers));
     if (_hits > 0)
       json_elts.push_back("\"hits\":" + miscutil::to_string(_hits));
+    if (_content_date != 0)
+      json_elts.push_back("\"content_date\":" + miscutil::to_string(_content_date));
+    if (_record_date != 0)
+      json_elts.push_back("\"record_date\":" + miscutil::to_string(_record_date));
     return miscutil::join_string_list(",",json_elts);
   }
 
