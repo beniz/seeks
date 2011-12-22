@@ -169,7 +169,8 @@ int main(int argc, char **argv)
           || p == "--nclusters" || p == "--sid" || p == "--engines"
           || p == "--rpp" || p == "--page" || p == "--prs"
           || p == "--thumbs" || p == "--nq" || p == "--redirect"
-          || p == "--cpost" || p == "--surl" || p == "--swords")
+          || p == "--cpost" || p == "--surl" || p == "--swords"
+          || p == "--expansion")
         {
           std::string v = argv[++i];
           params.insert(std::pair<std::string,std::string>(p,v));
