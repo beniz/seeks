@@ -7,14 +7,14 @@ endif
 if HAVE_XSLSERIALIZER_PLUGIN
 SUBDIRS+=xsl_serializer
 endif
-SUBDIRS += websearch_api_compat websearch blocker no_tracking
+SUBDIRS += websearch_api_compat websearch blocker no_tracking readable
 if HAVE_IMG_WEBSEARCH_PLUGIN
 SUBDIRS+=img_websearch
 endif
 if HAVE_HTTPSERV_PLUGIN
 SUBDIRS+=httpserv
 endif
-SUBDIRS += websearch/tests
+SUBDIRS += websearch/tests readable/tests
 if HAVE_IMG_WEBSEARCH_PLUGIN
 SUBDIRS += img_websearch/tests
 endif

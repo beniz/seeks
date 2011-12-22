@@ -68,6 +68,8 @@ namespace seeks_plugins
   bool websearch::_cf_plugin_activated = false;
   plugin* websearch::_xs_plugin = NULL;
   bool websearch::_xs_plugin_activated = false;
+  plugin* websearch::_readable_plugin = NULL;
+  bool websearch::_readable_plugin_activated = false;
 
   sp_mutex_t websearch::_context_mutex;
 
@@ -179,6 +181,8 @@ namespace seeks_plugins
     _xs_plugin = plugin_manager::get_plugin("xsl-serializer");
     _xs_plugin_activated = seeks_proxy::_config->is_plugin_activated("xsl-serializer");
 #endif
+    _readable_plugin = plugin_manager::get_plugin("readable");
+    _readable_plugin_activated= seeks_proxy::_config->is_plugin_activated("readable");
   }
 
   void websearch::stop()

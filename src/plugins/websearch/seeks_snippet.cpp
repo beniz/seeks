@@ -551,6 +551,12 @@ namespace seeks_plugins
             break;
           }
         html_content += "</a>";
+        if (websearch::_readable_plugin_activated)
+          {
+            html_content += "<a class=\"search_cache\" href=\""
+                            + base_url_str + "/readable?url="
+                            + url_enc + "\">Readable</a>";
+          }
       }
 
 #if defined(PROTOBUF) && defined(TC)

@@ -310,6 +310,7 @@ activated-plugin cf
 activated-plugin udb-service
 #activated-plugin httpserv
 #activated-plugin xsl-serializer
+activated-plugin readable
 #
 #
 # 2.7. datadir
