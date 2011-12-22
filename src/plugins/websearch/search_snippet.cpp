@@ -300,6 +300,12 @@ namespace seeks_plugins
     if (!_sim_back)
       html_content += "\">Similar</a>";
     else html_content += "\">Back</a>";
+    if (websearch::_readable_plugin_activated)
+      {
+        html_content += "<a class=\"search_cache\" href=\""
+                        + base_url_str + "/readable?url="
+                        + url_enc + "\">Readable</a>";
+      }
 
 #if defined(PROTOBUF) && defined(TC)
     // snippet thumb down rendering
