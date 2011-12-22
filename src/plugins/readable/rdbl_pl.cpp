@@ -19,6 +19,8 @@
 #include "rdbl_pl.h"
 #include "miscutil.h"
 #include "curl_mget.h"
+#include "websearch.h"
+#include "websearch_configuration.h" // for transfer timeouts.
 #include "errlog.h"
 
 #include <iostream>
@@ -79,7 +81,8 @@ namespace seeks_plugins
 
     // fetch page.
     int status = 0;
-    curl_mget cmg(1,3,0,3,0); //TODO: timeout in configuration.
+    curl_mget cmg(1,websearch::_wconfig->_ct_connect_timeout,0,
+                  websearch::_wconfig->_ct_transfer_timeout,0);
     std::string *result = cmg.www_simple(url,status);
     if (status!=0)
       {
