@@ -189,6 +189,8 @@ namespace seeks_plugins
       static bool _cf_plugin_activated;
       static plugin *_xs_plugin; /**< xslt serialization plugin. */
       static bool _xs_plugin_activated;
+      static plugin *_readable_plugin; /**< readability plugin. */
+      static bool _readable_plugin_activated;
 
       /* multithreading. */
     public:
