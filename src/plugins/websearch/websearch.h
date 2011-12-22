@@ -68,6 +68,10 @@ namespace seeks_plugins
     {
     };
 
+    ~ws_thread_arg()
+    {
+    }
+
     pers_arg *_arg;
     bool _done;
   };
