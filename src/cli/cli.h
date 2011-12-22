@@ -172,6 +172,9 @@ namespace seekscli
                              const std::string &query,
                              const std::string &lang,
                              const std::string &nclusters,
+                             const std::string &engines,
+                             const std::string &expansion,
+                             const std::string &peers,
                              std::string *&result);
 
     public:
@@ -180,6 +183,9 @@ namespace seekscli
                                    const int &timeout,
                                    const std::string &query,
                                    const std::string &lang,
+                                   const std::string &engines,
+                                   const std::string &expansion,
+                                   const std::string &peers,
                                    std::string *&result);
 
       static int get_cluster_auto(const std::string &seeks_url,
@@ -188,6 +194,9 @@ namespace seekscli
                                   const std::string &query,
                                   const std::string &lang,
                                   const std::string &nclusters,
+                                  const std::string &engines,
+                                  const std::string &expansion,
+                                  const std::string &peers,
                                   std::string *&result);
 
       static int get_similar_txt_snippet(const std::string &seeks_url,
