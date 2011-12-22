@@ -315,7 +315,7 @@ namespace seeks_plugins
         if (_page_expansion > 0 && horizon <= (int)_page_expansion)
           {
             // reset expansion parameter.
-            query_context::reset_expansion_parameter(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+            //query_context::reset_expansion_parameter(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
             return;
           }
       }
