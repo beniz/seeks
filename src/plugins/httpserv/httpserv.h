@@ -94,6 +94,7 @@ namespace seeks_plugins
       static void suggestion(struct evhttp_request *r, void *arg);
       static void recommendation(struct evhttp_request *r, void *arg);
 #endif
+      static void readable(struct evhttp_request *r, void *arg);
       static void unknown_path(struct evhttp_request *r, void *arg);
 
       /* utils. */

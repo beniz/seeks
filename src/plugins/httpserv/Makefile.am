@@ -6,7 +6,7 @@ httpservplugindatadir = $(datadir)/seeks/plugins/httpserv
 
 AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
             -I${srcdir} -I${srcdir}/../websearch -I${srcdir}/../../utils -I${srcdir}/../../lsh -I${srcdir}/../../proxy \
-	    -I${srcdir}/../../dht -I${srcdir}/../websearch_api_compat
+	    -I${srcdir}/../../dht -I${srcdir}/../websearch_api_compat -I${srcdir}/../readable
 
 
 if HAVE_TC
