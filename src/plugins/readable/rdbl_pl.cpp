@@ -78,12 +78,15 @@ namespace seeks_plugins
                                           const std::string &encoding,
                                           const int &options)
   {
+    static std::string default_ua = "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1";
 
     // fetch page.
     int status = 0;
+    std::list<const char*> headers;
+    miscutil::enlist(&headers,default_ua.c_str()); // XXX: we could use a default user-agent in a dedicated configuration file (e.g. wikipedia requires a user-agent header).
     curl_mget cmg(1,websearch::_wconfig->_ct_connect_timeout,0,
                   websearch::_wconfig->_ct_transfer_timeout,0);
-    std::string *result = cmg.www_simple(url,status);
+    std::string *result = cmg.www_simple(url,&headers,status);
     if (status!=0)
       {
         if (result)
@@ -127,6 +130,7 @@ namespace seeks_plugins
   http_response* rdbl_elt::plugin_response(client_state *csp)
   {
     //TODO.
+    return NULL;
   }
 
   /* auto-registration */
