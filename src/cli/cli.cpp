@@ -41,7 +41,7 @@ namespace seekscli
                       std::string *&result)
   {
     curl_mget cmg(1,timeout,0,timeout,0);
-    result = cmg.www_simple(url,status,http_method,NULL,-1,"",
+    result = cmg.www_simple(url,NULL,status,http_method,NULL,-1,"",
                             cli::_proxy_addr,cli::_proxy_port);
   }
 

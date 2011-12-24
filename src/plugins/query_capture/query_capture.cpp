@@ -276,7 +276,7 @@ namespace seeks_plugins
           chost += "?lang=" + std::string(lang);
         curl_mget cmg(1,3,0,3,0); // timeout is 3 seconds.
         int status;
-        std::string *output = cmg.www_simple(chost,status,"POST");
+        std::string *output = cmg.www_simple(chost,NULL,status,"POST");
         delete output; // ignore output.
       }
 
