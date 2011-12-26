@@ -144,7 +144,7 @@ namespace sp
         if (status != 0)  // an error occurred.
           {
             arg->_status = status;
-            errlog::log_error(LOG_LEVEL_ERROR, "curl error: %s", errorbuffer);
+            errlog::log_error(LOG_LEVEL_ERROR, "curl error on url %s: %s",arg->_url,errorbuffer);
 
             if (arg->_output)
               {
