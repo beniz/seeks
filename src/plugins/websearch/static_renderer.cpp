@@ -112,13 +112,14 @@ namespace seeks_plugins
         std::string base_url_str = "";
         if (base_url)
           base_url_str = std::string(base_url);
-        std::string suggestion_str = "Related queries:";
-
+        std::string suggestion_str;
         int k = 0;
         std::multimap<double,std::string,std::less<double> >::const_iterator mit
         = qc->_suggestions.begin();
         while(mit!=qc->_suggestions.end())
           {
+            if (k >= websearch::_wconfig->_num_reco_queries)
+              break;
             std::string suggested_q_str = (*mit).second;
             char *sugg_html_enc = encode::html_encode(suggested_q_str.c_str());
             std::string sugg_html_enc_str = std::string(sugg_html_enc);
@@ -137,9 +138,9 @@ namespace seeks_plugins
             suggestion_str += "</a>";
             ++mit;
             ++k;
-            if (k > websearch::_wconfig->_num_reco_queries)
-              break;
           }
+        if (!suggestion_str.empty())
+          suggestion_str = "Related queries:" + suggestion_str;
         miscutil::add_map_entry(exports,"$xxsugg",1,suggestion_str.c_str(),1);
         miscutil::add_map_entry(exports,"$xxrqueries",1,used_rqueries.c_str(),1);
       }
@@ -165,6 +166,8 @@ namespace seeks_plugins
     std::vector<sweepable*>::const_iterator sit = seeks_proxy::_memory_dust.begin();
     while(sit!=seeks_proxy::_memory_dust.end())
       {
+        if (k >= websearch::_wconfig->_num_recent_queries)
+          break;
         query_context *qc = dynamic_cast<query_context*>((*sit));
         if (!qc)
           {
@@ -184,8 +187,6 @@ namespace seeks_plugins
             ++k;
           }
         ++sit;
-        if (k > websearch::_wconfig->_num_reco_queries)
-          break;
       }
     if (!cqueries_str.empty())
       cqueries_str = "Recent queries:" + cqueries_str;
