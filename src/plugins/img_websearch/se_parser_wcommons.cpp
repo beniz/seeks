@@ -85,7 +85,7 @@ namespace seeks_plugins
         const char *a_src = se_parser::get_attribute((const char**)attributes,"src");
         if (a_src)
           {
-            static_cast<img_search_snippet*>(pc->_current_snippet)->_cached = std::string(a_src);
+            static_cast<img_search_snippet*>(pc->_current_snippet)->_cached = "http:" + std::string(a_src);
           }
       }
     else if (_results_flag && strcasecmp(tag,"a") == 0)
