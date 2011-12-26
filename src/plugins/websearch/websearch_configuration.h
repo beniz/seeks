@@ -78,7 +78,7 @@ namespace seeks_plugins
       std::string _result_message; /**< configurable message / warning to appear in a panel next to the results. */
       bool _dyn_ui; /**< user interface default, dynamic or static. */
       std::string _ui_theme; /**< User Interface theme. */
-      short _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
+      int _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
       int _num_recent_queries; /**< Max number of recent queries returned / rendered. */
       bool _cross_query_ri; /**< cross-query result insertion. */
   };
