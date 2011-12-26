@@ -1593,7 +1593,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
         return;
       }
 
-    /* tags API. */
+    /* readable API. */
     csp._http._path = strdup(uri.c_str());
     std::string http_method = httpserv::get_method(r);
     csp._http._gpc = strdup(http_method.c_str());
