@@ -104,28 +104,28 @@ namespace seeks_plugins
       {
         if (s1->_content_date == s2->_content_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_content_date < s2->_content_date;
+        else return s1->_content_date > s2->_content_date;
       };
 
       static bool old_date(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_content_date == s2->_content_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_content_date > s2->_content_date;
+        else return s1->_content_date < s2->_content_date;
       };
 
       static bool new_activity(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_record_date == s2->_record_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_record_date < s2->_record_date;
+        else return s1->_record_date > s2->_record_date;
       };
 
       static bool old_activity(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_record_date == s2->_record_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_record_date > s2->_record_date;
+        else return s1->_record_date < s2->_record_date;
       };
 
       // constructors.
