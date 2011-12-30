@@ -637,6 +637,12 @@ namespace seeks_plugins
 
     // radius.
     _radius = std::min(_radius,s2->_radius);
+
+    // record date.
+    _record_date = std::max(_record_date,s2->_record_date);
+
+    // content date.
+    _content_date = std::max(_content_date,s2->_content_date);
   }
 
   void search_snippet::reset_p2p_data()
