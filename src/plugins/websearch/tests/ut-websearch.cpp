@@ -531,22 +531,22 @@ TEST(SRTest,sort_snippets)
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"new-date",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url2",(*snippets.begin())->_url);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"old-date",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url1",(*snippets.begin())->_url);
+  ASSERT_EQ("url2",(*snippets.begin())->_url);
 
   sp1._record_date = 100000000;
   sp2._record_date = 10000000;
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"new-activity",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url2",(*snippets.begin())->_url);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"old-activity",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url1",(*snippets.begin())->_url);
+  ASSERT_EQ("url2",(*snippets.begin())->_url);
 
   miscutil::free_map(parameters);
 }
