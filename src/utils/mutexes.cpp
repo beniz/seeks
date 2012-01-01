@@ -64,6 +64,17 @@ void mutex_init(sp_mutex_t *mutex)
     }
 }
 
+void mutex_destroy(sp_mutex_t *mutex)
+{
+  int err = pthread_mutex_destroy(mutex);
+  if (err)
+    {
+      printf("Fatal error. Mutex destruction failed: %s.\n",
+             strerror(err));
+      exit(1);
+    }
+}
+
 void cond_init(sp_cond_t *cond)
 {
   int err = pthread_cond_init(cond,0);
