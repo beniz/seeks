@@ -675,12 +675,12 @@ namespace seeks_plugins
         // reset p2p data if needed.
         websearch::reset_p2p_data(parameters,qc);
 
-        mutex_unlock(&qc->_qc_mutex);
         if (qc->empty())
           {
             sweeper::unregister_sweepable(qc);
             delete qc;
           }
+        mutex_unlock(&qc->_qc_mutex);
 
         return err;
       }
@@ -804,12 +804,12 @@ namespace seeks_plugins
     // reset p2p data if needed.
     websearch::reset_p2p_data(parameters,qc);
 
-    mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
       {
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
+    mutex_unlock(&qc->_qc_mutex);
 
     return err;
   }
@@ -1377,12 +1377,12 @@ namespace seeks_plugins
       }
 
     // unlock or destroy the query context.
-    mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
       {
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
+    mutex_unlock(&qc->_qc_mutex);
 
     return err;
   }

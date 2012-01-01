@@ -495,9 +495,8 @@ namespace seeks_plugins
       }
     if (!check_success && !has_qc)
       {
-        mutex_unlock(&qc->_qc_mutex);
         sweeper::unregister_sweepable(qc);
-        delete qc;
+        delete qc; // unlocks qc
         if (check_title == "404")
           return cgisimple::cgi_error_404(csp,rsp,parameters); // 404. TODO: JSON + message ?
         else return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
@@ -535,12 +534,12 @@ namespace seeks_plugins
       }
 
     // remove query_context as needed (so to not 'flood' the node).
-    mutex_unlock(&qc->_qc_mutex);
     if (!has_qc)
       {
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
+    mutex_unlock(&qc->_qc_mutex);
     return err;
   }
 

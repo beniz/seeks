@@ -150,6 +150,8 @@ namespace seeks_plugins
 
     if (_lfilter)
       delete _lfilter;
+
+    mutex_destroy(&_qc_mutex); // locked in sweep_me() or before destruction.
   }
 
   std::string query_context::sort_query(const std::string &query)
@@ -193,6 +195,10 @@ namespace seeks_plugins
 
   bool query_context::sweep_me()
   {
+    // try to get a lock on the context, if not, just don't sweep now.
+    if (mutex_trylock(&_qc_mutex)!=0)
+      return false;
+
     // check last_time_of_use + delay against current time.
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
@@ -205,7 +211,11 @@ namespace seeks_plugins
 
     if (dt >= websearch::_wconfig->_query_context_delay)
       return true;
-    else return false;
+    else
+      {
+        mutex_unlock(&_qc_mutex);
+        return false;
+      }
   }
 
   void query_context::update_last_time()
