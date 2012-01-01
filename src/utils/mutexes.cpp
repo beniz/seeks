@@ -38,6 +38,10 @@ void mutex_lock(sp_mutex_t *mutex)
       exit(1);
     }
 }
+int mutex_trylock(sp_mutex_t *mutex)
+{
+  return pthread_mutex_trylock(mutex);
+}
 
 void mutex_unlock(sp_mutex_t *mutex)
 {
