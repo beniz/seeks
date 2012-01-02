@@ -1280,29 +1280,29 @@ namespace seeks_plugins
 #endif
             return err;
           }
+      }
 
 #if defined(PROTOBUF) && defined(TC)
-        // query_capture if plugin is available and activated.
-        if (websearch::_qc_plugin && websearch::_qc_plugin_activated)
+    // query_capture if plugin is available and activated.
+    if (websearch::_qc_plugin && websearch::_qc_plugin_activated)
+      {
+        std::string http_method = csp->_http._gpc;
+        miscutil::to_lower(http_method);
+        const char *output = miscutil::lookup(parameters,"output");
+        if (http_method == "put"
+            || !output || strcmpic(output,"html")==0) // when returning the static UI, we enforced storing queries because the GET / PUT control is not available.
           {
-            std::string http_method = csp->_http._gpc;
-            miscutil::to_lower(http_method);
-            const char *output = miscutil::lookup(parameters,"output");
-            if (http_method == "put"
-                || !output || strcmpic(output,"html")==0) // when returning the static UI, we enforced storing queries because the GET / PUT control is not available.
+            try
               {
-                try
-                  {
-                    static_cast<query_capture*>(websearch::_qc_plugin)->store_queries(qc->_lc_query);
-                  }
-                catch (sp_exception &e)
-                  {
-                    errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
-                  }
+                static_cast<query_capture*>(websearch::_qc_plugin)->store_queries(qc->_lc_query);
+              }
+            catch (sp_exception &e)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR,e.to_string().c_str());
               }
           }
-#endif
       }
+#endif
 
 #if defined(PROTOBUF) && defined(TC)
     // signal personalization thread that we're done with external data sources.
