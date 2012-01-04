@@ -82,13 +82,17 @@ namespace sp
                                    seeks_proxy::_config->_user_db_hport);
         else _hdb = new db_obj_remote(haddr.c_str(),hport,hpath);
       }
-    if (bnum != -1 || large)
+
+    if (local)
       {
-        if (!large)
-          static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTDEFLATE);
-        else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE | HDBTDEFLATE);
+        if (bnum != -1 || large)
+          {
+            if (!large)
+              static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTDEFLATE);
+            else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE | HDBTDEFLATE);
+          }
+        else static_cast<db_obj_local*>(_hdb)->dbtune(-1,-1,-1,HDBTDEFLATE);
       }
-    else static_cast<db_obj_local*>(_hdb)->dbtune(0,bnum,-1,HDBTDEFLATE);
 
     // db location.
     if (local && seeks_proxy::_config->_user_db_file.empty())
