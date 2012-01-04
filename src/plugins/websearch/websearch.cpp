@@ -1408,9 +1408,9 @@ namespace seeks_plugins
       }
     uint32_t sid = (uint32_t)strtod(id,NULL);
     search_snippet *sp = qc->get_cached_snippet(sid);
-    websearch::reset_p2p_data(parameters,qc);
     if (!sp)
       {
+        websearch::reset_p2p_data(parameters,qc);
         mutex_unlock(&qc->_qc_mutex);
         return SP_ERR_NOT_FOUND;
       }
@@ -1427,6 +1427,7 @@ namespace seeks_plugins
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
 #endif
+    websearch::reset_p2p_data(parameters,qc);
     mutex_unlock(&qc->_qc_mutex);
     return err;
   }
