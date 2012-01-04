@@ -140,7 +140,7 @@ TEST(UserdbTest, all_fct)
   unlink(dbfile.c_str());
   delete db;
 
-  delete seeks_proxy::_config;
+  //delete seeks_proxy::_config;
 }
 
 int main(int argc, char **argv)
