@@ -74,7 +74,6 @@ namespace sp
       {
         _hdb = new db_obj_local();
         _hdb->dbsetmutex();
-        static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
       }
     else
       {
@@ -83,13 +82,13 @@ namespace sp
                                    seeks_proxy::_config->_user_db_hport);
         else _hdb = new db_obj_remote(haddr.c_str(),hport,hpath);
       }
-    //_hdb->dbsetmutex();
     if (bnum != -1 || large)
       {
         if (!large)
-          static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,0);
-        else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE);
+          static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTDEFLATE);
+        else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE | HDBTDEFLATE);
       }
+    else static_cast<db_obj_local*>(_hdb)->dbtune(0,bnum,-1,HDBTDEFLATE);
 
     // db location.
     if (local && seeks_proxy::_config->_user_db_file.empty())
@@ -242,11 +241,18 @@ namespace sp
   db_err user_db::optimize_db()
   {
     db_obj_local *ldb = dynamic_cast<db_obj_local*>(_hdb);
-    if (ldb && !ldb->dboptimize(0,-1,-1,HDBTDEFLATE))
+    if (ldb)
       {
-        int ecode = _hdb->dbecode();
-        errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",_hdb->dberrmsg(ecode));
-        return DB_ERR_OPTIMIZE;
+        bool berr = false;
+        if (!seeks_proxy::_config->_user_db_large)
+          berr = ldb->dboptimize(seeks_proxy::_config->_user_db_bnum,-1,-1,HDBTDEFLATE);
+        else berr = ldb->dboptimize(seeks_proxy::_config->_user_db_bnum,-1,-1,HDBTDEFLATE | HDBTLARGE);
+        if (!berr)
+          {
+            int ecode = _hdb->dbecode();
+            errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",_hdb->dberrmsg(ecode));
+            return DB_ERR_OPTIMIZE;
+          }
       }
     else
       {
