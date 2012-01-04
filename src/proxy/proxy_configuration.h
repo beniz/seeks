@@ -175,6 +175,9 @@ namespace sp
       /* user db flag for db > 2Gb. */
       bool _user_db_large;
 
+      /* user db initial number of buckets. */
+      int64_t _user_db_bnum;
+
       /* pointer to source code. */
       std::string _url_source_code;
   };

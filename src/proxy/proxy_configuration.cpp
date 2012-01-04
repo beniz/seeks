@@ -97,6 +97,7 @@ namespace sp
 #define hash_user_db_check                 4124671137ul /* "user-db-startup-check" */
 #define hash_user_db_optimize              2686859753ul /* "user-db-optimize" */
 #define hash_user_db_large                 3056519964ul /* "user-db-large" */
+#define hash_user_db_bnum                    27035057ul /* "user-db-bnum" */
 #define hash_url_source_code               1714992061ul /* "url-source-code" */
 
   proxy_configuration::proxy_configuration(const std::string &filename)
@@ -118,7 +119,8 @@ namespace sp
      _user_db_haddr(NULL),
      _user_db_startup_check(true),
      _user_db_optimize(true),
-     _user_db_large(false)
+     _user_db_large(false),
+     _user_db_bnum(-1)
   {
     load_config();
   }
@@ -180,6 +182,7 @@ namespace sp
     _user_db_startup_check = true;
     _user_db_optimize = true;
     _user_db_large = false;
+    _user_db_bnum = -1;
     _url_source_code = "http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree";
   }
 
@@ -874,8 +877,8 @@ namespace sp
         break;
 
         /*************************************************************************
-               * user-db-startup-ckeck 0 or 1
-               *************************************************************************/
+        * user-db-startup-ckeck 0 or 1
+        *************************************************************************/
       case hash_user_db_check:
         _user_db_startup_check = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
@@ -892,12 +895,21 @@ namespace sp
         break;
 
         /*************************************************************************
-               * user-db-large 0 or 1
-               *************************************************************************/
+        * user-db-large 0 or 1
+        *************************************************************************/
       case hash_user_db_large:
         _user_db_large = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to activate the support for user db > 2Gb");
+        break;
+
+        /*************************************************************************
+         * user-db-bnum Number of initial buckets in database
+         *************************************************************************/
+      case hash_user_db_bnum:
+        _user_db_bnum = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Number of initial buckets in database (-1 for automatic)");
         break;
 
         /*************************************************************************

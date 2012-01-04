@@ -462,7 +462,24 @@ activated-plugin readable
 #
 # user-db-large 0
 #
-#  2.14. url-source-code
+#  2.14. user-db-bnum
+#  ====================
+#
+# Specifies:
+#
+#    Number of initial buckets in Seeks database.
+#
+# Type of value:
+#
+#  int64
+#
+# Default value: 
+#
+#    -1 (automatic)
+#
+# user-db-bnum -1
+#
+#  2.15. url-source-code
 #  ======================
 #
 # Specifies:
