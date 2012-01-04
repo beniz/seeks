@@ -216,7 +216,6 @@ namespace seeks_plugins
       std::string _title;
       std::string _url;
       std::string _summary;
-      std::string _summary_noenc;
       std::string _lang;
       int _doc_type;
       bool _sim_back; // whether the back 'button' to similarity is present.

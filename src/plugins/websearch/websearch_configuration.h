@@ -81,6 +81,7 @@ namespace seeks_plugins
       int _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
       int _num_recent_queries; /**< Max number of recent queries returned / rendered. */
       bool _cross_query_ri; /**< cross-query result insertion. */
+      uint32_t _max_summary_length; /**< maximum result summary length. */
   };
 
 } /* end of namespace. */

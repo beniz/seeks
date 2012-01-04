@@ -138,3 +138,7 @@ num-recent-queries 20
 # remains exactly that returned by the underlying feeds.
 # default: 1
 cross-query-result-insertion 1
+
+# Maximum result snippet summary length.
+# default 240
+max-summary-length 240

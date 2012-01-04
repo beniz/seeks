@@ -74,7 +74,7 @@ namespace seeks_plugins
 
   search_snippet::search_snippet(const search_snippet *s)
     :_qc(s->_qc),_new(s->_new),_id(s->_id),_title(s->_title),_url(s->_url),
-     _summary(s->_summary),_summary_noenc(s->_summary_noenc),_lang(s->_lang),_doc_type(s->_doc_type),
+     _summary(s->_summary),_lang(s->_lang),_doc_type(s->_doc_type),
      _sim_back(s->_sim_back),_rank(s->_rank),_meta_rank(s->_meta_rank),
      _seeks_rank(s->_seeks_rank),
      _content_date(s->_content_date),_record_date(s->_record_date),
@@ -255,7 +255,7 @@ namespace seeks_plugins
     if (!_summary.empty())
       {
         html_content += "<div>";
-        std::string summary = _summary;
+        std::string summary = _summary; //TODO: encode
         search_snippet::highlight_query(words,summary);
         if (websearch::_wconfig->_extended_highlight)
           static_renderer::highlight_discr(this,summary,base_url_str,words);
@@ -508,28 +508,19 @@ namespace seeks_plugins
 
   void search_snippet::set_summary(const std::string &summary)
   {
-    static size_t summary_max_size = 240; // characters.
-    _summary_noenc = summary;
+    _summary = summary;
 
-    // clear escaped characters for unencoded output.
-    miscutil::replace_in_string(_summary_noenc,"\\","");
-
-    // encode html so tags are not interpreted.
-    char* str = encode::html_encode(summary.c_str());
-    if (strlen(str)<summary_max_size)
-      _summary = std::string(str);
-    else
+    if (_summary.length() > websearch::_wconfig->_max_summary_length)
       {
-        try
+        // indiscriminate shortening can break UTF-8 characters.
+        // instead, find the last space - 3 characters (for ...)
+        // before the max length limit is reached.
+        size_t pos = _summary.length();
+        while ((pos = _summary.rfind(" "))+3 > websearch::_wconfig->_max_summary_length)
           {
-            _summary = std::string(str).substr(0,summary_max_size-3) + "...";
           }
-        catch (std::exception &e)
-          {
-            _summary = "";
-          }
+        _summary = _summary.substr(0,pos) + "...";
       }
-    free(str);
   }
 
   void search_snippet::set_lang(const std::string &lang)

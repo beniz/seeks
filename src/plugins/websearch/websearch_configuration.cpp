@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -51,6 +51,7 @@ namespace seeks_plugins
 #define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
 #define hash_num_recent_queries     2898954524ul /* num-recent-queries */
 #define hash_cross_query_ri          459677116ul /* cross-query-result-insertion */
+#define hash_max_summary_length     2567659258ul /* max-summary-length */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
     :configuration_spec(filename),_default_engines(false)
@@ -88,6 +89,7 @@ namespace seeks_plugins
     _num_reco_queries = 20;
     _num_recent_queries = 20;
     _cross_query_ri = true;
+    _max_summary_length = 240;
   }
 
   void websearch_configuration::set_default_engines()
@@ -311,6 +313,12 @@ namespace seeks_plugins
         _cross_query_ri = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to inject results from one query into results of another");
+        break;
+
+      case hash_max_summary_length:
+        _max_summary_length = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Maximum result snippet summary length");
         break;
 
       default:
