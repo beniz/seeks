@@ -62,7 +62,7 @@ namespace seeks_plugins
       std::string _path;
       enum PEER_STATUS _status;
       sp_mutex_t _st_mutex; // mutex around status variable.
-      short _retries;
+      int _retries;
       std::string _rsc; // "tt", "sn" or "bsn", that is tokyo tyrant, seeks node, or 'batch' seeks node.
       std::string _key;
   };
