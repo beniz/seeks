@@ -66,7 +66,12 @@ namespace seeks_plugins
     urls.reserve(1);
     urls.push_back(url);
     std::vector<int> status;
-    cmg.www_mget(urls,1,NULL,"",0,status); // not going through a proxy. TODO: support for external proxy.
+    if (udb_service_configuration::_config->_p2p_proxy_addr.empty())
+      cmg.www_mget(urls,1,NULL,"",0,status); // not going through a proxy.
+    else cmg.www_mget(urls,1,NULL,
+                        udb_service_configuration::_config->_p2p_proxy_addr,
+                        udb_service_configuration::_config->_p2p_proxy_port,
+                        status); // through a proxy.
     if (status[0] != 0)
       {
         // failed connection.
@@ -132,9 +137,14 @@ namespace seeks_plugins
     urls.push_back(url);
     errlog::log_error(LOG_LEVEL_DEBUG,"call: %s",url.c_str());
     std::vector<int> status;
-    cmg.www_mget(urls,1,NULL,"",0,status,
-                 NULL,NULL,"POST",&msg,msg.length()*sizeof(char),
-                 ctype); // not going through a proxy. TODO: support for external proxy.
+    if (udb_service_configuration::_config->_p2p_proxy_addr.empty())
+      cmg.www_mget(urls,1,NULL,"",0,status,
+                   NULL,NULL,"POST",&msg,msg.length()*sizeof(char),
+                   ctype); // not going through a proxy.
+    else cmg.www_mget(urls,1,NULL,
+                        udb_service_configuration::_config->_p2p_proxy_addr,
+                        udb_service_configuration::_config->_p2p_proxy_port,
+                        status,NULL,NULL,"POST",&msg,msg.length()*sizeof(char));
     if (status[0] !=0)
       {
         // failed connection.
