@@ -516,7 +516,7 @@ namespace seeks_plugins
         // instead, find the last space - 3 characters (for ...)
         // before the max length limit is reached.
         size_t pos = _summary.length();
-        while ((pos = _summary.rfind(" "))+3 > websearch::_wconfig->_max_summary_length)
+        while ((pos = _summary.rfind(" ",pos-1))+3 > websearch::_wconfig->_max_summary_length)
           {
           }
         _summary = _summary.substr(0,pos) + "...";
