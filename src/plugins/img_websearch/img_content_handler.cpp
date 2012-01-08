@@ -45,9 +45,12 @@ namespace seeks_plugins
             //std::cerr << "already have a cached image for " << sp->_cached << std::endl;
             continue; // already in cache.
           }
-        urls.push_back(sp->_url);
-        curls.push_back(sp->_cached); // fetch smaller, cached image, usually a thumbnail.
-        snippets.push_back(sp);
+        else if (sp)
+          {
+            urls.push_back(sp->_url);
+            curls.push_back(sp->_cached); // fetch smaller, cached image, usually a thumbnail.
+            snippets.push_back(sp);
+          }
       }
 
     // fetch content.
