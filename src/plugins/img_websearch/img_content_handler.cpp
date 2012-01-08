@@ -39,8 +39,8 @@ namespace seeks_plugins
     snippets.reserve(ns);
     for (size_t i=0; i<ns; i++)
       {
-        img_search_snippet *sp = static_cast<img_search_snippet*>(qc->_cached_snippets.at(i));
-        if (sp->_cached_image)
+        img_search_snippet *sp = dynamic_cast<img_search_snippet*>(qc->_cached_snippets.at(i));
+        if (sp && sp->_cached_image)
           {
             //std::cerr << "already have a cached image for " << sp->_cached << std::endl;
             continue; // already in cache.
@@ -67,10 +67,13 @@ namespace seeks_plugins
             search_snippet *spsp = qc->get_cached_snippet(urls[i]);
             if (!spsp)
               continue; // safe.
-            img_search_snippet *sp = static_cast<img_search_snippet*>(spsp);
-            sp->_cached_image = outputs[i]; // cache fetched content.
-            valid_contents.push_back(sp->_cached_image);
-            sps.push_back(sp);
+            img_search_snippet *sp = dynamic_cast<img_search_snippet*>(spsp);
+            if (sp)
+              {
+                sp->_cached_image = outputs[i]; // cache fetched content.
+                valid_contents.push_back(sp->_cached_image);
+                sps.push_back(sp);
+              }
           }
         else
           {
@@ -94,8 +97,8 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(WB_ERR_NO_REF_SIM,msg);
       }
-    img_search_snippet *ref_isp = static_cast<img_search_snippet*>(ref_sp);
-    if (!ref_isp->_surf_descriptors)
+    img_search_snippet *ref_isp = dynamic_cast<img_search_snippet*>(ref_sp);
+    if (ref_isp && !ref_isp->_surf_descriptors)
       {
         std::string msg = "Failed getting referer image descriptors: cannot compute image similarity";
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
