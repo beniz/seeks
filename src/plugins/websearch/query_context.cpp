@@ -183,7 +183,6 @@ namespace seeks_plugins
 
   void query_context::reset_p2p_data()
   {
-    std::cerr << "reset p2p data\n";
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
@@ -369,12 +368,6 @@ namespace seeks_plugins
   {
     for (int i=page_start; i<page_end; i++) // catches up with requested horizon.
       {
-        // resets expansion parameter.
-        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
-        std::string i_str = miscutil::to_string(i+1);
-        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                "expansion",1,i_str.c_str(),1);
-
         // query SEs.
         int nresults = 0;
         std::string **outputs = NULL;
