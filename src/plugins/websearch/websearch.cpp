@@ -445,14 +445,15 @@ namespace seeks_plugins
             uint32_t sid = (uint32_t)strtod(id_str.c_str(),NULL);
             mutex_lock(&qc->_qc_mutex);
             search_snippet *sp = qc->get_cached_snippet(sid);
-            mutex_unlock(&qc->_qc_mutex);
             if (!sp)
               {
                 websearch::reset_p2p_data(parameters,qc);
+                mutex_unlock(&qc->_qc_mutex);
                 return SP_ERR_NOT_FOUND;
               }
             else miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url",1,sp->_url.c_str(),1);
             websearch::reset_p2p_data(parameters,qc);
+            mutex_unlock(&qc->_qc_mutex);
           }
       }
     if (http_method == "delete")
