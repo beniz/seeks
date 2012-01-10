@@ -235,11 +235,6 @@ namespace seeks_plugins
       };
 
       /**
-       * \brief resets the personalization flags of the snippets to 'false'.
-       */
-      void reset_snippets_personalization_flags();
-
-      /**
        * \brief reset p2p snippet data.
        */
       void reset_p2p_data();

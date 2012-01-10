@@ -183,11 +183,20 @@ namespace seeks_plugins
 
   void query_context::reset_p2p_data()
   {
+    std::cerr << "reset p2p data\n";
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
         search_snippet *sp = (*vit);
         sp->reset_p2p_data();
+        if (sp->_engine.count() == 0)
+          {
+            remove_from_unordered_cache(sp->_id);
+            remove_from_unordered_cache_title(sp);
+            delete sp;
+            vit = _cached_snippets.erase(vit);
+            continue;
+          }
         ++vit;
       }
     _suggestions.clear();
@@ -787,41 +796,6 @@ namespace seeks_plugins
           }
       }
     else engines = feeds(websearch::_wconfig->_se_default);
-  }
-
-  void query_context::reset_snippets_personalization_flags()
-  {
-    std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
-    while (vit!=_cached_snippets.end())
-      {
-        if ((*vit)->_personalized)
-          {
-            // XXX: change of behavior.
-            // may want to remove seeks results when using a user db.
-            (*vit)->_personalized = false;
-            if ((*vit)->_engine.count() == 1
-                && (*vit)->_engine.has_feed("seeks"))
-              {
-                remove_from_unordered_cache((*vit)->_id);
-                remove_from_unordered_cache_title((*vit));
-                delete (*vit);
-                vit = _cached_snippets.erase(vit);
-                continue;
-              }
-            else if ((*vit)->_engine.has_feed("seeks"))
-              (*vit)->_engine.remove_feed("seeks");
-            (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
-
-            //TODO: don't reset in cache.
-            (*vit)->_seeks_rank = 0;
-            //(*vit)->bing_yahoo_us_merge(); //BEWARE.
-            (*vit)->_npeers = 0;
-            (*vit)->_hits = 0;
-          }
-        else (*vit)->_seeks_rank = 0; // reset.
-        ++vit;
-      }
-    _npeers = 0; // reset query context peers.
   }
 
 } /* end of namespace. */
