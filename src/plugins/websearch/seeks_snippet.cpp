@@ -555,7 +555,7 @@ namespace seeks_plugins
           {
             html_content += "<a class=\"search_cache\" href=\""
                             + base_url_str + "/readable?url="
-                            + url_enc + "\">Readable</a>";
+                            + url_enc + "&amp;output=html\">Readable</a>";
           }
       }
 

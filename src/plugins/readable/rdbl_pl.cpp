@@ -60,9 +60,15 @@ namespace seeks_plugins
     if (!url)
       return SP_ERR_CGI_PARAMS;
 
+    // options.
+    int options = READABLE_OPTIONS_DEFAULT; // text only.
+    const char *output = miscutil::lookup(parameters,"output");
+    if (output && strcasecmp(output,"html")==0)
+      options = PLUGIN_OPTIONS_DEFAULT; // html.
+
     // fetch content and make it readable.
     std::string content;
-    sp_err err = rdbl_pl::fetch_url_call_readable(url,content);
+    sp_err err = rdbl_pl::fetch_url_call_readable(url,content,"utf-8",options);
     if (err != SP_ERR_OK)
       return err;
 

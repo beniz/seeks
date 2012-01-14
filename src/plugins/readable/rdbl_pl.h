@@ -45,7 +45,7 @@ namespace seeks_plugins
       static sp_err fetch_url_call_readable(const std::string &url,
                                             std::string &content,
                                             const std::string &encoding="utf-8",
-                                            const int &options=READABLE_OPTIONS_DEFAULT);
+                                            const int &options=PLUGIN_OPTIONS_DEFAULT);
 
       /**
        * \brief main extraction function.
@@ -61,11 +61,14 @@ namespace seeks_plugins
        *   READABLE_OPTION_LOOK_HARDER_FOR_IMAGES = 1 << 5,
        *   READABLE_OPTION_TRY_MULTIMEDIA_ARTICLE = 1 << 6,
        *   READABLE_OPTION_WRAP_CONTENT = 1 << 7,
+           READABLE_OPTION_TEXT_OUTPUT = 1 << 8,
        *   READABLE_OPTIONS_DEFAULT = (0xFFFF & ~(READABLE_OPTION_REMOVE_IMAGES | READABLE_OPTION_WRAP_CONTENT))
+       *   PLUGIN_OPTIONS_DEFAULT  (0xFFFF & ~(READABLE_OPTION_REMOVE_IMAGES | READABLE_OPTION_TEXT_OUTPUT))
        */
+
       static std::string call_readable(const std::string &html, const std::string &url,
                                        const std::string &encoding="utf-8",
-                                       const int &options=READABLE_OPTIONS_DEFAULT) throw (sp_exception);
+                                       const int &options=PLUGIN_OPTIONS_DEFAULT) throw (sp_exception);
   };
 
   class rdbl_elt : public interceptor_plugin

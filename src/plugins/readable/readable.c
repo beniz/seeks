@@ -1403,8 +1403,10 @@ readable(const char *html, const char *url, const char *encoding, int options)
                         }
                     }
                 }
-                /* Create the final HTML */
-                if (options & READABLE_OPTION_WRAP_CONTENT) {
+                /* Create the final output, text or HTML */
+		if (options & READABLE_OPTION_TEXT_OUTPUT) {
+                    retval = node_inner_text(readable_node);
+                } else if (options & READABLE_OPTION_WRAP_CONTENT) {
                     retval = node_html(doc, readable_node);
                 } else {
                     retval = node_inner_html(doc, readable_node);
