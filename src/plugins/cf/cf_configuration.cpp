@@ -17,12 +17,14 @@
  */
 
 #include "cf_configuration.h"
+#include "sweeper.h"
 #include "miscutil.h"
 #include "urlmatch.h"
 #include "errlog.h"
 
 #include <iostream>
 
+using sp::sweeper;
 using sp::miscutil;
 using sp::urlmatch;
 using sp::errlog;
@@ -62,6 +64,17 @@ namespace seeks_plugins
     dead_peer::_pl = NULL;
     dead_peer::_dpl = NULL;
     delete _pl;
+
+    // dead peers need to be unregistered from sweeper first.
+    hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit
+    = _dpl->_peers.begin();
+    while(hit!=_dpl->_peers.end())
+      {
+        dead_peer *dp = dynamic_cast<dead_peer*>((*hit).second);
+        if (dp)
+          sweeper::unregister_sweepable(dp);
+        ++hit;
+      }
     delete _dpl;
   }
 
