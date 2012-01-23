@@ -858,6 +858,8 @@ namespace seeks_plugins
         cumul_halo_weights += simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
         ++hit;
       }
+    if (cumul_halo_weights == 0) // no user data, so we need a reference weight.
+      cumul_halo_weights = simple_re::query_halo_weight(query,query,0,swl);
 
     // reset hits and weights.
     float sum_se_ranks = 0.0;
@@ -908,16 +910,23 @@ namespace seeks_plugins
         if ((iit = inv_qdata->find(surl.c_str())) == inv_qdata->end())  // there's nothing known about this snippet for personnalizing it.
           {
             qpost = base_weight;
-            if (qpost > 0.0)
-              {
-                qpost *= cumul_halo_weights;
-                posteriors[j] = qpost; // boosting over similar queries.
-              }
+            //if (qpost > 0.0)
+            //{
+            //qpost *= cumul_halo_weights;
+            posteriors[j] = qpost; // boosting over similar queries.
+            //}
           }
         else // this snippet is known.
           {
-            float effect_weights = 0.0;
+            /**
+             * below, we're boosting score over similar queries,
+             * and combining everything with a distance-weighted mean filter.
+             * This means that the overall score for a snippet is that of the
+             * distance-weighted mean over similar queries.
+             */
+            float sumwq = 0.0;
             std::vector<query_data*> vqd = (*iit).second;
+            float vsize = static_cast<double>(vqd.size()) + 1.0;
             std::vector<query_data*>::const_iterator qit = vqd.begin();
             while(qit!=vqd.end())
               {
@@ -927,13 +936,26 @@ namespace seeks_plugins
                 if (qpost > 0.0)
                   {
                     float weight = simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
-                    effect_weights += weight;
-                    qpost *= weight;
-                    posteriors[j] += qpost; // boosting over similar queries.
+                    float weightq = 1.0;
+                    std::vector<query_data*>::const_iterator qit2 = vqd.begin();
+                    while(qit2!=vqd.end())
+                      {
+                        query_data *qd2 = (*qit);
+                        if (qd == qd2)
+                          {
+                            ++qit2;
+                            continue;
+                          }
+                        weightq += simple_re::query_halo_weight(qd2->_query,qd->_query,qd->_radius,swl);
+                        ++qit2;
+                      }
+                    sumwq += (vsize-1.0) * weightq;
+                    qpost *= weight * (vsize-1.0) * weightq;
+                    posteriors[j] += qpost ; // distance-weighted boosting over similar queries.
                   }
                 ++qit;
               }
-            posteriors[j] += base_weight * (cumul_halo_weights - effect_weights); // compensation wrt the structure of the query similarity space.
+            posteriors[j] /= sumwq;
           }
 
         // estimate the url prior.
@@ -1456,7 +1478,8 @@ namespace seeks_plugins
   {
     str_chain s1(q1,0,true);
     str_chain s2(q2,0,true);
-    return log(1.0 + std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
+    //return log(1.0 + std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
+    return 1.0 / (log(simple_re::query_distance(s1,s2,swl)+1.0)+1.0);
   }
 
   void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,
