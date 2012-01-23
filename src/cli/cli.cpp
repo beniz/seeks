@@ -138,7 +138,7 @@ namespace seekscli
     if (!order.empty())
       url += "&order=" + order;
     if (!redirect.empty())
-      url += "&redirect=" + redirect;
+      url += "&redirect";
     if (!cpost.empty())
       {
         std::string enc_cpost = cli::url_encode(cpost);

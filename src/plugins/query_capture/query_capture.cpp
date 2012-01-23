@@ -170,15 +170,6 @@ namespace seeks_plugins
 
         char *urlp = NULL;
         sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
-        /*if (err == SP_ERR_CGI_PARAMS)
-          {
-            const char *output_str = miscutil::lookup(parameters,"output");
-            if (output_str && strcmp(output_str,"json")==0)
-              return cgi::cgi_error_bad_param(csp,rsp,"json");
-            else return cgi::cgi_error_bad_param(csp,rsp,"html");
-          }
-        else if (err == SP_ERR_PARSE)
-        return cgi::cgi_error_disabled(csp,rsp);*/ // wrong use of the resource.
         if (err != SP_ERR_OK)
           {
             pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
@@ -186,10 +177,13 @@ namespace seeks_plugins
           }
 
         // redirect to requested url.
-        urlp = encode::url_decode_but_not_plus(urlp);
-
-        cgi::cgi_redirect(rsp,urlp);
-        free(urlp);
+        const char * redirect = miscutil::lookup(parameters,"redirect");
+        if (redirect)
+          {
+            urlp = encode::url_decode_but_not_plus(urlp);
+            cgi::cgi_redirect(rsp,urlp);
+            free(urlp);
+          }
         pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
         return SP_ERR_OK;
       }
