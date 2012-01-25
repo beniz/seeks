@@ -446,7 +446,7 @@ namespace seeks_plugins
                         + "&amp;ui=stat&amp;action=similarity";
             if (engines)
               sim_link += "&amp;engines=" + std::string(engines);
-            set_similarity_link(parameters);
+            set_similarity_link();
             html_content += "<a class=\"search_cache\" href=\"";
           }
         else
@@ -462,7 +462,7 @@ namespace seeks_plugins
                         + "&amp;ui=stat&amp;action=expand";
             if (engines)
               sim_link += "&amp;engines=" + std::string(engines);
-            set_back_similarity_link(parameters);
+            set_back_similarity_link();
             html_content += "<a class=\"search_similarity\" href=\"";
           }
         html_content += base_url_str + sim_link;

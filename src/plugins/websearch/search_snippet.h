@@ -152,10 +152,10 @@ namespace seeks_plugins
       std::string get_stripped_url() const;
 
       // sets a link to a sorting of snippets wrt. to their similarity to this snippet.
-      virtual void set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      virtual void set_similarity_link();
 
       // sets a back link when similarity is engaged.
-      virtual void set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      virtual void set_back_similarity_link();
 
       // whether this snippet's engine(s) is(are) enabled.
       // used in result page rendering.

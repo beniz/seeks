@@ -281,7 +281,7 @@ namespace seeks_plugins
                    + "&amp;ui=stat&amp;action=similarity";
         if (engines)
           sim_link += "&amp;engines=" + std::string(engines);
-        set_similarity_link(parameters);
+        set_similarity_link();
         html_content += "<a class=\"search_cache\" href=\"";
       }
     else
@@ -293,7 +293,7 @@ namespace seeks_plugins
                     + "&amp;ui=stat&amp;action=expand";
         if (engines)
           sim_link += "&amp;engines=" + std::string(engines);
-        set_back_similarity_link(parameters);
+        set_back_similarity_link();
         html_content += "<a class=\"search_similarity\" href=\"";
       }
     html_content += base_url_str + sim_link;
@@ -533,12 +533,12 @@ namespace seeks_plugins
     _radius = radius;
   }
 
-  void search_snippet::set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  void search_snippet::set_similarity_link()
   {
     _sim_back = false;
   }
 
-  void search_snippet::set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  void search_snippet::set_back_similarity_link()
   {
     _sim_back = true;
   }

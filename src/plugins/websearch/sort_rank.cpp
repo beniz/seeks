@@ -257,7 +257,7 @@ namespace seeks_plugins
     if (!ref_sp) // this should not happen, unless someone is forcing an url onto a Seeks node.
       throw sp_exception(WB_ERR_NO_REF_SIM,"cannot find ref id among cached snippets");
 
-    ref_sp->set_back_similarity_link(parameters);
+    ref_sp->set_back_similarity_link();
 
     bool content_analysis = websearch::_wconfig->_content_analysis;
     const char *ca = miscutil::lookup(parameters,"content_analysis");

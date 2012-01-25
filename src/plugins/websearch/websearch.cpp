@@ -896,7 +896,7 @@ namespace seeks_plugins
         ++vit;
       }
 
-    ref_sp->set_similarity_link(parameters); // reset sim_link.
+    ref_sp->set_similarity_link(); // reset sim_link.
     mutex_unlock(&qc->_qc_mutex);
     pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
     return err;
