@@ -675,7 +675,7 @@ namespace seeks_plugins
             sweeper::unregister_sweepable(qc);
             delete qc;
           }
-        mutex_unlock(&qc->_qc_mutex);
+        else mutex_unlock(&qc->_qc_mutex);
 
         return err;
       }
@@ -804,7 +804,7 @@ namespace seeks_plugins
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
-    mutex_unlock(&qc->_qc_mutex);
+    else mutex_unlock(&qc->_qc_mutex);
 
     return err;
   }
@@ -1377,7 +1377,7 @@ namespace seeks_plugins
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
-    mutex_unlock(&qc->_qc_mutex);
+    else mutex_unlock(&qc->_qc_mutex);
 
     return err;
   }
