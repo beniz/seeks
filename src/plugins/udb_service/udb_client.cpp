@@ -129,7 +129,7 @@ namespace seeks_plugins
     std::string url = host;
     if (port != -1)
       url += ":" + miscutil::to_string(port);
-    url += path + "/find_bqc?";
+    url += path + "/find_bqc?output=json";
     curl_mget cmg(1,udb_service_configuration::_config->_call_timeout,0,
                   udb_service_configuration::_config->_call_timeout,0);
     std::vector<std::string> urls;
@@ -155,7 +155,9 @@ namespace seeks_plugins
         delete[] cmg._outputs;
         throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
-    else if (status[0] == 0 && !cmg._outputs[0])
+    else if (status[0] == 0 &&
+             (!cmg._outputs[0]
+              || (cmg._outputs[0] && *cmg._outputs[0]=="{\"error\":\"not found\"}")))
       {
         // no result.
         delete cmg._outputs[0];
