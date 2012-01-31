@@ -1207,7 +1207,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
             err_msg = "Bad Parameter";
             code = 400;
           }
-        else if (serr == DB_ERR_NO_REC || serr == SP_ERR_NOT_FOUND)
+        else if (serr == SP_ERR_NOT_FOUND)
           {
             cgisimple::cgi_error_404(&csp,rsp,parameters);
             err_msg = "Not Found";
