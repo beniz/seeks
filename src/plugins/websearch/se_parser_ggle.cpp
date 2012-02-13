@@ -91,19 +91,19 @@ namespace seeks_plugins
         if (a_link)
           {
             std::string a_link_str = std::string(a_link);
-            size_t p = miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
-            /*if (p != 0)
+            miscutil::replace_in_string(a_link_str,"/url?q=",""); // remove query form
+            size_t p = a_link_str.find("&sa=U");
+            if (p != 0)
               {
-                 size_t pos = a_link_str.find("&");
-                 try
-             {
-                a_link_str = a_link_str.substr(0,pos);
-             }
-                 catch(std::exception &e)
-             {
-                a_link_str = ""; // will lose the snippet.
-             }
-              } */
+                try
+                  {
+                    a_link_str = a_link_str.substr(0,p);
+                  }
+                catch(std::exception &e)
+                  {
+                    a_link_str = ""; // will lose the snippet.
+                  }
+              }
             pc->_current_snippet->set_url(a_link_str);
 
             /* std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id
