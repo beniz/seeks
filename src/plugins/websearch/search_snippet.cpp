@@ -512,7 +512,7 @@ namespace seeks_plugins
   {
     _summary = summary;
 
-    if (_summary.length() > websearch::_wconfig->_max_summary_length)
+    if (websearch::_wconfig && _summary.length() > websearch::_wconfig->_max_summary_length)
       {
         // indiscriminate shortening can break UTF-8 characters.
         // instead, find the last space - 3 characters (for ...)
