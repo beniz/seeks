@@ -107,6 +107,7 @@ nobase_dist_public_DATA=\
 	                  public/yui/3.2.0/transition/transition-min.js \
 	                  public/yui/3.2.0/collection/array-extras-min.js \
 	                  public/yui/3.2.0/querystring/querystring-min.js \
+			  public/robots.txt \
 			  lsh/swl/arabicST.txt \
 			  lsh/swl/bulgarianST.txt \
 			  lsh/swl/czechST.txt \
