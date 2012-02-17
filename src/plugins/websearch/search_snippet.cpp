@@ -255,7 +255,9 @@ namespace seeks_plugins
     if (!_summary.empty())
       {
         html_content += "<div>";
-        std::string summary = _summary; //TODO: encode
+        char *enc_summary = encode::html_encode(_summary.c_str());
+        std::string summary = enc_summary;
+        free(enc_summary);
         search_snippet::highlight_query(words,summary);
         if (websearch::_wconfig->_extended_highlight)
           static_renderer::highlight_discr(this,summary,base_url_str,words);
