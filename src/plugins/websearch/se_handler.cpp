@@ -41,6 +41,7 @@
 #include "se_parser_delicious.h"
 #include "se_parser_wordpress.h"
 #include "se_parser_redmine.h"
+#include "se_parser_bing_api.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -574,6 +575,36 @@ namespace seeks_plugins
     url = q_dl;
   }
 
+  se_bing_api::se_bing_api()
+    : search_engine()
+  {
+  }
+
+  se_bing_api::~se_bing_api()
+  {
+  }
+
+  void se_bing_api::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                std::string &url, const query_context *qc)
+  {
+    std::string q_bing = url;
+
+    // query.
+    miscutil::replace_in_string(q_bing,"%query",qc->_url_enc_query);
+
+    // number of results.
+    int num = websearch::_wconfig->_Nr; // by default.
+    std::string num_str = miscutil::to_string(num);
+    miscutil::replace_in_string(q_bing,"%num",num_str);
+
+    // language.
+    miscutil::replace_in_string(q_bing,"%lang",qc->_auto_lang_reg);
+
+    // log the query.
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying bing api: %s", q_bing.c_str());
+
+    url = q_bing;
+  }
 
   se_ggle se_handler::_ggle = se_ggle();
   se_bing se_handler::_bing = se_bing();
@@ -591,6 +622,7 @@ namespace seeks_plugins
   se_delicious se_handler::_delicious = se_delicious();
   se_wordpress se_handler::_wordpress = se_wordpress();
   se_redmine se_handler::_redmine = se_redmine();
+  se_bing_api se_handler::_bing_api = se_bing_api();
 
   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
   sp_mutex_t se_handler::_curl_mutex;
@@ -774,6 +806,8 @@ namespace seeks_plugins
           _wordpress.query_to_se(parameters,url,qc);
         else if (se._name == "redmine")
           _redmine.query_to_se(parameters,url,qc);
+        else if (se._name == "bing_api")
+          _bing_api.query_to_se(parameters,url,qc);
         else if (se._name == "seeks")
           {}
         else if (se._name == "dummy")
@@ -817,7 +851,6 @@ namespace seeks_plugins
                     args->_snippets = new std::vector<search_snippet*>();
                     args->_offset = count_offset;
                     args->_qr = qr;
-                    //parser_args.push_back(args);
 
                     pthread_t ps_thread;
                     int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
@@ -897,7 +930,8 @@ namespace seeks_plugins
       }
     try
       {
-        if (args._se._name == "youtube" || args._se._name == "dailymotion")
+        if (args._se._name == "youtube" || args._se._name == "dailymotion"
+            || args._se._name == "bing_api")
           se->parse_output_xml(args._output,args._snippets,args._offset);
         else se->parse_output(args._output,args._snippets,args._offset);
         errlog::log_error(LOG_LEVEL_DEBUG,"parser %s: %u snippets",
@@ -970,6 +1004,8 @@ namespace seeks_plugins
       sep = new se_parser_wordpress(se.get_url(i));
     else if (se._name == "redmine")
       sep = new se_parser_redmine(se.get_url(i));
+    else if (se._name == "bing_api")
+      sep = new se_parser_bing_api(se.get_url(i));
     else if (se._name == "seeks")
       {}
     else if (se._name == "dummy")

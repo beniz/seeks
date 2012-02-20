@@ -210,6 +210,15 @@ namespace seeks_plugins
         miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
         html_content += bing_se_icon;
       }
+    if (_engine.has_feed("bing_api"))
+      {
+        std::string bing_se_icon = se_icon;
+        miscutil::replace_in_string(bing_se_icon,"icon","search_engine_bing"); //TODO: remove icon.
+        miscutil::replace_in_string(bing_se_icon,"setitle","Bing");
+        miscutil::replace_in_string(bing_se_icon,"seeng","bing");
+        miscutil::replace_in_string(bing_se_icon,"@query@",_qc->_url_enc_query);
+        html_content += bing_se_icon;
+      }
     if (_engine.has_feed("blekko"))
       {
         std::string blekko_se_icon = se_icon;
