@@ -14,7 +14,7 @@
 # - Each item in the below list of exported symbols will
 #   be replaced by dynamically generated text, if they
 #   are enclosed in '@'-characters. E.g. The string @version@
-#   will be replaced by the version number of Privoxy.
+#   will be replaced by the version number of Seeks.
 #
 # - One special application of this is to make whole blocks
 #   of the HTML template disappear if the condition <name>
@@ -27,29 +27,29 @@
 # --------------------------------
 #
 #  my-ip-addr:
-#    The IP-address that the client used to reach Privoxy
+#    The IP-address that the client used to reach Seeks
 #  my-hostname:
 #    The hostname associated with my-ip-addr
 #  admin-address:
-#    The email address of the Privoxy administrator, as configured
+#    The email address of the Seeks administrator, as configured
 #    in the config file
 #  default-cgi:
-#    The URL for the "main menu" builtin CGI of Privoxy
+#    The URL for the "main menu" builtin CGI of Seeks
 #  menu:
 #    List of <li> elements linking to the other available CGIs
 #  version:
-#    The Privoxy version number
+#    The Seeks version number
 #  code-status:
-#    The Privoxy development status: "alpha", "beta", or "stable".
+#    The Seeks development status: "alpha", "beta", or "stable".
 #  homepage:
 #    The URL of the SourceForge ijbswa project, who maintains this
 #    software.
 #
 #  redirect-url:
-#    The URL to a script that will redirect to the Privoxy
+#    The URL to a script that will redirect to the Seeks
 #    documentation for a given item  
 #  invocation:
-#    The command line with which Privoxy was invoked
+#    The command line with which Seeks was invoked
 #  options:
 #    The options read from the configfile, linked to their
 #    explanations, plus warnings if parsing acl or forward
@@ -58,20 +58,20 @@
 #    A HTML-formatted list of the individual source file cvs versions
 #  defines:
 #    A HTML-formatted list of all conditional #defines used when
-#    Privoxy was compiled
+#    Seeks was compiled
 #
 #  
 # CONDITIONAL SYMBOLS FOR THIS TEMPLATE AND THEIR DEPANDANT SYMBOLS:
 # ------------------------------------------------------------------
 #
 #  unstable:
-#    This is an alpha or beta Privoxy release
+#    This is an alpha or beta Seeks release
 #  have-adminaddr-info:
-#    An e-mail address for the local Privoxy adminstrator has
+#    An e-mail address for the local Seeks adminstrator has
 #    been specified and is available through the "admin-address"
 #    symbol
 #  have-proxy-info:
-#    A URL for Privoxy's online documentation has been
+#    A URL for Seeks's online documentation has been
 #    specified and is available through the "proxy-info-url"
 #    symbol
 #  have-help-info:
@@ -79,7 +79,7 @@
 #    true, have-help-info is true.  Used to conditionally include
 #    a grey box for any and all help info.
 #  statistics:
-#    Privoxy was compiled with statistics support
+#    Seeks was compiled with statistics support
 #  have-stats:
 #    There have been previous requests and statistics have
 #    been collected. In this case, the following symbols
@@ -93,9 +93,9 @@
 #  have-no-stats:
 #    There haven't any statistics been collected yet
 #  pcrs-support:
-#    Privoxy was compiled with pcrs support
+#    Seeks was compiled with pcrs support
 #  trust-support:
-#    Privoxy was compiled with trust support
+#    Seeks was compiled with trust support
 #  actions-filenames:
 #    The path to the actions files.
 #  re-filter-filenames:
@@ -108,7 +108,7 @@
 <html>
 
 <head>
-  <title>Privoxy@@my-hostname@: Proxy Status</title>
+  <title>Seeks@@my-hostname@: Proxy Status</title>
   <meta http-equiv="Content-Style-Type" content="text/css">
   <meta http-equiv="Content-Script-Type" content="text/javascript">
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -158,7 +158,7 @@
 
     <tr>
       <td class="box">
-        <h2>Privoxy was <a href="@user-manual@startup.html#CMDOPTIONS">invoked</a> as follows:</h2>
+        <h2>Seeks was <a href="@user-manual@startup.html#CMDOPTIONS">invoked</a> as follows:</h2>
         <p>@invocation@</p>
       </td>
     </tr>
@@ -185,7 +185,7 @@
             <tr>
               <td><code>FEATURE_ACL</code></td>
               <td>@if-FEATURE_ACL-then@ Yes @else-not-FEATURE_ACL@ No @endif-FEATURE_ACL@</td>
-              <td>Allows the use of an ACL to control access to Privoxy by IP address.</td>
+              <td>Allows the use of an ACL to control access to Seeks by IP address.</td>
             </tr>
             <tr>
               <td><code>FEATURE_CONNECTION_KEEP_ALIVE</code></td>
@@ -203,7 +203,7 @@
              <tr>
               <td><code>FEATURE_GRACEFUL_TERMINATION</code></td>
               <td>@if-FEATURE_GRACEFUL_TERMINATION-then@ Yes @else-not-FEATURE_GRACEFUL_TERMINATION@ No @endif-FEATURE_GRACEFUL_TERMINATION@</td>
-              <td>Allows to shutdown Privoxy through the web interface.</td>
+              <td>Allows to shutdown Seeks through the web interface.</td>
             </tr>
              <tr>
               <td><code>FEATURE_IPV6_SUPPORT</code></td>
@@ -221,7 +221,7 @@
             <tr>
               <td><code>FEATURE_TOGGLE</code></td>
               <td>@if-FEATURE_TOGGLE-then@ Yes @else-not-FEATURE_TOGGLE@ No @endif-FEATURE_TOGGLE@</td>
-              <td>Allow Privoxy to be <q>disabled</q> so it is just a normal non-blocking non-anonymizing proxy.</td>
+              <td>Allow Seeks to be <q>disabled</q> so it is just a normal non-blocking non-anonymizing proxy.</td>
             </tr>
             <tr>
               <td><code>FEATURE_ZLIB</code></td>
