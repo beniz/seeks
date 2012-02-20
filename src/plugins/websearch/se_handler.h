@@ -234,6 +234,16 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc);
   };
 
+  class se_bing_api : public search_engine
+  {
+    public:
+      se_bing_api();
+      ~se_bing_api();
+
+      virtual void query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                               std::string &url, const query_context *qc);
+  };
+
   class se_handler
   {
     public:
@@ -280,6 +290,7 @@ namespace seeks_plugins
       static se_delicious _delicious;
       static se_wordpress _wordpress;
       static se_redmine _redmine;
+      static se_bing_api _bing_api;
 
       static std::vector<CURL*> _curl_handlers;
       static sp_mutex_t _curl_mutex;
