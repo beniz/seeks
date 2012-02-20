@@ -15,6 +15,7 @@ search-results-page 10
 search-engine seeks s.s seeks default
 search-engine google http://www.google.com/search?q=%query&start=%start&num=%num&hl=%lang&ie=%encoding&oe=%encoding google default
 search-engine bing http://www.bing.com/search?q=%query&first=%start&mkt=%lang bing nodefault
+search-engine bing_api http://api.bing.net/xml.aspx?AppId=yourbingkeyhere&Query=%query&Sources=Web&Web.Count=%num&Web.Offset=0&Market=%lang&Web.Options=DisableHostCollapsing+DisableQueryAlterations bing_api nodefault
 search-engine yahoo http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs= yahoo nodefault
 search-engine blekko http://blekko.com/ws/%query/rss?ps=100 blekko nodefault
 search-engine exalead http://www.exalead.com/search/web/results/?q=%query+language=%lang&elements_per_page=%num&start_index=%start exalead nodefault
