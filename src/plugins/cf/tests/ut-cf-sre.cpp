@@ -243,7 +243,8 @@ TEST_F(SRETest,query_distance)
 
 TEST(SREAPITest,query_halo_weight)
 {
-  float tw1 = log(3.0) / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
+  //float tw1 = log(3.0) / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
+  float tw1 = 1.0 / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
   float w1 = simple_re::query_halo_weight(queries[1],queries[2],1); // seeks project vs. seeks project search.
   ASSERT_EQ(tw1,w1);
   float w2 = simple_re::query_halo_weight(queries[0],queries[2],1); // seeks vs. seeks project search.
