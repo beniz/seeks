@@ -658,7 +658,7 @@ namespace seeks_plugins
     if (_swf)
       {
         mutex_lock(&_est_mutex);
-        seeks_proxy::_lsh_config->get_wordlist(lang);
+        swl = seeks_proxy::_lsh_config->get_wordlist(lang);
         mutex_unlock(&_est_mutex);
       }
 
