@@ -70,7 +70,7 @@ namespace lsh
         infile.getline(word,256);
         if (strlen(word)>0)
           {
-            std::string word_str = std::string(word,strlen(word)-1);
+            std::string word_str = std::string(word,strlen(word));
             if ((hit=_swlist.find(word_str.c_str()))==_swlist.end())
               _swlist.insert(std::pair<const char*,bool>(strdup(word_str.c_str()),true));//strndup(word,strlen(word)-1),true));
           }
