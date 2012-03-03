@@ -27,6 +27,7 @@
 #include "miscutil.h"
 #include "charset_conv.h"
 #include "curl_mget.h"
+#include "encode.h"
 #include "errlog.h"
 
 #include <sys/time.h>
@@ -42,6 +43,7 @@ using sp::db_record;
 using sp::urlmatch;
 using sp::miscutil;
 using sp::charset_conv;
+using sp::encode;
 using sp::errlog;
 
 namespace seeks_plugins
