@@ -476,8 +476,8 @@ namespace seeks_plugins
         qwords.insert("\"" + (*sit) + "\"");
         ++sit;
       }
-    const std::string body = "{\"words\":[" + jsonp(miscutil::join_string_list(",",qwords),
-                             miscutil::lookup(parameters,"callback")) + "]}";
+    const std::string body = jsonp("{\"words\":[" + miscutil::join_string_list(",",qwords) + "]}",
+                                   miscutil::lookup(parameters,"callback"));
     response(rsp,body);
     return SP_ERR_OK;
   }
