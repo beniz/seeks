@@ -212,7 +212,7 @@ namespace seeks_plugins
           }
         else
           {
-            title = miscutil::chomp_cpp(title);
+            title = encode::html_decode(miscutil::chomp_cpp(title));
             miscutil::replace_in_string(title,"\n","");
             miscutil::replace_in_string(title,"\r","");
             std::string titlec = charset_conv::charset_check_and_conversion(title,cheaders);
