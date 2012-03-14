@@ -73,6 +73,7 @@ namespace seeks_plugins
       return err;
 
     // fill up response.
+    miscutil::enlist(&rsp->_headers, "Content-Type: text/html; charset=utf-8");
     rsp->_body = strdup(content.c_str());
     rsp->_content_length = strlen(rsp->_body);
     rsp->_is_static = 1;
