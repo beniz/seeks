@@ -1753,6 +1753,7 @@ reading_done:
                           {
                             csp->_content_length = (size_t)(csp->_iob._eod - csp->_iob._cur);
                           }
+                        else csp->_content_length = strlen(p); // in case content length in undefined.
                         if (SP_ERR_OK != parsers::update_server_headers(csp))
                           {
                             errlog::log_error(LOG_LEVEL_FATAL,
