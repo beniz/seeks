@@ -302,6 +302,7 @@ logfile logfile
 activated-plugin websearch
 activated-plugin websearch-api-compat
 activated-plugin blocker
+activated-plugin adfilter
 #activated-plugin no-tracking
 activated-plugin img_websearch
 activated-plugin uri-capture
