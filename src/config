@@ -716,7 +716,7 @@ debug 8192 # Non-fatal errors
 #        listen-address [::1]:8250
 #
 #
-listen-address  127.0.0.1:8250
+listen-address  *:8250
 #
 #
 #  4.2. toggle
