@@ -23,8 +23,6 @@ class adfilter_element : public filter_plugin
     // Attributes
     adfilter* parent;                                    // Parent (sp::plugin)
     static const std::string _blocked_patterns_filename; // blocked patterns filename = "blocked-patterns"
-    static const std::string _blocked_html;              // <!-- blocked //-->
-    static const std::string _blocked_js;                // // blocked
     // Methods
     static void _filter(std::string *ret, std::string xpath);
 };

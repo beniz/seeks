@@ -13,9 +13,6 @@
 
 // Patterns that's trigger the plug'in
 const std::string adfilter_element::_blocked_patterns_filename = "adfilter/blocked-patterns";
-// Returned strings when a site is blocked
-const std::string adfilter_element::_blocked_html = "<!-- blocked by seeks proxy //-->";
-const std::string adfilter_element::_blocked_js   = "// blocked by seeks proxy";
 
 /*
  * Constructor
@@ -45,23 +42,9 @@ char* adfilter_element::run(client_state *csp, char *str)
 {
   std::string ret = strdup(str);
 
-  if(this->parent->get_parser()->is_blocked(csp->_http._url))
+  if(csp->_content_type & CT_XML)
   {
-    // This URL is blocked
-    if(csp->_content_type & CT_XML)
-    {
-      // That's an XML file
-      ret = strdup(adfilter_element::_blocked_html.c_str());
-    }
-    else if(csp->_content_type & CT_TEXT)
-    {
-      // That's a TEXT file, let's assume it's JS
-      ret = strdup(adfilter_element::_blocked_js.c_str());
-    }
-  }
-  else if(csp->_content_type & CT_XML)
-  {
-    // This URL is not blocked and it's an XML file (or HTML)
+    // It's an XML file (or HTML)
     std::string xpath;
     if(this->parent->get_parser()->get_xpath(std::string(csp->_http._url), xpath, true))
     {
@@ -120,7 +103,6 @@ void adfilter_element::_filter(std::string *ret, std::string xpath)
       }
     }
     
-    // FIXME int size;
     // Dump the XML tree into the char* passed as argument to this function
     htmlDocDumpMemory(xpathCtx->doc, &html, NULL);
     *ret =  std::string((char *)html);

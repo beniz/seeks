@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <list>
+#include <vector>
 
 using namespace sp;
 
@@ -317,7 +317,7 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
  */
 bool adblock_parser::is_blocked(std::string url)
 {
-  std::list<std::string>::iterator it;
+  std::vector<std::string>::iterator it;
   for(it = this->_blockedurls.begin(); it != this->_blockedurls.end(); it++)
   {
     if(url.find((*it)) != std::string::npos) return true;
