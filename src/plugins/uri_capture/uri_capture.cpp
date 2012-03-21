@@ -214,21 +214,11 @@ namespace seeks_plugins
           }
         else
           {
-            title = encode::html_decode(miscutil::chomp_cpp(title));
+            title = miscutil::chomp_cpp(title); // titles are not encoded.
             miscutil::replace_in_string(title,"\n","");
             miscutil::replace_in_string(title,"\r","");
-            std::string titlec = charset_conv::charset_check_and_conversion(title,cheaders);
-            if (titlec.empty())
-              {
-                errlog::log_error(LOG_LEVEL_ERROR,"bad charset encoding for title %s or uri %s",
-                                  title.c_str(),uris.at(i).c_str());
-                titles.push_back("");
-              }
-            else
-              {
-                errlog::log_error(LOG_LEVEL_DEBUG,"fetched title of uri %s\n%s",uris.at(i).c_str(),titlec.c_str());
-                titles.push_back(titlec);
-              }
+            errlog::log_error(LOG_LEVEL_DEBUG,"fetched title of uri %s\n%s",uris.at(i).c_str(),title.c_str());
+            titles.push_back(title);
           }
       }
     if (err == uris.size())
