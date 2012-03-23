@@ -60,7 +60,7 @@ namespace sp
 
       virtual ~filter_plugin();
 
-      virtual char* run(client_state *csp, char *str)
+      virtual char* run(client_state *csp, char *str, size_t size)
       {
         std::cout << "run mother run...\n";
         return (char*) "";
