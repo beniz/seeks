@@ -12,7 +12,7 @@ TESTS = $(check_PROGRAMS)
 
 noinst_PROGRAMS=test_ggle_parser test_bing_parser test_bing_parser_api test_yahoo_parser test_exalead_parser \
 	        test_html_txt_parser test_twitter_parser test_youtube_parser test_dailymotion_parser \
-		test_yauba_parser test_blekko_parser test_osearch_parser test_doku_parser \
+		test_yauba_parser test_blekko_parser test_osearch_parser test_doku_parser test_dotclear_parser \
 		test_mediawiki_parser test_delicious_parser test_wordpress_parser test_redmine_parser
 
 test_ggle_parser_SOURCES=test-ggle-parser.cpp
@@ -28,6 +28,7 @@ test_exalead_parser_SOURCES=test-exalead-parser.cpp
 test_delicious_parser_SOURCES=test-delicious-parser.cpp
 test_osearch_parser_SOURCES=test-osearch-parser.cpp
 test_doku_parser_SOURCES=test-doku-parser.cpp
+test_dotclear_parser_SOURCES=test-dotclear-parser.cpp
 test_mediawiki_parser_SOURCES=test-mediawiki-parser.cpp
 test_wordpress_parser_SOURCES=test-wordpress-parser.cpp
 test_redmine_parser_SOURCES=test-redmine-parser.cpp
