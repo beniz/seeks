@@ -137,12 +137,17 @@ namespace sp
    *      Parser are under sp::protobuf_format namespace and depend on protobuf
    *      To build a other export format duplicate json file and mod key, value decoration
    */
-  std::ostream& db_record::json_export_record(const std::string &msg, std::ostream &output) const
+  std::ostream& db_record::json_export_record(const std::string &msg, std::ostream &output,
+					      const bool &single_line_mode,
+					      const bool &utf8_string_escape) const
   {
     sp::db::record r;
     r.ParseFromString(msg);
     google::protobuf::io::ZeroCopyOutputStream* fos = new google::protobuf::io::OstreamOutputStream(&output, 0);
-    sp::protobuf_format::JSONFormat::Print(r, fos);
+    sp::protobuf_format::JSONFormat::Printer p;
+    p.SetSingleLineMode(single_line_mode);
+    p.SetUseUtf8StringEscaping(utf8_string_escape);
+    p.Print(r,fos);
     delete fos;
     return output;
   }
