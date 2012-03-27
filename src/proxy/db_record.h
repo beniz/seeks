@@ -131,7 +131,9 @@ namespace sp
        * export the record.
        */
 
-      virtual std::ostream& json_export_record(const std::string &msg, std::ostream &output) const;
+      virtual std::ostream& json_export_record(const std::string &msg, std::ostream &output,
+					       const bool &single_line_mode=true,
+					       const bool &utf8_string_escape=true) const;
       virtual std::ostream& xml_export_record(const std::string &msg, std::ostream &output) const;
       virtual std::ostream& text_export_record(const std::string &msg, std::ostream &output) const;
 

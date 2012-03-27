@@ -30,6 +30,7 @@ search-engine wordpress http://www.seeks-project.info/site/?s=%query site_seeks 
 search-engine redmine http://redmine.seeks-project.info/search/index/seeks?q=%query&scope=all&all_words=1&issues=1&documents=1&changesets=1&messages=1&submit=Submit redmine_seeks nodefault
 search-engine opensearch_rss http://plone.org/search_rss?SearchableText=%query plosone nodefault
 search-engine opensearch_atom atom_feed_here no_name nodefault
+search-engine dotclear http://dotclear.org/blog/?q=%query dotclear nodefault
 #search-engine dummy http://dummy.du no_name nodefault
 
 # minimum number of seconds search results are kept in

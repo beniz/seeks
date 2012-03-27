@@ -45,6 +45,7 @@ AC_LANG(C++)
 # Checks for libraries.
 AC_SEARCH_LIBS(accept, socket network)
 AC_SEARCH_LIBS(gethostbyname, nsl network)
+LT_LIB_DLLOAD
 
 # Checks for header files.
 AC_HEADER_STDC
