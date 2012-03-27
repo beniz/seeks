@@ -48,35 +48,40 @@ int adblock_parser::parse_file()
       getline(ifs, line);
       // Trim ending characters
       line.erase(line.find_last_not_of(" \n\r\t")+1);
-      if(line.empty()) break;
-      
-      rule_t ret = adblock_parser::_line_to_rule(&x, &url, line);
-      // Block the whole URL
-      if(ret == ADB_RULE_URL_BLOCK)
-      {
-        this->_blockedurls.push_back(url);
-      }
 
-      // Block elements whatever the url
-      else if(ret == ADB_RULE_GENERIC_FILTER)
+      if(!line.empty())
       {
-        this->_genericrule.append((this->_genericrule.empty() ? "" : " | ") + x);
-      }
-
-      // Block elements of a specific url
-      else if(ret == ADB_RULE_URL_FILTER)
-      {
-        std::string r;
-        std::map<std::string, std::string>::iterator it;
-        if((it = this->_filterrules.find(url)) != this->_filterrules.end())
+        // Line is not empty
+        rule_t ret = adblock_parser::_line_to_rule(&x, &url, line);
+  
+        // Block the whole URL
+        if(ret == ADB_RULE_URL_BLOCK)
         {
-          r = (*it).second;
-          this->_filterrules.erase(it);
+          this->_blockedurls.push_back(url);
         }
-        r.append((r.empty() ? "" : " | ") + x);
-        this->_filterrules.insert(std::pair<const std::string, std::string>(url, r));
+  
+        // Block elements whatever the url
+        else if(ret == ADB_RULE_GENERIC_FILTER)
+        {
+          // FIXME empty rules with $domain=
+          if(!x.empty()) this->_genericrule.append((this->_genericrule.empty() ? "" : " | ") + x);
+        }
+  
+        // Block elements of a specific url
+        else if(ret == ADB_RULE_URL_FILTER)
+        {
+          std::string r;
+          std::map<std::string, std::string>::iterator it;
+          if((it = this->_filterrules.find(url)) != this->_filterrules.end())
+          {
+            r = (*it).second;
+            this->_filterrules.erase(it);
+          }
+          r.append((r.empty() ? "" : " | ") + x);
+          if(!x.empty()) this->_filterrules.insert(std::pair<const std::string, std::string>(url, r));
+        }
+        num_read++;
       }
-      num_read++;
     }
   } else {
     errlog::log_error(LOG_LEVEL_ERROR, "ADFilter: can't open adblock file '%s':  %E", this->_listfilename.c_str());
@@ -291,6 +296,7 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
       {
         return ADB_RULE_ERROR;
       }
+      miscutil::chomp_cpp(parts);
       (*xpath) = parts;
     }
     
@@ -339,6 +345,7 @@ bool adblock_parser::get_xpath(std::string url, std::string &xpath, bool withgen
 {
   std::map<const std::string, std::string>::iterator it;
   xpath = "";
+
   for(it = this->_filterrules.begin(); it != this->_filterrules.end(); it++)
   {
     if(url.find((*it).first) != std::string::npos)

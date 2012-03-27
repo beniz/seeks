@@ -1,15 +1,20 @@
 /*
  * FIXME
- * - extra caracters returned on some pages
+ * - Nothing
  * TODO
  * - Periodic download of adblock lists
+ * - Configuration
  */
 
 #include "adblock_parser.h"
-#include "adfilter_element.h"
+#include "adblock_downloader.h"
 #include "adblocker_element.h"
+#include "adfilter_element.h"
+#include "adfilter_configuration.h"
 #include "adfilter.h"
 
+#include "proxy_configuration.h"
+#include "configuration_spec.h"
 #include "miscutil.h"
 #include "encode.h"
 #include "cgi.h"
@@ -28,8 +33,16 @@ namespace seeks_plugins
     _name = "adfilter";
     _version_major = "0";
     _version_minor = "1";
+
     _config_filename = "adfilter-config";
-    _configuration = NULL;
+
+    // Configuration
+    _adconfig = new adfilter_configuration::adfilter_configuration(
+      seeks_proxy::_datadir.empty() ?
+      plugin_manager::_plugin_repository + "adfilter/adfilter-config" :
+      seeks_proxy::_datadir + "/plugins/adfilter-config"
+    );
+    //_configuration = _adconfig;
 
     // Create a new parser and parse the adblock rules
     _adbparser = new adblock_parser(std::string(_name + "/adblock_list"));
@@ -37,13 +50,24 @@ namespace seeks_plugins
 
     // Empty pattern vector for adblocker
     const std::vector<std::string> _empty_pattern;
+    // Always match pattern
+    std::vector<std::string> _always_pattern;
+    std::string pat = "*";
+    for(int i = 0; i < 8; i++)
+    {
+      pat.append(".*");
+      _always_pattern.push_back(pat);
+    }
 
     // Responses per file type generation
     this->populate_responses();
 
+    adblock_downloader *d = new adblock_downloader();
+    d->start_timer();
+
     // Create the plugins
-    _filter_plugin      = new adfilter_element(this);  // Filter plugin
-    _interceptor_plugin = new adblocker_element(_adbparser->_blockedurls, _empty_pattern, this); // Interceptor plugin
+    _filter_plugin      = new adfilter_element(_always_pattern, _adbparser->_blockedurls, this); // Filter plugin, everything but blocked URL
+    _interceptor_plugin = new adblocker_element(_adbparser->_blockedurls, _empty_pattern, this); // Interceptor plugin, blocked URL only
   }
 
   /*
@@ -90,6 +114,7 @@ namespace seeks_plugins
     std::string path = csp->_http._path;
 
     // If the request Content-Type match the key, set the value as body
+    // FIXME Make a better file extension detection
     if(path.find(".js") != std::string::npos)
     {
       // Javascript file
@@ -102,13 +127,13 @@ namespace seeks_plugins
       rsp->_body = strdup((*(this->_responses.find("text/css"))).second.c_str());
       miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/css");
     }
-    else if(path.find(".png") != std::string::npos or
-            path.find(".jpg") != std::string::npos or
+    else if(path.find(".png")  != std::string::npos or
+            path.find(".jpg")  != std::string::npos or
             path.find(".jpeg") != std::string::npos or
-            path.find(".gif") != std::string::npos or
-            path.find(".svg") != std::string::npos or
-            path.find(".bmp") != std::string::npos or
-            path.find(".tif") != std::string::npos)
+            path.find(".gif")  != std::string::npos or
+            path.find(".svg")  != std::string::npos or
+            path.find(".bmp")  != std::string::npos or
+            path.find(".tif")  != std::string::npos)
     {
       // Image
       rsp->_body = strdup((*(this->_responses.find("image/gif"))).second.c_str());

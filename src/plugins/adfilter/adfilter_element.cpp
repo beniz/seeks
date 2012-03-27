@@ -4,6 +4,7 @@
 #include "miscutil.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
+#include "parsers.h"
 
 #include <libxml/HTMLparser.h>
 #include <libxml/HTMLtree.h>
@@ -18,11 +19,8 @@ const std::string adfilter_element::_blocked_patterns_filename = "adfilter/block
  * Constructor
  * ----------------
  */
-adfilter_element::adfilter_element(adfilter *parent)
-  : filter_plugin((seeks_proxy::_datadir.empty() ? std::string(plugin_manager::_plugin_repository
-                   + adfilter_element::_blocked_patterns_filename).c_str()
-                   : std::string(seeks_proxy::_datadir + "/plugins/" + adfilter_element::_blocked_patterns_filename).c_str()),
-                  parent)
+adfilter_element::adfilter_element(const std::vector<std::string> &pos_patterns, const std::vector<std::string> &neg_patterns, adfilter *parent)
+  : filter_plugin(pos_patterns, neg_patterns, parent)
 {
   this->parent = parent;
 }
@@ -38,11 +36,12 @@ adfilter_element::adfilter_element(adfilter *parent)
  * Return value :
  * - char *str         : page parsed
  */
-char* adfilter_element::run(client_state *csp, char *str)
+char* adfilter_element::run(client_state *csp, char *str, size_t size)
 {
-  std::string ret = strdup(str);
+  std::string ret = strndup(str,size);
+  std::string ct = parsers::get_header_value(&csp->_headers, "Content-Type:");
 
-  if(csp->_content_type & CT_XML)
+  if(ct.find("text/html") != std::string::npos or ct.find("text/xml") != std::string::npos)
   {
     // It's an XML file (or HTML)
     std::string xpath;

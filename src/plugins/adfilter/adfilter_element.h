@@ -16,9 +16,9 @@ using namespace seeks_plugins;
 class adfilter_element : public filter_plugin
 {
   public:
-    adfilter_element(adfilter *parent);
+    adfilter_element(const std::vector<std::string> &pos_patterns, const std::vector<std::string> &neg_patterns, adfilter *parent);
     ~adfilter_element() {};
-    char* run(client_state *csp, char *str);
+    char* run(client_state *csp, char *str, size_t size);
   private:
     // Attributes
     adfilter* parent;                                    // Parent (sp::plugin)
