@@ -69,7 +69,7 @@ endif
 endif
 LDADD += -lpcre -lpcreposix -lseekslsh -lseeksdht -lrmd160 @PTHREAD_LDADD@ -lz @CURL_LDADD@
 if !HAVE_BSD
-LDADD += -ldl
+LDADD += @LIBADD_DL@
 endif
 
 SUBDIRS=utils proxy lsh dht plugins proxy/tests lsh/tests . cli
