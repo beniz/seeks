@@ -25,12 +25,12 @@ namespace seeks_plugins
       virtual void stop() {};
       // Accessors/mutators
       adblock_parser* get_parser();
+      adfilter_configuration* get_config();
       // Methods
       void blocked_response(http_response *rsp, client_state *csp); // Set response regarding the csp content-type
     private:
       // Attributes
-      //adfilter_configuration* _adconfig; // Configuration manager
-      configuration_spec* _adconfig; // Configuration manager
+      adfilter_configuration* _adconfig; // Configuration manager
       adblock_parser* _adbparser; // ADBlock rules parser
       std::map<std::string, std::string> _responses; // Responses per content-type
       // Methods

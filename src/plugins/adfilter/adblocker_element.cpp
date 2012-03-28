@@ -16,6 +16,7 @@
 adblocker_element::adblocker_element(const std::vector<std::string> &pos_patterns, const std::vector<std::string> &neg_patterns, adfilter *parent)
   : interceptor_plugin(pos_patterns, neg_patterns, parent)
 {
+  errlog::log_error(LOG_LEVEL_INFO, "adfilter: initializing blocker plugin");
   this->parent = parent;
 }
 

@@ -32,7 +32,7 @@ adblock_parser::adblock_parser(std::string filename)
  * Return value :
  * - Number of parsed rules
  */
-int adblock_parser::parse_file()
+int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = true)
 {
   std::ifstream ifs;
   int num_read = 0;
@@ -40,6 +40,10 @@ int adblock_parser::parse_file()
   ifs.open(this->_listfilename.c_str());
   if (ifs.is_open())
   {
+    // Clear all knowed rules
+    this->_blockedurls.clear();
+    this->_filterrules.clear();
+
     std::string line;
     while (!ifs.eof()) {
       std::string x;
@@ -55,20 +59,20 @@ int adblock_parser::parse_file()
         rule_t ret = adblock_parser::_line_to_rule(&x, &url, line);
   
         // Block the whole URL
-        if(ret == ADB_RULE_URL_BLOCK)
+        if(ret == ADB_RULE_URL_BLOCK and parse_blockers)
         {
           this->_blockedurls.push_back(url);
         }
   
         // Block elements whatever the url
-        else if(ret == ADB_RULE_GENERIC_FILTER)
+        else if(ret == ADB_RULE_GENERIC_FILTER and parse_filters)
         {
           // FIXME empty rules with $domain=
           if(!x.empty()) this->_genericrule.append((this->_genericrule.empty() ? "" : " | ") + x);
         }
   
         // Block elements of a specific url
-        else if(ret == ADB_RULE_URL_FILTER)
+        else if(ret == ADB_RULE_URL_FILTER and parse_filters)
         {
           std::string r;
           std::map<std::string, std::string>::iterator it;

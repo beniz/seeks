@@ -22,6 +22,7 @@ const std::string adfilter_element::_blocked_patterns_filename = "adfilter/block
 adfilter_element::adfilter_element(const std::vector<std::string> &pos_patterns, const std::vector<std::string> &neg_patterns, adfilter *parent)
   : filter_plugin(pos_patterns, neg_patterns, parent)
 {
+  errlog::log_error(LOG_LEVEL_INFO, "adfilter: initializing filter plugin");
   this->parent = parent;
 }
 

@@ -35,6 +35,7 @@
 #include "oskmeans.h"
 #include "mrf.h"
 #include "charset_conv.h"
+#include "mem_utils.h"
 
 #if defined(PROTOBUF) && defined(TC)
 #include "query_capture.h" // dependent plugin.

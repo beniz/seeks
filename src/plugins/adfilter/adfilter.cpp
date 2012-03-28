@@ -37,16 +37,15 @@ namespace seeks_plugins
     _config_filename = "adfilter-config";
 
     // Configuration
-    _adconfig = new adfilter_configuration::adfilter_configuration(
+    _adconfig = new adfilter_configuration(
       seeks_proxy::_datadir.empty() ?
       plugin_manager::_plugin_repository + "adfilter/adfilter-config" :
-      seeks_proxy::_datadir + "/plugins/adfilter-config"
+      seeks_proxy::_datadir + "plugins/adfilter/adfilter-config"
     );
-    //_configuration = _adconfig;
 
     // Create a new parser and parse the adblock rules
     _adbparser = new adblock_parser(std::string(_name + "/adblock_list"));
-    errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d rules parsed successfully", _adbparser->parse_file());
+    errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d rules parsed successfully", _adbparser->parse_file(_adconfig->_use_filter, _adconfig->_use_blocker));
 
     // Empty pattern vector for adblocker
     const std::vector<std::string> _empty_pattern;
@@ -62,12 +61,18 @@ namespace seeks_plugins
     // Responses per file type generation
     this->populate_responses();
 
-    adblock_downloader *d = new adblock_downloader();
+    adblock_downloader *d = new adblock_downloader(this, std::string(_name + "/adblock_list"));
     d->start_timer();
 
     // Create the plugins
-    _filter_plugin      = new adfilter_element(_always_pattern, _adbparser->_blockedurls, this); // Filter plugin, everything but blocked URL
-    _interceptor_plugin = new adblocker_element(_adbparser->_blockedurls, _empty_pattern, this); // Interceptor plugin, blocked URL only
+    if(_adconfig->_use_filter)
+    {
+      _filter_plugin      = new adfilter_element(_always_pattern, _adbparser->_blockedurls, this); // Filter plugin, everything but blocked URL
+    }
+    if(_adconfig->_use_blocker)
+    {
+      _interceptor_plugin = new adblocker_element(_adbparser->_blockedurls, _empty_pattern, this); // Interceptor plugin, blocked URL only
+    }
   }
 
   /*
@@ -75,11 +80,23 @@ namespace seeks_plugins
    * Accessor to the _adbparser attribute
    * --------------------
    * Return value :
-   * - adblock_parser* : ptr to the adbblock_parser object
+   * - adblock_parser* : ptr to the adblock_parser object
    */
   adblock_parser* adfilter::get_parser()
   {
     return this->_adbparser;
+  }
+
+  /*
+   * get_config
+   * Accessor to the _adconfig attribute
+   * --------------------
+   * Return value :
+   * - adfilter_configuration* : ptr to the adfilter_configuration object
+   */
+  adfilter_configuration* adfilter::get_config()
+  {
+    return this->_adconfig;
   }
 
   /*
