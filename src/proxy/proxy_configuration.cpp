@@ -53,6 +53,8 @@ namespace sp
 #define hash_buffer_limit                  3997655021ul /* "buffer-limit */
 #define hash_confdir                       1496854555ul /* "confdir" */
 #define hash_connection_sharing            1951096841ul /* "connection-sharing" */
+#define hash_cors_enabled                  4252885183ul /* "cors-enabled" */
+#define hash_cors_allowed_domains          1992320348ul /* "cors-allowed-domains" */
 #define hash_debug                         3473953184ul /* "debug" */
 #define hash_deny_access                   2517089737ul /* "deny-access" */
 #define hash_enable_remote_toggle          2307317490ul /* "enable-remote-toggle" */
@@ -184,6 +186,9 @@ namespace sp
     _user_db_large = false;
     _user_db_bnum = -1;
     _url_source_code = "http://seeks.git.sourceforge.net/git/gitweb.cgi?p=seeks/seeks;a=tree";
+
+    _cors_enabled = false;
+    _cors_allowed_domains = "*";
   }
 
   void proxy_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -280,6 +285,27 @@ namespace sp
           }
         break;
 #endif
+
+        /**************************************************************************
+         * cors-enabled (0|1)
+         **************************************************************************/
+      case hash_cors_enabled :
+        if ((*arg != '\0') && (0 != atoi(arg)))
+          {
+            _cors_enabled = true;
+          }
+        else
+          {
+            _cors_enabled = false;
+          }
+        break;
+
+        /**************************************************************************
+         * cors-allowed-domains domainlist
+         **************************************************************************/
+      case hash_cors_allowed_domains :
+        _cors_allowed_domains = std::string(arg);
+        break;
 
         /**************************************************************************
          * debug n

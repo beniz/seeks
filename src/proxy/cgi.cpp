@@ -1655,6 +1655,18 @@ namespace sp
         err = miscutil::enlist(&rsp->_headers, buf);
       }
 
+    /*
+     * CORS headers if enabled
+     */
+    if(csp->_config->_cors_enabled)
+      {
+        // CORS enabled
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Allow-Origin", strdup(csp->_config->_cors_allowed_domains.c_str()));
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Allow-Headers", "X-Requested-With");
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Max-Age", "86400");
+      }
+
     if (0 == strcmpic(csp->_http._gpc, "head"))
       {
         /*

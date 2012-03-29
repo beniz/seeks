@@ -1593,3 +1593,36 @@ max-client-connections 256
 #hide-console
 #
 #
+#  8. API
+#  ======
+#
+#  8.1 CORS: Cros Origin Resource Sharing
+#  =====================================
+#
+#  Specifies:
+# 
+#   CORS is a W3C specification for controlling Cross Origin AJAX Requests.
+#   If enabled, seeks can tell to the browser the list of domain that are
+#   allowed to request the node through the API.
+#   See http://www.w3.org/TR/cors/ for more information.
+#
+#   If "cors-enabled" is set to 1, Seeks will had the CORS headers to the
+#   API responses.
+#
+# Type of value:
+#
+#   0 or 1 for cors-enabled
+#   string for cors-allowed-domains
+#
+# Default value:
+#
+#   0 for cors-enabled
+#   * for cors-allowed-domains
+#
+#cors-enabled 0
+#
+# "cors-allowed-domains" is the list of allowed domains for when CORS is
+# enabled. The list must be "," seperated and the * wildcard can be used.
+#
+#cors-allowed-domains *
+#

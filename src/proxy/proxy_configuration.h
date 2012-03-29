@@ -157,6 +157,12 @@ namespace sp
       /* automatically disable proxy. */
       bool _automatic_proxy_disable;
 
+      /* cors enabled. */
+      bool _cors_enabled;
+
+      /* cors allowed domains. */
+      std::string _cors_allowed_domains;
+
       /*  user db file. */
       std::string _user_db_file;
 
