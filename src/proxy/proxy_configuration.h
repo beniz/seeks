@@ -186,6 +186,12 @@ namespace sp
 
       /* pointer to source code. */
       std::string _url_source_code;
+
+      /* transfer timeout when fetching content for analysis & caching. */
+      long _ct_transfer_timeout;
+
+      /* connection timeout when fetching content for analysis & caching. */
+      long _ct_connect_timeout;
   };
 
 } /* end of namespace. */

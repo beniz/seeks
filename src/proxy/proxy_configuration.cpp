@@ -101,6 +101,8 @@ namespace sp
 #define hash_user_db_large                 3056519964ul /* "user-db-large" */
 #define hash_user_db_bnum                    27035057ul /* "user-db-bnum" */
 #define hash_url_source_code               1714992061ul /* "url-source-code" */
+#define hash_ct_transfer_timeout           3371661146ul /* "ct-transfer-timeout" */
+#define hash_ct_connect_timeout            3817701526ul /* "ct-connect-timeout" */
 
   proxy_configuration::proxy_configuration(const std::string &filename)
     :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
@@ -189,6 +191,8 @@ namespace sp
 
     _cors_enabled = false;
     _cors_allowed_domains = "*";
+    _ct_connect_timeout = 1; // in seconds.
+    _ct_transfer_timeout = 3; // in seconds.
   }
 
   void proxy_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -305,6 +309,24 @@ namespace sp
          **************************************************************************/
       case hash_cors_allowed_domains :
         _cors_allowed_domains = std::string(arg);
+        break;
+
+        /**************************************************************************
+               * ct-transfer-timeout seconds
+               **************************************************************************/
+      case hash_ct_transfer_timeout:
+        _ct_transfer_timeout = atol(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the transfer timeout in seconds when fetching content for analysis and caching");
+        break;
+
+        /**************************************************************************
+               * ct-connect-timeout seconds
+               **************************************************************************/
+      case hash_ct_connect_timeout:
+        _ct_connect_timeout = atol(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Sets the connection timeout in seconds when fetching content for analysis and caching");
         break;
 
         /**************************************************************************

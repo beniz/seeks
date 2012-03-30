@@ -37,8 +37,6 @@ namespace seeks_plugins
 #define hash_content_analysis       1483831511ul /* "enable-content-analysis" */
 #define hash_se_transfer_timeout    2056038060ul /* "se-transfer-timeout" */
 #define hash_se_connect_timeout     1026838950ul /* "se-connect-timeout" */
-#define hash_ct_transfer_timeout    3371661146ul /* "ct-transfer-timeout" */
-#define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
 #define hash_clustering             2382120344ul /* "enable-clustering" */
 #define hash_max_expansions         504882570ul /* "max-expansions" */
 #define hash_extended_highlight     2722091897ul /* "extended-highlight" */
@@ -75,8 +73,6 @@ namespace seeks_plugins
     _clustering = false;
     _se_connect_timeout = 3;  // in seconds.
     _se_transfer_timeout = 5; // in seconds.
-    _ct_connect_timeout = 1; // in seconds.
-    _ct_transfer_timeout = 3; // in seconds.
     _max_expansions = 100;
     _extended_highlight = false; // experimental.
     _background_proxy_addr = ""; // no specific background proxy (means seeks' proxy).
@@ -216,18 +212,6 @@ namespace seeks_plugins
         _se_connect_timeout = atol(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Sets the connection timeout in seconds for connections to a search engine");
-        break;
-
-      case hash_ct_transfer_timeout:
-        _ct_transfer_timeout = atol(arg);
-        configuration_spec::html_table_row(_config_args,cmd,arg,
-                                           "Sets the transfer timeout in seconds when fetching content for analysis and caching");
-        break;
-
-      case hash_ct_connect_timeout:
-        _ct_connect_timeout = atol(arg);
-        configuration_spec::html_table_row(_config_args,cmd,arg,
-                                           "Sets the connection timeout in seconds when fetching content for analysis and caching");
         break;
 
       case hash_clustering:

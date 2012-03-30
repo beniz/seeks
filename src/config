@@ -1626,3 +1626,30 @@ max-client-connections 256
 #
 #cors-allowed-domains *
 #
+#
+# 8.2 Remote content connection & transfer timeouts
+# =================================================
+#
+#   Specifies
+#
+#      Connection & transfer timeout when Seeks connects to third
+#      parties for content fetching and analysis (content analysis,
+#      readable, ...).
+#
+#   Note
+#
+#     Connections to remote search engines are configured separately,
+#     in the 'websearch' plugin configuration file (websearch-config).
+#
+#   Type of value:
+#
+#     integer as timeout in seconds.
+#
+#   Default value:
+#
+#     1 for ct-connect-timeout
+#     3 for ct-transfer-timeout
+#
+ct-connect-timeout 1
+ct-transfer-timeout 3
+

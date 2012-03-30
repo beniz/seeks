@@ -20,7 +20,7 @@
 #include "miscutil.h"
 #include "curl_mget.h"
 #include "websearch.h"
-#include "websearch_configuration.h" // for transfer timeouts.
+#include "proxy_configuration.h" // for transfer timeouts.
 #include "errlog.h"
 
 #include <iostream>
@@ -91,8 +91,8 @@ namespace seeks_plugins
     int status = 0;
     std::list<const char*> headers;
     miscutil::enlist(&headers,default_ua.c_str()); // XXX: we could use a default user-agent in a dedicated configuration file (e.g. wikipedia requires a user-agent header).
-    curl_mget cmg(1,websearch::_wconfig->_ct_connect_timeout,0,
-                  websearch::_wconfig->_ct_transfer_timeout,0);
+    curl_mget cmg(1,seeks_proxy::_config->_ct_connect_timeout,0,
+                  seeks_proxy::_config->_ct_transfer_timeout,0);
     std::string *result = cmg.www_simple(url,&headers,status);
     if (status!=0)
       {
