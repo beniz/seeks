@@ -558,6 +558,14 @@ namespace sp
       {
         err = cgisimple::cgi_error_404(csp, rsp, param_list);
       }
+    else if (err == SP_ERR_UNAUTH)
+      {
+        err = cgisimple::cgi_error_unauthorized(csp, rsp, param_list);
+      }
+    else if (err == SP_ERR_FORBID)
+      {
+        err = cgisimple::cgi_error_forbidden(csp, rsp, param_list);
+      }
     else if (err && !d->_plugin_name.empty())
       {
         /* list of filtered errors at proxy level. */

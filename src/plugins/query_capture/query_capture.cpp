@@ -228,7 +228,7 @@ namespace seeks_plugins
               {
                 p = ref_path.find("search_img?");
                 if (p==std::string::npos)
-                  return SP_ERR_PARSE;
+                  return SP_ERR_FORBID;
               }
           }
       }
