@@ -1,9 +1,26 @@
+/**                                                                                                                                                
+* This file is part of the SEEKS project.                                                                             
+* Copyright (C) 2011 Fabien Dupont <fab+seeks@kafe-in.net>
+*                                                                                                                                                 
+* This program is free software: you can redistribute it and/or modify                                                                            
+* it under the terms of the GNU Affero General Public License as                                                                                  
+* published by the Free Software Foundation, either version 3 of the                                                                              
+* License, or (at your option) any later version.                                                                                                 
+*                                                                                                                                                 
+* This program is distributed in the hope that it will be useful,                                                                                 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                                                                                  
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                                                                                   
+* GNU Affero General Public License for more details.                                                                                             
+*                                                                                                                                                 
+* You should have received a copy of the GNU Affero General Public License                                                                        
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.                                                                           
+*/
+
 /*
  * FIXME
  * - Nothing
  * TODO
- * - Periodic download of adblock lists
- * - Configuration
+ * - Nothing
  */
 
 #include "adblock_parser.h"
@@ -106,6 +123,7 @@ namespace seeks_plugins
    */
   void adfilter::populate_responses()
   {
+    // TODO test blocked image/gif
     const char gif[] = "GIF89a\001\000\001\000\200\000\000\377\377\377\000\000"
                        "\000!\371\004\001\000\000\000\000,\000\000\000\000\001"
                        "\000\001\000\000\002\002D\001\000;";

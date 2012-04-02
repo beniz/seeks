@@ -1,3 +1,21 @@
+/**                                                                                                                                                
+* This file is part of the SEEKS project.                                                                             
+* Copyright (C) 2011 Fabien Dupont <fab+seeks@kafe-in.net>
+*                                                                                                                                                 
+* This program is free software: you can redistribute it and/or modify                                                                            
+* it under the terms of the GNU Affero General Public License as                                                                                  
+* published by the Free Software Foundation, either version 3 of the                                                                              
+* License, or (at your option) any later version.                                                                                                 
+*                                                                                                                                                 
+* This program is distributed in the hope that it will be useful,                                                                                 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                                                                                  
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                                                                                   
+* GNU Affero General Public License for more details.                                                                                             
+*                                                                                                                                                 
+* You should have received a copy of the GNU Affero General Public License                                                                        
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.                                                                           
+*/
+
 #include "adblock_downloader.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
@@ -28,12 +46,8 @@ using sp::seeks_proxy;
  */
 adblock_downloader::adblock_downloader(adfilter* parent, std::string filename)
 {
-  timer_t timerid;
   struct sigevent sev;
   struct itimerspec its;
-
-  // Mutex initialization
-  // XXX mutex_init(&this->_curl_mutex);
 
   // ADBlock rules filename
   this->_listfilename = (seeks_proxy::_datadir.empty() ?
@@ -44,14 +58,14 @@ adblock_downloader::adblock_downloader(adfilter* parent, std::string filename)
   sev.sigev_notify = SIGEV_SIGNAL;
   sev.sigev_signo = SIG;
   sev.sigev_value.sival_ptr = this;
-  timer_create(CLOCKID, &sev, &timerid);
+  timer_create(CLOCKID, &sev, &(this->_tid));
 
   // Timer frequency definition
   its.it_value.tv_sec = 1; // Tick every 60 seconds
   its.it_value.tv_nsec = 0; // and 0 milliseconds
   its.it_interval.tv_sec = its.it_value.tv_sec;
   its.it_interval.tv_nsec = its.it_value.tv_nsec;
-  timer_settime(timerid, 0, &its, NULL);
+  timer_settime(this->_tid, 0, &its, NULL);
 
   sigset_t mask;
   // SIG set initialization
@@ -69,6 +83,8 @@ adblock_downloader::adblock_downloader(adfilter* parent, std::string filename)
 adblock_downloader::~adblock_downloader()
 {
   this->stop_timer();
+  timer_delete(this->_tid);
+  this->_tid = NULL;
 }
 
 // FIXME Timer comment
@@ -110,7 +126,6 @@ void adblock_downloader::tick(int sig, siginfo_t *si, void *uc)
   {
     int nbdled;
     nbdled = c->download_lists();
-    // TODO add log with nb downloaded
     errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d adblock files downloaded successfully", nbdled);
   }
 }
@@ -152,6 +167,7 @@ int adblock_downloader::download_lists()
   // Stop the timer during the lists download
   this->stop_timer();
 
+  // Open ouput file
   std::ofstream outfile;
   outfile.open(this->_listfilename.c_str(), std::ios_base::trunc);
 
