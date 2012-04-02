@@ -92,15 +92,28 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         // Block elements of a specific url
         else if(ret == ADB_RULE_URL_FILTER and parse_filters)
         {
-          std::string r;
-          std::map<std::string, std::string>::iterator it;
-          if((it = this->_filterrules.find(url)) != this->_filterrules.end())
+          // url is in fact a list or URLs (url1,url2,...,urln)
+          size_t part = 0;
+          while(!url.empty() && part != std::string::npos)
           {
-            r = (*it).second;
-            this->_filterrules.erase(it);
+            std::string r;
+            std::map<std::string, std::string>::iterator it;
+
+            // Add filter for url 0 -> first ","
+            part = url.find_first_of(",");
+
+            // If there already is an xpath for the current url, we append this one to it
+            if((it = this->_filterrules.find(url.substr(0, part))) != this->_filterrules.end())
+            {
+              r = (*it).second;
+              this->_filterrules.erase(it);
+            }
+
+            r.append((r.empty() ? "" : " | ") + x);
+            if(!x.empty()) this->_filterrules.insert(std::pair<const std::string, std::string>(url.substr(0, part), r));
+            // Analyse from first "," -> end
+            url = url.substr(part + 1);
           }
-          r.append((r.empty() ? "" : " | ") + x);
-          if(!x.empty()) this->_filterrules.insert(std::pair<const std::string, std::string>(url, r));
         }
         num_read++;
       }
@@ -134,11 +147,16 @@ Restriction aux requêtes third-party/first-party (provenant d'un autre/du même
 le filtre n'est appliqué qu'aux requêtes provenant d'une autre origine que la page actuellement affichée.
 De manière similaire, ~third-party restreint l'action du filtre aux requêtes provenant de la même origine que la page couramment affichée.
     */
-    miscutil::replace_in_string(line, "^$third-party", ""); // Ugly workaround
+    line = line.substr(0, line.find("$"));
+
+    // Patterns use regexp style for URL, so * is .*
+    miscutil::replace_in_string(line, "*", ".*"); 
+
     (*url) = line.substr(2);
     return ADB_RULE_URL_BLOCK;
   }
 
+  // Ignore positive patterns and comments
   else if(line.substr(0,2) != "@@" and line.substr(0,1) != "!")
   {
     pcre *re;

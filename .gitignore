@@ -64,3 +64,5 @@ Makefile.in
 src/plugins/xsl_serializer/samples/_*.xml
 src/plugins/xsl_serializer/samples/samples_index
 
+# adfilter rules
+src/plugins/adfilter/adblock_list*
