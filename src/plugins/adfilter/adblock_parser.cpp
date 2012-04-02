@@ -99,6 +99,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
             std::string r;
             std::map<std::string, std::string>::iterator it;
 
+            // XXXXX
             // Add filter for url 0 -> first ","
             part = url.find_first_of(",");
 
@@ -213,14 +214,14 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
             {
               std::string tmp = line.substr(ovector[10], ovector[11] - ovector[10]);
               miscutil::to_lower(tmp);
-              //std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower); // Convert element name to lower case
+              if(tmp.empty()) tmp = "*";
               if(parts.rfind("|ELEM|") != std::string::npos) parts.replace(parts.rfind("|ELEM|"), 6, tmp);
             }
             else
             {
               std::string tmp = line.substr(ovector[4], ovector[5] - ovector[4]);
               miscutil::to_lower(tmp);
-              //std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower); // Convert element name to lower case
+              if(tmp.empty()) tmp = "*";
               if(parts.rfind("|ELEM|") != std::string::npos) parts.replace(parts.rfind("|ELEM|"), 6, tmp);
             }
           }
@@ -238,32 +239,58 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
           }
 
           line = line.substr(ovector[1] - ovector[0]);
+        } else {
+          parts.append("*");
         }
 
         re = pcre_compile(rAttr2, PCRE_CASELESS, &error, &erroffset, NULL);
         rc = pcre_exec(re, NULL, line.c_str(), line.length(), 0, 0, ovector, 18);
         pcre_free(re);
         // Match attribute selectors : [lvalue=rvalue]
-        // FIXME if rvalue contains one or more spaces, it should be 1 rule per value
         if(rc > 0)
         {
           std::string lvalue = line.substr(ovector[2], ovector[3] - ovector[2]);
           std::string oper   = line.substr(ovector[4], ovector[5] - ovector[4]);
           std::string rvalue = line.substr(ovector[6], ovector[7] - ovector[6]);
           miscutil::replace_in_string(rvalue, "'", "\\'");
-          if(oper == "~=" or oper == "*=")
+          std::string sep;
+
+          parts.append("[");
+
+          if(oper == "^=")
           {
-            parts.append("[contains(@" + lvalue + ", '" + rvalue + "')]");
-          }
-          else if(oper == "^=")
-          {
-            parts.append("[starts-with(@" + lvalue + ", '" + rvalue + "')]");
+            // ^= is equivalent to "starts-with"
+            parts.append("starts-with(@" + lvalue + ", '" + rvalue + "')");
           }
           else
           {
-            // FIXME XPath error : Invalid expression //[@id='Meebo']
-            parts.append("[@" + lvalue + "='" + rvalue + "']");
+            // Else check if lvalue contains all rvalue elements
+            // If we match classes, matched classes can be in any orders and separated by a space
+            // If we match style, matched styles can be in any orders and separated by a semicolon (;)
+            if(lvalue == "class") sep = " ";
+            if(lvalue == "style") sep = ";";
+            size_t part = 0;
+            while(!rvalue.empty() && part != std::string::npos)
+            {
+              // Remove leading spaces
+              while(rvalue.substr(0, 1) == " ")
+              {
+                rvalue = rvalue.substr(1);
+              }
+  
+              // If that's not the first part checked
+              if(part != 0) parts.append(" and ");
+  
+              part = rvalue.find_first_of(sep);
+              parts.append("contains(@" + lvalue + ", '" + rvalue.substr(0, part) + "')");
+  
+              // Check for the next part
+              rvalue = rvalue.substr(part + 1);
+            }
           }
+
+          parts.append("]");
+
           line = line.substr(ovector[1] - ovector[0]);
         }
         else
@@ -274,7 +301,6 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
           pcre_free(re);
           if(rc > 0)
           {
-            // FIXME XPath error : Invalid expression //[@id='Meebo']
             parts.append("[@" + line.substr(ovector[2], ovector[3] - ovector[2]) + "]");
             line = line.substr(ovector[1] - ovector[0]);
           }
