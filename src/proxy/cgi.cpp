@@ -111,6 +111,11 @@ namespace sp
     FALSE ),
 #endif /* def FEATURE_TOGGLE */
     cgi_dispatcher(
+      "favicon.ico",
+      &cgisimple::cgi_send_favicon,
+      NULL, TRUE /* Sends the favicon image for error pages. */
+    ),
+    cgi_dispatcher(
       "error-favicon.ico",
       &cgisimple::cgi_send_error_favicon,
       NULL, TRUE /* Sends the favicon image for error pages. */

@@ -531,6 +531,29 @@ namespace sp
     return SP_ERR_OK;
   }
 
+  /*********************************************************************
+   *
+   * Function    :  cgi_send_favicon
+   *
+   * Description :  CGI function that sends the favicon for all pages.
+   *
+   * Parameters  :
+   *          1  :  csp = Current client state (buffers, headers, etc...)
+   *          2  :  rsp = http_response data structure for output
+   *          3  :  parameters = map of cgi parameters
+   *
+   * CGI Parameters : None
+   *
+   * Returns     :  SP_ERR_OK on success
+   *
+   *********************************************************************/
+  sp_err cgisimple::cgi_send_favicon(client_state *csp,
+                                     http_response *rsp,
+                                     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"file",1,"images/favicon.ico",1);
+    return cgisimple::cgi_file_server(csp,rsp,parameters);
+  }
 
   /*********************************************************************
    *
