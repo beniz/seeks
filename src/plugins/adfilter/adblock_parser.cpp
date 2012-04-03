@@ -79,7 +79,12 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         // Block the whole URL
         if(ret == ADB_RULE_URL_BLOCK and parse_blockers)
         {
-          this->_blockedurls.push_back(url);
+          // Add patterns url, *.url, *.*.url, etc.
+          for(int i = 0; i < 4; i++)
+          {
+            this->_blockedurls.push_back(url);
+            url = url.insert(0, "*.");
+          }
         }
   
         // Block elements whatever the url
@@ -99,7 +104,6 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
             std::string r;
             std::map<std::string, std::string>::iterator it;
 
-            // XXXXX
             // Add filter for url 0 -> first ","
             part = url.find_first_of(",");
 
@@ -115,6 +119,11 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
             // Analyse from first "," -> end
             url = url.substr(part + 1);
           }
+        }
+
+        else if(ret == ADB_RULE_ERROR)
+        {
+          errlog::log_error(LOG_LEVEL_ERROR, "ADFilter: failed to parse : '%s'", line.c_str());
         }
         num_read++;
       }
@@ -139,32 +148,57 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
  */
 rule_t adblock_parser::_line_to_rule(std::string *xpath, std::string *url, std::string line)
 {
+  pcre *re;
+  const char *error;
+  int erroffset, rc;
+  int ovector[18];
+
   // If the line begins with "||", the complete following URL should be blocked
   if(line.substr(0,2) == "||")
   {
     // full URL blocking
+    const char *rBlock = "^\\|\\|([a-z0-9\\-\\*]+\\.)+([a-z0-9\\-\\*]+)[\\^\\/]*([^\\$]*)(\\$.+)?$";
     /* TODO
 Restriction aux requêtes third-party/first-party (provenant d'un autre/du même site) : Si l'option third-party est spécifiée,
 le filtre n'est appliqué qu'aux requêtes provenant d'une autre origine que la page actuellement affichée.
 De manière similaire, ~third-party restreint l'action du filtre aux requêtes provenant de la même origine que la page couramment affichée.
     */
-    line = line.substr(0, line.find("$"));
+    std::string domain;
+    std::string path;
 
-    // Patterns use regexp style for URL, so * is .*
-    miscutil::replace_in_string(line, "*", ".*"); 
+    re = pcre_compile(rBlock, PCRE_CASELESS, &error, &erroffset, NULL);
+    rc = pcre_exec(re, NULL, line.c_str(), line.length(), 0, 0, ovector, 15);
+    pcre_free(re);
+    if(rc > 0)
+    {
+      domain = line.substr(ovector[2], ovector[3] - ovector[2]) + line.substr(ovector[4], ovector[5] - ovector[4]);
+      path   = line.substr(ovector[6], ovector[7] - ovector[6]);
+      if(!path.empty())
+      {
+        // RegEx escaping
+        miscutil::replace_in_string(path, ".", "\\.");
+        miscutil::replace_in_string(path, "?", "\\?");
+        miscutil::replace_in_string(path, "|", "\\|");
+        miscutil::replace_in_string(path, "*", ".*");
+        // TODO check if domain matches *.domain
+        (*url) = domain + "/" + path;
+      }
+      else
+      {
+        (*url) = domain;
+      }
+    }
+    else
+    {
+      return ADB_RULE_ERROR;
+    }
 
-    (*url) = line.substr(2);
     return ADB_RULE_URL_BLOCK;
   }
 
   // Ignore positive patterns and comments
   else if(line.substr(0,2) != "@@" and line.substr(0,1) != "!")
   {
-    pcre *re;
-    const char *error;
-    int erroffset, rc;
-    int ovector[18];
-
     // Matching regexps (see http://forums.wincustomize.com/322441)
     // PCRE_CASELESS
     const char *rUrl        = "^([^#\\s]*)##";
@@ -376,7 +410,7 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
     }
   }
 
-  return ADB_RULE_ERROR;
+  return ADB_RULE_UNSUPPORTED;
 }
 
 /*

@@ -31,6 +31,7 @@ enum rule_t {
   ADB_RULE_URL_BLOCK,      // Block an URL
   ADB_RULE_URL_FILTER,     // Filter a specific URL
   ADB_RULE_GENERIC_FILTER, // Generic filter
+  ADB_RULE_UNSUPPORTED,    // Unsupported rule (yet)
   ADB_RULE_ERROR           // No success on parsing the rule
 };
 
