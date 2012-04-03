@@ -156,13 +156,13 @@ rule_t adblock_parser::_line_to_rule(std::string *xpath, std::string *url, std::
   // If the line begins with "||", the complete following URL should be blocked
   if(line.substr(0,2) == "||")
   {
-    // full URL blocking
-    const char *rBlock = "^\\|\\|([a-z0-9\\-\\*]+\\.)+([a-z0-9\\-\\*]+)[\\^\\/]*([^\\$]*)(\\$.+)?$";
+    // full URL blocking RE (||domainpart.domainpart/path)
     /* TODO
 Restriction aux requêtes third-party/first-party (provenant d'un autre/du même site) : Si l'option third-party est spécifiée,
 le filtre n'est appliqué qu'aux requêtes provenant d'une autre origine que la page actuellement affichée.
 De manière similaire, ~third-party restreint l'action du filtre aux requêtes provenant de la même origine que la page couramment affichée.
     */
+    const char *rBlock = "^\\|\\|([a-z0-9\\-\\*]+\\.)+([a-z0-9\\-\\*]+)[\\^\\/]*([^\\$]*)(\\$.+)?$";
     std::string domain;
     std::string path;
 
@@ -180,7 +180,6 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
         miscutil::replace_in_string(path, "?", "\\?");
         miscutil::replace_in_string(path, "|", "\\|");
         miscutil::replace_in_string(path, "*", ".*");
-        // TODO check if domain matches *.domain
         (*url) = domain + "/" + path;
       }
       else
@@ -190,6 +189,7 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
     }
     else
     {
+      // Something is wrong with this rule
       return ADB_RULE_ERROR;
     }
 
@@ -200,7 +200,6 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
   else if(line.substr(0,2) != "@@" and line.substr(0,1) != "!")
   {
     // Matching regexps (see http://forums.wincustomize.com/322441)
-    // PCRE_CASELESS
     const char *rUrl        = "^([^#\\s]*)##";
     const char *rElement    = "^([#.]?)([a-z0-9\\\\*_-]*)((\\|)([a-z0-9\\\\*_-]*))?";
     const char *rAttr1      = "^\\[([^\\]]*)\\]";
@@ -209,10 +208,7 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
     const char *rCombinator = "^(\\s*[>+\\s])?";
     const char *rComma      = "^\\s*,";
 
-    std::string parts;
-
-    parts = "//|ELEM|";
-
+    std::string parts = "//|ELEM|";
     std::string lastRule = "";
 
     // URL detection
