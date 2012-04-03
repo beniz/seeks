@@ -20,7 +20,6 @@
 #define USER_DB_H
 
 #include "db_err.h"
-#include "mutexes.h"
 #include "db_record.h"
 #include "sweeper.h"
 #include "db_obj.h"
@@ -273,7 +272,6 @@ namespace sp
       static double _db_version; /**< db record structure version. */
 
     private:
-      sp_mutex_t _db_mutex; /**< mutex around db operations. */
       std::string _rsc; /**< remote resource type ("", tt or sn). */
   };
 

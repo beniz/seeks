@@ -42,7 +42,7 @@ void print_usage()
   std::cout << "seeks_cli --x <post> recommend <url> <query> --title <title> --url <url> [--radius <radius>] [--peers <local|ring>] [--lang <lang>] [--url-check <0|1>]\n";
   std::cout << "seeks_cli --x <delete> recommend <url> <query> --url <url> [--lang <lang>]\n";
   std::cout << "seeks_cli suggest <url> <query> [--nsugg <nsugg>] [--radius <radius>] [--peers <local|ring>]\n";
-  std::cout << "seeks_cli [--x <get,put,delete,post>] search <url> <query> [--sid <snippet_id> | --surl <url>] [--engines <list of comma separated engines>] [--rpp <rpp>] [--page <page>] [--prs <on|off>] [--lang <lang>] [--thumbs <on|off>] [--expansion <expansion>] [--peers <local|ring>] [--order <rank|new-date|old-date|new-activity|old-activity>] [--redirect <url>] [--cpost <url>] [--swords <yes|no>]\n";
+  std::cout << "seeks_cli [--x <get,put,delete,post>] search <url> <query> [--sid <snippet_id> | --surl <url>] [--engines <list of comma separated engines>] [--rpp <rpp>] [--page <page>] [--prs <on|off>] [--lang <lang>] [--thumbs <on|off>] [--expansion <expansion>] [--peers <local|ring>] [--order <rank|new-date|old-date|new-activity|old-activity>] [--redirect] [--cpost <url>] [--swords <yes|no>]\n";
   std::cout << "seeks_cli words <url> <query> [--sid <snippet_id> | --surl <url>] [--lang <lang>]\n";
   std::cout << "seeks_cli recent_queries <url> [--nq <nq>]\n";
   std::cout << "seeks_cli cluster_types <url> <query> [--lang <lang>]\n";
@@ -168,11 +168,16 @@ int main(int argc, char **argv)
           || p == "--url" || p == "--title" || p == "--url-check"
           || p == "--nclusters" || p == "--sid" || p == "--engines"
           || p == "--rpp" || p == "--page" || p == "--prs"
-          || p == "--thumbs" || p == "--nq" || p == "--redirect"
-          || p == "--cpost" || p == "--surl" || p == "--swords")
+          || p == "--thumbs" || p == "--nq"
+          || p == "--cpost" || p == "--surl" || p == "--swords"
+          || p == "--expansion")
         {
           std::string v = argv[++i];
           params.insert(std::pair<std::string,std::string>(p,v));
+        }
+      else if (p == "--redirect")
+        {
+          params.insert(std::pair<std::string,std::string>(p,""));
         }
       else
         {
@@ -269,7 +274,7 @@ int main(int argc, char **argv)
       if ((mit=params.find("--order"))!=params.end())
         order = (*mit).second;
       if ((mit=params.find("--redirect"))!=params.end())
-        redirect = (*mit).second;
+        redirect = "yes";
       if ((mit=params.find("--cpost"))!=params.end())
         cpost = (*mit).second;
       if ((mit=params.find("--swords"))!=params.end())
@@ -292,7 +297,8 @@ int main(int argc, char **argv)
       else if (http_method == "post" && (!sid.empty() || !surl.empty()))
         {
           err = cli::post_search_snippet(node,output,timeout,
-                                         query,sid,surl,lang,redirect,cpost,result);
+                                         query,sid,surl,lang,redirect,cpost,
+                                         result);
         }
       else if (http_method == "delete" && (!sid.empty() || !surl.empty()))
         {
@@ -330,21 +336,35 @@ int main(int argc, char **argv)
     }
   else if (command == "cluster_types")
     {
-      std::string lang;
+      std::string lang,engines,expansion,peers;
       if ((mit=params.find("--lang"))!=params.end())
         lang = (*mit).second;
+      if ((mit=params.find("--engines"))!=params.end())
+        engines = (*mit).second;
+      if ((mit=params.find("--expansion"))!=params.end())
+        expansion = (*mit).second;
+      if ((mit=params.find("--peers"))!=params.end())
+        peers = (*mit).second;
       err = cli::get_cluster_types(node,output,timeout,
-                                   query,lang,result);
+                                   query,lang,engines,
+                                   expansion,peers,result);
     }
   else if (command == "cluster_auto")
     {
-      std::string lang,nclusters;
+      std::string lang,nclusters,engines,expansion,peers;
       if ((mit=params.find("--lang"))!=params.end())
         lang = (*mit).second;
       if ((mit=params.find("--nclusters"))!=params.end())
         nclusters = (*mit).second;
+      if ((mit=params.find("--engines"))!=params.end())
+        engines = (*mit).second;
+      if ((mit=params.find("--expansion"))!=params.end())
+        expansion = (*mit).second;
+      if ((mit=params.find("--peers"))!=params.end())
+        peers = (*mit).second;
       err = cli::get_cluster_auto(node,output,timeout,
-                                  query,lang,nclusters,result);
+                                  query,lang,nclusters,engines,
+                                  expansion,peers,result);
     }
   else if (command == "similar")
     {

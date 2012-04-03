@@ -43,6 +43,8 @@ namespace seeks_plugins
 
       // main options
       long _call_timeout; /**< timeout on connection and on data transfer for P2P calls. */
+      std::string _p2p_proxy_addr; /**< address of a proxy through which to issue the P2P calls. */
+      int _p2p_proxy_port; /**< port of a proxy through which to issue the P2P calls. */
 
       static udb_service_configuration *_config;
   };

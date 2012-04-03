@@ -27,7 +27,7 @@ using sp::miscutil;
 namespace seeks_plugins
 {
   se_parser_dailymotion::se_parser_dailymotion(const std::string &url)
-    :se_parser(url),_in_item(false),_in_title(false),_in_link(false),_in_pubdate(false),_in_summary(false)
+    :se_parser(url),_in_item(false),_in_title(false),_in_link(false),_in_pubdate(false),_in_summary(false),_sn(NULL)
   {
   }
 
@@ -45,12 +45,12 @@ namespace seeks_plugins
       {
         _in_item = true;
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count + 1);
+        _sn = new seeks_snippet(_count + 1);
         _count++;
         //sp->_engine |= std::bitset<NSEs>(SE_DAILYMOTION);
-        sp->_engine = feeds("dailymotion",_url);
-        sp->_doc_type = VIDEO_THUMB;
-        pc->_current_snippet = sp;
+        _sn->_engine = feeds("dailymotion",_url);
+        _sn->_doc_type = seeks_doc_type::VIDEO_THUMB;
+        pc->_current_snippet = _sn;
       }
     else if (_in_item && strcasecmp(tag, "title") == 0)
       {
@@ -82,7 +82,7 @@ namespace seeks_plugins
         const char *a_url = se_parser::get_attribute((const char**)attributes,"url");
         if (a_url)
           {
-            pc->_current_snippet->_cached = a_url;
+            _sn->_cached = a_url;
           }
       }
   }
@@ -144,7 +144,7 @@ namespace seeks_plugins
                 || pc->_current_snippet->_url.empty()
                 //|| pc->_current_snippet->_summary.empty()
                 //|| pc->_current_snippet->_cached.empty()
-                || pc->_current_snippet->_date.empty())
+                || _sn->_date.empty())
               {
                 //std::cout << "[snippet fail]" << " title: " << pc->_current_snippet->_title.empty() << " url: " << pc->_current_snippet->_url.empty() << std::endl;
                 delete pc->_current_snippet;
@@ -191,7 +191,7 @@ namespace seeks_plugins
         //std::cout << "    " << _date << std::endl;
         //std::cout << "</pubDate>" << std::endl;
         _in_pubdate = false;
-        pc->_current_snippet->set_date(_date);
+        _sn->set_date(_date);
         _date = "";
       }
   }

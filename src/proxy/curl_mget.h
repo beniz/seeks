@@ -80,6 +80,7 @@ namespace sp
                              const std::string &content_type="");
 
       std::string* www_simple(const std::string &url,
+                              std::list<const char*> *headers,
                               int &status,
                               const std::string &http_method="GET",
                               std::string *content=NULL,

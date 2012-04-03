@@ -293,7 +293,9 @@ namespace seeks_plugins
       }
     else if (http_method == "post")
       {
-        return cf::recommendation_post(csp,rsp,parameters);
+        if (cf_configuration::_config->_remote_post)
+          return cf::recommendation_post(csp,rsp,parameters);
+        else return cgisimple::cgi_error_unauthorized(csp,rsp,parameters);
       }
     else if (http_method == "delete")
       {
@@ -493,9 +495,8 @@ namespace seeks_plugins
       }
     if (!check_success && !has_qc)
       {
-        mutex_unlock(&qc->_qc_mutex);
         sweeper::unregister_sweepable(qc);
-        delete qc;
+        delete qc; // unlocks qc
         if (check_title == "404")
           return cgisimple::cgi_error_404(csp,rsp,parameters); // 404. TODO: JSON + message ?
         else return cgi::cgi_error_bad_param(csp,rsp,parameters,"json"); // 400 error.
@@ -533,12 +534,12 @@ namespace seeks_plugins
       }
 
     // remove query_context as needed (so to not 'flood' the node).
-    mutex_unlock(&qc->_qc_mutex);
     if (!has_qc)
       {
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
+    mutex_unlock(&qc->_qc_mutex);
     return err;
   }
 
@@ -687,9 +688,17 @@ namespace seeks_plugins
     cf_configuration::_config->load_config();
     pthread_rwlock_rdlock(&cf_configuration::_config->_conf_rwlock);
 
-    simple_re sre(swf);
-    sre.peers_personalize(qc,wait_external_sources,peers,radius);
+    rank_estimator *sre = rank_estimator::create(cf_configuration::_config->_estimator,swf);
+    if (!sre)
+      {
+        pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
+        errlog::log_error(LOG_LEVEL_ERROR,"unknown estimator %s passed to collaborative filter",
+                          cf_configuration::_config->_estimator.c_str());
+        return;
+      }
+    sre->peers_personalize(qc,wait_external_sources,peers,radius);
     pthread_rwlock_unlock(&cf_configuration::_config->_conf_rwlock);
+    delete sre;
   }
 
   void cf::estimate_ranks(const std::string &query,
@@ -699,16 +708,31 @@ namespace seeks_plugins
                           const std::string &host,
                           const int &port) throw (sp_exception)
   {
-    simple_re sre(cf_configuration::_config->_stop_words_filtering); // estimator.
-    sre.estimate_ranks(query,lang,radius,snippets,host,port);
+    rank_estimator *sre = rank_estimator::create(cf_configuration::_config->_estimator,
+                          cf_configuration::_config->_stop_words_filtering);
+    if (!sre)
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"unknown estimator %s passed to collaborative filter",
+                          cf_configuration::_config->_estimator.c_str());
+        return;
+      }
+    sre->estimate_ranks(query,lang,radius,snippets,host,port);
+    delete sre;
   }
 
   void cf::thumb_down_url(const std::string &query,
                           const std::string &lang,
                           const std::string &url) throw (sp_exception)
   {
-    simple_re sre(cf_configuration::_config->_stop_words_filtering); // estimator.
-    sre.thumb_down_url(query,lang,url);
+    rank_estimator *sre = rank_estimator::create(cf_configuration::_config->_estimator,
+                          cf_configuration::_config->_stop_words_filtering);
+    if (!sre)
+      {
+        errlog::log_error(LOG_LEVEL_ERROR,"unknown estimator %s passed to collaborative filter",
+                          cf_configuration::_config->_estimator.c_str());
+        return;
+      }
+    sre->thumb_down_url(query,lang,url);
   }
 
   void cf::find_bqc_cb(const std::vector<std::string> &qhashes,

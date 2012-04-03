@@ -65,6 +65,7 @@ namespace sp
 #endif
   client_state seeks_proxy::_clients = client_state();
   std::vector<sweepable*> seeks_proxy::_memory_dust = std::vector<sweepable*>();
+  std::vector<sweepable*> seeks_proxy::_recurrent = std::vector<sweepable*>();
 
 #ifdef MUTEX_LOCKS_AVAILABLE
   sp_mutex_t seeks_proxy::_connection_reuse_mutex;
@@ -1752,6 +1753,7 @@ reading_done:
                           {
                             csp->_content_length = (size_t)(csp->_iob._eod - csp->_iob._cur);
                           }
+                        else csp->_content_length = strlen(p); // in case content length in undefined.
                         if (SP_ERR_OK != parsers::update_server_headers(csp))
                           {
                             errlog::log_error(LOG_LEVEL_FATAL,
@@ -2396,6 +2398,7 @@ reading_done:
 
     // initialize sweeper's mutex.
     mutex_init(&sweeper::_mem_dust_mutex);
+    mutex_init(&sweeper::_recur_mutex);
   }
 
 #ifdef _WIN32

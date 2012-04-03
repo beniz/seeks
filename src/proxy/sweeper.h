@@ -44,15 +44,23 @@ namespace sp
 
       static void unregister_sweepable(sweepable *spable);
 
+      static void register_recurrent(sweepable *spable);
+
+      static void unregister_recurrent(sweepable *spable);
+
       static unsigned int sweep();
 
       static unsigned int sweep_all_memory_dust();
+
+      static unsigned int sweep_all_recurrent();
 
       static unsigned int sweep_all_csps();
 
       static unsigned int sweep_all();
 
       static sp_mutex_t _mem_dust_mutex;
+
+      static sp_mutex_t _recur_mutex;
   };
 
 } /* end of namespace. */

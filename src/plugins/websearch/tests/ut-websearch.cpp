@@ -24,6 +24,7 @@
 #include "websearch.h"
 #include "websearch_configuration.h"
 #include "se_handler.h"
+#include "seeks_snippet.h"
 #include "proxy_configuration.h"
 #include "content_handler.h"
 #include "sort_rank.h"
@@ -334,11 +335,12 @@ TEST_F(WBExistTest,cgi_websearch_search_query)
 
 TEST_F(WBExistTest,cgi_websearch_search_snippet)
 {
-  search_snippet *sp = new search_snippet();
+  seeks_snippet *sp = new seeks_snippet();
   sp->set_url(seeks_url);
   uint32_t sid = sp->_id;
   _qc->_cached_snippets.push_back(sp);
   _qc->add_to_unordered_cache(sp);
+  sp->_new = false;
 
   client_state csp;
   csp._config = _pconfig;
@@ -406,8 +408,10 @@ TEST_F(WBExistTest,cgi_websearch_words_query_snippet)
   sp2->set_summary("A large cat from the jungle");
   _qc->_cached_snippets.push_back(sp1);
   _qc->add_to_unordered_cache(sp1);
+  sp1->_new = false;
   _qc->_cached_snippets.push_back(sp2);
   _qc->add_to_unordered_cache(sp2);
+  sp2->_new = false;
 
   content_handler::fetch_all_snippets_summary_and_features(_qc);
 
@@ -444,8 +448,10 @@ TEST_F(WBExistTest,cgi_websearch_words_snippet)
   sp2->set_summary("A large cat from the jungle");
   _qc->_cached_snippets.push_back(sp1);
   _qc->add_to_unordered_cache(sp1);
+  sp1->_new = false;
   _qc->_cached_snippets.push_back(sp2);
   _qc->add_to_unordered_cache(sp2);
+  sp2->_new = false;
 
   content_handler::fetch_all_snippets_summary_and_features(_qc);
 
@@ -525,22 +531,22 @@ TEST(SRTest,sort_snippets)
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"new-date",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url2",(*snippets.begin())->_url);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"old-date",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url1",(*snippets.begin())->_url);
+  ASSERT_EQ("url2",(*snippets.begin())->_url);
 
   sp1._record_date = 100000000;
   sp2._record_date = 10000000;
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"new-activity",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url2",(*snippets.begin())->_url);
+  ASSERT_EQ("url1",(*snippets.begin())->_url);
   miscutil::unmap(parameters,"order");
   miscutil::add_map_entry(parameters,"order",1,"old-activity",1);
   sort_rank::sort_snippets(snippets,parameters);
-  ASSERT_EQ("url1",(*snippets.begin())->_url);
+  ASSERT_EQ("url2",(*snippets.begin())->_url);
 
   miscutil::free_map(parameters);
 }

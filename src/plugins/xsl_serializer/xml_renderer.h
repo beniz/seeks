@@ -22,7 +22,6 @@
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include "websearch.h"
 #include "clustering.h"
 
 
@@ -30,94 +29,94 @@ namespace seeks_plugins
 {
   class xml_renderer
   {
-  public:
-    static sp_err render_engines(const feeds &engines, 
-				 const bool &img,
-				 xmlNodePtr parent);
+    public:
+      static sp_err render_engines(const feeds &engines,
+                                   const bool &img,
+                                   xmlNodePtr parent);
 
-    static sp_err render_node_options(client_state *csp,
-				      xmlNodePtr parent);
+      static sp_err render_node_options(client_state *csp,
+                                        xmlNodePtr parent);
 
-    static sp_err render_suggested_queries(const query_context *qc,
-					   const int &nsuggs,
-					   xmlNodePtr parent);
+      static sp_err render_suggested_queries(const query_context *qc,
+                                             const int &nsuggs,
+                                             xmlNodePtr parent);
 
-    static sp_err render_recommendations(const query_context *qc,
-					 const int &nreco,
-					 const double &qtime,
-					 const uint32_t &radius,
-					 const std::string &lang,
-					 xmlNodePtr parent);
+      static sp_err render_recommendations(const query_context *qc,
+                                           const int &nreco,
+                                           const double &qtime,
+                                           const uint32_t &radius,
+                                           const std::string &lang,
+                                           xmlNodePtr parent);
 
-    static sp_err render_cached_queries(const std::string &query,
-					const int &nq,
-					xmlNodePtr parent);
+      static sp_err render_cached_queries(const std::string &query,
+                                          const int &nq,
+                                          xmlNodePtr parent);
 
-    static sp_err render_img_engines(const query_context *qc,
-				     xmlNodePtr parent);
+      static sp_err render_img_engines(const query_context *qc,
+                                       xmlNodePtr parent);
 
-    static sp_err render_snippet(search_snippet *sp,
-				 const bool &thumbs,
-				 const std::vector<std::string> &query_words,
-				 xmlNodePtr parent);
-    
-    static sp_err render_snippets(const std::string &query_clean,
-				  const int &current_page,
-				  const std::vector<search_snippet*> &snippets,
-				  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				  xmlNodePtr parent);
+      /*static sp_err render_snippet(search_snippet *sp,
+      		 const bool &thumbs,
+      		 const std::vector<std::string> &query_words,
+      		 xmlNodePtr parent);*/
 
-    static sp_err render_clustered_snippets(const std::string &query_clean,
-					    cluster *clusters, 
-					    const short &K,
-					    const query_context *qc,
-					    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-					    xmlNodePtr parent);
+      static sp_err render_snippets(const std::string &query_clean,
+                                    const int &current_page,
+                                    const std::vector<search_snippet*> &snippets,
+                                    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                    xmlNodePtr parent);
 
-    static sp_err render_xml_cached_queries(const std::string &query,
-					    const int &nq,
-					    xmlDocPtr doc);
+      static sp_err render_clustered_snippets(const std::string &query_clean,
+                                              hash_map<int,cluster*> *clusters,
+                                              const short &K,
+                                              const query_context *qc,
+                                              const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+                                              xmlNodePtr parent);
 
-    static sp_err render_xml_clustered_results(const query_context *qc,
-					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					       cluster *clusters,
-					       const short &K,
-					       const double &qtime,
-					       xmlDocPtr doc);
+      static sp_err render_xml_cached_queries(const std::string &query,
+                                              const int &nq,
+                                              xmlDocPtr doc);
 
-    static sp_err render_xml_engines(const feeds &engines,
-				     xmlDocPtr doc);
+      static sp_err render_xml_clustered_results(const query_context *qc,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+          hash_map<int,cluster*> *clusters,
+          const short &K,
+          const double &qtime,
+          xmlDocPtr doc);
 
-    static sp_err render_xml_node_options(client_state *csp, 
-					  xmlDocPtr doc);
+      static sp_err render_xml_engines(const feeds &engines,
+                                       xmlDocPtr doc);
 
-    static sp_err render_xml_peers(std::list<std::string> *peers,
-				   xmlDocPtr doc);
+      static sp_err render_xml_node_options(client_state *csp,
+                                            xmlDocPtr doc);
 
-    static sp_err render_xml_recommendations(const query_context *qc,
-							   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-							   const double &qtime,
-							   const int &radius,
-							   const std::string &lang,
-							   xmlDocPtr doc);
+      static sp_err render_xml_peers(std::list<std::string> *peers,
+                                     xmlDocPtr doc);
 
-    static sp_err render_xml_results(const query_context *qc,
-				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				     const std::vector<search_snippet*> &snippets,
-				     const double &qtime,
-				     const bool &img,
-				     xmlDocPtr doc);
+      static sp_err render_xml_recommendations(const query_context *qc,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+          const double &qtime,
+          const int &radius,
+          const std::string &lang,
+          xmlDocPtr doc);
 
-    static sp_err render_xml_snippet(query_context *qc,
-				     search_snippet *sp,
-				     xmlDocPtr doc);
+      static sp_err render_xml_results(const query_context *qc,
+                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                       const std::vector<search_snippet*> &snippets,
+                                       const double &qtime,
+                                       const bool &img,
+                                       xmlDocPtr doc);
 
-    static sp_err render_xml_suggested_queries(const query_context *qc,
-					       const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-					       xmlDocPtr doc);
+      static sp_err render_xml_snippet(query_context *qc,
+                                       search_snippet *sp,
+                                       xmlDocPtr doc);
 
-    static sp_err render_xml_words(const std::set<std::string> &words,
-				   xmlDocPtr doc);
+      static sp_err render_xml_suggested_queries(const query_context *qc,
+          const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+          xmlDocPtr doc);
+
+      static sp_err render_xml_words(const std::set<std::string> &words,
+                                     xmlDocPtr doc);
 
 
 

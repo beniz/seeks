@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT(Seeks, 0.4.0, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.4.1, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -29,9 +29,9 @@ AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
 AC_DEFINE(SEEKS_VERSION_MINOR,"4","")
-AC_DEFINE(SEEKS_VERSION_POINT,"0","")
-AC_DEFINE(SEEKS_VERSION,"0.4","")
-AC_DEFINE(SEEKS_CODE_STATUS,"stable","")
+AC_DEFINE(SEEKS_VERSION_POINT,"1","")
+AC_DEFINE(SEEKS_VERSION,"0.4.1","")
+AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.
 AC_PROG_CXX
@@ -45,6 +45,7 @@ AC_LANG(C++)
 # Checks for libraries.
 AC_SEARCH_LIBS(accept, socket network)
 AC_SEARCH_LIBS(gethostbyname, nsl network)
+LT_LIB_DLLOAD
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -809,6 +810,8 @@ src/plugins/cf/tests/Makefile \
 src/plugins/udb_service/Makefile \
 src/plugins/udb_service/tests/Makefile \
 src/plugins/xsl_serializer/Makefile \
+src/plugins/readable/Makefile \
+src/plugins/readable/tests/Makefile \
 src/cli/Makefile \
 src/utils/Makefile \
 src/utils/tests/Makefile)

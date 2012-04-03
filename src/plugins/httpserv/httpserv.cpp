@@ -40,6 +40,8 @@
 #include "udb_service.h"
 #endif
 
+#include "rdbl_pl.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -147,6 +149,8 @@ namespace seeks_plugins
     evhttp_set_cb(_srv,"/find_bqc",&httpserv::find_bqc,NULL);
     evhttp_set_cb(_srv,"/peers",&httpserv::peers,NULL);
 #endif
+    evhttp_set_cb(_srv,"/favicon.ico",&httpserv::favicon,NULL);
+    evhttp_set_cb(_srv,"/error-favicon.ico",&httpserv::error_favicon,NULL);
 
     //evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
     evhttp_set_gencb(_srv,&httpserv::api_route,NULL);
@@ -372,6 +376,9 @@ namespace seeks_plugins
     else if (uri.substr(0,16)=="/recommendation/")
       httpserv::recommendation(r,arg);
 #endif
+    else if (uri.substr(0,9)=="/readable"
+             || uri.substr(0.10)=="/readable/")
+      httpserv::readable(r,arg);
 
     // if unknown resource, trigger file service.
     else httpserv::file_service(r,arg);
@@ -589,7 +596,7 @@ namespace seeks_plugins
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else if (serr == WB_ERR_SE_CONNECT)
@@ -968,7 +975,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1063,7 +1070,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             err_msg = "Memory Error";
             code = 500;
           }
@@ -1202,7 +1209,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
             err_msg = "Bad Parameter";
             code = 400;
           }
-        else if (serr == DB_ERR_NO_REC || serr == SP_ERR_NOT_FOUND)
+        else if (serr == SP_ERR_NOT_FOUND)
           {
             cgisimple::cgi_error_404(&csp,rsp,parameters);
             err_msg = "Not Found";
@@ -1212,7 +1219,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             err_msg = "Memory Error";
             code = 500;
           }
@@ -1318,7 +1325,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1421,7 +1428,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1524,7 +1531,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
           {
             http_response *crsp = cgi::cgi_error_memory();
             delete rsp;
-            rsp = new http_response(*crsp);
+            rsp = new http_response(crsp);
             code = 500;
           }
         else
@@ -1562,6 +1569,145 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
   }
 
 #endif
+
+  void httpserv::readable(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response *rsp = new http_response();
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters = NULL;
+
+    /* parse uri. */
+    const char *uri_str = r->uri;
+    std::string uri;
+    if (uri_str)
+      {
+        uri = std::string(r->uri);
+        parameters = httpserv::parse_query(uri);
+      }
+    if (!uri_str)
+      {
+        // send 400 error response.
+        if (parameters)
+          miscutil::free_map(parameters);
+        httpserv::reply_with_error_400(r);
+        delete rsp;
+        return;
+      }
+
+    /* readable API. */
+    csp._http._path = strdup(uri.c_str());
+    std::string http_method = httpserv::get_method(r);
+    csp._http._gpc = strdup(http_method.c_str());
+    sp_err serr = rdbl_pl::cgi_readable(&csp,rsp,parameters);
+    int code = 200;
+    std::string status = "OK";
+    if (serr != SP_ERR_OK)
+      {
+        status = "ERROR";
+        if (serr == SP_ERR_CGI_PARAMS)
+          {
+            cgi::cgi_error_bad_param(&csp,rsp,parameters);
+            code = 400;
+          }
+        else if (serr == SP_ERR_NOT_FOUND)
+          {
+            cgisimple::cgi_error_404(&csp,rsp,parameters);
+            code = 404;
+          }
+        else if (serr == SP_ERR_MEMORY)
+          {
+            http_response *crsp = cgi::cgi_error_memory();
+            delete rsp;
+            rsp = new http_response(crsp);
+            code = 500;
+          }
+        else
+          {
+            cgi::cgi_error_unknown(&csp,rsp,serr,parameters);
+            code = 500;
+          }
+      }
+    if (parameters)
+      miscutil::free_map(parameters);
+    /* fill up response. */
+    std::string ct = "text/html"; // default content-type.
+    std::list<const char*>::const_iterator lit = rsp->_headers.begin();
+    while (lit!=rsp->_headers.end())
+      {
+        if (miscutil::strncmpic((*lit),"content-type:",13) == 0)
+          {
+            ct = std::string((*lit));
+            ct = ct.substr(14);
+            break;
+          }
+        ++lit;
+      }
+    std::string content;
+    if (rsp->_body)
+      content = std::string(rsp->_body); // XXX: beware of length.
+    if (status == "OK")
+      httpserv::reply_with_body(r,code,"OK",content,ct);
+    else httpserv::reply_with_error(r,code,"ERROR",content);
+    delete rsp;
+
+    /* run the sweeper, for timed out query contexts. */
+    sweeper::sweep();
+  }
+
+  void httpserv::favicon(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+
+    /* return requested file. */
+    sp_err serr = cgisimple::cgi_send_favicon(&csp,&rsp,&parameters);
+    miscutil::list_remove_all(&csp._headers);
+    if (serr != SP_ERR_OK)
+      {
+        httpserv::reply_with_empty_body(r,404,"ERROR");
+        return;
+      }
+
+    /* fill up response. */
+    std::string content = std::string(rsp._body,rsp._content_length);
+    httpserv::reply_with_body(r,200,"OK",content,"image/x-icon");
+  }
+
+  void httpserv::error_favicon(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+
+    /* return requested file. */
+    sp_err serr = cgisimple::cgi_send_error_favicon(&csp,&rsp,&parameters);
+    miscutil::list_remove_all(&csp._headers);
+    if (serr != SP_ERR_OK)
+      {
+        httpserv::reply_with_empty_body(r,404,"ERROR");
+        return;
+      }
+
+    /* fill up response. */
+    std::string content = std::string(rsp._body,rsp._content_length);
+    httpserv::reply_with_body(r,200,"OK",content,"image/x-icon");
+  }
 
   void httpserv::unknown_path(struct evhttp_request *r, void *arg)
   {

@@ -540,7 +540,9 @@ int main(int argc, const char *argv[])
   // start user db before plugins so they can work with it.
   if (seeks_proxy::_config->_user_db_haddr != NULL)
     seeks_proxy::_user_db = new user_db(false);
-  else seeks_proxy::_user_db = new user_db(true);
+  else seeks_proxy::_user_db = new user_db(true,"","",-1,"","",
+        seeks_proxy::_config->_user_db_bnum,
+        seeks_proxy::_config->_user_db_large);
   if (seeks_proxy::_user_db->open_db())
     {
       // error opening the db.
@@ -551,11 +553,14 @@ int main(int argc, const char *argv[])
 
           errlog::log_error(LOG_LEVEL_INFO,"Trying the local user db instead of the remote db");
           delete seeks_proxy::_user_db;
-          seeks_proxy::_user_db = new user_db(true);
+          seeks_proxy::_user_db = new user_db(true,"","",-1,"","",
+                                              seeks_proxy::_config->_user_db_bnum,
+                                              seeks_proxy::_config->_user_db_large);
           seeks_proxy::_user_db->open_db();
         }
     }
-  if (seeks_proxy::_config->_user_db_optimize)
+  if (seeks_proxy::_config->_user_db_optimize
+      && seeks_proxy::_user_db->number_records() > 1)
     seeks_proxy::_user_db->optimize_db();
 #endif
 
@@ -582,47 +587,51 @@ int main(int argc, const char *argv[])
   errlog::log_error(LOG_LEVEL_INFO, "db version: %g", db_version);
 
   int ferr = 0;
-  if (miscutil::compare_d(0.0,db_version,1e-3) && sizeof(unsigned long) == 8)
+  if (seeks_proxy::_user_db->number_records() > 1
+      && (db_version < 0.6 && !miscutil::compare_d(db_version,user_db::_db_version,1e-3)))
     {
-      if (!seeks_proxy::_user_db->is_remote())
+      if (miscutil::compare_d(0.0,db_version,1e-3) && sizeof(unsigned long) == 8)
+        {
+          if (!seeks_proxy::_user_db->is_remote())
+            {
+              seeks_proxy::_user_db->close_db();
+              ferr = user_db_fix::fix_issue_169();
+              seeks_proxy::_user_db->open_db();
+            }
+          else errlog::log_error(LOG_LEVEL_ERROR, "cannot apply fix 169 to remote database, skipping");
+        }
+      if (db_version < 0.3 && !miscutil::compare_d(0.3,db_version,1e-3))
         {
           seeks_proxy::_user_db->close_db();
-          ferr = user_db_fix::fix_issue_169();
+          ferr = user_db_fix::fix_issue_263();
           seeks_proxy::_user_db->open_db();
         }
-      else errlog::log_error(LOG_LEVEL_ERROR, "cannot apply fix 169 to remote database, skipping");
-    }
-  if (db_version < 0.3 && !miscutil::compare_d(0.3,db_version,1e-3))
-    {
-      seeks_proxy::_user_db->close_db();
-      ferr = user_db_fix::fix_issue_263();
-      seeks_proxy::_user_db->open_db();
-    }
-  if (db_version < 0.4 && !miscutil::compare_d(0.4,db_version,1e-3))
-    {
-      seeks_proxy::_user_db->close_db();
-      ferr = user_db_fix::fix_issue_281();
-      seeks_proxy::_user_db->open_db();
-    }
-  if (db_version < 0.5 && !miscutil::compare_d(0.5,db_version,1e-3))
-    {
-      if (!seeks_proxy::_user_db->is_remote())
+      if (db_version < 0.4 && !miscutil::compare_d(0.4,db_version,1e-3))
         {
           seeks_proxy::_user_db->close_db();
-          ferr = user_db_fix::fix_issue_154();
+          ferr = user_db_fix::fix_issue_281();
           seeks_proxy::_user_db->open_db();
         }
-      else errlog::log_error(LOG_LEVEL_INFO, "cannot apply fix 154 to remote database, skipping");
-    }
-  if (db_version < 0.6 && !miscutil::compare_d(0.6,db_version,1e-3))
-    {
-      if (!seeks_proxy::_user_db->is_remote())
+      if (db_version < 0.5 && !miscutil::compare_d(0.5,db_version,1e-3))
         {
-          seeks_proxy::_user_db->close_db();
-          ferr = user_db_fix::fix_issue_575();
-          seeks_proxy::_user_db->open_db();
+          if (!seeks_proxy::_user_db->is_remote())
+            {
+              seeks_proxy::_user_db->close_db();
+              ferr = user_db_fix::fix_issue_154();
+              seeks_proxy::_user_db->open_db();
+            }
+          else errlog::log_error(LOG_LEVEL_INFO, "cannot apply fix 154 to remote database, skipping");
         }
-      else errlog::log_error(LOG_LEVEL_INFO, "cannot apply fix 575 to remote database, skipping");
+      if (db_version < 0.6 && !miscutil::compare_d(0.6,db_version,1e-3))
+        {
+          if (!seeks_proxy::_user_db->is_remote())
+            {
+              seeks_proxy::_user_db->close_db();
+              ferr = user_db_fix::fix_issue_575();
+              seeks_proxy::_user_db->open_db();
+            }
+          else errlog::log_error(LOG_LEVEL_INFO, "cannot apply fix 575 to remote database, skipping");
+        }
     }
   if (ferr == 0 && !miscutil::compare_d(db_version,user_db::_db_version,1e-3))
     {

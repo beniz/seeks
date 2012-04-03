@@ -81,7 +81,10 @@ namespace seeks_plugins
     gettimeofday(&tv_now,NULL);
     if ((tv_now.tv_sec - _last_sweep)
         > query_capture_configuration::_config->_sweep_cycle)
-      return true;
+      {
+        _last_sweep = tv_now.tv_sec;
+        return true;
+      }
     else return false;
   }
 
@@ -89,9 +92,13 @@ namespace seeks_plugins
   {
     struct timeval tv_now;
     gettimeofday(&tv_now,NULL);
-    time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
-    int err = seeks_proxy::_user_db->prune_db("query-capture",sweep_date);
-    return err;
+    if (query_capture_configuration::_config->_retention > 0)
+      {
+        time_t sweep_date = tv_now.tv_sec - query_capture_configuration::_config->_retention;
+        int err = seeks_proxy::_user_db->prune_db("query-capture",sweep_date);
+        return err;
+      }
+    else return SP_ERR_OK;
   }
 
   /*- query_capture -*/
@@ -163,15 +170,6 @@ namespace seeks_plugins
 
         char *urlp = NULL;
         sp_err err = query_capture::qc_redir(csp,rsp,parameters,urlp);
-        /*if (err == SP_ERR_CGI_PARAMS)
-          {
-            const char *output_str = miscutil::lookup(parameters,"output");
-            if (output_str && strcmp(output_str,"json")==0)
-              return cgi::cgi_error_bad_param(csp,rsp,"json");
-            else return cgi::cgi_error_bad_param(csp,rsp,"html");
-          }
-        else if (err == SP_ERR_PARSE)
-        return cgi::cgi_error_disabled(csp,rsp);*/ // wrong use of the resource.
         if (err != SP_ERR_OK)
           {
             pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
@@ -179,10 +177,13 @@ namespace seeks_plugins
           }
 
         // redirect to requested url.
-        urlp = encode::url_decode_but_not_plus(urlp);
-
-        cgi::cgi_redirect(rsp,urlp);
-        free(urlp);
+        const char * redirect = miscutil::lookup(parameters,"redirect");
+        if (redirect)
+          {
+            urlp = encode::url_decode_but_not_plus(urlp);
+            cgi::cgi_redirect(rsp,urlp);
+            free(urlp);
+          }
         pthread_rwlock_unlock(&query_capture_configuration::_config->_conf_rwlock);
         return SP_ERR_OK;
       }
@@ -227,7 +228,7 @@ namespace seeks_plugins
               {
                 p = ref_path.find("search_img?");
                 if (p==std::string::npos)
-                  return SP_ERR_PARSE;
+                  return SP_ERR_FORBID;
               }
           }
       }
@@ -269,7 +270,7 @@ namespace seeks_plugins
           chost += "?lang=" + std::string(lang);
         curl_mget cmg(1,3,0,3,0); // timeout is 3 seconds.
         int status;
-        std::string *output = cmg.www_simple(chost,status,"POST");
+        std::string *output = cmg.www_simple(chost,NULL,status,"POST");
         delete output; // ignore output.
       }
 
@@ -329,7 +330,7 @@ namespace seeks_plugins
 
   query_capture_element::query_capture_element()
   {
-    if (seeks_proxy::_user_db)
+    if (seeks_proxy::_user_db && query_capture_configuration::_config->_sweep_cycle > 0)
       seeks_proxy::_user_db->register_sweeper(&_qds);
   }
 

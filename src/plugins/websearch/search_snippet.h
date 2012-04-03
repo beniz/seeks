@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009-2011 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -22,6 +22,11 @@
 #include "proxy_dts.h" // for url_spec.
 #include "feeds.h"
 
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <bitset>
@@ -32,30 +37,14 @@ using sp::url_spec;
 
 namespace seeks_plugins
 {
-  class query_context;
-
-  enum DOC_TYPE
+  class doc_type
   {
-    UNKNOWN,
-    WEBPAGE,
-    FORUM,
-    FILE_DOC,
-    SOFTWARE,
-    IMAGE,
-    VIDEO,
-    VIDEO_THUMB,
-    AUDIO,
-    CODE,
-    NEWS,
-    TWEET,
-    WIKI,
-    POST,
-    BUG,
-    ISSUE,
-    REVISION,
-    COMMENT,
-    REJECTED /* user reject, for now by matching a regexp. */
+    public:
+      static const int UNKNOWN = 0;
+      static const int REJECTED = 1; /* user reject */
   };
+
+  class query_context;
 
   class search_snippet
   {
@@ -115,34 +104,34 @@ namespace seeks_plugins
       {
         if (s1->_content_date == s2->_content_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_content_date < s2->_content_date;
+        else return s1->_content_date > s2->_content_date;
       };
 
       static bool old_date(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_content_date == s2->_content_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_content_date > s2->_content_date;
+        else return s1->_content_date < s2->_content_date;
       };
 
       static bool new_activity(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_record_date == s2->_record_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_record_date < s2->_record_date;
+        else return s1->_record_date > s2->_record_date;
       };
 
       static bool old_activity(const search_snippet *s1, const search_snippet *s2)
       {
         if (s1->_record_date == s2->_record_date)
           return max_seeks_rank(s1,s2);
-        else return s1->_record_date > s2->_record_date;
+        else return s1->_record_date < s2->_record_date;
       };
 
       // constructors.
     public:
       search_snippet();
-      search_snippet(const short &rank);
+      search_snippet(const double &rank);
       search_snippet(const search_snippet *s);
 
       virtual ~search_snippet();
@@ -153,12 +142,7 @@ namespace seeks_plugins
       void set_url(const std::string &url);
       void set_url_no_decode(const std::string &url);
 
-      void set_cite(const std::string &cite);
-      void set_cite_no_decode(const std::string &cite);
-
       void set_summary(const std::string &summary);
-
-      void set_date(const std::string &date);
 
       void set_lang(const std::string &lang);
 
@@ -167,14 +151,11 @@ namespace seeks_plugins
       // returns stripped, lower case url for storage and comparisons.
       std::string get_stripped_url() const;
 
-      // sets a link to the archived url at archive.org (e.g. in case we'no cached link).
-      void set_archive_link();
-
       // sets a link to a sorting of snippets wrt. to their similarity to this snippet.
-      virtual void set_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      virtual void set_similarity_link();
 
       // sets a back link when similarity is engaged.
-      virtual void set_back_similarity_link(const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+      virtual void set_back_similarity_link();
 
       // whether this snippet's engine(s) is(are) enabled.
       // used in result page rendering.
@@ -182,6 +163,7 @@ namespace seeks_plugins
 
       // static functions.
       // highlights terms within the argument string.
+      // TODO: move to renderer ?
       static void highlight_query(std::vector<std::string> &words,
                                   std::string &str);
 
@@ -190,33 +172,41 @@ namespace seeks_plugins
                        std::set<std::string> &words) const;
 
       // tag snippet, i.e. detect its type if not already done by the parsers.
-      void tag();
-
-      // load tagging patterns from files.
-      static sp_err load_patterns();
-
-      // destroy loaded patterns.
-      static void destroy_patterns();
+      virtual void tag() {};
 
       // match url against tags.
       static bool match_tag(const std::string &url,
                             const std::vector<url_spec*> &patterns);
 
       // merging of snippets (merge s2 into s2, according to certain rules).
-      static void merge_snippets(search_snippet *s1, const search_snippet *s2);
-
-      // hack for correcting meta rank after Bing and Yahoo merged their results in
-      // the US.
-      void bing_yahoo_us_merge();
+      virtual void merge_snippets(const search_snippet *s2);
 
       // reset p2p data.
       void reset_p2p_data();
 
       // get doc type in a string form.
-      std::string get_doc_type_str() const;
+      virtual std::string get_doc_type_str() const;
+
+      // HTML rendering.
+      virtual std::string to_html(std::vector<std::string> &words,
+                                  const std::string &base_url_str,
+                                  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
+
+      // JSON rendering.
+      std::string to_json_str(const bool &thumbs,
+                              const std::vector<std::string> &query_words);
+      virtual std::string to_json(const bool &thumbs,
+                                  const std::vector<std::string> &query_words);
+
+#ifdef FEATURE_XSLSERIALIZER_PLUGIN
+      // XML rendering.
+      virtual sp_err to_xml(const bool &thumbs,
+                            const std::vector<std::string> &query_words,
+                            xmlNodePtr parent);
+#endif
 
       // printing output.
-      std::ostream& print(std::ostream &output);
+      virtual std::ostream& print(std::ostream &output);
 
     public:
       query_context *_qc; // query context the snippet belongs to.
@@ -225,14 +215,9 @@ namespace seeks_plugins
 
       std::string _title;
       std::string _url;
-      std::string _cite;
-      std::string _cached;
       std::string _summary;
-      std::string _summary_noenc;
-      std::string _file_format;
-      std::string _date;
       std::string _lang;
-      std::string _archive; // a link to archive.org
+      int _doc_type;
       bool _sim_back; // whether the back 'button' to similarity is present.
 
       double _rank;  // search engine rank.
@@ -244,29 +229,12 @@ namespace seeks_plugins
       uint32_t _record_date; // record date, since Epoch.
 
       feeds _engine;  // engines from which it was created (if not directly published).
-      enum DOC_TYPE _doc_type;
-
-      // type-dependent information.
-      std::string _forum_thread_info;
 
       // cache.
       std::string *_cached_content;
       std::vector<uint32_t> *_features; // temporary set of features, used for fast similarity check between snippets.
       hash_map<uint32_t,float,id_hash_uint> *_features_tfidf; // tf-idf feature set for this snippet.
       hash_map<uint32_t,std::string,id_hash_uint> *_bag_of_words;
-
-      // patterns for snippets tagging (positive patterns for now only).
-      static std::vector<url_spec*> _pdf_pos_patterns;
-      static std::vector<url_spec*> _file_doc_pos_patterns;
-      static std::vector<url_spec*> _audio_pos_patterns;
-      static std::vector<url_spec*> _video_pos_patterns;
-      static std::vector<url_spec*> _forum_pos_patterns;
-      static std::vector<url_spec*> _reject_pos_patterns;
-
-      // generic 'safe' tag, mostly for pornographic images.
-      // XXX: may be used later as a generic flag for marking content that
-      // cannot be considered to be 'safe' for everyone to read/see.
-      bool _safe;
 
       // temporary flag used for marking snippets for which the
       // personalization system has found ranking information in local dataset.
@@ -280,6 +248,11 @@ namespace seeks_plugins
 
       // radius from the original query.
       int _radius;
+
+      // generic 'safe' tag, mostly for pornographic images.
+      // XXX: may be used later as a generic flag for marking content that
+      // cannot be considered to be 'safe' for everyone to read/see.
+      bool _safe;
   };
 
 } /* end of namespace. */

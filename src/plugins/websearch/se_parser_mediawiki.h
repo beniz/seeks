@@ -21,6 +21,7 @@
 #define SE_PARSER_MEDIAWIKI_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -70,6 +71,8 @@ namespace seeks_plugins
 
       std::string _host;
       std::string _path;
+
+      seeks_snippet *_sn;
 
       static std::string _sr_string_en;
   };

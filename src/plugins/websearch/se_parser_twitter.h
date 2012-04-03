@@ -1,6 +1,7 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
  * Copyright (C) 2010 Laurent Peuch  <cortex@worlddomination.be>
+ *               2010-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -20,6 +21,7 @@
 #define SE_PARSER_TWITTER_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -60,6 +62,8 @@ namespace seeks_plugins
       std::string _title;
       std::string _published;
       std::string _uri;
+
+      seeks_snippet *_sn;
   };
 
 };

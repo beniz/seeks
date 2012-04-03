@@ -31,7 +31,8 @@ namespace seeks_plugins
 
   se_parser_bing::se_parser_bing(const std::string &url)
     :se_parser(url),_h1_sr_flag(false),_results_flag(false),_h3_flag(false),
-     _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false)
+     _link_flag(false),_p_flag(false),_cite_flag(false),_cached_flag(false),
+     _sn(NULL)
   {
   }
 
@@ -59,10 +60,10 @@ namespace seeks_plugins
               _results_flag = true;
 
             // create new snippet.
-            search_snippet *sp = new search_snippet(_count+1);
+            _sn = new seeks_snippet(_count+1);
             _count++;
-            sp->_engine = feeds("bing",_url);
-            pc->_current_snippet = sp;
+            _sn->_engine = feeds("bing",_url);
+            pc->_current_snippet = _sn;
 
             _cached_flag = false; // in case previous snippet did not close the cached flag.
           }
@@ -113,7 +114,7 @@ namespace seeks_plugins
         _cached_flag = false;
         const char *a_link = se_parser::get_attribute((const char**)attributes,"href");
         if (a_link)
-          pc->_current_snippet->_cached = std::string(a_link);
+          _sn->_cached = std::string(a_link);
       }
   }
 

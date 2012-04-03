@@ -151,6 +151,104 @@ namespace sp
                                       exports, rsp);
   }
 
+  /*********************************************************************
+   *
+   * Function    :  cgi_error_unauthorized
+   *
+   * Description :  CGI function that is called if an unauthorized action was
+   *                given.
+   *
+   * Parameters  :
+   *          1  :  csp = Current client state (buffers, headers, etc...)
+   *          2  :  rsp = http_response data structure for output
+   *          3  :  parameters = map of cgi parameters
+   *
+   * CGI Parameters : none
+   *
+   * Returns     :  SP_ERR_OK on success
+   *                SP_ERR_MEMORY on out-of-memory error.
+   *
+   *********************************************************************/
+  sp_err cgisimple::cgi_error_unauthorized(client_state *csp,
+      http_response *rsp,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
+
+    if (NULL == (exports = cgi::default_exports(csp, NULL)))
+      {
+        return SP_ERR_MEMORY;
+      }
+
+    const char *output = miscutil::lookup(parameters,"output");
+    if (output && strcmp(output,"json")==0)
+      {
+        rsp->_status = strdup("401");
+        rsp->_body = strdup("{\"error\":\"unauthorized\"}");
+        rsp->_content_length = strlen(rsp->_body);
+        miscutil::free_map(exports);
+        return SP_ERR_OK;
+      }
+    rsp->_status = strdup("401 Unauthorized");
+    if (rsp->_status == NULL)
+      {
+        miscutil::free_map(exports);
+        return SP_ERR_MEMORY;
+      }
+
+    return cgi::template_fill_for_cgi(csp, "cgi-error-unauthorized", csp->_config->_templdir,
+                                      exports, rsp);
+  }
+
+  /*********************************************************************
+   *
+   * Function    :  cgi_error_forbidden
+   *
+   * Description :  CGI function that is called if a forbidden action was
+   *                given. Authenticating will make no difference.
+   *
+   * Parameters  :
+   *          1  :  csp = Current client state (buffers, headers, etc...)
+   *          2  :  rsp = http_response data structure for output
+   *          3  :  parameters = map of cgi parameters
+   *
+   * CGI Parameters : none
+   *
+   * Returns     :  SP_ERR_OK on success
+   *                SP_ERR_MEMORY on out-of-memory error.
+   *
+   *********************************************************************/
+  sp_err cgisimple::cgi_error_forbidden(client_state *csp,
+                                        http_response *rsp,
+                                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    hash_map<const char*,const char*,hash<const char*>,eqstr> *exports;
+
+    if (NULL == (exports = cgi::default_exports(csp, NULL)))
+      {
+        return SP_ERR_MEMORY;
+      }
+
+    const char *output = miscutil::lookup(parameters,"output");
+    if (output && strcmp(output,"json")==0)
+      {
+        rsp->_status = strdup("403");
+        rsp->_body = strdup("{\"error\":\"fobidden\"}");
+        rsp->_content_length = strlen(rsp->_body);
+        miscutil::free_map(exports);
+        return SP_ERR_OK;
+      }
+    rsp->_status = strdup("403 Forbidden");
+    if (rsp->_status == NULL)
+      {
+        miscutil::free_map(exports);
+        return SP_ERR_MEMORY;
+      }
+
+    return cgi::template_fill_for_cgi(csp, "cgi-error-forbidden", csp->_config->_templdir,
+                                      exports, rsp);
+  }
+
 
 #ifdef FEATURE_GRACEFUL_TERMINATION
   /*********************************************************************
@@ -433,6 +531,29 @@ namespace sp
     return SP_ERR_OK;
   }
 
+  /*********************************************************************
+   *
+   * Function    :  cgi_send_favicon
+   *
+   * Description :  CGI function that sends the favicon for all pages.
+   *
+   * Parameters  :
+   *          1  :  csp = Current client state (buffers, headers, etc...)
+   *          2  :  rsp = http_response data structure for output
+   *          3  :  parameters = map of cgi parameters
+   *
+   * CGI Parameters : None
+   *
+   * Returns     :  SP_ERR_OK on success
+   *
+   *********************************************************************/
+  sp_err cgisimple::cgi_send_favicon(client_state *csp,
+                                     http_response *rsp,
+                                     const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
+  {
+    miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"file",1,"images/favicon.ico",1);
+    return cgisimple::cgi_file_server(csp,rsp,parameters);
+  }
 
   /*********************************************************************
    *

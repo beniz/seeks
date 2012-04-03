@@ -29,7 +29,7 @@ using sp::urlmatch;
 namespace seeks_plugins
 {
   se_parser_wordpress::se_parser_wordpress(const std::string &url)
-    :se_parser(url),_link_flag(false),_summary_flag(false),_date_flag(false),_title_flag(false)
+    :se_parser(url),_link_flag(false),_summary_flag(false),_date_flag(false),_title_flag(false),_sn(NULL)
   {
   }
 
@@ -52,11 +52,11 @@ namespace seeks_plugins
         if (cl_str.find("type-post")!=std::string::npos)
           {
             // create new snippet.
-            search_snippet *sp = new search_snippet(_count + 1);
+            _sn = new seeks_snippet(_count + 1);
             _count++;
-            sp->_engine = feeds("wordpress",_url);
-            sp->_doc_type = POST;
-            pc->_current_snippet = sp;
+            _sn->_engine = feeds("wordpress",_url);
+            _sn->_doc_type = seeks_doc_type::POST;
+            pc->_current_snippet = _sn;
             pc->_snippets->push_back(pc->_current_snippet);
           }
         else if (pc->_current_snippet && cl_str == "post-content")
@@ -145,7 +145,7 @@ namespace seeks_plugins
     else if (_date_flag && strcasecmp(tag,"span")==0)
       {
         _date_flag = false;
-        pc->_current_snippet->set_date(_date);
+        _sn->set_date(_date);
         _date = "";
       }
   }

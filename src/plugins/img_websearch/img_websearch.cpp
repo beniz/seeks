@@ -745,12 +745,12 @@ namespace seeks_plugins
       }
 
     // unlock or destroy the query context.
-    mutex_unlock(&qc->_qc_mutex);
     if (qc->empty())
       {
         sweeper::unregister_sweepable(qc);
         delete qc;
       }
+    mutex_unlock(&qc->_qc_mutex);
 
     return err;
   }

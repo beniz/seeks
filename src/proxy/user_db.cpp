@@ -66,15 +66,11 @@ namespace sp
                    const bool &large)
     :_opened(false),_rsc(rsc)
   {
-    // init the mutex;
-    mutex_init(&_db_mutex);
-
     // create the db.
     if (local)
       {
         _hdb = new db_obj_local();
         _hdb->dbsetmutex();
-        static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
       }
     else
       {
@@ -83,12 +79,16 @@ namespace sp
                                    seeks_proxy::_config->_user_db_hport);
         else _hdb = new db_obj_remote(haddr.c_str(),hport,hpath);
       }
-    //_hdb->dbsetmutex();
-    if (bnum != -1 || large)
+
+    if (local)
       {
-        if (!large)
-          static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,0);
-        else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE);
+        if (bnum != -1 || large)
+          {
+            if (!large)
+              static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTDEFLATE);
+            else static_cast<db_obj_local*>(_hdb)->dbtune(bnum,-1,-1,HDBTLARGE | HDBTDEFLATE);
+          }
+        else static_cast<db_obj_local*>(_hdb)->dbtune(-1,-1,-1,HDBTDEFLATE);
       }
 
     // db location.
@@ -147,9 +147,6 @@ namespace sp
   user_db::user_db(const std::string &dbname)
     :_opened(false)
   {
-    // init the mutex;
-    mutex_init(&_db_mutex);
-
     _hdb = new db_obj_local();
     _hdb->dbsetmutex();
     static_cast<db_obj_local*>(_hdb)->dbtune(0,-1,-1,HDBTDEFLATE);
@@ -242,11 +239,18 @@ namespace sp
   db_err user_db::optimize_db()
   {
     db_obj_local *ldb = dynamic_cast<db_obj_local*>(_hdb);
-    if (ldb && !ldb->dboptimize(0,-1,-1,HDBTDEFLATE))
+    if (ldb)
       {
-        int ecode = _hdb->dbecode();
-        errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",_hdb->dberrmsg(ecode));
-        return DB_ERR_OPTIMIZE;
+        bool berr = false;
+        if (!seeks_proxy::_config->_user_db_large)
+          berr = ldb->dboptimize(seeks_proxy::_config->_user_db_bnum,-1,-1,HDBTDEFLATE);
+        else berr = ldb->dboptimize(seeks_proxy::_config->_user_db_bnum,-1,-1,HDBTDEFLATE | HDBTLARGE);
+        if (!berr)
+          {
+            int ecode = _hdb->dbecode();
+            errlog::log_error(LOG_LEVEL_ERROR,"user db optimization error: %s",_hdb->dberrmsg(ecode));
+            return DB_ERR_OPTIMIZE;
+          }
       }
     else
       {
@@ -258,16 +262,13 @@ namespace sp
 
   db_err user_db::set_version(const double &v)
   {
-    mutex_lock(&_db_mutex);
     const char *keyc = user_db::_db_version_key.c_str();
     if (!_hdb->dbput(keyc,strlen(keyc),&v,sizeof(double)))
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db adding version record error: %s",_hdb->dberrmsg(ecode));
-        mutex_unlock(&_db_mutex);
         return DB_ERR_PUT;
       }
-    mutex_unlock(&_db_mutex);
     return SP_ERR_OK;
   }
 
@@ -409,7 +410,6 @@ namespace sp
   db_err user_db::add_dbr(const std::string &key,
                           const db_record &dbr)
   {
-    mutex_lock(&_db_mutex);
     std::string str;
 
     // find record.
@@ -424,21 +424,18 @@ namespace sp
           {
             errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: record merging error");
             delete edbr;
-            mutex_unlock(&_db_mutex);
             return DB_ERR_MERGE;
           }
         else if (err_m == DB_ERR_MERGE_PLUGIN)
           {
             errlog::log_error(LOG_LEVEL_ERROR, "Aborting adding record to user db: tried to merge records from different plugins");
             delete edbr;
-            mutex_unlock(&_db_mutex);
             return DB_ERR_MERGE_PLUGIN;
           }
         else if (err_m != SP_ERR_OK)
           {
             errlog::log_error(LOG_LEVEL_ERROR,"Aborting adding record to user db: unknown error");
             delete edbr;
-            mutex_unlock(&_db_mutex);
             return DB_ERR_UNKNOWN;
           }
         if (edbr->serialize(str) != 0)
@@ -476,10 +473,8 @@ namespace sp
       {
         int ecode = _hdb->dbecode();
         errlog::log_error(LOG_LEVEL_ERROR,"user db adding record error: %s",_hdb->dberrmsg(ecode));
-        mutex_unlock(&_db_mutex);
         return DB_ERR_PUT;
       }
-    mutex_unlock(&_db_mutex);
     return SP_ERR_OK;
   }
 

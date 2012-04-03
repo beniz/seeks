@@ -38,6 +38,10 @@ void mutex_lock(sp_mutex_t *mutex)
       exit(1);
     }
 }
+int mutex_trylock(sp_mutex_t *mutex)
+{
+  return pthread_mutex_trylock(mutex);
+}
 
 void mutex_unlock(sp_mutex_t *mutex)
 {
@@ -62,6 +66,11 @@ void mutex_init(sp_mutex_t *mutex)
              strerror(err));
       exit(1);
     }
+}
+
+void mutex_destroy(sp_mutex_t *mutex)
+{
+  pthread_mutex_destroy(mutex); // we don't track failures.
 }
 
 void cond_init(sp_cond_t *cond)

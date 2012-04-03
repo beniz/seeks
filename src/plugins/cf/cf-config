@@ -47,3 +47,21 @@ post-radius 5
 # Whether to filter queries with stop words.
 # default: 0
 stop-words-filtering 0
+
+# Whether to allow (1) / disallow (0) the remote posting of results.
+# default: 1 # allow
+remote-post 1
+
+# Whether to use generic or HTTP URLs in filter
+# Allows to protect from fraud and to detect domain names in order to
+# improve the filter. HTTP URLs are inappropriate when recommending
+# items or non HTTP UIDs.
+# default: 1 (0 for no).
+use-http-urls-only 1
+
+# Estimator to be used by the collaborative filter.
+# Default is an estimator targeted at Web search.
+# Other applications should use a different estimator, written as a
+# class derived from rank_estimator or simple_re
+# default: sre
+cf-estimator sre

@@ -29,7 +29,7 @@ using sp::urlmatch;
 namespace seeks_plugins
 {
   se_parser_redmine::se_parser_redmine(const std::string &url)
-    :se_parser(url),_results_flag(false),_date_flag(false),_title_flag(false),_summary_flag(false)
+    :se_parser(url),_results_flag(false),_date_flag(false),_title_flag(false),_summary_flag(false),_sn(NULL)
   {
     urlmatch::parse_url_host_and_path(url,_host,_path);
     if (miscutil::strncmpic(url.c_str(), "http://",7) == 0)
@@ -59,17 +59,17 @@ namespace seeks_plugins
         const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
 
         // create new snippet.
-        search_snippet *sp = new search_snippet(_count + 1);
+        _sn = new seeks_snippet(_count + 1);
         _count++;
-        sp->_engine = feeds("redmine",_url);
+        _sn->_engine = feeds("redmine",_url);
         if (a_class)
           {
             if (strcasecmp(a_class,"changeset")==0)
-              sp->_doc_type = REVISION;
+              _sn->_doc_type = seeks_doc_type::REVISION;
             else if (strncasecmp(a_class,"issue",5)==0)
-              sp->_doc_type = ISSUE;
+              _sn->_doc_type = seeks_doc_type::ISSUE;
           }
-        pc->_current_snippet = sp;
+        pc->_current_snippet = _sn;
         pc->_snippets->push_back(pc->_current_snippet);
       }
     else if (_results_flag && strcasecmp(tag,"a")==0)
@@ -160,7 +160,7 @@ namespace seeks_plugins
         _summary_flag = false;
         _date_flag = false;
         pc->_current_snippet->set_summary(miscutil::chomp_cpp(_summary));
-        pc->_current_snippet->set_date(miscutil::chomp_cpp(_date));
+        _sn->set_date(miscutil::chomp_cpp(_date));
         _summary = "";
         _date = "";
       }

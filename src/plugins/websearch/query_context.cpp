@@ -150,6 +150,8 @@ namespace seeks_plugins
 
     if (_lfilter)
       delete _lfilter;
+
+    mutex_destroy(&_qc_mutex); // locked in sweep_me() or before destruction.
   }
 
   std::string query_context::sort_query(const std::string &query)
@@ -158,10 +160,7 @@ namespace seeks_plugins
     std::vector<std::string> tokens;
     mrf::tokenize(clean_query,tokens," ");
     std::sort(tokens.begin(),tokens.end(),std::less<std::string>());
-    std::string sorted_query;
-    size_t ntokens = tokens.size();
-    for (size_t i=0; i<ntokens; i++)
-      sorted_query += tokens.at(i);
+    std::string sorted_query = miscutil::join_string_list(" ",tokens);
     return sorted_query;
   }
 
@@ -184,7 +183,16 @@ namespace seeks_plugins
     std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
     while (vit!=_cached_snippets.end())
       {
-        (*vit)->reset_p2p_data();
+        search_snippet *sp = (*vit);
+        sp->reset_p2p_data();
+        if (sp->_engine.count() == 0)
+          {
+            remove_from_unordered_cache(sp->_id);
+            remove_from_unordered_cache_title(sp);
+            delete sp;
+            vit = _cached_snippets.erase(vit);
+            continue;
+          }
         ++vit;
       }
     _suggestions.clear();
@@ -192,6 +200,10 @@ namespace seeks_plugins
 
   bool query_context::sweep_me()
   {
+    // try to get a lock on the context, if not, just don't sweep now.
+    if (mutex_trylock(&_qc_mutex)!=0)
+      return false;
+
     // check last_time_of_use + delay against current time.
     struct timeval tv_now;
     gettimeofday(&tv_now, NULL);
@@ -204,7 +216,11 @@ namespace seeks_plugins
 
     if (dt >= websearch::_wconfig->_query_context_delay)
       return true;
-    else return false;
+    else
+      {
+        mutex_unlock(&_qc_mutex);
+        return false;
+      }
   }
 
   void query_context::update_last_time()
@@ -314,7 +330,7 @@ namespace seeks_plugins
         if (_page_expansion > 0 && horizon <= (int)_page_expansion)
           {
             // reset expansion parameter.
-            query_context::reset_expansion_parameter(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
+            //query_context::reset_expansion_parameter(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters));
             return;
           }
       }
@@ -349,12 +365,6 @@ namespace seeks_plugins
   {
     for (int i=page_start; i<page_end; i++) // catches up with requested horizon.
       {
-        // resets expansion parameter.
-        miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"expansion");
-        std::string i_str = miscutil::to_string(i+1);
-        miscutil::add_map_entry(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),
-                                "expansion",1,i_str.c_str(),1);
-
         // query SEs.
         int nresults = 0;
         std::string **outputs = NULL;
@@ -776,41 +786,6 @@ namespace seeks_plugins
           }
       }
     else engines = feeds(websearch::_wconfig->_se_default);
-  }
-
-  void query_context::reset_snippets_personalization_flags()
-  {
-    std::vector<search_snippet*>::iterator vit = _cached_snippets.begin();
-    while (vit!=_cached_snippets.end())
-      {
-        if ((*vit)->_personalized)
-          {
-            // XXX: change of behavior.
-            // may want to remove seeks results when using a user db.
-            (*vit)->_personalized = false;
-            if ((*vit)->_engine.count() == 1
-                && (*vit)->_engine.has_feed("seeks"))
-              {
-                remove_from_unordered_cache((*vit)->_id);
-                remove_from_unordered_cache_title((*vit));
-                delete (*vit);
-                vit = _cached_snippets.erase(vit);
-                continue;
-              }
-            else if ((*vit)->_engine.has_feed("seeks"))
-              (*vit)->_engine.remove_feed("seeks");
-            (*vit)->_meta_rank = (*vit)->_engine.size(); //TODO: wrong, every feed_parser may refer to several urls.
-
-            //TODO: don't reset in cache.
-            (*vit)->_seeks_rank = 0;
-            (*vit)->bing_yahoo_us_merge();
-            (*vit)->_npeers = 0;
-            (*vit)->_hits = 0;
-          }
-        else (*vit)->_seeks_rank = 0; // reset.
-        ++vit;
-      }
-    _npeers = 0; // reset query context peers.
   }
 
 } /* end of namespace. */

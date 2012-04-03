@@ -300,15 +300,17 @@ namespace sp
 
     char *oldstr = _iob._cur;
 
+    size_t size = (size_t)(_iob._eod - _iob._cur);
     std::list<filter_plugin*>::const_iterator fit;
     for (fit=_filter_plugins.begin(); fit!=_filter_plugins.end(); ++fit)
       {
-        char *newstr = (*fit)->run(this, oldstr); // TODO: virtual call might be inside, for allowing straight pcrs use...
-        /* if (oldstr != _iob._cur)
+        char *newstr = (*fit)->run(this, oldstr, size); // TODO: virtual call might be inside, for allowing straight pcrs use...
+        if (oldstr != _iob._cur)
           {
-        freez(oldstr);
-          } */
+            freez(oldstr);
+          }
         oldstr = newstr;
+        size = strlen(oldstr);
       }
     return oldstr;
   }

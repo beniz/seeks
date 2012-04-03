@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -37,8 +37,6 @@ namespace seeks_plugins
 #define hash_content_analysis       1483831511ul /* "enable-content-analysis" */
 #define hash_se_transfer_timeout    2056038060ul /* "se-transfer-timeout" */
 #define hash_se_connect_timeout     1026838950ul /* "se-connect-timeout" */
-#define hash_ct_transfer_timeout    3371661146ul /* "ct-transfer-timeout" */
-#define hash_ct_connect_timeout     3817701526ul /* "ct-connect-timeout" */
 #define hash_clustering             2382120344ul /* "enable-clustering" */
 #define hash_max_expansions         504882570ul /* "max-expansions" */
 #define hash_extended_highlight     2722091897ul /* "extended-highlight" */
@@ -50,6 +48,8 @@ namespace seeks_plugins
 #define hash_ui_theme                860616402ul /* "ui-theme" */
 #define hash_num_reco_queries       3649475898ul /* num-recommended-queries */
 #define hash_num_recent_queries     2898954524ul /* num-recent-queries */
+#define hash_cross_query_ri          459677116ul /* cross-query-result-insertion */
+#define hash_max_summary_length     2567659258ul /* max-summary-length */
 
   websearch_configuration::websearch_configuration(const std::string &filename)
     :configuration_spec(filename),_default_engines(false)
@@ -73,8 +73,6 @@ namespace seeks_plugins
     _clustering = false;
     _se_connect_timeout = 3;  // in seconds.
     _se_transfer_timeout = 5; // in seconds.
-    _ct_connect_timeout = 1; // in seconds.
-    _ct_transfer_timeout = 3; // in seconds.
     _max_expansions = 100;
     _extended_highlight = false; // experimental.
     _background_proxy_addr = ""; // no specific background proxy (means seeks' proxy).
@@ -86,6 +84,8 @@ namespace seeks_plugins
     _ui_theme = "compact";
     _num_reco_queries = 20;
     _num_recent_queries = 20;
+    _cross_query_ri = true;
+    _max_summary_length = 240;
   }
 
   void websearch_configuration::set_default_engines()
@@ -214,18 +214,6 @@ namespace seeks_plugins
                                            "Sets the connection timeout in seconds for connections to a search engine");
         break;
 
-      case hash_ct_transfer_timeout:
-        _ct_transfer_timeout = atol(arg);
-        configuration_spec::html_table_row(_config_args,cmd,arg,
-                                           "Sets the transfer timeout in seconds when fetching content for analysis and caching");
-        break;
-
-      case hash_ct_connect_timeout:
-        _ct_connect_timeout = atol(arg);
-        configuration_spec::html_table_row(_config_args,cmd,arg,
-                                           "Sets the connection timeout in seconds when fetching content for analysis and caching");
-        break;
-
       case hash_clustering:
         _clustering = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
@@ -303,6 +291,18 @@ namespace seeks_plugins
         _num_recent_queries = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Max number of recent queries");
+        break;
+
+      case hash_cross_query_ri:
+        _cross_query_ri = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to inject results from one query into results of another");
+        break;
+
+      case hash_max_summary_length:
+        _max_summary_length = atoi(arg);
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Maximum result snippet summary length");
         break;
 
       default:

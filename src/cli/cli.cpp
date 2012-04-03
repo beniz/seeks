@@ -41,7 +41,7 @@ namespace seekscli
                       std::string *&result)
   {
     curl_mget cmg(1,timeout,0,timeout,0);
-    result = cmg.www_simple(url,status,http_method,NULL,-1,"",
+    result = cmg.www_simple(url,NULL,status,http_method,NULL,-1,"",
                             cli::_proxy_addr,cli::_proxy_port);
   }
 
@@ -138,7 +138,7 @@ namespace seekscli
     if (!order.empty())
       url += "&order=" + order;
     if (!redirect.empty())
-      url += "&redirect=" + redirect;
+      url += "&redirect";
     if (!cpost.empty())
       {
         std::string enc_cpost = cli::url_encode(cpost);
@@ -300,6 +300,9 @@ namespace seekscli
                        const std::string &query,
                        const std::string &lang,
                        const std::string &nclusters,
+                       const std::string &engines,
+                       const std::string &expansion,
+                       const std::string &peers,
                        std::string *&result)
   {
     std::string enc_query = cli::url_encode(query);
@@ -309,6 +312,13 @@ namespace seekscli
       url += "&lang=" + lang;
     if (!nclusters.empty())
       url += "&clusters=" + nclusters;
+    if (!engines.empty())
+      url += "&engines=" + engines;
+    if (!expansion.empty())
+      url += "&expansion=" + expansion;
+    if (!peers.empty())
+      url += "&peers=" + peers;
+
     int status = 0;
     cli::make_call(timeout,url,"GET",status,result);
     return status;
@@ -319,10 +329,13 @@ namespace seekscli
                              const int &timeout,
                              const std::string &query,
                              const std::string &lang,
+                             const std::string &engines,
+                             const std::string &expansion,
+                             const std::string &peers,
                              std::string *&result)
   {
     return cli::get_cluster(seeks_url,output,timeout,"types",
-                            query,lang,"",result);
+                            query,lang,"",engines,expansion,peers,result);
   }
 
   int cli::get_cluster_auto(const std::string &seeks_url,
@@ -331,10 +344,13 @@ namespace seekscli
                             const std::string &query,
                             const std::string &lang,
                             const std::string &nclusters,
+                            const std::string &engines,
+                            const std::string &expansion,
+                            const std::string &peers,
                             std::string *&result)
   {
     return cli::get_cluster(seeks_url,output,timeout,"auto",
-                            query,lang,nclusters,result);
+                            query,lang,nclusters,engines,expansion,peers,result);
   }
 
   int cli::get_similar_txt_snippet(const std::string &seeks_url,

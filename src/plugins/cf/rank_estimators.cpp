@@ -26,11 +26,16 @@
 #include "db_uri_record.h"
 #include "udb_client.h"
 #include "udbs_err.h"
+#include "seeks_snippet.h"
 #include "mrf.h"
 #include "urlmatch.h"
 #include "miscutil.h"
 #include "mem_utils.h"
 #include "errlog.h"
+
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+#include "img_search_snippet.h"  // XXX: for IMAGE type only.
+#endif
 
 #include <assert.h>
 #include <math.h>
@@ -478,7 +483,9 @@ namespace seeks_plugins
         while(mit!=qd->_visited_urls->end())
           {
             vurl_data *vd = (*mit).second;
-            if (!vd->_title.empty() && vd->_url.find("http")!=std::string::npos) // avoid recommended hosts.
+            if (!vd->_title.empty()
+                && (!cf_configuration::_config->_use_http_urls
+                    || vd->_url.find("http")!=std::string::npos)) // avoid recommended hosts.
               {
                 std::string surl = urlmatch::strip_url(vd->_url);
                 if ((qit = inv_qdata.find(surl.c_str()))!=inv_qdata.end())
@@ -651,7 +658,7 @@ namespace seeks_plugins
     if (_swf)
       {
         mutex_lock(&_est_mutex);
-        seeks_proxy::_lsh_config->get_wordlist(lang);
+        swl = seeks_proxy::_lsh_config->get_wordlist(lang);
         mutex_unlock(&_est_mutex);
       }
 
@@ -687,6 +694,15 @@ namespace seeks_plugins
             ++hit;
           }
       }
+  }
+
+  // factory.
+  rank_estimator* rank_estimator::create(const std::string &type,
+                                         const bool &swf)
+  {
+    if (type == "sre")
+      return new simple_re(swf);
+    return NULL; // beware.
   }
 
   /*- simple_re -*/
@@ -842,6 +858,8 @@ namespace seeks_plugins
         cumul_halo_weights += simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
         ++hit;
       }
+    if (cumul_halo_weights == 0) // no user data, so we need a reference weight.
+      cumul_halo_weights = simple_re::query_halo_weight(query,query,0,swl);
 
     // reset hits and weights.
     float sum_se_ranks = 0.0;
@@ -889,19 +907,26 @@ namespace seeks_plugins
         posteriors[j] = 0.0;
 
         float qpost = 0.0;
-        if ((iit = inv_qdata->find(surl.c_str())) == inv_qdata->end())
+        if ((iit = inv_qdata->find(surl.c_str())) == inv_qdata->end())  // there's nothing known about this snippet for personnalizing it.
           {
             qpost = base_weight;
-            if (qpost > 0.0)
-              {
-                qpost *= cumul_halo_weights;
-                posteriors[j] = qpost; // boosting over similar queries.
-              }
+            //if (qpost > 0.0)
+            //{
+            //qpost *= cumul_halo_weights;
+            posteriors[j] = qpost; // boosting over similar queries.
+            //}
           }
-        else
+        else // this snippet is known.
           {
-            float effect_weights = 0.0;
+            /**
+             * below, we're boosting score over similar queries,
+             * and combining everything with a distance-weighted mean filter.
+             * This means that the overall score for a snippet is that of the
+             * distance-weighted mean over similar queries.
+             */
+            float sumwq = 0.0;
             std::vector<query_data*> vqd = (*iit).second;
+            float vsize = static_cast<double>(vqd.size()) + 1.0;
             std::vector<query_data*>::const_iterator qit = vqd.begin();
             while(qit!=vqd.end())
               {
@@ -911,19 +936,36 @@ namespace seeks_plugins
                 if (qpost > 0.0)
                   {
                     float weight = simple_re::query_halo_weight(query,qd->_query,qd->_radius,swl);
-                    effect_weights += weight;
-                    qpost *= weight;
-                    posteriors[j] += qpost; // boosting over similar queries.
+                    float weightq = 1.0;
+                    std::vector<query_data*>::const_iterator qit2 = vqd.begin();
+                    while(qit2!=vqd.end())
+                      {
+                        query_data *qd2 = (*qit);
+                        if (qd == qd2)
+                          {
+                            ++qit2;
+                            continue;
+                          }
+                        weightq += simple_re::query_halo_weight(qd2->_query,qd->_query,qd->_radius,swl);
+                        ++qit2;
+                      }
+                    sumwq += (vsize-1.0) * weightq;
+                    qpost *= weight * (vsize-1.0) * weightq;
+                    posteriors[j] += qpost ; // distance-weighted boosting over similar queries.
                   }
                 ++qit;
               }
-            posteriors[j] += base_weight * (cumul_halo_weights - effect_weights); // compensation wrt the structure of the query similarity space.
+            posteriors[j] /= sumwq;
           }
 
         // estimate the url prior.
         float prior =  1.0 / (log(nuri + 1.0) + 1.0);
-        if (rsc.empty() && nuri != 0 && (*vit)->_doc_type != VIDEO_THUMB
-            && (*vit)->_doc_type != TWEET && (*vit)->_doc_type != IMAGE) // not empty or type with not enough competition on domains.
+        if (rsc.empty() && nuri != 0 && (*vit)->_doc_type != seeks_doc_type::VIDEO_THUMB
+            && (*vit)->_doc_type != seeks_doc_type::TWEET
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+            && (*vit)->_doc_type != seeks_img_doc_type::IMAGE // not empty or type with not enough competition on domains.
+#endif
+           )
           prior = estimate_prior((*vit),filter->empty() ? NULL:filter,url,host,nuri);
         posteriors[j] *= prior;
         posteriors[j] *= (*vit)->_engine.size(); // accounts for multiple sources.
@@ -943,7 +985,7 @@ namespace seeks_plugins
     // wrapup.
     if (sum_posteriors > 0.0)
       {
-        for (size_t k=0; k<ns; k++)
+        for (size_t k=0; k<snippets.size(); k++)
           {
             //posteriors[k] /= sum_posteriors; // normalize.
             snippets.at(k)->_seeks_rank += posteriors[k]; // additive filter.
@@ -1018,8 +1060,11 @@ namespace seeks_plugins
       return posterior;
 
     hash_map<uint32_t,bool,id_hash_uint>::const_iterator hit;
-    if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == VIDEO_THUMB || s->_doc_type == TWEET
-        || s->_doc_type == IMAGE) // empty or type with not enough competition on domains.
+    if (!vd_host || vd_host->_hits < 0 || !s || s->_doc_type == seeks_doc_type::VIDEO_THUMB || s->_doc_type == seeks_doc_type::TWEET
+#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+        || s->_doc_type == seeks_img_doc_type::IMAGE // empty or type with not enough competition on domains.
+#endif
+       )
       filtered = true;
     else if (filter && filtered)
       filtered = true;
@@ -1061,7 +1106,9 @@ namespace seeks_plugins
     float prior = 0.0;
     float furi = static_cast<float>(nuri);
     std::string purl = uri_capture_element::prepare_uri(surl);
-    std::string phost = uri_capture_element::prepare_uri(host);
+    std::string phost;
+    if (!host.empty())
+      phost = uri_capture_element::prepare_uri(host);
 
     if (filter)
       {
@@ -1091,7 +1138,7 @@ namespace seeks_plugins
     if (dbr)
       delete dbr;
     dbr = NULL;
-    if (s)
+    if (s && !phost.empty())
       dbr = seeks_proxy::_user_db->find_dbr(phost,uc_str);
 
     // XXX: code below is too aggressive and pushes other results too quickly
@@ -1204,8 +1251,9 @@ namespace seeks_plugins
             vurl_data *vd = (*vit).second;
 
             // we do not recommend hosts.
-            if (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0
-                || miscutil::strncmpic(vd->_url.c_str(),"https://",8) == 0) // avoids pure hosts stored for statistical computations.
+            if (!cf_configuration::_config->_use_http_urls
+                || (miscutil::strncmpic(vd->_url.c_str(),"http://",7) == 0
+                    || miscutil::strncmpic(vd->_url.c_str(),"https://",8) == 0)) // avoids pure hosts stored for statistical computations.
               {
                 // update or create snippet.
                 search_snippet *sp = new search_snippet();
@@ -1250,6 +1298,7 @@ namespace seeks_plugins
     while(hit!=rsnippets.end())
       {
         if (((*hit).second->_engine.has_feed("seeks")
+             && cf_configuration::_config->_use_http_urls
              && (*hit).second->_url.find("http") == std::string::npos)
             || (*hit).second->_title.empty())
           {
@@ -1429,7 +1478,8 @@ namespace seeks_plugins
   {
     str_chain s1(q1,0,true);
     str_chain s2(q2,0,true);
-    return log(1.0 + std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
+    //return log(1.0 + std::max(s1.size(),s2.size()) - q2_radius) / (log(simple_re::query_distance(s1,s2,swl) + 1.0) + 1.0);
+    return 1.0 / (log(simple_re::query_distance(s1,s2,swl)+1.0)+1.0);
   }
 
   void simple_re::build_up_filter(hash_map<const char*,query_data*,hash<const char*>,eqstr> *qdata,

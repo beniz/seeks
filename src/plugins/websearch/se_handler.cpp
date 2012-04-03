@@ -36,11 +36,13 @@
 #include "se_parser_yauba.h"
 #include "se_parser_blekko.h"
 #include "se_parser_doku.h"
+#include "se_parser_dotclear.h"
 #include "se_parser_mediawiki.h"
 #include "se_parser_osearch.h"
 #include "se_parser_delicious.h"
 #include "se_parser_wordpress.h"
 #include "se_parser_redmine.h"
+#include "se_parser_bing_api.h"
 
 #include <cctype>
 #include <pthread.h>
@@ -76,13 +78,9 @@ namespace seeks_plugins
                             std::string &url, const query_context *qc)
   {
     std::string q_ggle = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_ggle,"%query",qenc_str);
+    miscutil::replace_in_string(q_ggle,"%query",qc->_url_enc_query);
 
     // expansion = result page called...
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -122,13 +120,9 @@ namespace seeks_plugins
                             std::string &url, const query_context *qc)
   {
     std::string q_bing = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_bing,"%query",qenc_str);
+    miscutil::replace_in_string(q_bing,"%query",qc->_url_enc_query);
 
     // page.
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -161,7 +155,6 @@ namespace seeks_plugins
                              std::string &url, const query_context *qc)
   {
     std::string q_yahoo = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // page.
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -174,10 +167,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_yahoo,"%lang",qc->_auto_lang);
 
     // query (don't move it, depends on domain name, which is language dependent).
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_yahoo,"%query",qenc_str);
+    miscutil::replace_in_string(q_yahoo,"%query",qc->_url_enc_query);
 
     // log the query.
     errlog::log_error(LOG_LEVEL_DEBUG, "Querying yahoo: %s", q_yahoo.c_str());
@@ -198,13 +188,9 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc)
   {
     std::string q_exa = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_exa,"%query",qenc_str);
+    miscutil::replace_in_string(q_exa,"%query",qc->_url_enc_query);
 
     // page
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -241,13 +227,9 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc)
   {
     std::string q_twit = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_twit,"%query",qenc_str);
+    miscutil::replace_in_string(q_twit,"%query",qc->_url_enc_query);
 
     // page.
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -279,13 +261,9 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc)
   {
     std::string q_yt = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_yt,"%query",qenc_str);
+    miscutil::replace_in_string(q_yt,"%query",qc->_url_enc_query);
 
     // page.
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -317,13 +295,9 @@ namespace seeks_plugins
                               std::string &url, const query_context *qc)
   {
     std::string q_blekko = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_blekko,"%query",qenc_str);
+    miscutil::replace_in_string(q_blekko,"%query",qc->_url_enc_query);
 
     //page
     /* const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -352,13 +326,9 @@ namespace seeks_plugins
     static std::string lang[8][2] = {{"it","it"},{"fr","fr"},{"de","de"},{"hi","in"}, {"pt","br"}, {"br","br"},{"ru","ru"}, {"zh","cn"}};
 
     std::string q_yau = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_yau,"%query",qenc_str);
+    miscutil::replace_in_string(q_yau,"%query",qc->_url_enc_query);
 
     // page
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -399,13 +369,9 @@ namespace seeks_plugins
                                    std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_dm,"%query",qenc_str);
+    miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
 
     // page.
     const char *expansion = miscutil::lookup(parameters,"expansion");
@@ -432,6 +398,29 @@ namespace seeks_plugins
                             std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
+
+    // query.
+    miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
+
+    // log the query.
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying doku: %s", q_dm.c_str());
+
+    url = q_dm;
+  }
+
+  se_dotclear::se_dotclear()
+    :search_engine()
+  {
+  }
+
+  se_dotclear::~se_dotclear()
+  {
+  }
+
+  void se_dotclear::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                std::string &url, const query_context *qc)
+  {
+    std::string q_dm = url;
     const char *query = miscutil::lookup(parameters,"q");
 
     // query.
@@ -441,7 +430,7 @@ namespace seeks_plugins
     miscutil::replace_in_string(q_dm,"%query",qenc_str);
 
     // log the query.
-    errlog::log_error(LOG_LEVEL_DEBUG, "Querying doku: %s", q_dm.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying dotclear: %s", q_dm.c_str());
 
     url = q_dm;
   }
@@ -459,13 +448,9 @@ namespace seeks_plugins
                                  std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_dm,"%query",qenc_str);
+    miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
 
     // lang.
     if (websearch::_wconfig->_lang == "auto")
@@ -491,13 +476,14 @@ namespace seeks_plugins
                                    std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_dm,"%query",qenc_str);
+    miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
+
+    // lang.
+    if (websearch::_wconfig->_lang == "auto")
+      miscutil::replace_in_string(q_dm,"%lang",qc->_auto_lang);
+    else miscutil::replace_in_string(q_dm,"%lang",websearch::_wconfig->_lang);
 
     // log the query.
     errlog::log_error(LOG_LEVEL_DEBUG, "Querying opensearch rss: %s", q_dm.c_str());
@@ -518,13 +504,14 @@ namespace seeks_plugins
                                     std::string &url, const query_context *qc)
   {
     std::string q_dm = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    char *qenc = encode::url_encode(query);
-    std::string qenc_str = std::string(qenc);
-    free(qenc);
-    miscutil::replace_in_string(q_dm,"%query",qenc_str);
+    miscutil::replace_in_string(q_dm,"%query",qc->_url_enc_query);
+
+    // lang.
+    if (websearch::_wconfig->_lang == "auto")
+      miscutil::replace_in_string(q_dm,"%lang",qc->_auto_lang);
+    else miscutil::replace_in_string(q_dm,"%lang",websearch::_wconfig->_lang);
 
     // log the query.
     errlog::log_error(LOG_LEVEL_DEBUG, "Querying opensearch atom: %s", q_dm.c_str());
@@ -545,10 +532,9 @@ namespace seeks_plugins
                                  std::string &url, const query_context *qc)
   {
     std::string q_dl = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    miscutil::replace_in_string(q_dl,"%query",std::string(query));
+    miscutil::replace_in_string(q_dl,"%query",qc->_url_enc_query);
 
     const char *expansion = miscutil::lookup(parameters,"expansion");
     int pp = (strcmp(expansion,"")!=0) ? atoi(expansion) : 1;
@@ -574,10 +560,9 @@ namespace seeks_plugins
                                  std::string &url, const query_context *qc)
   {
     std::string q_dl = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    miscutil::replace_in_string(q_dl,"%query",std::string(query));
+    miscutil::replace_in_string(q_dl,"%query",qc->_url_enc_query);
 
     /*const char *expansion = miscutil::lookup(parameters,"expansion");
     int pp = (strcmp(expansion,"")!=0) ? atoi(expansion) : 1;
@@ -603,10 +588,9 @@ namespace seeks_plugins
                                std::string &url, const query_context *qc)
   {
     std::string q_dl = url;
-    const char *query = miscutil::lookup(parameters,"q");
 
     // query.
-    miscutil::replace_in_string(q_dl,"%query",std::string(query));
+    miscutil::replace_in_string(q_dl,"%query",qc->_url_enc_query);
 
     /*const char *expansion = miscutil::lookup(parameters,"expansion");
     int pp = (strcmp(expansion,"")!=0) ? atoi(expansion) : 1;
@@ -619,6 +603,36 @@ namespace seeks_plugins
     url = q_dl;
   }
 
+  se_bing_api::se_bing_api()
+    : search_engine()
+  {
+  }
+
+  se_bing_api::~se_bing_api()
+  {
+  }
+
+  void se_bing_api::query_to_se(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                std::string &url, const query_context *qc)
+  {
+    std::string q_bing = url;
+
+    // query.
+    miscutil::replace_in_string(q_bing,"%query",qc->_url_enc_query);
+
+    // number of results.
+    int num = websearch::_wconfig->_Nr; // by default.
+    std::string num_str = miscutil::to_string(num);
+    miscutil::replace_in_string(q_bing,"%num",num_str);
+
+    // language.
+    miscutil::replace_in_string(q_bing,"%lang",qc->_auto_lang_reg);
+
+    // log the query.
+    errlog::log_error(LOG_LEVEL_DEBUG, "Querying bing api: %s", q_bing.c_str());
+
+    url = q_bing;
+  }
 
   se_ggle se_handler::_ggle = se_ggle();
   se_bing se_handler::_bing = se_bing();
@@ -630,12 +644,14 @@ namespace seeks_plugins
   se_blekko se_handler::_blekko = se_blekko();
   se_dailymotion se_handler::_dailym = se_dailymotion();
   se_doku se_handler::_doku = se_doku();
+  se_dotclear se_handler::_dotclear = se_dotclear();
   se_mediawiki se_handler::_mediaw = se_mediawiki();
   se_osearch_rss se_handler::_osearch_rss = se_osearch_rss();
   se_osearch_atom se_handler::_osearch_atom = se_osearch_atom();
   se_delicious se_handler::_delicious = se_delicious();
   se_wordpress se_handler::_wordpress = se_wordpress();
   se_redmine se_handler::_redmine = se_redmine();
+  se_bing_api se_handler::_bing_api = se_bing_api();
 
   std::vector<CURL*> se_handler::_curl_handlers = std::vector<CURL*>();
   sp_mutex_t se_handler::_curl_mutex;
@@ -807,6 +823,8 @@ namespace seeks_plugins
           _dailym.query_to_se(parameters,url,qc);
         else if (se._name == "dokuwiki")
           _doku.query_to_se(parameters,url,qc);
+        else if (se._name == "dotclear")
+          _dotclear.query_to_se(parameters,url,qc);
         else if (se._name == "mediawiki")
           _mediaw.query_to_se(parameters,url,qc);
         else if (se._name == "opensearch_rss")
@@ -819,6 +837,8 @@ namespace seeks_plugins
           _wordpress.query_to_se(parameters,url,qc);
         else if (se._name == "redmine")
           _redmine.query_to_se(parameters,url,qc);
+        else if (se._name == "bing_api")
+          _bing_api.query_to_se(parameters,url,qc);
         else if (se._name == "seeks")
           {}
         else if (se._name == "dummy")
@@ -862,7 +882,6 @@ namespace seeks_plugins
                     args->_snippets = new std::vector<search_snippet*>();
                     args->_offset = count_offset;
                     args->_qr = qr;
-                    //parser_args.push_back(args);
 
                     pthread_t ps_thread;
                     int err = pthread_create(&ps_thread, NULL,  // default attribute is PTHREAD_CREATE_JOINABLE
@@ -942,7 +961,8 @@ namespace seeks_plugins
       }
     try
       {
-        if (args._se._name == "youtube" || args._se._name == "dailymotion")
+        if (args._se._name == "youtube" || args._se._name == "dailymotion"
+            || args._se._name == "bing_api")
           se->parse_output_xml(args._output,args._snippets,args._offset);
         else se->parse_output(args._output,args._snippets,args._offset);
         errlog::log_error(LOG_LEVEL_DEBUG,"parser %s: %u snippets",
@@ -1003,6 +1023,8 @@ namespace seeks_plugins
       sep = new se_parser_dailymotion(se.get_url(i));
     else if (se._name == "dokuwiki")
       sep = new se_parser_doku(se.get_url(i));
+    else if (se._name == "dotclear")
+      sep = new se_parser_dotclear(se.get_url(i));
     else if (se._name == "mediawiki")
       sep = new se_parser_mediawiki(se.get_url(i),lang);
     else if (se._name == "opensearch_rss")
@@ -1015,6 +1037,8 @@ namespace seeks_plugins
       sep = new se_parser_wordpress(se.get_url(i));
     else if (se._name == "redmine")
       sep = new se_parser_redmine(se.get_url(i));
+    else if (se._name == "bing_api")
+      sep = new se_parser_bing_api(se.get_url(i));
     else if (se._name == "seeks")
       {}
     else if (se._name == "dummy")

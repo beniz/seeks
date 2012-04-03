@@ -40,7 +40,7 @@ namespace seeks_plugins
   float oskmeans::_nuf = 0.01;
 
   oskmeans::oskmeans()
-      :clustering(),_iterations(0),_lambda(0.0),_rss(0.0),_t(0)
+    :clustering(),_iterations(0),_lambda(0.0),_rss(0.0),_t(0)
   {
 #ifdef DEBUG
     std::cerr << "[Debug]: oskmeans created: " << _points.size() << " points\n";
@@ -50,7 +50,7 @@ namespace seeks_plugins
   oskmeans::oskmeans(query_context *qc,
                      const std::vector<search_snippet*> &snippets,
                      const short &K)
-      :clustering(qc,snippets,K),_iterations(0),_lambda(0.0),_rss(0.0),_t(0)
+    :clustering(qc,snippets,K),_iterations(0),_lambda(0.0),_rss(0.0),_t(0)
   {
 #ifdef DEBUG
     std::cerr << "[Debug]: oskmeans created: " << _points.size() << " points -- "
@@ -81,7 +81,10 @@ namespace seeks_plugins
 
         // set cluster's centroid.
         hash_map<uint32_t,float,id_hash_uint> *point_features = get_point_features(gen_point_pos);
-        _clusters[c]._c._features = *point_features;
+        if (point_features != NULL)
+          _clusters[c]._c._features = *point_features;
+        else
+          _clusters[c]._c._features.clear();
       }
   }
 
@@ -208,7 +211,11 @@ namespace seeks_plugins
 
         // set cluster's centroid.
         hash_map<uint32_t,float,id_hash_uint> *point_features = get_point_features(cl);
-        _clusters[c]._c._features = *point_features;
+
+        if (point_features != NULL)
+          _clusters[c]._c._features = *point_features;
+        else
+          _clusters[c]._c._features.clear();
       }
   }
 

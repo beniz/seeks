@@ -39,5 +39,7 @@ typedef int sp_err;
 CGI actions editor.                      */
 #define SP_ERR_COMPRESS   6 /**< Error on decompression                   */
 #define SP_ERR_NOT_FOUND  7 /**< Error resource not found                 */
+#define SP_ERR_UNAUTH     8 /**< Error unauthorized resource access       */
+#define SP_ERR_FORBID     9 /**< Error forbidden resource access          */
 
 #endif

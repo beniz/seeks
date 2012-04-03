@@ -17,12 +17,14 @@
  */
 
 #include "cf_configuration.h"
+#include "sweeper.h"
 #include "miscutil.h"
 #include "urlmatch.h"
 #include "errlog.h"
 
 #include <iostream>
 
+using sp::sweeper;
 using sp::miscutil;
 using sp::urlmatch;
 using sp::errlog;
@@ -38,6 +40,9 @@ namespace seeks_plugins
 #define hash_post_radius              2436628877ul  /* "post-radius" */
 #define hash_post_ua                  1442804836ul  /* "post-ua" */
 #define hash_stop_words_filtering     4002206625ul  /* "stop-words-filtering" */
+#define hash_remote_post              4059800377ul  /* "remote-post" */
+#define hash_use_http_url             1825269331ul  /* "use-http-urls-only" */
+#define hash_cf_estimator             1689657696ul  /* "cf-estimator" */
 
   cf_configuration* cf_configuration::_config = NULL;
 
@@ -59,6 +64,17 @@ namespace seeks_plugins
     dead_peer::_pl = NULL;
     dead_peer::_dpl = NULL;
     delete _pl;
+
+    // dead peers need to be unregistered from sweeper first.
+    hash_map<const char*,peer*,hash<const char*>,eqstr>::iterator hit
+    = _dpl->_peers.begin();
+    while(hit!=_dpl->_peers.end())
+      {
+        dead_peer *dp = dynamic_cast<dead_peer*>((*hit).second);
+        if (dp)
+          sweeper::unregister_sweepable(dp);
+        ++hit;
+      }
     delete _dpl;
   }
 
@@ -72,6 +88,9 @@ namespace seeks_plugins
     _post_radius = 5;
     _post_url_ua = "Mozilla/5.0 (X11; Linux x86_64; rv:2.0.1) Gecko/20100101 Firefox/4.0.1"; // default.
     _stop_words_filtering = false;
+    _remote_post = true;
+    _use_http_urls = true;
+    _estimator = "sre";
   }
 
   void cf_configuration::handle_config_cmd(char *cmd, const uint32_t &cmd_hash, char *arg,
@@ -159,6 +178,24 @@ namespace seeks_plugins
         _stop_words_filtering = static_cast<bool>(atoi(arg));
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Whether to filter similar queries with stop words");
+        break;
+
+      case hash_remote_post:
+        _remote_post = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to allow remote posting of results");
+        break;
+
+      case hash_use_http_url:
+        _use_http_urls = static_cast<bool>(atoi(arg));
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Whether to allow only HTTP URLs or to allow generic item UIDs");
+        break;
+
+      case hash_cf_estimator:
+        _estimator = arg;
+        configuration_spec::html_table_row(_config_args,cmd,arg,
+                                           "Estimator used by the collaborative filter");
         break;
 
       default:

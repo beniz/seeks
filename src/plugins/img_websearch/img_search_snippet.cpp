@@ -39,23 +39,23 @@ namespace seeks_plugins
 {
 
   img_search_snippet::img_search_snippet()
-    :search_snippet()
+    :seeks_snippet()
 #ifdef FEATURE_OPENCV2
     ,_surf_keypoints(NULL),_surf_descriptors(NULL),_surf_storage(NULL)
 #endif
     , _cached_image(NULL)
   {
-    _doc_type = IMAGE;
+    _doc_type = seeks_img_doc_type::IMAGE;
   }
 
   img_search_snippet::img_search_snippet(const short &rank)
-    :search_snippet(rank)
+    :seeks_snippet(rank)
 #ifdef FEATURE_OPENCV2
     ,_surf_keypoints(NULL),_surf_descriptors(NULL)
 #endif
     , _cached_image(NULL)
   {
-    _doc_type = IMAGE;
+    _doc_type = seeks_img_doc_type::IMAGE;
 #ifdef FEATURE_OPENCV2
     _surf_storage = cvCreateMemStorage(0);
 #endif
@@ -319,7 +319,7 @@ namespace seeks_plugins
   void img_search_snippet::merge_img_snippets(img_search_snippet *s1,
       const img_search_snippet *s2)
   {
-    search_snippet::merge_snippets(s1,s2);
+    s1->merge_snippets(s2);
 
     if (s1->_img_engine.equal(s2->_img_engine))
       return;

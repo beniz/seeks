@@ -48,13 +48,17 @@ namespace seeks_plugins
       peer_list *_pl; /**< list of peers for collaborative filtering. */
       peer_list *_dpl; /**< list of dead peers, used in operations, to check/uncheck dead peers from the list. */
       int _dead_peer_check; /**< interval of time between two dead peer checks. */
-      short _dead_peer_retries; /**< number of retries before marking a peer as dead. */
+      int _dead_peer_retries; /**< number of retries before marking a peer as dead. */
 
       bool _post_url_check; /**< whether to ping on posted URLs. */
       std::string _post_url_ua; /**< default 'User-Agent' header for retrieving posted URLS. */
       int _post_radius; /**< similarity impact radius of posted queries. */
 
-      bool _stop_words_filtering; /** < filter similar queries with stop words. */
+      bool _stop_words_filtering; /**< filter similar queries with stop words. */
+      bool _remote_post; /**< allow/disallow remote posting of results. */
+      bool _use_http_urls; /**< whether to use HTTP URLs filtering, with domain names weight. */
+
+      std::string _estimator; /**< estimator model to be used. */
 
       static cf_configuration *_config;
   };

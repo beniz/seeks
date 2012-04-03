@@ -59,7 +59,8 @@ namespace seeks_plugins
           search_snippet *&ref_sp,
           std::vector<search_snippet*> &sorted_snippets) throw (sp_exception);
 
-      static void group_by_types(query_context *qc, cluster *&clusters, short &K);
+      //static void group_by_types(query_context *qc, cluster *&clusters, short &K);
+      static void group_by_types(query_context *qc, hash_map<int,cluster*> *clusters);
 
 #if defined(PROTOBUF) && defined(TC)
       static void th_personalize(pers_arg *arg);

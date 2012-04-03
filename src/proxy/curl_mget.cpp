@@ -144,7 +144,7 @@ namespace sp
         if (status != 0)  // an error occurred.
           {
             arg->_status = status;
-            errlog::log_error(LOG_LEVEL_ERROR, "curl error: %s", errorbuffer);
+            errlog::log_error(LOG_LEVEL_ERROR, "curl error on url %s: %s",arg->_url,errorbuffer);
 
             if (arg->_output)
               {
@@ -248,6 +248,7 @@ namespace sp
   }
 
   std::string* curl_mget::www_simple(const std::string &url,
+                                     std::list<const char*> *headers,
                                      int &status,
                                      const std::string &http_method,
                                      std::string *content,
@@ -260,12 +261,20 @@ namespace sp
     urls.reserve(1);
     urls.push_back(url);
     std::vector<int> statuses;
-    www_mget(urls,1,NULL,proxy_addr,proxy_port,statuses,NULL,NULL,http_method);
+    std::vector<std::list<const char*>*> *lheaders = NULL;
+    if (headers)
+      {
+        lheaders = new std::vector<std::list<const char*>*>();
+        lheaders->push_back(headers);
+      }
+    www_mget(urls,1,lheaders,proxy_addr,proxy_port,statuses,NULL,NULL,http_method);
     if (statuses[0] != 0)
       {
         // failed connection.
         status = statuses[0];
         delete[] _outputs;
+        if (headers)
+          delete lheaders;
         std::string msg = "failed connection to " + url;
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         return NULL;
@@ -275,6 +284,8 @@ namespace sp
         // no result.
         status = statuses[0];
         std::string msg = "no output from " + url;
+        if (headers)
+          delete lheaders;
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         delete _outputs[0];
         delete[] _outputs;
@@ -283,6 +294,8 @@ namespace sp
     status = statuses[0];
     std::string *result = _outputs[0];
     delete[] _outputs;
+    if (headers)
+      delete lheaders;
     return result;
   }
 

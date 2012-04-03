@@ -65,8 +65,6 @@ namespace seeks_plugins
       long _se_transfer_timeout; /**< transfer timeout when connecting to a search engine. */
       long _se_connect_timeout; /**< connection timeout when connecting to a search engine. */
 
-      long _ct_transfer_timeout; /**< transfer timeout when fetching content for analysis & caching. */
-      long _ct_connect_timeout;  /**< connection timeout when fetching content for analysis & caching. */
       int _max_expansions; /**< max number of allowed expansions. Prevents attacks. */
 
       bool _extended_highlight;
@@ -78,8 +76,10 @@ namespace seeks_plugins
       std::string _result_message; /**< configurable message / warning to appear in a panel next to the results. */
       bool _dyn_ui; /**< user interface default, dynamic or static. */
       std::string _ui_theme; /**< User Interface theme. */
-      short _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
+      int _num_reco_queries; /**< Max number of recommended queries returned / rendered. */
       int _num_recent_queries; /**< Max number of recent queries returned / rendered. */
+      bool _cross_query_ri; /**< cross-query result insertion. */
+      uint32_t _max_summary_length; /**< maximum result summary length. */
   };
 
 } /* end of namespace. */

@@ -21,6 +21,7 @@
 #include "cgisimple.h"
 #include "miscutil.h"
 #include "cgi.h"
+#include "websearch.h"
 #include "query_context.h"
 #include "xml_renderer_private.h"
 
@@ -44,43 +45,43 @@ using namespace xml_renderer_private;
 
 namespace seeks_plugins
 {
-  sp_err xml_renderer::render_engines(const feeds &engines, 
-				      const bool &img,
-				      xmlNodePtr parent)
+  sp_err xml_renderer::render_engines(const feeds &engines,
+                                      const bool &img,
+                                      xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
     hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
     xmlNodePtr eng=NULL;
     std::set<feed_parser,feed_parser::lxn>::const_iterator it
-      = engines._feedset.begin();
+    = engines._feedset.begin();
     while(it!=engines._feedset.end())
-      {	
+      {
         std::set<std::string>::const_iterator sit = (*it)._urls.begin();
         while(sit!=(*it)._urls.end())
           {
-	    if (!img)
-	      {
-		if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
-		    != websearch::_wconfig->_se_options.end())
-		  {
-		    eng=xmlNewNode(NULL,BAD_CAST "engine");
-		    xmlAddChild(parent,eng);
-		    xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
-		  }
-	      }
+            if (!img)
+              {
+                if ((hit = websearch::_wconfig->_se_options.find((*sit).c_str()))
+                    != websearch::_wconfig->_se_options.end())
+                  {
+                    eng=xmlNewNode(NULL,BAD_CAST "engine");
+                    xmlAddChild(parent,eng);
+                    xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
+                  }
+              }
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
             else
               {
-		if ((hit = img_websearch::_iwconfig->_se_options.find((*sit).c_str()))
+                if ((hit = img_websearch::_iwconfig->_se_options.find((*sit).c_str()))
                     != img_websearch::_iwconfig->_se_options.end())
-		  {
-		    eng=xmlNewNode(NULL,BAD_CAST "engine");
-		    xmlAddChild(parent,eng);
-		    xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
-		  }
-	      }
+                  {
+                    eng=xmlNewNode(NULL,BAD_CAST "engine");
+                    xmlAddChild(parent,eng);
+                    xmlNewProp(eng,BAD_CAST "value",BAD_CAST (*hit).second._id.c_str());
+                  }
+              }
 #endif
-	    ++sit;
+            ++sit;
           }
         ++it;
       }
@@ -88,14 +89,14 @@ namespace seeks_plugins
   }
 
   sp_err xml_renderer::render_node_options(client_state *csp,
-					   xmlNodePtr parent)
+      xmlNodePtr parent)
   {
-    sp_err err=SP_ERR_OK;    
+    sp_err err=SP_ERR_OK;
     xmlNodePtr feed, feed_url;
-    
+
     // system options.
     hash_map<const char*, const char*, hash<const char*>, eqstr> *exports
-      = cgi::default_exports(csp,"");
+    = cgi::default_exports(csp,"");
     const char *value = miscutil::lookup(exports,"version");
     if (value)
       xmlNewProp(parent,BAD_CAST "version",BAD_CAST value);
@@ -104,18 +105,18 @@ namespace seeks_plugins
         value = miscutil::lookup(exports,"my-ip-address");
         if (value)
           {
-	    xmlNewProp(parent,BAD_CAST "my-ip-adress",BAD_CAST value);
+            xmlNewProp(parent,BAD_CAST "my-ip-adress",BAD_CAST value);
           }
       }
     value = miscutil::lookup(exports,"code-status");
     if (value)
       {
-	xmlNewProp(parent,BAD_CAST "code-status",BAD_CAST value);
+        xmlNewProp(parent,BAD_CAST "code-status",BAD_CAST value);
       }
     value = miscutil::lookup(exports,"admin-address");
     if (value)
       {
-	xmlNewProp(parent,BAD_CAST "admin-address",BAD_CAST value);
+        xmlNewProp(parent,BAD_CAST "admin-address",BAD_CAST value);
       }
     xmlNewProp(parent,BAD_CAST "url-source-code",BAD_CAST csp->_config->_url_source_code.c_str());
 
@@ -123,39 +124,39 @@ namespace seeks_plugins
 
     /*- websearch options. -*/
     // thumbs.
-    
+
     std::string thumbs;
     xmlNewProp(parent,BAD_CAST "thumbs",
-	       BAD_CAST (websearch::_wconfig->_thumbs ? "on" :"off"));
+               BAD_CAST (websearch::_wconfig->_thumbs ? "on" :"off"));
     xmlNewProp(parent,BAD_CAST "content-analysis",
-	       BAD_CAST (websearch::_wconfig->_content_analysis ? "on" : "off"));
+               BAD_CAST (websearch::_wconfig->_content_analysis ? "on" : "off"));
     xmlNewProp(parent,BAD_CAST "clustering",
-	       BAD_CAST (websearch::_wconfig->_clustering ? "on" : "off"));
+               BAD_CAST (websearch::_wconfig->_clustering ? "on" : "off"));
 
     /* feeds options */
     std::list<std::string> se_options;
     hash_map<const char*,feed_url_options,hash<const char*>,eqstr>::const_iterator hit;
     std::set<feed_parser,feed_parser::lxn>::const_iterator fit
-      = websearch::_wconfig->_se_enabled._feedset.begin();
+    = websearch::_wconfig->_se_enabled._feedset.begin();
     while(fit!=websearch::_wconfig->_se_enabled._feedset.end())
       {
-	feed=xmlNewNode(NULL,BAD_CAST "feed");
-	xmlAddChild(parent,feed);
-	xmlNewProp(feed,BAD_CAST "name",BAD_CAST ((*fit)._name.c_str()));
+        feed=xmlNewNode(NULL,BAD_CAST "feed");
+        xmlAddChild(parent,feed);
+        xmlNewProp(feed,BAD_CAST "name",BAD_CAST ((*fit)._name.c_str()));
         std::list<std::string> se_urls;
         std::set<std::string>::const_iterator sit
         = (*fit)._urls.begin();
         while(sit!=(*fit)._urls.end())
           {
-	    feed_url=xmlNewNode(NULL,BAD_CAST "url");
-	    xmlAddChild(feed,feed_url);
+            feed_url=xmlNewNode(NULL,BAD_CAST "url");
+            xmlAddChild(feed,feed_url);
             std::string url = (*sit);
             if ((hit=websearch::_wconfig->_se_options.find(url.c_str()))
                 !=websearch::_wconfig->_se_options.end())
               {
-		xmlNewProp(feed_url,BAD_CAST "value",BAD_CAST ((*hit).second._id.c_str()));
-		if ((*hit).second._default)
-		  xmlNewProp(feed_url,BAD_CAST "default",BAD_CAST "yes");
+                xmlNewProp(feed_url,BAD_CAST "value",BAD_CAST ((*hit).second._id.c_str()));
+                if ((*hit).second._default)
+                  xmlNewProp(feed_url,BAD_CAST "default",BAD_CAST "yes");
               }
             ++sit;
           }
@@ -165,17 +166,17 @@ namespace seeks_plugins
   }
 
   sp_err xml_renderer::render_suggested_queries(const query_context *qc,
-						     const int &nsuggs,
-						     xmlNodePtr parent)
+      const int &nsuggs,
+      xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
     if (!qc->_suggestions.empty())
       {
         int k = 0;
-	xmlNodePtr sugg = NULL;
+        xmlNodePtr sugg = NULL;
         std::multimap<double,std::string,std::less<double> >::const_iterator mit
-	  = qc->_suggestions.begin();
-	while(mit!=qc->_suggestions.end())
+        = qc->_suggestions.begin();
+        while(mit!=qc->_suggestions.end())
           {
             std::string sugg_str = (*mit).second;
             miscutil::replace_in_string(sugg_str,"\\","\\\\");
@@ -183,9 +184,9 @@ namespace seeks_plugins
             miscutil::replace_in_string(sugg_str,"\t","");
             miscutil::replace_in_string(sugg_str,"\r","");
             miscutil::replace_in_string(sugg_str,"\n","");
-	    sugg=xmlNewNode(NULL, BAD_CAST "suggested_query");
-	    xmlAddChild(parent,sugg);
-	    xmlNewProp(sugg, BAD_CAST "value", BAD_CAST sugg_str.c_str());
+            sugg=xmlNewNode(NULL, BAD_CAST "suggested_query");
+            xmlAddChild(parent,sugg);
+            xmlNewProp(sugg, BAD_CAST "value", BAD_CAST sugg_str.c_str());
             if (k >= nsuggs-1)
               break;
             ++k;
@@ -197,11 +198,11 @@ namespace seeks_plugins
 
 
   sp_err xml_renderer::render_recommendations(const query_context *qc,
-						   const int &nreco,
-						   const double &qtime,
-						   const uint32_t &radius,
-						   const std::string &lang,
-						   xmlNodePtr parent)
+      const int &nreco,
+      const double &qtime,
+      const uint32_t &radius,
+      const std::string &lang,
+      xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
     std::list<std::string> results;
@@ -223,7 +224,7 @@ namespace seeks_plugins
     xmlNewProp(parent,BAD_CAST "qtime",BAD_CAST miscutil::to_string(qtime).c_str());
 
     //snippets.
-    
+
     size_t ssize = qc->_cached_snippets.size();
     int count = 0;
     xmlNodePtr snippet_node;
@@ -234,13 +235,13 @@ namespace seeks_plugins
           continue;
         if (!lang.empty() && sp->_lang != lang)
           continue;
-        if (sp->_doc_type == REJECTED)
+        if (sp->_doc_type == doc_type::REJECTED)
           continue;
         if (!sp->_engine.has_feed("seeks"))
           continue;
-	snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
+        snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
 
-        err = xml_renderer::render_snippet(sp,false,qc->_query_words,snippet_node);
+        err = sp->to_xml(false,qc->_query_words,snippet_node);
         count++;
 
         if (nreco > 0 && count == nreco)
@@ -253,8 +254,8 @@ namespace seeks_plugins
 
 
   sp_err xml_renderer::render_cached_queries(const std::string &query,
-					     const int &nq,
-					     xmlNodePtr parent)
+      const int &nq,
+      xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr query_node;
@@ -277,9 +278,9 @@ namespace seeks_plugins
             miscutil::replace_in_string(escaped_query,"\t","");
             miscutil::replace_in_string(escaped_query,"\r","");
             miscutil::replace_in_string(escaped_query,"\n","");
-	    query_node=xmlNewNode(NULL,BAD_CAST "query");
-	    xmlAddChild(parent,query_node);
-	    xmlSetProp(query_node,BAD_CAST "value",BAD_CAST (escaped_query.c_str()));
+            query_node=xmlNewNode(NULL,BAD_CAST "query");
+            xmlAddChild(parent,query_node);
+            xmlSetProp(query_node,BAD_CAST "value",BAD_CAST (escaped_query.c_str()));
           }
         mutex_unlock(&qc->_qc_mutex);
         ++sit;
@@ -288,7 +289,7 @@ namespace seeks_plugins
   }
 
   sp_err xml_renderer::render_img_engines(const query_context *qc,
-					  xmlNodePtr parent)
+                                          xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
@@ -300,10 +301,10 @@ namespace seeks_plugins
   }
 
 
-  sp_err xml_renderer::render_snippet(search_snippet *sp,
-				      const bool &thumbs,
-				      const std::vector<std::string> &query_words,
-				      xmlNodePtr parent)
+  /*sp_err xml_renderer::render_snippet(search_snippet *sp,
+  			      const bool &thumbs,
+  			      const std::vector<std::string> &query_words,
+  			      xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
     xmlSetProp(parent,BAD_CAST "id",        BAD_CAST (miscutil::to_string(sp->_id).c_str()));
@@ -319,17 +320,17 @@ namespace seeks_plugins
     xmlSetProp(parent,BAD_CAST "cite", BAD_CAST (sp->_cite.empty()?sp->_url:sp->_cite).c_str());
     if (!sp->_cached.empty())
       {
-	xmlSetProp(parent,BAD_CAST "cached",BAD_CAST (sp->_cached).c_str());
+  xmlSetProp(parent,BAD_CAST "cached",BAD_CAST (sp->_cached).c_str());
       }
 
-#ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
+  #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     img_search_snippet *isp = NULL;
     if (sp->_doc_type == IMAGE)
       isp = dynamic_cast<img_search_snippet*>(sp);
     if (isp)
       err=xml_renderer::render_engines(sp->_engine,true,parent);
     else
-#endif    
+  #endif
       err=xml_renderer::render_engines(sp->_engine,false, parent);
 
     if (thumbs)
@@ -342,11 +343,11 @@ namespace seeks_plugins
         std::set<std::string>::const_iterator sit = words.begin();
         while(sit!=words.end())
           {
-	    xmlNewTextChild(parent, NULL, BAD_CAST "word", BAD_CAST (*sit).c_str());
+      xmlNewTextChild(parent, NULL, BAD_CAST "word", BAD_CAST (*sit).c_str());
             ++sit;
           }
       }
-    xmlSetProp(parent,BAD_CAST "type",BAD_CAST sp->get_doc_type_str().c_str());    
+    xmlSetProp(parent,BAD_CAST "type",BAD_CAST sp->get_doc_type_str().c_str());
     xmlSetProp(parent,BAD_CAST "personalized",BAD_CAST (sp->_personalized?"yes":"no"));
     if (sp->_npeers > 0)
       xmlSetProp(parent,BAD_CAST "snpeers", BAD_CAST miscutil::to_string(sp->_npeers).c_str());
@@ -355,13 +356,13 @@ namespace seeks_plugins
     if (!sp->_date.empty())
       xmlSetProp(parent,BAD_CAST "date", BAD_CAST (sp->_date).c_str());
     return err;
-  }
-  
+    }*/
+
   sp_err xml_renderer::render_snippets(const std::string &query_clean,
-				       const int &current_page,
-				       const std::vector<search_snippet*> &snippets,
-				       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				       xmlNodePtr parent)
+                                       const int &current_page,
+                                       const std::vector<search_snippet*> &snippets,
+                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                       xmlNodePtr parent)
   {
     sp_err err=SP_ERR_OK;
     bool has_thumbs = false;
@@ -371,7 +372,7 @@ namespace seeks_plugins
 
     if (!snippets.empty())
       {
-	xmlNodePtr snippet_node;
+        xmlNodePtr snippet_node;
         // check whether we're rendering similarity snippets.
         bool similarity = false;
         if (snippets.at(0)->_seeks_ir > 0)
@@ -395,10 +396,10 @@ namespace seeks_plugins
         size_t snisize = std::min(ccpage*rpp,(int)snippets.size());
         size_t snistart = (ccpage-1)*rpp;
         size_t count = 0;
-	
+
         for (size_t i=0; i<ssize && !err; i++)
           {
-            if (snippets.at(i)->_doc_type == REJECTED)
+            if (snippets.at(i)->_doc_type == doc_type::REJECTED)
               continue;
             if (!snippets.at(i)->is_se_enabled(parameters))
               continue;
@@ -408,9 +409,9 @@ namespace seeks_plugins
               {
                 if (count >= snistart)
                   {
-		    snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
-		    xmlAddChild(parent, snippet_node);
-                    err = xml_renderer::render_snippet(snippets.at(i),has_thumbs,snippets.at(i)->_qc->_query_words, snippet_node);
+                    snippet_node=xmlNewNode(NULL,BAD_CAST "snippet");
+                    xmlAddChild(parent, snippet_node);
+                    err = snippets.at(i)->to_xml(has_thumbs,snippets.at(i)->_qc->_query_words, snippet_node);
                   }
                 count++;
               }
@@ -424,37 +425,42 @@ namespace seeks_plugins
   }
 
   sp_err xml_renderer::render_clustered_snippets(const std::string &query_clean,
-						 cluster *clusters, 
-						 const short &K,
-						 const query_context *qc,
-						 const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-						 xmlNodePtr parent)
-    
+      hash_map<int,cluster*> *clusters,
+      const short &K,
+      const query_context *qc,
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+      xmlNodePtr parent)
+
   {
     // render every cluster and snippets within.
     xmlNodePtr cluster_node;
     sp_err err=SP_ERR_OK;
-    for (int c=0; !err && c<K; c++)
+    hash_map<int,cluster*>::const_iterator chit = clusters->begin();
+    while(chit!=clusters->end())
       {
-        if (clusters[c]._cpoints.empty())
-          continue;
+        if ((*chit).second->_cpoints.empty())
+          {
+            ++chit;
+            continue;
+          }
 
+        cluster *cl = (*chit).second;
         std::vector<search_snippet*> snippets;
-        snippets.reserve(clusters[c]._cpoints.size());
+        snippets.reserve(cl->_cpoints.size());
         hash_map<uint32_t,hash_map<uint32_t,float,id_hash_uint>*,id_hash_uint>::const_iterator hit
-	  = clusters[c]._cpoints.begin();
-        while (hit!=clusters[c]._cpoints.end())
+        = cl->_cpoints.begin();
+        while (hit!=cl->_cpoints.end())
           {
             search_snippet *sp = qc->get_cached_snippet((*hit).first);
             snippets.push_back(sp);
             ++hit;
           }
         std::stable_sort(snippets.begin(),snippets.end(),search_snippet::max_seeks_ir);
-	cluster_node=xmlNewNode(NULL,BAD_CAST "cluster");
-	xmlAddChild(parent,cluster_node);
-        xmlSetProp(cluster_node,BAD_CAST "label", BAD_CAST clusters[c]._label.c_str());
+        cluster_node=xmlNewNode(NULL,BAD_CAST "cluster");
+        xmlAddChild(parent,cluster_node);
+        xmlSetProp(cluster_node,BAD_CAST "label", BAD_CAST cl->_label.c_str());
         err=xml_renderer::render_snippets(query_clean,0,snippets,parameters,cluster_node);
-
+        ++chit;
       }
 
     return err;
@@ -462,29 +468,29 @@ namespace seeks_plugins
 
 
   /* Public methods*/
-  
+
   sp_err xml_renderer::render_xml_cached_queries(const std::string &query,
-						 const int &nq,
-						 xmlDocPtr doc)
+      const int &nq,
+      xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "queries");
+    =xmlNewNode(NULL,BAD_CAST "queries");
     xmlDocSetRootElement(doc, root);
     err=xml_renderer::render_cached_queries(query,nq,root);
     return err;
   }
 
   sp_err xml_renderer::render_xml_clustered_results(const query_context *qc,
-						    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-						    cluster *clusters,
-						    const short &K,
-						    const double &qtime,
-						    xmlDocPtr doc)
+      const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+      hash_map<int,cluster*> *clusters,
+      const short &K,
+      const double &qtime,
+      xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "clustered_results");
+    =xmlNewNode(NULL,BAD_CAST "clustered_results");
     xmlDocSetRootElement(doc, root);
     std::string query = qc->_query;
 
@@ -496,23 +502,23 @@ namespace seeks_plugins
 
 
   sp_err xml_renderer::render_xml_engines(const feeds &engines,
-					  xmlDocPtr doc)
+                                          xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "engines");
+    =xmlNewNode(NULL,BAD_CAST "engines");
     xmlDocSetRootElement(doc, root);
     err=xml_renderer::render_engines(engines,false,root);
     return err;
   }
 
 
-  sp_err xml_renderer::render_xml_node_options(client_state *csp, 
-					       xmlDocPtr doc)
+  sp_err xml_renderer::render_xml_node_options(client_state *csp,
+      xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "options");
+    =xmlNewNode(NULL,BAD_CAST "options");
     xmlDocSetRootElement(doc, root);
     err = xml_renderer::render_node_options(csp,root);
     return err;
@@ -520,52 +526,53 @@ namespace seeks_plugins
 
 
   sp_err xml_renderer::render_xml_peers(std::list<std::string> *peers,
-				 xmlDocPtr doc)
+                                        xmlDocPtr doc)
   {
     std::string peer;
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "peers");
+    =xmlNewNode(NULL,BAD_CAST "peers");
     xmlDocSetRootElement(doc,root);
     std::list<std::string>::iterator lit = peers->begin();
-    while (lit!=peers->end()) {
-      xmlNewTextChild(root, NULL, BAD_CAST "peer", BAD_CAST (*lit).c_str());
-      ++lit;
-    }
+    while (lit!=peers->end())
+      {
+        xmlNewTextChild(root, NULL, BAD_CAST "peer", BAD_CAST (*lit).c_str());
+        ++lit;
+      }
     return err;
   }
 
 
   sp_err xml_renderer::render_xml_recommendations(const query_context *qc,
-						  const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-						  const double &qtime,
-						  const int &radius,
-						  const std::string &lang,
-						  xmlDocPtr doc)
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+      const double &qtime,
+      const int &radius,
+      const std::string &lang,
+      xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "recommendations");
+    =xmlNewNode(NULL,BAD_CAST "recommendations");
     xmlDocSetRootElement(doc,root);
     int nreco = -1;
     const char *nreco_str = miscutil::lookup(parameters,"nreco");
     if (nreco_str)
-      nreco = atoi(nreco_str);    
+      nreco = atoi(nreco_str);
     err = xml_renderer::render_recommendations(qc,nreco,qtime,radius,lang,root);
     return err;
   }
 
-  
+
   sp_err xml_renderer::render_xml_results(const query_context *qc,
-					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					  const std::vector<search_snippet*> &snippets,
-					  const double &qtime,
-					  const bool &img,
-					  xmlDocPtr doc)
+                                          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                          const std::vector<search_snippet*> &snippets,
+                                          const double &qtime,
+                                          const bool &img,
+                                          xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "result");
+    =xmlNewNode(NULL,BAD_CAST "result");
     xmlDocSetRootElement(doc, root);
     const char *current_page_str = miscutil::lookup(parameters,"page");
     if (!current_page_str)
@@ -586,25 +593,25 @@ namespace seeks_plugins
   }
 
   sp_err xml_renderer::render_xml_snippet(query_context *qc,
-					  search_snippet *sp,
-					  xmlDocPtr doc)
+                                          search_snippet *sp,
+                                          xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "snippet");
+    =xmlNewNode(NULL,BAD_CAST "snippet");
     xmlDocSetRootElement(doc, root);
     std::string query = qc->_query;
-    err = xml_renderer::render_snippet(sp,false,qc->_query_words,root);
+    err = sp->to_xml(false,qc->_query_words,root);
     return err;
   }
 
   sp_err xml_renderer::render_xml_suggested_queries(const query_context *qc,
-						    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
-						    xmlDocPtr doc)
+      const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters,
+      xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "suggested_queries");
+    =xmlNewNode(NULL,BAD_CAST "suggested_queries");
     xmlDocSetRootElement(doc,root);
     int nsuggs = websearch::_wconfig->_num_reco_queries;
     const char *nsugg_str = miscutil::lookup(parameters,"nsugg");
@@ -616,16 +623,16 @@ namespace seeks_plugins
 
 
   sp_err xml_renderer::render_xml_words(const std::set<std::string> &words,
-					xmlDocPtr doc)
+                                        xmlDocPtr doc)
   {
     sp_err err=SP_ERR_OK;
     xmlNodePtr root
-      =xmlNewNode(NULL,BAD_CAST "words");
+    =xmlNewNode(NULL,BAD_CAST "words");
     xmlDocSetRootElement(doc, root);
     std::set<std::string>::const_iterator sit = words.begin();
     while(sit!=words.end())
       {
-	xmlNewTextChild(root, NULL,BAD_CAST "word",BAD_CAST ((*sit).c_str()));
+        xmlNewTextChild(root, NULL,BAD_CAST "word",BAD_CAST ((*sit).c_str()));
         ++sit;
       }
     return err;
@@ -642,15 +649,15 @@ namespace xml_renderer_private
 
 
   sp_err collect_xml_results(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			     const query_context *qc,
-			     const double &qtime,
-			     const bool &img,
-			     xmlNodePtr parent)
+                             const query_context *qc,
+                             const double &qtime,
+                             const bool &img,
+                             xmlNodePtr parent)
   {
     xmlNodePtr context
-      =xmlNewNode(NULL,BAD_CAST "query_context");
+    =xmlNewNode(NULL,BAD_CAST "query_context");
     xmlAddChild(parent,context);
-    
+
     /*- query info. -*/
     // query.
 
@@ -677,10 +684,10 @@ namespace xml_renderer_private
     // engines.
     if (qc->_engines.size() > 0)
       {
-	if (img) 
-	  xml_renderer::render_img_engines(qc, context);
-	else
-	  xml_renderer::render_engines(qc->_engines, false, context);
+        if (img)
+          xml_renderer::render_img_engines(qc, context);
+        else
+          xml_renderer::render_engines(qc->_engines, false, context);
       }
 
     // render date & exec time.

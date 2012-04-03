@@ -34,6 +34,7 @@
 #include "qprocess.h"
 #include "urlmatch.h"
 #include "websearch.h"
+#include "seeks_snippet.h"
 #include "errlog.h"
 
 using namespace seeks_plugins;
@@ -116,7 +117,7 @@ class SRETest : public testing::Test
       miscutil::add_map_entry(parameters,"q",1,queries[0].c_str(),1);
       std::list<const char*> headers;
       query_context qc(parameters,headers);
-      search_snippet *sp = new search_snippet();
+      seeks_snippet *sp = new seeks_snippet();
       sp->set_url(url);
       sp->set_title(titles[1]);
       qc._cached_snippets.push_back(sp);
@@ -135,7 +136,7 @@ class SRETest : public testing::Test
       parameters = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
       miscutil::add_map_entry(parameters,"q",1,queries[1].c_str(),1);
       query_context qc2(parameters,headers);
-      sp = new search_snippet();
+      sp = new seeks_snippet();
       sp->set_url(url2);
       sp->set_title(titles[2]);
       qc2._cached_snippets.push_back(sp);
@@ -242,7 +243,8 @@ TEST_F(SRETest,query_distance)
 
 TEST(SREAPITest,query_halo_weight)
 {
-  float tw1 = log(3.0) / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
+  //float tw1 = log(3.0) / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
+  float tw1 = 1.0 / (log(simple_re::query_distance(queries[1],queries[2]) + 1.0) + 1.0);
   float w1 = simple_re::query_halo_weight(queries[1],queries[2],1); // seeks project vs. seeks project search.
   ASSERT_EQ(tw1,w1);
   float w2 = simple_re::query_halo_weight(queries[0],queries[2],1); // seeks vs. seeks project search.
@@ -403,7 +405,7 @@ TEST_F(SRETest,estimate_ranks)
   sre.estimate_ranks(queries[1],lang,1,snippets);
   ASSERT_EQ(3,snippets.size());
 
-  std::cerr << "ranks, s2: " << s2._seeks_rank << " -- s1: " << s1._seeks_rank << " -- s0: " << s0._seeks_rank << std::endl;
+  std::cerr << "ranks s2: " << s2._seeks_rank << " -- s1: " << s1._seeks_rank << " -- s0: " << s0._seeks_rank << std::endl;
 
   ASSERT_TRUE(s2._seeks_rank > s1._seeks_rank);
   ASSERT_TRUE(s1._seeks_rank > s0._seeks_rank);
@@ -745,6 +747,7 @@ TEST_F(SRETest,recommendation_delete_ok_lang)
   err = cf::cgi_recommendation(&csp3,&rsp3,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   std::string body = std::string(rsp3._body,rsp3._content_length);
+  std::cerr << "body: " << body << std::endl;
   EXPECT_NE(std::string::npos,body.find("http://www.seeks.mx"));
   EXPECT_NE(std::string::npos,body.find("Seeks Search"));
   EXPECT_NE(std::string::npos,body.find("\"hits\""));

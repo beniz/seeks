@@ -50,102 +50,102 @@ namespace seeks_plugins
   class xsl_serializer : public plugin
   {
 
-  public:
-    xsl_serializer();
-    
-    virtual ~xsl_serializer();
-    
-    virtual void start();
-    virtual void stop();
-    
-    static sp_err render_xsl_cached_queries(client_state *csp, 
-					    http_response *rsp,
-					    const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					    const std::string &query,
-					    const int &nq);
+    public:
+      xsl_serializer();
+
+      virtual ~xsl_serializer();
+
+      virtual void start();
+      virtual void stop();
+
+      static sp_err render_xsl_cached_queries(client_state *csp,
+                                              http_response *rsp,
+                                              const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                              const std::string &query,
+                                              const int &nq);
 
 
-    static sp_err render_xsl_clustered_results(client_state *csp, 
-					       http_response *rsp,
-					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					       const query_context *qc,
-					       cluster *clusters,
-					       const short &K,
-					       const double &qtime);
+      static sp_err render_xsl_clustered_results(client_state *csp,
+          http_response *rsp,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+          const query_context *qc,
+          hash_map<int,cluster*> *clusters,
+          const short &K,
+          const double &qtime);
 
-    static sp_err render_xsl_engines(client_state *csp, 
-				     http_response *rsp,
-				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				     const feeds &engines);
+      static sp_err render_xsl_engines(client_state *csp,
+                                       http_response *rsp,
+                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                       const feeds &engines);
 
-    static sp_err render_xsl_node_options(client_state *csp, 
-					  http_response *rsp,
-					  const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
+      static sp_err render_xsl_node_options(client_state *csp,
+                                            http_response *rsp,
+                                            const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters);
 
-    static sp_err render_xsl_peers(client_state *csp, 
-				   http_response *rsp,
-				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				   std::list<std::string> *peers);
-
-
-    static sp_err render_xsl_recommendations(const client_state *csp, 
-					     http_response *rsp,
-					     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					     const query_context *qc,
-					     const double &qtime,
-					     const int &radius,
-					     const std::string &lang);
-
-    static sp_err render_xsl_results(client_state *csp, 
-				     http_response *rsp,
-				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				     const query_context *qc,
-				     const std::vector<search_snippet*> &snippets,
-				     const double &qtime,
-				     const bool &img=false);
-
-    static sp_err render_xsl_snippet(client_state *csp, 
-				     http_response *rsp,
-				     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				     query_context *qc,
-				     search_snippet *sp);
-
-    static sp_err render_xsl_suggested_queries(client_state *csp, 
-					       http_response *rsp,
-					       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-					       const query_context *qc);
-    
-    static sp_err render_xsl_words(client_state *csp,
-				   http_response *rsp,
-				   const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-				   const std::set<std::string> &words);
-  /* private: */
-
-    static sp_err response(http_response *rsp,
-			 const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
-			 xmlDocPtr doc);
-    static void transform(http_response *rsp, 
-			  xmlDocPtr doc, 
-			  const std::string stylesheet);
-
-    static xmlDocPtr get_stylesheet(const std::string stylesheet);
+      static sp_err render_xsl_peers(client_state *csp,
+                                     http_response *rsp,
+                                     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                     std::list<std::string> *peers);
 
 
-  public:
-    static xsl_serializer_configuration *_xslconfig;
-    static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
-    static double _cl_sec; // clock ticks per second.
+      static sp_err render_xsl_recommendations(const client_state *csp,
+          http_response *rsp,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+          const query_context *qc,
+          const double &qtime,
+          const int &radius,
+          const std::string &lang);
 
-    /* dependent plugins. */
-  public:
-    static plugin *_qc_plugin; /**< query capture plugin. */
-    static bool _qc_plugin_activated;
-    static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
-    static bool _cf_plugin_activated;
-      
-    /* multithreading. */
-  public:
-    static sp_mutex_t _context_mutex;
+      static sp_err render_xsl_results(client_state *csp,
+                                       http_response *rsp,
+                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                       const query_context *qc,
+                                       const std::vector<search_snippet*> &snippets,
+                                       const double &qtime,
+                                       const bool &img=false);
+
+      static sp_err render_xsl_snippet(client_state *csp,
+                                       http_response *rsp,
+                                       const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                       query_context *qc,
+                                       search_snippet *sp);
+
+      static sp_err render_xsl_suggested_queries(client_state *csp,
+          http_response *rsp,
+          const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+          const query_context *qc);
+
+      static sp_err render_xsl_words(client_state *csp,
+                                     http_response *rsp,
+                                     const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                     const std::set<std::string> &words);
+      /* private: */
+
+      static sp_err response(http_response *rsp,
+                             const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                             xmlDocPtr doc);
+      static void transform(http_response *rsp,
+                            xmlDocPtr doc,
+                            const std::string stylesheet);
+
+      static xmlDocPtr get_stylesheet(const std::string stylesheet);
+
+
+    public:
+      static xsl_serializer_configuration *_xslconfig;
+      static hash_map<uint32_t,query_context*,id_hash_uint> _active_qcontexts;
+      static double _cl_sec; // clock ticks per second.
+
+      /* dependent plugins. */
+    public:
+      static plugin *_qc_plugin; /**< query capture plugin. */
+      static bool _qc_plugin_activated;
+      static plugin *_cf_plugin; /**< (collaborative) filtering plugin. */
+      static bool _cf_plugin_activated;
+
+      /* multithreading. */
+    public:
+      static sp_mutex_t _context_mutex;
   };
 
 } /* end of namespace. */

@@ -68,6 +68,10 @@ namespace seeks_plugins
     {
     };
 
+    ~ws_thread_arg()
+    {
+    }
+
     pers_arg *_arg;
     bool _done;
   };
@@ -173,6 +177,9 @@ namespace seeks_plugins
                                         client_state *csp,
                                         bool &has_lang) throw (sp_exception);
 
+      static void reset_p2p_data(const hash_map<const char*, const char*, hash<const char*>, eqstr> *parameters,
+                                 query_context *qc);
+
       /* error handling. */
       static sp_err failed_ses_connect(client_state *csp, http_response *rsp);
 
@@ -189,6 +196,8 @@ namespace seeks_plugins
       static bool _cf_plugin_activated;
       static plugin *_xs_plugin; /**< xslt serialization plugin. */
       static bool _xs_plugin_activated;
+      static plugin *_readable_plugin; /**< readability plugin. */
+      static bool _readable_plugin_activated;
 
       /* multithreading. */
     public:

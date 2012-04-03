@@ -1,3 +1,7 @@
 # Timeout on P2P calls, in seconds.
 # default 3
 call-timeout 3
+
+# Proxy for P2P calls.
+# Allows to interconnect Seeks servers through their proxy services.
+#p2p-proxy-addr your_proxy:your_port

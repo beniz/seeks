@@ -27,8 +27,10 @@ typedef pthread_cond_t  sp_cond_t;
 
 /* mutexes. */
 void mutex_lock(sp_mutex_t *mutex);
+int mutex_trylock(sp_mutex_t *mutex);
 void mutex_unlock(sp_mutex_t *mutex);
 void mutex_init(sp_mutex_t *mutex);
+void mutex_destroy(sp_mutex_t *mutex);
 
 /* condition variables. */
 void cond_init(sp_cond_t *cond);

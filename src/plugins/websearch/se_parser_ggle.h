@@ -20,6 +20,7 @@
 #define SE_PARSER_GGLE_H
 
 #include "se_parser.h"
+#include "seeks_snippet.h"
 #include <string>
 
 namespace seeks_plugins
@@ -85,6 +86,7 @@ namespace seeks_plugins
 
     public:
       std::string _suggestion;
+      seeks_snippet *_sn;
   };
 
 } /* end of namespace. */
