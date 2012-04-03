@@ -191,7 +191,7 @@ int adblock_downloader::download_lists()
     {
       // Save content into a temp file
         outfile.write(adblock_downloader::_curl_buffer.c_str(), adblock_downloader::_curl_buffer.length());
-        errlog::log_error(LOG_LEVEL_INFO, "adfilter: %s downloaded.", (*it).c_str());
+        errlog::log_error(LOG_LEVEL_INFO, "adfilter: %s downloaded", (*it).c_str());
         nb++;
     }
     else

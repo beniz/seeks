@@ -162,7 +162,7 @@ Restriction aux requêtes third-party/first-party (provenant d'un autre/du même
 le filtre n'est appliqué qu'aux requêtes provenant d'une autre origine que la page actuellement affichée.
 De manière similaire, ~third-party restreint l'action du filtre aux requêtes provenant de la même origine que la page couramment affichée.
     */
-    const char *rBlock = "^\\|\\|([a-z0-9\\-\\*]+\\.)+([a-z0-9\\-\\*]+)[\\^\\/]*([^\\$]*)(\\$.+)?$";
+    const char *rBlock = "^\\|\\|([a-z0-9\\-\\*]+\\.)*([a-z0-9\\-\\*]+)[\\^\\/]*([^\\$]*)(\\$.+)?$";
     std::string domain;
     std::string path;
 
@@ -171,7 +171,9 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
     pcre_free(re);
     if(rc > 0)
     {
-      domain = line.substr(ovector[2], ovector[3] - ovector[2]) + line.substr(ovector[4], ovector[5] - ovector[4]);
+      if(ovector[3] > 0) domain = line.substr(ovector[2], ovector[3] - ovector[2]);
+      if(ovector[5] > 0) domain+= line.substr(ovector[4], ovector[5] - ovector[4]);
+      // Fourth matched element is ignored (conditional blocking)
       path   = line.substr(ovector[6], ovector[7] - ovector[6]);
       if(!path.empty())
       {
@@ -180,7 +182,7 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
         miscutil::replace_in_string(path, "?", "\\?");
         miscutil::replace_in_string(path, "|", "\\|");
         miscutil::replace_in_string(path, "*", ".*");
-        (*url) = domain + "/" + path;
+        (*url) = domain + "/" + path + ".*";
       }
       else
       {
