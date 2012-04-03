@@ -1,3 +1,6 @@
+# ADBlock lists URLs
+# You should add one line per URL
+# Each list should be in ADBlock 2.0 format (ADBlock+)
 adblock-list http://www.squirrelconspiracy.net/abp/facebook-privacy-list.txt
 #adblock-list https://monzta.maltekraus.de/adblock_social.txt
 adblock-list https://easylist-downloads.adblockplus.org/easylist.txt
@@ -16,6 +19,21 @@ adblock-list http://lian.info.tm/liste_fr.txt
 #adblock-list http://stanev.org/abp/adblock_bg.txt
 #adblock-list http://indonesianadblockrules.googlecode.com/hg/subscriptions/abpindo.txt
 #adblock-list https://easylist-downloads.adblockplus.org/easylist_noelemhide.txt
-update-frequency 86400
+
+# Update frequency in seconds
+# ADFilter plug'in download and parse configured lists at the specified frequency
+# 86400   = 1 day
+# 604800  = 1 week
+# 2678400 = 1 month
+# Default: 604800
+update-frequency 604800
+
+# Use the filter feature
+# If set to 1, ADFilter will remove HTML objects from pages
+# Default: 1
 use-filter 1
+
+# Use the block feature
+# If set to 1, ADFilter will block URLs
+# Default: 1
 use-blocker 1

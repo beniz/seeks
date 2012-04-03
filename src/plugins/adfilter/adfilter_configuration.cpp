@@ -56,9 +56,9 @@ adfilter_configuration::~adfilter_configuration()
  */
 void adfilter_configuration::set_default_config()
 {
-  this->_update_frequency = 86400 * 7;
+  this->_update_frequency = 86400 * 7; // 1 week
   this->_use_filter = true;
-  this->_use_blocker = false;
+  this->_use_blocker = true;
 }
 
 /*
