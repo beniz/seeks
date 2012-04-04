@@ -79,11 +79,9 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         // Block the whole URL
         if(ret == ADB_RULE_URL_BLOCK and parse_blockers)
         {
-          // FIXME WTFBBQ ? sourceforge.net/tracker/.* triggers on http://sourceforge.net/projects/seeks/forums/forum/565136/topic/5162505?message=11339494
           // Add patterns url, *.url, *.*.url, etc.
           for(int i = 0; i < 4; i++)
           {
-            if(url.find("sourceforge") != std::string::npos) std::cerr << "ADPARSER debug " << url << std::endl;
             this->_blockedurls.push_back(url);
             url = url.insert(0, "*.");
           }
@@ -164,7 +162,8 @@ Restriction aux requêtes third-party/first-party (provenant d'un autre/du même
 le filtre n'est appliqué qu'aux requêtes provenant d'une autre origine que la page actuellement affichée.
 De manière similaire, ~third-party restreint l'action du filtre aux requêtes provenant de la même origine que la page couramment affichée.
     */
-    const char *rBlock = "^\\|\\|([a-z0-9\\-\\*]+\\.)*([a-z0-9\\-\\*]+)[\\^\\/]*([^\\$]*)(\\$.+)?$";
+    line = line.substr(2);
+    const char *rBlock = "^([^\\^\\/]*)[\\^\\/]*([^\\$]*)(\\$.+)?$";
     std::string domain;
     std::string path;
 
@@ -174,9 +173,8 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
     if(rc > 0)
     {
       if(ovector[3] > 0) domain = line.substr(ovector[2], ovector[3] - ovector[2]);
-      if(ovector[5] > 0) domain+= line.substr(ovector[4], ovector[5] - ovector[4]);
-      // Fourth matched element is ignored (conditional blocking)
-      path   = line.substr(ovector[6], ovector[7] - ovector[6]);
+      // Third matched element is ignored (conditional blocking)
+      path   = line.substr(ovector[4], ovector[5] - ovector[4]);
       if(!path.empty())
       {
         // RegEx escaping
