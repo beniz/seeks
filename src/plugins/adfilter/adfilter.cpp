@@ -84,10 +84,14 @@ namespace seeks_plugins
     // Create the plugins
     if(_adconfig->_use_filter)
     {
-      _filter_plugin      = new adfilter_element(_always_pattern, _adbparser->_blockedurls, this); // Filter plugin, everything but blocked URL
+      //std::vector<std::string>::iterator it;
+      //for(it = _adbparser->_blockedurls.begin(); it != _adbparser->_blockedurls.end(); it++) if((*it).find("sourceforge") != std::string::npos) std::cerr << "ADDEBUG1 " << (*it) << std::endl;
+      // FIXME should have blocked patterns as neg patterns
+      _filter_plugin      = new adfilter_element(_always_pattern, _empty_pattern , this); // Filter plugin, everything but blocked URL
     }
     if(_adconfig->_use_blocker)
     {
+      // FIXME if the same pattern list is used twice, it's not the same at the second time (the routine that compiles them, modify them)
       _interceptor_plugin = new adblocker_element(_adbparser->_blockedurls, _empty_pattern, this); // Interceptor plugin, blocked URL only
     }
   }

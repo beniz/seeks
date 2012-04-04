@@ -79,9 +79,11 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         // Block the whole URL
         if(ret == ADB_RULE_URL_BLOCK and parse_blockers)
         {
+          // FIXME WTFBBQ ? sourceforge.net/tracker/.* triggers on http://sourceforge.net/projects/seeks/forums/forum/565136/topic/5162505?message=11339494
           // Add patterns url, *.url, *.*.url, etc.
           for(int i = 0; i < 4; i++)
           {
+            if(url.find("sourceforge") != std::string::npos) std::cerr << "ADPARSER debug " << url << std::endl;
             this->_blockedurls.push_back(url);
             url = url.insert(0, "*.");
           }
