@@ -1,3 +1,24 @@
+* Bodie-0.4.1-HIPPY-stable
+
+This releases yields an enterprise-ready version of the software, with
+solid behavior, many bugfixes, and more features.
+
+- Better ranking out of the P2P collaborative filter.
+
+- Improved multithreaded behavior.
+
+- Support for CORS.
+
+- Added a plugin for 'readability' algorithm, extracting useful
+  content from Web pages.
+
+- Support for search on dotclear blogs.
+
+- Improved support for large databases (> 2Gb).
+
+- Many bug fixes and improvements, see
+  http://redmine.seeks-project.info/versions/show/7 for full list.
+
 * Bodie-0.4.0-HIPPY-stable
 
 This release is a milestone, bringing a new API and the ability to

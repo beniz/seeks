@@ -160,10 +160,7 @@ namespace seeks_plugins
     std::vector<std::string> tokens;
     mrf::tokenize(clean_query,tokens," ");
     std::sort(tokens.begin(),tokens.end(),std::less<std::string>());
-    std::string sorted_query;
-    size_t ntokens = tokens.size();
-    for (size_t i=0; i<ntokens; i++)
-      sorted_query += tokens.at(i);
+    std::string sorted_query = miscutil::join_string_list(" ",tokens);
     return sorted_query;
   }
 

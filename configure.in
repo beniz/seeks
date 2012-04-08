@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 #
-# Copyright (C) 2006-2011 Emmanuel Benazera <ebenazer@seeks-project.info>
+# Copyright (C) 2006-2012 Emmanuel Benazera <ebenazer@seeks-project.info>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT(Seeks, 0.4.1, ebenazer@seeks-project.info)
+AC_INIT(Seeks, 0.4.2, ebenazer@seeks-project.info)
 AC_CONFIG_SRCDIR(Makefile.am)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
@@ -29,8 +29,8 @@ AC_SUBST(SEEKS_CODE_STATUS)
 
 AC_DEFINE(SEEKS_VERSION_MAJOR,"0","")
 AC_DEFINE(SEEKS_VERSION_MINOR,"4","")
-AC_DEFINE(SEEKS_VERSION_POINT,"1","")
-AC_DEFINE(SEEKS_VERSION,"0.4.1","")
+AC_DEFINE(SEEKS_VERSION_POINT,"2","")
+AC_DEFINE(SEEKS_VERSION,"0.4.2","")
 AC_DEFINE(SEEKS_CODE_STATUS,"experimental","")
 
 # Checks for programs.

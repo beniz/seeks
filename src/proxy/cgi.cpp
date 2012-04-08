@@ -111,6 +111,11 @@ namespace sp
     FALSE ),
 #endif /* def FEATURE_TOGGLE */
     cgi_dispatcher(
+      "favicon.ico",
+      &cgisimple::cgi_send_favicon,
+      NULL, TRUE /* Sends the favicon image for error pages. */
+    ),
+    cgi_dispatcher(
       "error-favicon.ico",
       &cgisimple::cgi_send_error_favicon,
       NULL, TRUE /* Sends the favicon image for error pages. */
@@ -557,6 +562,14 @@ namespace sp
     else if (err == SP_ERR_NOT_FOUND)
       {
         err = cgisimple::cgi_error_404(csp, rsp, param_list);
+      }
+    else if (err == SP_ERR_UNAUTH)
+      {
+        err = cgisimple::cgi_error_unauthorized(csp, rsp, param_list);
+      }
+    else if (err == SP_ERR_FORBID)
+      {
+        err = cgisimple::cgi_error_forbidden(csp, rsp, param_list);
       }
     else if (err && !d->_plugin_name.empty())
       {
@@ -1653,6 +1666,18 @@ namespace sp
       {
         snprintf(buf, sizeof(buf), "Content-Length: %d", (int)rsp->_content_length);
         err = miscutil::enlist(&rsp->_headers, buf);
+      }
+
+    /*
+     * CORS headers if enabled
+     */
+    if(csp->_config->_cors_enabled)
+      {
+        // CORS enabled
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Allow-Origin", strdup(csp->_config->_cors_allowed_domains.c_str()));
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Allow-Headers", "X-Requested-With");
+        miscutil::enlist_unique_header(&rsp->_headers, "Access-Control-Max-Age", "86400");
       }
 
     if (0 == strcmpic(csp->_http._gpc, "head"))

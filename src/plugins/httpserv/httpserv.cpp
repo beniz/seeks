@@ -149,6 +149,8 @@ namespace seeks_plugins
     evhttp_set_cb(_srv,"/find_bqc",&httpserv::find_bqc,NULL);
     evhttp_set_cb(_srv,"/peers",&httpserv::peers,NULL);
 #endif
+    evhttp_set_cb(_srv,"/favicon.ico",&httpserv::favicon,NULL);
+    evhttp_set_cb(_srv,"/error-favicon.ico",&httpserv::error_favicon,NULL);
 
     //evhttp_set_gencb(_srv,&httpserv::unknown_path,NULL); /* 404: catches all other resources. */
     evhttp_set_gencb(_srv,&httpserv::api_route,NULL);
@@ -1651,6 +1653,60 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
     /* run the sweeper, for timed out query contexts. */
     sweeper::sweep();
+  }
+
+  void httpserv::favicon(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+
+    /* return requested file. */
+    sp_err serr = cgisimple::cgi_send_favicon(&csp,&rsp,&parameters);
+    miscutil::list_remove_all(&csp._headers);
+    if (serr != SP_ERR_OK)
+      {
+        httpserv::reply_with_empty_body(r,404,"ERROR");
+        return;
+      }
+
+    /* fill up response. */
+    std::string content = std::string(rsp._body,rsp._content_length);
+    httpserv::reply_with_body(r,200,"OK",content,"image/x-icon");
+  }
+
+  void httpserv::error_favicon(struct evhttp_request *r, void *arg)
+  {
+    client_state csp;
+    csp._config = seeks_proxy::_config;
+    http_response rsp;
+    hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+    const char *host = evhttp_find_header(r->input_headers, "host");
+    if (host)
+      miscutil::enlist_unique_header(&csp._headers,"host",host);
+    const char *baseurl = evhttp_find_header(r->input_headers, "seeks-remote-location");
+    if (baseurl)
+      miscutil::enlist_unique_header(&csp._headers,"seeks-remote-location",baseurl);
+
+    /* return requested file. */
+    sp_err serr = cgisimple::cgi_send_error_favicon(&csp,&rsp,&parameters);
+    miscutil::list_remove_all(&csp._headers);
+    if (serr != SP_ERR_OK)
+      {
+        httpserv::reply_with_empty_body(r,404,"ERROR");
+        return;
+      }
+
+    /* fill up response. */
+    std::string content = std::string(rsp._body,rsp._content_length);
+    httpserv::reply_with_body(r,200,"OK",content,"image/x-icon");
   }
 
   void httpserv::unknown_path(struct evhttp_request *r, void *arg)

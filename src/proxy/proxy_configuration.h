@@ -157,6 +157,12 @@ namespace sp
       /* automatically disable proxy. */
       bool _automatic_proxy_disable;
 
+      /* cors enabled. */
+      bool _cors_enabled;
+
+      /* cors allowed domains. */
+      std::string _cors_allowed_domains;
+
       /*  user db file. */
       std::string _user_db_file;
 
@@ -180,6 +186,12 @@ namespace sp
 
       /* pointer to source code. */
       std::string _url_source_code;
+
+      /* transfer timeout when fetching content for analysis & caching. */
+      long _ct_transfer_timeout;
+
+      /* connection timeout when fetching content for analysis & caching. */
+      long _ct_connect_timeout;
   };
 
 } /* end of namespace. */

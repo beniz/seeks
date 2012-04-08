@@ -646,6 +646,7 @@ namespace seeks_plugins
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_cached_queries(csp,rsp,parameters,"",nq);
 #endif
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
     pthread_rwlock_unlock(&websearch::_wconfig->_conf_rwlock);
     return err;
   }
@@ -717,6 +718,7 @@ namespace seeks_plugins
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
           err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
+        else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
         // reset p2p data if needed.
         websearch::reset_p2p_data(parameters,qc);
@@ -783,12 +785,13 @@ namespace seeks_plugins
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,&clusters,K,qtime);
 #endif
-    else
+    else if (miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
         err = json_renderer::render_clustered_json_results(&clusters,K,
               csp,rsp,parameters,qc,qtime);
       }
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
     hash_map<int,cluster*>::iterator hit = clusters.begin();
     while(hit!=clusters.end())
@@ -879,12 +882,13 @@ namespace seeks_plugins
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
-    else
+    else if (miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
         err = json_renderer::render_json_results(qc->_cached_snippets,
               csp,rsp,parameters,qc,0.0);
       }
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
     // reset p2p data if needed.
     websearch::reset_p2p_data(parameters,qc);
@@ -956,14 +960,14 @@ namespace seeks_plugins
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
           err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_results(csp,rsp,parameters,qc,qc->_cached_snippets,0.0);
 #endif
-        else
-
+        else if (miscutil::strcmpic(output,"json")==0)
           {
             csp->_content_type = CT_JSON;
             err = json_renderer::render_json_results(qc->_cached_snippets,
                   csp,rsp,parameters,qc,
                   0.0);
           }
+        else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
         mutex_unlock(&qc->_qc_mutex);
       }
 
@@ -993,11 +997,12 @@ namespace seeks_plugins
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_clustered_results(csp,rsp,parameters,qc,&clusters,km._K,qtime);
 #endif
-    else
+    else if (miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
         err = json_renderer::render_clustered_json_results(&clusters,km._K,csp,rsp,parameters,qc,qtime);
       }
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
     // reset p2p data if needed.
     websearch::reset_p2p_data(parameters,qc);
@@ -1029,6 +1034,7 @@ namespace seeks_plugins
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_node_options(csp,rsp,parameters);
 #endif
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
     return err;
   }
 
@@ -1360,6 +1366,7 @@ namespace seeks_plugins
                   csp,rsp,parameters,qc,
                   qtime);
           }
+        else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
       }
 
     // resets P2P data on snippets.
@@ -1423,6 +1430,7 @@ namespace seeks_plugins
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_snippet(csp,rsp,parameters,qc,sp);
 #endif
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
     websearch::reset_p2p_data(parameters,qc);
     mutex_unlock(&qc->_qc_mutex);
     return err;
@@ -1455,6 +1463,7 @@ namespace seeks_plugins
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
 #endif
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
     websearch::reset_p2p_data(parameters,qc);
     mutex_unlock(&qc->_qc_mutex);
     return err;
@@ -1502,6 +1511,7 @@ namespace seeks_plugins
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
       err = static_cast<xsl_serializer*>(websearch::_xs_plugin)->render_xsl_words(csp,rsp,parameters,words);
 #endif
+    else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
     websearch::reset_p2p_data(parameters,qc);
     mutex_unlock(&qc->_qc_mutex);
     return err;

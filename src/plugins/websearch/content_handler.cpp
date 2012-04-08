@@ -60,8 +60,8 @@ namespace seeks_plugins
       return NULL;
 
     // fetch content.
-    curl_mget cmg(urls.size(),websearch::_wconfig->_ct_connect_timeout,0,
-                  websearch::_wconfig->_ct_transfer_timeout,0);
+    curl_mget cmg(urls.size(),seeks_proxy::_config->_ct_connect_timeout,0,
+                  seeks_proxy::_config->_ct_transfer_timeout,0);
     std::vector<int> status;
     if (websearch::_wconfig->_background_proxy_addr.empty() && proxy)
       {
