@@ -1,0 +1,12 @@
+! Local adblock rules file
+! Quick ref :
+! - Block a domain (an its sub-domains) :
+!   ||domain.tld
+! - Filter an element by its ID
+!   ###elemid
+! - Filter an element by its class
+!   ##.elemclass
+! - Filter en element by its ID for a specific URL
+!   domain.tld###elemid
+
+||ad.lemde.fr

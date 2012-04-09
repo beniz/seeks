@@ -42,6 +42,7 @@ adblock_parser::adblock_parser(std::string filename)
   this->_listfilename = (seeks_proxy::_datadir.empty() ? 
                         plugin_manager::_plugin_repository + filename : 
                         seeks_proxy::_datadir + "/plugins/" + filename);
+  this->_locallistfilename = this->_listfilename + ".local";
 }
 
 /*
@@ -53,21 +54,26 @@ adblock_parser::adblock_parser(std::string filename)
 int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = true)
 {
   std::ifstream ifs;
+  std::ifstream ilfs;
   int num_read = 0;
 
   ifs.open(this->_listfilename.c_str());
-  if (ifs.is_open())
+  ilfs.open(this->_locallistfilename.c_str());
+  if(ifs.is_open() or ilfs.is_open())
   {
     // Clear all knowed rules
     this->_blockedurls.clear();
     this->_filterrules.clear();
 
     std::string line;
-    while (!ifs.eof()) {
+    while(!ifs.eof() or !ilfs.eof()) {
       std::string x;
       std::string url;
 
-      getline(ifs, line);
+      // Read downloaded rules, then local rules
+      if(!ifs.eof()) getline(ifs, line);
+      else if(!ilfs.eof()) getline(ilfs, line);
+
       // Trim ending characters
       line.erase(line.find_last_not_of(" \n\r\t")+1);
 
@@ -133,6 +139,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
     return -1;
   }
   ifs.close();
+  ilfs.close();
   return num_read;
 }
 
