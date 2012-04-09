@@ -86,14 +86,16 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
 void adfilter_element::_filter(std::string *ret, std::string xpath)
 {
   // HTML parser context
-  htmlParserCtxtPtr htmlCtx = htmlNewParserCtxt();
+  htmlParserCtxtPtr htmlCtx = htmlCreateMemoryParserCtxt(ret->c_str(), ret->length());
   if(htmlCtx != NULL)
   {
-    // HTML doc parsing from memory (char*)
-    htmlDocPtr doc = htmlCtxtReadMemory(htmlCtx, ret->c_str(), ret->length(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-    if(doc != NULL)
+    // HTML parser options (leave errors as is, no error/warning displayed, etc.)
+    htmlCtxtUseOptions(htmlCtx, HTML_PARSE_RECOVER | HTML_PARSE_NODEFDTD | HTML_PARSE_NOIMPLIED | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+    // HTML doc parsing
+    htmlParseDocument(htmlCtx);
+    if(htmlCtx->myDoc != NULL)
     {
-      xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
+      xmlXPathContextPtr xpathCtx = xmlXPathNewContext(htmlCtx->myDoc);
       if(xpathCtx != NULL)
       {
         // If the XML tree has been correctly parsed, let's apply the XPath to it
@@ -116,16 +118,19 @@ void adfilter_element::_filter(std::string *ret, std::string xpath)
           // Free some memory
           xmlXPathFreeObject(xpathObj);
         }
+        // Dump the XML tree as HTML (no entities re-encoding)
+        xmlOutputBufferPtr buf = xmlAllocOutputBuffer(xmlFindCharEncodingHandler("HTML"));;
+        htmlDocContentDumpOutput(buf, xpathCtx->doc, NULL);
+        xmlOutputBufferFlush(buf);
+        // Pick encoded buffer or not
+        if (buf->conv != NULL)
+          *ret = std::string((char *)xmlStrndup(buf->conv->content, buf->conv->use));
+        else
+          *ret = std::string((char *)xmlStrndup(buf->buffer->content, buf->conv->use));
         // Free some memory
+        xmlOutputBufferClose(buf);
         xmlXPathFreeContext(xpathCtx);
       }
-      // Dump the XML tree into the char* passed as argument to this function
-      xmlChar *html;
-      htmlDocDumpMemory(xpathCtx->doc, &html, NULL);
-      // Casting and converting from xmlChar* to std::string
-      *ret =  std::string((char *)html);
-      // Free some memory
-      xmlFreeDoc(doc);
     }
     // Free some memory
     htmlFreeParserCtxt(htmlCtx);
