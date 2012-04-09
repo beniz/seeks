@@ -85,48 +85,49 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
  */
 void adfilter_element::_filter(std::string *ret, std::string xpath)
 {
-  xmlXPathContextPtr xpathCtx;
-  xmlXPathObjectPtr xpathObj;
-  
-  // Parse the string as an XML tree
-  xmlChar *html = xmlStrdup((xmlChar*)(ret->c_str()));
-  htmlDocPtr doc = htmlParseDoc(html, NULL);
-
-  if(doc != NULL)
+  // HTML parser context
+  htmlParserCtxtPtr htmlCtx = htmlNewParserCtxt();
+  if(htmlCtx != NULL)
   {
-    xpathCtx = xmlXPathNewContext(doc);
-    if(xpathCtx != NULL)
+    // HTML doc parsing from memory (char*)
+    htmlDocPtr doc = htmlCtxtReadMemory(htmlCtx, ret->c_str(), ret->length(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
+    if(doc != NULL)
     {
-      // If the XML tree has been correctly parsed, let's apply the XPath to it
-      xpathObj = xmlXPathEvalExpression((xmlChar*)(xpath.c_str()), xpathCtx);
-      if(xpathObj != NULL)
+      xmlXPathContextPtr xpathCtx = xmlXPathNewContext(doc);
+      if(xpathCtx != NULL)
       {
-        // The XPath select at least one element
-        xmlNodeSetPtr nodes = xpathObj->nodesetval;
-
-        // Unlink all found XML element nodes
-        int size, i;
-        size = (nodes) ? nodes->nodeNr : 0;
-        for(i = 0; i < size; ++i)
+        // If the XML tree has been correctly parsed, let's apply the XPath to it
+        xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((xmlChar*)(xpath.c_str()), xpathCtx);
+        if(xpathObj != NULL)
         {
-          if(nodes->nodeTab[i]->type == XML_ELEMENT_NODE)
+          // The XPath select at least one element
+          xmlNodeSetPtr nodes = xpathObj->nodesetval;
+  
+          // Unlink all found XML element nodes
+          int size, i;
+          size = (nodes) ? nodes->nodeNr : 0;
+          for(i = 0; i < size; ++i)
           {
-            xmlUnlinkNode(nodes->nodeTab[i]);
+            if(nodes->nodeTab[i]->type == XML_ELEMENT_NODE)
+            {
+              xmlUnlinkNode(nodes->nodeTab[i]);
+            }
           }
+          // Free some memory
+          xmlXPathFreeObject(xpathObj);
         }
         // Free some memory
-        xmlXPathFreeObject(xpathObj);
-        // XXX Freeing the nodes cause a segfault...maybe they are freed with the Object
-        // xmlXPathFreeNodeSet(nodes);
+        xmlXPathFreeContext(xpathCtx);
       }
+      // Dump the XML tree into the char* passed as argument to this function
+      xmlChar *html;
+      htmlDocDumpMemory(xpathCtx->doc, &html, NULL);
+      // Casting and converting from xmlChar* to std::string
+      *ret =  std::string((char *)html);
+      // Free some memory
+      xmlFreeDoc(doc);
     }
-    
-    // Dump the XML tree into the char* passed as argument to this function
-    htmlDocDumpMemory(xpathCtx->doc, &html, NULL);
-    *ret =  std::string((char *)html);
     // Free some memory
-    xmlXPathFreeContext(xpathCtx);
-    xmlFreeDoc(doc);
-    return;
+    htmlFreeParserCtxt(htmlCtx);
   }
 }
