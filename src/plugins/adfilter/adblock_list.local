@@ -1,6 +1,6 @@
 ! Local adblock rules file
 ! Quick ref :
-! - Block a domain (an its sub-domains) :
+! - Block a domain (and its sub-domains) :
 !   ||domain.tld
 ! - Filter an element by its ID
 !   ###elemid
