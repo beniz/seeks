@@ -119,7 +119,13 @@ void adfilter_element::_filter(std::string *ret, std::string xpath)
           xmlXPathFreeObject(xpathObj);
         }
         // Dump the XML tree as HTML (no entities re-encoding)
-        xmlOutputBufferPtr buf = xmlAllocOutputBuffer(xmlFindCharEncodingHandler("HTML"));;
+        xmlCharEncodingHandlerPtr handler = NULL;
+        const char *encoding = (const char *)htmlGetMetaEncoding(xpathCtx->doc);
+        if(encoding != NULL)
+          handler = xmlFindCharEncodingHandler(encoding);
+        else
+          handler = xmlFindCharEncodingHandler("iso-8859-1");
+        xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
         htmlDocContentDumpOutput(buf, xpathCtx->doc, NULL);
         xmlOutputBufferFlush(buf);
         // Pick encoded buffer or not
