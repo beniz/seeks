@@ -13,7 +13,7 @@ AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcd
 ACLOCAL_AMFLAGS=-I m4
 
 readablepluginlib_LTLIBRARIES=libreadableplugin.la
-libreadableplugin_la_SOURCES=rdbl_pl.cpp readable.c rd_list.c rdbl_pl.h rd_list.h khash.h
+libreadableplugin_la_SOURCES=rdbl_pl.cpp readable.c rd_list.c rdbl_pl.h rd_list.h khash.h readable.h
 
 #readablepluginconfigdir = $(sysconfdir)/seeks
 #dist_readablepluginconfig_DATA=readable-config
