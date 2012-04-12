@@ -163,7 +163,7 @@ namespace seeks_plugins
         break;
 
       case hash_post_radius:
-        _post_radius = static_cast<bool>(atoi(arg));
+        _post_radius = atoi(arg);
         configuration_spec::html_table_row(_config_args,cmd,arg,
                                            "Query similarity impact radius of posted URLs");
         break;
