@@ -236,11 +236,11 @@ namespace seeks_plugins
                           const float &domain_name_weight,
                           bool &pers);
 
-      float estimate_prior(search_snippet *s,
-                           const hash_map<uint32_t,bool,id_hash_uint> *filter,
-                           const std::string &surl,
-                           const std::string &host,
-                           const uint64_t &nuri);
+      virtual float estimate_prior(search_snippet *s,
+                                   const hash_map<uint32_t,bool,id_hash_uint> *filter,
+                                   const std::string &surl,
+                                   const std::string &host,
+                                   const uint64_t &nuri);
 
       static uint32_t damerau_levenshtein_distance(const std::string &s1, const std::string &s2,
           const uint32_t &c=256);
