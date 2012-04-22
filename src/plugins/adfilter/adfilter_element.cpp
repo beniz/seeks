@@ -29,6 +29,7 @@
 #include <libxml/xpath.h> 
 
 #include <string>
+#include <malloc.h>
 
 // Patterns that's trigger the plug'in
 const std::string adfilter_element::_blocked_patterns_filename = "adfilter/blocked-patterns";
@@ -42,8 +43,19 @@ adfilter_element::adfilter_element(const std::vector<std::string> &pos_patterns,
 {
   errlog::log_error(LOG_LEVEL_INFO, "adfilter: initializing filter plugin");
   this->parent = parent;
+  // libXML2 memory pre-allocation
+  xmlInitParser();
 }
 
+/*
+ * Destructor
+ * ----------------
+ */
+adfilter_element::~adfilter_element()
+{
+  // libXML2 memory clean
+  xmlCleanupParser();
+}
 
 /*
  * run
@@ -57,22 +69,22 @@ adfilter_element::adfilter_element(const std::vector<std::string> &pos_patterns,
  */
 char* adfilter_element::run(client_state *csp, char *str, size_t size)
 {
-  std::string ret = strndup(str,size);
+  char *ret = strndup(str,size);
   std::string ct = parsers::get_header_value(&csp->_headers, "Content-Type:");
 
   if(ct.find("text/html") != std::string::npos or ct.find("text/xml") != std::string::npos)
   {
     // It's an XML file (or HTML)
     std::string xpath;
-    if(this->parent->get_parser()->get_xpath(std::string(csp->_http._url), xpath, true))
+    if(this->parent->get_parser()->get_xpath(std::string(csp->_http._url), &xpath, true))
     {
       // There is an XPath for this URL, let's filter it
-      this->_filter(&ret, xpath);
+      this->_filter(ret, &xpath);
     }
   }
   // Finally return the modified (or not) page
-  csp->_content_length = (size_t)strlen(ret.c_str());
-  return strdup(ret.c_str());
+  csp->_content_length = (size_t)strlen(ret);
+  return ret;
 }
 
 /*
@@ -80,13 +92,13 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
  * Remove identified elements by XPath from the given XML tree
  * --------------------
  * Parameters :
- * - std::string *ret  : ptr to the XML tree
+ * - char        *ret  : ptr to the XML tree
  * - std::string xpath : the XPath used to identified filtered elements
  */
-void adfilter_element::_filter(std::string *ret, std::string xpath)
+void adfilter_element::_filter(char *ret, std::string *xpath)
 {
   // HTML parser context
-  htmlParserCtxtPtr htmlCtx = htmlCreateMemoryParserCtxt(ret->c_str(), ret->length());
+  htmlParserCtxtPtr htmlCtx = htmlCreateMemoryParserCtxt(ret, strlen(ret));
   if(htmlCtx != NULL)
   {
     // HTML parser options (leave errors as is, no error/warning displayed, etc.)
@@ -99,7 +111,7 @@ void adfilter_element::_filter(std::string *ret, std::string xpath)
       if(xpathCtx != NULL)
       {
         // If the XML tree has been correctly parsed, let's apply the XPath to it
-        xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((xmlChar*)(xpath.c_str()), xpathCtx);
+        xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((xmlChar*)(xpath->c_str()), xpathCtx);
         if(xpathObj != NULL)
         {
           // The XPath select at least one element
@@ -130,9 +142,9 @@ void adfilter_element::_filter(std::string *ret, std::string xpath)
         xmlOutputBufferFlush(buf);
         // Pick encoded buffer or not
         if (buf->conv != NULL)
-          *ret = std::string((char *)xmlStrndup(buf->conv->content, buf->conv->use));
+          ret = (char *)xmlStrndup(buf->conv->content, buf->conv->use);
         else
-          *ret = std::string((char *)xmlStrndup(buf->buffer->content, buf->conv->use));
+          ret = (char *)xmlStrndup(buf->buffer->content, buf->conv->use);
         // Free some memory
         xmlOutputBufferClose(buf);
         xmlXPathFreeContext(xpathCtx);
@@ -141,4 +153,5 @@ void adfilter_element::_filter(std::string *ret, std::string xpath)
     // Free some memory
     htmlFreeParserCtxt(htmlCtx);
   }
+  malloc_trim(0);
 }

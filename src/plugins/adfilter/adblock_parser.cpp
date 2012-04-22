@@ -19,6 +19,7 @@
 #include "adblock_parser.h"
 
 #include "plugin.h" // for plugin_manager
+#include "parsers.h" // for headers parsing
 #include "errlog.h"
 #include "miscutil.h" // for string funcs
 
@@ -30,6 +31,7 @@
 #include <vector>
 
 using namespace sp;
+using namespace adr;
 
 /*
  * Constructor
@@ -62,14 +64,11 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
   if(ifs.is_open() or ilfs.is_open())
   {
     // Clear all knowed rules
-    this->_blockedurls.clear();
+    this->_blockerules.clear();
     this->_filterrules.clear();
 
     std::string line;
     while(!ifs.eof() or !ilfs.eof()) {
-      std::string x;
-      std::string url;
-
       // Read downloaded rules, then local rules
       if(!ifs.eof()) getline(ifs, line);
       else if(!ilfs.eof()) getline(ilfs, line);
@@ -79,29 +78,29 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
 
       if(!line.empty())
       {
+        std::string xpath;
+        std::string url;
+        adr::rule_t type;
+        adr::adblock_rule rule;
+
         // Line is not empty
-        rule_t ret = adblock_parser::_line_to_rule(&x, &url, line);
-  
+        type = adblock_parser::_line_to_rule(line, &rule, &url, &xpath);
+
         // Block the whole URL
-        if(ret == ADB_RULE_URL_BLOCK and parse_blockers)
+        if(type == ADB_RULE_URL_BLOCK and parse_blockers)
         {
-          // Add patterns url, *.url, *.*.url, etc.
-          for(int i = 0; i < 4; i++)
-          {
-            this->_blockedurls.push_back(url);
-            url = url.insert(0, "*.");
-          }
+          _blockerules.push_back(rule);
         }
   
         // Block elements whatever the url
-        else if(ret == ADB_RULE_GENERIC_FILTER and parse_filters)
+        else if(type == ADB_RULE_GENERIC_FILTER and parse_filters)
         {
           // FIXME empty rules with $domain=
-          if(!x.empty()) this->_genericrule.append((this->_genericrule.empty() ? "" : " | ") + x);
+          if(!xpath.empty()) this->_genericrule.append((this->_genericrule.empty() ? "" : " | ") + xpath);
         }
   
         // Block elements of a specific url
-        else if(ret == ADB_RULE_URL_FILTER and parse_filters)
+        else if(type == ADB_RULE_URL_FILTER and parse_filters)
         {
           // url is in fact a list or URLs (url1,url2,...,urln)
           size_t part = 0;
@@ -120,14 +119,14 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
               this->_filterrules.erase(it);
             }
 
-            r.append((r.empty() ? "" : " | ") + x);
-            if(!x.empty()) this->_filterrules.insert(std::pair<const std::string, std::string>(url.substr(0, part), r));
+            r.append((r.empty() ? "" : " | ") + xpath);
+            if(!xpath.empty()) this->_filterrules.insert(std::pair<const std::string, std::string>(url.substr(0, part), r));
             // Analyse from first "," -> end
             url = url.substr(part + 1);
           }
         }
 
-        else if(ret == ADB_RULE_ERROR)
+        else if(type == ADB_RULE_ERROR)
         {
           errlog::log_error(LOG_LEVEL_ERROR, "ADFilter: failed to parse : '%s'", line.c_str());
         }
@@ -153,7 +152,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
  * Return value :
  * - rule_t : Type of rule (see rule_t declaration)
  */
-rule_t adblock_parser::_line_to_rule(std::string *xpath, std::string *url, std::string line)
+adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *rule, std::string *url, std::string *xpath)
 {
   pcre *re;
   const char *error;
@@ -163,37 +162,134 @@ rule_t adblock_parser::_line_to_rule(std::string *xpath, std::string *url, std::
   // If the line begins with "||", the complete following URL should be blocked
   if(line.substr(0,2) == "||")
   {
-    // full URL blocking RE (||domainpart.domainpart/path)
-    /* TODO
-Restriction aux requêtes third-party/first-party (provenant d'un autre/du même site) : Si l'option third-party est spécifiée,
-le filtre n'est appliqué qu'aux requêtes provenant d'une autre origine que la page actuellement affichée.
-De manière similaire, ~third-party restreint l'action du filtre aux requêtes provenant de la même origine que la page couramment affichée.
-    */
+    // full URL blocking RE (||domainpart.domainpart/path$cond1,cond2,..,condn)
     line = line.substr(2);
-    const char *rBlock = "^([^\\^\\/]*)[\\^\\/]*([^\\$]*)(\\$.+)?$";
-    std::string domain;
-    std::string path;
+    std::string cond;
+    if(line.find("$") != std::string::npos) cond = line.substr(line.find("$") + 1);;
+    line = line.substr(0, line.find("$"));
+
+    const char *rBlock = "^([^\\^\\/]*)[\\^\\/]*(.*)$";
 
     re = pcre_compile(rBlock, PCRE_CASELESS, &error, &erroffset, NULL);
     rc = pcre_exec(re, NULL, line.c_str(), line.length(), 0, 0, ovector, 15);
     pcre_free(re);
     if(rc > 0)
     {
+      std::string domain;
+      std::string path;
+
+      // Domain and path computation
       if(ovector[3] > 0) domain = line.substr(ovector[2], ovector[3] - ovector[2]);
-      // Third matched element is ignored (conditional blocking)
       path   = line.substr(ovector[4], ovector[5] - ovector[4]);
       if(!path.empty())
       {
-        // RegEx escaping
+        // RegEx element escaping
         miscutil::replace_in_string(path, ".", "\\.");
         miscutil::replace_in_string(path, "?", "\\?");
         miscutil::replace_in_string(path, "|", "\\|");
         miscutil::replace_in_string(path, "*", ".*");
-        (*url) = domain + "/" + path + ".*";
+        rule->url = domain + "/" + path + ".*";
       }
       else
       {
-        (*url) = domain;
+        rule->url = domain;
+      }
+
+      // Condition computation
+      size_t part = 0;
+      while(!cond.empty() && part != std::string::npos)
+      {
+        std::string c; // Condition
+        std::string t; // -> type
+        std::string v; // -> value
+        struct adr::condition sc; // Condition structure
+
+        // 0 -> first ","
+        part = cond.find_first_of(",");
+        c = cond.substr(0, part);
+
+        sc.type = ADB_COND_NOT_SUPPORTED;
+
+        if(c.find("=") != std::string::npos)
+        {
+          t = c.substr(0, c.find("="));
+          v = c.substr(c.find("=") + 1);
+          if(t == "domain")
+          {
+            sc.type = ADB_COND_DOMAIN;
+            sc.condition = v;
+          }
+          else if(t == "~domain")
+          {
+            sc.type = ADB_COND_NOT_DOMAIN;
+            sc.condition = v;
+          }
+        }
+        else
+        {
+          t = c;
+          if(t == "stylesheet" or
+             t == "script" or
+             t == "image" or
+             t == "object" or
+             t == "xmlhttprequest" or
+             t == "object-subrequest" or
+             t == "subdocument" or
+             t == "document" or
+             t == "elemhide" or
+             t == "other")
+          {
+            sc.type = ADB_COND_TYPE;
+            sc.condition = t;
+          }
+          else if(t == "~stylesheet" or
+             t == "~script" or
+             t == "~image" or
+             t == "~object" or
+             t == "~xmlhttprequest" or
+             t == "~object-subrequest" or
+             t == "~subdocument" or
+             t == "~document" or
+             t == "~elemhide" or
+             t == "~other")
+          {
+            sc.type = ADB_COND_NOT_TYPE;
+            sc.condition = t;
+          }
+          else if(t == "third-party" or t == "~first_party")
+          {
+            sc.type = ADB_COND_THIRD_PARTY;
+          }
+          else if(t == "~third-party" or t == "first_party")
+          {
+            sc.type = ADB_COND_NOT_THIRD_PARTY;
+          }
+          else if(t == "case")
+          {
+            sc.type = ADB_COND_CASE;
+          }
+          else if(t == "~case")
+          {
+            sc.type = ADB_COND_NOT_CASE;
+          }
+          else if(t == "collapse")
+          {
+            sc.type = ADB_COND_COLLAPSE;
+          }
+          else if(t == "~collapse")
+          {
+            sc.type = ADB_COND_NOT_COLLAPSE;
+          }
+          else if(t == "donottrack")
+          {
+            sc.type = ADB_COND_DO_NOT_TRACK;
+          }
+        }
+
+        if(sc.type != ADB_COND_NOT_SUPPORTED) rule->conditions.push_back(sc);
+
+        // Next iteration: analyse from first "," -> end
+        cond = cond.substr(part + 1);
       }
     }
     else
@@ -419,21 +515,88 @@ De manière similaire, ~third-party restreint l'action du filtre aux requêtes p
 }
 
 /*
- * is_blocked
+ * TODO is_blocked
  * --------------------
  * Parameters :
  * - std::string url    : the checked URL
  * Return value :
  * - bool : true if the URL match something in the blocked list
  */
-bool adblock_parser::is_blocked(std::string url)
+bool adblock_parser::is_blocked(client_state *csp)
 {
-  std::vector<std::string>::iterator it;
-  for(it = this->_blockedurls.begin(); it != this->_blockedurls.end(); it++)
+  std::vector<adr::adblock_rule>::iterator it;
+  bool ret = false;
+  char *r = parsers::get_header_value(&csp->_headers, "Referer:");
+
+  std::string host  = csp->_http._host;
+  std::string lhost = csp->_http._host;
+  std::string lpath = csp->_http._path;
+  miscutil::to_lower(lhost);
+  miscutil::to_lower(lpath);
+
+  for(it = this->_blockerules.begin(); it != this->_blockerules.end(); it++)
   {
-    if(url.find((*it)) != std::string::npos) return true;
+    std::string url   = (*it).url.c_str();
+    std::string lurl  = (*it).url.c_str();
+    miscutil::to_lower(lurl);
+
+    // domain.tld or .domain.tld is found in the url
+    if(lhost.find(lurl) == 0 or lhost.find("." + lurl) != std::string::npos)
+    {
+      ret = true;
+      std::vector<adr::condition>::iterator cit;
+      for(cit = (*it).conditions.begin(); cit != (*it).conditions.end(); cit++)
+      {
+        if((*cit).type == ADB_COND_CASE and host.find(url) != 0 and host.find("." + url) == std::string::npos)
+        {
+          // Case sensitive match
+          ret = false;
+        }
+        else if((*cit).type == ADB_COND_THIRD_PARTY and (NULL == r or strstr(r, host.c_str()) != NULL))
+        {
+          // If the url is in the referer, then it's not a third party request
+          ret = false;
+        }
+        else if((*cit).type == ADB_COND_NOT_THIRD_PARTY and (NULL == r or strstr(r, host.c_str()) == NULL))
+        {
+          // If the url is not in the referer, then it's a third party request
+          ret = false;
+        }
+        else if((*cit).type == ADB_COND_DOMAIN and (NULL == r or strstr(r, (*cit).condition.c_str()) == NULL))
+        {
+          // If the referer does not correspond to the domain, then it's a match
+          ret = false;
+        }
+        else if((*cit).type == ADB_COND_NOT_DOMAIN and (NULL == r or strstr(r, (*cit).condition.c_str()) != NULL))
+        {
+          // If the referer correspond to the domain, then it's a match
+          ret = false;
+        }
+        else if((*cit).type == ADB_COND_TYPE and (
+          ((*cit).condition == "script"     and lpath.find(".js") == std::string::npos) or
+          ((*cit).condition == "image"      and
+            lpath.find(".jpg") == std::string::npos and
+            lpath.find(".png") == std::string::npos and
+            lpath.find(".gif") == std::string::npos and
+            lpath.find(".bmp") == std::string::npos and
+            lpath.find(".svg") == std::string::npos and
+            lpath.find(".tif") == std::string::npos
+          ) or
+          ((*cit).condition == "stylesheet" and lpath.find(".css") == std::string::npos) or
+          ((*cit).condition == "object"     and
+            lpath.find(".java") == std::string::npos and
+            lpath.find(".swf") == std::string::npos
+          )
+        ))
+        {
+          // If the file extension does not match the filtered type
+          // FIXME very ineficient
+          ret = false;
+        }
+      }
+    }
   }
-  return false;
+  return ret;
 }
 
 /*
@@ -446,17 +609,17 @@ bool adblock_parser::is_blocked(std::string url)
  * Return value :
  * - bool               : true if something has been found
  */
-bool adblock_parser::get_xpath(std::string url, std::string &xpath, bool withgeneric = true)
+bool adblock_parser::get_xpath(std::string url, std::string *xpath, bool withgeneric = true)
 {
   std::map<const std::string, std::string>::iterator it;
-  xpath = "";
+  *xpath = "";
 
   for(it = this->_filterrules.begin(); it != this->_filterrules.end(); it++)
   {
     if(url.find((*it).first) != std::string::npos)
     {
-      xpath.append((*it).second + (withgeneric ? " | " +  this->_genericrule : ""));
+      xpath->append((*it).second + (withgeneric ? " | " +  this->_genericrule : ""));
     }
   }
-  return !xpath.empty();
+  return !xpath->empty();
 }

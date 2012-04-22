@@ -50,7 +50,15 @@ adblocker_element::adblocker_element(const std::vector<std::string> &pos_pattern
  */
 http_response* adblocker_element::plugin_response(client_state *csp)
 {
-  return this->_block(csp);
+  // FIXME memory leak here ---v
+  if(this->parent->get_parser()->is_blocked(csp))
+  {
+    return this->_block(csp);
+  }
+  /*else
+  {
+    return NULL;
+  }*/
 }
 
 /*

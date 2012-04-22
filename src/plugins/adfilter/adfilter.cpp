@@ -20,7 +20,11 @@
  * FIXME
  * - Nothing
  * TODO
- * - Nothing
+ * - Make a rule object
+ *   - type: filter/block
+ *   - matching url
+ *   - condition (third-party, etc.)
+ *   - matching condition
  */
 
 #include "adblock_parser.h"
@@ -84,13 +88,11 @@ namespace seeks_plugins
     // Create the plugins
     if(_adconfig->_use_filter)
     {
-      // FIXME should have blocked patterns as neg patterns
-      _filter_plugin      = new adfilter_element(_always_pattern, _empty_pattern , this); // Filter plugin, everything but blocked URL
+      _filter_plugin      = new adfilter_element(_always_pattern, _empty_pattern, this); // Filter plugin, everything but blocked URL
     }
     if(_adconfig->_use_blocker)
     {
-      // FIXME if the same pattern list is used twice, it's not the same at the second time (the routine that compiles them, modify them)
-      _interceptor_plugin = new adblocker_element(_adbparser->_blockedurls, _empty_pattern, this); // Interceptor plugin, blocked URL only
+      _interceptor_plugin = new adblocker_element(_always_pattern, _empty_pattern, this); // Interceptor plugin, blocked URL only
     }
   }
 
@@ -130,9 +132,9 @@ namespace seeks_plugins
                        "\000!\371\004\001\000\000\000\000,\000\000\000\000\001"
                        "\000\001\000\000\002\002D\001\000;";
     // Text responses
-    this->_responses.insert(std::pair<std::string, std::string>("text/html" , "<!-- Blocked by seeks proxy //-->"));
-    this->_responses.insert(std::pair<std::string, std::string>("text/css"  , "/* Blocked by seeks proxy */"));
-    this->_responses.insert(std::pair<std::string, std::string>("text/js"   , "// Blocked by seeks proxy"));
+    this->_responses.insert(std::pair<std::string, std::string>("text/html"      , "<!-- Blocked by seeks proxy //-->"));
+    this->_responses.insert(std::pair<std::string, std::string>("text/css"       , "/* Blocked by seeks proxy */"));
+    this->_responses.insert(std::pair<std::string, std::string>("text/javascript", "// Blocked by seeks proxy"));
     // Image responses
     this->_responses.insert(std::pair<std::string, std::string>("image/gif" , std::string(gif)));
   }
@@ -155,8 +157,8 @@ namespace seeks_plugins
     if(path.find(".js") != std::string::npos)
     {
       // Javascript file
-      rsp->_body = strdup((*(this->_responses.find("text/js"))).second.c_str());
-      miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/js");
+      rsp->_body = strdup((*(this->_responses.find("text/javascript"))).second.c_str());
+      miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/javascript");
     }
     else if(path.find(".css") != std::string::npos)
     {

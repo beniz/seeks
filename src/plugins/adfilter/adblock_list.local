@@ -10,3 +10,5 @@
 !   domain.tld###elemid
 
 ||ad.lemde.fr
+||domain.tld$~case,domain=facebook.com,script
+||static.ak.fbcdn.net$~case,script

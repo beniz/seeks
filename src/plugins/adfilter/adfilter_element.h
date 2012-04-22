@@ -35,14 +35,14 @@ class adfilter_element : public filter_plugin
 {
   public:
     adfilter_element(const std::vector<std::string> &pos_patterns, const std::vector<std::string> &neg_patterns, adfilter *parent);
-    ~adfilter_element() {};
+    ~adfilter_element();
     char* run(client_state *csp, char *str, size_t size);
   private:
     // Attributes
     adfilter* parent;                                    // Parent (sp::plugin)
     static const std::string _blocked_patterns_filename; // blocked patterns filename = "blocked-patterns"
     // Methods
-    static void _filter(std::string *ret, std::string xpath);
+    static void _filter(char *ret, std::string *xpath);
 };
 
 #endif
