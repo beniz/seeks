@@ -68,10 +68,10 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
     this->_filterrules.clear();
 
     std::string line;
-    while(!ifs.eof() or !ilfs.eof()) {
+    while((ifs.good() and !ifs.eof()) or (ilfs.good() and !ilfs.eof())) {
       // Read downloaded rules, then local rules
-      if(!ifs.eof()) getline(ifs, line);
-      else if(!ilfs.eof()) getline(ilfs, line);
+      if(ifs.good() and !ifs.eof()) getline(ifs, line);
+      else if(ilfs.good() and !ilfs.eof()) getline(ilfs, line);
 
       // Trim ending characters
       line.erase(line.find_last_not_of(" \n\r\t")+1);
