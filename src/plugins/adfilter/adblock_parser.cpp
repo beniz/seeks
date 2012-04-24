@@ -78,57 +78,44 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
 
       if(!line.empty())
       {
-        std::string xpath;
-        std::string url;
-        adr::rule_t type;
-        adr::adblock_rule rule;
+        adr::adb_rule rule;
 
         // Line is not empty
-        type = adblock_parser::_line_to_rule(line, &rule, &url, &xpath);
+        adblock_parser::_line_to_rule(line, &rule);
 
         // Block the whole URL
-        if(type == ADB_RULE_URL_BLOCK and parse_blockers)
+        if(rule.type == ADB_RULE_URL_BLOCK and parse_blockers)
         {
           _blockerules.push_back(rule);
         }
   
         // Block elements whatever the url
-        else if(type == ADB_RULE_GENERIC_FILTER and parse_filters)
+        else if(rule.type == ADB_RULE_GENERIC_FILTER and parse_filters)
         {
-          // FIXME empty rules with $domain=
-          if(!xpath.empty()) this->_genericrule.append((this->_genericrule.empty() ? "" : " | ") + xpath);
+          this->_genericrules.push_back(rule);
         }
   
         // Block elements of a specific url
-        else if(type == ADB_RULE_URL_FILTER and parse_filters)
+        else if(rule.type == ADB_RULE_URL_FILTER and parse_filters)
         {
           // url is in fact a list or URLs (url1,url2,...,urln)
           size_t part = 0;
+          std::string url = rule.url;
           while(!url.empty() && part != std::string::npos)
           {
-            std::string r;
-            std::map<std::string, std::string>::iterator it;
-
             // Add filter for url 0 -> first ","
             part = url.find_first_of(",");
+            rule.url = url.substr(0, part);
+            this->_filterrules.insert(std::pair<std::string, adr::adb_rule>(rule.url, rule));
 
-            // If there already is an xpath for the current url, we append this one to it
-            if((it = this->_filterrules.find(url.substr(0, part))) != this->_filterrules.end())
-            {
-              r = (*it).second;
-              this->_filterrules.erase(it);
-            }
-
-            r.append((r.empty() ? "" : " | ") + xpath);
-            if(!xpath.empty()) this->_filterrules.insert(std::pair<const std::string, std::string>(url.substr(0, part), r));
             // Analyse from first "," -> end
             url = url.substr(part + 1);
           }
         }
 
-        else if(type == ADB_RULE_ERROR)
+        else if(rule.type == ADB_RULE_ERROR)
         {
-          errlog::log_error(LOG_LEVEL_ERROR, "ADFilter: failed to parse : '%s'", line.c_str());
+          errlog::log_error(LOG_LEVEL_DEBUG, "ADFilter: failed to parse : '%s'", line.c_str());
         }
         num_read++;
       }
@@ -146,13 +133,10 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
  * _line_to_rule
  * --------------------
  * Parameters :
- * - std::string *xpath : ptr to the xpath string
- * - std::string *url   : ptr to the url string
- * - std::string line   : line to be parsed
- * Return value :
- * - rule_t : Type of rule (see rule_t declaration)
+ * - std::string line           : line to be parsed
+ * - struct adr::adb_rule *rule : The rule structure (see .h)
  */
-adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *rule, std::string *url, std::string *xpath)
+void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
 {
   pcre *re;
   const char *error;
@@ -160,6 +144,7 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
   int ovector[18];
 
   // If the line begins with "||", the complete following URL should be blocked
+  // TODO Parse rule with no domain and no ||
   if(line.substr(0,2) == "||")
   {
     // full URL blocking RE (||domainpart.domainpart/path$cond1,cond2,..,condn)
@@ -202,7 +187,7 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
         std::string c; // Condition
         std::string t; // -> type
         std::string v; // -> value
-        struct adr::condition sc; // Condition structure
+        struct adr::adb_condition sc; // Condition structure
 
         // 0 -> first ","
         part = cond.find_first_of(",");
@@ -295,10 +280,10 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
     else
     {
       // Something is wrong with this rule
-      return ADB_RULE_ERROR;
+      rule->type = ADB_RULE_ERROR;
     }
 
-    return ADB_RULE_URL_BLOCK;
+    rule->type = ADB_RULE_URL_BLOCK;
   }
 
   // Ignore positive patterns and comments
@@ -309,11 +294,12 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
     const char *rElement    = "^([#.]?)([a-z0-9\\\\*_-]*)((\\|)([a-z0-9\\\\*_-]*))?";
     const char *rAttr1      = "^\\[([^\\]]*)\\]";
     const char *rAttr2      = "^\\[\\s*([^\\^\\*~=\\s]+)\\s*([~\\^\\*]?=)\\s*\"([^\"]+)\"\\s*\\]";
-    const char *rPseudo     = "^:([a-z_-]+)(\\(([n0-9]+)\\))?";
-    const char *rCombinator = "^(\\s*[>+\\s])?";
-    const char *rComma      = "^\\s*,";
+    // TODO descendant and childs
+    //const char *rPseudo     = "^:([a-z_-]+)(\\(([n0-9]+)\\))?";
+    //const char *rCombinator = "^(\\s*[>+\\s])?";
+    //const char *rComma      = "^\\s*,";
 
-    std::string parts = "//|ELEM|";
+    rule->type = ADB_RULE_GENERIC_FILTER;
     std::string lastRule = "";
 
     // URL detection
@@ -322,7 +308,13 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
     pcre_free(re);
     if(rc > 0)
     {
-      (*url) = line.substr(ovector[2], ovector[3] - ovector[2]);
+      if(ovector[3] > 0)
+      {
+        // If there is an URL, it's a specific rule
+        rule->url = line.substr(ovector[2], ovector[3] - ovector[2]);
+        rule->type = ADB_RULE_URL_FILTER;
+      }
+
       // From now, start parsing after the URL and the two #
       line = line.substr(ovector[1] - ovector[0]);
 
@@ -348,34 +340,46 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
             if(ovector[10] > 0)
             {
               std::string tmp = line.substr(ovector[10], ovector[11] - ovector[10]);
-              miscutil::to_lower(tmp);
-              if(tmp.empty()) tmp = "*";
-              if(parts.rfind("|ELEM|") != std::string::npos) parts.replace(parts.rfind("|ELEM|"), 6, tmp);
+              if(!tmp.empty())
+              {
+                struct adb_filter f;
+                f.type = ADB_FILTER_ELEMENT_IS;
+                f.rvalue = tmp;
+                rule->filters.push_back(f);
+              }
             }
             else
             {
               std::string tmp = line.substr(ovector[4], ovector[5] - ovector[4]);
-              miscutil::to_lower(tmp);
-              if(tmp.empty()) tmp = "*";
-              if(parts.rfind("|ELEM|") != std::string::npos) parts.replace(parts.rfind("|ELEM|"), 6, tmp);
+              if(!tmp.empty())
+              {
+                struct adb_filter f;
+                f.type = ADB_FILTER_ELEMENT_IS;
+                f.rvalue = tmp;
+                rule->filters.push_back(f);
+              }
             }
           }
           else if(line.substr(ovector[2], ovector[3] - ovector[2]) == "#")
           {
             // #, an ID
-            if(parts.rfind("|ELEM|") != std::string::npos) parts.replace(parts.rfind("|ELEM|"), 6, "*");
-            parts.append("[@id='" + line.substr(ovector[4], ovector[5] - ovector[4]) + "']");
+            struct adb_filter f;
+            f.type = ADB_FILTER_ATTR_EQUALS;
+            f.lvalue = "id";
+            f.rvalue = line.substr(ovector[4], ovector[5] - ovector[4]);
+            rule->filters.push_back(f);
           }
           else if(line.substr(ovector[2], ovector[3] - ovector[2]) == ".")
           {
             // ., a class
-            if(parts.rfind("|ELEM|") != std::string::npos) parts.replace(parts.rfind("|ELEM|"), 6, "*");
-            parts.append("[contains(@class, '" + line.substr(ovector[4], ovector[5] - ovector[4]) + "')]");
+            struct adb_filter f;
+            f.type = ADB_FILTER_ATTR_CONTAINS;
+            f.lvalue = "class";
+            f.rvalue = line.substr(ovector[4], ovector[5] - ovector[4]);
+            rule->filters.push_back(f);
           }
 
           line = line.substr(ovector[1] - ovector[0]);
-        } else {
-          parts.append("*");
         }
 
         re = pcre_compile(rAttr2, PCRE_CASELESS, &error, &erroffset, NULL);
@@ -390,12 +394,14 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
           miscutil::replace_in_string(rvalue, "'", "\\'");
           std::string sep;
 
-          parts.append("[");
-
           if(oper == "^=")
           {
-            // ^= is equivalent to "starts-with"
-            parts.append("starts-with(@" + lvalue + ", '" + rvalue + "')");
+            // ^= is equivalent to "starts with"
+            struct adb_filter f;
+            f.type = ADB_FILTER_ATTR_STARTS;
+            f.lvalue = lvalue;
+            f.rvalue = rvalue;
+            rule->filters.push_back(f);
           }
           else
           {
@@ -413,18 +419,17 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
                 rvalue = rvalue.substr(1);
               }
   
-              // If that's not the first part checked
-              if(part != 0) parts.append(" and ");
-  
               part = rvalue.find_first_of(sep);
-              parts.append("contains(@" + lvalue + ", '" + rvalue.substr(0, part) + "')");
+              struct adb_filter f;
+              f.type = ADB_FILTER_ATTR_CONTAINS;
+              f.lvalue = lvalue;
+              f.rvalue = rvalue.substr(0, part);
+              rule->filters.push_back(f);
   
               // Check for the next part
               rvalue = rvalue.substr(part + 1);
             }
           }
-
-          parts.append("]");
 
           line = line.substr(ovector[1] - ovector[0]);
         }
@@ -436,13 +441,17 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
           pcre_free(re);
           if(rc > 0)
           {
-            parts.append("[@" + line.substr(ovector[2], ovector[3] - ovector[2]) + "]");
+            struct adb_filter f;
+            f.type = ADB_FILTER_ATTR_EXISTS;
+            f.lvalue = line.substr(ovector[2], ovector[3] - ovector[2]);
+            rule->filters.push_back(f);
             line = line.substr(ovector[1] - ovector[0]);
           }
         }
 
         // Skip over pseudo-classes and pseudo-elements, which are of no use to us
-        re = pcre_compile(rPseudo, PCRE_CASELESS, &error, &erroffset, NULL);
+        // TODO Descendant and children
+        /*re = pcre_compile(rPseudo, PCRE_CASELESS, &error, &erroffset, NULL);
         while((rc = pcre_exec(re, NULL, line.c_str(), line.length(), 0, 0, ovector, 18)) > 0)
         {
           if(line.substr(ovector[2], ovector[3] - ovector[2]) == "nth-child")
@@ -490,32 +499,21 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
         {
           parts.append(" | //|ELEM|");
           line = line.substr(ovector[1] - ovector[0]);
-        }
+        }*/
       }
+    }
 
-      if(parts == "//*")
-      {
-        return ADB_RULE_ERROR;
-      }
-      miscutil::chomp_cpp(parts);
-      (*xpath) = parts;
-    }
-    
-    if((*url).empty())
+    if(rule->filters.size() == 0)
     {
-      return ADB_RULE_GENERIC_FILTER;
+      rule->type = ADB_RULE_ERROR;
     }
-    else
-    {
-      return ADB_RULE_URL_FILTER;
-    }
+  } else {
+    rule->type = ADB_RULE_UNSUPPORTED;
   }
-
-  return ADB_RULE_UNSUPPORTED;
 }
 
 /*
- * TODO is_blocked
+ * is_blocked
  * --------------------
  * Parameters :
  * - std::string url    : the checked URL
@@ -524,7 +522,7 @@ adr::rule_t adblock_parser::_line_to_rule(std::string line, adr::adblock_rule *r
  */
 bool adblock_parser::is_blocked(client_state *csp)
 {
-  std::vector<adr::adblock_rule>::iterator it;
+  std::vector<adr::adb_rule>::iterator it;
   bool ret = false;
   char *r = parsers::get_header_value(&csp->_headers, "Referer:");
 
@@ -544,7 +542,7 @@ bool adblock_parser::is_blocked(client_state *csp)
     if(lhost.find(lurl) == 0 or lhost.find("." + lurl) != std::string::npos)
     {
       ret = true;
-      std::vector<adr::condition>::iterator cit;
+      std::vector<adr::adb_condition>::iterator cit;
       for(cit = (*it).conditions.begin(); cit != (*it).conditions.end(); cit++)
       {
         if((*cit).type == ADB_COND_CASE and host.find(url) != 0 and host.find("." + url) == std::string::npos)
@@ -600,26 +598,28 @@ bool adblock_parser::is_blocked(client_state *csp)
 }
 
 /*
- * get_xpath
+ * get_rules
+ * Get rules for a specific URL
  * --------------------
  * Parameters :
- * - std::string url    : the checked URL
- * - std::string *xpath : the corresponding XPath
- * - bool withgeneric   : if true, append the generic XPath to the url's specific
+ * - std::string url            : the checked URL
  * Return value :
- * - bool               : true if something has been found
+ * - std::vector<struct adr::adb_rule> : The list of found rules
  */
-bool adblock_parser::get_xpath(std::string url, std::string *xpath, bool withgeneric = true)
+std::vector<struct adr::adb_rule> adblock_parser::get_rules(std::string url)
 {
-  std::map<const std::string, std::string>::iterator it;
-  *xpath = "";
+  std::vector<struct adr::adb_rule> ret;
+  std::multimap<std::string, struct adr::adb_rule>::iterator it;
 
+  // multimap iterator
   for(it = this->_filterrules.begin(); it != this->_filterrules.end(); it++)
   {
+    // If the current URL correspond, we add the rule
     if(url.find((*it).first) != std::string::npos)
     {
-      xpath->append((*it).second + (withgeneric ? " | " +  this->_genericrule : ""));
+      ret.push_back((*it).second);
     }
   }
-  return !xpath->empty();
+
+  return ret;
 }

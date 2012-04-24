@@ -23,13 +23,14 @@
 
 #include <map>
 #include <vector>
+#include <iostream>
 
 using namespace sp;
 
 namespace adr
 {
   // Enum for rules types
-  enum rule_t
+  enum adb_rule_type
   {
     ADB_RULE_URL_BLOCK,      // Block an URL
     ADB_RULE_URL_FILTER,     // Filter a specific URL
@@ -39,7 +40,7 @@ namespace adr
   };
   
   // Enum for conditions types
-  enum condition_t
+  enum adb_condition_type
   {
     ADB_COND_TYPE,            // match only specific document type
     ADB_COND_NOT_TYPE,        // match only not specific document type
@@ -54,21 +55,41 @@ namespace adr
     ADB_COND_DO_NOT_TRACK,    // TODO add the Do-Not-Track header
     ADB_COND_NOT_SUPPORTED    // Unsupported condition
   };
+
+  // Enum for filter types
+  enum adb_filter_type
+  {
+    ADB_FILTER_ATTR_EQUALS,   // Check if attribute lvalue is equals to rvalue
+    ADB_FILTER_ATTR_CONTAINS, // Check if attribute lvalue contains rvalue
+    ADB_FILTER_ATTR_STARTS,   // Check if attribute lvalue starts with rvalue
+    ADB_FILTER_ATTR_EXISTS,   // Check if attribute lvalue exists (no rvalue used here)
+    ADB_FILTER_ELEMENT_IS     // Check if element name is rvalue (no lvalue used here)
+  };
   
   // Rule condition
-  struct condition
+  struct adb_condition
   {
-    condition_t type;
+    adb_condition_type type;
     std::string condition;
+  };
+
+  // Rule filter
+  struct adb_filter
+  {
+    adb_filter_type type;
+    std::string lvalue;
+    std::string rvalue;
   };
 
   /*
    * ADBlock rule
    */
-  struct adblock_rule
+  struct adb_rule
   {
+    adb_rule_type type;
     std::string url;
-    std::vector<struct condition> conditions;
+    std::vector<struct adb_condition> conditions;
+    std::vector<struct adb_filter> filters;
   };
 }
   
@@ -80,17 +101,17 @@ class adblock_parser
   public:
     adblock_parser(std::string);
     ~adblock_parser() {};
-    int parse_file(bool parse_filters, bool parse_blockers);               // Load adblock rules file
-    bool is_blocked(client_state *csp);                                    // Is this URL blocked ?
-    bool get_xpath(std::string url, std::string *xpath, bool withgeneric); // Get XPath for this URL
+    int parse_file(bool parse_filters, bool parse_blockers);             // Load adblock rules file
+    bool is_blocked(client_state *csp);                                  // Is this URL blocked ?
+    std::vector<struct adr::adb_rule> get_rules(std::string url);        // Get rule for this URL
+    std::multimap<std::string, struct adr::adb_rule> _filterrules;       // Filter rules per URL
+    std::vector<struct adr::adb_rule>                _genericrules;      // Generic filter rules for all sites
+    std::vector<struct adr::adb_rule>                _blockerules;       // Blocker rules
   private:
     // Attributes
-    std::string                              _listfilename;      // adblock list file = "adblock_list"
-    std::string                              _locallistfilename; // adblock list file = "adblock_list"
-    std::map<const std::string, std::string> _filterrules;       // Maps of rules, key: url to be matched, value: xpath to unlink
-    std::string                              _genericrule;       // Generic XPath for all sites
-    std::vector<adr::adblock_rule>           _blockerules;       // Blocker rules
+    std::string                                      _listfilename;      // adblock list file = "adblock_list"
+    std::string                                      _locallistfilename; // Local adblock list file = "adblock_list.local"
     // Methods
-    adr::rule_t _line_to_rule(std::string line, adr::adblock_rule *rule, std::string *url, std::string *xpath); // Convert an adblock list file line to an xpath or a rule
+    void _line_to_rule(std::string line, struct adr::adb_rule *rule);    // Convert an adblock list file line to a rule
 };
 #endif

@@ -18,15 +18,18 @@
 
 #include "adfilter.h"
 #include "adfilter_element.h"
+#include "adblock_parser.h"
 
 #include "miscutil.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
 #include "parsers.h"
 
-#include <libxml/HTMLparser.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 #include <libxml/HTMLtree.h>
-#include <libxml/xpath.h> 
+//#include <libxml/xmlsave.h>
+#include <libxml/threads.h>
 
 #include <string>
 #include <malloc.h>
@@ -43,8 +46,19 @@ adfilter_element::adfilter_element(const std::vector<std::string> &pos_patterns,
 {
   errlog::log_error(LOG_LEVEL_INFO, "adfilter: initializing filter plugin");
   this->parent = parent;
-  // libXML2 memory pre-allocation
-  xmlInitParser();
+  // libXML2 error handler suppression
+  xmlThrDefSetGenericErrorFunc(NULL, adfilter_element::_nullGenericErrorFunc);
+  xmlSetGenericErrorFunc(NULL, adfilter_element::_nullGenericErrorFunc);
+}
+
+/*
+ * Generic Error handler for libXML2
+ * -----------------
+ * Does nothing
+ */
+void adfilter_element::_nullGenericErrorFunc(void *ctxt, const char *msg, ...)
+{
+  // Nothing
 }
 
 /*
@@ -53,8 +67,6 @@ adfilter_element::adfilter_element(const std::vector<std::string> &pos_patterns,
  */
 adfilter_element::~adfilter_element()
 {
-  // libXML2 memory clean
-  xmlCleanupParser();
 }
 
 /*
@@ -69,18 +81,18 @@ adfilter_element::~adfilter_element()
  */
 char* adfilter_element::run(client_state *csp, char *str, size_t size)
 {
-  char *ret = strndup(str,size);
-  std::string ct = parsers::get_header_value(&csp->_headers, "Content-Type:");
+  char *ret = strndup(str, size);
 
+  std::string ct = parsers::get_header_value(&csp->_headers, "Content-Type:");
   if(ct.find("text/html") != std::string::npos or ct.find("text/xml") != std::string::npos)
   {
     // It's an XML file (or HTML)
-    std::string xpath;
-    if(this->parent->get_parser()->get_xpath(std::string(csp->_http._url), &xpath, true))
-    {
-      // There is an XPath for this URL, let's filter it
-      this->_filter(ret, &xpath);
-    }
+    // Apply generic and specific rules to the XML tree
+    std::string url = std::string(csp->_http._host) + std::string(csp->_http._path);
+    std::vector<struct adr::adb_rule> rules = this->parent->get_parser()->get_rules(url);
+    xmlMutexLock(this->parent->mutexTok);
+    this->_filter(&ret, &rules, &(this->parent->get_parser()->_genericrules));
+    xmlMutexUnlock(this->parent->mutexTok);
   }
   // Finally return the modified (or not) page
   csp->_content_length = (size_t)strlen(ret);
@@ -89,69 +101,121 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
 
 /*
  * _filter
- * Remove identified elements by XPath from the given XML tree
+ * Apply rules sets to the given XML tree
  * --------------------
  * Parameters :
- * - char        *ret  : ptr to the XML tree
- * - std::string xpath : the XPath used to identified filtered elements
+ * - char                              **orig          : ptr to the XML tree as char*
+ * - std::vector<struct adr::adb_rule> *specific_rules : the rules used to identified filtered elements for this specific URL
+ * - std::vector<struct adr::adb_rule> *generic_rules  : the rules used to identified filtered elements
  */
-void adfilter_element::_filter(char *ret, std::string *xpath)
+void adfilter_element::_filter(char **orig, std::vector<struct adr::adb_rule> *specific_rules, std::vector<struct adr::adb_rule> *generic_rules)
 {
-  // HTML parser context
-  htmlParserCtxtPtr htmlCtx = htmlCreateMemoryParserCtxt(ret, strlen(ret));
-  if(htmlCtx != NULL)
+  xmlDocPtr doc;
+  if((doc = xmlParseMemory(*orig, strlen(*orig)))!= NULL)
   {
-    // HTML parser options (leave errors as is, no error/warning displayed, etc.)
-    htmlCtxtUseOptions(htmlCtx, HTML_PARSE_RECOVER | HTML_PARSE_NODEFDTD | HTML_PARSE_NOIMPLIED | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET);
-    // HTML doc parsing
-    htmlParseDocument(htmlCtx);
-    if(htmlCtx->myDoc != NULL)
+    // If the document has been correctlty parsed, let's begin by filter the root node (<html></html>) or not.
+    adfilter_element::_filter_node(xmlDocGetRootElement(doc), specific_rules, generic_rules);
+
+    // All the node are filtered or not, time to dump the resulting doc into *ret
+    xmlChar *mem;
+    int s;
+    // FIXME Memory leak here ? Or maybe libxml2 handle memory in a weird way
+    htmlDocDumpMemory(doc, &mem, &s);
+    *orig = strdup((char *)mem);
+
+    // Let's clear some memory
+    xmlFree(mem);
+    mem = NULL;
+    xmlFreeDoc(doc);
+    doc = NULL;
+  }
+  // XXX Necessary ?
+  malloc_trim(0);
+}
+
+/*
+ * _filter_node
+ * Remove identified elements by XPath from the given node
+ * --------------------
+ * Parameters :
+ * - char                              **ret           : ptr to the XML tree as char*
+ * - std::vector<struct adr::adb_rule> *specific_rules : the rules used to identified filtered elements for this specific URL
+ * - std::vector<struct adr::adb_rule> *generic_rules  : the rules used to identified filtered elements
+ */
+xmlNodePtr adfilter_element::_filter_node(xmlNodePtr node, std::vector<struct adr::adb_rule> *specific_rules, std::vector<struct adr::adb_rule> *generic_rules)
+{
+  // Recursive function until node is NULL
+  if(node != NULL)
+  {
+    if(node->type == XML_ELEMENT_NODE)
     {
-      xmlXPathContextPtr xpathCtx = xmlXPathNewContext(htmlCtx->myDoc);
-      if(xpathCtx != NULL)
+      // If we have an element (not a text, not an attribute)
+      if(adfilter_element::_filter_node_apply(node, specific_rules) or adfilter_element::_filter_node_apply(node, generic_rules))
       {
-        // If the XML tree has been correctly parsed, let's apply the XPath to it
-        xmlXPathObjectPtr xpathObj = xmlXPathEvalExpression((xmlChar*)(xpath->c_str()), xpathCtx);
-        if(xpathObj != NULL)
-        {
-          // The XPath select at least one element
-          xmlNodeSetPtr nodes = xpathObj->nodesetval;
-  
-          // Unlink all found XML element nodes
-          int size, i;
-          size = (nodes) ? nodes->nodeNr : 0;
-          for(i = 0; i < size; ++i)
-          {
-            if(nodes->nodeTab[i]->type == XML_ELEMENT_NODE)
-            {
-              xmlUnlinkNode(nodes->nodeTab[i]);
-            }
-          }
-          // Free some memory
-          xmlXPathFreeObject(xpathObj);
-        }
-        // Dump the XML tree as HTML (no entities re-encoding)
-        xmlCharEncodingHandlerPtr handler = NULL;
-        const char *encoding = (const char *)htmlGetMetaEncoding(xpathCtx->doc);
-        if(encoding != NULL)
-          handler = xmlFindCharEncodingHandler(encoding);
-        else
-          handler = xmlFindCharEncodingHandler("iso-8859-1");
-        xmlOutputBufferPtr buf = xmlAllocOutputBuffer(handler);
-        htmlDocContentDumpOutput(buf, xpathCtx->doc, NULL);
-        xmlOutputBufferFlush(buf);
-        // Pick encoded buffer or not
-        if (buf->conv != NULL)
-          ret = (char *)xmlStrndup(buf->conv->content, buf->conv->use);
-        else
-          ret = (char *)xmlStrndup(buf->buffer->content, buf->conv->use);
-        // Free some memory
-        xmlOutputBufferClose(buf);
-        xmlXPathFreeContext(xpathCtx);
+        // If this node correspond to a specific or a generic rule, lets remove it from the XML tree
+        xmlUnlinkNode(node);
+        xmlFreeNode(node);
+        node = NULL;
+        return NULL;
       }
     }
-    // Free some memory
-    htmlFreeParserCtxt(htmlCtx);
+    // Let's go to the next sibling (horizontal crawling) then child (vertical)
+    adfilter_element::_filter_node(xmlNextElementSibling(node), specific_rules, generic_rules);
+    adfilter_element::_filter_node(xmlFirstElementChild(node), specific_rules, generic_rules);
   }
-  malloc_trim(0);
+  return NULL;
+}
+
+/*
+ * _filter_node_apply
+ * Apply rules set to the given node
+ * --------------------
+ * Parameters :
+ * - char                              **ret  : ptr to the XML tree as char*
+ * - std::vector<struct adr::adb_rule> *rules : the rules used to identified filtered elements
+ */
+bool adfilter_element::_filter_node_apply(xmlNodePtr node, std::vector<struct adr::adb_rule> *rules)
+{
+  // First iterate all rules
+  std::vector<struct adr::adb_rule>::iterator it;
+  for(it = (*rules).begin(); node != NULL and it != (*rules).end(); it++)
+  {
+    // For now, let's assume we have to remove the node
+    bool unlink = true;
+    // Then iterate all filters for the current rule
+    std::vector<struct adr::adb_filter>::iterator fit;
+    for(fit = it->filters.begin(); fit != it->filters.end(); fit++)
+    {
+      // Check if the node correspond to all filters for the current rule
+      // If just one of them does not correspond, we let the node as is
+      if(fit->type == adr::ADB_FILTER_ATTR_EQUALS)
+      {
+        xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)((fit->lvalue).c_str()));
+        if(attr == NULL or xmlStrcasecmp(attr->children->content, (xmlChar *)(fit->rvalue).c_str()) != 0) unlink = false;
+      }
+      else if(fit->type == adr::ADB_FILTER_ATTR_STARTS)
+      {
+        xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)((fit->lvalue).c_str()));
+        if(attr == NULL or xmlStrcasestr(attr->children->content, (xmlChar *)(fit->rvalue).c_str()) != attr->children->content) unlink = false;
+      }
+      else if(fit->type == adr::ADB_FILTER_ATTR_CONTAINS)
+      {
+        xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)((fit->lvalue).c_str()));
+        if(attr == NULL or xmlStrcasestr(attr->children->content, (xmlChar *)(fit->rvalue).c_str()) == NULL) unlink = false;
+      }
+      else if(fit->type == adr::ADB_FILTER_ATTR_EXISTS)
+      {
+        xmlAttrPtr attr = xmlHasProp(node, (xmlChar *)((fit->lvalue).c_str()));
+        if(attr == NULL) unlink = false;
+      }
+      else if(fit->type == adr::ADB_FILTER_ELEMENT_IS)
+      {
+        if(node->name == NULL or xmlStrcasecmp((const xmlChar *)(node->name), (xmlChar *)(fit->rvalue).c_str()) != 0) unlink = false;
+      }
+    }
+    // All filters for the current rule are satisfied, no need to check the others rules
+    if(unlink) return true;
+  }
+  // No rules correspond, we do not touch this node
+  return false;
 }

@@ -20,11 +20,7 @@
  * FIXME
  * - Nothing
  * TODO
- * - Make a rule object
- *   - type: filter/block
- *   - matching url
- *   - condition (third-party, etc.)
- *   - matching condition
+ * - Nothing
  */
 
 #include "adblock_parser.h"
@@ -42,6 +38,9 @@
 #include "parsers.h"
 #include "seeks_proxy.h"
 #include "errlog.h"
+
+#include <libxml/parser.h>
+#include <libxml/threads.h>
 
 namespace seeks_plugins
 {
@@ -94,6 +93,24 @@ namespace seeks_plugins
     {
       _interceptor_plugin = new adblocker_element(_always_pattern, _empty_pattern, this); // Interceptor plugin, blocked URL only
     }
+
+    // libXML2 mutex
+    this->mutexTok = xmlNewMutex();
+
+    // libXML2 memory pre-allocation
+    xmlInitParser();
+  }
+
+  /*
+   * Destructor
+   */
+  adfilter::~adfilter()
+  {
+    // libXML2 mutex
+    xmlFreeMutex(this->mutexTok);
+
+    // libXML2 memory clean
+    xmlCleanupParser();
   }
 
   /*

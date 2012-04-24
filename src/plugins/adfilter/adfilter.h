@@ -29,6 +29,7 @@
 #include "configuration_spec.h"
 
 #include <map>
+#include <libxml/threads.h>
 
 using namespace sp;
 
@@ -38,7 +39,7 @@ namespace seeks_plugins
   {
     public:
       adfilter();
-      ~adfilter() {};
+      ~adfilter();
       virtual void start() {};
       virtual void stop() {};
       // Accessors/mutators
@@ -46,6 +47,8 @@ namespace seeks_plugins
       adfilter_configuration* get_config();
       // Methods
       void blocked_response(http_response *rsp, client_state *csp); // Set response regarding the csp content-type
+      // Attributes
+      xmlMutexPtr mutexTok;
     private:
       // Attributes
       adfilter_configuration* _adconfig; // Configuration manager
