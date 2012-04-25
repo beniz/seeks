@@ -74,8 +74,8 @@ http_response* adblocker_element::_block(client_state *csp)
 {
   http_response *rsp = NULL;
 
-  //beware, redirection should overrides blocking...
-  //TODO: suggests adding redirection to this plugin.
+  // beware, redirection should overrides blocking...
+  // TODO suggests adding redirection to this plugin.
 
   // Error creating the response, must be a memory problem
   if (NULL == (rsp = new http_response()))

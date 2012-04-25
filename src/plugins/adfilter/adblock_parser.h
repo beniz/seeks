@@ -32,11 +32,14 @@ namespace adr
   // Enum for rules types
   enum adb_rule_type
   {
-    ADB_RULE_URL_BLOCK,      // Block an URL
-    ADB_RULE_URL_FILTER,     // Filter a specific URL
-    ADB_RULE_GENERIC_FILTER, // Generic filter
-    ADB_RULE_UNSUPPORTED,    // Unsupported rule (yet)
-    ADB_RULE_ERROR           // No success on parsing the rule
+    ADB_RULE_URL_BLOCK,       // Block an URL
+    ADB_RULE_URL_PIECE_BLOCK, // Block an URL pattern (*domain.tld*)
+    ADB_RULE_URL_FILTER,      // Filter a specific URL
+    ADB_RULE_GENERIC_FILTER,  // Generic filter
+    ADB_RULE_EXCEPTION,       // TODO Nothing should be done for this URL (no filter, no block)
+    ADB_RULE_NO_ACTION,       // Comments, mostly
+    ADB_RULE_UNSUPPORTED,     // Unsupported rule (yet)
+    ADB_RULE_ERROR            // No success on parsing the rule
   };
   
   // Enum for conditions types

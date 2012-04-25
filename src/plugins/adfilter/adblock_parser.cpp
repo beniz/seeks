@@ -84,7 +84,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         adblock_parser::_line_to_rule(line, &rule);
 
         // Block the whole URL
-        if(rule.type == ADB_RULE_URL_BLOCK and parse_blockers)
+        if((rule.type == ADB_RULE_URL_BLOCK or rule.type == ADB_RULE_URL_PIECE_BLOCK) and parse_blockers)
         {
           _blockerules.push_back(rule);
         }
@@ -113,10 +113,33 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
           }
         }
 
+        // Exception rule, this URL must not be filtered or blocked
+        else if(rule.type == ADB_RULE_EXCEPTION)
+        {
+          // TODO
+          num_read--;
+        }
+
+        // No action (comments, etc.)
+        else if(rule.type == ADB_RULE_NO_ACTION)
+        {
+          num_read--;
+        }
+
+        // An error occured (maybe a malformed rule)
         else if(rule.type == ADB_RULE_ERROR)
         {
           errlog::log_error(LOG_LEVEL_DEBUG, "ADFilter: failed to parse : '%s'", line.c_str());
+          num_read--;
         }
+
+        // Unsupported rule (yet)
+        else
+        {
+          errlog::log_error(LOG_LEVEL_DEBUG, "ADFilter: unsupported rule : '%s'", line.c_str());
+          num_read--;
+        }
+
         num_read++;
       }
     }
@@ -143,17 +166,28 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
   int erroffset, rc;
   int ovector[18];
 
-  // If the line begins with "||", the complete following URL should be blocked
-  // TODO Parse rule with no domain and no ||
-  if(line.substr(0,2) == "||")
+  // Execptions
+  if(line.substr(0, 2) == "@@")
   {
-    // full URL blocking RE (||domainpart.domainpart/path$cond1,cond2,..,condn)
-    line = line.substr(2);
+    rule->type = ADB_RULE_EXCEPTION;
+  }
+
+  // Comments
+  else if(line.substr(0, 1) == "!")
+  {
+    rule->type = ADB_RULE_NO_ACTION;
+  }
+
+  // ||domain.tld should block domain.tld but not *.domain.tld
+  // domain.tld should block *.domain.tld
+  else if(line.find("##") == std::string::npos)
+  {
+    //line = line.substr(2);
     std::string cond;
     if(line.find("$") != std::string::npos) cond = line.substr(line.find("$") + 1);;
     line = line.substr(0, line.find("$"));
 
-    const char *rBlock = "^([^\\^\\/]*)[\\^\\/]*(.*)$";
+    const char *rBlock = "^(\\|\\|)?([^\\^\\/]*)[\\^\\/]*(.*)$";
 
     re = pcre_compile(rBlock, PCRE_CASELESS, &error, &erroffset, NULL);
     rc = pcre_exec(re, NULL, line.c_str(), line.length(), 0, 0, ovector, 15);
@@ -163,17 +197,29 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
       std::string domain;
       std::string path;
 
+      if(ovector[3] > 0)
+      {
+        // ||domain.tld, domain.tld should be blocked
+        rule->type = ADB_RULE_URL_BLOCK;
+      }
+      else
+      {
+        // domain.tld, *domain.tld* should be blocked
+        rule->type = ADB_RULE_URL_PIECE_BLOCK;
+      }
+
       // Domain and path computation
-      if(ovector[3] > 0) domain = line.substr(ovector[2], ovector[3] - ovector[2]);
-      path   = line.substr(ovector[4], ovector[5] - ovector[4]);
+      if(ovector[5] > 0) domain = line.substr(ovector[4], ovector[5] - ovector[4]);
+      path   = line.substr(ovector[6], ovector[7] - ovector[6]);
       if(!path.empty())
       {
         // RegEx element escaping
-        miscutil::replace_in_string(path, ".", "\\.");
+        // TODO pattern matching
+        /*miscutil::replace_in_string(path, ".", "\\.");
         miscutil::replace_in_string(path, "?", "\\?");
         miscutil::replace_in_string(path, "|", "\\|");
-        miscutil::replace_in_string(path, "*", ".*");
-        rule->url = domain + "/" + path + ".*";
+        miscutil::replace_in_string(path, "*", ".*");*/
+        rule->url = domain + "/" + path; // + ".*";
       }
       else
       {
@@ -282,15 +328,13 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
       // Something is wrong with this rule
       rule->type = ADB_RULE_ERROR;
     }
-
-    rule->type = ADB_RULE_URL_BLOCK;
   }
 
-  // Ignore positive patterns and comments
-  else if(line.substr(0,2) != "@@" and line.substr(0,1) != "!")
+  // Element filter
+  else if(line.find("##") != std::string::npos)
   {
     // Matching regexps (see http://forums.wincustomize.com/322441)
-    const char *rUrl        = "^([^#\\s]*)##";
+    const char *rUrl        = "^~?([^#\\s]*)##";
     const char *rElement    = "^([#.]?)([a-z0-9\\\\*_-]*)((\\|)([a-z0-9\\\\*_-]*))?";
     const char *rAttr1      = "^\\[([^\\]]*)\\]";
     const char *rAttr2      = "^\\[\\s*([^\\^\\*~=\\s]+)\\s*([~\\^\\*]?=)\\s*\"([^\"]+)\"\\s*\\]";
@@ -507,7 +551,11 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
     {
       rule->type = ADB_RULE_ERROR;
     }
-  } else {
+  }
+
+  // Unsupported rule
+  else
+  {
     rule->type = ADB_RULE_UNSUPPORTED;
   }
 }
@@ -529,8 +577,11 @@ bool adblock_parser::is_blocked(client_state *csp)
   std::string host  = csp->_http._host;
   std::string lhost = csp->_http._host;
   std::string lpath = csp->_http._path;
+  std::string murl  = host + lpath;
+  std::string lmurl = murl;
   miscutil::to_lower(lhost);
   miscutil::to_lower(lpath);
+  miscutil::to_lower(lmurl);
 
   for(it = this->_blockerules.begin(); it != this->_blockerules.end(); it++)
   {
@@ -538,14 +589,18 @@ bool adblock_parser::is_blocked(client_state *csp)
     std::string lurl  = (*it).url.c_str();
     miscutil::to_lower(lurl);
 
-    // domain.tld or .domain.tld is found in the url
-    if(lhost.find(lurl) == 0 or lhost.find("." + lurl) != std::string::npos)
+    // ADB_RULE_URL_BLOCK rule, check for domain.tld
+    // ADB_RULE_URL_PIECE_BLOCK rule, check for *domain.tld*
+    if(((*it).type == ADB_RULE_URL_BLOCK       and lmurl.find(lurl) == 0) or 
+       ((*it).type == ADB_RULE_URL_PIECE_BLOCK and lmurl.find(lurl) != std::string::npos))
     {
       ret = true;
       std::vector<adr::adb_condition>::iterator cit;
       for(cit = (*it).conditions.begin(); cit != (*it).conditions.end(); cit++)
       {
-        if((*cit).type == ADB_COND_CASE and host.find(url) != 0 and host.find("." + url) == std::string::npos)
+        if((*cit).type == ADB_COND_CASE and 
+          (((*it).type == ADB_RULE_URL_BLOCK       and murl.find(url) != 0) or 
+           ((*it).type == ADB_RULE_URL_PIECE_BLOCK and murl.find(url) == std::string::npos)))
         {
           // Case sensitive match
           ret = false;
