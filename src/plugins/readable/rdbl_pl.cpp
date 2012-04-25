@@ -112,6 +112,7 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,e.what().c_str());
         return e.code();
       }
+    content = miscutil::chomp_cpp(content);
     delete result;
     return SP_ERR_OK;
   }
