@@ -53,7 +53,7 @@ namespace seeks_plugins
       // Attributes
       adfilter_configuration* _adconfig; // Configuration manager
       adblock_parser* _adbparser; // ADBlock rules parser
-      std::map<std::string, std::string> _responses; // Responses per content-type
+      std::map<std::string, const char *> _responses; // Responses per content-type
       // Methods
       void populate_responses(); // Populate _responses
   };

@@ -16,13 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.                                                                           
 */
 
-/*
- * FIXME
- * - Nothing
- * TODO
- * - Nothing
- */
-
 #include "adblock_parser.h"
 #include "adblock_downloader.h"
 #include "adblocker_element.h"
@@ -144,16 +137,20 @@ namespace seeks_plugins
    */
   void adfilter::populate_responses()
   {
-    // TODO test blocked image/gif
-    const char gif[] = "GIF89a\001\000\001\000\200\000\000\377\377\377\000\000"
-                       "\000!\371\004\001\000\000\000\000,\000\000\000\000\001"
-                       "\000\001\000\000\002\002D\001\000;";
+    // Empty gif for image response
+    const char gif[] = 
+      "\107\111\106\070\071\141\004\000\004\000\200\000\000\310\310"
+      "\310\377\377\377\041\376\016\111\040\167\141\163\040\141\040"
+      "\142\141\156\156\145\162\000\041\371\004\001\012\000\001\000"
+      "\054\000\000\000\000\004\000\004\000\000\002\005\104\174\147"
+      "\270\005\000\073";
+
     // Text responses
-    this->_responses.insert(std::pair<std::string, std::string>("text/html"      , "<!-- Blocked by seeks proxy //-->"));
-    this->_responses.insert(std::pair<std::string, std::string>("text/css"       , "/* Blocked by seeks proxy */"));
-    this->_responses.insert(std::pair<std::string, std::string>("text/javascript", "// Blocked by seeks proxy"));
+    this->_responses.insert(std::pair<std::string, const char *>("text/html"      , "<!-- Blocked by seeks proxy //-->"));
+    this->_responses.insert(std::pair<std::string, const char *>("text/css"       , "/* Blocked by seeks proxy */"));
+    this->_responses.insert(std::pair<std::string, const char *>("text/javascript", "// Blocked by seeks proxy"));
     // Image responses
-    this->_responses.insert(std::pair<std::string, std::string>("image/gif" , std::string(gif)));
+    this->_responses.insert(std::pair<std::string, const char *>("image/gif", strdup(gif)));
   }
 
   /*
@@ -174,13 +171,13 @@ namespace seeks_plugins
     if(path.find(".js") != std::string::npos)
     {
       // Javascript file
-      rsp->_body = strdup((*(this->_responses.find("text/javascript"))).second.c_str());
+      rsp->_body = strdup((*(this->_responses.find("text/javascript"))).second);
       miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/javascript");
     }
     else if(path.find(".css") != std::string::npos)
     {
       // Stylesheet
-      rsp->_body = strdup((*(this->_responses.find("text/css"))).second.c_str());
+      rsp->_body = strdup((*(this->_responses.find("text/css"))).second);
       miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/css");
     }
     else if(path.find(".png")  != std::string::npos or
@@ -192,13 +189,13 @@ namespace seeks_plugins
             path.find(".tif")  != std::string::npos)
     {
       // Image
-      rsp->_body = strdup((*(this->_responses.find("image/gif"))).second.c_str());
+      rsp->_body = strdup((*(this->_responses.find("image/gif"))).second);
       miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "image/gif");
     }
     else
     {
       // Unknown type, let's assume that's an HTML response
-      rsp->_body = strdup((*(this->_responses.find("text/html"))).second.c_str());
+      rsp->_body = strdup((*(this->_responses.find("text/html"))).second);
       miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/html");
     }
   }
