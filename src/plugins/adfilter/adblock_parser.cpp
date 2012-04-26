@@ -84,9 +84,9 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         adblock_parser::_line_to_rule(line, &rule);
 
         // Block the whole URL
-        if((rule.type == ADB_RULE_URL_BLOCK or rule.type == ADB_RULE_URL_PIECE_BLOCK) and parse_blockers)
+        if(rule.type == ADB_RULE_URL_BLOCK and parse_blockers)
         {
-          _blockerules.push_back(rule);
+          this->_blockerules.push_back(rule);
         }
   
         // Block elements whatever the url
@@ -114,10 +114,9 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
         }
 
         // Exception rule, this URL must not be filtered or blocked
-        else if(rule.type == ADB_RULE_EXCEPTION)
+        else if(rule.type == ADB_RULE_URL_EXCEPTION)
         {
-          // TODO
-          num_read--;
+          this->_exceptionsrules.push_back(rule);
         }
 
         // No action (comments, etc.)
@@ -166,14 +165,8 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
   int erroffset, rc;
   int ovector[18];
 
-  // Execptions
-  if(line.substr(0, 2) == "@@")
-  {
-    rule->type = ADB_RULE_EXCEPTION;
-  }
-
   // Comments
-  else if(line.substr(0, 1) == "!")
+  /*else*/ if(line.substr(0, 1) == "!")
   {
     rule->type = ADB_RULE_NO_ACTION;
   }
@@ -187,7 +180,8 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
     if(line.find("$") != std::string::npos) cond = line.substr(line.find("$") + 1);;
     line = line.substr(0, line.find("$"));
 
-    const char *rBlock = "^(\\|\\|)?([^\\^\\/]*)[\\^\\/]*(.*)$";
+    // TODO Better separator (^) implementation (Should be two fields : host and path)
+    const char *rBlock = "^(@@\\|\\||@@|\\|\\|)?([^\\^\\/]*)[\\^\\/]*(.*)$";
 
     re = pcre_compile(rBlock, PCRE_CASELESS, &error, &erroffset, NULL);
     rc = pcre_exec(re, NULL, line.c_str(), line.length(), 0, 0, ovector, 15);
@@ -199,13 +193,32 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
 
       if(ovector[3] > 0)
       {
-        // ||domain.tld, domain.tld should be blocked
-        rule->type = ADB_RULE_URL_BLOCK;
+        if(line.substr(ovector[2], ovector[3] - ovector[2]) == "||")
+        {
+          // ||domain.tld, domain.tld should be blocked
+          rule->type = ADB_RULE_URL_BLOCK;
+          struct adr::adb_condition sc;
+          sc.type = ADB_COND_START_WITH;
+          rule->conditions.push_back(sc);
+        }
+        else if(line.substr(ovector[2], ovector[3] - ovector[2]) == "@@||")
+        {
+          // @@domain.tld, domain.tld should NOT be blocked
+          rule->type = ADB_RULE_URL_EXCEPTION;
+          struct adr::adb_condition sc;
+          sc.type = ADB_COND_START_WITH;
+          rule->conditions.push_back(sc);
+        }
+        else if(line.substr(ovector[2], ovector[3] - ovector[2]) == "@@")
+        {
+          // @@domain.tld, *domain.tld* should NOT be blocked
+          rule->type = ADB_RULE_URL_EXCEPTION;
+        }
       }
       else
       {
         // domain.tld, *domain.tld* should be blocked
-        rule->type = ADB_RULE_URL_PIECE_BLOCK;
+        rule->type = ADB_RULE_URL_BLOCK;
       }
 
       // Domain and path computation
@@ -297,7 +310,7 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
           }
           else if(t == "case")
           {
-            sc.type = ADB_COND_CASE;
+            rule->case_sensitive = true;
           }
           else if(t == "~case")
           {
@@ -570,6 +583,32 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
  */
 bool adblock_parser::is_blocked(client_state *csp)
 {
+  return adblock_parser::is_in_list(csp, &(this->_blockerules));
+}
+
+/*
+ * is_exception
+ * --------------------
+ * Parameters :
+ * - std::string url    : the checked URL
+ * Return value :
+ * - bool : true if the URL match something in the exceptions list
+ */
+bool adblock_parser::is_exception(client_state *csp)
+{
+  return adblock_parser::is_in_list(csp, &(this->_exceptionsrules));
+}
+
+/*
+ * is_in_list
+ * --------------------
+ * Parameters :
+ * - client_state *csp : The checked connexion
+ * Return value :
+ * - bool : true if the URL match something in the list passed as parameter
+ */
+bool adblock_parser::is_in_list(client_state *csp, std::vector<adr::adb_rule> *list)
+{
   std::vector<adr::adb_rule>::iterator it;
   bool ret = false;
   char *r = parsers::get_header_value(&csp->_headers, "Referer:");
@@ -583,26 +622,22 @@ bool adblock_parser::is_blocked(client_state *csp)
   miscutil::to_lower(lpath);
   miscutil::to_lower(lmurl);
 
-  for(it = this->_blockerules.begin(); it != this->_blockerules.end(); it++)
+  for(it = list->begin(); it != list->end(); it++)
   {
     std::string url   = (*it).url.c_str();
     std::string lurl  = (*it).url.c_str();
     miscutil::to_lower(lurl);
 
-    // ADB_RULE_URL_BLOCK rule, check for domain.tld
-    // ADB_RULE_URL_PIECE_BLOCK rule, check for *domain.tld*
-    if(((*it).type == ADB_RULE_URL_BLOCK       and lmurl.find(lurl) == 0) or 
-       ((*it).type == ADB_RULE_URL_PIECE_BLOCK and lmurl.find(lurl) != std::string::npos))
+    if((!(*it).case_sensitive and lmurl.find(lurl) != std::string::npos) or ((*it).case_sensitive and murl.find(url) != std::string::npos))
     {
       ret = true;
       std::vector<adr::adb_condition>::iterator cit;
       for(cit = (*it).conditions.begin(); cit != (*it).conditions.end(); cit++)
       {
-        if((*cit).type == ADB_COND_CASE and 
-          (((*it).type == ADB_RULE_URL_BLOCK       and murl.find(url) != 0) or 
-           ((*it).type == ADB_RULE_URL_PIECE_BLOCK and murl.find(url) == std::string::npos)))
+        if((*cit).type == ADB_COND_START_WITH and (
+          (!(*it).case_sensitive and lmurl.find(lurl) != 0) or ((*it).case_sensitive and murl.find(url) != 0)))
         {
-          // Case sensitive match
+          // If the url does not start with the current one
           ret = false;
         }
         else if((*cit).type == ADB_COND_THIRD_PARTY and (NULL == r or strstr(r, host.c_str()) != NULL))

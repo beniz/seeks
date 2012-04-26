@@ -84,7 +84,7 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
   char *ret = strndup(str, size);
 
   std::string ct = parsers::get_header_value(&csp->_headers, "Content-Type:");
-  if(ct.find("text/html") != std::string::npos or ct.find("text/xml") != std::string::npos)
+  if(!this->parent->get_parser()->is_exception(csp) and (ct.find("text/html") != std::string::npos or ct.find("text/xml") != std::string::npos))
   {
     // It's an XML file (or HTML)
     // Apply generic and specific rules to the XML tree

@@ -168,6 +168,7 @@ namespace seeks_plugins
 
     // If the request Content-Type match the key, set the value as body
     // FIXME Make a better file extension detection
+    // Maybe use PCRE ? (seems heavy for not so much)
     if(path.find(".js") != std::string::npos)
     {
       // Javascript file

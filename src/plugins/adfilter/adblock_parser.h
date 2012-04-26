@@ -32,19 +32,19 @@ namespace adr
   // Enum for rules types
   enum adb_rule_type
   {
-    ADB_RULE_URL_BLOCK,       // Block an URL
-    ADB_RULE_URL_PIECE_BLOCK, // Block an URL pattern (*domain.tld*)
-    ADB_RULE_URL_FILTER,      // Filter a specific URL
-    ADB_RULE_GENERIC_FILTER,  // Generic filter
-    ADB_RULE_EXCEPTION,       // TODO Nothing should be done for this URL (no filter, no block)
-    ADB_RULE_NO_ACTION,       // Comments, mostly
-    ADB_RULE_UNSUPPORTED,     // Unsupported rule (yet)
-    ADB_RULE_ERROR            // No success on parsing the rule
+    ADB_RULE_URL_BLOCK,           // Block an URL
+    ADB_RULE_URL_EXCEPTION,       // Nothing should be done for this URL (no filter, no block)
+    ADB_RULE_URL_FILTER,          // Filter a specific URL
+    ADB_RULE_GENERIC_FILTER,      // Generic filter
+    ADB_RULE_NO_ACTION,           // Comments, mostly
+    ADB_RULE_UNSUPPORTED,         // Unsupported rule (yet)
+    ADB_RULE_ERROR                // No success on parsing the rule
   };
   
   // Enum for conditions types
   enum adb_condition_type
   {
+    ADB_COND_START_WITH,      // match only if the url starts with the specified one
     ADB_COND_TYPE,            // match only specific document type
     ADB_COND_NOT_TYPE,        // match only not specific document type
     ADB_COND_THIRD_PARTY,     // apply only if the referer != domain
@@ -53,9 +53,9 @@ namespace adr
     ADB_COND_NOT_DOMAIN,      // apply only if domain is not a specific domain
     ADB_COND_CASE,            // case sensitive rule
     ADB_COND_NOT_CASE,        // case insensitive rule
-    ADB_COND_COLLAPSE,        // hide the element                       XXX default behavior
-    ADB_COND_NOT_COLLAPSE,    // replace the element with a blank space XXX not possible
-    ADB_COND_DO_NOT_TRACK,    // TODO add the Do-Not-Track header
+    ADB_COND_COLLAPSE,        // hide the element                       NOTE default behavior
+    ADB_COND_NOT_COLLAPSE,    // replace the element with a blank space NOTE not possible
+    ADB_COND_DO_NOT_TRACK,    // TODO add the Do-Not-Track header (http://www.w3.org/2011/tracking-protection/drafts/tracking-dnt.html#dnt-header-field)
     ADB_COND_NOT_SUPPORTED    // Unsupported condition
   };
 
@@ -93,6 +93,7 @@ namespace adr
     std::string url;
     std::vector<struct adb_condition> conditions;
     std::vector<struct adb_filter> filters;
+    bool case_sensitive;
   };
 }
   
@@ -105,15 +106,22 @@ class adblock_parser
     adblock_parser(std::string);
     ~adblock_parser() {};
     int parse_file(bool parse_filters, bool parse_blockers);             // Load adblock rules file
+
     bool is_blocked(client_state *csp);                                  // Is this URL blocked ?
-    std::vector<struct adr::adb_rule> get_rules(std::string url);        // Get rule for this URL
-    std::multimap<std::string, struct adr::adb_rule> _filterrules;       // Filter rules per URL
+    bool is_exception(client_state *csp);                                // Is this URL should not be filtered or blocked ?
+    bool is_in_list(client_state *csp, std::vector<struct adr::adb_rule>* list); // Is this URL in a list ?
+
+    // FIXME get_rules should take a client_state* as argument
+    std::vector<struct adr::adb_rule> get_rules(std::string url);        // Get filter rules for this URL
+    // FIXME implement an accessor -> should be returned by get_rules(NULL)
     std::vector<struct adr::adb_rule>                _genericrules;      // Generic filter rules for all sites
-    std::vector<struct adr::adb_rule>                _blockerules;       // Blocker rules
   private:
     // Attributes
     std::string                                      _listfilename;      // adblock list file = "adblock_list"
     std::string                                      _locallistfilename; // Local adblock list file = "adblock_list.local"
+    std::multimap<std::string, struct adr::adb_rule> _filterrules;       // Filter rules per URL
+    std::vector<struct adr::adb_rule>                _blockerules;       // Blocker rules
+    std::vector<struct adr::adb_rule>                _exceptionsrules;   // Exception rules, those URL shouldn't be filtered or blocked
     // Methods
     void _line_to_rule(std::string line, struct adr::adb_rule *rule);    // Convert an adblock list file line to a rule
 };
