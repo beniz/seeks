@@ -44,7 +44,7 @@ class adfilter_element : public filter_plugin
     // Methods
     static void _filter(char **ret, std::vector<struct adr::adb_rule> *rules);                 // Filter page
     static xmlNodePtr _filter_node(xmlNodePtr node, std::vector<struct adr::adb_rule> *rules); // Filter next node
-    static bool _filter_node_apply(xmlNodePtr node, std::vector<struct adr::adb_rule> *rules);                                                            // Apply filter
+    static bool _filter_node_apply(xmlNodePtr node, std::vector<struct adr::adb_rule> *rules); // Apply filter
     static void _nullGenericErrorFunc(void *ctxt, const char *msg, ...); // Empty error handler for libXML2
 };
 

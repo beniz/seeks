@@ -166,7 +166,7 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
   int ovector[18];
 
   // Comments
-  /*else*/ if(line.substr(0, 1) == "!")
+  if(line.substr(0, 1) == "!")
   {
     rule->type = ADB_RULE_NO_ACTION;
   }
@@ -203,7 +203,7 @@ void adblock_parser::_line_to_rule(std::string line, struct adr::adb_rule *rule)
         }
         else if(line.substr(ovector[2], ovector[3] - ovector[2]) == "@@||")
         {
-          // @@domain.tld, domain.tld should NOT be blocked
+          // @@||domain.tld, domain.tld should NOT be blocked
           rule->type = ADB_RULE_URL_EXCEPTION;
           struct adr::adb_condition sc;
           sc.type = ADB_COND_START_WITH;
@@ -678,7 +678,6 @@ bool adblock_parser::is_in_list(client_state *csp, std::vector<adr::adb_rule> *l
         ))
         {
           // If the file extension does not match the filtered type
-          // FIXME very ineficient
           ret = false;
         }
       }
@@ -692,9 +691,9 @@ bool adblock_parser::is_in_list(client_state *csp, std::vector<adr::adb_rule> *l
  * Get rules for a specific URL
  * --------------------
  * Parameters :
- * - client_state *csp : The actual request
- * Return value :
- * - std::vector<struct adr::adb_rule> : The found rules or the generic rules if csp == NULL
+ * - client_state *csp                        : The actual request
+ * - std::vector<struct adr::adb_rule> *rules : A pointer to an empty vector of rules
+ * - bool with_generic                        : If true, add generic rules to the specific ones
  */
 void adblock_parser::get_rules(client_state *csp, std::vector<struct adr::adb_rule> *rules, bool with_generic)
 {
