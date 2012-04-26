@@ -692,24 +692,35 @@ bool adblock_parser::is_in_list(client_state *csp, std::vector<adr::adb_rule> *l
  * Get rules for a specific URL
  * --------------------
  * Parameters :
- * - std::string url            : the checked URL
+ * - client_state *csp : The actual request
  * Return value :
- * - std::vector<struct adr::adb_rule> : The list of found rules
+ * - std::vector<struct adr::adb_rule> : The found rules or the generic rules if csp == NULL
  */
-std::vector<struct adr::adb_rule> adblock_parser::get_rules(std::string url)
+void adblock_parser::get_rules(client_state *csp, std::vector<struct adr::adb_rule> *rules, bool with_generic)
 {
-  std::vector<struct adr::adb_rule> ret;
-  std::multimap<std::string, struct adr::adb_rule>::iterator it;
-
-  // multimap iterator
-  for(it = this->_filterrules.begin(); it != this->_filterrules.end(); it++)
+  if(csp != NULL)
   {
-    // If the current URL correspond, we add the rule
-    if(url.find((*it).first) != std::string::npos)
+    std::string url = std::string(csp->_http._host) + std::string(csp->_http._path);
+    std::multimap<std::string, struct adr::adb_rule>::iterator mit;
+    std::vector<struct adr::adb_rule>::iterator it;
+  
+    // multimap iterator
+    for(mit = this->_filterrules.begin(); mit != this->_filterrules.end(); mit++)
     {
-      ret.push_back((*it).second);
+      // If the current URL correspond, we add the rule
+      if(url.find((*mit).first) != std::string::npos)
+      {
+        rules->push_back((*mit).second);
+      }
+    }
+    
+    // Generic rules (or not)
+    if(with_generic)
+    {
+      for(it = this->_genericrules.begin(); it != this->_genericrules.end(); it++)
+      {
+        rules->push_back(*it);
+      }
     }
   }
-
-  return ret;
 }

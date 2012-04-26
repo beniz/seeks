@@ -88,10 +88,11 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
   {
     // It's an XML file (or HTML)
     // Apply generic and specific rules to the XML tree
-    std::string url = std::string(csp->_http._host) + std::string(csp->_http._path);
-    std::vector<struct adr::adb_rule> rules = this->parent->get_parser()->get_rules(url);
+    std::vector<struct adr::adb_rule> *rules = new std::vector<struct adr::adb_rule>;
+    this->parent->get_parser()->get_rules(csp, rules, true);
+    // XML seems to have some problems with concurrent parsers, so let's use mutex
     xmlMutexLock(this->parent->mutexTok);
-    this->_filter(&ret, &rules, &(this->parent->get_parser()->_genericrules));
+    this->_filter(&ret, rules);
     xmlMutexUnlock(this->parent->mutexTok);
   }
   // Finally return the modified (or not) page
@@ -108,13 +109,13 @@ char* adfilter_element::run(client_state *csp, char *str, size_t size)
  * - std::vector<struct adr::adb_rule> *specific_rules : the rules used to identified filtered elements for this specific URL
  * - std::vector<struct adr::adb_rule> *generic_rules  : the rules used to identified filtered elements
  */
-void adfilter_element::_filter(char **orig, std::vector<struct adr::adb_rule> *specific_rules, std::vector<struct adr::adb_rule> *generic_rules)
+void adfilter_element::_filter(char **orig, std::vector<struct adr::adb_rule> *rules)
 {
   xmlDocPtr doc;
   if((doc = xmlParseMemory(*orig, strlen(*orig)))!= NULL)
   {
     // If the document has been correctlty parsed, let's begin by filter the root node (<html></html>) or not.
-    adfilter_element::_filter_node(xmlDocGetRootElement(doc), specific_rules, generic_rules);
+    adfilter_element::_filter_node(xmlDocGetRootElement(doc), rules);
 
     // All the node are filtered or not, time to dump the resulting doc into *ret
     xmlChar *mem;
@@ -129,8 +130,6 @@ void adfilter_element::_filter(char **orig, std::vector<struct adr::adb_rule> *s
     xmlFreeDoc(doc);
     doc = NULL;
   }
-  // XXX Necessary ?
-  malloc_trim(0);
 }
 
 /*
@@ -142,7 +141,7 @@ void adfilter_element::_filter(char **orig, std::vector<struct adr::adb_rule> *s
  * - std::vector<struct adr::adb_rule> *specific_rules : the rules used to identified filtered elements for this specific URL
  * - std::vector<struct adr::adb_rule> *generic_rules  : the rules used to identified filtered elements
  */
-xmlNodePtr adfilter_element::_filter_node(xmlNodePtr node, std::vector<struct adr::adb_rule> *specific_rules, std::vector<struct adr::adb_rule> *generic_rules)
+xmlNodePtr adfilter_element::_filter_node(xmlNodePtr node, std::vector<struct adr::adb_rule> *rules)
 {
   // Recursive function until node is NULL
   if(node != NULL)
@@ -150,7 +149,7 @@ xmlNodePtr adfilter_element::_filter_node(xmlNodePtr node, std::vector<struct ad
     if(node->type == XML_ELEMENT_NODE)
     {
       // If we have an element (not a text, not an attribute)
-      if(adfilter_element::_filter_node_apply(node, specific_rules) or adfilter_element::_filter_node_apply(node, generic_rules))
+      if(adfilter_element::_filter_node_apply(node, rules))
       {
         // If this node correspond to a specific or a generic rule, lets remove it from the XML tree
         xmlUnlinkNode(node);
@@ -160,8 +159,8 @@ xmlNodePtr adfilter_element::_filter_node(xmlNodePtr node, std::vector<struct ad
       }
     }
     // Let's go to the next sibling (horizontal crawling) then child (vertical)
-    adfilter_element::_filter_node(xmlNextElementSibling(node), specific_rules, generic_rules);
-    adfilter_element::_filter_node(xmlFirstElementChild(node), specific_rules, generic_rules);
+    adfilter_element::_filter_node(xmlNextElementSibling(node), rules);
+    adfilter_element::_filter_node(xmlFirstElementChild(node), rules);
   }
   return NULL;
 }
@@ -178,7 +177,7 @@ bool adfilter_element::_filter_node_apply(xmlNodePtr node, std::vector<struct ad
 {
   // First iterate all rules
   std::vector<struct adr::adb_rule>::iterator it;
-  for(it = (*rules).begin(); node != NULL and it != (*rules).end(); it++)
+  for(it = rules->begin(); node != NULL and it != rules->end(); it++)
   {
     // For now, let's assume we have to remove the node
     bool unlink = true;

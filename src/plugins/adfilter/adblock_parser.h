@@ -110,18 +110,16 @@ class adblock_parser
     bool is_blocked(client_state *csp);                                  // Is this URL blocked ?
     bool is_exception(client_state *csp);                                // Is this URL should not be filtered or blocked ?
     bool is_in_list(client_state *csp, std::vector<struct adr::adb_rule>* list); // Is this URL in a list ?
-
-    // FIXME get_rules should take a client_state* as argument
-    std::vector<struct adr::adb_rule> get_rules(std::string url);        // Get filter rules for this URL
-    // FIXME implement an accessor -> should be returned by get_rules(NULL)
-    std::vector<struct adr::adb_rule>                _genericrules;      // Generic filter rules for all sites
+    void get_rules(client_state *csp, std::vector<struct adr::adb_rule> *rules, bool with_generic = true); // Get filter rules for this URL
   private:
     // Attributes
     std::string                                      _listfilename;      // adblock list file = "adblock_list"
     std::string                                      _locallistfilename; // Local adblock list file = "adblock_list.local"
+
     std::multimap<std::string, struct adr::adb_rule> _filterrules;       // Filter rules per URL
     std::vector<struct adr::adb_rule>                _blockerules;       // Blocker rules
     std::vector<struct adr::adb_rule>                _exceptionsrules;   // Exception rules, those URL shouldn't be filtered or blocked
+    std::vector<struct adr::adb_rule>                _genericrules;      // Generic filter rules for all sites
     // Methods
     void _line_to_rule(std::string line, struct adr::adb_rule *rule);    // Convert an adblock list file line to a rule
 };
