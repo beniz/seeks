@@ -1,19 +1,19 @@
-/**                                                                                                                                                
-* This file is part of the SEEKS project.                                                                             
+/**
+* This file is part of the SEEKS project.
 * Copyright (C) 2011 Fabien Dupont <fab+seeks@kafe-in.net>
-*                                                                                                                                                 
-* This program is free software: you can redistribute it and/or modify                                                                            
-* it under the terms of the GNU Affero General Public License as                                                                                  
-* published by the Free Software Foundation, either version 3 of the                                                                              
-* License, or (at your option) any later version.                                                                                                 
-*                                                                                                                                                 
-* This program is distributed in the hope that it will be useful,                                                                                 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of                                                                                  
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                                                                                   
-* GNU Affero General Public License for more details.                                                                                             
-*                                                                                                                                                 
-* You should have received a copy of the GNU Affero General Public License                                                                        
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.                                                                           
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Affero General Public License as
+* published by the Free Software Foundation, either version 3 of the
+* License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Affero General Public License for more details.
+*
+* You should have received a copy of the GNU Affero General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "adblock_parser.h"
@@ -56,20 +56,17 @@ namespace seeks_plugins
       seeks_proxy::_datadir + "plugins/adfilter/adfilter-config"
     );
 
-    // Create a new parser and parse the adblock rules
-    _adbparser = new adblock_parser(std::string(_name + "/adblock_list"));
-    errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d rules parsed successfully", _adbparser->parse_file(_adconfig->_use_filter, _adconfig->_use_blocker));
-
     // Empty pattern vector for adblocker
-    const std::vector<std::string> _empty_pattern;
+    const std::vector<std::string> empty_pattern;
+
     // Always match pattern
-    std::vector<std::string> _always_pattern;
+    std::vector<std::string> always_pattern;
     std::string pat = "*";
     for(int i = 0; i < 8; i++)
-    {
-      pat.append(".*");
-      _always_pattern.push_back(pat);
-    }
+      {
+        pat.append(".*");
+        always_pattern.push_back(pat);
+      }
 
     // Responses per file type generation
     this->populate_responses();
@@ -79,13 +76,13 @@ namespace seeks_plugins
 
     // Create the plugins
     if(_adconfig->_use_filter)
-    {
-      _filter_plugin      = new adfilter_element(_always_pattern, _empty_pattern, this); // Filter plugin, everything but blocked URL
-    }
+      {
+        _filter_plugin      = new adfilter_element(always_pattern, empty_pattern, this); // Filter plugin, everything but blocked URL
+      }
     if(_adconfig->_use_blocker)
-    {
-      _interceptor_plugin = new adblocker_element(_always_pattern, _empty_pattern, this); // Interceptor plugin, blocked URL only
-    }
+      {
+        _interceptor_plugin = new adblocker_element(always_pattern, empty_pattern, this); // Interceptor plugin, blocked URL only
+      }
 
     // libXML2 mutex
     this->mutexTok = xmlNewMutex();
@@ -104,6 +101,20 @@ namespace seeks_plugins
 
     // libXML2 memory clean
     xmlCleanupParser();
+  }
+
+  void adfilter::start()
+  {
+    // Create a new parser and parse the adblock rules
+    _adbparser = new adblock_parser(std::string(_name + "/adblock_list"));
+    errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d rules parsed successfully", _adbparser->parse_file(_adconfig->_use_filter, _adconfig->_use_blocker));
+  }
+
+  void adfilter::stop()
+  {
+    delete _adbparser;
+    _adbparser = NULL;
+    _adconfig = NULL;
   }
 
   /*
@@ -138,7 +149,7 @@ namespace seeks_plugins
   void adfilter::populate_responses()
   {
     // Empty gif for image response
-    const char gif[] = 
+    const char gif[] =
       "\107\111\106\070\071\141\004\000\004\000\200\000\000\310\310"
       "\310\377\377\377\041\376\016\111\040\167\141\163\040\141\040"
       "\142\141\156\156\145\162\000\041\371\004\001\012\000\001\000"
@@ -170,17 +181,17 @@ namespace seeks_plugins
     // FIXME Make a better file extension detection
     // Maybe use PCRE ? (seems heavy for not so much)
     if(path.find(".js") != std::string::npos)
-    {
-      // Javascript file
-      rsp->_body = strdup((*(this->_responses.find("text/javascript"))).second);
-      miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/javascript");
-    }
+      {
+        // Javascript file
+        rsp->_body = strdup((*(this->_responses.find("text/javascript"))).second);
+        miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/javascript");
+      }
     else if(path.find(".css") != std::string::npos)
-    {
-      // Stylesheet
-      rsp->_body = strdup((*(this->_responses.find("text/css"))).second);
-      miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/css");
-    }
+      {
+        // Stylesheet
+        rsp->_body = strdup((*(this->_responses.find("text/css"))).second);
+        miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/css");
+      }
     else if(path.find(".png")  != std::string::npos or
             path.find(".jpg")  != std::string::npos or
             path.find(".jpeg") != std::string::npos or
@@ -188,17 +199,17 @@ namespace seeks_plugins
             path.find(".svg")  != std::string::npos or
             path.find(".bmp")  != std::string::npos or
             path.find(".tif")  != std::string::npos)
-    {
-      // Image
-      rsp->_body = strdup((*(this->_responses.find("image/gif"))).second);
-      miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "image/gif");
-    }
+      {
+        // Image
+        rsp->_body = strdup((*(this->_responses.find("image/gif"))).second);
+        miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "image/gif");
+      }
     else
-    {
-      // Unknown type, let's assume that's an HTML response
-      rsp->_body = strdup((*(this->_responses.find("text/html"))).second);
-      miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/html");
-    }
+      {
+        // Unknown type, let's assume that's an HTML response
+        rsp->_body = strdup((*(this->_responses.find("text/html"))).second);
+        miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/html");
+      }
   }
 
   /* plugin registration */

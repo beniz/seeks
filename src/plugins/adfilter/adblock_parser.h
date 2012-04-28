@@ -1,19 +1,19 @@
-/**                                                                                                                                                
-* This file is part of the SEEKS project.                                                                             
+/**
+* This file is part of the SEEKS project.
 * Copyright (C) 2011 Fabien Dupont <fab+seeks@kafe-in.net>
-*                                                                                                                                                 
-* This program is free software: you can redistribute it and/or modify                                                                            
-* it under the terms of the GNU Affero General Public License as                                                                                  
-* published by the Free Software Foundation, either version 3 of the                                                                              
-* License, or (at your option) any later version.                                                                                                 
-*                                                                                                                                                 
-* This program is distributed in the hope that it will be useful,                                                                                 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of                                                                                  
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                                                                                   
-* GNU Affero General Public License for more details.                                                                                             
-*                                                                                                                                                 
-* You should have received a copy of the GNU Affero General Public License                                                                        
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.                                                                           
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Affero General Public License as
+* published by the Free Software Foundation, either version 3 of the
+* License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Affero General Public License for more details.
+*
+* You should have received a copy of the GNU Affero General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #ifndef ADBLOCK_PARSER_H
@@ -40,7 +40,7 @@ namespace adr
     ADB_RULE_UNSUPPORTED,         // Unsupported rule (yet)
     ADB_RULE_ERROR                // No success on parsing the rule
   };
-  
+
   // Enum for conditions types
   enum adb_condition_type
   {
@@ -68,7 +68,7 @@ namespace adr
     ADB_FILTER_ATTR_EXISTS,   // Check if attribute lvalue exists (no rvalue used here)
     ADB_FILTER_ELEMENT_IS     // Check if element name is rvalue (no lvalue used here)
   };
-  
+
   // Rule condition
   struct adb_condition
   {
@@ -96,7 +96,7 @@ namespace adr
     bool case_sensitive;
   };
 }
-  
+
 /*
  * ADBlock rules parser
  */
@@ -112,6 +112,9 @@ class adblock_parser
     bool is_in_list(client_state *csp, std::vector<struct adr::adb_rule>* list); // Is this URL in a list ?
     void get_rules(client_state *csp, std::vector<struct adr::adb_rule> *rules, bool with_generic = true); // Get filter rules for this URL
   private:
+    // Methods
+    void line_to_rule(std::string line, struct adr::adb_rule *rule);    // Convert an adblock list file line to a rule
+
     // Attributes
     std::string                                      _listfilename;      // adblock list file = "adblock_list"
     std::string                                      _locallistfilename; // Local adblock list file = "adblock_list.local"
@@ -120,7 +123,5 @@ class adblock_parser
     std::vector<struct adr::adb_rule>                _blockerules;       // Blocker rules
     std::vector<struct adr::adb_rule>                _exceptionsrules;   // Exception rules, those URL shouldn't be filtered or blocked
     std::vector<struct adr::adb_rule>                _genericrules;      // Generic filter rules for all sites
-    // Methods
-    void _line_to_rule(std::string line, struct adr::adb_rule *rule);    // Convert an adblock list file line to a rule
 };
 #endif

@@ -2096,7 +2096,6 @@ namespace sp
          */
         errlog::log_error(LOG_LEVEL_HEADER, "Crunching: %s", *header);
         freez(*header);
-        std::cout << "*header: " << *header << std::endl;
         *header = strdup("");
       }
     else if (strstr(*header, "gzip"))
