@@ -41,10 +41,10 @@ using namespace adr;
  */
 adblock_parser::adblock_parser(std::string filename)
 {
-  this->_listfilename = (seeks_proxy::_datadir.empty() ?
-                         plugin_manager::_plugin_repository + filename :
-                         seeks_proxy::_datadir + "/plugins/" + filename);
-  this->_locallistfilename = this->_listfilename + ".local";
+  _listfilename = (seeks_proxy::_datadir.empty() ?
+                   plugin_manager::_plugin_repository + filename :
+                   seeks_proxy::_datadir + "/plugins/" + filename);
+  _locallistfilename = _listfilename + ".local";
 }
 
 /*
@@ -59,13 +59,13 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
   std::ifstream ilfs;
   int num_read = 0;
 
-  ifs.open(this->_listfilename.c_str());
-  ilfs.open(this->_locallistfilename.c_str());
+  ifs.open(_listfilename.c_str());
+  ilfs.open(_locallistfilename.c_str());
   if(ifs.is_open() or ilfs.is_open())
     {
       // Clear all knowed rules
-      this->_blockerules.clear();
-      this->_filterrules.clear();
+      blockerules.clear();
+      filterrules.clear();
 
       std::string line;
       while((ifs.good() and !ifs.eof()) or (ilfs.good() and !ilfs.eof()))
@@ -87,13 +87,13 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
               // Block the whole URL
               if(rule.type == ADB_RULE_URL_BLOCK and parse_blockers)
                 {
-                  this->_blockerules.push_back(rule);
+                  blockerules.push_back(rule);
                 }
 
               // Block elements whatever the url
               else if(rule.type == ADB_RULE_GENERIC_FILTER and parse_filters)
                 {
-                  this->_genericrules.push_back(rule);
+                  genericrules.push_back(rule);
                 }
 
               // Block elements of a specific url
@@ -107,7 +107,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
                       // Add filter for url 0 -> first ","
                       part = url.find_first_of(",");
                       rule.url = url.substr(0, part);
-                      this->_filterrules.insert(std::pair<std::string, adr::adb_rule>(rule.url, rule));
+                      filterrules.insert(std::pair<std::string, adr::adb_rule>(rule.url, rule));
 
                       // Analyse from first "," -> end
                       url = url.substr(part + 1);
@@ -117,7 +117,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
               // Exception rule, this URL must not be filtered or blocked
               else if(rule.type == ADB_RULE_URL_EXCEPTION)
                 {
-                  this->_exceptionsrules.push_back(rule);
+                  exceptionsrules.push_back(rule);
                 }
 
               // No action (comments, etc.)
@@ -146,7 +146,7 @@ int adblock_parser::parse_file(bool parse_filters = true, bool parse_blockers = 
     }
   else
     {
-      errlog::log_error(LOG_LEVEL_ERROR, "ADFilter: can't open adblock file '%s':  %E", this->_listfilename.c_str());
+      errlog::log_error(LOG_LEVEL_ERROR, "ADFilter: can't open adblock file '%s':  %E", _listfilename.c_str());
       return -1;
     }
   ifs.close();
@@ -586,7 +586,7 @@ void adblock_parser::line_to_rule(std::string line, struct adr::adb_rule *rule)
  */
 bool adblock_parser::is_blocked(client_state *csp)
 {
-  return adblock_parser::is_in_list(csp, &(this->_blockerules));
+  return adblock_parser::is_in_list(csp, &(blockerules));
 }
 
 /*
@@ -599,7 +599,7 @@ bool adblock_parser::is_blocked(client_state *csp)
  */
 bool adblock_parser::is_exception(client_state *csp)
 {
-  return adblock_parser::is_in_list(csp, &(this->_exceptionsrules));
+  return adblock_parser::is_in_list(csp, &(exceptionsrules));
 }
 
 /*
@@ -707,7 +707,7 @@ void adblock_parser::get_rules(client_state *csp, std::vector<struct adr::adb_ru
       std::vector<struct adr::adb_rule>::iterator it;
 
       // multimap iterator
-      for(mit = this->_filterrules.begin(); mit != this->_filterrules.end(); mit++)
+      for(mit = filterrules.begin(); mit != filterrules.end(); mit++)
         {
           // If the current URL correspond, we add the rule
           if(url.find((*mit).first) != std::string::npos)
@@ -719,7 +719,7 @@ void adblock_parser::get_rules(client_state *csp, std::vector<struct adr::adb_ru
       // Generic rules (or not)
       if(with_generic)
         {
-          for(it = this->_genericrules.begin(); it != this->_genericrules.end(); it++)
+          for(it = genericrules.begin(); it != genericrules.end(); it++)
             {
               rules->push_back(*it);
             }

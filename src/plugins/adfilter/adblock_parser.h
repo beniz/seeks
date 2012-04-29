@@ -119,9 +119,9 @@ class adblock_parser
     std::string                                      _listfilename;      // adblock list file = "adblock_list"
     std::string                                      _locallistfilename; // Local adblock list file = "adblock_list.local"
 
-    std::multimap<std::string, struct adr::adb_rule> _filterrules;       // Filter rules per URL
-    std::vector<struct adr::adb_rule>                _blockerules;       // Blocker rules
-    std::vector<struct adr::adb_rule>                _exceptionsrules;   // Exception rules, those URL shouldn't be filtered or blocked
-    std::vector<struct adr::adb_rule>                _genericrules;      // Generic filter rules for all sites
+    std::multimap<std::string, struct adr::adb_rule> filterrules;       // Filter rules per URL
+    std::vector<struct adr::adb_rule>                blockerules;       // Blocker rules
+    std::vector<struct adr::adb_rule>                exceptionsrules;   // Exception rules, those URL shouldn't be filtered or blocked
+    std::vector<struct adr::adb_rule>                genericrules;      // Generic filter rules for all sites
 };
 #endif
