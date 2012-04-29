@@ -17,7 +17,6 @@
 */
 
 #include "adblock_parser.h"
-#include "adblock_downloader.h"
 #include "adblocker_element.h"
 #include "adfilter_element.h"
 #include "adfilter_configuration.h"
@@ -34,6 +33,8 @@
 
 #include <libxml/parser.h>
 #include <libxml/threads.h>
+
+using namespace sp;
 
 namespace seeks_plugins
 {
@@ -55,6 +56,7 @@ namespace seeks_plugins
       plugin_manager::_plugin_repository + "adfilter/adfilter-config" :
       seeks_proxy::_datadir + "plugins/adfilter/adfilter-config"
     );
+    _configuration = _adconfig;
 
     // Empty pattern vector for adblocker
     const std::vector<std::string> empty_pattern;
@@ -67,12 +69,6 @@ namespace seeks_plugins
         pat.append(".*");
         always_pattern.push_back(pat);
       }
-
-    // Responses per file type generation
-    this->populate_responses();
-
-    adblock_downloader *d = new adblock_downloader(this, std::string(_name + "/adblock_list"));
-    d->start_timer();
 
     // Create the plugins
     if(_adconfig->_use_filter)
@@ -108,6 +104,12 @@ namespace seeks_plugins
     // Create a new parser and parse the adblock rules
     _adbparser = new adblock_parser(std::string(_name + "/adblock_list"));
     errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d rules parsed successfully", _adbparser->parse_file(_adconfig->_use_filter, _adconfig->_use_blocker));
+
+    // Responses per file type generation
+    populate_responses();
+
+    _adbdownl = new adblock_downloader(this, std::string(_name + "/adblock_list"));
+    _adbdownl->start_timer();
   }
 
   void adfilter::stop()
@@ -115,6 +117,7 @@ namespace seeks_plugins
     delete _adbparser;
     _adbparser = NULL;
     _adconfig = NULL;
+    delete _adbdownl;
   }
 
   /*
@@ -126,7 +129,7 @@ namespace seeks_plugins
    */
   adblock_parser* adfilter::get_parser()
   {
-    return this->_adbparser;
+    return _adbparser;
   }
 
   /*
@@ -138,7 +141,7 @@ namespace seeks_plugins
    */
   adfilter_configuration* adfilter::get_config()
   {
-    return this->_adconfig;
+    return _adconfig;
   }
 
   /*
@@ -157,11 +160,11 @@ namespace seeks_plugins
       "\270\005\000\073";
 
     // Text responses
-    this->_responses.insert(std::pair<std::string, const char *>("text/html"      , "<!-- Blocked by seeks proxy //-->"));
-    this->_responses.insert(std::pair<std::string, const char *>("text/css"       , "/* Blocked by seeks proxy */"));
-    this->_responses.insert(std::pair<std::string, const char *>("text/javascript", "// Blocked by seeks proxy"));
+    _responses.insert(std::pair<std::string, const char *>("text/html"      , "<!-- Blocked by seeks proxy //-->"));
+    _responses.insert(std::pair<std::string, const char *>("text/css"       , "/* Blocked by seeks proxy */"));
+    _responses.insert(std::pair<std::string, const char *>("text/javascript", "// Blocked by seeks proxy"));
     // Image responses
-    this->_responses.insert(std::pair<std::string, const char *>("image/gif", strdup(gif)));
+    _responses.insert(std::pair<std::string, const char *>("image/gif", strdup(gif)));
   }
 
   /*
@@ -183,13 +186,13 @@ namespace seeks_plugins
     if(path.find(".js") != std::string::npos)
       {
         // Javascript file
-        rsp->_body = strdup((*(this->_responses.find("text/javascript"))).second);
+        rsp->_body = strdup((*(_responses.find("text/javascript"))).second);
         miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/javascript");
       }
     else if(path.find(".css") != std::string::npos)
       {
         // Stylesheet
-        rsp->_body = strdup((*(this->_responses.find("text/css"))).second);
+        rsp->_body = strdup((*(_responses.find("text/css"))).second);
         miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/css");
       }
     else if(path.find(".png")  != std::string::npos or
@@ -201,13 +204,13 @@ namespace seeks_plugins
             path.find(".tif")  != std::string::npos)
       {
         // Image
-        rsp->_body = strdup((*(this->_responses.find("image/gif"))).second);
+        rsp->_body = strdup((*(_responses.find("image/gif"))).second);
         miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "image/gif");
       }
     else
       {
         // Unknown type, let's assume that's an HTML response
-        rsp->_body = strdup((*(this->_responses.find("text/html"))).second);
+        rsp->_body = strdup((*(_responses.find("text/html"))).second);
         miscutil::enlist_unique_header(&rsp->_headers, "Content-Type", "text/html");
       }
   }

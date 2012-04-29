@@ -19,19 +19,15 @@
 #ifndef ADFILTER_H
 #define ADFILTER_H
 
-#define NO_PERL // we do not use Perl.
-
 #include "plugin.h"
 #include "filter_plugin.h"
 
 #include "adblock_parser.h"
 #include "adfilter_configuration.h"
-#include "configuration_spec.h"
+#include "adblock_downloader.h"
 
 #include <map>
 #include <libxml/threads.h>
-
-using namespace sp;
 
 namespace seeks_plugins
 {
@@ -53,6 +49,7 @@ namespace seeks_plugins
       // Attributes
       adfilter_configuration* _adconfig; // Configuration manager
       adblock_parser* _adbparser; // ADBlock rules parser
+      adblock_downloader *_adbdownl; // ADB rules downloader
       std::map<std::string, const char *> _responses; // Responses per content-type
       // Methods
       void populate_responses(); // Populate _responses
