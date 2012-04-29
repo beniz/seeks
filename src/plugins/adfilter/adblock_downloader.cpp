@@ -52,6 +52,9 @@ namespace seeks_plugins
     struct sigevent sev;
     struct itimerspec its;
 
+    // parent is adfilter plugin.
+    _parent = parent;
+
     // ADBlock rules filename
     _listfilename = (seeks_proxy::_datadir.empty() ?
                      plugin_manager::_plugin_repository + filename :
@@ -64,7 +67,7 @@ namespace seeks_plugins
     timer_create(CLOCKID, &sev, &(_tid));
 
     // Timer frequency definition
-    its.it_value.tv_sec = 1; // Tick every 60 seconds
+    its.it_value.tv_sec = _parent->get_config()->_update_frequency; // Tick every x seconds as specified in config.
     its.it_value.tv_nsec = 0; // and 0 milliseconds
     its.it_interval.tv_sec = its.it_value.tv_sec;
     its.it_interval.tv_nsec = its.it_value.tv_nsec;
@@ -80,7 +83,9 @@ namespace seeks_plugins
     sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
     _timer_running = false;
-    _parent = parent;
+
+    // check on lists at startup.
+    download_lists_if_needed();
   }
 
   adblock_downloader::~adblock_downloader()
@@ -112,27 +117,43 @@ namespace seeks_plugins
     _timer_running = false;
   }
 
-// uc param is for being passed to sigaction, required.
-  void adblock_downloader::tick(int sig, siginfo_t *si, void *uc)
+  bool adblock_downloader::list_file_needs_update(adblock_downloader *adbdownl)
   {
     struct stat attrib;
 
-    // Pointer to this instanciated class cast
-    adblock_downloader* c = reinterpret_cast<adblock_downloader*>(si->si_value.sival_ptr);
-
     // Check list file attributes
-    stat(c->_listfilename.c_str(), &attrib);
+    stat(adbdownl->_listfilename.c_str(), &attrib);
 
     // If there is more than _update_frequency seconds between now and the modification date of the adblock rules file
     // or if this file is simply missing
     // this is time to refresh this file
-    if((time(NULL) - attrib.st_mtime >= c->_parent->get_config()->_update_frequency)
+    if((time(NULL) - attrib.st_mtime >= adbdownl->_parent->get_config()->_update_frequency)
         || errno == ENOENT)
+      return true;
+    else return false;
+  }
+
+// uc param is for being passed to sigaction, required.
+  void adblock_downloader::tick(int sig, siginfo_t *si, void *uc)
+  {
+    // Pointer to this instanciated class cast
+    adblock_downloader* c = reinterpret_cast<adblock_downloader*>(si->si_value.sival_ptr);
+
+    // check whether file has changed.
+    c->download_lists_if_needed();
+  }
+
+  int adblock_downloader::download_lists_if_needed()
+  {
+    int nbdled = 0;
+
+    // check whether file has changed.
+    if (list_file_needs_update(this))
       {
-        int nbdled;
-        nbdled = c->download_lists();
+        nbdled = download_lists();
         errlog::log_error(LOG_LEVEL_INFO, "adfilter: %d adblock files downloaded successfully", nbdled);
       }
+    return nbdled;
   }
 
   int adblock_downloader::download_lists()

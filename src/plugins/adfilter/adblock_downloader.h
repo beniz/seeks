@@ -37,10 +37,13 @@ namespace seeks_plugins
       void start_timer();                                 // Start the timer loop
       void stop_timer();                                  // Stop the timer loop
     private:
-      bool _timer_running;                                // True if the timer runs
-      static void tick(int sig, siginfo_t *si, void *uc); // Static function for timer ticks
-      timer_t _tid;                                       // Current timer ID
+      bool list_file_needs_update(adblock_downloader *adbdownl);
+      int download_lists_if_needed();
       int download_lists();                               // Download all lists
+      static void tick(int sig, siginfo_t *si, void *uc); // Static function for timer ticks
+
+      bool _timer_running;                                // True if the timer runs
+      timer_t _tid;                                       // Current timer ID
       std::string _listfilename;                          // Local lists file path
       adfilter* _parent;                                  // Parent (sp::plugin)
   };
