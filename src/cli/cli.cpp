@@ -38,10 +38,12 @@ namespace seekscli
                       const std::string &url,
                       const std::string &http_method,
                       int &status,
-                      std::string *&result)
+                      std::string *&result,
+                      std::string *content,
+                      const int &content_size)
   {
     curl_mget cmg(1,timeout,0,timeout,0);
-    result = cmg.www_simple(url,NULL,status,http_method,NULL,-1,"",
+    result = cmg.www_simple(url,NULL,status,http_method,content,content_size,"",
                             cli::_proxy_addr,cli::_proxy_port);
   }
 

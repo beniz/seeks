@@ -32,7 +32,9 @@ namespace seekscli
                             const std::string &url,
                             const std::string &http_method,
                             int &status,
-                            std::string *&result);
+                            std::string *&result,
+                            std::string *content=NULL,
+                            const int &content_size=-1);
 
       static std::string url_encode(const std::string &str);
 
