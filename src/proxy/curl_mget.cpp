@@ -267,7 +267,8 @@ namespace sp
         lheaders = new std::vector<std::list<const char*>*>();
         lheaders->push_back(headers);
       }
-    www_mget(urls,1,lheaders,proxy_addr,proxy_port,statuses,NULL,NULL,http_method);
+    www_mget(urls,1,lheaders,proxy_addr,proxy_port,statuses,NULL,NULL,http_method,
+	     content,content_size,content_type);
     if (statuses[0] != 0)
       {
         // failed connection.
