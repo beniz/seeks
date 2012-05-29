@@ -44,6 +44,7 @@ namespace seeks_plugins
 
       static sp_err fetch_url_call_readable(const std::string &url,
                                             std::string &content,
+					    std::string &title,
                                             const std::string &encoding="utf-8",
                                             const int &options=PLUGIN_OPTIONS_DEFAULT);
 

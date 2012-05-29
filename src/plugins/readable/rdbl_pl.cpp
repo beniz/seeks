@@ -21,6 +21,7 @@
 #include "curl_mget.h"
 #include "websearch.h"
 #include "proxy_configuration.h" // for transfer timeouts.
+#include "uri_capture.h" // for parsing HTML page title.
 #include "errlog.h"
 
 #include <iostream>
@@ -67,8 +68,8 @@ namespace seeks_plugins
       options = PLUGIN_OPTIONS_DEFAULT; // html.
 
     // fetch content and make it readable.
-    std::string content;
-    sp_err err = rdbl_pl::fetch_url_call_readable(url,content,"utf-8",options);
+    std::string content,title;
+    sp_err err = rdbl_pl::fetch_url_call_readable(url,content,title,"utf-8",options);
     if (err != SP_ERR_OK)
       return err;
 
@@ -82,6 +83,7 @@ namespace seeks_plugins
 
   sp_err rdbl_pl::fetch_url_call_readable(const std::string &url,
                                           std::string &content,
+					  std::string &title,
                                           const std::string &encoding,
                                           const int &options)
   {
@@ -101,6 +103,9 @@ namespace seeks_plugins
         return SP_ERR_NOT_FOUND; //TODO: more accurate error code.
       }
 
+    // fetch title.
+    title = uri_capture::parse_uri_html_title(*result);
+    
     // call on readable.
     try
       {
