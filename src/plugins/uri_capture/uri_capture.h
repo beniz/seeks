@@ -70,6 +70,7 @@ namespace seeks_plugins
       static uc_err parse_uri_html_title(const std::vector<std::string> &uris,
                                          std::vector<std::string> &titles,
                                          std::string **outputs);
+      static std::string parse_uri_html_title(const std::string &content);
 
     public:
       uint64_t _nr; /**< number of captured URI in user db. */

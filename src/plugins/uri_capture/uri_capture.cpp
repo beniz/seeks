@@ -175,8 +175,6 @@ namespace seeks_plugins
       std::vector<std::string> &titles,
       std::string **outputs)
   {
-    static std::string pattern_b = "<title>";
-    static std::string pattern_e = "</title>";
     static std::list<const char*> cheaders; // empty, for charset conv.
 
     size_t err = 0;
@@ -185,17 +183,7 @@ namespace seeks_plugins
         std::string title;
         if (outputs[i])
           {
-            std::string *pageptr = outputs[i];
-            size_t pos_b = 0;
-            std::string::const_iterator sit = pageptr->begin();
-            if ((pos_b = miscutil::ci_find(*pageptr,pattern_b,sit))!=std::string::npos)
-              {
-                size_t pos_e = 0;
-                if ((pos_e = miscutil::ci_find(*pageptr,pattern_e,sit))!=std::string::npos)
-                  {
-                    title = pageptr->substr(pos_b+pattern_b.size(),pos_e-pos_b-pattern_e.size()+1);
-                  }
-              }
+            title = uri_capture::parse_uri_html_title(*outputs[i]);
             delete outputs[i];
           }
         if (title.empty())
@@ -224,6 +212,24 @@ namespace seeks_plugins
     if (err == uris.size())
       return UC_ERR_CONNECT;
     else return SP_ERR_OK;
+  }
+
+  std::string uri_capture::parse_uri_html_title(const std::string &content)
+  {
+    static std::string pattern_b = "<title>";
+    static std::string pattern_e = "</title>";
+    std::string title;
+    size_t pos_b = 0;
+    std::string::const_iterator sit = content.begin();
+    if ((pos_b = miscutil::ci_find(content,pattern_b,sit))!=std::string::npos)
+      {
+        size_t pos_e = 0;
+        if ((pos_e = miscutil::ci_find(content,pattern_e,sit))!=std::string::npos)
+          {
+            title = content.substr(pos_b+pattern_b.size(),pos_e-pos_b-pattern_e.size()+1);
+          }
+      }
+    return title;
   }
 
   /*- uri_capture_element -*/
