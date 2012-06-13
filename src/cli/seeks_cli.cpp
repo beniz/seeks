@@ -49,6 +49,7 @@ void print_usage()
   std::cout << "seeks_cli cluster_auto <url> <query> [--nclusters <nclusters>] [--lang <lang>]\n";
   std::cout << "seeks_cli similar <url> <query> [--sid <snippet_id> | --surl <url>] [--lang <lang>]\n";
   std::cout << "seeks_cli cache <url> <query> --url <url> [--lang <lang>]\n";
+  std::cout << "seeks_cli readable <url> --url <url>\n";
 
   //TODO: examples.
 }
@@ -154,7 +155,8 @@ int main(int argc, char **argv)
   if (node[node.length()-1]=='/') // remove trailing '/'.
     node = node.substr(0,node.length()-1);
   std::string query;
-  if (++i < argc)
+  if (command != "readable"
+      && ++i < argc)
     query = argv[i];
 
   // parameters.
@@ -387,6 +389,13 @@ int main(int argc, char **argv)
         url = (*mit).second;
       err = cli::get_cache_txt(node,output,timeout,
                                query,url,lang,result);
+    }
+  else if (command == "readable")
+    {
+      std::string url;
+      if ((mit=params.find("--url"))!=params.end())
+        url = (*mit).second;
+      err = cli::readable(node,output,timeout,url,result);
     }
   else
     {

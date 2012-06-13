@@ -400,6 +400,19 @@ namespace seekscli
     return status;
   }
 
+  int cli::readable(const std::string &seeks_url,
+                    const std::string &output,
+                    const int &timeout,
+                    const std::string &url,
+                    std::string *&result)
+  {
+    std::string enc_url = cli::url_encode(url);
+    std::string rurl = seeks_url + "/readable?url=" + enc_url;
+    int status = 0;
+    cli::make_call(timeout,rurl,"GET",status,result);
+    return status;
+  }
+
   int cli::get_peers(const std::string &seeks_url,
                      const std::string &output,
                      const int &timeout,
