@@ -590,44 +590,30 @@ namespace seeks_plugins
     return html_content;
   }
 
-  std::string seeks_snippet::to_json(const bool &thumbs,
+  Json::Value seeks_snippet::to_json(const bool &thumbs,
                                      const std::vector<std::string> &query_words)
   {
-    std::string json_str = to_json_str(thumbs,query_words); // call in parent class.
-    std::list<std::string> json_elts;
-    std::string elt = "\"cite\":\"";
+    Json::Value jres = search_snippet::to_json(thumbs,query_words); // call in parent class.
     if (!_cite.empty())
       {
-        std::string cite = _cite;
-        miscutil::replace_in_string(cite,"\"","\\\"");
-        miscutil::replace_in_string(cite,"\n","");
-        json_elts.push_back(elt + cite + "\"");
+	jres["cite"] = _cite;
       }
     else
       {
-        std::string url = _url;
-        miscutil::replace_in_string(url,"\"","\\\"");
-        miscutil::replace_in_string(url,"\n","");
-        json_elts.push_back(elt + url + "\"");
+	jres["cite"] = _url;
       }
     if (!_cached.empty())
       {
-        std::string cached = _cached;
-        miscutil::replace_in_string(cached,"\"","\\\"");
-        json_elts.push_back("\"cached\":\"" + cached + "\"");
+	jres["cached"] = _cached;
       }
     if (thumbs)
       {
-        std::string url = _url;
-        miscutil::replace_in_string(url,"\"","\\\"");
-        miscutil::replace_in_string(url,"\n","");
-        json_elts.push_back("\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"");
+	jres["thumb"] = "http://open.thumbshots.org/image.pxf?url=" + _url;
       }
-    json_elts.push_back("\"type\":\"" + get_doc_type_str() + "\"");
+    jres["type"] = get_doc_type_str();
     if (!_date.empty())
-      json_elts.push_back("\"date\":\"" + _date + "\"");
-    json_str += "," + miscutil::join_string_list(",",json_elts);
-    return "{" + json_str + "}";
+      jres["date"] = _date;
+    return jres;
   }
 
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN

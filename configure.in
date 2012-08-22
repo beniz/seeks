@@ -768,6 +768,17 @@ if test "x$HAVE_BUILT_GTEST" = "xno" ; then
 fi
 
 ######################################################################
+# jsoncpp support
+######################################################################
+#AC_CHECK_HEADER([jsoncpp/json/json.h],[],[AC_MSG_ERROR(
+#[Couldn't find jsoncpp/json/json.h...try downloading the source from \
+#http://jsoncpp.sf.net] )],[])
+PKG_CHECK_MODULES([jsoncpp],[jsoncpp],jsoncpp=true,jsoncpp=false)
+if test $jsoncpp = false ; then
+   AC_MSG_ERROR([Couldn't find jsoncpp/json/json.h... try installing for your distribution or downloading the source from http://jsoncpp.sf.net])
+fi
+
+######################################################################
 # DOXYGEN SUPPORT
 ######################################################################
 

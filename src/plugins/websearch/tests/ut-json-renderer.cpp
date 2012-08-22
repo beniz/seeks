@@ -1,7 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2010 Loic Dachary <loic@dachary.org>
- *               2011 Emmanuel Benazera <ebenazer@seeks-project.info>
+ * Copyright (C) 2012 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,22 +20,20 @@
 #include <gtest/gtest.h>
 
 #include "json_renderer.h"
-#include "json_renderer_private.h"
-
 #include "seeks_snippet.h"
 #include "seeks_proxy.h"
 #include "proxy_configuration.h"
 
 using namespace seeks_plugins;
-using namespace json_renderer_private;
 using sp::seeks_proxy;
 using sp::proxy_configuration;
 
 TEST(JsonRendererTest, render_engines)
 {
   websearch::_wconfig = new websearch_configuration(""); // default configuration.
-  std::string reng = json_renderer::render_engines(websearch::_wconfig->_se_default);
-  EXPECT_EQ("\"bing\",\"google\",\"yahoo\"",reng);
+  Json::FastWriter writer;
+  std::string reng = writer.write(json_renderer::render_engines(websearch::_wconfig->_se_default));
+  EXPECT_EQ("[\"bing\",\"google\",\"yahoo\"]",miscutil::chomp_cpp(reng));
 
   /*  websearch::_wconfig = new websearch_configuration("");
   feeds fd;
@@ -48,6 +45,21 @@ TEST(JsonRendererTest, render_engines)
   delete websearch::_wconfig;
 }
 
+
+TEST(JsonRendererTest, render_tags)
+{
+  std::string tag1="free_software";
+  std::string tag2="technology";
+  std::string tag3="science";
+  hash_map<const char*,float,hash<const char*>,eqstr> tags;
+  tags.insert(std::pair<const char*,float>(tag1.c_str(),1));
+  tags.insert(std::pair<const char*,float>(tag2.c_str(),1));
+  tags.insert(std::pair<const char*,float>(tag3.c_str(),1));
+  Json::FastWriter writer;
+  std::string json_str = writer.write(json_renderer::render_tags(tags));
+  EXPECT_EQ("{\"tags\":{\"free_software\":{\"weight\":1.0},\"science\":{\"weight\":1.0},\"technology\":{\"weight\":1.0}}}",miscutil::chomp_cpp(json_str));
+}
+
 TEST(JsonRendererTest, render_snippets)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
@@ -57,32 +69,30 @@ TEST(JsonRendererTest, render_snippets)
   websearch::_wconfig->_se_default.add_feed("dummy","URL2");
   websearch::_wconfig->_se_enabled.add_feed("dummy","URL3");
   websearch::_wconfig->_se_default.add_feed("dummy","URL3");
-  std::string json_str;
-
+  
   int current_page = 1;
   std::vector<search_snippet*> snippets;
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
 
   // zero snippet
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
-  EXPECT_EQ("\"snippets\":[]", json_str);
-
+  Json::FastWriter writer;
+  std::string json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
+  EXPECT_EQ("{\"snippets\":null}", miscutil::chomp_cpp(json_str));
+  
   // 1 snippet, page 1
-  json_str = "";
   snippets.resize(1);
   seeks_snippet s1;
   s1._engine = feeds("dummy","URL1");
   s1.set_url("URL1");
   snippets[0] = &s1;
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
   EXPECT_TRUE(json_str.find(s1._url) != std::string::npos);
   EXPECT_EQ(std::string::npos, json_str.find("thumb"));
 
   // 1 snippet, page 1, thumbs on
-  json_str = "";
   parameters.insert(std::pair<const char*,const char*>("thumbs", "on"));
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
   EXPECT_TRUE(json_str.find(s1._url) != std::string::npos);
   EXPECT_NE(std::string::npos, json_str.find("thumb"));
 
@@ -99,16 +109,14 @@ TEST(JsonRendererTest, render_snippets)
   parameters.insert(std::pair<const char*,const char*>("rpp", "2"));
 
   current_page = 2;
-  json_str = "";
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
   EXPECT_EQ(std::string::npos, json_str.find(s1._url));
   EXPECT_EQ(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
 
   // 3 snippets, page 1, 2 results per page, thumbs on
   current_page = 1;
-  json_str = "";
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_EQ(std::string::npos, json_str.find(s3._url));
@@ -116,8 +124,7 @@ TEST(JsonRendererTest, render_snippets)
   // 3 snippets, page 1, 2 result per page, second snippet rejected, thumbs on
   current_page = 1;
   s1._doc_type = seeks_doc_type::REJECTED;
-  json_str = "";
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
   EXPECT_EQ(std::string::npos, json_str.find(s1._url));
   EXPECT_NE(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
@@ -128,8 +135,7 @@ TEST(JsonRendererTest, render_snippets)
   s1._seeks_ir = 1.0;
   s2._seeks_ir = 0.0;
   s3._seeks_ir = 1.0;
-  json_str = "";
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_snippets(query_clean, current_page, snippets, json_str, &parameters));
+  json_str = writer.write(json_renderer::render_snippets(query_clean, current_page, snippets, &parameters));
   EXPECT_NE(std::string::npos, json_str.find(s1._url));
   EXPECT_EQ(std::string::npos, json_str.find(s2._url));
   EXPECT_NE(std::string::npos, json_str.find(s3._url));
@@ -150,9 +156,7 @@ TEST(JsonRendererTest, render_clustered_snippets)
   hash_map<int,cluster*> clusters;
   for (int i=0; i<3; i++)
     clusters.insert(std::pair<int,cluster*>(i,new cluster()));
-
-  std::string json_str;
-
+  
   std::vector<search_snippet*> snippets;
   const std::string query_clean;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
@@ -183,7 +187,8 @@ TEST(JsonRendererTest, render_clustered_snippets)
 
   //parameters.insert(std::pair<const char*,const char*>("rpp", "1"));
 
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_snippets(query_clean, &clusters, 3, &context, json_str, &parameters));
+  Json::FastWriter writer;
+  std::string json_str = writer.write(json_renderer::render_clustered_snippets(query_clean, &clusters, 3, &context, &parameters));
   int k = 0;
   chit = clusters.begin();
   while(chit!=clusters.end())
@@ -232,7 +237,7 @@ TEST(JsonRendererTest, render_json_results)
 
   // select page 1
   rsp = new http_response();
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
+  json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime);
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
@@ -244,7 +249,7 @@ TEST(JsonRendererTest, render_json_results)
   parameters.insert(std::pair<const char*,const char*>("page", "2"));
 
   rsp = new http_response();
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime));
+  json_renderer::render_json_results(snippets, NULL, rsp, &parameters, &context, qtime);
   EXPECT_EQ(std::string::npos, std::string(rsp->_body).find(s1._url));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find(s2._url));
   delete rsp;
@@ -280,7 +285,7 @@ TEST(JsonRendererTest, render_clustered_json_results)
   context._query = "<QUERY>";
 
   rsp = new http_response();
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_clustered_json_results(&clusters, 1, NULL, rsp, &parameters, &context, qtime));
+  json_renderer::render_clustered_json_results(&clusters, 1, NULL, rsp, &parameters, &context, qtime);
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("JSONP({"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, std::string(rsp->_body).find("\"<QUERY>\""));
@@ -296,24 +301,23 @@ TEST(JsonRendererTest, render_clustered_json_results)
 TEST(JsonRendererTest, response)
 {
   http_response rsp;
-  response(&rsp, "JSON");
+  json_renderer::response(&rsp, "JSON");
   EXPECT_EQ(rsp._content_length, strlen(rsp._body));
   EXPECT_STREQ("JSON", rsp._body);
 }
 
 TEST(JsonRendererTest, jsonp)
 {
-  std::string input("WHAT");
-  const char* callback = "CALLBACK";
-  EXPECT_EQ("CALLBACK(WHAT)", jsonp(input, callback));
-  EXPECT_EQ("WHAT", jsonp(input, NULL));
+  std::string input("seeks");
+  const char* callback = "callback";
+  EXPECT_EQ("callback(seeks)", json_renderer::jsonp(input,callback));
+  EXPECT_EQ("seeks",json_renderer::jsonp(input,NULL));
 }
 
 TEST(JsonRendererTest, collect_json_results)
 {
   websearch::_wconfig = new websearch_configuration("not a real filename");
-  std::string result;
-  std::list<std::string> results;
+  Json::Value results1;
   query_context context;
   double qtime = 1234;
   hash_map<const char*, const char*, hash<const char*>, eqstr> parameters;
@@ -321,48 +325,50 @@ TEST(JsonRendererTest, collect_json_results)
   context._query = "<QUERY>";
   context._auto_lang = "LANG";
 
+  Json::FastWriter writer;
+
   // select page 1
-  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
-  result = miscutil::join_string_list(",", results);
+  json_renderer::collect_json_results(results1, &parameters, &context, qtime);
+  std::string result = writer.write(results1);
+  std::cerr << "result: " << result << std::endl;
   EXPECT_NE(std::string::npos, result.find("\"LANG\""));
   EXPECT_NE(std::string::npos, result.find("\"date\""));
   EXPECT_NE(std::string::npos, result.find("\"qtime\":1234"));
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
   EXPECT_NE(std::string::npos, result.find("\"<QUERY>\""));
   EXPECT_EQ(std::string::npos, result.find("\"CMD\""));
-  EXPECT_EQ(std::string::npos, result.find("\"suggestion\""));
-  EXPECT_EQ(std::string::npos, result.find("\"engines\""));
+  //EXPECT_EQ(std::string::npos, result.find("\"suggestions\""));
+  //EXPECT_EQ(std::string::npos, result.find("\"engines\""));
   EXPECT_EQ(std::string::npos, result.find("\"yahoo\""));
 
   // prs precedence logic
+  Json::Value results2;
   websearch::_wconfig->_personalization = false;
-  results.clear();
-  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
-  result = miscutil::join_string_list(",", results);
+  json_renderer::collect_json_results(results2, &parameters, &context, qtime);
+  result = writer.write(results2);
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"off\""));
 
   parameters.insert(std::pair<const char*,const char*>("prs", "on"));
-  results.clear();
-  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
-  result = miscutil::join_string_list(",", results);
+  Json::Value results3;
+  json_renderer::collect_json_results(results3, &parameters, &context, qtime);
+  result = writer.write(results3);
   EXPECT_NE(std::string::npos, result.find("\"pers\":\"on\""));
 
   // suggestion
   context._suggestions.insert(std::pair<double,std::string>(2.0,"SUGGESTION1"));
   context._suggestions.insert(std::pair<double,std::string>(1.0,"SUGGESTION2"));
-  results.clear();
-  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
-  result = miscutil::join_string_list(",", results);
+  Json::Value results4;
+  json_renderer::collect_json_results(results4, &parameters, &context, qtime);
+  result = writer.write(results4);
   EXPECT_NE(std::string::npos, result.find("suggestion"));
   EXPECT_NE(std::string::npos, result.find("SUGGESTION1"));
   EXPECT_NE(std::string::npos, result.find("SUGGESTION2"));
 
   // engines
   context._engines = websearch::_wconfig->_se_default;
-  /*context._engines = feeds("yahoo","http://search.yahoo.com/search?n=10&ei=UTF-8&va_vt=any&vo_vt=any&ve_vt=any&vp_vt=any&vd=all&vst=0&vf=all&vm=p&fl=1&vl=lang_%lang&p=%query&vs=");*/
-  results.clear();
-  EXPECT_EQ(SP_ERR_OK, collect_json_results(results, &parameters, &context, qtime));
-  result = miscutil::join_string_list(",", results);
+  Json::Value results5;
+  json_renderer::collect_json_results(results5, &parameters, &context, qtime);
+  result = writer.write(results5);
   EXPECT_NE(std::string::npos, result.find("\"yahoo\""));
 
   delete websearch::_wconfig;
@@ -379,10 +385,10 @@ TEST(JsonRendererTest, render_node_options)
   csp->_config = new proxy_configuration("../../../config");
   csp->_cfd = 0;
   std::list<std::string> opts;
-  std::string json_opts;
-
-  EXPECT_EQ(SP_ERR_OK, json_renderer::render_node_options(csp,opts));
-  json_opts = miscutil::join_string_list(",",opts);
+  
+  Json::Value jnode = json_renderer::render_node_options(csp);
+  Json::FastWriter writer;
+  std::string json_opts = writer.write(jnode);
   //std::cerr << json_opts << std::endl;
   EXPECT_NE(std::string::npos, json_opts.find("\"version\""));
   EXPECT_EQ(std::string::npos, json_opts.find("\"my-ip-address\""));
@@ -405,11 +411,14 @@ TEST(JsonRendererTest, render_suggested_queries)
   query_context qc;
   qc._suggestions.insert(std::pair<double,std::string>(1.0,"seeks"));
   qc._suggestions.insert(std::pair<double,std::string>(0.5,"seeks project"));
-  std::string json_str = json_renderer::render_suggested_queries(&qc,3);
-  EXPECT_NE(std::string::npos,json_str.find("\"suggestions\":"));
+  Json::Value jsuggs1 = json_renderer::render_suggested_queries(&qc,3);
+  Json::FastWriter writer;
+  std::string json_str = writer.write(jsuggs1);
+  //std::cerr << json_str << std::endl;
   EXPECT_NE(std::string::npos,json_str.find("\"seeks\""));
   EXPECT_NE(std::string::npos,json_str.find("\"seeks project\""));
-  json_str = json_renderer::render_suggested_queries(&qc,1);
+  Json::Value jsuggs2 = json_renderer::render_suggested_queries(&qc,1);
+  json_str = writer.write(jsuggs2);
   EXPECT_EQ(std::string::npos,json_str.find("\"seeks\""));
 }
 
@@ -436,7 +445,8 @@ TEST(JsonRendererTest, render_recommendations)
   qc.add_to_cache(sp2);
   int radius = 5;
   std::string lang;
-  std::string json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  Json::FastWriter writer;
+  std::string json_str = writer.write(json_renderer::render_recommendations(&qc,10,0.0,radius,lang));
   EXPECT_NE(std::string::npos,json_str.find("\"npeers\":1"));
   EXPECT_NE(std::string::npos,json_str.find("\"query\":\"seeks project\""));
   EXPECT_NE(std::string::npos,json_str.find("\"date\":"));
@@ -445,17 +455,17 @@ TEST(JsonRendererTest, render_recommendations)
   EXPECT_NE(std::string::npos,json_str.find(url1));
   EXPECT_NE(std::string::npos,json_str.find(url2));
   lang = "es";
-  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  json_str = writer.write(json_renderer::render_recommendations(&qc,10,0.0,radius,lang));
   EXPECT_NE(std::string::npos,json_str.find(url1));
   EXPECT_EQ(std::string::npos,json_str.find(url2));
   lang = "";
   radius = 0;
-  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  json_str = writer.write(json_renderer::render_recommendations(&qc,10,0.0,radius,lang));
   EXPECT_EQ(std::string::npos,json_str.find(url1));
   EXPECT_NE(std::string::npos,json_str.find(url2));
   radius = 0;
   lang = "es";
-  json_str = json_renderer::render_recommendations(&qc,10,0.0,radius,lang);
+  json_str = writer.write(json_renderer::render_recommendations(&qc,10,0.0,radius,lang));
   EXPECT_EQ(std::string::npos,json_str.find(url1));
   EXPECT_EQ(std::string::npos,json_str.find(url2));
   delete websearch::_wconfig;

@@ -27,15 +27,12 @@
 #include "miscutil.h"
 #include "charset_conv.h"
 #include "curl_mget.h"
+#include "json_renderer.h"
 #include "encode.h"
 #include "errlog.h"
 
 #include <sys/time.h>
 #include <sys/stat.h>
-
-#include <algorithm>
-#include <iterator>
-#include <iostream>
 
 using sp::seeks_proxy;
 using sp::user_db;
@@ -48,7 +45,6 @@ using sp::errlog;
 
 namespace seeks_plugins
 {
-
   /*- uri_db_sweepable -*/
   uri_db_sweepable::uri_db_sweepable()
     :user_db_sweepable()

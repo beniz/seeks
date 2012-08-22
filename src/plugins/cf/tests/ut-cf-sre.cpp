@@ -803,6 +803,19 @@ TEST_F(SRETest,recommendation_delete)
   ASSERT_EQ(0,seeks_proxy::_user_db->number_records());
 }
 
+TEST_F(SRETest,cgi_peers)
+{
+  cf_configuration::_config->_pl->add("seeks.fr",-1,"","bsn");
+  cf_configuration::_config->_pl->add("seeks-project.info/search_exp.php",-1,"","bsn");
+  client_state csp;
+  http_response rsp;
+  hash_map<const char*,const char*,hash<const char*>,eqstr> parameters;
+  sp_err err = cf::cgi_peers(&csp,&rsp,&parameters);
+  std::string body = miscutil::chomp_cpp(rsp._body);
+  std::cerr << body << std::endl;
+  EXPECT_EQ(body,"{\"peers\":[\"seeks-project.info/search_exp.php\",\"seeks.fr\"]}");
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

@@ -318,7 +318,7 @@ namespace seeks_plugins
       {
 #endif
 
-        err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
+	json_renderer::render_json_snippet(sp,rsp,parameters,qc);
 
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
       }
@@ -720,9 +720,9 @@ namespace seeks_plugins
         else if (output_str == "json")
           {
             csp->_content_type = CT_JSON;
-            err = json_renderer::render_json_results(qc->_cached_snippets,
-                  csp,rsp,parameters,qc,
-                  qtime,true);
+            json_renderer::render_json_results(qc->_cached_snippets,
+					       csp,rsp,parameters,qc,
+					       qtime,true);
           }
       } // end render.
 

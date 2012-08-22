@@ -640,7 +640,7 @@ namespace seeks_plugins
     if (!output_str || miscutil::strcmpic(output_str,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_cached_queries(rsp,parameters,"",nq);
+	json_renderer::render_cached_queries(rsp,parameters,"",nq);
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml"))
@@ -710,9 +710,8 @@ namespace seeks_plugins
         else if (output_str == "json")
           {
             csp->_content_type = CT_JSON;
-
-            err = json_renderer::render_json_results(qc->_cached_snippets,
-                  csp,rsp,parameters,qc,0.0);
+	    json_renderer::render_json_results(qc->_cached_snippets,
+					       csp,rsp,parameters,qc,0.0);
           }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
         else if (websearch::_xs_plugin && websearch::_xs_plugin_activated && !miscutil::strcmpic(output, "xml"))
@@ -788,8 +787,8 @@ namespace seeks_plugins
     else if (miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_clustered_json_results(&clusters,K,
-              csp,rsp,parameters,qc,qtime);
+        json_renderer::render_clustered_json_results(&clusters,K,
+						     csp,rsp,parameters,qc,qtime);
       }
     else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
@@ -885,8 +884,8 @@ namespace seeks_plugins
     else if (miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_json_results(qc->_cached_snippets,
-              csp,rsp,parameters,qc,0.0);
+        json_renderer::render_json_results(qc->_cached_snippets,
+					   csp,rsp,parameters,qc,0.0);
       }
     else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
@@ -963,9 +962,9 @@ namespace seeks_plugins
         else if (miscutil::strcmpic(output,"json")==0)
           {
             csp->_content_type = CT_JSON;
-            err = json_renderer::render_json_results(qc->_cached_snippets,
-                  csp,rsp,parameters,qc,
-                  0.0);
+            json_renderer::render_json_results(qc->_cached_snippets,
+					       csp,rsp,parameters,qc,
+					       0.0);
           }
         else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
         mutex_unlock(&qc->_qc_mutex);
@@ -1000,7 +999,7 @@ namespace seeks_plugins
     else if (miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_clustered_json_results(&clusters,km._K,csp,rsp,parameters,qc,qtime);
+        json_renderer::render_clustered_json_results(&clusters,km._K,csp,rsp,parameters,qc,qtime);
       }
     else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
 
@@ -1027,7 +1026,7 @@ namespace seeks_plugins
     sp_err err = SP_ERR_OK;
     if (!output || strcmpic(output,"json") == 0)
       {
-        err = json_renderer::render_json_node_options(csp,rsp,parameters);
+        json_renderer::render_json_node_options(csp,rsp,parameters);
         csp->_content_type = CT_JSON;
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
@@ -1362,9 +1361,9 @@ namespace seeks_plugins
         else if (output_str == "json")
           {
             csp->_content_type = CT_JSON;
-            err = json_renderer::render_json_results(qc->_cached_snippets,
-                  csp,rsp,parameters,qc,
-                  qtime);
+            json_renderer::render_json_results(qc->_cached_snippets,
+					       csp,rsp,parameters,qc,
+					       qtime);
           }
         else err = SP_ERR_NOT_FOUND; // unavailable or unknown output format.
       }
@@ -1424,7 +1423,7 @@ namespace seeks_plugins
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_json_snippet(sp,rsp,parameters,qc);
+        json_renderer::render_json_snippet(sp,rsp,parameters,qc);
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
@@ -1457,7 +1456,7 @@ namespace seeks_plugins
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_json_words(words,rsp,parameters);
+        json_renderer::render_json_words(words,rsp,parameters);
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))
@@ -1505,7 +1504,7 @@ namespace seeks_plugins
     if (!output || miscutil::strcmpic(output,"json")==0)
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_json_words(words,rsp,parameters);
+        json_renderer::render_json_words(words,rsp,parameters);
       }
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     else if(websearch::_xs_plugin && websearch::_xs_plugin_activated &&  !miscutil::strcmpic(output, "xml"))

@@ -4,7 +4,7 @@ uricapturepluginlibdir = $(libdir)/seeks/plugins/uri_capture
 uricaptureplugindatadir = $(datadir)/seeks/plugins/uri_capture
 
 AM_CXXFLAGS=-Wall -g -pipe
-AM_CPPFLAGS= -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh -I${srcdir}/../../dht \
+AM_CPPFLAGS= -I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh -I${srcdir}/../../dht -I${srcdir}/../websearch \
 	    -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
 	    -I../../proxy/
 

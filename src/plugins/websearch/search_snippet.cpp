@@ -329,82 +329,59 @@ namespace seeks_plugins
     return html_content;
   }
 
-  std::string search_snippet::to_json(const bool &thumbs,
-                                      const std::vector<std::string> &query_words)
+  
+  Json::Value search_snippet::to_json(const bool &thumbs,
+				      const std::vector<std::string> &query_words)
   {
-    return "{" + to_json_str(thumbs,query_words) + "}";
-  }
-
-  std::string search_snippet::to_json_str(const bool &thumbs,
-                                          const std::vector<std::string> &query_words)
-  {
-    std::list<std::string> json_elts;
-    json_elts.push_back("\"id\":" + miscutil::to_string(_id));
-    std::string title = _title;
-    miscutil::replace_in_string(title,"\\","\\\\");
-    miscutil::replace_in_string(title,"\"","\\\"");
-    json_elts.push_back("\"title\":\"" + title + "\"");
-    std::string url = _url;
-    miscutil::replace_in_string(url,"\"","\\\"");
-    miscutil::replace_in_string(url,"\n","");
-    json_elts.push_back("\"url\":\"" + url + "\"");
-    std::string summary = _summary;
-    miscutil::replace_in_string(summary,"\\","\\\\");
-    miscutil::replace_in_string(summary,"\"","\\\"");
-    json_elts.push_back("\"summary\":\"" + summary + "\"");
-    json_elts.push_back("\"seeks_meta\":" + miscutil::to_string(_meta_rank));
-    json_elts.push_back("\"seeks_score\":" + miscutil::to_string(_seeks_rank));
+    Json::Value jres;
+    jres["id"] = _id;
+    jres["title"] = _title;
+    jres["url"] = _url;
+    jres["summary"] = _summary;
+    jres["seeks_meta"] = _meta_rank;
+    jres["seeks_score"] = _seeks_rank;
     double rank = 0.0;
     if (_engine.size() > 0)
       rank = _rank / static_cast<double>(_engine.size());
-    json_elts.push_back("\"rank\":" + miscutil::to_string(rank));
-    std::string json_str = "\"engines\":[";
+    jres["rank"] = rank;
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
     img_search_snippet *isp = NULL;
     if (_doc_type == seeks_img_doc_type::IMAGE)
       isp = static_cast<img_search_snippet*>(this);
     if (isp)
-      json_str += json_renderer::render_engines(isp->_img_engine,true);
+      jres["engines"] = json_renderer::render_engines(isp->_img_engine,true);
     else
 #endif
-      json_str += json_renderer::render_engines(_engine);
-    json_str += "]";
-    json_elts.push_back(json_str);
+      jres["engines"] = json_renderer::render_engines(_engine);
     if (thumbs)
-      json_elts.push_back("\"thumb\":\"http://open.thumbshots.org/image.pxf?url=" + url + "\"");
+      jres["thumb"] = "http://open.thumbshots.org/image.pxf?url=" + _url;
     std::set<std::string> words;
     discr_words(query_words,words);
     if (!words.empty())
       {
-        json_str = "\"words\":[";
-        std::list<std::string> json_words;
+	Json::Value jw;
         std::set<std::string>::const_iterator sit = words.begin();
         while(sit!=words.end())
           {
-            json_words.push_back("\"" + (*sit) + "\"");
-            ++sit;
+            jw.append((*sit));
+	    ++sit;
           }
-        json_str += miscutil::join_string_list(",",json_words);
-        json_str += "]";
-        json_elts.push_back(json_str);
+	jres["words"] = jw;
       }
-    json_str = "\"personalized\":\"";
     if (_personalized)
-      json_str += "yes";
-    else json_str += "no";
-    json_str += "\"";
-    json_elts.push_back(json_str);
+      jres["personalized"] = "yes";
+    else jres["personalized"] = "no";
     if (_npeers > 0)
-      json_elts.push_back("\"snpeers\":" + miscutil::to_string(_npeers));
+      jres["snpeers"] = _npeers;
     if (_hits > 0)
-      json_elts.push_back("\"hits\":" + miscutil::to_string(_hits));
+      jres["hits"] = _hits;
     if (_content_date != 0)
-      json_elts.push_back("\"content_date\":" + miscutil::to_string(_content_date));
+      jres["content_date"] = _content_date;
     if (_record_date != 0)
-      json_elts.push_back("\"record_date\":" + miscutil::to_string(_record_date));
-    return miscutil::join_string_list(",",json_elts);
+      jres["record_date"] = _record_date;
+    return jres;
   }
-
+  
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
   sp_err search_snippet::to_xml(const bool &thumbs,
                                 const std::vector<std::string> &query_words,

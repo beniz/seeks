@@ -35,6 +35,7 @@
 #include "curl_mget.h"
 #include "miscutil.h"
 #include "charset_conv.h"
+#include "json_renderer.h"
 #include "errlog.h"
 
 #include <algorithm>

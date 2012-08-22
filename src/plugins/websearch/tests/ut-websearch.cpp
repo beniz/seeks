@@ -322,14 +322,15 @@ TEST_F(WBExistTest,cgi_websearch_search_query)
   sp_err err = websearch::cgi_websearch_search(&csp,&rsp,parameters);
   ASSERT_EQ(SP_ERR_OK,err);
   std::string body = std::string(rsp._body,rsp._content_length);
+  std::cerr << body << std::endl;
   EXPECT_NE(std::string::npos,body.find("\"query\":\"seeks\""));
   EXPECT_NE(std::string::npos,body.find("\"lang\":\"en\""));
   EXPECT_NE(std::string::npos,body.find("\"pers\":\"on\""));
-  EXPECT_NE(std::string::npos,body.find("\"expansion\":\"1\""));
-  EXPECT_NE(std::string::npos,body.find("\"npeers\":\"0\""));
-  EXPECT_NE(std::string::npos,body.find("\"engines\":[]"));
+  EXPECT_NE(std::string::npos,body.find("\"expansion\":1"));
+  EXPECT_NE(std::string::npos,body.find("\"npeers\":0"));
+  EXPECT_NE(std::string::npos,body.find("\"engines\":null"));
   EXPECT_NE(std::string::npos,body.find("\"date\":"));
-  EXPECT_NE(std::string::npos,body.find("\"snippets\":[]"));
+  EXPECT_NE(std::string::npos,body.find("\"snippets\":null"));
   miscutil::free_map(parameters);
 }
 
@@ -363,7 +364,7 @@ TEST_F(WBExistTest,cgi_websearch_search_snippet)
   EXPECT_NE(std::string::npos,body.find("\"seeks_meta\":"));
   EXPECT_NE(std::string::npos,body.find("\"seeks_score\":0"));
   EXPECT_NE(std::string::npos,body.find("\"cite\":\"http://www.seeks-project.info/\""));
-  EXPECT_NE(std::string::npos,body.find("\"engines\":[]"));
+  EXPECT_NE(std::string::npos,body.find("\"engines\":null"));
   EXPECT_NE(std::string::npos,body.find("\"type\":\"webpage\""));
   EXPECT_NE(std::string::npos,body.find("\"personalized\":\"no\""));
   miscutil::free_map(parameters);

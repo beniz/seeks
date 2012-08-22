@@ -60,7 +60,7 @@ namespace seeks_plugins
                                   const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters);
 
       // JSON rendering.
-      virtual std::string to_json(const bool &thumbs,
+      virtual Json::Value to_json(const bool &thumbs,
                                   const std::vector<std::string> &query_words);
 
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN

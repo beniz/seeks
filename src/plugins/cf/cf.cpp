@@ -20,7 +20,6 @@
 #include "websearch.h"
 #include "sort_rank.h"
 #include "json_renderer.h"
-#include "json_renderer_private.h"
 #include "cf_configuration.h"
 #include "rank_estimators.h"
 #include "query_recommender.h"
@@ -45,7 +44,6 @@
 #include <sys/times.h>
 #include <iostream>
 
-using namespace json_renderer_private;
 using lsh::qprocess;
 
 namespace seeks_plugins
@@ -120,13 +118,13 @@ namespace seeks_plugins
                        http_response *rsp,
                        const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
-    std::list<std::string> l;
     hash_map<const char*,peer*,hash<const char*>,eqstr>::const_iterator hit
     = cf_configuration::_config->_pl->_peers.begin();
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
     const char *output_str = miscutil::lookup(parameters,"output");
     if (cf::_xs_plugin && cf::_xs_plugin_activated && !miscutil::strcmpic(output_str, "xml"))
       {
+	std::list<std::string> l;
         while(hit!=cf_configuration::_config->_pl->_peers.end())
           {
             peer *p = (*hit).second;
@@ -138,15 +136,16 @@ namespace seeks_plugins
     else
       {
 #endif
+	Json::Value jpeers,jres;
         while(hit!=cf_configuration::_config->_pl->_peers.end())
           {
             peer *p = (*hit).second;
-            l.push_back("\"" + p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path + "\"");
+	    jpeers.append(p->_host + ((p->_port == -1) ? "" : (":" + miscutil::to_string(p->_port))) + p->_path);
             ++hit;
           }
-        const std::string json_str = "{\"peers\":[" + miscutil::join_string_list(",",l) + "]}";
-        const std::string body = jsonp(json_str,miscutil::lookup(parameters,"callback"));
-        response(rsp,body);
+	jres["peers"] = jpeers;
+	Json::FastWriter writer;
+	json_renderer::response(rsp,writer.write(jres));
         return SP_ERR_OK;
 #ifdef FEATURE_XSLSERIALIZER_PLUGIN
       }
@@ -272,8 +271,8 @@ namespace seeks_plugins
       err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_suggested_queries(csp,rsp,parameters,qc);
     else
 #endif
-      err = json_renderer::render_json_suggested_queries(qc,rsp,parameters);
-
+      json_renderer::render_json_suggested_queries(qc,rsp,parameters);
+    
     qc->reset_p2p_data();
     mutex_unlock(&qc->_qc_mutex);
     return err;
@@ -391,7 +390,7 @@ namespace seeks_plugins
       err = static_cast<xsl_serializer*>(cf::_xs_plugin)->render_xsl_recommendations(csp,rsp,parameters,qc,qtime,radius,lang);
     else
 #endif
-      err = json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
+      json_renderer::render_json_recommendations(qc,rsp,parameters,qtime,radius,lang);
 
 
     qc->reset_p2p_data();

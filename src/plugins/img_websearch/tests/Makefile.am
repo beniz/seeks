@@ -18,7 +18,7 @@ AM_CPPFLAGS=-Wall -g -Wno-deprecated -pipe -I${srcdir}/../../websearch \
 	     -I${srcdir}/../../../dht 
 if HAVE_PROTOBUF
 AM_CPPFLAGS += -I${srcdir}/../../query_capture -I${srcdir}/../../cf -I${srcdir}/../../uri_capture -I${srcdir}/../../udb_service \
-             -I../../../proxy `pkg-config --cflags protobuf`
+             -I../../../proxy `pkg-config --cflags protobuf` `pkg-config --libs jsoncpp`
 
 if HAVE_TC
 AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`
@@ -40,7 +40,7 @@ endif
 AM_LDFLAGS=-L../ -L../../../utils -L../../../lsh -L../../../proxy -L../../websearch -L../../../dht 
 if HAVE_PROTOBUF
 AM_LDFLAGS += -L../../query_capture -L../../uri_capture -L../../cf -L../../udb_service \
-	      `pkg-config --libs protobuf`
+	      `pkg-config --libs protobuf` `pkg-config --libs jsoncpp`
 
 if HAVE_TC
 AM_LDFLAGS += `pkg-config --libs tokyocabinet`

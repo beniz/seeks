@@ -6,7 +6,7 @@ cfplugindatadir = $(datadir)/seeks/plugins/cf
 AM_CXXFLAGS=-Wall -g -pipe
 AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../../utils -I${srcdir}/../../proxy -I${srcdir}/../../lsh -I${srcdir}/../../dht \
             -I${srcdir}/../websearch -I${srcdir}/../query_capture -I${srcdir}/../uri_capture -I${srcdir}/../udb_service \
-            -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` \
+            -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' `pkg-config --cflags protobuf` `pkg-config --cflags tokyocabinet` `pkg-config --cflags jsoncpp` \
             @PCRE_CFLAGS@ -I../../proxy/
 
 if HAVE_IMG_WEBSEARCH_PLUGIN

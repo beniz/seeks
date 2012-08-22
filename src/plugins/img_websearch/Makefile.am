@@ -8,7 +8,7 @@ AM_CPPFLAGS=-Wno-deprecated -Wall -g -pipe \
 	    -I${srcdir}/../../dht -I${srcdir}/../../proxy
 if HAVE_PROTOBUF
 AM_CPPFLAGS += -I${srcdir}/../query_capture -I${srcdir}/../cf
-	       `pkg-config --cflags protobuf`
+	       `pkg-config --cflags protobuf` `pkg-config --cflags jsoncpp`
 
 if HAVE_TC
 AM_CPPFLAGS += `pkg-config --cflags tokyocabinet`

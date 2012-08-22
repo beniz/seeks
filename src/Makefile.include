@@ -76,7 +76,8 @@ AM_CPPFLAGS += \
 	     @PCRE_CFLAGS@ \
 	     @XML2_CFLAGS@ \
 	     @ICU_CFLAGS@ \
-	     $(GTEST_CPPFLAGS)
+	     $(GTEST_CPPFLAGS) \
+	     `pkg-config --cflags jsoncpp`
 
 AM_LDFLAGS += \
         -L.. \
@@ -87,7 +88,8 @@ AM_LDFLAGS += \
 	-L$(top_builddir)/src/plugins/websearch \
 	-L$(top_builddir)/src/plugins/websearch_api_compat \
 	-L$(top_builddir)/src/plugins/readable \
-	$(GTEST_LDFLAGS)
+	$(GTEST_LDFLAGS) \
+	`pkg-config --libs jsoncpp`
 
 LDADD += \
 	-lseeksdht \
