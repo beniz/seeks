@@ -50,12 +50,18 @@ namespace seeks_plugins
   {
     const char *tag = (const char*)name;
 
-    if (strcasecmp(tag, "body") == 0)
+    /*if (strcasecmp(tag, "body") == 0)
       {
         _body_flag = true;
-      }
-    // check for h3 flag -> snippet's title.
-    else if (_h2_sr_flag && _li_flag && strcasecmp(tag,"h3") == 0)
+	}*/
+    if (!_h2_sr_flag && strcasecmp(tag,"h2") == 0)
+      {
+        _h2_flag = true;
+        const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
+        if (a_class && strcasecmp(a_class,"hd") == 0)
+          _h2_sr_flag = true;
+	  }
+    else if (_h2_sr_flag && strcasecmp(tag,"h3") == 0)
       {
         const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
         if (a_class && strcasecmp(a_class,"r") == 0)
@@ -64,16 +70,16 @@ namespace seeks_plugins
             _new_link_flag = true;
           }
       }
-    // check for h2 flag -> search results 'title'.
-    else if (_body_flag && !_h2_sr_flag && strcasecmp(tag,"h2") == 0)
+    /*// check for h2 flag -> search results 'title'.
+    else if (!_h2_sr_flag && strcasecmp(tag,"h2") == 0)
       {
         _h2_flag = true;
         const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
         if (a_class && strcasecmp(a_class,"hd") == 0)
           _h2_sr_flag = true;
-      }
+	  }*/
     // real time results avoidance.
-    else if (pc->_current_snippet && _h2_sr_flag && strcasecmp(tag,"span") == 0)
+    else if (pc->_current_snippet && _h3_flag && strcasecmp(tag,"span") == 0)
       {
         const char *a_id = se_parser::get_attribute((const char**)attributes,"id");
         if (a_id && strcasecmp(a_id,"rth") == 0)
@@ -106,21 +112,21 @@ namespace seeks_plugins
               }
             pc->_current_snippet->set_url(a_link_str);
 
-            /* std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id
-              << " -- url: " << pc->_current_snippet->_url << std::endl; */
+	    /*std::cerr << "[Debug]:ggle_parser: url id: " << pc->_current_snippet->_id
+	      << " -- url: " << pc->_current_snippet->_url << std::endl;*/
           }
       }
-    else if (_h2_sr_flag && strcasecmp(tag,"ol") == 0)
+    /*else if (strcasecmp(tag,"ol") == 0)
       {
         _ol_flag = true;
-      }
+	}*/
     else if (_h2_sr_flag && strcasecmp(tag,"li") == 0)
       {
         const char *a_class = se_parser::get_attribute((const char**)attributes,"class");
 
         if (!a_class || strcasecmp(a_class,"g") != 0)
           return;
-
+	
         // assert previous snippet, if any.
         if (pc->_current_snippet)
           {
@@ -129,22 +135,21 @@ namespace seeks_plugins
                 se_parser_ggle::post_process_snippet(pc->_current_snippet);
                 if (pc->_current_snippet)
                   {
-                    pc->_snippets->push_back(pc->_current_snippet);
+		    pc->_snippets->push_back(pc->_current_snippet);
                     pc->_current_snippet = NULL;
                   }
               }
-            else // no title, throw the snippet away.
+	      else // no title, throw the snippet away.
               {
                 delete pc->_current_snippet;
                 pc->_current_snippet = NULL;
                 _count--;
-              }
+	      }
           }
 
         // create new snippet.
         _sn = new seeks_snippet(_count+1);
         _count++;
-        //sp->_engine |= std::bitset<NSEs>(SE_GOOGLE);
         _sn->_engine = feeds("google",_url);
         pc->_current_snippet = _sn;
 
@@ -159,56 +164,37 @@ namespace seeks_plugins
 
         if (d_class && strcasecmp(d_class,"f") == 0)
           _div_flag_forum = true;
-        else if (d_class && d_class[0] == 's')
-          _div_flag_summary = true;
       }
-    else if (pc->_current_snippet && _li_flag && strcasecmp(tag,"cite") == 0)
+    /*else if (pc->_current_snippet && _li_flag && strcasecmp(tag,"cite") == 0)
       {
         _cite_flag = true;
-
-        // summary, if any, ends here.
-        pc->_current_snippet->set_summary(_summary);
-        _summary = "";
-      }
-    else if (_ol_flag && _span_cached_flag && strcasecmp(tag,"a") == 0)
+	}*/
+    else if (_span_cached_flag && strcasecmp(tag,"a") == 0)
       {
         const char *a_cached = se_parser::get_attribute((const char**)attributes,"href");
 
         if (a_cached)
           {
             _cached_flag = true;
-            _cached = std::string(a_cached);
+            _cached = "http:" + std::string(a_cached);
           }
       }
     else if (_h2_sr_flag && strcasecmp(tag,"span") == 0)
       {
         const char *span_class = se_parser::get_attribute((const char**)attributes,"class");
-
         if (span_class)
           {
-            if (_div_flag_summary)
-              {
-                if (span_class[0] == 'f')
-                  _ff_flag = true;
-                else if (strcasecmp(span_class,"gl") == 0)
-                  _span_cached_flag = true;
-              }
-            else
-              {
-                if (strcasecmp(span_class,"spell") == 0)
-                  _spell_flag = true;
-                else if (strcasecmp(span_class,"med") == 0 && _spell_flag)
-                  _spell_flag = false;
-              }
-          }
-      }
-    // probably not robust: wait for the next opening tag,
-    // before setting the file format.
-    else if (_ff_flag)
-      {
-        _ff_flag = false;
-        _ff = ""; // TODO: file format.
-        // TODO: store in search snippet and reset.
+	    if (_summary.empty() && strcasecmp(span_class,"st") == 0)
+	      {
+		_div_flag_summary = true;
+	      }
+	    else if (strcasecmp(span_class,"flc") == 0)
+	      _span_cached_flag = true;
+	    else if (strcasecmp(span_class,"spell") == 0)
+	      _spell_flag = true;
+	    else if (strcasecmp(span_class,"med") == 0 && _spell_flag)
+	      _spell_flag = false;
+	  }
       }
     else if (!_end_sgg_spell_flag && _count <= 1 && strcasecmp(tag,"a") == 0)
       {
@@ -246,14 +232,14 @@ namespace seeks_plugins
         miscutil::replace_in_string(a_chars,"\r"," ");
         _h3 += a_chars;
       }
-    else if (_cite_flag)
+    /*else if (_cite_flag)
       {
         std::string a_chars = std::string((char*)chars);
         miscutil::replace_in_string(a_chars,"\n"," ");
         miscutil::replace_in_string(a_chars,"\r"," ");
         //miscutil::replace_in_string(a_chars,"-"," ");
         _cite += a_chars;
-      }
+	}*/
     else if (_ff_flag)
       {
         std::string a_chars = std::string((char*)chars);
@@ -261,7 +247,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(a_chars,"\r"," ");
         _ff += a_chars;
       }
-    else if (_ol_flag && _div_flag_forum)
+    else if (_div_flag_forum)
       {
         std::string a_chars = std::string((char*)chars);
         miscutil::replace_in_string(a_chars,"\n"," ");
@@ -269,7 +255,7 @@ namespace seeks_plugins
         miscutil::replace_in_string(a_chars,"-"," ");
         _forum += a_chars;
       }
-    else if (_ol_flag && _div_flag_summary)
+    else if (_div_flag_summary)
       {
         std::string a_chars = std::string((char*)chars);
         miscutil::replace_in_string(a_chars,"\n"," ");
@@ -302,7 +288,13 @@ namespace seeks_plugins
       {
         _h2_flag = false;
       }
-    else if ((_div_flag_summary || _div_flag_forum) && strcasecmp(tag,"div") == 0)
+    else if (_div_flag_summary && strcasecmp(tag,"span") == 0)
+      {
+	_div_flag_summary = false;
+	pc->_current_snippet->set_summary(_summary);
+        _summary = "";
+      }
+    else if (_div_flag_forum&& strcasecmp(tag,"div") == 0)
       {
         // beware: order matters.
         if (pc->_current_snippet && _div_flag_forum)
@@ -312,26 +304,21 @@ namespace seeks_plugins
             pc->_current_snippet->_doc_type = seeks_doc_type::FORUM;
             _forum = "";
           }
-        else if (_div_flag_summary)
-          {
-            // summary was already added, turn the flag off.
-            _div_flag_summary = false;
-          }
       }
-    else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
+    /*else if (pc->_current_snippet && _cite_flag && strcasecmp(tag,"cite") == 0)
       {
         _cite_flag = false;
-        //if (pc->_current_snippet->_cite.empty())
-        //pc->_current_snippet->set_cite_no_decode(_cite);
+        if (pc->_current_snippet->_cite.empty())
+        pc->_current_snippet->set_cite_no_decode(_cite);
         _cite = "";
         _new_link_flag = false;
-      }
-    else if (pc->_current_snippet && _cached_flag && strcasecmp(tag,"a") == 0)
+	}*/
+    else if (_sn && _cached_flag && strcasecmp(tag,"a") == 0)
       {
         _span_cached_flag = false; // no need to catch the /span tag.
         _cached_flag = false;
         if (!_cached.empty())
-          _sn->_cached = _cached;
+          _sn->_cached = _cached; // uing ptr to current seeks_snippet.
         _cached = "";
       }
     else if (_sgg_spell_flag && strcasecmp(tag,"a") == 0)
