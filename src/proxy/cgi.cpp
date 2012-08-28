@@ -473,10 +473,10 @@ namespace sp
      */
     if (cgi_plugin_file_server)
       {
-        std::vector<plugin*>::const_iterator sit = plugin_manager::_plugins.begin();
+        std::map<int,plugin*,std::less<int> >::const_iterator sit = plugin_manager::_plugins.begin();
         while (sit!=plugin_manager::_plugins.end())
           {
-            std::string pname_public = (*sit)->get_name() + "/public";
+            std::string pname_public = (*sit).second->get_name() + "/public";
             if (strncmpic(query_args_start,pname_public.c_str(),strlen(pname_public.c_str())) == 0)
               return cgi::dispatch(&cgi::_cgi_plugin_file_server, path_copy, csp, param_list, rsp);
             ++sit;
@@ -2571,11 +2571,11 @@ namespace sp
     char buf[BUFFER_SIZE];
     char *s = strdup("");
     int k=0;
-    std::vector<plugin*>::const_iterator sit = plugin_manager::_plugins.begin();
+    std::map<int,plugin*,std::less<int> >::const_iterator sit = plugin_manager::_plugins.begin();
     while (sit!=plugin_manager::_plugins.end())
       {
         miscutil::string_append(&s, "<li>");
-        miscutil::string_join(&s, encode::html_encode((*sit)->get_name_cstr()));
+        miscutil::string_join(&s, encode::html_encode((*sit).second->get_name_cstr()));
         snprintf(buf, sizeof(buf),
                  "<a class=\"buttons\" href=\"/show-plugin-status?index=%u\">\tView</a>", k);
         miscutil::string_append(&s, buf);

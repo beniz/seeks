@@ -68,7 +68,8 @@ namespace sp
 
       // others.
       bool is_plugin_activated(const char *pname);
-
+      int get_plugin_priority(const char *pname);
+      
       // variables.
 
       /** What to log */
@@ -106,7 +107,7 @@ namespace sp
       const char *_datadir;
 
       /** The list of activated plugins. */
-      hash_map<const char*,bool,hash<const char*>,eqstr> _activated_plugins;
+      hash_map<const char*,int,hash<const char*>,eqstr> _activated_plugins;
 
       /** The administrator's email address */
       char *_admin_address;

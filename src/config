@@ -287,6 +287,8 @@ logfile logfile
 # 	Unset. All loaded plugins are activated.
 #
 # Notes:
+#
+#       Plugins are started in listed order.
 #	
 #	Every plugin can define a number of plugin elements,
 #	such as URI interceptors and/or filters. Activating/
