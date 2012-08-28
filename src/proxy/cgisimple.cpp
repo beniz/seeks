@@ -1171,10 +1171,10 @@ namespace sp
 
         matches = strdup("<table summary=\"\" class=\"transparent\">");
 
-        std::vector<plugin*>::const_iterator sit = plugin_manager::_plugins.begin();
+        std::map<int,plugin*,std::less<int> >::const_iterator sit = plugin_manager::_plugins.begin();
         while (sit!=plugin_manager::_plugins.end())
           {
-            plugin *p = (*sit);
+            plugin *p = (*sit).second;
             miscutil::string_append(&matches, "<tr><th>By plugin: ");
             miscutil::string_join  (&matches, encode::html_encode(p->get_name_cstr()));
             snprintf(buf, sizeof(buf), " <a class=\"cmd\" href=\"/show-status?index=%d\">", i); // TODO.
@@ -1407,12 +1407,12 @@ namespace sp
     const char *plugin_name = NULL;
     const char *plugin_description = NULL;
 
-    std::vector<plugin*>::const_iterator sit = plugin_manager::_plugins.begin();
+    std::map<int,plugin*,std::less<int> >::const_iterator sit = plugin_manager::_plugins.begin();
     while (sit!=plugin_manager::_plugins.end())
       {
         if (c == i)  // plugin has been found.
           {
-            pl = (*sit);
+            pl = (*sit).second;
             plugin_name = pl->get_name_cstr();
             plugin_description = pl->get_description_cstr();
             break;

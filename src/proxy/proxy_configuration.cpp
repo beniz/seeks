@@ -107,7 +107,7 @@ namespace sp
   proxy_configuration::proxy_configuration(const std::string &filename)
     :configuration_spec(filename),_debug(0),_multi_threaded(0),_feature_flags(0),_logfile(NULL),_confdir(NULL),
      _templdir(NULL),_logdir(NULL),_plugindir(NULL),_datadir(NULL),
-     _activated_plugins(10),
+     _activated_plugins(30),
      _admin_address(NULL),_proxy_info_url(NULL),_usermanual(NULL),
      _hostname(NULL),
      _haddr(NULL),_hport(0),_buffer_limit(0),
@@ -146,7 +146,7 @@ namespace sp
     freez(_proxy_info_url);
     freez(_usermanual);
 
-    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit,hit2;
+    hash_map<const char*,int,hash<const char*>,eqstr>::iterator hit,hit2;
     hit = _activated_plugins.begin();
     while(hit!=_activated_plugins.end())
       {
@@ -177,7 +177,7 @@ namespace sp
     _feature_flags            &= ~RUNTIME_FEATURE_SPLIT_LARGE_FORMS;
     _feature_flags            &= ~RUNTIME_FEATURE_ACCEPT_INTERCEPTED_REQUESTS;
 
-    _activated_plugins.insert(std::pair<const char*,bool>(strdup("websearch"),true)); // websearch plugin activated by default.
+    _activated_plugins.insert(std::pair<const char*,int>(strdup("websearch"),0)); // websearch plugin activated by default.
 
     _automatic_proxy_disable = true;
     _user_db_file = ""; // default is $HOME/.seeks/seeks_user.db active when _user_db_file is unset.
@@ -206,7 +206,7 @@ namespace sp
 #ifdef FEATURE_ACL
     access_control_list *cur_acl;
 #endif  /* def FEATURE_ACL */
-    hash_map<const char*,bool,hash<const char*>,eqstr>::iterator hit;
+    hash_map<const char*,int,hash<const char*>,eqstr>::iterator hit;
 
     switch (cmd_hash)
       {
@@ -215,9 +215,11 @@ namespace sp
          * *************************************************************************/
       case hash_activated_plugins :
         if ((hit=_activated_plugins.find(arg))==_activated_plugins.end())
-          _activated_plugins.insert(std::pair<const char*,bool>(strdup(arg),true));
-        else (*hit).second = true;
-        configuration_spec::html_table_row(_config_args,cmd,arg,"Activated plugin");
+	  {
+	    int pri = _activated_plugins.size();
+	    _activated_plugins.insert(std::pair<const char*,int>(strdup(arg),pri));
+	  }
+	configuration_spec::html_table_row(_config_args,cmd,arg,"Activated plugin");
         break;
 
         /**************************************************************************
@@ -1191,10 +1193,18 @@ namespace sp
 
   bool proxy_configuration::is_plugin_activated(const char *pname)
   {
-    hash_map<const char*,bool,hash<const char*>,eqstr>::const_iterator hit;
+    hash_map<const char*,int,hash<const char*>,eqstr>::const_iterator hit;
     if ((hit = _activated_plugins.find(pname))!=_activated_plugins.end())
       return true;
     else return false;
+  }
+
+  int proxy_configuration::get_plugin_priority(const char *pname)
+  {
+    hash_map<const char*,int,hash<const char*>,eqstr>::const_iterator hit;
+    if ((hit = _activated_plugins.find(pname))!=_activated_plugins.end())
+      return (*hit).second;
+    else return -1;
   }
 
 } /* end of namespace. */

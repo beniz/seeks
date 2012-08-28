@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009, 2010 Emmanuel Benazera, ebenazer@seeks-project.info
+ * Copyright (C) 2009 - 2012 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -78,8 +78,9 @@ namespace sp
       /**
        * \brief registers a plugin and its CGI functions.
        * @param p plugin object.
+       * @parm pri plugin priority, smaller = starts first.
        */
-      static void register_plugin(plugin *p);
+      static void register_plugin(plugin *p, const int &pri);
 
       /**
        * \brief locates a CGI resource among the registered plugins, if any
@@ -106,7 +107,7 @@ namespace sp
       static plugin* get_plugin(const std::string &name);
 
     public:
-      static std::vector<plugin*> _plugins;  /**< set of plugins. */
+      static std::map<int,plugin*,std::less<int> > _plugins;  /**< set of plugins. */
       static std::vector<interceptor_plugin*> _ref_interceptor_plugins; /**< registered interceptor plugins. */
       static std::vector<action_plugin*> _ref_action_plugins; /**< registered action plugins. */
       static std::vector<filter_plugin*> _ref_filter_plugins; /**< registered filter plugins. */

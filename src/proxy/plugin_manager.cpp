@@ -1,6 +1,6 @@
 /**
  * The Seeks proxy and plugin framework are part of the SEEKS project.
- * Copyright (C) 2009 Emmanuel Benazera, juban@free.fr
+ * Copyright (C) 2009 - 2012 Emmanuel Benazera <ebenazer@seeks-project.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -43,7 +43,7 @@ using sp::proxy_configuration;
 namespace sp
 {
   // variables.
-  std::vector<plugin*> plugin_manager::_plugins = std::vector<plugin*>();
+  std::map<int,plugin*,std::less<int> > plugin_manager::_plugins = std::map<int,plugin*,std::less<int> >();
   std::vector<interceptor_plugin*> plugin_manager::_ref_interceptor_plugins
   = std::vector<interceptor_plugin*>();
   std::vector<action_plugin*> plugin_manager::_ref_action_plugins
@@ -136,7 +136,8 @@ namespace sp
         if (pl)
           {
             plugin_manager::_factory[pl->get_name()] = pl_fct;
-            plugin_manager::register_plugin(pl);
+            int pri = seeks_proxy::_config->get_plugin_priority(pl->get_name_cstr());
+	    plugin_manager::register_plugin(pl,pri);
           }
       }
 
@@ -157,13 +158,13 @@ namespace sp
 
   int plugin_manager::close_all_plugins()
   {
-    // destroy all plugins that have been created.
-    std::vector<plugin*>::iterator vit = plugin_manager::_plugins.begin();
-    while (vit!=plugin_manager::_plugins.end())
+    // destroy all plugins that have been created, in reverse order.
+    std::map<int,plugin*,std::less<int> >::reverse_iterator vit = plugin_manager::_plugins.rbegin();
+    while (vit!=plugin_manager::_plugins.rend())
       {
-        if (seeks_proxy::_config->is_plugin_activated((*vit)->get_name_cstr()))
-          (*vit)->stop();
-        delete *vit;
+        if (seeks_proxy::_config->is_plugin_activated((*vit).second->get_name_cstr()))
+          (*vit).second->stop();
+        delete (*vit).second;
         ++vit;
       }
     plugin_manager::_plugins.clear();
@@ -187,10 +188,10 @@ namespace sp
   int plugin_manager::start_plugins()
   {
     // start registered plugins.
-    std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
+    std::map<int,plugin*,std::less<int> >::const_iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
       {
-        plugin *pl = (*vit);
+        plugin *pl = (*vit).second;
         if (seeks_proxy::_config->is_plugin_activated(pl->get_name_cstr()))
           {
             // register plugin elements.
@@ -202,7 +203,8 @@ namespace sp
               plugin_manager::_ref_filter_plugins.push_back(pl->_filter_plugin);
 
             // local instrucitons.
-            (*vit)->start();
+	    errlog::log_error(LOG_LEVEL_INFO,"Starting plugin %s",(*vit).second->get_name_cstr());
+            (*vit).second->start();
           }
         ++vit;
       }
@@ -212,9 +214,9 @@ namespace sp
 
   //TODO: deinstanciate plugin = deregister + stop().
 
-  void plugin_manager::register_plugin(plugin *p)
+  void plugin_manager::register_plugin(plugin *p, const int &pri)
   {
-    plugin_manager::_plugins.push_back(p);
+    plugin_manager::_plugins.insert(std::pair<int,plugin*>(pri,p));
 
     errlog::log_error(LOG_LEVEL_INFO,"Registering plugin %s, and %d CGI dispatchers",
                       p->get_name_cstr(), p->_cgi_dispatchers.size());
@@ -318,11 +320,11 @@ namespace sp
 
   plugin* plugin_manager::get_plugin(const std::string &name)
   {
-    std::vector<plugin*>::const_iterator vit = plugin_manager::_plugins.begin();
+    std::map<int,plugin*,std::less<int> >::const_iterator vit = plugin_manager::_plugins.begin();
     while (vit!=plugin_manager::_plugins.end())
       {
-        if ((*vit)->get_name() == name)
-          return (*vit);
+        if ((*vit).second->get_name() == name)
+          return (*vit).second;
         ++vit;
       }
     errlog::log_error(LOG_LEVEL_ERROR,"Can't find any plugin with name %s",name.c_str());
