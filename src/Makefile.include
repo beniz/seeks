@@ -26,12 +26,16 @@ endif
 
 if HAVE_IMG_WEBSEARCH_PLUGIN
 AM_CPPFLAGS += \
-	-I$(top_srcdir)/src/plugins/img_websearch \
-	`pkg-config opencv --cflags`
+	-I$(top_srcdir)/src/plugins/img_websearch
+if HAVE_OPENCV2
+AM_CPPFLAGS += `pkg-config opencv --cflags`
+endif
 
 AM_LDFLAGS += \
-       -L$(top_builddir)/src/plugins/img_websearch \
-       `pkg-config opencv --libs`
+       -L$(top_builddir)/src/plugins/img_websearch
+if HAVE_OPENCV2
+AM_LDFLAGS += `pkg-config opencv --libs`
+endif
 
 LDADD += \
        -lseeksimgwebsearchplugin

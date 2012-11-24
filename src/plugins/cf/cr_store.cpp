@@ -211,7 +211,6 @@ namespace seeks_plugins
       {
         cr_cache *crc = (*hit).second;
         cached_record *cr = crc->find(key);
-        mutex_unlock(&_store_mutex);
         if (!cr)
           {
             has_key = false;

@@ -82,7 +82,7 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(UDBS_ERR_CONNECT,msg);
       }
-    else if (status[0] && !cmg._outputs[0])
+    else if (status[0] == 0 && !cmg._outputs[0])
       {
         // no result.
         delete cmg._outputs[0];

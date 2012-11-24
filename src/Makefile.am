@@ -7,7 +7,12 @@ seeks_SOURCES=seeks.cpp
 AM_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
 	    -I${srcdir} -I${srcdir}/utils -I${srcdir}/lsh -I${srcdir}/proxy @PCRE_CFLAGS@ @ICU_CFLAGS@ -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' \
 	    -I${srcdir}/plugins/websearch -I${srcdir}/plugins/websearch_api_compat -I${srcdir}/plugins/query_capture -I${srcdir}/plugins/uri_capture -I${srcdir}/plugins/cf -I${srcdir}/plugins/udb_service -I${srcdir}/plugins/readable -I${srcdir}/dht \
-	    `pkg-config opencv --cflags` `pkg-config jsoncpp --cflags`
+	     `pkg-config jsoncpp --cflags`
+
+if HAVE_OPENCV2
+AM_CXXFLAGS+= `pkg-config opencv --cflags`
+endif
+
 if HAVE_PROTOBUF
 AM_CXXFLAGS += -Iproxy/ `pkg-config --cflags protobuf`
 
@@ -20,8 +25,13 @@ AM_CXXFLAGS += `pkg-config --cflags tokyotyrant`
 endif
 
 endif
-AM_LDFLAGS=`pkg-config opencv --libs` -Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ @ICU_LDADD@ -Lplugins/websearch -Lplugins/websearch_api_compat\
+AM_LDFLAGS=-Lutils/ -Llsh/ -Lproxy/ @PCRE_LDADD@ @CURL_LDADD@ @XML2_LDADD@ @ICU_LDADD@ -Lplugins/websearch -Lplugins/websearch_api_compat\
 	    -Lplugins/query_capture -Lplugins/uri_capture -Lplugins/udb_service -Lplugins/readable -Ldht/ `pkg-config --libs jsoncpp`
+
+if HAVE_OPENCV2
+AM_LDFLAGS+= `pkg-config opencv --libs`
+endif
+
 if HAVE_PROTOBUF
 AM_LDFLAGS += -Lplugins/cf `pkg-config --libs protobuf` 
 

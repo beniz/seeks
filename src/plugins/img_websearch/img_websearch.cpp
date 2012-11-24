@@ -44,7 +44,7 @@
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <assert.h>
-#include <ctype.h>
+#include <cctype>
 
 #include <algorithm>
 
@@ -683,8 +683,8 @@ namespace seeks_plugins
         std::string ui_str = ui ? std::string(ui) : (websearch::_wconfig->_dyn_ui ? "dyn" : "stat");
         const char *output = miscutil::lookup(parameters,"output");
         std::string output_str = output ? std::string(output) : "html";
-        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),tolower);
-        std::transform(output_str.begin(),output_str.end(),output_str.begin(),tolower);
+        std::transform(ui_str.begin(),ui_str.end(),ui_str.begin(),::tolower);
+        std::transform(output_str.begin(),output_str.end(),output_str.begin(),::tolower);
 
         if (ui_str == "stat" && output_str == "html")
           {

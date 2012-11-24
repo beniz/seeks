@@ -26,7 +26,8 @@ endif
 ACLOCAL_AMFLAGS=-I m4
 httpservpluginlib_LTLIBRARIES=libseekshttpservplugin.la
 libseekshttpservplugin_la_SOURCES=httpserv_configuration.cpp httpserv.cpp httpserv.h httpserv_configuration.h
-libseekshttpservplugin_la_CXXFLAGS=-Wall -g -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"'
+libseekshttpservplugin_la_CXXFLAGS=-Wall -g -DSEEKS_CONFIGDIR='"$(sysconfdir)/seeks/"' @PCRE_CFLAGS@
+libseekshttpservplugin_la_LIBADD=@PCRE_LDADD@
 
 httpservconfigdir=$(sysconfdir)/seeks
 dist_httpservconfig_DATA=httpserv-config
