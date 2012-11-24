@@ -429,7 +429,7 @@ namespace seeks_plugins
     else
       {
         csp->_content_type = CT_JSON;
-        err = json_renderer::render_json_results(qc->_cached_snippets,
+        json_renderer::render_json_results(qc->_cached_snippets,
               csp,rsp,parameters,qc,0.0,true);
       }
 
