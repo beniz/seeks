@@ -23,7 +23,6 @@
 
 #include <bitset>
 #include <vector>
-#include "rmd160.h" /* original RIPEMD-160 code. */
 #include "stl_hash.h"
 
 #define KEYNBITS 160
@@ -116,11 +115,9 @@ namespace dht
 
       /**
        * \brief Hashing with RIPEMD-160 (this is free, no patent !)
-       *   from a string. This comes from the original RIPEMD-160 code:
-       *   RIPEMD-160 software written by Antoon Bosselaers,
-       *   available at http://www.esat.kuleuven.be/~cosicart/ps/AB-9601/.
+       *   from a string. Uses the mhash library.
        */
-      static byte* RMD(byte* message, byte *&hashcode);
+      static char* RMD(char* message, char *&hashcode);
 
       /**
        * TODO: RIPEMD-160 from u_int32.
@@ -141,10 +138,10 @@ namespace dht
 
       /**
        * \brief converts a 160bit hash into a 160bit DHTKey.
-       * @param hashcode as an array of byte.
+       * @param hashcode as an array of char.
        * @return DHTKey converted from the hashcode.
        */
-      static DHTKey convert(byte *hashcode);
+      static DHTKey convert(char *hashcode);
 
       /**
        * \brief Random key generation functions: this is for the case

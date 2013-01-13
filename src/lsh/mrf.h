@@ -22,7 +22,6 @@
 #define MRF_H
 
 #include "stl_hash.h"
-#include "rmd160.h"
 #include "DHTKey.h"
 
 #include <stdint.h>

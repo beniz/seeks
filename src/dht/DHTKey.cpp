@@ -28,6 +28,7 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
+#include <mhash.h>
 
 using sp::serialize;
 
@@ -326,52 +327,26 @@ namespace dht
   /*-- RIPEMD-160 stuff --*/
 #define RMDsize 160
 
-  byte* DHTKey::RMD(byte* message, byte *&hashcode)
+  char* DHTKey::RMD(char* message, char *&hashcode)
   /**
    * returns RMD(message)
    * message should be a string terminated by '\0'
    **/
   {
-    dword         MDbuf[RMDsize/32];   /* contains (A, B, C, D(, E))   */
-    dword         X[16];               /* current 16-word chunk        */
-    unsigned int  i;                   /* counter                      */
-    dword         length;              /* length in bytes of message   */
-    dword         nbytes;              /* # of bytes not yet processed */
+    MHASH td = mhash_init(MHASH_RIPEMD160);
+    size_t length = strlen(message);
 
-    /* initialize */
-    hashcode = new byte[RMDsize/8];
-    MDinit(MDbuf);
-    length = (dword)strlen((char *)message);
+    mhash(td, (void *)message, length);
+    hashcode = new char[RMDsize/8];
+    mhash_deinit(td,hashcode);
 
-    /* process message in 16-word chunks */
-    for (nbytes=length; nbytes > 63; nbytes-=64)
-      {
-        for (i=0; i<16; i++)
-          {
-            X[i] = BYTES_TO_DWORD(message);
-            message += 4;
-          }
-        compress_rmd(MDbuf, X);
-      }
-    /* length mod 64 bytes left */
-
-    /* finish: */
-    MDfinish(MDbuf, message, length, 0);
-
-    for (i=0; i<RMDsize/8; i+=4)
-      {
-        hashcode[i]   =  MDbuf[i>>2];         /* implicit cast to byte  */
-        hashcode[i+1] = (MDbuf[i>>2] >>  8);  /*  extracts the 8 least  */
-        hashcode[i+2] = (MDbuf[i>>2] >> 16);  /*  significant bits.     */
-        hashcode[i+3] = (MDbuf[i>>2] >> 24);
-      }
-    return (byte *)hashcode;
+    return hashcode;
   }
 
   void DHTKey::RMDstring(char *message, char *print)
   {
-    byte *hashcode = NULL;
-    hashcode = RMD((byte *)message,hashcode);
+    char *hashcode = NULL;
+    hashcode = RMD((char *)message,hashcode);
     printf("\n* message: %s\n  hashcode: ", print);
     for (unsigned int i=0; i<RMDsize/8; i++)
       printf("%02x", hashcode[i]);
@@ -380,8 +355,8 @@ namespace dht
 
   void DHTKey::RMDbits(char *message, char *print)
   {
-    byte *hashcode = NULL;
-    hashcode = RMD((byte*) message,hashcode);
+    char *hashcode = NULL;
+    hashcode = RMD(message,hashcode);
     std::cout << "\n message: " << print << "\n hashcode: \n";
     std::bitset<8> cb;
     for (unsigned int i=0; i<RMDsize/8; i++)
@@ -410,15 +385,15 @@ namespace dht
     /**
      * generate the RIPEMD-160 hash (40-digit hexadecimal number).
      */
-    byte *hashcode = NULL;
-    hashcode = RMD((byte*)message,hashcode);
+    char *hashcode = NULL;
+    hashcode = RMD((char*)message,hashcode);
 
     DHTKey res = DHTKey::convert(hashcode);
     delete[] hashcode;
     return res;
   }
 
-  DHTKey DHTKey::convert(byte *hashcode)
+  DHTKey DHTKey::convert(char *hashcode)
   {
     /**
      * convert to a DHTKey.

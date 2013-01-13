@@ -577,7 +577,7 @@ debug 1 # Log the destination for each request Seeks let through.
 #debug 4
 #debug 8
 #debug 16
-#debug 32
+debug 32
 #debug 64
 #debug 128
 debug 1024 # Log the destination for requests Seeks didn't let through, and the reason why.

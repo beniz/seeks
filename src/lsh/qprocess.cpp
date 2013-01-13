@@ -54,7 +54,7 @@ namespace lsh
     size_t nfeatures = char_features.size();
     for (size_t i=0; i<nfeatures; i++)
       {
-        byte *hashcode = (byte*)char_features.at(i)._feat;
+        char *hashcode = (char*)char_features.at(i)._feat;
         features.insert(std::pair<uint32_t,DHTKey>(char_features.at(i)._radius,
                         DHTKey::convert(hashcode)));
         delete[] hashcode;

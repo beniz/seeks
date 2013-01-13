@@ -50,9 +50,9 @@ namespace lsh
     //std::cout << "data: " << data << std::endl;
     //debug
 
-    byte *hashcode = NULL;
-    DHTKey::RMD((byte*)data,hashcode);
-    f = (char*)hashcode;
+    char *hashcode = NULL;
+    DHTKey::RMD((char*)data,hashcode);
+    f = hashcode;
 
     //debug
     /* for (unsigned int j=0; j<20; j++)

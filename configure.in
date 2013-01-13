@@ -355,6 +355,11 @@ if test $enableval2 = yes; then
 fi
 
 #====================================================
+# check for mhash
+#====================================================
+AC_CHECK_LIB(mhash, mhash_init,,[AC_MSG_ERROR([mhash not found])])
+
+#====================================================
 # check for TR1 unordered_map and unordered_set headers
 #====================================================
 AC_CHECK_HEADER([tr1/unordered_map],
