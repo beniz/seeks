@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Seeks : " />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Seeks</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/beniz/seeks">View on GitHub</a>
+
+          <h1 id="project_title">Seeks</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/beniz/seeks/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/beniz/seeks/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>Seeks is a websearch proxy and collaborative distributed tool for websearch.
+Visit <a href="http://www.seeks-project.info">http://www.seeks-project.info</a> for more information on the project.</p>
+
+<hr><ol>
+<li>Content</li>
+</ol><p>Seeks code provides:</p>
+
+<ul>
+<li>a web proxy,</li>
+<li>a websearch meta search engine that aggregates results and ranks them
+based on consensus.</li>
+<li>a plugin system and a set of default plugins, including websearch and
+ad blocking plugins.</li>
+<li>a P2P collaborative filter that enables decentralized collaborative
+searching and sharing.</li>
+</ul><hr><ol>
+<li>Installation</li>
+</ol><p>Dependencies:</p>
+
+<ul>
+<li>libcurl</li>
+<li>libxml2</li>
+<li>libpcre</li>
+<li>tokyo cabinet</li>
+<li>protocol buffers</li>
+<li>libevent (optional, 2.x preferred)</li>
+<li>opencv (optional)</li>
+<li>docbook2x-man (optionnal)</li>
+</ul><p>From the root directory, run
+./autogen.sh
+./configure
+make</p>
+
+<p>Compilation options can be listed with ./configure --help</p>
+
+<hr><ol>
+<li>Running Seeks</li>
+</ol><p>This is an early version of Seeks, it is recommended your run it from the
+repository you compiled it from.</p>
+
+<p>cd src
+./seeks</p>
+
+<p>see ./seeks --help for options.</p>
+
+<p>For example, by default seeks does not run as a daemon. If you would like
+to have it so, run ./seeks --daemon</p>
+
+<p>Other important options can be modified in the configuration file, src/config</p>
+
+<p>By default, seeks runs as proxy on the local machine (127.0.0.1) on port 8250.
+If you would like to change it, do it in the configuration file, src/config</p>
+
+<p>Once started, to use seeks, tell your web browser to connect to the Internet
+through seeks' web proxy.</p>
+
+<p>If you'd like to use your seeks node through the API, you'll find
+details here:
+<a href="http://seeks-project.info/wiki/index.php/API-0.4.0">http://seeks-project.info/wiki/index.php/API-0.4.0</a></p>
+
+<hr><ol>
+<li>Troubleshooting</li>
+</ol><p>Seeks is young, so it is likely there are bugs. However, before all, be
+sure to read the faq and user manuals, respectively at:</p>
+
+<p><a href="http://www.seeks-project.info/wiki/index.php/FAQ">http://www.seeks-project.info/wiki/index.php/FAQ</a>
+<a href="http://www.seeks-project.info/wiki/index.php/User_Manual">http://www.seeks-project.info/wiki/index.php/User_Manual</a></p>
+
+<p>To report bugs, please use the interface here :
+<a href="http://redmine.seeks-project.info/projects/seeks/issues/new">http://redmine.seeks-project.info/projects/seeks/issues/new</a></p>
+
+<p>For discussion and getting more immediate help, join us on irc,
+channel #seeks on irc.freenode.net</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Seeks maintained by <a href="https://github.com/beniz">beniz</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
