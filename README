@@ -55,21 +55,17 @@ If you would like to change it, do it in the configuration file, src/config
 Once started, to use seeks, tell your web browser to connect to the Internet
 through seeks' web proxy.
 
-If you'd like to use your seeks node through the API, you'll find
-details here:
-http://seeks-project.info/wiki/index.php/API-0.4.0
-
 ----------------------------------------------------------------------------
 4. Troubleshooting
 
 Seeks is young, so it is likely there are bugs. However, before all, be
 sure to read the faq and user manuals, respectively at:
 
-http://www.seeks-project.info/wiki/index.php/FAQ
+https://github.com/beniz/seeks/wiki/FAQ
 http://www.seeks-project.info/wiki/index.php/User_Manual
 
 To report bugs, please use the interface here :
-http://redmine.seeks-project.info/projects/seeks/issues/new
+https://github.com/beniz/seeks/issues
 
 For discussion and getting more immediate help, join us on irc,
 channel #seeks on irc.freenode.net
