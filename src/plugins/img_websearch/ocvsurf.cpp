@@ -29,7 +29,7 @@
 #include "miscutil.h"
 #include "errlog.h"
 
-#include <cxflann.h>
+#include <cv.h>
 
 #include <iostream>
 #include <fstream>
