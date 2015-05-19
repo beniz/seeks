@@ -79,8 +79,7 @@ if ($bqc[0] == 'find_bqc') {
 curl_setopt($curl, CURLOPT_PROXY, $proxy);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1) ;
 
-// @TODO Seeks-Remote-Location is NO default header, always prefix with X-!!!
-curl_setopt($curl, CURLOPT_HTTPHEADER, array('Seeks-Remote-Location: ' . $base_url, 'Accept-Language: ' . $lang_head, 'Referer: ' . $referer));
+curl_setopt($curl, CURLOPT_HTTPHEADER, array('X-Seeks-Remote-Location: ' . $base_url, 'Accept-Language: ' . $lang_head, 'Referer: ' . $referer));
 
 $result = curl_exec($curl);
 $result_info = curl_getinfo($curl);

@@ -677,7 +677,7 @@ namespace seeks_plugins
     = cgi::default_exports(csp,"");
 
     // we need to inject a remote base location for remote web access.
-    // the injected header, if it exists is Seeks-Remote-Location
+    // the injected header, if it exists is X-Seeks-Remote-Location
     std::string base_url = query_context::detect_base_url_http(csp);
     miscutil::add_map_entry(exports,"base-url",1,base_url.c_str(),1);
 
