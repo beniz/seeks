@@ -18,22 +18,24 @@ along with this program. If not, see http://www.fsf.org/licensing/licenses/agpl-
 // Default is HTTP
 $scheme = 'http://';
 
+// Is HTTPS set?
 if (isset($_SERVER['HTTPS'])) {
+	// Then assume https:// shall be used
 	$scheme = 'https://';
 }
 
 $seeks_uri = 'http://s.s';
 $proxy = 'localhost:8250';
-$base_script = $_SERVER['SCRIPT_NAME'];
-$base_url = $scheme.$_SERVER['HTTP_HOST'].$base_script;
+
+$base_url = $scheme . $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
 
 if ($_SERVER['REQUEST_URI'] == '/search.php') {
-	header('Location: '.$base_url.'/websearch-hp');
+	header('Location: ' . $base_url . '/websearch-hp');
 
 	// Don't miss exit() as the server redirect doesn't abort the script
 	exit();
 } else {
-	$url = $seeks_uri . str_replace($base_script, '', $_SERVER['REQUEST_URI']);
+	$url = $seeks_uri . str_replace($_SERVER['SCRIPT_NAME'], '', $_SERVER['REQUEST_URI']);
 }
 
 // Avoid E_NOTICE by initializing variables and checking on array elements
@@ -76,7 +78,10 @@ if ($bqc[0] == 'find_bqc') {
 
 curl_setopt($curl, CURLOPT_PROXY, $proxy);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1) ;
-curl_setopt($curl, CURLOPT_HTTPHEADER, array('Seeks-Remote-Location: '.$base_url, 'Accept-Language: '.$lang_head, 'Referer: '.$referer));
+
+// @TODO Seeks-Remote-Location is NO default header, always prefix with X-!!!
+curl_setopt($curl, CURLOPT_HTTPHEADER, array('Seeks-Remote-Location: ' . $base_url, 'Accept-Language: ' . $lang_head, 'Referer: ' . $referer));
+
 $result = curl_exec($curl);
 $result_info = curl_getinfo($curl);
 
