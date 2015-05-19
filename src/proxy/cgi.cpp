@@ -2287,7 +2287,7 @@ namespace sp
     if (hostname)
       freez(hostname);
     hostname = NULL;
-    if (!err) err = miscutil::add_map_entry(exports, "homepage",      1, encode::html_encode(HOME_PAGE_URL), 0);
+    if (!err) err = miscutil::add_map_entry(exports, "homepage",      1, encode::html_encode(SEARCH_PHP_URL), 0);
     if (!err) err = miscutil::add_map_entry(exports, "default-cgi",   1, encode::html_encode(CGI_PREFIX), 0);
     if (!err) err = miscutil::add_map_entry(exports, "menu",          1,
                                               cgi::make_menu(caller, csp->_config->_feature_flags), 0);

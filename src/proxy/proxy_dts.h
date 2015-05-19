@@ -1114,6 +1114,9 @@ namespace sp
   /** URL for the Seeks home page. */
 #define HOME_PAGE_URL     "http://www.seeks-project.info/"
 
+  /** URL for search.php calls */
+#define SEARCH_PHP_URL    "https://seeks.mxchange.org/"
+
   /** URL for the Seeks user manual. */
 #define USER_MANUAL_URL   HOME_PAGE_URL VERSION "/user-manual/"
 
