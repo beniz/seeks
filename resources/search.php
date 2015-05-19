@@ -64,13 +64,13 @@ preg_match('/find_bqc/', $url, $bqc);
 $curl = curl_init();
 curl_setopt($curl, CURLOPT_URL, $url);
 
-if ($qc_redir[0] == 'qc_redir' || $tbd[0] == 'tbd') {
+if ((isset($qc_redir[0]) && $qc_redir[0] == 'qc_redir') || (isset($tbd[0]) && $tbd[0] == 'tbd')) {
 	curl_setopt($curl, CURLOPT_HEADER, true);
 }
 
 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $_SERVER['REQUEST_METHOD']);
 
-if ($bqc[0] == 'find_bqc') {
+if (isset($bqc[0]) && $bqc[0] == 'find_bqc') {
 	$postdata = file_get_contents('php://input');
 	curl_setopt($curl, CURLOPT_POST, 1);
 	curl_setopt($curl, CURLOPT_POSTFIELDS, $postdata);
@@ -92,14 +92,14 @@ curl_close($curl);
 
 header('Content-Type: '.$result_info['content_type']);
 
-if ($qc_redir[0] == 'qc_redir' || $tbd[0] == 'tbd') {
+if ((isset($qc_redir[0]) && $qc_redir[0] == 'qc_redir') || (isset($tbd[0]) && $tbd[0] == 'tbd')) {
 	preg_match('/\d\d\d/', $result, $status_code);
 
 	switch( $status_code[0] ) {
 	case 302:
 		$location = array();
 		preg_match('/Location: (.*)/', $result, $location);
-		$location[0] = substr($location[0],10);
+		$location[0] = substr($location[0], 10);
 		header('Location: '. $location[0]);
 
 		// Don't miss exit() as the server redirect doesn't abort the script
