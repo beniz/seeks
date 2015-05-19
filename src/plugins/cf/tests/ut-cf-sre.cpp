@@ -563,7 +563,7 @@ TEST_F(SRETest,recommendation_post_url_check_retrieve)
   http_response rsp;
   hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters
   = new hash_map<const char*,const char*,hash<const char*>,eqstr>();
-  miscutil::add_map_entry(parameters,"url",1,"http://seeks.mxchange.org/",1);
+  miscutil::add_map_entry(parameters,"url",1,"http://seeks-project.info/",1);
   miscutil::add_map_entry(parameters,"url-check",1,"0",1);
   miscutil::add_map_entry(parameters,"radius",1,"5",1);
   miscutil::add_map_entry(parameters,"output",1,"json",1);
