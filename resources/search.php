@@ -1,4 +1,4 @@
-<?
+<?php
 
 /* Copyright Camille Harang, Pablo Joubert, Emmanuel Benazera
 
