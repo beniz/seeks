@@ -21,6 +21,7 @@
 #include "urlmatch.h"
 #include "encode.h"
 #include "mrf.h"
+#include "errlog.h"
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
 #include "img_websearch.h"
@@ -79,8 +80,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0)
+        if (!query_str || strlen(query_str) == 0) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: Parameter 'q' is not set or empty.");
           return SP_ERR_CGI_PARAMS;
+        }
+
         // cgi decodes the parameters, need to re-encode before passing it to websearch plugin.
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
@@ -122,9 +126,17 @@ namespace seeks_plugins
             csp->_http._path = strdup(path.c_str());
             return websearch::cgi_websearch_similarity(csp,rsp,parameters);
           }
-        else return SP_ERR_CGI_PARAMS;
+        else
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No 'action' given.");
+            return SP_ERR_CGI_PARAMS;
+          }
       }
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No parameters given.");
+        return SP_ERR_CGI_PARAMS;
+      }
   }
 
   sp_err websearch_api_compat::cgi_search_cache_compat(client_state *csp,
@@ -135,8 +147,10 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0)
+        if (!query_str || strlen(query_str) == 0) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'q' is not set or empty.");
           return SP_ERR_CGI_PARAMS;
+        }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -144,8 +158,10 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str)
+        if (!url_str) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'url' is not set or empty.");
           return SP_ERR_CGI_PARAMS;
+        }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -159,7 +175,11 @@ namespace seeks_plugins
         csp->_http._path = strdup(path.c_str());
         return websearch::cgi_websearch_search_cache(csp,rsp,parameters);
       }
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No parameters given.");
+        return SP_ERR_CGI_PARAMS;
+      }
   }
 
   sp_err websearch_api_compat::cgi_qc_redir_compat(client_state *csp,
@@ -170,8 +190,10 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0)
+        if (!query_str || strlen(query_str) == 0) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'q' is not set or empty.");
           return SP_ERR_CGI_PARAMS;
+        }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -183,8 +205,10 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str)
+        if (!url_str) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'url' is not set or empty.");
           return SP_ERR_CGI_PARAMS;
+        }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -200,7 +224,11 @@ namespace seeks_plugins
         csp->_http._gpc = strdup("post");
         return websearch::cgi_websearch_search(csp,rsp,parameters);
       }
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No parameters given.");
+        return SP_ERR_CGI_PARAMS;
+      }
   }
 
   sp_err websearch_api_compat::cgi_tbd_compat(client_state *csp,
@@ -211,8 +239,10 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0)
+        if (!query_str || strlen(query_str) == 0) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
           return SP_ERR_CGI_PARAMS;
+        }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -220,8 +250,10 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str)
+        if (!url_str) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'url' not given.");
           return SP_ERR_CGI_PARAMS;
+        }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -236,8 +268,10 @@ namespace seeks_plugins
         free(csp->_http._gpc);
         csp->_http._gpc = strdup("delete");
         sp_err err = websearch::cgi_websearch_search(csp,rsp,parameters);
-        if (err != SP_ERR_OK)
+        if (err != SP_ERR_OK) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Returning err=%s", err);
           return err;
+        }
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action");
@@ -252,7 +286,11 @@ namespace seeks_plugins
         csp->_http._path = strdup(path.c_str());
         return websearch::cgi_websearch_search(csp,rsp,parameters);
       }
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No parameters given.");
+        return SP_ERR_CGI_PARAMS;
+      }
   }
 
 #ifdef FEATURE_IMG_WEBSEARCH_PLUGIN
@@ -264,8 +302,10 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0)
+        if (!query_str || strlen(query_str) == 0) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
           return SP_ERR_CGI_PARAMS;
+        }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -292,9 +332,17 @@ namespace seeks_plugins
             return img_websearch::cgi_img_websearch_similarity(csp,rsp,parameters);
           }
 #endif
-        else return SP_ERR_CGI_PARAMS;
+        else
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'action' not given.");
+            return SP_ERR_CGI_PARAMS;
+          }
       }
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No paramters given.");
+        return SP_ERR_CGI_PARAMS;
+      }
   }
 
   sp_err websearch_api_compat::cgi_img_qc_redir_compat(client_state *csp,
@@ -305,8 +353,10 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0)
+        if (!query_str || strlen(query_str) == 0) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
           return SP_ERR_CGI_PARAMS;
+        }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -318,8 +368,10 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str)
+        if (!url_str) {
+          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'url' not given.");
           return SP_ERR_CGI_PARAMS;
+        }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -335,7 +387,11 @@ namespace seeks_plugins
         csp->_http._gpc = strdup("post");
         return img_websearch::cgi_img_websearch_search(csp,rsp,parameters);
       }
-    else return SP_ERR_CGI_PARAMS;
+    else
+      {
+        errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: No parameter given.");
+        return SP_ERR_CGI_PARAMS;
+      }
   }
 #endif
 
