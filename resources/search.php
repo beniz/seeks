@@ -84,13 +84,15 @@ curl_setopt($curl, CURLOPT_HTTPHEADER, array('X-Seeks-Remote-Location: ' . $base
 $result = curl_exec($curl);
 $result_info = curl_getinfo($curl);
 
+syslog(LOG_INFO, 'result_info=' . json_encode($result_info));
+
 if(curl_errno($curl)) {
 	echo 'CURL ERROR: '.curl_error($curl);
 }
 
 curl_close($curl);
 
-header('Content-Type: '.$result_info['content_type']);
+header('Content-Type: ' . $result_info['content_type']);
 
 if ((isset($qc_redir[0]) && $qc_redir[0] == 'qc_redir') || (isset($tbd[0]) && $tbd[0] == 'tbd')) {
 	preg_match('/\d\d\d/', $result, $status_code);
@@ -104,6 +106,10 @@ if ((isset($qc_redir[0]) && $qc_redir[0] == 'qc_redir') || (isset($tbd[0]) && $t
 
 		// Don't miss exit() as the server redirect doesn't abort the script
 		exit();
+
+	default:
+		syslog(LOG_WARNING, 'Status code ' . $status_code[0] . ' found.');
+		break;
 	}
 }
 
