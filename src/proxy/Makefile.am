@@ -136,6 +136,7 @@ EXTRA_DIST = \
 	    templates/cgi-error-disabled \
 	    templates/cgi-error-file \
 	    templates/cgi-error-file-read-only \
+	    templates/cgi-error-forbidden \
 	    templates/cgi-error-modified \
 	    templates/cgi-error-parse \
 	    templates/cgi-error-plugin \
