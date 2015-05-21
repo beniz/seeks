@@ -5,7 +5,7 @@ seeksclidatadir = $(datadir)/seeks/cli
 
 AM_CXXFLAGS=-Wall -g -pipe
 AM_CPPFLAGS=-I${srcdir} -I${srcdir}/../proxy -I${srcdir}/../utils -I${srcdir}/../lsh \
-            @CURL_CFLAGS@
+            -I${srcdir}/../plugins/udb_service @CURL_CFLAGS@
 
 seeksclilib_LIBRARIES=libseekscli.a
 libseekscli_a_SOURCES=cli.cpp ../proxy/encode.cpp ../utils/miscutil.cpp cli.h
