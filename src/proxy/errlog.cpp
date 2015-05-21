@@ -64,6 +64,7 @@
 #endif /* def _MSC_VER */
 
 #include "errlog.h"
+#include "udbs_err.h"
 //#include "seeks_proxy.h"
 
 namespace sp
@@ -876,6 +877,12 @@ namespace sp
         return "File has been modified outside of the CGI actions editor.";
       case SP_ERR_COMPRESS:
         return "(De)compression failure";
+      case UDBS_ERR_SERIALIZE:
+        return "msg serialization error.";
+      case UDBS_ERR_DESERIALIZE:
+        return "msg deserialization error.";
+      case UDBS_ERR_CONNECT:
+        return "peer connection error.";
       default:
         assert(0);
         return "Unknown error";

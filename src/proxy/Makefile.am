@@ -16,7 +16,8 @@ endif
 lib_LTLIBRARIES += libseeksproxy.la libseeksplugins.la
 
 libseeksproxy_la_CXXFLAGS=-Wall -Wno-deprecated -g -pipe \
-	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh
+	               -I${srcdir} -I${srcdir}/../utils -I${srcdir}/../lsh \
+	               -I${srcdir}/../plugins/udb_service
 libseeksproxy_la_SOURCES=seeks_proxy.cpp proxy_dts.cpp errlog.cpp \
                         cgi.cpp encode.cpp spsockets.cpp filters.cpp gateway.cpp\
                         parsers.cpp pcrs.cpp cgisimple.cpp loaders.cpp \
