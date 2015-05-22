@@ -590,6 +590,8 @@ namespace seeks_plugins
 
   std::string query_context::detect_base_url_http(client_state *csp)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "query_context::detect_base_url_http(): CALLED!");
+
     std::list<const char*> headers = csp->_headers;
 
     // first we try to get base_url from a custom header
@@ -597,13 +599,14 @@ namespace seeks_plugins
     std::list<const char*>::const_iterator sit = headers.begin();
     while (sit!=headers.end())
       {
-        if (miscutil::strncmpic((*sit),"X-Seeks-Remote-Location:",22) == 0)
+        if (miscutil::strncmpic((*sit),"X-Seeks-Remote-Location:",24) == 0)
           {
             base_url = (*sit);
             size_t pos = base_url.find_first_of(" ");
             try
               {
                 base_url = base_url.substr(pos+1);
+                errlog::log_error(LOG_LEVEL_DEBUG, "query_context::detect_base_url_http(): base_url=%s found in headers", base_url.c_str());
               }
             catch (std::exception &e)
               {
@@ -638,7 +641,10 @@ namespace seeks_plugins
             ++sit;
           }
         base_url = csp->_http._ssl ? "https://" : "http://" + base_url;
+        errlog::log_error(LOG_LEVEL_DEBUG, "query_context::detect_base_url_http(): base_url=%s with no custom header", base_url.c_str());
       }
+
+    errlog::log_error(LOG_LEVEL_DEBUG, "query_context::detect_base_url_http(): base_url=%s - EXIT!", base_url.c_str());
     return base_url;
   }
 

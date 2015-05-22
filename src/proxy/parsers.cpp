@@ -228,6 +228,7 @@ namespace sp
    *********************************************************************/
   sp_err parsers::add_to_iob(client_state *csp, char *buf, long n)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "parsers::add_to_iob(): buf=%s, n=%d - CALLED!", buf, n);
     iob *iob = &csp->_iob;
     size_t used, offset, need, want;
     char *p;
@@ -610,6 +611,7 @@ namespace sp
     csp->_iob._buf = NULL;
 
     /* Now, update the iob to use the new buffer. */
+    errlog::log_error(LOG_LEVEL_DEBUG, "parsers::decompress_iob(): Reached!");
     csp->_iob._buf  = buf;
     csp->_iob._cur  = csp->_iob._buf + skip_size;
     csp->_iob._eod  = (char *)zstr.next_out;
@@ -3543,7 +3545,7 @@ namespace sp
    *********************************************************************/
   sp_err parsers::server_proxy_connection_adder(client_state *csp)
   {
-    static const char proxy_connection_header[] = "Proxy-Connection: keep-alive";
+    static const char proxy_connection_header[] = "Proxy-Connection: Keep-Alive";
     sp_err err = SP_ERR_OK;
 
     if ((csp->_flags & CSP_FLAG_CLIENT_CONNECTION_KEEP_ALIVE)

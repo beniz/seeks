@@ -21,7 +21,9 @@
 #include "udb_client.h"
 #include "udb_service_configuration.h"
 #include "seeks_proxy.h"
+#include "encode.h"
 #include "miscutil.h"
+#include "errlog.h"
 
 #include <string.h>
 #include <sys/stat.h>
@@ -97,11 +99,21 @@ namespace seeks_plugins
                                    http_response *rsp,
                                    const hash_map<const char*,const char*,hash<const char*>,eqstr> *parameters)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_service::cgi_find_bqc(): CALLED!");
     if (!seeks_proxy::_user_db)
       {
         return SP_ERR_FILE; // no user db.
       }
-    std::string content = std::string(csp->_iob._cur);//,csp->_iob._size); // XXX: beware...
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_service::cgi_find_bqc(): Calling udb_server::find_bqc_cb(): _buf=%s", csp->_iob._buf);
+    char *decoded = encode::url_decode(csp->_iob._cur);
+    if (!decoded)
+      {
+        // Decoding didn't work
+        errlog::log_error(LOG_LEVEL_ERROR, "udb_service::cgi_find_bqc(): Decoding didn't work.");
+        return SP_ERR_CGI_PARAMS;
+      }
+    std::string content = std::string(decoded);//,csp->_iob._size); // XXX: beware...
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_service::cgi_find_bqc(): Calling udb_server::find_bqc_cb(): content=%s,length()=%d,_size=%d,%E", content.c_str(), content.length(), csp->_iob._size, sizeof(csp->_iob));
     return udb_server::find_bqc_cb(content,rsp);
   }
 

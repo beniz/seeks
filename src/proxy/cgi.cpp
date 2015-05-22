@@ -234,6 +234,8 @@ namespace sp
    *********************************************************************/
   http_response* cgi::dispatch_cgi(client_state *csp)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch_cgi(): CALLED!");
+
     const char *host = csp->_http._host;
     const char *path = csp->_http._path;
 
@@ -276,6 +278,7 @@ namespace sp
     /*
      * This is a CGI call.
      */
+    errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch_cgi(): Calling cgi::dispatch_known_cgi() with path %s", path);
     return cgi::dispatch_known_cgi(csp, path);
   }
 
@@ -494,6 +497,7 @@ namespace sp
 
         if ((strcmp(path_copy, d->_name) == 0))
           {
+            errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch_known_cgi(): Calling generic cgi::dispatch() for %s ...", d->_name);
             return cgi::dispatch(d, path_copy, csp, param_list, rsp);
           }
 
@@ -506,6 +510,8 @@ namespace sp
     d = plugin_manager::find_plugin_cgi_dispatcher(path_copy);
     if (d)
       {
+        errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch_known_cgi(): csp->_iob._cur=%s,_buf=%s", csp->_iob._cur, csp->_iob._buf);
+        errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch_known_cgi(): Calling cgi::dispatch() for %s ...", d->_name);
         return cgi::dispatch(d, path_copy, csp, param_list, rsp);
       }
 
@@ -534,7 +540,9 @@ namespace sp
      */
     if (d->_harmless || cgi::referrer_is_safe(csp))
       {
+        errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch(): Calling handler for %s ...", d->_name);
         err = (d->_handler)(csp, rsp, param_list);
+        errlog::log_error(LOG_LEVEL_DEBUG, "cgi::dispatch(): Handler returned err=%d", err);
       }
     else
       {
@@ -1257,7 +1265,7 @@ namespace sp
       }
     if (output == "json")
       {
-        rsp->_status = strdup("500");
+        rsp->_status = strdup("500 Internal Server Error");
         rsp->_body = strdup("{\"error\":\"internal plugin error\"}");
         rsp->_content_length = strlen(rsp->_body);
         return SP_ERR_OK;
