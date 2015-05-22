@@ -80,10 +80,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: Parameter 'q' is not set or empty.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!query_str || strlen(query_str) == 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: Parameter 'q' is not set or empty.");
+            return SP_ERR_CGI_PARAMS;
+          }
 
         // cgi decodes the parameters, need to re-encode before passing it to websearch plugin.
         char *enc_query = encode::url_encode(query_str);
@@ -147,10 +148,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'q' is not set or empty.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!query_str || strlen(query_str) == 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'q' is not set or empty.");
+            return SP_ERR_CGI_PARAMS;
+          }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -158,10 +160,11 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'url' is not set or empty.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!url_str)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'url' is not set or empty.");
+            return SP_ERR_CGI_PARAMS;
+          }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -190,10 +193,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'q' is not set or empty.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!query_str || strlen(query_str) == 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'q' is not set or empty.");
+            return SP_ERR_CGI_PARAMS;
+          }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -205,10 +209,11 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'url' is not set or empty.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!url_str)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Error SP_ERR_CGI_PARAMS: 'url' is not set or empty.");
+            return SP_ERR_CGI_PARAMS;
+          }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -239,10 +244,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!query_str || strlen(query_str) == 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
+            return SP_ERR_CGI_PARAMS;
+          }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -250,10 +256,11 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'url' not given.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!url_str)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'url' not given.");
+            return SP_ERR_CGI_PARAMS;
+          }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
@@ -268,10 +275,11 @@ namespace seeks_plugins
         free(csp->_http._gpc);
         csp->_http._gpc = strdup("delete");
         sp_err err = websearch::cgi_websearch_search(csp,rsp,parameters);
-        if (err != SP_ERR_OK) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Returning err=%s", err);
-          return err;
-        }
+        if (err != SP_ERR_OK)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning err=%s", err);
+            return err;
+          }
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"q");
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"url");
         miscutil::unmap(const_cast<hash_map<const char*,const char*,hash<const char*>,eqstr>*>(parameters),"action");
@@ -302,10 +310,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!query_str || strlen(query_str) == 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
+            return SP_ERR_CGI_PARAMS;
+          }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -353,10 +362,11 @@ namespace seeks_plugins
       {
         // check for query.
         const char *query_str = miscutil::lookup(parameters,"q");
-        if (!query_str || strlen(query_str) == 0) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!query_str || strlen(query_str) == 0)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'q' not given.");
+            return SP_ERR_CGI_PARAMS;
+          }
         char *enc_query = encode::url_encode(query_str);
         std::string query = enc_query;
         free(enc_query);
@@ -368,10 +378,11 @@ namespace seeks_plugins
 
         // check for url.
         const char *url_str = miscutil::lookup(parameters,"url");
-        if (!url_str) {
-          errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'url' not given.");
-          return SP_ERR_CGI_PARAMS;
-        }
+        if (!url_str)
+          {
+            errlog::log_error(LOG_LEVEL_ERROR, "Returning SP_ERR_CGI_PARAMS: Parameter 'url' not given.");
+            return SP_ERR_CGI_PARAMS;
+          }
         std::string url = url_str;
         std::transform(url.begin(),url.end(),url.begin(),tolower);
         std::string surl = urlmatch::strip_url(url);
