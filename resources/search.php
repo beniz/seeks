@@ -97,7 +97,7 @@ if (isset($bqc[0]) && $bqc[0] == 'find_bqc') {
 curl_setopt($curl, CURLOPT_PROXY, $proxy);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
-curl_setopt($curl, CURLOPT_HTTPHEADER, array('X-Seeks-Remote-Location: ' . $base_url, 'Accept-Language: ' . $lang_head, 'Proxy-Connection: Close', 'Expect:', 'Referer: ' . $referer));
+curl_setopt($curl, CURLOPT_HTTPHEADER, array('Seeks-Remote-Location: ' . $base_url, 'Accept-Language: ' . $lang_head, 'Proxy-Connection: Close', 'Expect:', 'Referer: ' . $referer));
 
 $result = curl_exec($curl);
 $result_info = curl_getinfo($curl);
