@@ -81,6 +81,7 @@ TEST(WCFTest,cgi_peers)
   cf_configuration::_config = new cf_configuration("");
   cf_configuration::_config->_pl->add("seeks.fr",-1,"","bsn");
   cf_configuration::_config->_pl->add("seeks-project.info",-1,"/search.php","bsn");
+  // @TODO Wont' work, as search_exp.php is not available?
   cf_configuration::_config->_pl->add("seeks-project.info",-1,"/search_exp.php","bsn");
   client_state csp;
   http_response rsp;

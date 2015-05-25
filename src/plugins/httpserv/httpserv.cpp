@@ -1110,6 +1110,8 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
 
   void httpserv::find_bqc(struct evhttp_request *r, void *arg)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "httpserv::find_bqc(): CALLED!");
+
     client_state csp;
     csp._config = seeks_proxy::_config;
     http_response *rsp = new http_response();
@@ -1171,6 +1173,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
                                            input_buffer->off / sizeof(u_char));
 #endif
 
+    errlog::log_error(LOG_LEVEL_DEBUG, "httpserv::find_bqc(): post_content=%s,length()=%d", post_content.c_str(), post_content.length());
     if (post_content.empty())
       {
         httpserv::reply_with_error_400(r); //TODO: proper error type.
@@ -1191,6 +1194,7 @@ t.dtd\"><html><head><title>408 - Seeks fail connection to background search engi
       miscutil::enlist_unique_header(&csp._headers,"host",host);
 
     // call to find_bqc callback.
+    errlog::log_error(LOG_LEVEL_DEBUG, "httpserv::find_bqc(): csp._iob._cur=%s", csp._iob._cur);
     sp_err serr = udb_service::cgi_find_bqc(&csp,rsp,parameters);
     miscutil::list_remove_all(&csp._headers);
     delete[] csp._iob._cur;

@@ -650,7 +650,7 @@ namespace seeks_plugins
                 referer = "";
               }
           }
-        else if (miscutil::strncmpic((*lit),"Seeks-Remote-Location:",22) == 0)
+        else if (miscutil::strncmpic((*lit),"-Seeks-Remote-Location:",22) == 0)
           {
             base_url = (*lit);
             try

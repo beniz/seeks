@@ -21,6 +21,7 @@
 #include "db_query_record.h"
 #include "cf.h"
 #include "seeks_proxy.h"
+#include "encode.h"
 #include "errlog.h"
 
 #include <string.h>
@@ -67,6 +68,8 @@ namespace seeks_plugins
 
     uint32_t expansion = 0;
     std::vector<std::string> qhashes;
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_server::find_bqc_cb(): content=%s", content.c_str());
+
     try
       {
         halo_msg_wrapper::deserialize(content,
@@ -94,12 +97,14 @@ namespace seeks_plugins
       dbr->print(std::cerr);*/
 
     // fill up response.
-    size_t body_size = str.length() * sizeof(char);
+    std::string* encoded = new std::string(encode::url_encode(str.c_str()));
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_server::find_bqc_cb(): encoded=%s(%d)", encoded->c_str(), encoded->length());
+    size_t body_size = encoded->length() * sizeof(char);
     if (!rsp->_body)
       rsp->_body = (char*)std::malloc(body_size);
     rsp->_content_length = body_size;
-    for (size_t i=0; i<str.length(); i++)
-      rsp->_body[i] = str[i];
+    for (size_t i=0; i<encoded->length(); i++)
+      rsp->_body[i] = encoded->at(i);
     delete dbr;
     return SP_ERR_OK;
   }

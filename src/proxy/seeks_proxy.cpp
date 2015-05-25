@@ -966,6 +966,7 @@ namespace sp
          * If there is no memory left for buffering the
          * request, there is nothing we can do but hang up
          */
+        errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::get_request_line(): Calling parsers::add_to_iob(???,%s,%d) ...", buf, len);
         if (parsers::add_to_iob(csp, buf, len))
           {
             return NULL;
@@ -1066,6 +1067,8 @@ namespace sp
                 errlog::log_error(LOG_LEVEL_ERROR, "read from client failed: %E");
                 return SP_ERR_PARSE;
               }
+
+            errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::receive_client_request(): Calling parsers::add_to_iob(???,%s,%d) ...", buf, len);
             if (parsers::add_to_iob(csp, buf, len))
               {
                 /*
@@ -1347,6 +1350,8 @@ namespace sp
     *                +--------+--------+
     *
     */
+
+    errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::chat(): _cur=%s,_eod=%s,%E", csp->_iob._cur, csp->_iob._eod, sizeof(csp->_iob));
 
     if (http->_ssl == 0)
       {
@@ -1812,6 +1817,7 @@ reading_done:
                      * has been reached, switch to non-filtering mode, i.e. make & write the
                      * header, flush the iob and buf, and get out of the way.
                      */
+                    errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::chat(): Calling parsers::add_to_iob(???,%s,%d) ...", buf, len);
                     if (parsers::add_to_iob(csp, buf, len))
                       {
                         size_t hdrlen;
@@ -1878,6 +1884,7 @@ reading_done:
                 * Buffer up the data we just read.  If that fails, there's
                 * little we can do but send our static out-of-memory page.
                 */
+                errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::chat(): Calling parsers::add_to_iob(???,%s,%d) ... #2", buf, len);
                 if (parsers::add_to_iob(csp, buf, len))
                   {
                     errlog::log_error(LOG_LEVEL_ERROR, "Out of memory while looking for end of server headers.");
@@ -2135,6 +2142,7 @@ reading_done:
 
     do
       {
+        errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::serve(): Calling seeks_proxy::chat(csp) for defined FEATURE_CONNECTION_KEEP_ALIVE ...");
         seeks_proxy::chat(csp);
 
         if ((csp->_flags & CSP_FLAG_SERVER_CONNECTION_KEEP_ALIVE)
@@ -2226,6 +2234,7 @@ reading_done:
 
     gateway::mark_connection_closed(&csp->_server_connection);
 #else
+    errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::serve(): Calling seeks_proxy::chat(csp) for undefined FEATURE_CONNECTION_KEEP_ALIVE.");
     seeks_proxy::chat(csp);
 #endif /* def FEATURE_CONNECTION_KEEP_ALIVE */
 
@@ -2578,6 +2587,7 @@ reading_done:
 #ifdef FEATURE_TOGGLE
                 int inherited_toggle_state = seeks_proxy::_global_toggle_state;
 # endif /* def FEATURE_TOGGLE */
+                errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::listen_loop(): Calling seeks_proxy::serve(csp) ...");
                 seeks_proxy::serve(csp);
 
                 /*
@@ -2655,6 +2665,7 @@ reading_done:
           }
         else
           {
+            errlog::log_error(LOG_LEVEL_DEBUG, "seeks_proxy::listen_loop(): Calling seeks_proxy::serve(csp) in else block");
             seeks_proxy::serve(csp);
           }
       }

@@ -72,9 +72,12 @@ namespace sp
     cbget *arg = static_cast<cbget*>(arg_cbget);
 
     CURL *curl = NULL;
+    char* encoded = NULL;
+    char* decoded  = NULL;
 
     if (!arg->_handler)
       {
+        errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Setting default (curl_easy_init()) CURL handler for %s", arg->_url);
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS,5);
@@ -102,10 +105,25 @@ namespace sp
       {
         if (arg->_content)
           {
+            errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Enabling POST request ...");
             curl_easy_setopt(curl, CURLOPT_POST, 1);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void*)arg->_content->c_str());
+            encoded = curl_easy_escape(curl, arg->_content->c_str(), 0);
+            if (!encoded)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR, "pull_one_url(): @TODO curl_easy_escape() failed");
+              }
+            errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Before: %s(%d)", arg->_content->c_str(), arg->_content->length());
+            errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): After: %s(%d)", encoded, strlen(encoded));
+            // Fix encoded length to URL-encoded
+            arg->_content_size = strlen(encoded);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, encoded);
+            // OLD: curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void*)arg->_content->c_str());
+
             if (arg->_content_size >= 0)
-              curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, arg->_content_size);
+              {
+                errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Setting CURLOPT_POSTFIELDSIZE=%d", arg->_content_size);
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, arg->_content_size);
+              }
             /*std::cerr << "curl_mget POST size: " << arg->_content_size << std::endl
               << "content: " << *arg->_content << std::endl;*/
           }
@@ -119,6 +137,7 @@ namespace sp
     struct curl_slist *slist=NULL;
 
     // useful headers.
+    errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Checking arg->_headers=%s ...", arg->_headers);
     if (arg->_headers)
       {
         std::list<const char*>::const_iterator sit = arg->_headers->begin();
@@ -127,12 +146,16 @@ namespace sp
             slist = curl_slist_append(slist,(*sit));
             ++sit;
           }
+        errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Checking arg->_content=%s", arg->_content);
         if (arg->_content)
           {
+            errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Adding content-type=%s and Expect: header", arg->_content_type.c_str());
             slist = curl_slist_append(slist,strdup(arg->_content_type.c_str()));
             slist = curl_slist_append(slist,strdup("Expect:"));
           }
       }
+
+
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 
     char errorbuffer[CURL_ERROR_SIZE];
@@ -151,6 +174,21 @@ namespace sp
                 delete arg->_output;
                 arg->_output = NULL;
               }
+          }
+        else
+          {
+            // "Transparent" URL decoding
+            errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): Before: %s(%d)", arg->_output->c_str(), arg->_output->length());
+            decoded = curl_easy_unescape(curl, arg->_output->c_str(), 0, NULL);
+            if (!decoded)
+              {
+                errlog::log_error(LOG_LEVEL_ERROR, "pull_one_url(): URL decoding failed.");
+                delete arg->_output;
+                arg->_status = 500;
+                arg->_output = NULL;
+              }
+            errlog::log_error(LOG_LEVEL_DEBUG, "pull_one_url(): After: %s(%d)", decoded, strlen(decoded));
+            arg->_output = new std::string(decoded);
           }
       }
     catch (std::exception &e)
@@ -172,6 +210,12 @@ namespace sp
             arg->_output = NULL;
           }
       }
+
+            // Free memory
+            curl_free(decoded);
+
+            // Free memory
+            curl_free(encoded);
 
     if (!arg->_handler)
       curl_easy_cleanup(curl);
@@ -217,8 +261,14 @@ namespace sp
         arg_cbget->_http_method = http_method;
         if (content)
           {
+            errlog::log_error(LOG_LEVEL_DEBUG, "curl_mget::www_mget(): Setting content of length %d bytes", content_size);
             arg_cbget->_content = content;
             arg_cbget->_content_size = content_size;
+            if (content_type.length() > 0)
+              {
+                errlog::log_error(LOG_LEVEL_DEBUG, "curl_mget::www_mget(): Setting content type %s", content_type.c_str());
+                arg_cbget->_content_type = content_type;
+              }
           }
         _cbgets[i] = arg_cbget;
 
@@ -235,11 +285,15 @@ namespace sp
     for (int i=0; i<nrequests; i++)
       {
         int error = pthread_join(tid[i], NULL);
+
+        if (error != 0)
+          errlog::log_error(LOG_LEVEL_ERROR,"Couldn't join thread number %g",i,", errno %g",error);
       }
 
     for (int i=0; i<nrequests; i++)
       {
         _outputs[i] = _cbgets[i]->_output;
+        errlog::log_error(LOG_LEVEL_DEBUG, "curl_mget::www_mget(): i=%d,_output=%s", i, _outputs[i]->c_str());
         status.push_back(_cbgets[i]->_status);
         delete _cbgets[i];
       }

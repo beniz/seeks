@@ -118,6 +118,7 @@ namespace seeks_plugins
     std::string msg;
     try
       {
+        errlog::log_error(LOG_LEVEL_DEBUG, "udb_client::find_bqc(): Calling halo_msg_wrapper::serialize(%d,???,%s) ...", expansion, msg.c_str());
         halo_msg_wrapper::serialize(expansion,qhashes,msg);
       }
     catch(sp_exception &e)
@@ -135,7 +136,7 @@ namespace seeks_plugins
     std::vector<std::string> urls;
     urls.reserve(1);
     urls.push_back(url);
-    errlog::log_error(LOG_LEVEL_DEBUG,"call: %s",url.c_str());
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_client::find_bqc(): url=%s,msg=%s,msg.length()=%d", url.c_str(), msg.c_str(), msg.length());
     std::vector<int> status;
     if (udb_service_configuration::_config->_p2p_proxy_addr.empty())
       cmg.www_mget(urls,1,NULL,"",0,status,
@@ -145,6 +146,7 @@ namespace seeks_plugins
                         udb_service_configuration::_config->_p2p_proxy_addr,
                         udb_service_configuration::_config->_p2p_proxy_port,
                         status,NULL,NULL,"POST",&msg,msg.length()*sizeof(char));
+    errlog::log_error(LOG_LEVEL_DEBUG, "udb_client::find_bqc(): status[0]=%d", status[0]);
     if (status[0] !=0)
       {
         // failed connection.

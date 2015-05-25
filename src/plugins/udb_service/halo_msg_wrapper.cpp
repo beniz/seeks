@@ -29,6 +29,8 @@ namespace seeks_plugins
                                      uint32_t &expansion,
                                      std::vector<std::string> &hashes) throw (sp_exception)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "halo_msg_wrapper::deserialize(): msg=%s,expansion=%d -  CALLED!", msg.c_str(), expansion);
+
     hash_halo h;
     if (!h.ParseFromString(msg))
       {
@@ -39,14 +41,19 @@ namespace seeks_plugins
     expansion = h.expansion();
     for (int i=0; i<h.key_size(); i++)
       hashes.push_back(h.key(i));
+
+    errlog::log_error(LOG_LEVEL_DEBUG, "halo_msg_wrapper::deserialize(): msg=%s,expansion=%d -  EXIT!", msg.c_str(), expansion);
   }
 
   void halo_msg_wrapper::serialize(const uint32_t &expansion,
                                    const hash_multimap<uint32_t,DHTKey,id_hash_uint> &qhashes,
                                    std::string &msg) throw (sp_exception)
   {
+    errlog::log_error(LOG_LEVEL_DEBUG, "halo_msg_wrapper::serialize(): msg=%s,expansion=%d - CALLED!", msg.c_str(), expansion);
+
     hash_halo h;
     h.set_expansion(expansion);
+    errlog::log_error(LOG_LEVEL_DEBUG, "halo_msg_wrapper::serialize(): h.expansion()=%d", h.expansion());
     hash_multimap<uint32_t,DHTKey,id_hash_uint>::const_iterator hit = qhashes.begin();
     while(hit!=qhashes.end())
       {
@@ -60,6 +67,7 @@ namespace seeks_plugins
         errlog::log_error(LOG_LEVEL_ERROR,msg.c_str());
         throw sp_exception(UDBS_ERR_SERIALIZE,msg);
       }
-  }
 
+    errlog::log_error(LOG_LEVEL_DEBUG, "halo_msg_wrapper::serialize(): msg=%s,expansion=%d - EXIT!", msg.c_str(), expansion);
+  }
 } /* end of namespace. */
